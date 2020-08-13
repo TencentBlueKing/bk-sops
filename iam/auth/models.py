@@ -116,6 +116,57 @@ class Resource(BaseObject):
         }
 
 
+class ApiAuthResourceWithId(Resource):
+    __slots__ = ("system", "name", "type", "id")
+
+    def __init__(self, system, type, id, name=""):
+        self.system = system
+        self.type = type
+        self.id = id
+        self.name = name
+        # allow to be empty or none
+
+    def to_dict(self):
+        return {
+            "system": self.system,
+            "type": self.type,
+            "id": self.id,
+            "name": self.name,
+        }
+
+
+class ApiAuthResourceWithPath(Resource):
+    __slots__ = ("system", "path", "type")
+
+    def __init__(self, system, type, path):
+        self.system = system
+        self.type = type
+        self.path = path or []
+        # allow to be empty or none
+
+    def validate(self):
+        # Type check
+        if not isinstance(self.system, six.string_types):
+            raise TypeError("system should be a string")
+
+        if not isinstance(self.type, six.string_types):
+            raise TypeError("type should be a string")
+
+        # Value check
+        if not self.system:
+            raise ValueError("Resource.system should not be empty")
+
+        if not self.type:
+            raise ValueError("Resource.type should not be empty")
+
+    def to_dict(self):
+        return {
+            "system": self.system,
+            "type": self.type,
+            "path": self.path,
+        }
+
+
 @six.add_metaclass(abc.ABCMeta)
 class BaseRequest(BaseObject):
     def __init__(self, system, subject, environment):
@@ -250,3 +301,43 @@ class MultiActionRequest(BaseRequest):
             "resources": [r.to_dict() for r in self.resources] if self.resources else [],
             "environment": self.environment or {},
         }
+
+
+class ApiAuthRequest(Request):
+    __slots__ = ("system", "subject", "action", "resources", "environment", "operate")
+
+    def __init__(self, system, subject, action, resources, environment, operate, asynchronous=None):
+        super(Request, self).__init__(system, subject, environment)
+        self.action = action
+        self.resources = resources
+        self.operate = operate
+        self.asynchronous = asynchronous
+
+    def _validate_type(self):
+        super(ApiAuthRequest, self)._validate_type()
+        if not isinstance(self.operate, six.string_types):
+            raise TypeError("operate should be a string")
+
+    def _validate_value(self):
+        # Value check
+        try:
+            self.action.validate()
+        except Exception as e:
+            raise ValueError("Request.action invalid: %s" % e)
+        if not self.operate:
+            raise ValueError("ApiAuthRequest.operate should not be empty")
+
+    def to_dict(self):
+        request_dict = {
+            "system": self.system,
+            "subject": self.subject.to_dict() if self.subject else {},
+            "action": self.action.to_dict(),
+            "resources": [r.to_dict() for r in self.resources] if self.resources else [],
+            "environment": self.environment or {},
+            "operate": self.operate,
+        }
+
+        if self.asynchronous is not None:
+            request_dict["asynchronous"] = self.asynchronous
+
+        return request_dict

@@ -13,17 +13,20 @@
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
+                ref="templateHeader"
                 :name="name"
                 :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
+                :is-global-variable-update="isGlobalVariableUpdate"
                 :is-template-data-changed="isTemplateDataChanged"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
+                :active-tab="activeSettingTab"
                 :tpl-actions="tplActions"
                 @onChangeName="onChangeName"
-                @onNewDraft="onNewDraft"
+                @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <SubflowUpdateTips
@@ -48,64 +51,47 @@
                 :node-memu-open.sync="nodeMenuOpen"
                 @hook:mounted="canvasMounted"
                 @onConditionClick="onOpenConditionEdit"
-                @variableDataChanged="variableDataChanged"
+                @templateDataChanged="templateDataChanged"
                 @onNodeMousedown="onNodeMousedown"
-                @onShowNodeConfig="onShowNodeConfig"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
                 @onFormatPosition="onFormatPosition"
-                @onReplaceLineAndLocation="onReplaceLineAndLocation">
+                @onReplaceLineAndLocation="onReplaceLineAndLocation"
+                @onShowNodeConfig="onShowNodeConfig">
             </TemplateCanvas>
             <div class="side-content">
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
-                    :is-show="isNodeConfigPanelShow"
+                    :is-show.sync="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
-                    :is-setting-panel-show="isSettingPanelShow"
-                    :setting-active-tab="settingActiveTab"
                     @globalVariableUpdate="globalVariableUpdate"
-                    @hide="hideConfigPanel">
+                    @updateNodeInfo="onUpdateNodeInfo"
+                    @templateDataChanged="templateDataChanged"
+                    @close="closeConfigPanel">
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
-                    :is-show="isShowConditionEdit"
+                    :is-show.sync="isShowConditionEdit"
                     :condition-data="conditionData"
-                    :is-setting-panel-show="isSettingPanelShow"
-                    :setting-active-tab="settingActiveTab"
-                    :is-show-condition-edit="isShowConditionEdit"
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
                 <template-setting
-                    ref="templateSetting"
-                    :draft-array="draftArray"
-                    :is-global-variable-update="isGlobalVariableUpdate"
                     :project-info-loading="projectInfoLoading"
                     :is-template-config-valid="isTemplateConfigValid"
-                    :is-setting-panel-show="isSettingPanelShow"
-                    :is-node-config-panel-show="isNodeConfigPanelShow"
-                    :variable-type-list="variableTypeList"
-                    :local-template-data="localTemplateData"
-                    :is-click-draft="isClickDraft"
-                    :is-fixed-var-menu="isFixedVarMenu"
-                    @toggleSettingPanel="toggleSettingPanel"
-                    @globalVariableUpdate="globalVariableUpdate"
-                    @variableDataChanged="variableDataChanged"
-                    @fixedVarMenuChange="fixedVarMenuChange"
-                    @onSelectCategory="onSelectCategory"
-                    @onDeleteDraft="onDeleteDraft"
-                    @onReplaceTemplate="onReplaceTemplate"
-                    @onNewDraft="onNewDraft"
-                    @updateDraft="updateDraft"
+                    :active-tab.sync="activeSettingTab"
+                    :snapshoots="snapshoots"
+                    @templateDataChanged="templateDataChanged"
                     @onCitedNodeClick="onCitedNodeClick"
-                    @updateLocalTemplateData="updateLocalTemplateData"
                     @modifyTemplateData="modifyTemplateData"
-                    @hideConfigPanel="hideConfigPanel">
+                    @createSnapshoot="onCreateSnapshoot"
+                    @useSnapshoot="onUseSnapshoot"
+                    @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
             <bk-dialog
@@ -139,7 +125,7 @@
     import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
-    import draft from '@/utils/draft.js'
+    import tplSnapshoot from '@/utils/tplSnapshoot.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -166,34 +152,26 @@
                 templateSaving: false,
                 createTaskSaving: false,
                 saveAndCreate: false,
+                pid: undefined, // 公共流程创建任务需要跳转到所选业务
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
-                isSettingPanelShow: true,
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
-                isFixedVarMenu: false, // 全局变量面板铆钉
-                variableTypeList: [], // 自定义变量类型列表
-                customVarCollectionLoading: false,
+                activeSettingTab: '',
                 allowLeave: false,
-                settingActiveTab: 'globalVariableTab',
-                lastOpenPanelName: '', // 最近一次打开的面板名
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
-                idOfNodeShortcutPanel: '',
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
                 },
-                draftArray: [],
-                intervalSaveTemplate: null,
-                intervalGetDraftArray: null,
-                templateUUID: uuid(),
-                localTemplateData: null,
-                isClickDraft: false,
+                snapshoots: [],
+                snapshootTimer: null,
+                tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
                 nodeGuideConfig: {
@@ -238,9 +216,6 @@
                 'timeZone': state => state.timezone,
                 'project_id': state => state.project_id
             }),
-            projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
-                return this.common ? 'common' : this.project_id
-            },
             canvasData () {
                 const branchConditions = {}
                 for (const gKey in this.gateways) {
@@ -282,10 +257,6 @@
                     branchConditions
                 }
             },
-            // draftProjectId
-            draftProjectId () {
-                return this.common ? 'common' : this.project_id
-            },
             subflowShouldUpdated () {
                 if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
                     return this.subprocess_info.details
@@ -296,9 +267,9 @@
         async created () {
             this.initTemplateData()
             // 获取流程内置变量
+            this.getSystemVars()
             this.templateDataLoading = true
-            const result = await this.loadInternalVariable()
-            this.setInternalVariable(result.data || [])
+            this.snapshoots = this.getTplSnapshoots()
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
@@ -306,43 +277,19 @@
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
-
-            // 复制并替换本地缓存的内容
-            if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.projectOrCommon, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
-            } else {
-                // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            }
-            // 五分钟进行存储本地缓存
-            const fiveMinutes = 1000 * 60 * 5
-            this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
-            }, fiveMinutes)
-
-            // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
-            const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
-            this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
             this.getSingleAtomList()
             this.getProjectBaseInfo()
-            this.getCustomVarCollection()
+            this.openSnapshootTimer()
             window.onbeforeunload = function () {
                 return i18n.t('系统不会保存您所做的更改，确认离开？')
             }
-            window.addEventListener('click', this.handleSidesPanelShow, false)
-            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             window.onbeforeunload = null
             this.resetTemplateData()
             this.hideGuideTips()
-            window.removeEventListener('click', this.handleSidesPanelShow, false)
-            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('template/', [
@@ -351,8 +298,8 @@
                 'saveTemplateData',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
-                'loadInternalVariable',
-                'getLayoutedPipeline'
+                'getLayoutedPipeline',
+                'loadInternalVariable'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
@@ -374,10 +321,10 @@
                 'setStartpoint',
                 'setEndpoint',
                 'setBranchCondition',
-                'setInternalVariable',
                 'replaceTemplate',
                 'replaceLineAndLocation',
-                'setPipelineTree'
+                'setPipelineTree',
+                'setInternalVariable'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -386,6 +333,9 @@
                 'getLocalTemplateData',
                 'getPipelineTree'
             ]),
+            /**
+             * 加载标准插件列表
+             */
             async getSingleAtomList () {
                 this.singleAtomListLoading = true
                 try {
@@ -416,11 +366,14 @@
                     this.singleAtomListLoading = false
                 }
             },
+            /**
+             * 加载项目基础信息
+             */
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 try {
                     const resp = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(resp)
+                    this.setProjectBaseInfo(resp.data)
                     this.getSubflowList()
                 } catch (e) {
                     errorHandler(e, this)
@@ -428,6 +381,9 @@
                     this.projectInfoLoading = false
                 }
             },
+            /**
+             * 加载子流程列表
+             */
             async getSubflowList (subAtomData) {
                 this.subAtomListLoading = true
                 try {
@@ -444,35 +400,9 @@
                     this.subAtomListLoading = false
                 }
             },
-            async getCustomVarCollection () {
-                this.customVarCollectionLoading = true
-                try {
-                    const customVarCollection = await this.loadCustomVarCollection()
-                    const listData = [
-                        {
-                            name: i18n.t('普通变量'),
-                            children: []
-                        },
-                        {
-                            name: i18n.t('元变量'),
-                            children: []
-                        }
-                    ]
-                    customVarCollection.forEach(item => {
-                        if (item.type === 'general') {
-                            listData[0].children.push(item)
-                        } else {
-                            listData[1].children.push(item)
-                        }
-                    })
-                    this.variableTypeList = listData
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.customVarCollectionLoading = false
-                }
-            },
-            // 获取模板详情
+            /**
+             * 获取模板详情
+             */
             async getTemplateData () {
                 try {
                     const data = {
@@ -517,10 +447,13 @@
                     this.atomConfigLoading = false
                 }
             },
+            /**
+             * 加载子流程输入参数表单及配置项
+             */
             async getSubflowConfig (location) { // get subflow constants and add node
                 try {
-                    const subflowConfig = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
-                    const constants = tools.deepClone(subflowConfig.form)
+                    const res = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
+                    const constants = tools.deepClone(res.data.form)
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
@@ -548,6 +481,23 @@
                     errorHandler(e, this)
                 }
             },
+            /**
+             * 加载系统内置变量
+             */
+            async getSystemVars () {
+                try {
+                    this.systemVarsLoading = true
+                    const result = await this.loadInternalVariable()
+                    this.setInternalVariable(result.data)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.systemVarsLoading = false
+                }
+            },
+            /**
+             * 保存流程模板
+             */
             async saveTemplate () {
                 const template_id = this.type === 'edit' ? this.template_id : undefined
                 if (this.saveAndCreate) {
@@ -559,16 +509,13 @@
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
-                    if (template_id === undefined) {
-                        // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
-                    }
                     this.$bkMessage({
                         message: i18n.t('保存成功'),
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
+                        this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
@@ -583,10 +530,16 @@
                     errorHandler(e, this)
                 } finally {
                     this.saveAndCreate = false
+                    this.pid = undefined
                     this.templateSaving = false
                     this.createTaskSaving = false
                 }
             },
+            /**
+             * 更新普通任务节点配置详情
+             * @param {Object} location 节点对象
+             * @param {Array} config 节点输入参数配置项
+             */
             addSingleAtomActivities (location, config) {
                 const data = {}
                 const defaultValue = atomFilter.getFormItemDefaultValue(config)
@@ -600,7 +553,9 @@
                 activities.component.data = data
                 this.setActivities({ type: 'edit', location: activities })
             },
-            // 标准插件分组
+            /**
+             * 标准插件分组
+             */
             handleAtomGroup (data) {
                 const grouped = []
                 data.forEach(item => {
@@ -619,9 +574,12 @@
                 })
                 this.atomTypeList.tasknode = grouped
             },
-            // 子流程分组
+            /**
+             * 子流程分组
+             */
             handleSubflowGroup (data) {
                 const tplList = data.objects
+                const reqPermssion = this.common ? ['common_flow_view'] : ['flow_view']
                 const groups = this.projectBaseInfo.task_categories.map(item => {
                     return {
                         type: item.value,
@@ -634,7 +592,7 @@
                     if (item.id !== Number(this.template_id)) {
                         const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
-                            item.hasPermission = this.hasPermission(['flow_view'], item.auth_actions)
+                            item.hasPermission = this.hasPermission(reqPermssion, item.auth_actions)
                             group.list.push(item)
                         }
                     }
@@ -642,88 +600,25 @@
 
                 this.atomTypeList.subflow = { groups }
             },
-            toggleSettingPanel (isSettingPanelShow, activeTab) {
-                const clientX = document.body.clientWidth
-                // 分辨率 1920 以下，显示 setting 面板时需隐藏节点配置面板
-                if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
-                    this.hideConfigPanel()
-                }
-                if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
-                    this.onCloseConditionEdit()
-                }
-                if (isSettingPanelShow) {
-                    this.lastOpenPanelName = 'settingPanel'
-                }
-                this.isSettingPanelShow = isSettingPanelShow
-                this.settingActiveTab = activeTab
-            },
+            /**
+             * 打开节点配置面板
+             * @param {String} id 节点uuid
+             */
             showConfigPanel (id) {
-                this.variableDataChanged()
                 this.isNodeConfigPanelShow = true
                 this.idOfNodeInConfigPanel = id
-                this.lastOpenPanelName = 'nodeConfigPanel'
-            },
-            // 关闭配置面板
-            hideConfigPanel (asyncData = true) {
-                if (this.isNodeConfigPanelShow) {
-                    if (asyncData) {
-                        this.syncAndValidateNodeConfig().then(result => {
-                            this.isNodeConfigPanelShow = false
-                            this.idOfNodeInConfigPanel = ''
-                        }).catch(e => {
-                            this.isNodeConfigPanelShow = false
-                            this.idOfNodeInConfigPanel = ''
-                        })
-                    } else {
-                        this.isNodeConfigPanelShow = false
-                        this.idOfNodeInConfigPanel = ''
-                    }
-                }
-            },
-            syncAndValidateNodeConfig () {
-                const { skippable, retryable, selectable } = this.$refs.nodeConfig.getBasicInfo()
-                const config = {
-                    skippable,
-                    retryable,
-                    optional: selectable
-                }
-                this.$refs.nodeConfig.syncActivity()
-                return this.$refs.nodeConfig.validate().then(result => {
-                    config.status = result ? '' : 'FAILED'
-                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
-                    return result
-                }, validator => {
-                    config.status = 'FAILED'
-                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
-                })
             },
             /**
-             * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
-             * 切换到节点配置面板(会自动关闭变量面板)，保留状态，待节点配置面板关闭后重新打开
+             * 关闭节点配置面板
              */
-            reopenGlobalVarPanel () {
-                if (this.isFixedVarMenu && document.body.clientWidth < 1920) {
-                    this.$refs.templateSetting.setErrorTab('globalVariableTab')
-                }
-            },
-            onWindowResize () {
-                const clientX = document.body.clientWidth
-                // 在配置面板和setting面板双开时，屏幕突然改变保留最近打开的面板
-                if (clientX < 1920
-                    && this.isNodeConfigPanelShow
-                    && this.isSettingPanelShow
-                    && ['templateDataEditTab', 'globalVariableTab'].includes(this.settingActiveTab)) {
-                    if (this.lastOpenPanelName === 'settingPanel') {
-                        this.hideConfigPanel()
-                    } else {
-                        this.toggleSettingPanel(false)
-                    }
-                }
+            closeConfigPanel () {
+                this.isNodeConfigPanelShow = false
+                this.idOfNodeInConfigPanel = ''
             },
             /**
-             * 标识模板是否被编辑
+             * 设置流程模板为修改状态
              */
-            variableDataChanged () {
+            templateDataChanged () {
                 this.isTemplateDataChanged = true
             },
             /**
@@ -747,7 +642,7 @@
                         } else {
                             isNodeValid = false // 节点标准插件类型为空
                         }
-                    } else {
+                    } else { // @todo 子流程节点只校验名称和模板id，输入参数未校验
                         if (!node.name || node.template_id === undefined) {
                             isNodeValid = false
                         }
@@ -765,7 +660,10 @@
                 }
                 return isAllValid
             },
-            // 校验输入参数是否满足标准插件配置文件正则校验
+            /**
+             * 校验输入参数是否满足标准插件配置文件正则校验
+             * @param {Object} component 普通任务节点 component 字段
+             */
             validateAtomInputForm (component) {
                 const { code, data, version } = component
                 if (!data) return false
@@ -779,7 +677,11 @@
                 }
                 return true
             },
-            // tag 表单校验
+            /**
+             * 校验节点输入参数
+             * @param {Array} config 标准插件配置项
+             * @param {Object} formData 输入参数表单值
+             */
             checkAtomData (config, formData) {
                 let isValid = true
                 config.forEach(item => {
@@ -827,23 +729,20 @@
              * 节点 Mousedown 回调
              */
             onNodeMousedown (id) {
-                this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+                this.$refs.conditionEdit && this.$refs.conditionEdit.confirm()
             },
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id, hideSettingPanel = true) {
-                if (this.isShowConditionEdit) {
-                    this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
-                }
-                if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
-                    this.toggleSettingPanel(false)
-                }
+            onShowNodeConfig (id) {
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)
                 }
             },
+            /**
+             * 自动排版
+             */
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
@@ -868,13 +767,13 @@
                         start: START_POSITION
                     })
                     if (res.result) {
-                        this.onNewDraft(undefined, false)
+                        this.onCreateSnapshoot()
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
                             this.$refs.templateCanvas.onResetPosition()
-                            this.variableDataChanged()
+                            this.templateDataChanged()
                             this.$bkMessage({
                                 message: i18n.t('排版完成，原内容在本地快照中'),
                                 theme: 'success'
@@ -889,6 +788,11 @@
                     this.canvasDataLoading = false
                 }
             },
+            /**
+             * 节点变更(添加、删除、编辑)
+             * @param {String} changeType 变更类型,添加、删除、编辑
+             * @param {Object} location 节点 location 字段
+             */
             onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
@@ -910,13 +814,6 @@
                             }
                             return
                         }
-                        // 删除任务节点
-                        if (changeType === 'delete') {
-                            if (this.idOfNodeInConfigPanel === location.id) {
-                                this.idOfNodeInConfigPanel = ''
-                            }
-                            this.hideConfigPanel()
-                        }
                         this.setActivities({ type: changeType, location })
                         break
                     case 'branchgateway':
@@ -932,16 +829,29 @@
                         break
                 }
             },
+            /**
+             * 连线变更(新增、删除)
+             * @param {String} changeType 变更类型，新增、删除
+             * @param {Object} line 连线对象
+             */
             onLineChange (changeType, line) {
                 this.setLine({ type: changeType, line })
             },
+            /**
+             * 节点位置移动
+             */
             onLocationMoveDone (location) {
                 this.setLocationXY(location)
             },
-            // 全局变量是否有更新，面板收起的情况下增加、删除变量时在 icon 处显示小红点
+            /**
+             * 全局变量是否有更新，面板收起的情况下增加、删除变量时在 icon 处显示小红点
+             */
             globalVariableUpdate (val) {
                 this.isGlobalVariableUpdate = val
             },
+            /**
+             * 更新单个节点的信息
+             */
             onUpdateNodeInfo (id, data) {
                 const location = this.canvasData.locations.find(item => item.id === id)
                 const updatedLocation = Object.assign(location, data)
@@ -950,20 +860,21 @@
             },
             // 流程名称修改
             onChangeName (name) {
-                this.variableDataChanged()
+                this.templateDataChanged()
                 this.setTemplateName(name)
             },
-            // 基础属性-->模板分类修改
-            onSelectCategory (value) {
-                if (value) {
-                    this.isTemplateConfigValid = true
+            // 选择侧滑面板
+            onChangeSettingPanel (val) {
+                this.activeSettingTab = val
+                if (this.isGlobalVariableUpdate && val === 'globalVariableTab') {
+                    this.isGlobalVariableUpdate = false
                 }
             },
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: this.pid },
                     query: {
                         template_id,
                         common: this.common,
@@ -972,63 +883,25 @@
                 })
             },
             // 点击保存模板按钮回调
-            onSaveTemplate (saveAndCreate) {
+            onSaveTemplate (saveAndCreate, pid) {
                 if (this.templateSaving || this.createTaskSaving) {
                     return
                 }
                 this.saveAndCreate = saveAndCreate
-                this.checkVariable() // 全局变量是否合法
-            },
-            // 校验全局变量
-            checkVariable () {
-                const templateSetting = this.$refs.templateSetting
-                if (templateSetting.isEditPanelOpen()) {
-                    templateSetting.saveVariable().then(result => {
-                        if (!result) {
-                            templateSetting.setErrorTab('globalVariableTab')
-                            return
-                        }
-                        this.checkBasicProperty() // 基础属性是否合法
-                    })
-                } else {
-                    this.checkBasicProperty() // 基础属性是否合法
-                }
+                this.pid = pid
+                this.checkBasicProperty() // 基础属性是否合法
             },
             // 校验基础属性
             checkBasicProperty () {
-                const templateSetting = this.$refs.templateSetting
                 // 模板分类是否选择
                 if (!this.category) {
                     this.isTemplateConfigValid = false
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    templateSetting.setErrorTab('templateConfigTab')
+                    this.activeSettingTab = 'templateConfigTab'
                     return
                 }
-                this.asyncNodeConfig() // 节点配置面板
-            },
-            // 同步节点配置面板数据
-            asyncNodeConfig () {
-                if (this.isNodeConfigPanelShow) {
-                    this.syncAndValidateNodeConfig().then(result => {
-                        if (result) {
-                            this.asyncConditionData()
-                        }
-                    })
-                } else {
-                    this.asyncConditionData()
-                }
-            },
-            // 同步分支条件面板数据
-            asyncConditionData () {
-                if (this.isShowConditionEdit) {
-                    this.onSaveConditionData().then(isValid => {
-                        if (!isValid) return
-                        this.checkNodeAndSaveTemplate()
-                    })
-                } else {
-                    this.checkNodeAndSaveTemplate()
-                }
+                this.checkNodeAndSaveTemplate()
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
@@ -1049,7 +922,11 @@
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
                 if (isAllNodeValid && isAllConditionValid) {
-                    this.saveTemplate()
+                    if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
+                        this.$refs.templateHeader.setProjectSelectDialogShow()
+                    } else {
+                        this.saveTemplate()
+                    }
                 }
             },
             onLeaveConfirm () {
@@ -1061,89 +938,12 @@
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
             },
-            // 删除本地缓存
-            onDeleteDraft (key) {
-                if (draft.deleteDraft(key)) {
-                    this.$bkMessage({
-                        'message': i18n.t('删除本地缓存成功'),
-                        'theme': 'success'
-                    })
-                } else {
-                    this.$bkMessage({
-                        'message': i18n.t('该本地缓存不存在，删除失败'),
-                        'theme': 'error'
-                    })
-                }
-                // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            },
-            // 模板替换
-            onReplaceTemplate (data) {
-                const { templateData, type, index } = data
-                if (type === 'replace') {
-                    draft.addDraft(
-                        this.username,
-                        this.projectOrCommon,
-                        this.getTemplateIdOrTemplateUUID(),
-                        this.getLocalTemplateData(),
-                        i18n.t('最近快照已保存，并恢复至序号') + index + i18n.t('号的快照'))
-                    this.$bkMessage({
-                        'message': i18n.t('替换流程成功'),
-                        'theme': 'success'
-                    })
-                }
-                this.templateDataLoading = true
-                this.replaceTemplate(templateData)
-                // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-                this.$nextTick(() => {
-                    this.templateDataLoading = false
-                    this.$nextTick(() => {
-                        this.isClickDraft = type === 'replace'
-                        this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
-                        this.upDataAllNodeInfo()
-                    })
-                })
-            },
-            // 新增本地缓存
-            onNewDraft (message, isMessage = true) {
-                // 创建本地缓存
-                if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.projectOrCommon, this.templateUUID, this.getLocalTemplateData(), message)
-                    // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
-                } else {
-                    draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
-                    // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-                }
-                if (isMessage) {
-                    this.$bkMessage({
-                        'message': i18n.t('新增流程本地快照成功'),
-                        'theme': 'success'
-                    })
-                }
-            },
-            // 更新某次快照信息
-            updateDraft (key, data) {
-                draft.updateDraft(key, data)
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            },
             // 修改line和location
             onReplaceLineAndLocation (data) {
                 this.replaceLineAndLocation(data)
             },
-            getTemplateIdOrTemplateUUID () {
-                if (this.template_id === undefined || this.template_id === '') {
-                    return this.templateUUID
-                }
-                return this.template_id
-            },
-            updateLocalTemplateData () {
-                this.localTemplateData = this.getLocalTemplateData()
-            },
             // 重新获得缓存后，更新 dom data[raw]上绑定的数据
-            upDataAllNodeInfo () {
+            updateAllNodeInfo () {
                 const nodes = this.activities
                 Object.keys(nodes).forEach((node, index) => {
                     this.onUpdateNodeInfo(node, {
@@ -1159,8 +959,6 @@
             },
             // 打开分支条件编辑
             onOpenConditionEdit (data) {
-                this.toggleSettingPanel(false)
-                this.hideConfigPanel()
                 this.isShowConditionEdit = true
                 this.$refs.conditionEdit.updateConditionData(data)
             },
@@ -1234,39 +1032,6 @@
             canvasMounted () {
                 this.handlerGuideTips()
             },
-            // 所有侧滑面板以外点击事件处理
-            handleSidesPanelShow (e) {
-                if (
-                    !this.isNodeConfigPanelShow
-                    && !this.isSettingPanelShow
-                    && !this.isShowConditionEdit
-                ) {
-                    return
-                }
-                let panel
-                if (this.isSettingPanelShow) {
-                    panel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
-                }
-                if (this.isShowConditionEdit) {
-                    panel = document.querySelector('.condition-edit .bk-sideslider-wrapper')
-                }
-                if (this.isNodeConfigPanelShow) {
-                    panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
-                }
-                if (panel) {
-                    const { left, top } = panel.getBoundingClientRect()
-                    const pageX = left + document.documentElement.scrollLeft
-                    const pageY = top + document.documentElement.scrollTop
-                    if (
-                        (e.pageX > 0 && e.pageY > 0) // 上传组件点击时，触发区域隐藏在页面左上角
-                        && (e.pageX < pageX || e.pageY < pageY)
-                    ) {
-                        this.isNodeConfigPanelShow && this.hideConfigPanel(true)
-                        !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
-                        this.isShowConditionEdit && this.onCloseConditionEdit()
-                    }
-                }
-            },
             // 查看需要更新的子流程
             viewUpdatedNode (id) {
                 this.moveNodeToView(id)
@@ -1274,7 +1039,8 @@
             },
             // 全局变量引用节点点击回调
             onCitedNodeClick (nodeId) {
-                this.moveNodeToView(nodeId)
+                this.activeSettingTab = ''
+                this.showConfigPanel(nodeId)
             },
             /**
              * 移动画布，将节点放到画布左上角
@@ -1312,21 +1078,89 @@
                     item.classList.remove('show-animation')
                 })
             },
-            fixedVarMenuChange (val) {
-                this.isFixedVarMenu = val
+            // 本地快照面板新增快照
+            onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                this.setTplSnapshoot()
+                this.$bkMessage({
+                    message,
+                    theme: 'success'
+                })
+                this.snapshoots = this.getTplSnapshoots()
+                this.openSnapshootTimer()
+            },
+            // 使用快照还原流程模板
+            onUseSnapshoot (args) {
+                const [template, index] = args
+                const name = i18n.t('最近快照已保存，并恢复至原序号为') + index + i18n.t('的快照')
+                this.setTplSnapshoot(name)
+                this.replaceTemplate(template)
+                this.templateDataLoading = true
+                // this.hideConfigPanel()
+                this.$nextTick(() => {
+                    this.templateDataLoading = false
+                    this.snapshoots = this.getTplSnapshoots()
+                    this.$bkMessage({
+                        'message': i18n.t('替换流程成功'),
+                        'theme': 'success'
+                    })
+                    // 更新画布节点状态，需要画布数据更新到 DOM 后再执行
+                    this.$nextTick(() => {
+                        this.updateAllNodeInfo()
+                    })
+                })
+            },
+            // 更新快照名称
+            onUpdateSnapshoot (data) {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                tplSnapshoot.update(this.username, id, tpl, data)
+                this.snapshoots = this.getTplSnapshoots()
+            },
+            // 设置快照定时器
+            openSnapshootTimer () {
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                this.snapshootTimer = setTimeout(() => {
+                    this.setTplSnapshoot()
+                    this.snapshoots = this.getTplSnapshoots()
+                    this.openSnapshootTimer()
+                }, 5 * 60 * 1000)
+            },
+            // 添加快照
+            setTplSnapshoot (name = i18n.t('自动保存')) {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                const data = {
+                    name,
+                    timestamp: new Date().getTime(),
+                    template: this.getLocalTemplateData()
+                }
+                tplSnapshoot.create(this.username, id, tpl, data)
+            },
+            // 获取快照列表
+            getTplSnapshoots () {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                return tplSnapshoot.getTplSnapshoots(this.username, id, tpl).slice().reverse()
+            },
+            // 清除临时快照
+            clearTempSnapshoot () {
+                const id = this.common ? 'common' : this.project_id
+                tplSnapshoot.deleteTplSnapshoots(this.username, id, this.tplUUID)
+            },
+            // 保存临时快照为改流程模板快照
+            saveTempSnapshoot (templateId) {
+                const id = this.common ? 'common' : this.project_id
+                tplSnapshoot.replaceSnapshootTplKey(this.username, id, this.tplUUID, templateId)
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
             if (this.allowLeave || !this.isTemplateDataChanged) {
-                // 退出时需要关闭定时器
-                clearInterval(this.intervalSaveTemplate)
-                clearInterval(this.intervalGetDraftArray)
-                const template_id = this.getTemplateIdOrTemplateUUID()
-                // 如果是 uuid 或者克隆的模板会进行删除
-                if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.projectOrCommon, this.templateUUID)
-                }
                 this.clearAtomForm()
+                // 清除快照定时器
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                // 流程模板为克隆和新建状态且为保存时，退出需要清除快照
+                this.type !== 'edit' && this.clearTempSnapshoot()
                 next()
             } else {
                 this.leaveToPath = to.fullPath
@@ -1365,7 +1199,6 @@
         top: 59px;
         right: 0px;
         height: calc(100% - 58px);
-        z-index: 5;
     }
     .leave-tips {
         padding: 30px;

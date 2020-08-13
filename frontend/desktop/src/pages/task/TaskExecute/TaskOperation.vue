@@ -61,7 +61,8 @@
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
-                    :instance_id="instance_id">
+                    :instance_id="instance_id"
+                    @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
@@ -832,14 +833,35 @@
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
-            // 查看参数、修改参数
-            onTaskParamsClick (type) {
-                if (this.nodeInfoType === type) {
-                    this.isNodeInfoPanelShow = false
-                    this.nodeInfoType = ''
-                } else {
-                    this.isNodeInfoPanelShow = true
-                    this.nodeInfoType = type
+            
+            // 查看参数、修改参数（侧滑组件 标题 点击遮罩隐藏）
+            onTaskParamsClick (type, isNodeInfoPanelShow, name) {
+                let nodeData = tools.deepClone(this.nodeData)
+                let firstNodeId = null
+                let firstNodeData = null
+                while (nodeData[0]) {
+                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                        firstNodeId = nodeData[0].id
+                        firstNodeData = nodeData[0]
+                        nodeData[0] = false
+                    } else {
+                        nodeData = nodeData[0].children
+                    }
+                }
+                this.sideSliderTitle = name
+                this.isNodeInfoPanelShow = isNodeInfoPanelShow
+                this.nodeInfoType = type
+                this.quickClose = true
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
+                    if (type === 'modifyParams' && !this.paramsCanBeModify) {
+                        this.quickClose = true
+                    } else {
+                        this.quickClose = false
+                    }
+                }
+                if (name === i18n.t('节点详情')) {
+                    this.defaultActiveId = firstNodeId
+                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
             },
             
@@ -1125,6 +1147,10 @@
             unclickableOperation (type) {
                 // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
                 return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
+            },
+            packUp () {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             }
         }
     }
@@ -1161,7 +1187,8 @@
                 color: #2dcb56;
             }
         }
-        &.RUNNING {
+        &.RUNNING,
+        &.READY {
             background-color: #cfdffb;
             border-top: 1px solid #c0d4f8;
             border-bottom: 1px solid #c0d4f8;

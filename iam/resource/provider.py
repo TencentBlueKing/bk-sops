@@ -47,7 +47,7 @@ class ResourceProvider(object):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def fetch_instance_info(self, filter, page, **options):
+    def fetch_instance_info(self, filter, **options):
         """
         处理来自 iam 的 fetch_instance_info 请求
         return: ListResult

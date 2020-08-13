@@ -24,7 +24,7 @@ from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
 
-__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url"]
+__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url", "plat_ip_reg"]
 
 JOB_APP_CODE = "bk_job"
 
@@ -81,16 +81,16 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                     topo_ip = "{set}|{module}|{ip}".format(
                         set=parent_set["bk_set_name"],
                         module=parent_module["bk_module_name"],
-                        ip=ip_info["host"]["bk_host_innerip"],
+                        ip=ip_info["host"].get("bk_host_innerip", ""),
                     )
 
                     if topo_ip in set_module_ip_list:
                         match = True
                         ip_result.append(
                             {
-                                "InnerIP": ip_info["host"]["bk_host_innerip"],
+                                "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                                 "HostID": ip_info["host"]["bk_host_id"],
-                                "Source": ip_info["host"]["bk_cloud_id"],
+                                "Source": ip_info["host"].get("bk_cloud_id", -1),
                                 "SetID": parent_set["bk_set_id"],
                                 "SetName": parent_set["bk_set_name"],
                                 "ModuleID": parent_module["bk_module_id"],
@@ -105,12 +105,15 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
             plat_ip.append(match.group())
 
         for ip_info in ip_list:
-            if "%s:%s" % (ip_info["host"]["bk_cloud_id"], ip_info["host"]["bk_host_innerip"],) in plat_ip:
+            if (
+                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
+                in plat_ip
+            ):
                 ip_result.append(
                     {
-                        "InnerIP": ip_info["host"]["bk_host_innerip"],
+                        "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                         "HostID": ip_info["host"]["bk_host_id"],
-                        "Source": ip_info["host"]["bk_cloud_id"],
+                        "Source": ip_info["host"].get("bk_cloud_id", -1),
                     }
                 )
 
@@ -122,12 +125,12 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         host_id_list = []
         for ip_info in ip_list:
-            if ip_info["host"]["bk_host_innerip"] in ip and ip_info["host"]["bk_host_id"] not in host_id_list:
+            if ip_info["host"].get("bk_host_innerip", "") in ip and ip_info["host"]["bk_host_id"] not in host_id_list:
                 ip_result.append(
                     {
-                        "InnerIP": ip_info["host"]["bk_host_innerip"],
+                        "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                         "HostID": ip_info["host"]["bk_host_id"],
-                        "Source": ip_info["host"]["bk_cloud_id"],
+                        "Source": ip_info["host"].get("bk_cloud_id", -1),
                     }
                 )
                 host_id_list.append(ip_info["host"]["bk_host_id"])
@@ -144,17 +147,23 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
 
 def get_job_instance_url(biz_cc_id, job_instance_id):
-    url_format = "%s?taskInstanceList&appId=%s#taskInstanceId=%s"
 
-    if settings.OPEN_VER == "community":
-        return url_format % (settings.BK_JOB_HOST, biz_cc_id, job_instance_id,)
+    if settings.BK_JOB_VERSION == "V2":
+        url_format = "%s?taskInstanceList&appId=%s#taskInstanceId=%s"
 
+        if settings.OPEN_VER == "community":
+            return url_format % (settings.BK_JOB_HOST, biz_cc_id, job_instance_id,)
+
+        else:
+            query = {
+                "app": JOB_APP_CODE,
+                "url": url_format % (settings.BK_JOB_HOST, biz_cc_id, job_instance_id,),
+            }
+            return "%s/console/?%s" % (settings.BK_PAAS_HOST, urlencode(query))
     else:
-        query = {
-            "app": JOB_APP_CODE,
-            "url": url_format % (settings.BK_JOB_HOST, biz_cc_id, job_instance_id,),
-        }
-        return "%s/console/?%s" % (settings.BK_PAAS_HOST, urlencode(query))
+        url_format = "{}/api_execute/{}"
+
+        return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
 
 def get_node_callback_url(node_id):

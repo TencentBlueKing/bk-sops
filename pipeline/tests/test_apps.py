@@ -32,7 +32,7 @@ class TestApps(TestCase):
             with patch(APPS_SENTINEL, sentinel):
                 r = apps.get_client_through_sentinel()
 
-                sentinel.assert_called_once_with([("1.1.1.1", "123456")])
+                sentinel.assert_called_once_with([("1.1.1.1", "123456")], sentinel_kwargs={})
                 rs.master_for.assert_called_once_with("mymaster")
                 self.assertIsNotNone(r)
 
@@ -53,7 +53,9 @@ class TestApps(TestCase):
                 r = apps.get_client_through_sentinel()
 
                 sentinel.assert_called_once_with(
-                    [("1.1.1.1", "123456"), ("2.2.2.2", "45678"), ("3.3.3.3", "11111")], password="password_token"
+                    [("1.1.1.1", "123456"), ("2.2.2.2", "45678"), ("3.3.3.3", "11111")],
+                    password="password_token",
+                    sentinel_kwargs={},
                 )
                 rs.master_for.assert_called_once_with("name_token")
                 self.assertIsNotNone(r)

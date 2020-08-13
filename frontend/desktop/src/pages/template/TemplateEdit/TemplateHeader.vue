@@ -33,6 +33,18 @@
             <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
         </div>
         <div class="button-area">
+            <div class="setting-tab-wrap">
+                <span
+                    v-for="tab in settingTabs"
+                    :key="tab.id"
+                    :class="['setting-item', {
+                        'active': activeTab === tab.id,
+                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                    }]"
+                    @click="$emit('onChangePanel', tab.id)">
+                    <i :class="tab.icon" :title="tab.title"></i>
+                </span>
+            </div>
             <bk-button
                 theme="primary"
                 :class="[
@@ -54,7 +66,7 @@
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
+            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
         <SelectProjectModal
             :title="$t('创建任务')"
@@ -75,6 +87,8 @@
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
+    import SETTING_TABS from './SettingTabs.js'
+
     export default {
         name: 'TemplateHeader',
         components: {
@@ -83,38 +97,16 @@
         },
         mixins: [permission],
         props: {
-            type: {
-                type: String,
-                default: 'edit'
-            },
-            name: {
-                type: String,
-                default: ''
-            },
-            template_id: {
-                type: [String, Number],
-                default: ''
-            },
-            project_id: {
-                type: [String, Number],
-                default: ''
-            },
-            common: {
-                type: String,
-                default: ''
-            },
-            templateSaving: {
-                type: Boolean,
-                default: false
-            },
-            createTaskSaving: {
-                type: Boolean,
-                default: false
-            },
-            isTemplateDataChanged: {
-                type: Boolean,
-                default: false
-            },
+            type: String,
+            name: String,
+            template_id: [String, Number],
+            project_id: [String, Number],
+            common: String,
+            templateSaving: Boolean,
+            createTaskSaving: Boolean,
+            activeTab: String,
+            isGlobalVariableUpdate: Boolean,
+            isTemplateDataChanged: Boolean,
             tplActions: {
                 type: Array,
                 default () {
@@ -125,6 +117,7 @@
         data () {
             return {
                 tName: this.name.trim(),
+                settingTabs: SETTING_TABS.slice(0),
                 templateNameRule: {
                     required: true,
                     max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
@@ -143,7 +136,8 @@
         },
         computed: {
             ...mapState({
-                'permissionMeta': state => state.permissionMeta
+                'permissionMeta': state => state.permissionMeta,
+                'isFirstLoadAtTemplatePanel': state => state.isFirstLoadAtTemplatePanel
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
@@ -214,11 +208,8 @@
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
-                        if (this.common) {
-                            this.isSelectProjectShow = true
-                        } else {
-                            this.saveTemplate(saveAndCreate)
-                        }
+                        // 普通任务直接走模板校验、保存逻辑，公共流程先走模板校验、保存逻辑，然后显示项目选择弹窗
+                        this.saveTemplate(saveAndCreate)
                     } else {
                         if (this.common) {
                             this.applyCreateCommonTplPerm(this.saveAndCreateRequiredPerm)
@@ -241,12 +232,17 @@
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
+                    const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        this.goToTaskUrl()
+                        if (this.common && pid === undefined) {
+                            this.setProjectSelectDialogShow()
+                        } else {
+                            this.goToTaskUrl(pid)
+                        }
                     } else {
-                        this.$emit('onSaveTemplate', saveAndCreate)
+                        this.$emit('onSaveTemplate', saveAndCreate, pid)
                     }
                 })
             },
@@ -270,16 +266,17 @@
                 return { resourceData, actions }
             },
             getHomeUrl () {
-                const url = { name: 'process', params: { project_id: this.project_id } }
-                if (this.common) {
-                    url.name = 'commonProcessList'
+                if (this.isFirstLoadAtTemplatePanel) {
+                    const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
+                    this.$router.push(url)
+                } else {
+                    this.$router.back()
                 }
-                return url
             },
-            goToTaskUrl () {
+            goToTaskUrl (pid) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: pid },
                     query: {
                         template_id: this.template_id,
                         common: this.common || undefined,
@@ -355,7 +352,7 @@
                     const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                     const res = await this.queryUserPermission({
                         action: 'common_flow_create_task',
-                        resoures: [
+                        resources: [
                             {
                                 system: bkSops.id,
                                 type: 'project',
@@ -376,6 +373,10 @@
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }
+            },
+            // 打开项目选择弹窗
+            setProjectSelectDialogShow () {
+                this.isSelectProjectShow = true
             },
             applyCreateCommonTplPerm () {
                 this.applyForPermission(['common_flow_create'])
@@ -430,7 +431,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 430px;
+            width: 354px;
             text-align: center;
         }
         .name-show-mode {
@@ -466,6 +467,38 @@
             top: 6px;
             font-size: 12px;
             white-space: nowrap;
+        }
+        .setting-tab-wrap {
+            display: inline-block;
+            margin-right: 20px;
+            padding-right: 24px;
+            height: 32px;
+            line-height: 32px;
+            border-right: 1px solid #dcdee5;
+            .setting-item {
+                position: relative;
+                margin-right: 20px;
+                font-size: 16px;
+                color: #546a9e;
+                cursor: pointer;
+                &:hover,
+                &.active {
+                    color: #3a84ff;
+                }
+                &:last-child {
+                    margin-right: 0;
+                }
+                &.update::before {
+                    content: '';
+                    position: absolute;
+                    right: -6px;
+                    top: -6px;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #ff5757;
+                }
+            }
         }
         .task-btn {
             margin-right: 5px;

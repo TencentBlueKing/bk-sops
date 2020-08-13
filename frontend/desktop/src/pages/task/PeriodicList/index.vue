@@ -14,6 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
+                    id="periodicList"
                     :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.flowName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -46,10 +47,10 @@
                     <bk-table-column :label="$t('流程模板')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
+                                v-if="!hasPermission(['periodic_task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
-                                @click="onPeriodicPermissonCheck(['flow_view'], props.row, $event)">
+                                @click="onPeriodicPermissonCheck(['periodic_task_view'], props.row, $event)">
                                 {{props.row.task_template_name}}
                             </a>
                             <router-link
@@ -120,7 +121,7 @@
                                     :to="{
                                         name: 'taskList',
                                         params: { project_id: project_id },
-                                        query: { template_id: props.row.template_id, create_method: 'periodic' }
+                                        query: { template_id: props.row.template_id, create_method: 'periodic', create_info: props.row.id }
                                     }">
                                     {{ $t('执行历史') }}
                                 </router-link>
@@ -229,7 +230,8 @@
             list: [
                 { 'value': 'true', 'name': i18n.t('启动') },
                 { 'value': 'false', 'name': i18n.t('暂停') }
-            ]
+            ],
+            value: ''
         }
     ]
     export default {
@@ -351,8 +353,8 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 }

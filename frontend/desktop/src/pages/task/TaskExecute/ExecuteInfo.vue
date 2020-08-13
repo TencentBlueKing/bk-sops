@@ -132,10 +132,11 @@
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
                 <div class="code-block-wrap">
                     <div class="code-wrapper" v-if="logInfo">
-                        <code-editor
+                        <!-- <code-editor
                             :value="logInfo"
                             :options="{ readOnly: readOnly, language: 'javascript' }">
-                        </code-editor>
+                        </code-editor> -->
+                        <VueJsonPretty :data="logInfo"></VueJsonPretty>
                     </div>
                     <NoData v-else></NoData>
                 </div>
@@ -212,7 +213,6 @@
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import NodeTree from './NodeTree'
-    import CodeEditor from '@/components/common/CodeEditor.vue'
 
     const EXECUTE_INFO_COL = [
         {
@@ -369,8 +369,7 @@
             RenderForm,
             NoData,
             IpLogContent,
-            NodeTree,
-            CodeEditor
+            NodeTree
         },
         props: {
             adminView: {
@@ -832,6 +831,11 @@
                 margin-left: 100px;
                 font-size: 12px;
             }
+        }
+    }
+    .ex-data-wrap {
+        /deep/ pre {
+            white-space: pre-wrap;
         }
     }
     .common-icon-dark-circle-ellipsis {

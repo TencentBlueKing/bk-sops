@@ -49,6 +49,10 @@ const task = {
                             status.cls = 'running common-icon-dark-circle-ellipsis'
                             status.text = i18n.t('执行中')
                             break
+                        case 'READY':
+                            status.cls = 'running common-icon-dark-circle-ellipsis'
+                            status.text = i18n.t('排队中')
+                            break
                         case 'SUSPENDED':
                             status.cls = 'execute common-icon-dark-circle-pause'
                             status.text = i18n.t('暂停')

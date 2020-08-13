@@ -39,6 +39,7 @@
                 :class="{
                     'btn-permission-disable': !hasSavePermission
                 }"
+                :loading="pending"
                 v-cursor="{ active: !hasSavePermission }"
                 @click="onModifyParams">
                 {{ $t('保存') }}
@@ -148,6 +149,7 @@
                             message: i18n.t('参数修改成功'),
                             theme: 'success'
                         })
+                        this.$emit('packUp')
                     } else {
                         errorHandler(res, this)
                     }

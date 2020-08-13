@@ -1,5 +1,6 @@
 const en = {
     '': '',
+    '（': '(',
     '接口数据返回为空': 'No data returned by API',
     '接口异常，': 'API error, ',
     'HTTP状态码：': 'HTTP Status:',
@@ -233,6 +234,7 @@ const en = {
     '提示': 'Prompt',
     '未执行': 'Created',
     '执行中': 'Executing',
+    '排队中': 'Queuing',
     '节点暂停': 'Node Suspended',
     '失败': 'Failed',
     '完成': 'Finished',
@@ -360,7 +362,6 @@ const en = {
     '服务地址': 'Service Address',
     '已导入插件': 'Plugins Imported',
     '根模块': 'Root Module',
-    '已导入模块': 'Modules Imported',
     '插件名': 'Plugin Name',
     '类名': 'Class Name',
     '所属模块': 'Module',
@@ -408,6 +409,7 @@ const en = {
     '插件统计': 'Standard Plugins',
     '标准插件': 'Standard Plugins',
     '请选择标准插件': 'Standard Plugins',
+    '选择标准插件': 'Select Standard Plugins',
     '降序排列': 'Descending',
     '升序排列': 'Ascending',
     '查看全部': 'All',
@@ -440,6 +442,7 @@ const en = {
     '修改轻应用': 'Update Mini-APP',
     '使用权限': 'Permissions',
     '新建轻应用': 'New Mini-APP',
+    '编辑轻应用': 'Edit Mini-APP',
     '应用名称': 'App Name',
     '执行方案': 'Execution Scheme',
     '当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。': 'You can add schemes when creating a task if the flow contains optional nodes.After selecting a scheme, you can only create tasks according to the fixed execution scheme with this Mini-APP.',
@@ -683,7 +686,8 @@ const en = {
     '手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。': 'Manual Skip: you can skip this node manually if it failed.',
     '手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。': 'Manual Retry: you can retry this node manually if it failed.',
     '基础信息': 'Basic Info',
-    '请选择子流程': 'Please select SubProcess',
+    '请选择子流程': 'Please Select SubProcess',
+    '选择子流程': 'Select Subprocess',
     '默认值不符合正则规则：': 'Default value does not match the regular rule: ',
     '引用': 'Refs',
     '复用变量': 'Reuse Variable',
@@ -702,7 +706,7 @@ const en = {
     '保存并新建任务': 'Save And NewTask',
     '说明': 'Description',
     '引用节点': 'Refers',
-    '未命名节点': 'Unnamed node',
+    '引用变量的节点': 'Variable Reference Nodes',
     '显示': 'Show',
     '隐藏': 'Hide',
     '默认值': 'Default',
@@ -714,6 +718,7 @@ const en = {
     '输出': 'Output',
     '复制': 'Copy',
     '全局变量': 'Global Variable',
+    '查看全局变量': 'View Global Variable',
     '隐藏系统变量': 'Hide SYS-VARS',
     '直接引用全局变量的节点数量，点击数字查看引用详情': 'The number of nodes directly quoting the global variable, click on the number to view the details of the quotation',
     '输出：': 'Output: ',
@@ -990,7 +995,9 @@ const en = {
     '新建快照': 'New snapshot',
     '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
     '最近快照已保存，并恢复至序号': 'The most recent snapshot has been saved and restored to the serial number',
-    '号的快照': 'Snapshot'
+    '号的快照': 'Snapshot',
+    '历史搜索记录': 'Search History',
+    '：': ': '
 }
 
 export default en

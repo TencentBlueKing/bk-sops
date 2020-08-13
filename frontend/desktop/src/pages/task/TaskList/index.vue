@@ -14,6 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
+                    id="taskList"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -97,8 +98,9 @@
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
+                                    v-else-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
                                     @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
@@ -191,7 +193,7 @@
             key: 'executeTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('执行开始'),
-            value: []
+            value: ['', '']
         },
         {
             type: 'select',
@@ -199,7 +201,8 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'select',
@@ -207,7 +210,8 @@
             key: 'createMethod',
             loading: false,
             placeholder: i18n.t('请选择创建方式'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'input',
@@ -231,9 +235,11 @@
             placeholder: i18n.t('请选择状态'),
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'running', 'name': i18n.t('未完成') },
+                { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
-            ]
+            ],
+            value: ''
         }
     ]
     export default {
@@ -257,6 +263,10 @@
             },
             create_method: {
                 type: String,
+                default: ''
+            },
+            create_info: {
+                type: [String, Number],
                 default: ''
             }
         },
@@ -284,10 +294,11 @@
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
+                createInfo: this.create_info || '',
                 requestData: {
                     executeTime: [],
                     category: '',
-                    createMethod: '',
+                    createMethod: this.create_method || '',
                     creator: '',
                     executor: '',
                     statusSync: '',
@@ -315,6 +326,7 @@
                 value[1].loading = this.taskBasicInfoLoading
                 // 创建方式
                 value[2].list = this.taskCreateMethodList
+                value[2].value = this.create_method || ''
                 value[5].loading = this.taskBasicInfoLoading
                 return searchForm
             }
@@ -350,21 +362,37 @@
                     const { executeTime, category, createMethod, creator, executor, statusSync, flowName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
-                    if (statusSync) {
-                        pipeline_instance__is_started = statusSync !== 'nonExecution'
-                        pipeline_instance__is_finished = statusSync === 'finished'
+                    let pipeline_instance__is_revoked
+                    switch (statusSync) {
+                        case 'nonExecution':
+                            pipeline_instance__is_started = false
+                            break
+                        case 'running':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
+                            break
+                        case 'revoked':
+                            pipeline_instance__is_revoked = true
+                            break
+                        case 'finished':
+                            pipeline_instance__is_finished = true
+                            break
                     }
+
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: category || undefined,
-                        template_id: this.templateId,
+                        template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
                         pipeline_instance__name__contains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
+                        pipeline_instance__is_revoked,
                         create_method: createMethod || undefined,
+                        create_info: this.createInfo || undefined,
                         project__id: this.project_id
                     }
 
@@ -398,9 +426,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -543,6 +571,9 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.pagination.current = 1
+                // 高级搜索手动点击时，清空 createInfo、templateId 筛选条件
+                this.createInfo = ''
+                this.templateId = ''
                 this.getTaskList()
             },
             handlePageLimitChange (val) {
@@ -604,6 +635,10 @@
             padding: 5px;
             color: #3a84ff;
             font-size: 12px;
+            &.disabled {
+                color: #cccccc;
+                cursor: not-allowed;
+            }
         }
     }
     .empty-data {
