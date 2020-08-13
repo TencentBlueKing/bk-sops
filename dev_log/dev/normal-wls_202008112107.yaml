@@ -1,0 +1,2 @@
+improvement:
+    - "开发者对于下拉框远程数据源可配置自定义转换函数，对应于REMOTE_SOURCE_DATA_TRANSFORM_FUNCTION配置变量"
