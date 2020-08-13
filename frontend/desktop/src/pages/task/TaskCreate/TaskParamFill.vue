@@ -106,7 +106,7 @@
                     'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
                 theme="primary"
-                :loading="paramsLoading && isSubmit"
+                :loading="paramsLoading || isSubmit"
                 :disabled="paramsLoading || nextBtnDisable"
                 v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
