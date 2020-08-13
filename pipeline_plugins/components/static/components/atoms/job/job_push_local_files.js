@@ -5,6 +5,7 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
+                allowCreate: true,
                 hookable: true,
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
