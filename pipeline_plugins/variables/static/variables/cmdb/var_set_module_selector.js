@@ -71,6 +71,18 @@
                         events: [
                             {
                                 source: "bk_set_id",
+                                type: "init",
+                                action: function (value) {
+                                    if (value !== "") {
+                                        //这里传入真正的集群ID
+                                        this.remote_url = $.context.get("site_url") + "pipeline/cc_get_module/" + $.context.getBkBizId() + "/" + value + "/";
+                                        this.remoteMethod();
+                                    }
+
+                                }
+                            },
+                            {
+                                source: "bk_set_id",
                                 type: "change",
                                 action: function (value) {
                                     //这里传入真正的集群ID
