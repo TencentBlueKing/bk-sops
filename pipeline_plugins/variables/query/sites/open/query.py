@@ -10,7 +10,54 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 
+from django.conf.urls import url
+from django.http import JsonResponse
+
+from gcloud.conf import settings
+from gcloud.utils.cmdb import batch_request
 from pipeline_plugins.variables.query.sites.open import select
 
+logger = logging.getLogger("root")
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
 urlpatterns = select.select_urlpatterns
+
+
+def cc_get_set(request, biz_cc_id):
+    """批量获取业务下所有集群
+    @param request: 请求信息
+    @param biz_cc_id: 业务ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "fields": ["bk_set_name", "bk_set_id"]}
+    cc_set_result = batch_request(client.cc.search_set, kwargs)
+    result = [{"value": set_item["bk_set_id"], "text": set_item["bk_set_name"]} for set_item in cc_set_result]
+
+    return JsonResponse({"result": True, "data": result})
+
+
+def cc_get_module(request, biz_cc_id, biz_set_id):
+    """批量获取业务下所有模块
+    @param request: 请求信息
+    @param biz_cc_id: 业务ID
+    @param biz_set_id: 集群ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_set_id": int(biz_set_id), "fields": ["bk_module_name", "bk_module_id"]}
+    cc_module_result = batch_request(client.cc.search_module, kwargs)
+    result = [
+        {"value": module_item["bk_module_id"], "text": module_item["bk_module_name"]}
+        for module_item in cc_module_result
+    ]
+
+    return JsonResponse({"result": True, "data": result})
+
+
+urlpatterns += [
+    url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
+    url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
+]
