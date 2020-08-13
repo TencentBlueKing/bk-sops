@@ -157,28 +157,30 @@
             validate () {
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
-            getVariableData () {
+            async getVariableData () {
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]
-                    if (key in this.renderData) {
+                    if (variable.show_type === 'hide') {
+                        if (variable.is_meta) {
+                            const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                            // custom_type 可以判断是手动新建节点还是组件勾选
+                            const version = variable.version || 'legacy'
+                            if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
+                                await this.loadAtomConfig({ name, atom, classify, version })
+                            }
+                            const atomConfig = this.atomFormConfig[atom][version]
+                            let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                            currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                            variable.meta = tools.deepClone(variable) // JSON.stringify 循环引用的问题，需要深拷贝一下
+                            variable.value = currentFormConfig.attrs.value
+                        }
+                    } else {
                         variable.value = this.renderData[key]
                         variable.meta = this.metaConfig[key]
-                    } else if (variable.is_meta) {
-                        const sourceTag = variable.source_tag
-                        const [atomType, tagCode] = sourceTag.split('.')
-                        const atomVersion = variable.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atomType, atomVersion, this.atomFormConfig)) {
-                            this.loadAtomConfig({ atom: atomType, version: atomVersion })
-                        }
-                        const atomConfig = this.atomFormConfig[atomType]
-                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                        variable.meta = tools.deepClone(variable)
-                        variable.value = currentFormConfig.attrs.value
                     }
                 }
-                return variables
+                return Promise.resolve(variables)
             }
         }
     }

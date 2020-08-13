@@ -193,7 +193,7 @@
                     if (!result) return
                     const formData = {}
                     if (this.$refs.TaskParamEdit) {
-                        const variables = this.$refs.TaskParamEdit.getVariableData()
+                        const variables = await this.$refs.TaskParamEdit.getVariableData()
                         for (const key in variables) {
                             formData[key] = variables[key].value
                         }

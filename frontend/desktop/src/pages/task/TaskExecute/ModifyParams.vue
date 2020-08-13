@@ -129,7 +129,7 @@
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
                     if (!formValid) return
-                    const variables = paramEditComp.getVariableData()
+                    const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         formData[key] = variables[key].value
                     }
