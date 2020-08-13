@@ -353,7 +353,7 @@ const en = {
     '包源名': 'Package Sources Name',
     '未命名': 'Unnamed',
     '模块配置': 'Modules Config',
-    '请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔': 'Absolute path, multiple are separated by `,` or line breaks',
+    '请输入模块绝对路径，如a.b.c，多个用换行分隔': 'Absolute path, multiple are separated by line breaks',
     '子模块名称': 'Sub Module Name',
     '版本': 'Version',
     '导入模块': 'Modules Importing',
