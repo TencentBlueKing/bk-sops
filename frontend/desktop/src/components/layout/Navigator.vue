@@ -104,6 +104,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapGetters, mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
@@ -307,17 +308,17 @@
              * @param {Object} route 路由信息
              */
             onGoToPath (route) {
+                const config = this.getNavPath(route)
                 if (route.children && route.children.length > 0) {
                     return
                 }
-                if (this.$route.name === route.routerName) {
+                if (this.$route.name === route.routerName && tools.isDataEqual(this.$route.query, config.query)) {
                     return this.reload()
                 }
                 /** 404 页面时，导航统一跳转到首页 */
                 if (this.notFoundPage && this.view_mode === 'app') {
                     return this.$router.push({ name: 'home' })
                 }
-                const config = this.getNavPath(route)
                 if (config.name) {
                     this.$router.push(config)
                 }
