@@ -70,6 +70,7 @@
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
+                    @hideOperateBtn="hideOperateBtn"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -811,8 +812,7 @@
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
-            
-            // 查看参数、修改参数（侧滑组件 标题 点击遮罩隐藏）
+            // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
                 let nodeData = tools.deepClone(this.nodeData)
                 let firstNodeId = null
@@ -831,12 +831,16 @@
                 this.nodeInfoType = type
                 this.quickClose = true
                 if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    this.quickClose = true
+                    this.quickClose = false
                 }
                 if (name === i18n.t('节点详情')) {
                     this.defaultActiveId = firstNodeId
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
+            },
+
+            hideOperateBtn (val) {
+                this.quickClose = !val
             },
             
             onToggleNodeInfoPanel () {
