@@ -33,6 +33,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - checkbox
 - datatable
 - datetime
+- time
 - input
 - int
 - ipSelector
@@ -189,13 +190,33 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
+  - `type`：日期选择器显示类型，默认为 datetime，可选值包括：date、datetime、datetimerange、daterange 等
+  - `format`：选中的时间以及展示的值，默认为 yyyy-MM-dd HH:mm:ss，参考[日期格式](https://element.eleme.cn/#/zh-CN/component/date-picker#ri-qi-ge-shi)
   - `value`：时间值
 
 **方法**
 
 *none*
 
-### 6. TagInput
+### 6. TagTime
+
+时间选择器。
+
+**属性**
+
+  - `placeholder`：占位文本
+  - `startPlaceholder`：开始时间占位文本
+  - `endPlaceholder`：结束时间占位文本
+  - `disabled`：设置是否禁用组件
+  - `isRange`：是否选择时间段
+  - `format`：选中的时间以及展示的值，默认为 HH:mm:ss，参考[日期格式](https://element.eleme.cn/#/zh-CN/component/date-picker#ri-qi-ge-shi)
+  - `value`：时间值
+
+**方法**
+
+*none*
+
+### 7. TagInput
 
 文本框，一般用来输入单行文本。
 
@@ -210,7 +231,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 7. TagInt
+### 8. TagInt
 
 整数输入框，用来输入正整数。
 
@@ -224,7 +245,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 8. TagIpSelector
+### 9. TagIpSelector
 
 ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
@@ -240,7 +261,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 *none*
 
 
-### 9. TagPassword
+### 10. TagPassword
 
 密码输入框。
 
@@ -253,7 +274,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 10. TagRadio
+### 11. TagRadio
 
 单选框，通过配置项传入可选项，提供给使用者选择。
 
@@ -267,7 +288,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 11. TagSelect
+### 12. TagSelect
 
 下拉框，通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -291,7 +312,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `set_loading`：传入布尔类型参数来设置下拉框是否为 loading 状态
   - `remoteMethod`：远程加载数据
 
-### 12. TagText
+### 13. TagText
 
 文本组件，不可编辑，一般用来展示文本信息。
 
@@ -303,7 +324,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 13. TagTextarea
+### 14. TagTextarea
 
 多行文本框。
 
@@ -317,7 +338,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 14. TagTree
+### 15. TagTree
 
 树形选择组件，一般用来多个分组层级数据的选择。通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -363,7 +384,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remoteMethod`：远程加载数据
 
 
-### 15. TagUpload
+### 16. TagUpload
 
 上传组件。
 
@@ -390,7 +411,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
   - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
 
-### 16. TagMemberSelector
+### 17. TagMemberSelector
 
 人员选择组件
 
@@ -404,7 +425,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 17. TagSetAllocation
+### 18. TagSetAllocation
 
 开区资源选择器。
 
@@ -418,7 +439,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 18. TagSection
+### 19. TagSection
 
 标准插件表单分隔 Tag，一般在表单项数量较多时用来做分组区分，配置项的 name 属性值会被渲染为分组名称。
 
@@ -430,7 +451,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 19. TagCodeEditor
+### 20. TagCodeEditor
 
 代码编辑器
 
