@@ -194,6 +194,29 @@ class Project(models.Model):
         return "%s_%s" % (self.id, self.name)
 
 
+class ProjectBasedComponentManager(models.Manager):
+    def get_components(self):
+        return self.values_list("component_code", flat=True)
+
+    def get_components_with_project(self, project_id):
+        return self.exclude(project_id=project_id).values_list("component_code", flat=True)
+
+
+class ProjectBasedComponent(models.Model):
+    """
+    相关插件默认对所有人不显示，只在配置的项目中进行显示
+    """
+
+    component_code = models.CharField(_("组件编码"), max_length=255)
+    project_id = models.CharField(_("项目id"), max_length=64)
+
+    objects = ProjectBasedComponentManager()
+
+    class Meta:
+        verbose_name = _("基于项目的组件 ProjectBasedComponent")
+        verbose_name_plural = _("基于项目的组件 ProjectBasedComponent")
+
+
 class UserDefaultProjectManager(models.Manager):
     def init_user_default_project(self, username, project):
         try:
