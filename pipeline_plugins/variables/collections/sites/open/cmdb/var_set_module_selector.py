@@ -24,7 +24,8 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id):
-    """通过集群ID和模块ID查询对应的名字
+    """
+    通过集群ID和模块ID查询对应的名字
     :param operator: 操作者
     :param bk_biz_id: 业务ID
     :param bk_set_id: 集群ID
@@ -41,7 +42,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
         "page": {"start": 0, "limit": 1},
     }
     set_result = client.cc.search_set(set_kwargs)
-    if set_result["result"]:
+    if set_result["result"] and len(set_result["data"]["info"]):
         set_module_info["set"] = set_result["data"]["info"][0]["bk_set_name"]
     else:
         err_msg = "调用 cc.search_set 接口获取集群名字失败, kwargs={kwargs}, result={result}".format(
@@ -58,7 +59,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
         "page": {"start": 0, "limit": 1},
     }
     module_result = client.cc.search_module(module_kwargs)
-    if module_result["result"]:
+    if module_result["result"] and len(module_result["data"]["info"]):
         set_module_info["module"] = module_result["data"]["info"][0]["bk_module_name"]
     else:
         err_msg = "调用 cc.search_module 接口获取模块名字失败, kwargs={kwargs}, result={result}".format(
@@ -71,14 +72,15 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
 
 
 class SetModuleInfo(object):
-    """设置集群和模块的信息
+    """
+    设置集群和模块的信息
     """
 
     def __init__(self, data):
-        setattr(self, "set", data.get("set", ""))
-        setattr(self, "set_id", data.get("set_id", 0))
-        setattr(self, "module", data.get("module", ""))
-        setattr(self, "module_id", data.get("module_id", 0))
+        self.set = data.get("set", "")
+        self.set_id = data.get("set_id", 0)
+        self.module = data.get("module", "")
+        self.module_id = data.get("module_id", 0)
 
 
 class VarSetModuleSelector(LazyVariable):

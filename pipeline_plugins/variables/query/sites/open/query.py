@@ -34,6 +34,7 @@ def cc_get_set(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "fields": ["bk_set_name", "bk_set_id"]}
     cc_set_result = batch_request(client.cc.search_set, kwargs)
+    logger.info("[cc_get_set] cc_set_result: {cc_set_result}".format(cc_set_result=cc_set_result))
     result = [{"value": set_item["bk_set_id"], "text": set_item["bk_set_name"]} for set_item in cc_set_result]
 
     return JsonResponse({"result": True, "data": result})
@@ -49,6 +50,7 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_set_id": int(biz_set_id), "fields": ["bk_module_name", "bk_module_id"]}
     cc_module_result = batch_request(client.cc.search_module, kwargs)
+    logger.info("[cc_get_module] cc_module_result: {cc_module_result}".format(cc_module_result=cc_module_result))
     result = [
         {"value": module_item["bk_module_id"], "text": module_item["bk_module_name"]}
         for module_item in cc_module_result

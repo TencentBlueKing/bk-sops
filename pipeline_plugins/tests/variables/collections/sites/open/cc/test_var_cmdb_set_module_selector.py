@@ -31,9 +31,19 @@ class MockClient(object):
         self.cc.search_module = MagicMock(return_value=search_module_return)
 
 
-GET_CLIENT_BY_USER_RETURN = MockClient(
+INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
     search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
     search_module_return={"result": True, "data": {"info": [{"bk_module_name": "module"}]}},
+)
+
+GET_SET_INFO_FAIL_CLIENT = MockClient(
+    search_set_return={"result": False},
+    search_module_return={"result": True, "data": {"info": [{"bk_module_name": "module"}]}},
+)
+
+GET_MODULE_INFO_FAIL_CLIENT = MockClient(
+    search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
+    search_module_return={"result": False},
 )
 
 
@@ -44,23 +54,50 @@ class VarSetModuleSelectorTestCase(TestCase):
             "executor": "admin",
             "biz_cc_id": "123",
         }
-        self.get_value_return = SetModuleInfo({"set": "set", "set_id": 456, "module": "module", "module_id": 789})
+        self.input_output_success_return = SetModuleInfo(
+            {"set": "set", "set_id": 456, "module": "module", "module_id": 789})
+        self.get_set_info_fail_return = SetModuleInfo({"set": "", "set_id": 456, "module": "module", "module_id": 789})
+        self.get_module_info_fail_return = SetModuleInfo({"set": "set", "set_id": 456, "module": "", "module_id": 789})
 
-    @patch(GET_CLIENT_BY_USER, return_value=GET_CLIENT_BY_USER_RETURN)
-    def test_get_value(self, mock_get_client_by_user_return):
+    @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
+    def test_input_output_success_case(self, mock_get_client_by_user_return):
+        """
+        整个变量的输入输出正确的测试用例
+        """
         set_module_selector = VarSetModuleSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
         )
-        self.assertInstEqual(set_module_selector.get_value(), self.get_value_return)
+        self.SetModuleInfoEqual(set_module_selector.get_value(), self.input_output_success_return)
 
-    def assertInstEqual(self, first_inst, second_inst):
-        """自定义断言：用于判断两个对象的属性值是否相等
+    @patch(GET_CLIENT_BY_USER, return_value=GET_SET_INFO_FAIL_CLIENT)
+    def test_get_set_info_fail_case(self, mock_get_client_by_user_return):
+        """
+        获取集群信息失败的测试用例
+        """
+        set_module_selector = VarSetModuleSelector(
+            pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
+        )
+        self.SetModuleInfoEqual(set_module_selector.get_value(), self.get_set_info_fail_return)
+
+    @patch(GET_CLIENT_BY_USER, return_value=GET_MODULE_INFO_FAIL_CLIENT)
+    def test_get_module_info_fail_case(self, mock_get_client_by_user_return):
+        """
+        获取模块信息失败的测试用例
+        """
+        set_module_selector = VarSetModuleSelector(
+            pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
+        )
+        self.SetModuleInfoEqual(set_module_selector.get_value(), self.get_module_info_fail_return)
+
+    def SetModuleInfoEqual(self, first_inst, second_inst):
+        """
+        自定义断言：用于判断两个对象的属性值是否相等
         """
         if not (
-            first_inst.set == second_inst.set
-            and first_inst.set_id == second_inst.set_id
-            and first_inst.module == second_inst.module
-            and first_inst.module_id == second_inst.module_id
+                first_inst.set == second_inst.set
+                and first_inst.set_id == second_inst.set_id
+                and first_inst.module == second_inst.module
+                and first_inst.module_id == second_inst.module_id
         ):
             msg = self._formatMessage("%s == %s" % (safe_repr(first_inst), safe_repr(second_inst)))
             raise self.failureException(msg)
