@@ -71,7 +71,7 @@ class Snapshot(models.Model):
     数据快照
     """
 
-    md5sum = models.CharField(_("快照字符串的md5sum"), max_length=32)
+    md5sum = models.CharField(_("快照字符串的md5sum"), max_length=32, db_index=True)
     create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
     data = CompressJSONField(null=True, blank=True)
 
