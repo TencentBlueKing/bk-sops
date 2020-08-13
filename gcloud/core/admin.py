@@ -52,6 +52,12 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ["id", "name"]
 
 
+@admin.register(models.ProjectBasedComponent)
+class ProjectBasedComponentAdmin(admin.ModelAdmin):
+    list_display = ["component_code", "project_id"]
+    search_fields = ["component_code", "project_id"]
+
+
 @admin.register(models.UserDefaultProject)
 class UserDefaultProjectAdmin(admin.ModelAdmin):
     list_display = ["username", "default_project"]
