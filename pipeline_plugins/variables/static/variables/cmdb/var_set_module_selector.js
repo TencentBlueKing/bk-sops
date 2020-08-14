@@ -50,23 +50,27 @@
                             name: gettext("选择模块"),
                             hookable: true,
                             remote: true,
-                            remote_url: function () {
-                                // 初始化的时候给一个默认的集群Id(0)
-                                const url = $.context.get("site_url") + "pipeline/cc_get_module/" + $.context.getBkBizId() + "/0/";
-                                return url;
-                            },
                             remote_data_init: function (resp) {
+                                if (resp === ""){
+                                    return [];
+                                }else{
                                 // 返回值格式：{
                                 // "text": "xxx",
                                 // "value": "xxx"
                                 // }
                                 return resp.data;
+                                }
                             },
                             validation: [
                                 {
                                     type: "required"
                                 }
                             ]
+                        },
+                        methods: {
+                            _tag_init: function () {
+                                this.items = []
+                            }
                         },
                         events: [
                             {
@@ -90,7 +94,7 @@
                                     this.remoteMethod();
                                 }
                             }
-                        ],
+                        ]
                     }
                 ],
             }
