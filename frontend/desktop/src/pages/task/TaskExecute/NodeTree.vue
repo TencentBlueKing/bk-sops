@@ -77,12 +77,11 @@
         methods: {
             setDefaultActiveId (nodes, id) {
                 nodes.forEach(node => {
-                    if (node.id === id) {
-                        node.selected = true
-                        return
-                    }
                     if (node.children) {
                         this.setDefaultActiveId(node.children, id)
+                    }
+                    if (node.id === id) {
+                        this.$set(node, 'selected', true)
                     }
                 })
             },
@@ -95,6 +94,7 @@
             },
             onSelectNode (node, isClick, type) {
                 const nodeType = node.children ? 'subflow' : 'tasknode'
+                node.selected = nodeType !== 'subflow'
                 let rootNode = node
                 let nodeHeirarchy = ''
                 while (rootNode.parent) {
