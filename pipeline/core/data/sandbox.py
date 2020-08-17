@@ -14,12 +14,14 @@ specific language governing permissions and limitations under the License.
 # mock str return value of Built-in Functions，make str(func) return "func" rather than "<built-in function func>"
 
 import builtins
+import importlib
+
+from pipeline.conf import default_settings
 
 SANDBOX = {}
 
 
 class MockStrMeta(type):
-
     def __new__(cls, name, bases, attrs):
         new_cls = super(MockStrMeta, cls).__new__(cls, name, bases, attrs)
         SANDBOX.update({new_cls.str_return: new_cls})
@@ -32,10 +34,29 @@ class MockStrMeta(type):
         return cls.call(*args, **kwargs)
 
 
-for func_name in dir(builtins):
+def _shield_words(sandbox, words):
+    for shield_word in words:
+        sandbox[shield_word] = None
+
+
+def _import_modules(sandbox, modules):
+    for mod_path, alias in modules.items():
+        mod = importlib.import_module(mod_path)
+        sandbox[alias] = mod
+
+
+def _mock_builtins():
     """
     @summary: generate mock class of built-in functions like id,int
     """
-    if func_name.lower() == func_name and not func_name.startswith('_'):
-        new_func_name = "Mock{}".format(func_name.capitalize())
-        MockStrMeta(new_func_name, (object, ), {"call": getattr(builtins, func_name), "str_return": func_name})
+    for func_name in dir(builtins):
+        if func_name.lower() == func_name and not func_name.startswith("_"):
+            new_func_name = "Mock{}".format(func_name.capitalize())
+            MockStrMeta(new_func_name, (object,), {"call": getattr(builtins, func_name), "str_return": func_name})
+
+
+_mock_builtins()
+
+_shield_words(SANDBOX, default_settings.MAKO_SANDBOX_SHIELD_WORDS)
+
+_import_modules(SANDBOX, default_settings.MAKO_SANDBOX_IMPORT_MODULES)
