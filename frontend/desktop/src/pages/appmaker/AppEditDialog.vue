@@ -360,7 +360,7 @@
                     return
                 }
                 if (!this.hasConfirmPerm) {
-                    let resourceData = {
+                    const resourceData = {
                         project: [{
                             id: this.projectId,
                             name: this.projectName
@@ -368,19 +368,15 @@
                     }
                     if (this.isCreateNewApp) {
                         const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
-                        resourceData = {
-                            flow: [{
-                                id: this.appData.appTemplate,
-                                name: templateName
-                            }]
-                        }
+                        resourceData.flow = [{
+                            id: this.appData.appTemplate,
+                            name: templateName
+                        }]
                     } else {
-                        resourceData = {
-                            mini_app: [{
-                                id: this.currentAppData.id,
-                                name: this.currentAppData.name
-                            }]
-                        }
+                        resourceData.mini_app = [{
+                            id: this.currentAppData.id,
+                            name: this.currentAppData.name
+                        }]
                     }
                     this.applyForPermission(this.btnPermission, this.appData.appActions, resourceData)
                     return
