@@ -319,6 +319,12 @@ PIPELINE_DATA_BACKEND = os.getenv(
 )
 PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
 
+# pipeline mako render settings
+MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+
+MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+
+
 ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
