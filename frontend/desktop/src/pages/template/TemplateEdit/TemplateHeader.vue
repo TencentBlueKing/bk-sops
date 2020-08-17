@@ -59,8 +59,8 @@
         <SelectProjectModal
             :title="$t('创建任务')"
             :show="isSelectProjectShow"
-            :confirm-loading="commonTplCreateTaskPermLoading"
-            :confirm-cursor="!hasCommonTplCreateTaskPerm"
+            :confirm-loading="commonTplCreateTaskPermLoading || templateSaving"
+            :confirm-cursor="['new', 'clone'].includes(type) ? false : !hasCommonTplCreateTaskPerm"
             @onChange="handleProjectChange"
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
@@ -180,6 +180,15 @@
         watch: {
             name (val) {
                 this.tName = val
+            },
+            type (val, oldVal) {
+                if (['new', 'clone'].includes(oldVal) && val === 'edit') {
+                    this.queryCommonTplCreateTaskPerm().then(() => {
+                        if (this.hasCommonTplCreateTaskPerm) {
+                            this.saveTemplate(true)
+                        }
+                    })
+                }
             }
         },
         async mounted () {
@@ -218,7 +227,7 @@
                         this.saveTemplate(saveAndCreate)
                     } else {
                         if (this.common) {
-                            this.applyCreateCommonTplPerm(this.saveAndCreateRequiredPerm)
+                            this.applyCreateCommonTplPerm()
                         } else {
                             this.applyTplPerm(this.saveAndCreateRequiredPerm)
                         }
@@ -228,7 +237,7 @@
                         this.saveTemplate(saveAndCreate)
                     } else {
                         if (this.common) {
-                            this.applyCreateCommonTplPerm(this.saveRequiredPerm)
+                            this.applyCreateCommonTplPerm()
                         } else {
                             this.applyTplPerm(this.saveRequiredPerm)
                         }
@@ -307,10 +316,20 @@
             },
             handleProjectChange (project) {
                 this.selectedProject = project
-                this.queryCommonTplCreateTaskPerm()
+                // 公共流程已经被创建，则需要查询是否有公共流程创建任务权限
+                if (this.type !== 'new' && this.type !== 'clone') {
+                    this.queryCommonTplCreateTaskPerm()
+                }
             },
+            /**
+             * 公共流程选择业务创建任务
+             * 若公共流程还没有被创建，则先创建任务，再查询是否有公共流程创建任务权限
+             */
             handleCreateTaskConfirm () {
-                if (this.hasCommonTplCreateTaskPerm) {
+                if (this.type === 'new' || this.type === 'clone') {
+                    const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
+                    this.$emit('onSaveTemplate', false, pid)
+                } else if (this.hasCommonTplCreateTaskPerm) {
                     this.saveTemplate(true)
                 } else {
                     this.applyCommonTplCreateTaskPerm()
@@ -402,7 +421,7 @@
             },
             applyTplPerm (requiredPerm) {
                 let curPermission = [...this.authActions]
-                let resourceData = {
+                const resourceData = {
                     project: [{
                         id: this.project_id,
                         name: this.projectName
@@ -410,12 +429,10 @@
                 }
                 if (this.type === 'edit') {
                     curPermission = [...this.tplActions]
-                    resourceData = {
-                        flow: [{
-                            id: this.template_id,
-                            name: this.name
-                        }]
-                    }
+                    resourceData.flow = [{
+                        id: this.template_id,
+                        name: this.name
+                    }]
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
             }
