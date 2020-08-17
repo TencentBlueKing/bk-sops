@@ -10,94 +10,58 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from unittest.util import safe_repr
+import logging
 
-from mock import MagicMock, patch
+from django.conf.urls import url
+from django.http import JsonResponse
 
-from django.test import TestCase
+from gcloud.conf import settings
+from gcloud.utils.cmdb import batch_request
+from pipeline_plugins.variables.query.sites.open import select
 
-from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selector import (
-    VarSetModuleSelector,
-    SetModuleInfo,
-)
+logger = logging.getLogger("root")
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-GET_CLIENT_BY_USER = "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selector.get_client_by_user"
-
-
-class MockClient(object):
-    def __init__(self, search_set_return=None, search_module_return=None):
-        self.cc = MagicMock()
-        self.cc.search_set = MagicMock(return_value=search_set_return)
-        self.cc.search_module = MagicMock(return_value=search_module_return)
+urlpatterns = select.select_urlpatterns
 
 
-INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
-    search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
-    search_module_return={"result": True, "data": {"info": [{"bk_module_name": "module"}]}},
-)
+def cc_get_set(request, biz_cc_id):
+    """
+    批量获取业务下所有集群
+    @param request: 请求信息
+    @param biz_cc_id: 业务ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "fields": ["bk_set_name", "bk_set_id"]}
+    cc_set_result = batch_request(client.cc.search_set, kwargs)
+    logger.info("[cc_get_set] cc_set_result: {cc_set_result}".format(cc_set_result=cc_set_result))
+    result = [{"value": set_item["bk_set_id"], "text": set_item["bk_set_name"]} for set_item in cc_set_result]
 
-GET_SET_INFO_FAIL_CLIENT = MockClient(
-    search_set_return={"result": False},
-    search_module_return={"result": True, "data": {"info": [{"bk_module_name": "module"}]}},
-)
-
-GET_MODULE_INFO_FAIL_CLIENT = MockClient(
-    search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
-    search_module_return={"result": False},
-)
+    return JsonResponse({"result": True, "data": result})
 
 
-class VarSetModuleSelectorTestCase(TestCase):
-    def setUp(self):
-        self.value = {"bk_set_id": "456", "bk_module_id": "789"}
-        self.pipeline_data = {
-            "executor": "admin",
-            "biz_cc_id": "123",
-        }
-        self.input_output_success_return = SetModuleInfo(
-            {"set": "set", "set_id": 456, "module": "module", "module_id": 789})
-        self.get_set_info_fail_return = SetModuleInfo({"set": "", "set_id": 456, "module": "module", "module_id": 789})
-        self.get_module_info_fail_return = SetModuleInfo({"set": "set", "set_id": 456, "module": "", "module_id": 789})
+def cc_get_module(request, biz_cc_id, biz_set_id):
+    """
+    批量获取业务下所有模块
+    @param request: 请求信息
+    @param biz_cc_id: 业务ID
+    @param biz_set_id: 集群ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_set_id": int(biz_set_id), "fields": ["bk_module_name", "bk_module_id"]}
+    cc_module_result = batch_request(client.cc.search_module, kwargs)
+    logger.info("[cc_get_module] cc_module_result: {cc_module_result}".format(cc_module_result=cc_module_result))
+    result = [
+        {"value": module_item["bk_module_id"], "text": module_item["bk_module_name"]}
+        for module_item in cc_module_result
+    ]
 
-    @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
-    def test_input_output_success_case(self, mock_get_client_by_user_return):
-        """
-        整个变量的输入输出正确的测试用例
-        """
-        set_module_selector = VarSetModuleSelector(
-            pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
-        )
-        self.SetModuleInfoEqual(set_module_selector.get_value(), self.input_output_success_return)
+    return JsonResponse({"result": True, "data": result})
 
-    @patch(GET_CLIENT_BY_USER, return_value=GET_SET_INFO_FAIL_CLIENT)
-    def test_get_set_info_fail_case(self, mock_get_client_by_user_return):
-        """
-        获取集群信息失败的测试用例
-        """
-        set_module_selector = VarSetModuleSelector(
-            pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
-        )
-        self.SetModuleInfoEqual(set_module_selector.get_value(), self.get_set_info_fail_return)
 
-    @patch(GET_CLIENT_BY_USER, return_value=GET_MODULE_INFO_FAIL_CLIENT)
-    def test_get_module_info_fail_case(self, mock_get_client_by_user_return):
-        """
-        获取模块信息失败的测试用例
-        """
-        set_module_selector = VarSetModuleSelector(
-            pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
-        )
-        self.SetModuleInfoEqual(set_module_selector.get_value(), self.get_module_info_fail_return)
-
-    def SetModuleInfoEqual(self, first_inst, second_inst):
-        """
-        自定义断言：用于判断两个对象的属性值是否相等
-        """
-        if not (
-                first_inst.set == second_inst.set
-                and first_inst.set_id == second_inst.set_id
-                and first_inst.module == second_inst.module
-                and first_inst.module_id == second_inst.module_id
-        ):
-            msg = self._formatMessage("%s == %s" % (safe_repr(first_inst), safe_repr(second_inst)))
-            raise self.failureException(msg)
+urlpatterns += [
+    url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
+    url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
+]
