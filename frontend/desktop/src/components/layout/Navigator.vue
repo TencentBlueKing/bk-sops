@@ -474,7 +474,6 @@ header {
         .right-icon {
             float: left;
             height: 50px;
-            font-size: 16px;
             & > [class^='common-icon'] {
                 margin-top: 17px;
                 font-size: 16px;
@@ -492,8 +491,8 @@ header {
         .version-log {
             margin-left: 10px;
             & > .bk-icon{
-                margin-top: 17px;
-                font-size: 16px;
+                margin-top: 16px;
+                font-size: 18px;
                 display: inline-block;
                 color: #63656e;
                 cursor: pointer;
