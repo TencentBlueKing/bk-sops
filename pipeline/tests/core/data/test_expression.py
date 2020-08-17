@@ -91,6 +91,7 @@ class TestConstantTemplate(TestCase):
         r1 = expression.ConstantTemplate.resolve_template("""${exec(print(''))}""", {})
         self.assertEqual(r1, """${exec(print(''))}""")
 
+        expression.SANDBOX.pop("datetime")
         r2 = expression.ConstantTemplate.resolve_template("""${datetime.datetime.now().strftime("%Y")}""", {})
         self.assertEqual(r2, """${datetime.datetime.now().strftime("%Y")}""")
 
@@ -107,7 +108,6 @@ class TestConstantTemplate(TestCase):
         # clean
         expression.SANDBOX.pop("exec")
         expression.SANDBOX.pop("compile")
-        expression.SANDBOX.pop("datetime")
 
     def test_resolve(self):
         list_template = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])
