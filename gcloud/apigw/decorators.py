@@ -41,10 +41,7 @@ def check_white_apps(request):
 def inject_user(request):
     username = getattr(request.jwt.user, settings.APIGW_USER_USERNAME_KEY)
     user_model = get_user_model()
-    try:
-        user = user_model.objects.get(username=username)
-    except user_model.DoesNotExist:
-        user, _ = user_model.objects.get_or_create(username=username)
+    user, _ = user_model.objects.get_or_create(username=username)
 
     setattr(request, "user", user)
 
