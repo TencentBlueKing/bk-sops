@@ -38,6 +38,7 @@ class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE,
+            IP_IS_EXIT_FAIL_CASE,
         ]
 
 
@@ -166,7 +167,23 @@ BASE_INPUTS = {
 
 # manual inputs
 MANUAL_INPUTS = BASE_INPUTS
-MANUAL_INPUTS.update({"job_script_source": "manual", "job_script_type": "1", "job_content": "echo"})
+MANUAL_INPUTS.update(
+    {"job_script_source": "manual", "job_script_type": "1", "job_content": "echo", "ip_is_exit": False}
+)
+
+# ip is exit inputs
+IP_EXIT_INPUTS = {
+    "job_script_param": "1",
+    "job_script_timeout": "100",
+    "job_ip_list": "127.0.0.1\n127.0.0.2",
+    "job_account": "root",
+    "job_script_list_public": "",
+    "job_script_list_general": "",
+    "job_script_source": "manual",
+    "job_script_type": "1",
+    "job_content": "echo",
+    "ip_is_exit": True,
+}
 
 # MANUAL_KWARGS
 MANUAL_KWARGS = {
@@ -186,6 +203,8 @@ MANUAL_FAIL_OUTPUTS = {
         params=json.dumps(MANUAL_KWARGS), error=FAIL_RESULT["message"]
     )
 }
+
+IP_IS_EXIT_FAIL_OUTPUTS = {"ex_data": "IP 校验失败，请确认输入的 IP 127.0.0.2 是否合法"}
 
 # 手动输入脚本成功样例输出
 MANUAL_SUCCESS_OUTPUTS = {
@@ -267,5 +286,19 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+    ],
+)
+
+
+# ip 校验
+IP_IS_EXIT_FAIL_CASE = ComponentTestCase(
+    name="fast execute manual script fail test case",
+    inputs=IP_EXIT_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=False, outputs=IP_IS_EXIT_FAIL_OUTPUTS),
+    schedule_assertion=None,
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}]}),
     ],
 )
