@@ -56,14 +56,6 @@
         <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
-                <ViewParams
-                    v-if="nodeInfoType === 'viewParams'"
-                    :node-data="nodeData"
-                    :selected-flow-path="selectedFlowPath"
-                    :tree-node-config="treeNodeConfig"
-                    :pipeline-data="pipelineData"
-                    @onClickTreeNode="onClickTreeNode">
-                </ViewParams>
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
@@ -76,11 +68,10 @@
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
                     :node-data="nodeData"
-                    :has-parent-node="hasParentNode"
-                    :set-node-detail="setNodeDetail"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
+                    :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
@@ -200,6 +191,7 @@
             })
 
             return {
+                defaultActiveId: '',
                 locations: [],
                 setNodeDetail: true,
                 hasParentNode: true,
@@ -669,28 +661,18 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, boolean) {
-                this.hasParentNode = true
-                const nodeActivities = this.pipelineData.activities[id]
+            async setNodeDetailConfig (id, firstNodeData) {
+                const nodeActivities = firstNodeData || this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
-                this.setNodeDetail = true
-                if (boolean) {
-                    this.nodeDetailConfig = {
-                        component_code: nodeActivities.component.code,
-                        version: nodeActivities.component.version || 'legacy',
-                        node_id: nodeActivities.id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
-                    this.setNodeDetail = true
-                } else {
-                    this.nodeDetailConfig = {
-                        node_id: nodeActivities.id
-                    }
-                    this.setNodeDetail = false
+                this.nodeDetailConfig = {
+                    component_code: nodeActivities.component.code,
+                    version: nodeActivities.component.version || 'legacy',
+                    node_id: nodeActivities.id,
+                    instance_id: this.instance_id,
+                    subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
             onRetryClick (id) {
@@ -1009,17 +991,8 @@
                     await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
-                if (nodeType === 'subflow') {
-                    this.hasParentNode = false
-                } else {
-                    const nodeStatus = this.locations.find(item => item.id === selectNodeId)
-                    if (nodeStatus.status) {
-                        this.setNodeDetailConfig(selectNodeId, true)
-                    } else {
-                        const selectNodeDatail = this.completePipelineData.activities[selectNodeId]
-                        this.updataNodeParamsInfo(selectNodeDatail)
-                        this.setNodeDetailConfig(selectNodeId, false)
-                    }
+                if (nodeType !== 'subflow') {
+                    this.setNodeDetailConfig(selectNodeId)
                 }
             },
             // 切换画布视图

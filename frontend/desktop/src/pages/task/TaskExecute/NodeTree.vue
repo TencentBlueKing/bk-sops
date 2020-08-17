@@ -50,6 +50,10 @@
             level: {
                 type: Number,
                 default: 1
+            },
+            defaultActiveId: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -62,12 +66,25 @@
             data: {
                 handler () {
                     this.treeData = tools.deepClone(this.data)
+                    if (this.defaultActiveId) {
+                        this.setDefaultActiveId(this.treeData, this.defaultActiveId)
+                    }
                 },
                 deep: true,
                 immediate: true
             }
         },
         methods: {
+            setDefaultActiveId (nodes, id) {
+                nodes.forEach(node => {
+                    if (node.children) {
+                        this.setDefaultActiveId(node.children, id)
+                    }
+                    if (node.id === id) {
+                        this.$set(node, 'selected', true)
+                    }
+                })
+            },
             getNodeActivedState (id) {
                 const len = this.selectedFlowPath.length
                 if (this.selectedFlowPath[len - 1].id === id) {
