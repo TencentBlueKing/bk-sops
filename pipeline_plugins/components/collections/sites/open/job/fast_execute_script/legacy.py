@@ -163,6 +163,8 @@ class JobFastExecuteScriptService(JobService):
 
         # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
         input_ip_list = get_ip_by_regex(original_ip_list)
+        self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
+
         difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
 
         if ip_is_exit and len(ip_list) != len(input_ip_list):
