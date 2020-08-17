@@ -856,6 +856,7 @@
                 this[actionType]()
             },
             onNodeClick (id, type) {
+                this.defaultActiveId = id
                 if (type === 'tasknode') {
                     this.handleSingleNodeClick(id, 'singleAtom')
                 } else if (type === 'subflow') {
