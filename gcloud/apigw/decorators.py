@@ -29,9 +29,7 @@ from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ, DEFAULT_APP_WHITELIST
 from gcloud.apigw.exceptions import UserNotExistError
 from gcloud.apigw.whitelist import EnvWhitelist
 
-app_whitelist = EnvWhitelist(
-    transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST"
-)
+app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 
 
@@ -46,13 +44,7 @@ def inject_user(request):
     try:
         user = user_model.objects.get(username=username)
     except user_model.DoesNotExist:
-        if request.is_trust:
-            user, _ = user_model.objects.get_or_create(username=username)
-        else:
-            raise UserNotExistError(
-                "user[username=%s] does not exist or has not logged in this APP"
-                % username
-            )
+        user, _ = user_model.objects.get_or_create(username=username)
 
     setattr(request, "user", user)
 
@@ -66,13 +58,7 @@ def mark_request_whether_is_trust(view_func):
         try:
             inject_user(request)
         except UserNotExistError as e:
-            return JsonResponse(
-                {
-                    "result": False,
-                    "message": str(e),
-                    "code": err_code.CONTENT_NOT_EXIST.code,
-                }
-            )
+            return JsonResponse({"result": False, "message": str(e), "code": err_code.CONTENT_NOT_EXIST.code})
 
         return view_func(request, *args, **kwargs)
 
@@ -98,11 +84,7 @@ def project_inject(view_func):
             obj_scope = _get_project_scope_from_request(request)
         except Exception:
             return JsonResponse(
-                {
-                    "result": False,
-                    "message": "invalid param format",
-                    "code": err_code.REQUEST_PARAM_INVALID.code,
-                }
+                {"result": False, "message": "invalid param format", "code": err_code.REQUEST_PARAM_INVALID.code}
             )
 
         try:
@@ -111,9 +93,7 @@ def project_inject(view_func):
             return JsonResponse(
                 {
                     "result": False,
-                    "message": "project({id}) with scope({scope}) does not exist.".format(
-                        id=obj_id, scope=obj_scope
-                    ),
+                    "message": "project({id}) with scope({scope}) does not exist.".format(id=obj_id, scope=obj_scope),
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }
             )
