@@ -75,7 +75,10 @@ def gen_perms_apply_data(system, subject, action_to_resources_list):
             for resources in resources_list:
                 for resource in resources:
                     inst_item = []
-                    topo_path = resource.attribute.get("_bk_iam_path_")
+                    topo_path = None
+
+                    if resource.attribute:
+                        topo_path = resource.attribute.get("_bk_iam_path_")
 
                     if topo_path:
                         for part in topo_path[1:-1].split("/"):
