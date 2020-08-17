@@ -56,14 +56,11 @@ class CompressJSONField(models.BinaryField):
 
 
 class SnapshotManager(models.Manager):
-    def create_or_get_snapshot(self, data):
+    def create_snapshot(self, data):
         h = hashlib.md5()
         h.update(json.dumps(data).encode("utf-8"))
-        snapshot, created = self.get_or_create(md5sum=h.hexdigest())
-        if created:
-            snapshot.data = data
-            snapshot.save()
-        return snapshot, created
+        snapshot = self.create(md5sum=h.hexdigest(), data=data)
+        return snapshot
 
     def data_for_snapshot(self, snapshot_id):
         return self.get(id=snapshot_id).data
@@ -74,7 +71,7 @@ class Snapshot(models.Model):
     数据快照
     """
 
-    md5sum = models.CharField(_("快照字符串的md5sum"), max_length=32, unique=True)
+    md5sum = models.CharField(_("快照字符串的md5sum"), max_length=32, db_index=True)
     create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
     data = CompressJSONField(null=True, blank=True)
 
@@ -170,7 +167,7 @@ class TemplateManager(models.Manager):
         if not result:
             raise SubprocessRefError(msg)
 
-        snapshot, _ = Snapshot.objects.create_or_get_snapshot(structure_data)
+        snapshot = Snapshot.objects.create_snapshot(structure_data)
         kwargs["snapshot"] = snapshot
         kwargs["template_id"] = node_uniqid()
         obj = self.create(**kwargs)
@@ -387,7 +384,7 @@ class PipelineTemplate(models.Model):
         if not result:
             raise SubprocessRefError(msg)
 
-        snapshot, _ = Snapshot.objects.create_or_get_snapshot(structure_data)
+        snapshot = Snapshot.objects.create_snapshot(structure_data)
         kwargs["snapshot"] = snapshot
         kwargs["edit_time"] = timezone.now()
         exclude_keys = ["template_id", "creator", "create_time", "is_deleted"]
@@ -538,7 +535,7 @@ class InstanceManager(models.Manager):
 
         instance_id = node_uniqid()
         exec_data["id"] = instance_id
-        exec_snapshot, _ = Snapshot.objects.create_or_get_snapshot(exec_data)
+        exec_snapshot = Snapshot.objects.create_snapshot(exec_data)
         TreeInfo.objects.create()
         if template is not None:
             kwargs["template"] = template
@@ -721,7 +718,7 @@ class PipelineInstance(models.Model):
         self._replace_id(exec_data)
         # replace root id
         exec_data["id"] = instance_id
-        new_snapshot, _ = Snapshot.objects.create_or_get_snapshot(exec_data)
+        new_snapshot = Snapshot.objects.create_snapshot(exec_data)
 
         return self.__class__.objects.create(
             template=self.template,

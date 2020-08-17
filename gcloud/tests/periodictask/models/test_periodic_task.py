@@ -71,7 +71,7 @@ class PeriodicTaskTestCase(TestCase):
         self.invalid_project = Project.objects.create(
             name="invalid_project", time_zone="Asia/Shanghai", creator="test", desc=""
         )
-        self.snapshot, _ = Snapshot.objects.create_or_get_snapshot({})
+        self.snapshot = Snapshot.objects.create_snapshot({})
         self.pipeline_template = PipelineTemplate.objects.create(
             template_id=uniqid(), name=self.task_template_name, creator=self.creator, snapshot=self.snapshot
         )
