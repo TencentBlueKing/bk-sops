@@ -222,6 +222,23 @@
                     }
                 }
             ]
+        },
+        {
+            tag_code: "ip_is_exit",
+            type: "radio",
+            attrs: {
+                name: gettext("IP 存在性校验"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();
