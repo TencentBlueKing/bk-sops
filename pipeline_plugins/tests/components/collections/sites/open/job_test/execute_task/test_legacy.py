@@ -38,6 +38,7 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
             EXECUTE_SUCCESS_CASE,
             GET_VAR_ERROR_SUCCESS_CASE,
             INVALID_IP_CASE,
+            IP_IS_EXIT_CASE,
         ]
 
     def component_cls(self):
@@ -637,5 +638,32 @@ INVALID_IP_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+    ],
+)
+
+IP_IS_EXIT_CASE = ComponentTestCase(
+    name="ip is exit case",
+    inputs={
+        "job_global_var": [
+            {"category": 1, "name": "key_1", "value": "value_1"},
+            {"category": 1, "name": "key_2", "value": "value_2"},
+            {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
+        ],
+        "job_task_id": 12345,
+        "biz_cc_id": 1,
+        "ip_is_exit": True,
+    },
+    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 2.2.2.2 是否合法"}),
+    schedule_assertion=None,
+    execute_call_assertion=[
+        CallAssertion(
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}]}),
     ],
 )
