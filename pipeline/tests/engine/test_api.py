@@ -67,6 +67,7 @@ class TestEngineAPIDecorator(TestCase):
             act_result = test_func()
             self.assertFalse(act_result.result)
 
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test__worker_check(self):
         @api._worker_check
         def test_func():
@@ -102,6 +103,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_PREPARE_FOR_PIPELINE, MagicMock())
     @patch(PIPELINE_PIPELINE_MODEL_PREPARE_FOR_PIPELINE, MagicMock())
     @patch(PIPELINE_PIPELINE_MODEL_PIPELINE_READY, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_start_pipeline(self):
         process = MockPipelineProcess()
         pipeline_instance = "pipeline_instance"
@@ -122,6 +124,7 @@ class TestEngineAPI(TestCase):
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_start_pipeline__raise_invalid_operation(self):
         pipeline_instance = "pipeline_instance"
 
@@ -152,6 +155,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False)))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_pipeline__transit_fail(self):
         act_result = api.resume_pipeline(self.pipeline_id)
 
@@ -162,6 +166,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_PROCESS_BATCH_PROCESS_READY, MagicMock())
     @patch(PIPELINE_ENGINE_API_GET_PROCESS_TO_BE_WAKED, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_pipeline__transit_success(self):
         pipeline_model = MockPipelineModel()
 
@@ -195,6 +200,7 @@ class TestEngineAPI(TestCase):
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_revoke_pipeline__transit_success(self):
         pipeline_model = MockPipelineModel()
 
@@ -226,6 +232,7 @@ class TestEngineAPI(TestCase):
     @patch(
         PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS, MagicMock(return_value=MockQuerySet(exists_return=False))
     )
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_node_appointment__fail_with_invalid_node(self):
         act_result = api.resume_node_appointment(self.node_id)
 
@@ -236,6 +243,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False)))
     @patch(PIPELINE_PROCESS_FILTER, MagicMock(return_value=MockQuerySet(exists_return=True)))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_node_appointment__resume_not_subprocess_transit_fail(self):
         act_result = api.resume_node_appointment(self.node_id)
 
@@ -249,6 +257,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_STATUS_RECOVER_FROM_BLOCK, MagicMock())
     @patch(PIPELINE_PROCESS_PROCESS_READY, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_node_appointment__resume_not_subprocess(self):
         process = MockPipelineProcess()
 
@@ -275,6 +284,7 @@ class TestEngineAPI(TestCase):
     @patch(
         PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS, MagicMock(return_value=MockQuerySet(exists_return=True))
     )
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_node_appointment__resume_subprocess_transit_fail(self):
         act_result = api.resume_node_appointment(self.node_id)
 
@@ -291,6 +301,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_PROCESS_FILTER, MagicMock(return_value=MockQuerySet(exists_return=False)))
     @patch(PIPELINE_STATUS_RECOVER_FROM_BLOCK, MagicMock())
     @patch(PIPELINE_PROCESS_BATCH_PROCESS_READY, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_resume_node_appointment__resume_subprocess(self):
         root_pipeline = PipelineObject()
 
@@ -334,6 +345,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_PROCESS_GET, MagicMock(side_effect=PipelineProcess.DoesNotExist))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_retry_node__fail_with_can_not_get_process(self):
         act_result = api.retry_node(self.node_id)
 
@@ -342,6 +354,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_retry_node__fail_with_invalid_node_type(self):
         top_pipeline = PipelineObject(nodes={self.node_id: ServiceActObject()})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
@@ -354,6 +367,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_retry_node__with_node_can_not_retry(self):
         # with service activity
         top_pipeline = PipelineObject(
@@ -381,6 +395,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_RETRY, MagicMock(return_value=MockActionResult(result=False, message="retry fail")))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_retry_node__with_retry_fail(self):
         node = ServiceActivity(id=self.node_id, service=None)
         top_pipeline = PipelineObject(nodes={self.node_id: node})
@@ -398,6 +413,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_RETRY, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_PROCESS_PROCESS_READY, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_retry_node__success(self):
         node = ServiceActivity(id=self.node_id, service=None)
         top_pipeline = PipelineObject(nodes={self.node_id: node})
@@ -417,6 +433,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_PROCESS_GET, MagicMock(side_effect=PipelineProcess.DoesNotExist))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_node__fail_with_can_not_get_process(self):
         act_result = api.skip_node(self.node_id)
 
@@ -425,6 +442,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_node__fail_with_invalid_node_type(self):
         top_pipeline = PipelineObject(nodes={self.node_id: ServiceActObject()})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
@@ -437,6 +455,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_node__fail_with_node_can_not_skip(self):
         top_pipeline = PipelineObject(
             nodes={self.node_id: ServiceActivity(id=self.node_id, service=None, skippable=False)}
@@ -452,6 +471,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=False, message="skip fail")))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_node__fail_with_skip_fail(self):
         node = ServiceActivity(id=self.node_id, service=None)
         top_pipeline = PipelineObject(nodes={self.node_id: node})
@@ -469,6 +489,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_PROCESS_PROCESS_READY, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_node__success(self):
         node = ServiceActivity(id=self.node_id, service=None)
         mock_next = IdentifyObject()
@@ -495,6 +516,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_PROCESS_GET, MagicMock(side_effect=PipelineProcess.DoesNotExist))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_exclusive_gateway__fail_with_can_not_get_process(self):
         act_result = api.skip_exclusive_gateway(self.node_id, uniqid())
 
@@ -503,6 +525,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_exclusive_gateway__fail_with_invalid_node_type(self):
         top_pipeline = PipelineObject(nodes={self.node_id: ServiceActObject()})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
@@ -516,6 +539,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=False, message="skip fail")))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_exclusive_gateway__fail_with_skip_fail(self):
         eg = ExclusiveGateway(id=uniqid())
         next_node = IdentifyObject()
@@ -535,6 +559,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_PROCESS_PROCESS_READY, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_skip_exclusive_gateway__success(self):
         eg = ExclusiveGateway(id=uniqid())
         next_node = IdentifyObject()
@@ -690,6 +715,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_SCHEDULE_SCHEDULE_FOR, MagicMock(side_effect=ScheduleService.DoesNotExist))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_activity_callback__fail_with_schedule_not_exist(self):
         with patch(PIPELINE_STATUS_VERSION_FOR, MagicMock(return_value=self.version)):
             self.assertRaises(ScheduleService.DoesNotExist, api.activity_callback, self.node_id, None)
@@ -699,6 +725,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_SCHEDULE_SCHEDULE_FOR, MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_activity_callback__fail_with_process_not_exist(self):
         with patch(PIPELINE_STATUS_VERSION_FOR, MagicMock(return_value=self.version)):
             act_result = api.activity_callback(self.node_id, None)
@@ -710,6 +737,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_PROCESS_GET, MagicMock(return_value=IdentifyObject()))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_activity_callback__fail_with_schedule_finished(self):
         with patch(PIPELINE_STATUS_VERSION_FOR, MagicMock(return_value=self.version)):
             with patch(PIPELINE_SCHEDULE_SCHEDULE_FOR, MagicMock(return_value=MockScheduleService(is_finished=True))):
@@ -719,6 +747,7 @@ class TestEngineAPI(TestCase):
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_activity_callback__success(self):
         process = MockPipelineProcess()
         callback_data = uniqid()

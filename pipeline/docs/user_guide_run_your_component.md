@@ -1,8 +1,8 @@
 <!-- TOC -->
 
-- [执行你的组件](#%e6%89%a7%e8%a1%8c%e4%bd%a0%e7%9a%84%e7%bb%84%e4%bb%b6)
+- [执行你的组件](#执行你的组件)
   - [Component Runner](#component-runner)
-  - [示例](#%e7%a4%ba%e4%be%8b)
+  - [示例](#示例)
 
 <!-- /TOC -->
 

@@ -11,9 +11,31 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+import contextlib
+
 from pipeline.celery.settings import QueueResolver
-from pipeline.engine import tasks
-from pipeline.engine.models import NodeCeleryTask, PipelineModel, PipelineProcess, ProcessCeleryTask, ScheduleCeleryTask
+from pipeline.engine import tasks, exceptions
+from pipeline.engine.models import (
+    NodeCeleryTask,
+    PipelineModel,
+    PipelineProcess,
+    ProcessCeleryTask,
+    ScheduleCeleryTask,
+    SendFailedCeleryTask,
+)
+
+logger = logging.getLogger("root")
+
+
+@contextlib.contextmanager
+def celery_task_send_fail_pass():
+    try:
+        yield
+    except exceptions.CeleryFailedTaskCatchException as e:
+        # we catch CeleryFailedTaskCatchException here and ignore it.
+        # so we can process the fail task in SendFailedCeleryTask
+        logger.exception("{} task send error.".format(e.task_name))
 
 
 class CeleryTaskArgsResolver(object):
@@ -39,11 +61,12 @@ def pipeline_ready_handler(sender, process_id, **kwargs):
     task = tasks.start
     args_resolver = CeleryTaskArgsResolver(process_id)
 
-    ProcessCeleryTask.objects.start_task(
-        process_id=process_id,
-        start_func=task.apply_async,
-        kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
-    )
+    with celery_task_send_fail_pass():
+        ProcessCeleryTask.objects.start_task(
+            process_id=process_id,
+            task=task,
+            kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
+        )
 
 
 def pipeline_end_handler(sender, root_pipeline_id, **kwargs):
@@ -54,23 +77,30 @@ def child_process_ready_handler(sender, child_id, **kwargs):
     task = tasks.dispatch
     args_resolver = CeleryTaskArgsResolver(child_id)
 
-    ProcessCeleryTask.objects.start_task(
-        process_id=child_id,
-        start_func=task.apply_async,
-        kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
-    )
+    with celery_task_send_fail_pass():
+        ProcessCeleryTask.objects.start_task(
+            process_id=child_id,
+            task=task,
+            kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
+        )
 
 
-def process_ready_handler(sender, process_id, current_node_id=None, call_from_child=False, **kwargs):
+def process_ready_handler(
+    sender, process_id, current_node_id=None, call_from_child=False, **kwargs
+):
 
     task = tasks.process_wake_up
     args_resolver = CeleryTaskArgsResolver(process_id)
 
-    ProcessCeleryTask.objects.start_task(
-        process_id=process_id,
-        start_func=task.apply_async,
-        kwargs={"args": [process_id, current_node_id, call_from_child], **args_resolver.resolve_args(task)},
-    )
+    with celery_task_send_fail_pass():
+        ProcessCeleryTask.objects.start_task(
+            process_id=process_id,
+            task=task,
+            kwargs={
+                "args": [process_id, current_node_id, call_from_child],
+                **args_resolver.resolve_args(task),
+            },
+        )
 
 
 def batch_process_ready_handler(sender, process_id_list, pipeline_id, **kwargs):
@@ -79,9 +109,22 @@ def batch_process_ready_handler(sender, process_id_list, pipeline_id, **kwargs):
     task_args = PipelineModel.objects.task_args_for_pipeline(pipeline_id)
     priority = task_args["priority"]
     queue = task_args["queue"]
-    routing_key = QueueResolver(queue).resolve_task_routing_key(task)
 
-    task.apply_async(args=[process_id_list, pipeline_id], priority=priority, routing_key=routing_key)
+    kwargs = {
+        "args": [process_id_list, pipeline_id],
+        "priority": priority,
+    }
+    if queue:
+        kwargs["routing_key"] = QueueResolver(queue).resolve_task_routing_key(task)
+
+    with celery_task_send_fail_pass():
+        with SendFailedCeleryTask.watch(
+            name=task.name,
+            kwargs=kwargs,
+            type=SendFailedCeleryTask.TASK_TYPE_EMPTY,
+            extra_kwargs={},
+        ):
+            task.apply_async(**kwargs)
 
 
 def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
@@ -89,39 +132,53 @@ def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
     task = tasks.wake_from_schedule
     args_resolver = CeleryTaskArgsResolver(process_id)
 
-    ProcessCeleryTask.objects.start_task(
-        process_id=process_id,
-        start_func=task.apply_async,
-        kwargs={"args": [process_id, activity_id], **args_resolver.resolve_args(task)},
-    )
+    with celery_task_send_fail_pass():
+        ProcessCeleryTask.objects.start_task(
+            process_id=process_id,
+            task=task,
+            kwargs={
+                "args": [process_id, activity_id],
+                **args_resolver.resolve_args(task),
+            },
+        )
 
 
 def process_unfreeze_handler(sender, process_id, **kwargs):
     task = tasks.process_unfreeze
     args_resolver = CeleryTaskArgsResolver(process_id)
 
-    ProcessCeleryTask.objects.start_task(
-        process_id=process_id,
-        start_func=task.apply_async,
-        kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
-    )
+    with celery_task_send_fail_pass():
+        ProcessCeleryTask.objects.start_task(
+            process_id=process_id,
+            task=task,
+            kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
+        )
 
 
-def schedule_ready_handler(sender, process_id, schedule_id, countdown, data_id=None, **kwargs):
+def schedule_ready_handler(
+    sender, process_id, schedule_id, countdown, data_id=None, **kwargs
+):
     task = tasks.service_schedule
     args_resolver = CeleryTaskArgsResolver(process_id)
 
-    ScheduleCeleryTask.objects.start_task(
-        schedule_id=schedule_id,
-        start_func=task.apply_async,
-        kwargs={"args": [process_id, schedule_id, data_id], "countdown": countdown, **args_resolver.resolve_args(task)},
-    )
+    with celery_task_send_fail_pass():
+        ScheduleCeleryTask.objects.start_task(
+            schedule_id=schedule_id,
+            task=task,
+            kwargs={
+                "args": [process_id, schedule_id, data_id],
+                "countdown": countdown,
+                **args_resolver.resolve_args(task),
+            },
+        )
 
 
-def service_activity_timeout_monitor_start_handler(sender, node_id, version, root_pipeline_id, countdown, **kwargs):
+def service_activity_timeout_monitor_start_handler(
+    sender, node_id, version, root_pipeline_id, countdown, **kwargs
+):
     NodeCeleryTask.objects.start_task(
         node_id=node_id,
-        start_func=tasks.node_timeout_check.apply_async,
+        task=tasks.node_timeout_check,
         kwargs={
             "args": [node_id, version, root_pipeline_id],
             "countdown": countdown,
