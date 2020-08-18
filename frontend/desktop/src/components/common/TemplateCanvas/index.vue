@@ -51,6 +51,7 @@
                     :is-select-all-tool-disabled="isSelectAllToolDisabled"
                     :is-all-selected="isAllSelected"
                     :editable="editable"
+                    @onShowMap="onShowMap"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
                     @onResetPosition="onResetPosition"
@@ -182,6 +183,10 @@
                         'locations': []
                     }
                 }
+            },
+            exportImage: {
+                type: Boolean,
+                defauly: false
             }
         },
         data () {
@@ -239,6 +244,9 @@
                     lines,
                     nodes
                 }
+            },
+            exportImage (val) {
+                this.onDownloadCanvas()
             }
         },
         mounted () {
@@ -265,6 +273,9 @@
             }
         },
         methods: {
+            onShowMap () {
+                console.log('2222')
+            },
             onZoomIn (pos) {
                 if (pos) {
                     const { x, y } = pos
@@ -1126,7 +1137,7 @@
                 }
             },
             // 下载画布图片
-            onDownloadCanvas () {
+            onDownloadCanvas (event) {
                 // html2canvas(document.querySelector('#canvas-flow')).then(canvas => {
                 //     debugger
                 //     const imgEl = document.createElement('a')

@@ -19,6 +19,16 @@
                     delay: 300,
                     placements: ['bottom']
                 }"
+                @click="onShowMap">
+                <i class="common-icon-zoom-in"></i>
+            </div>
+            <div
+                class="tool-icon"
+                v-bk-tooltips="{
+                    content: $t('放大'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
                 @click="onZoomIn">
                 <i class="common-icon-zoom-in"></i>
             </div>
@@ -131,6 +141,9 @@
             }
         },
         methods: {
+            onShowMap () {
+                this.$emit('onShowMap')
+            },
             onZoomIn () {
                 this.$emit('onZoomIn')
             },
