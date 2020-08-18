@@ -20,7 +20,7 @@
                 {{ $t('已开始执行的任务不能修改参数') }}
             </p>
         </div>
-        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) }]">
+        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) && !paramsCanBeModify }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
