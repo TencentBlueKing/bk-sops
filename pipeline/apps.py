@@ -25,10 +25,7 @@ logger = logging.getLogger("root")
 
 
 def get_client_through_sentinel():
-    kwargs = {"sentinel_kwargs": {}}
-    sentinel_pwd = settings.REDIS.get("sentinel_password")
-    if sentinel_pwd:
-        kwargs["sentinel_kwargs"]["password"] = sentinel_pwd
+    kwargs = {}
     if "password" in settings.REDIS:
         kwargs["password"] = settings.REDIS["password"]
     host = settings.REDIS["host"]

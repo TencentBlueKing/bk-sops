@@ -1,3 +1,18 @@
+# 2.4.3
+
+- feature:
+  - 增加引擎内部消息流转检测功能，记录发送失败的消息，开发者能够对其进行重放
+  - databackend 添加自动过期功能
+- bugfix:
+  - 修复 pipeline worker 检查未使用最新 mq 链接的问题
+
+# 2.4.2
+
+- optimization:
+  - pipeline worker 检查添加重连机制
+- bugfix:
+  - 旧版本存留任务 pickle 数据兼容 _runtime_attrs 不存在的情况
+
 # 2.4.1
 
 - fetures:
