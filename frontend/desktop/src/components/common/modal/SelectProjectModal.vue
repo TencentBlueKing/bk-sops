@@ -131,6 +131,9 @@
                 this.$emit('onChange', project)
             },
             handleConfirm () {
+                if (this.confirmLoading) {
+                    return
+                }
                 if (typeof this.id === 'number') {
                     const project = this.projectList.find(item => item.id === this.id)
                     this.$emit('onConfirm', project)

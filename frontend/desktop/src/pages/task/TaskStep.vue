@@ -130,7 +130,12 @@
                     'templateEdit': {
                         name: 'templatePanel',
                         params: { type: 'edit', project_id: this.project_id },
-                        query: { template_id: this.template_id || this.asyncTemplateId }
+                        query: { template_id: this.template_id }
+                    },
+                    'commonTplEdit': {
+                        name: 'commonTemplatePanel',
+                        params: { type: 'edit' },
+                        query: { template_id: this.template_id }
                     },
                     'function': { name: 'functionHome' },
                     'audit': { name: 'auditHome' },
@@ -155,7 +160,7 @@
                              * 3、templateEdit - 模版编辑
                              */
                             if (entrance === 'periodicTask' || entrance === 'taskflow' || entrance === 'templateEdit') {
-                                url = backObj[entrance]
+                                url = (this.common && entrance === 'templateEdit') ? backObj['commonTplEdit'] : backObj[entrance]
                                 break
                             }
                             if (this.common) {
