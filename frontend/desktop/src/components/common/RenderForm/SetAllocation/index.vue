@@ -12,8 +12,9 @@
 <template>
     <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
         <resource-list
-            v-if="!showFilter && !colsLoading"
+            v-if="!showFilter"
             ref="resourceList"
+            :cols-loading="colsLoading"
             :editable="editable"
             :view-value="viewValue"
             :show-filter.sync="showFilter"
@@ -25,7 +26,7 @@
             @update="updateValue">
         </resource-list>
         <resource-filter
-            v-if="showFilter"
+            v-else
             :show-filter.sync="showFilter"
             :config="localConfig"
             :urls="urls"

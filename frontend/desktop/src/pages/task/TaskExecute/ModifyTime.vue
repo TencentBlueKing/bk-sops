@@ -11,9 +11,6 @@
 */
 <template>
     <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="panel-title">
-            <h3>{{ $t('修改定时时间') }}</h3>
-        </div>
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -25,7 +22,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" @click="onModifyTime">{{ $t('确定') }}</bk-button>
+            <bk-button theme="primary" class="confirm-btn" :loading="modifyTimeLoading" @click="onModifyTime">{{ $t('确定') }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
@@ -46,6 +43,7 @@
         props: ['nodeDetailConfig'],
         data () {
             return {
+                modifyTimeLoading: false,
                 loading: true,
                 bkMessageInstance: null,
                 nodeInfo: {},
@@ -61,6 +59,9 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config
+            }),
+            ...mapState('project', {
+                project_id: state => state.project_id
             }),
             isEmptyParams () {
                 return Object.keys(this.renderData).length === 0
@@ -102,7 +103,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atom: type, version })
+                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)
@@ -114,16 +115,16 @@
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid) return
+                if (!formvalid || this.modifyTimeLoading) return
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
                     instance_id,
                     node_id,
                     component_code,
-                    inputs: this.renderData
+                    inputs: JSON.stringify(this.renderData)
                 }
-                this.retrying = true
+                this.modifyTimeLoading = true
                 try {
                     const res = await this.setSleepNode(data)
                     if (res.result) {
@@ -138,7 +139,7 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.retrying = false
+                    this.modifyTimeLoading = false
                 }
             },
             onCancelRetry () {
@@ -155,25 +156,20 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-        .panel-title {
-            padding: 20px;
-            h3 {
-                margin: 0;
-                font-size: 22px;
-                font-weight: normal;
-            }
-        }
         .edit-wrapper {
             padding: 20px 20px 0;
-            height: calc(100% - 140px);
+            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
         .action-wrapper {
+            padding-left: 55px;
             height: 60px;
             line-height: 60px;
-            text-align: center;
             border-top: 1px solid $commonBorderColor;
+            .confirm-btn{
+                margin-right: 12px;
+            }
         }
     }
 </style>

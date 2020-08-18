@@ -20,10 +20,10 @@ from django.utils.translation import ugettext_lazy as _
 from blueapps.utils.managermixins import ClassificationCountMixin
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentExecuteData, InstanceInPipeline
-
+from pipeline.engine.utils import calculate_elapsed_time
 from gcloud.core.constant import TASK_CATEGORY, AE
-
 from gcloud.utils.dates import timestamp_to_datetime, format_datetime, gen_day_dates, get_month_dates
+from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
@@ -66,7 +66,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_appmaker_instance(self, taskflow, filters, page, limit):
         # 查询不同轻应用对应的流程数
-        from gcloud.contrib.appmaker.models import AppMaker
 
         # 获得所有类型的dict列表
         category_dict = dict(TASK_CATEGORY)
@@ -340,23 +339,38 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "gatewaysTotal": instance["gateways_total"],
             }
 
+        # 返回数据字段到相关数据库模型字段的映射表
+        mapping = {
+            "instanceId": "id",
+            "instanceName": "pipeline_instance__name",
+            "pipelineInstanceId": "pipeline_instance__instance_id",
+            "projectId": "project__id",
+            "projectName": "project__name",
+            "categoryKey": "category",
+            "createTime": "pipeline_instance__create_time",
+            "creator": "pipeline_instance__creator",
+            "startTime": "pipeline_instance__start_time",
+            "finishTime": "pipeline_instance__finish_time",
+        }
+        tasks = taskflow.values(*list(mapping.values()))
         groups = []
-        for task in taskflow:
+        task_category = dict(TASK_CATEGORY)
+        for task in tasks:
             item = {
-                "instanceId": task.id,
-                "instanceName": task.pipeline_instance.name,
-                "projectId": task.project.id,
-                "projectName": task.project.name,
-                "category": task.get_category_display(),
-                "createTime": format_datetime(task.pipeline_instance.create_time),
-                "creator": task.pipeline_instance.creator,
-                "elapsedTime": task.elapsed_time,
+                "instanceId": task[mapping["instanceId"]],
+                "instanceName": task[mapping["instanceName"]],
+                "projectId": task[mapping["projectId"]],
+                "projectName": task[mapping["projectName"]],
+                "category": task_category[task[mapping["categoryKey"]]],
+                "createTime": format_datetime(task[mapping["createTime"]],),
+                "creator": task[mapping["creator"]],
+                "elapsedTime": calculate_elapsed_time(task[mapping["startTime"]], task[mapping["finishTime"]]),
                 "atomTotal": 0,
                 "subprocessTotal": 0,
                 "gatewaysTotal": 0,
             }
-            if task.pipeline_instance.instance_id in instance_in_pipeline_dict:
-                item.update(instance_in_pipeline_dict[task.pipeline_instance.instance_id])
+            if task[mapping["pipelineInstanceId"]] in instance_in_pipeline_dict:
+                item.update(instance_in_pipeline_dict[task[mapping["pipelineInstanceId"]]])
             groups.append(item)
 
         order_by = filters.get("order_by", "-instanceId")

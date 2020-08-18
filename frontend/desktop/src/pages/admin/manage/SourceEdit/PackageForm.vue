@@ -172,7 +172,7 @@
                                                     class="table-textarea"
                                                     row="3"
                                                     :name="'modules' + index"
-                                                    :placeholder="$t('请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔')"
+                                                    :placeholder="$t('请输入模块绝对路径，如a.b.c，多个用换行分隔')"
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">

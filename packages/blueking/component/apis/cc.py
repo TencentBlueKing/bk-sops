@@ -648,3 +648,9 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/search_cloud_area/",
             description="查询云区域",
         )
+        self.list_set_template = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/list_set_template/",
+            description="查询集群模板",
+        )

@@ -45,7 +45,7 @@ def unfreeze():
         process.unfreeze()
 
 
-def workers():
+def workers(connection=None):
     try:
         worker_list = data.cache_for("__pipeline__workers__")
     except ConnectionError as e:
@@ -55,7 +55,14 @@ def workers():
         tries = 0
         try:
             while tries < 2:
-                worker_list = current_app.control.ping(timeout=tries + 1)
+                kwargs = {
+                    "timeout": tries + 1
+                }
+                if connection:
+                    kwargs["connection"] = connection
+
+                worker_list = current_app.control.ping(**kwargs)
+
                 if worker_list:
                     break
                 tries += 1

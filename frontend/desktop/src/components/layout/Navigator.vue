@@ -56,7 +56,7 @@
             </li>
             <li class="right-icon help-doc">
                 <a
-                    class="common-icon-dark-circle-question"
+                    class="common-icon-help"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank"
                     v-bk-tooltips="{
@@ -69,7 +69,7 @@
             </li>
             <li class="right-icon version-log">
                 <i
-                    class="common-icon-info"
+                    class="bk-icon  icon-info-circle-shape"
                     v-bk-tooltips="{
                         content: $t('版本日志'),
                         placement: 'bottom-end',
@@ -104,6 +104,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapGetters, mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
@@ -148,7 +149,6 @@
             name: i18n.t('项目管理')
         },
         {
-            routerName: 'admin',
             path: '/admin',
             name: i18n.t('管理员入口'),
             children: [
@@ -308,18 +308,20 @@
              * @param {Object} route 路由信息
              */
             onGoToPath (route) {
+                const config = this.getNavPath(route)
                 if (route.children && route.children.length > 0) {
                     return
                 }
-                if (this.$route.name === route.routerName) {
+                if (this.$route.name === route.routerName && tools.isDataEqual(this.$route.query, config.query)) {
                     return this.reload()
                 }
                 /** 404 页面时，导航统一跳转到首页 */
                 if (this.notFoundPage && this.view_mode === 'app') {
                     return this.$router.push({ name: 'home' })
                 }
-                const config = this.getNavPath(route)
-                this.$router.push(config)
+                if (config.name) {
+                    this.$router.push(config)
+                }
             },
             /* 打开版本日志 */
             async onOpenVersion () {
@@ -472,9 +474,9 @@ header {
         .right-icon {
             float: left;
             height: 50px;
-            font-size: 16px;
             & > [class^='common-icon'] {
                 margin-top: 17px;
+                font-size: 16px;
                 display: inline-block;
                 color: #63656e;
                 cursor: pointer;
@@ -488,8 +490,15 @@ header {
         }
         .version-log {
             margin-left: 10px;
-            & > .common-icon-info {
+            & > .bk-icon{
+                margin-top: 16px;
                 font-size: 18px;
+                display: inline-block;
+                color: #63656e;
+                cursor: pointer;
+                &:hover {
+                    color: #616d7d;
+                }
             }
         }
         .user-avatar {

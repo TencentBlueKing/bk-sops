@@ -183,6 +183,9 @@
         .el-tree-node__label {
             padding-left: 4px;
         }
+        .el-tree__empty-text {
+            font-size: 12px;
+        }
     }
 }
 </style>

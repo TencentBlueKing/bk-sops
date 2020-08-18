@@ -16,6 +16,7 @@ import factory
 
 from django.test import TestCase
 from django.db.models import signals
+from django.conf import settings
 
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
@@ -70,7 +71,7 @@ class PeriodicTaskTestCase(TestCase):
         self.invalid_project = Project.objects.create(
             name="invalid_project", time_zone="Asia/Shanghai", creator="test", desc=""
         )
-        self.snapshot, _ = Snapshot.objects.create_or_get_snapshot({})
+        self.snapshot = Snapshot.objects.create_snapshot({})
         self.pipeline_template = PipelineTemplate.objects.create(
             template_id=uniqid(), name=self.task_template_name, creator=self.creator, snapshot=self.snapshot
         )
@@ -124,6 +125,7 @@ class PeriodicTaskTestCase(TestCase):
                 "template_num_id": self.template.id,
             },
             spread=True,
+            queue=settings.PERIODIC_TASK_QUEUE_NAME,
         )
 
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())

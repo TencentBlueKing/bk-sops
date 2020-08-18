@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django import forms
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
@@ -29,8 +30,9 @@ from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
 from pipeline_web.label.models import LabelGroup, Label
+from pipeline_web.plugin_management.utils import DeprecatedPlugin
 
-from gcloud.core.models import Business, Project, ProjectCounter
+from gcloud.core.models import Business, Project, ProjectCounter, ProjectBasedComponent
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.utils import get_user_projects
@@ -146,13 +148,34 @@ class ComponentModelResource(GCloudModelResource):
         if filters and "version" in filters:
             orm_filters["version"] = filters.get("version") or LEGACY_PLUGINS_VERSION
 
+        if filters and "project_id" in filters:
+            project_id = filters.pop("project_id")
+            # 处理list接口和detail接口获取到project_id形式不同的情况
+            project_id = project_id[0] if type(project_id) is list else project_id
+            exclude_component_codes = ProjectBasedComponent.objects.get_components_with_project(project_id)
+        else:
+            exclude_component_codes = ProjectBasedComponent.objects.get_components()
+        query_set = ~Q(code__in=exclude_component_codes)
+        orm_filters.update({"custom_query_set": query_set})
         return orm_filters
+
+    def apply_filters(self, request, applicable_filters):
+        if "custom_query_set" in applicable_filters:
+            custom_query_set = applicable_filters.pop("custom_query_set")
+        else:
+            custom_query_set = None
+        semi_filtered = super(ComponentModelResource, self).apply_filters(request, applicable_filters)
+        return semi_filtered.filter(custom_query_set) if custom_query_set else semi_filtered
 
     def get_detail(self, request, **kwargs):
         kwargs["version"] = request.GET.get("version", None)
+        kwargs["project_id"] = request.GET.get("project_id", None)
         return super(ComponentModelResource, self).get_detail(request, **kwargs)
 
     def alter_list_data_to_serialize(self, request, data):
+
+        component_phase_dict = DeprecatedPlugin.objects.get_components_phase_dict()
+
         for bundle in data["objects"]:
             component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
             bundle.data["output"] = component.outputs_format()
@@ -163,6 +186,9 @@ class ComponentModelResource(GCloudModelResource):
             name = bundle.data["name"].split("-")
             bundle.data["group_name"] = _(name[0])
             bundle.data["name"] = _(name[1])
+            bundle.data["phase"] = component_phase_dict.get(bundle.data["code"], {}).get(
+                bundle.data["version"], DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
+            )
 
         return data
 
@@ -195,6 +221,17 @@ class VariableModelResource(GCloudModelResource):
         excludes = ["status", "id"]
         detail_uri_name = "code"
         authorization = ReadOnlyAuthorization()
+
+    def alter_list_data_to_serialize(self, request, data):
+
+        variable_phase_dict = DeprecatedPlugin.objects.get_variables_phase_dict()
+
+        for bundle in data["objects"]:
+            bundle.data["phase"] = variable_phase_dict.get(bundle.data["code"], {}).get(
+                LEGACY_PLUGINS_VERSION, DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
+            )
+
+        return data
 
 
 class CommonProjectResource(GCloudModelResource):

@@ -111,7 +111,6 @@ const tools = {
      * @param {String|Number} time 时间
      */
     timeTransform (time) {
-        time = 0
         const val = Number(time)
         let timeStr = ''
         if (val >= 0) {

@@ -38,31 +38,24 @@
             </single-ip-selector>
         </div>
         <div class="condition-area">
+            <select-condition
+                ref="conditions"
+                :label="i18n.filterTitle"
+                :editable="editable"
+                :condition-fields="conditionFields"
+                :conditions="conditions"
+                @change="updateValue('conditions', $event)">
+            </select-condition>
             <div class="cloud-area-form">
-                <label>{{ i18n.showCloudArea }}</label>
+                <label :class="[editable ? '' : 'disabled']">{{ i18n.showCloudArea }}</label>
                 <bk-switcher
-                    size="min"
+                    size="small"
                     theme="primary"
+                    :disabled="!editable"
                     v-model="with_cloud_id"
                     @change="updateValue('with_cloud_id', $event)">
                 </bk-switcher>
             </div>
-            <select-condition
-                ref="filterConditions"
-                :label="i18n.filter"
-                :editable="editable"
-                :condition-fields="conditionFields"
-                :conditions="filters"
-                @change="updateValue('filters', $event)">
-            </select-condition>
-            <select-condition
-                ref="excludeConditions"
-                :label="i18n.exclude"
-                :editable="editable"
-                :condition-fields="conditionFields"
-                :conditions="excludes"
-                @change="updateValue('excludes', $event)">
-            </select-condition>
         </div>
     </div>
 </template>
@@ -73,10 +66,9 @@
     import SelectCondition from './SelectCondition.vue'
 
     const i18n = {
-        staticIp: gettext('静态IP'),
-        dynamicIp: gettext('动态IP'),
-        filter: gettext('筛选条件'),
-        exclude: gettext('排除条件'),
+        staticIp: gettext('静态 IP'),
+        dynamicIp: gettext('动态 IP'),
+        filterTitle: gettext('筛选条件和排除条件'),
         showCloudArea: gettext('变量值是否带云区域：')
     }
 
@@ -165,13 +157,13 @@
         },
         data () {
             const { selectors, ip, topo, filters, excludes, with_cloud_id } = this.value
+            const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
                 ip: ip.slice(0),
                 topo: topo.slice(0),
-                filters: filters.slice(0),
-                excludes: excludes.slice(0),
                 with_cloud_id,
+                conditions,
                 i18n
             }
         },
@@ -199,16 +191,47 @@
             }
         },
         methods: {
+            getConditions (filters, excludes) {
+                const filtersArr = filters.map(item => {
+                    return {
+                        ...item,
+                        type: 'filter'
+                    }
+                })
+                const excludesArr = excludes.map(item => {
+                    return {
+                        ...item,
+                        type: 'exclude'
+                    }
+                })
+                return [...filtersArr, ...excludesArr]
+            },
             updateValue (key, val) {
                 if (!key) {
                     return
                 }
-                if (Array.isArray(key) && Array.isArray(val)) {
-                    key.forEach((k, i) => {
-                        this.value[k] = val[i]
+                if (key === 'conditions') {
+                    const filters = []
+                    const excludes = []
+                    val.forEach(item => {
+                        const { field, value } = item
+                        if (item.type === 'filter') {
+                            filters.push({ field, value })
+                        } else {
+                            excludes.push({ field, value })
+                        }
                     })
+                    this.value.filters = filters
+                    this.value.excludes = excludes
+                    this.conditions = val.slice(0)
                 } else {
-                    this.value[key] = val
+                    if (Array.isArray(key) && Array.isArray(val)) {
+                        key.forEach((k, i) => {
+                            this.value[k] = val[i]
+                        })
+                    } else {
+                        this.value[key] = val
+                    }
                 }
 
                 this.$emit('change', this.value)
@@ -219,10 +242,9 @@
                 if (!this.allowEmpty) {
                     selectorValidate = selector.validate()
                 }
-                const filterValidate = this.$refs.filterConditions.validate()
-                const excludeValidate = this.$refs.excludeConditions.validate()
+                const conditionValidate = this.$refs.conditions.validate()
             
-                return selectorValidate && filterValidate && excludeValidate
+                return selectorValidate && conditionValidate
             }
         }
     }
@@ -240,6 +262,9 @@
         font-size: 12px;
         color: #313238;
         line-height: 20px;
+        &.disabled {
+            color: #cccccc;
+        }
     }
 }
 </style>

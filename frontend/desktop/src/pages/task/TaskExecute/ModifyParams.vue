@@ -14,16 +14,13 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
-        <div class="panel-title">
-            <h3>{{ $t('修改全局参数') }}</h3>
-        </div>
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
                 {{ $t('已开始执行的任务不能修改参数') }}
             </p>
         </div>
-        <div class="edit-wrapper">
+        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) && !paramsCanBeModify }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
@@ -33,17 +30,24 @@
             </TaskParamEdit>
             <NoData v-else></NoData>
         </div>
-        <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
-            <bk-button
-                theme="primary"
-                :class="{
-                    'btn-permission-disable': !hasSavePermission
-                }"
-                v-cursor="{ active: !hasSavePermission }"
-                @click="onModifyParams">
-                {{ $t('保存') }}
-            </bk-button>
+        <div class="action-wrapper">
+            <div v-if="!isParamsEmpty && paramsCanBeModify">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasSavePermission
+                    }"
+                    :loading="pending"
+                    v-cursor="{ active: !hasSavePermission }"
+                    @click="onModifyParams">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            </div>
+            
+            <bk-button v-else theme="default" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
+
     </div>
 </template>
 <script>
@@ -111,6 +115,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.cntLoading = false
+                    this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
                 }
             },
             async onModifyParams () {
@@ -138,12 +143,11 @@
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
                     if (!formValid) return
-                    const variables = paramEditComp.getVariableData()
+                    const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         formData[key] = variables[key].value
                     }
                 }
-
                 const data = {
                     instance_id: this.instance_id,
                     constants: formData
@@ -156,6 +160,7 @@
                             message: i18n.t('参数修改成功'),
                             theme: 'success'
                         })
+                        this.$emit('packUp')
                     } else {
                         errorHandler(res, this)
                     }
@@ -167,6 +172,9 @@
             },
             onChangeConfigLoading (val) {
                 this.configLoading = val
+            },
+            onCancelRetry () {
+                this.$emit('packUp')
             }
         }
     }
@@ -178,16 +186,6 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-        .panel-title {
-            margin: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #cacedb;
-            h3 {
-                margin: 0;
-                font-size: 14px;
-                font-weight: bold;
-            }
-        }
         .panel-notice-task-run {
             margin: 20px 20px 10px 20px;
             padding: 0 10px;
@@ -202,14 +200,17 @@
         }
         .edit-wrapper {
             padding: 20px;
-            height: calc(100% - 150px);
+            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
+        .cancel-check {
+            height: calc(100% - 126px);
+        }
         .action-wrapper {
-            height: 90px;
-            line-height: 90px;
-            text-align: center;
+            padding-left: 20px;
+            height: 60px;
+            line-height: 60px;
             border-top: 1px solid $commonBorderColor;
         }
     }

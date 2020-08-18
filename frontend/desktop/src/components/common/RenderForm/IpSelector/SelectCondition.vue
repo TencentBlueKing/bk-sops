@@ -29,7 +29,7 @@
                 </condition-item>
             </div>
         </template>
-        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{i18n.addItem + label}}</div>
+        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{i18n.addItem}}</div>
     </div>
 </template>
 <script>
@@ -39,7 +39,7 @@
 
     const i18n = {
         allSatisfy: gettext('（同时满足）'),
-        addItem: gettext('增加一条')
+        addItem: gettext('点击增加条件')
     }
 
     export default {
@@ -86,6 +86,7 @@
                 }
                 const conditions = this.conditions.slice(0)
                 conditions.splice(index + 1, 0, {
+                    type: 'filter',
                     field: '',
                     value: []
                 })

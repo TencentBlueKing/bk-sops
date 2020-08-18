@@ -42,7 +42,7 @@
                         enabled: showMiniMap
                     }
                 }"
-                @changeContent="contentUpdate">
+                @input="contentUpdate">
             </code-editor>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>

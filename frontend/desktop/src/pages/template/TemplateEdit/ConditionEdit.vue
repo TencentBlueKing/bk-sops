@@ -10,17 +10,15 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="condition-edit">
-        <bk-sideslider
-            :ext-cls="getSliderCls"
-            :width="420"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span>{{ $t('分支条件') }}</span>
-            </div>
-            <div class="condition-form" slot="content">
+    <bk-sideslider
+        :width="800"
+        :is-show="isShow"
+        :before-close="onBeforeClose">
+        <div slot="header">
+            <span>{{ $t('分支条件') }}</span>
+        </div>
+        <div class="condition-form" slot="content">
+            <div class="form-wrap">
                 <div class="form-item">
                     <label class="label">
                         {{ $t('分支名称') }}
@@ -60,8 +58,12 @@
                     <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
                 </div>
             </div>
-        </bk-sideslider>
-    </div>
+            <div class="btn-wrap">
+                <bk-button class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="close">{{ $t('取消') }}</bk-button>
+            </div>
+        </div>
+    </bk-sideslider>
 </template>
 
 <script>
@@ -74,9 +76,6 @@
             CodeEditor
         },
         props: {
-            isSettingPanelShow: Boolean,
-            isShowConditionEdit: Boolean,
-            settingActiveTab: String,
             isShow: Boolean
         },
         data () {
@@ -97,27 +96,6 @@
                 conditionData: {}
             }
         },
-        computed: {
-            getSliderCls () { // 动态设置面板的 class
-                let base = 'common-template-setting-sideslider'
-                if (this.isSettingPanelShow) {
-                    switch (this.settingActiveTab) {
-                        case 'globalVariableTab':
-                            base += ' position-right-var'
-                            break
-                        case 'templateConfigTab':
-                            base += ' position-right-basic-info'
-                            break
-                        case 'localDraftTab':
-                            base += ' position-right-cache'
-                            break
-                        case 'templateDataEditTab':
-                            base += ' position-right-template-data'
-                    }
-                }
-                return base
-            }
-        },
         methods: {
             updateConditionData (data) {
                 this.conditionData = data
@@ -134,7 +112,21 @@
                     name: this.conditionName
                 }
             },
-            closeConditionEdit () {
+            checkCurrentConditionData () {
+                this.closeConditionEdit()
+                return this.$validator.validateAll()
+            },
+            onDataChange (val) {
+                if (val !== this.expression) {
+                    this.expression = val.trim()
+                }
+            },
+            // 关闭配置面板
+            onBeforeClose () {
+                this.close()
+                return true
+            },
+            confirm () {
                 const { id, nodeId, overlayId } = this.conditionData
                 this.$emit('onCloseConditionEdit', {
                     id,
@@ -144,62 +136,22 @@
                     name: this.conditionName
                 })
             },
-            checkCurrentConditionData () {
-                this.closeConditionEdit()
-                return this.$validator.validateAll()
-            },
-            // 关闭配置面板
-            onBeforeClose () {
-                this.closeConditionEdit()
-            },
-            onDataChange (val) {
-                if (val !== this.expression) {
-                    this.expression = val.trim()
-                }
+            close () {
+                this.$emit('update:isShow', false)
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-@import '@/scss/mixins/scrollbar.scss';
-.condition-edit {
-    z-index: 5;
-    transition: right 0.3s ease-in-out;
-    .common-template-setting-sideslider {
-        /deep/ .bk-sideslider-wrapper {
-            transition: right .3s ease-in-out;
-            right: 56px;
-        }
-        &.position-right-var {
-            /deep/ .bk-sideslider-wrapper {
-                right: 856px;
-                border-right: 1px solid #dcdee5;
-            }
-        }
-        &.position-right-basic-info{
-            /deep/ .bk-sideslider-wrapper {
-                right: 476px;
-                border-right: 1px solid #dcdee5;
-            }
-        }
-        &.position-right-cache {
-            /deep/ .bk-sideslider-wrapper {
-                right: 476px;
-                border-right: 1px solid #dcdee5;
-            }
-        }
-        &.position-right-template-data {
-            /deep/ .bk-sideslider-wrapper {
-                right: 896px;
-                border-right: 1px solid #dcdee5;
-            }
-        }
-    }
+    @import '@/scss/mixins/scrollbar.scss';
     .condition-form {
+        height: calc(100vh - 60px);
+        .form-wrap {
+            padding: 20px 30px;
+            height: calc(100% - 49px);
+        }
         .form-item {
-            margin: 0 20px;
             margin-bottom: 20px;
             .label {
                 display: block;
@@ -212,7 +164,7 @@
                 }
             }
             .code-wrapper {
-                height: 160px;
+                height: 300px;
             }
         }
         .expression-tips {
@@ -227,6 +179,9 @@
                 margin-left: 0px;
             }
         }
+        .btn-wrap {
+            padding: 8px 20px;
+            border-top: 1px solid #cacedb;
+        }
     }
-}
 </style>

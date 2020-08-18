@@ -53,6 +53,8 @@ const atomFilter = {
                         case 'datetime':
                         case 'password':
                         case 'member_selector':
+                        case 'code_editor':
+                        case 'section':
                             val = ''
                             break
                         case 'checkbox':
@@ -64,6 +66,9 @@ const atomFilter = {
                             break
                         case 'select':
                             val = item.attrs.multiple ? [] : ''
+                            break
+                        case 'time':
+                            val = item.attrs.isRange ? ['00:00:00', '23:59:59'] : ''
                             break
                         case 'int':
                             val = 0

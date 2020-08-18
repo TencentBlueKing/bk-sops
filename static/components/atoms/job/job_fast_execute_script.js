@@ -122,11 +122,14 @@
         },
         {
             tag_code: "job_content",
-            type: "textarea",
+            type: "code_editor",
             attrs: {
                 name: gettext("脚本内容"),
                 hookable: true,
                 placeholder: gettext("填写执行脚本内容"),
+                language: "shell",
+                showLanguageSwitch: false,
+                height: "400px",
                 validation: [
                     {
                         type: "custom",

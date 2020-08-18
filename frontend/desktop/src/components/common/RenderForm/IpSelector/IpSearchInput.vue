@@ -14,7 +14,7 @@
         <bk-input
             class="search-input"
             right-icon="bk-icon icon-search"
-            font-size="normal"
+            size="small"
             :placeholder="placeholder"
             :disabled="!editable"
             :clearable="true"
@@ -62,5 +62,8 @@
 <style lang="scss" scoped>
 .search-input {
     font-size: 14px;
+    /deep/ .bk-form-input {
+        height: 26px;
+    }
 }
 </style>

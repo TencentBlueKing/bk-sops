@@ -10,10 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 module.exports = {
-    plugins: {
-        'postcss-cssnext': {}
-        // 'cssnano': {
-        //     autoprefixer: false
-        // }
-    }
+    plugins: [
+        require('postcss-preset-env'),
+        require('postcss-custom-properties')
+    ]
 }

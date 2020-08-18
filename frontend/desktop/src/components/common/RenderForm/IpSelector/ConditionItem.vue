@@ -13,6 +13,20 @@
     <div class="condition-item">
         <div class="select-field">
             <bk-select
+                v-model="condition.type"
+                :clearable="false"
+                :disabled="!editable"
+                @selected="onTypeSelect">
+                <bk-option
+                    v-for="option in typeList"
+                    :key="option.id"
+                    :id="option.id"
+                    :name="option.name">
+                </bk-option>
+            </bk-select>
+        </div>
+        <div class="select-field">
+            <bk-select
                 v-model="condition.field"
                 :disabled="!editable"
                 :placeholder="i18n.select"
@@ -48,7 +62,9 @@
     const i18n = {
         select: gettext('请选择'),
         desc: gettext('请输入，多个用换行分隔'),
-        notEmpty: gettext('必填项')
+        notEmpty: gettext('必填项'),
+        filter: gettext('筛选'),
+        exclude: gettext('排除')
     }
 
     export default {
@@ -62,6 +78,7 @@
                 type: Object,
                 default () {
                     return {
+                        type: 'filter',
                         field: '',
                         value: []
                     }
@@ -80,7 +97,18 @@
                 isDropdownShow: false,
                 filedError: false,
                 valueError: false,
+                typeList: [
+                    {
+                        id: 'filter',
+                        name: i18n.filter
+                    },
+                    {
+                        id: 'exclude',
+                        name: i18n.exclude
+                    }
+                ],
                 condition: {
+                    type: this.data.type,
                     field: this.data.field,
                     value: this.data.value.join('\n')
                 },
@@ -91,6 +119,7 @@
             data: {
                 handler (val) {
                     this.condition = {
+                        type: val.type,
                         field: val.field,
                         value: val.value.join('\n')
                     }
@@ -99,19 +128,17 @@
             }
         },
         methods: {
+            onTypeSelect (value) {
+                const condition = Object.assign({}, this.data, { type: value })
+                this.$emit('changeCondition', condition, this.index)
+            },
             onConditionSelect (value) {
-                const condition = {
-                    field: value,
-                    value: this.data.value
-                }
+                const condition = Object.assign({}, this.data, { field: value })
                 this.$emit('changeCondition', condition, this.index)
                 this.filedError = !this.condition.field
             },
             onConditionTextChange () {
-                const condition = {
-                    field: this.condition.field,
-                    value: this.condition.value.split('\n')
-                }
+                const condition = Object.assign({}, this.data, { value: this.condition.value.split('\n') })
                 this.$emit('changeCondition', condition, this.index)
                 this.valueError = !this.condition.value
             },
@@ -147,13 +174,16 @@
 
 .select-field {
     float: left;
-    width: 120px;
+    width: 96px;
+    &:first-child {
+        margin-right: 6px;
+    }
 }
 .condition-text-wrap {
     float: left;
     position: relative;
     margin: 0 10px;
-    width: calc(100% - 190px);
+    width: calc(100% - 270px);
     .textarea-mirror, textarea {
         padding: 9px 10px 0;
         line-height: 1.2;

@@ -262,7 +262,8 @@
                     case 'datetime':
                     case 'password':
                     case 'memberSelector':
-                    case 'codeEditor':
+                    case 'code_editor':
+                    case 'section':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''
@@ -287,6 +288,19 @@
                         } else {
                             valueFormat = {
                                 type: ['String', 'Number', 'Boolean'],
+                                value: ''
+                            }
+                        }
+                        break
+                    case 'time':
+                        if (this.scheme.attrs.isRange) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: ['00:00:00', '23:59:59']
+                            }
+                        } else {
+                            valueFormat = {
+                                type: 'String',
                                 value: ''
                             }
                         }

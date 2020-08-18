@@ -181,7 +181,8 @@
                         case 'datetime':
                         case 'password':
                         case 'member_selector':
-                        case 'codeEditor':
+                        case 'section':
+                        case 'code_editor':
                             val = ''
                             break
                         case 'checkbox':
@@ -192,6 +193,9 @@
                             break
                         case 'select':
                             val = scheme.attrs.multiple ? [] : ''
+                            break
+                        case 'time':
+                            val = scheme.attrs.isRange ? ['00:00:00', '23:59:59'] : ''
                             break
                         case 'int':
                             val = 0
@@ -242,6 +246,7 @@
                     }
                     return acc[cur]
                 }, fieldDataObj)
+                this.value = tools.deepClone(fieldDataObj) // 更新 value，通过下面触发 change 更新父组件 formData 后，watch 具有滞后性，导致 value 值不是最新的
                 this.$emit('change', fieldDataObj)
             },
             updateHook (field, val) {

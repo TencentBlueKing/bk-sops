@@ -93,11 +93,13 @@ def status(request, project_id):
             task_status = task.get_status()
             ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
             return JsonResponse(ctx)
+        except exceptions.InvalidOperationException:
+            ctx = {"result": True, "data": {"state": states.READY, "message": "", "code": err_code.SUCCESS.code}}
         except Exception as e:
             message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
             logger.exception(message)
             ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
-            return JsonResponse(ctx)
+        return JsonResponse(ctx)
 
     # 请求子流程的状态，直接通过pipeline api查询
     try:

@@ -14,12 +14,14 @@
         <div class="opt-btns" v-if="!viewValue">
             <bk-button
                 theme="default"
+                size="small"
                 :disabled="!editable"
                 @click="$emit('update:showFilter', true)">
                 {{ i18n.resourceFilter }}
             </bk-button>
             <bk-button
                 theme="default"
+                size="small"
                 :disabled="!editable"
                 @click="exportData">
                 {{ i18n.export }}
@@ -34,6 +36,7 @@
                 :auto-upload="false">
                 <bk-button
                     slot="trigger"
+                    size="small"
                     :disabled="!editable"
                     theme="default">
                     {{ i18n.import }}
@@ -41,7 +44,7 @@
             </el-upload>
         </div>
         <div class="data-table">
-            <bk-table :data="tableData" :fit="false">
+            <bk-table v-if="!colsLoading" :data="tableData" :fit="false">
                 <bk-table-column
                     v-for="(item, colIndex) in cols"
                     :key="item.config.tag_code"
@@ -94,6 +97,7 @@
             NoData
         },
         props: {
+            colsLoading: Boolean,
             editable: {
                 type: Boolean,
                 default: true
@@ -260,7 +264,7 @@
 </script>
 <style lang="scss" scoped>
     .opt-btns {
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         /deep/ .bk-button {
             font-size: 12px;
         }

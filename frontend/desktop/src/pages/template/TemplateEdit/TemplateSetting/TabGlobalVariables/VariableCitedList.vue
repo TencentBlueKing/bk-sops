@@ -11,18 +11,20 @@
 */
 <template>
     <div class="variable-cited-wrap">
-        <ul class="variable-cited-list">
-            <li
+        <div class="variable-cited-list">
+            <p class="num">{{$t('引用变量的节点')}}{{$t('（')}}{{list.length}}{{$t('）')}}</p>
+            <div
                 v-for="item in list"
                 :key="item.id"
                 class="variable-cited-item">
                 <span
                     :class="['cited-name', { 'name-error': !item.name }]"
+                    :title="item.name"
                     @click.stop="onCitedNodeClick(item.id)">
-                    {{ item.name || $t('未命名节点') }}
+                    {{ item.name }}
                 </span>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -30,7 +32,6 @@
     export default {
         name: 'VariableCitedList',
         props: {
-            constant: Object,
             citedList: Array
         },
         computed: {
@@ -56,11 +57,15 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+.num {
+    margin: 0 0 10px;
+}
 .variable-cited-list {
     position: relative;
     margin: 10px 30px;
+    padding: 16px;
     background: #f0f1f5;
-    border: 1px solid #ebebeb;
+    border: 1px solid #dcdee5;
     border-radius: 2px;
     &::after {
         content: '';
@@ -72,19 +77,32 @@
         background: #f0f1f5;
         border-style: solid;
         border-width: 1px 1px 0 0;
-        border-color: #ebebeb #ebebeb transparent transparent;
+        border-color: #dcdee5 #dcdee5 transparent transparent;
         transform: rotate(-45deg);
         border-radius: 1px;
     }
     .variable-cited-item {
-        padding: 0 20px;
-        height: 32px;
-        line-height: 32px;
-        color: #3a84ff;
+        position: relative;
+        padding: 0 18px;
+        height: 24px;
+        line-height: 24px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 9px;
+            left: 0;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #b6b6b6;
+        }
         .cited-name {
             cursor: pointer;
-            &.name-error {
-                color: #ea3636;
+            &:hover {
+                color: #3a84ff;
             }
         }
     }
