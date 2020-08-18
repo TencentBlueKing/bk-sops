@@ -114,6 +114,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import { mapState } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
@@ -160,6 +161,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             listInPanel () {
                 return (this.searchStr === '' && this.selectedGroup === 'all') ? this.nodes : this.searchResult
             },
@@ -254,6 +259,10 @@
                     flow: [{
                         id: node.id,
                         name: node.name
+                    }],
+                    project: [{
+                        id: this.projectId,
+                        name: this.projectName
                     }]
                 }
                 this.applyForPermission(['flow_view'], [], permissionData)

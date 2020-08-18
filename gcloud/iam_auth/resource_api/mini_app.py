@@ -46,13 +46,13 @@ class MiniAppResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = AppMaker.objects.all()
+            queryset = AppMaker.objects.filter(is_deleted=False)
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = AppMaker.objects.filter(project_id=str(parent_id))
+                queryset = AppMaker.objects.filter(project_id=str(parent_id), is_deleted=False)
             else:
-                queryset = AppMaker.objects.all()
+                queryset = AppMaker.objects.filter(is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -61,7 +61,7 @@ class MiniAppResourceProvider(ResourceProvider):
             mini_app_keywords = filter.search.get("mini_app", [])
 
             project_filter = Q()
-            mini_app_filter = Q()
+            mini_app_filter = Q(is_deleted=False)
 
             for keyword in project_keywords:
                 project_filter |= Q(name__icontains=keyword)

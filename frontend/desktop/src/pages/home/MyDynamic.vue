@@ -208,9 +208,13 @@
                 this.getTaskList()
             },
             onTaskPermissonCheck (required, task) {
-                const { id, name } = task
+                const { id, name, project } = task
                 const resourceData = {
-                    task: [{ id, name }]
+                    task: [{ id, name }],
+                    project: [{
+                        id: project.id,
+                        name: project.name
+                    }]
                 }
                 this.applyForPermission(required, task.auth_actions, resourceData)
             }

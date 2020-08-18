@@ -161,6 +161,16 @@ class Client(object):
 
         return True, "success"
 
+    # return resource instance creator to iam, esb needed.
+    def grant_batch_resource_creator_actions(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/batch_resource_creator_action/"
+
+        ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message
+
+        return True, "success"
+
     # ---------- action-topology
     def add_action_topology(self, system_id, action_type, data):
         path = "/api/v1/model/systems/{system_id}/action-topologies/{action_type}".format(

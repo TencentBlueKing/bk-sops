@@ -1,0 +1,148 @@
+{
+  "system_id": "bk_sops",
+  "operations": [
+    {
+      "operation": "upsert_resource_creator_actions",
+      "data": {
+        "config": [
+          {
+            "id": "project",
+            "actions": [
+              {
+                "id": "project_fast_create_task",
+                "required": false
+              },
+              {
+                "id": "flow_create",
+                "required": false
+              },
+              {
+                "id": "project_edit",
+                "required": false
+              },
+              {
+                "id": "project_view",
+                "required": false
+              }
+            ],
+            "sub_resource_types": [
+              {
+                "id": "flow",
+                "actions": [
+                  {
+                    "id": "flow_create_periodic_task",
+                    "required": false
+                  },
+                  {
+                    "id": "flow_create_mini_app",
+                    "required": false
+                  },
+                  {
+                    "id": "flow_create_task",
+                    "required": false
+                  },
+                  {
+                    "id": "flow_delete",
+                    "required": false
+                  },
+                  {
+                    "id": "flow_edit",
+                    "required": false
+                  },
+                  {
+                    "id": "flow_view",
+                    "required": false
+                  }
+                ]
+              },
+              {
+                "id": "mini_app",
+                "actions": [
+                  {
+                    "id": "mini_app_create_task",
+                    "required": false
+                  },
+                  {
+                    "id": "mini_app_delete",
+                    "required": false
+                  },
+                  {
+                    "id": "mini_app_edit",
+                    "required": false
+                  },
+                  {
+                    "id": "mini_app_view",
+                    "required": false
+                  }
+                ]
+              },
+              {
+                "id": "periodic_task",
+                "actions": [
+                  {
+                    "id": "periodic_task_view",
+                    "required": false
+                  },
+                  {
+                    "id": "periodic_task_edit",
+                    "required": false
+                  },
+                  {
+                    "id": "periodic_task_delete",
+                    "required": false
+                  }
+                ]
+              },
+              {
+                "id": "task",
+                "actions": [
+                  {
+                    "id": "task_view",
+                    "required": false
+                  },
+                  {
+                    "id": "task_edit",
+                    "required": false
+                  },
+                  {
+                    "id": "task_operate",
+                    "required": false
+                  },
+                  {
+                    "id": "task_claim",
+                    "required": false
+                  },
+                  {
+                    "id": "task_delete",
+                    "required": false
+                  },
+                  {
+                    "id": "task_clone",
+                    "required": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "common_flow",
+            "actions": [
+              {
+                "id": "common_flow_view",
+                "required": false
+              },
+              {
+                "id": "common_flow_edit",
+                "required": false
+              },
+              {
+                "id": "common_flow_delete",
+                "required": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -98,7 +98,7 @@
     import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
@@ -120,6 +120,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             isShowDefaultLogo () {
                 return this.isLogoLoadingError || !this.appData.logo_url
             }
@@ -142,6 +146,10 @@
                     mini_app: [{
                         id: this.appData.id,
                         name: this.appData.name
+                    }],
+                    project: [{
+                        id: this.projectId,
+                        name: this.projectName
                     }]
                 }
                 this.applyForPermission(required, this.appData.auth_actions, resourceData)

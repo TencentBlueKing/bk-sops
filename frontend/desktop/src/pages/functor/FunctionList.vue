@@ -318,6 +318,7 @@
                     searchable: true,
                     id: '',
                     name: '',
+                    project: {},
                     empty: false,
                     disabled: false
                 },
@@ -502,13 +503,14 @@
                 this.business.empty = false
                 this.template.id = ''
                 this.template.name = ''
+                this.template.project = {}
                 this.template.disabled = false
                 this.hasCreateTaskPerm = true
             },
             onSelectedTemplate (id) {
                 const templateList = this.template.list
                 let resource_uri = ''
-                let name, tplAction
+                let name, project, tplAction
 
                 if (id === undefined) {
                     return
@@ -519,6 +521,7 @@
                         if (item.id === id) {
                             resource_uri = item.resource_uri
                             name = item.name
+                            project = item.project
                             tplAction = item.auth_actions
                             return true
                         }
@@ -532,6 +535,7 @@
                 }
                 this.template.id = id
                 this.template.name = name
+                this.template.project = project
                 this.template.empty = false
                 this.tplAction = tplAction
                 this.checkCreateTaskPerm()
@@ -593,6 +597,10 @@
                         flow: [{
                             id: this.template.id,
                             name: this.template.name
+                        }],
+                        project: [{
+                            id: this.template.project.id,
+                            name: this.template.project.name
                         }]
                     }
                 }
@@ -641,12 +649,14 @@
             onClearTemplate () {
                 this.template.id = ''
                 this.template.name = ''
+                this.template.project = {}
             },
             onClearBusiness () {
                 this.business.id = ''
                 this.business.auth_actions = []
                 this.template.id = ''
                 this.template.name = ''
+                this.template.project = {}
                 this.template.disabled = true
             },
             onTaskPermissonCheck (required, data) {
@@ -654,6 +664,10 @@
                     task: [{
                         id: data.task.id,
                         name: data.task.name
+                    }],
+                    project: [{
+                        id: data.task.project.id,
+                        name: data.task.project.name
                     }]
                 }
                 this.applyForPermission(required, data.auth_actions, permissionData)

@@ -251,7 +251,7 @@
             checkForPermission (item) {
                 if (item.category === 'flow') {
                     item.name = item.extra_info.name
-                    this.applyForPermission(['flow_create_task'], item.auth_actions, { flow: [item] })
+                    this.applyForPermission(['flow_create_task'], item.auth_actions, { flow: [item], project: [{ id: item.extra_info.project_id, name: item.extra_info.project_name }] })
                 }
             },
             onHideCreateTask () {

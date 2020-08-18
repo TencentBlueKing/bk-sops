@@ -88,16 +88,7 @@
             ]),
             applyBtnClick () {
                 if (this.permissionData.type === 'project') {
-                    const isProjectValid = this.permissionData.permission.length && this.permissionData.permission.every(perm => {
-                        return perm.resources.every(resource => {
-                            return resource.every(item => {
-                                return this.projectList.find(project => {
-                                    return project.id === item.resource_id
-                                })
-                            })
-                        })
-                    })
-                    if (isProjectValid) {
+                    if (this.url) {
                         this.goToAuthCenter()
                     } else {
                         this.$router.push({ name: 'projectHome' })
@@ -112,13 +103,6 @@
                 }
                 
                 openOtherApp(window.BK_IAM_APP_CODE, this.url)
-            },
-            goToCreateProject () {
-                if (!this.hasPermission(['project_create'], this.authActions)) {
-                    this.goToApply()
-                } else {
-                    this.$router.push({ name: 'projectHome' })
-                }
             },
             goToApply () {
                 this.applyForPermission(['project_create'])

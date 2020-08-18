@@ -82,7 +82,7 @@
     </div>
 </template>
 <script>
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -124,6 +124,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0
             }
@@ -182,6 +186,10 @@
                         task: [{
                             id: this.instance_id,
                             name: this.instanceName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
                         }]
                     }
                     this.applyForPermission(['task_claim'], this.instanceActions, resourceData)

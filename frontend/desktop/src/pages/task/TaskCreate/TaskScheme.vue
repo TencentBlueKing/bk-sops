@@ -68,7 +68,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
@@ -133,6 +133,12 @@
                 submiting: false,
                 deleting: false
             }
+        },
+        computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            })
         },
         created () {
             this.loadSchemeList()
@@ -253,6 +259,10 @@
                         flow: [{
                             id: this.template_id,
                             name: this.templateName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
                         }]
                     }
                     this.applyForPermission(required, this.tplActions, resourceData)
