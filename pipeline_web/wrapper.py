@@ -21,15 +21,18 @@ import ujson as json
 
 from pipeline.utils.uniqid import uniqid
 from pipeline.parser.utils import replace_all_id
-from pipeline.models import PipelineTemplate, Snapshot
+from pipeline.models import PipelineTemplate, Snapshot, TemplateScheme
 from pipeline.exceptions import SubprocessExpiredError
 
 from pipeline_web.constants import PWE
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
+from pipeline_web.drawing_new.drawing import draw_pipeline
 
 from gcloud.commons.template.utils import replace_template_id
+
+WEB_TREE_FIELDS = {"location", "line"}
 
 
 class PipelineTemplateWebWrapper(object):
@@ -252,6 +255,14 @@ class PipelineTemplateWebWrapper(object):
                     act["version"] = md5sum
 
     @classmethod
+    def complete_canvas_data(cls, template_data):
+        for template_dict in template_data["template"].values():
+            tree = template_dict["tree"]
+            # complete cavas render data
+            if not WEB_TREE_FIELDS.intersection(tree.keys()):
+                draw_pipeline(tree)
+
+    @classmethod
     def import_templates(cls, template_data, override=False, tid_to_reuse=None):
         """
         导入模板数据
@@ -261,6 +272,7 @@ class PipelineTemplateWebWrapper(object):
         @return: 模板导入后模板数据旧 ID -> 新 ID 的映射
         """
         template_data_copy = copy.deepcopy(template_data)
+        cls.complete_canvas_data(template_data_copy)
 
         template = template_data_copy["template"]
         refs = template_data_copy["refs"]
@@ -340,6 +352,21 @@ class PipelineTemplateWebWrapper(object):
 
                 # create node in template
                 NodeInTemplate.objects.create_nodes_in_template(pipeline_template, origin_data[tid])
+
+                # import template scheme
+                schemes = []
+                for scheme_data in template_dict.get("schemes", []):
+                    schemes.append(
+                        TemplateScheme(
+                            template_id=pipeline_template.id,
+                            unique_id=uniqid(),
+                            name=scheme_data["name"],
+                            data=scheme_data["data"],
+                        )
+                    )
+
+                if schemes:
+                    TemplateScheme.objects.bulk_create(schemes, batch_size=5000)
         else:
 
             # 1. replace subprocess template id
