@@ -318,7 +318,11 @@ EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOUR
 PIPELINE_DATA_BACKEND = os.getenv(
     "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 )
-PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
+    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+)
+
+PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 # pipeline mako render settings
 MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
