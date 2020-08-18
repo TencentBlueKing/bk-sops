@@ -94,6 +94,7 @@
             },
             onSelectNode (node, isClick, type) {
                 const nodeType = node.children ? 'subflow' : 'tasknode'
+                node.selected = nodeType !== 'subflow'
                 let rootNode = node
                 let nodeHeirarchy = ''
                 while (rootNode.parent) {

@@ -880,12 +880,13 @@
                         isPanelShow = nodeState.state === 'FAILED'
                     }
                 }
+                this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
                 if (isPanelShow) {
                     let subprocessStack = []
                     if (this.selectedFlowPath.length > 1) {
                         subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
-                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                    
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
@@ -897,6 +898,8 @@
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
                     this.updateNodeActived(id, true)
+                } else {
+                    this.setNodeDetailConfig(id)
                 }
             },
             handleSubflowAtomClick (id) {

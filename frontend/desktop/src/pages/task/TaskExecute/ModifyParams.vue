@@ -20,7 +20,7 @@
                 {{ $t('已开始执行的任务不能修改参数') }}
             </p>
         </div>
-        <div class="edit-wrapper">
+        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) && !paramsCanBeModify }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
@@ -30,18 +30,24 @@
             </TaskParamEdit>
             <NoData v-else></NoData>
         </div>
-        <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
-            <bk-button
-                theme="primary"
-                :class="{
-                    'btn-permission-disable': !hasSavePermission
-                }"
-                :loading="pending"
-                v-cursor="{ active: !hasSavePermission }"
-                @click="onModifyParams">
-                {{ $t('保存') }}
-            </bk-button>
+        <div class="action-wrapper">
+            <div v-if="!isParamsEmpty && paramsCanBeModify">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasSavePermission
+                    }"
+                    :loading="pending"
+                    v-cursor="{ active: !hasSavePermission }"
+                    @click="onModifyParams">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            </div>
+            
+            <bk-button v-else theme="default" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
+
     </div>
 </template>
 <script>
@@ -158,6 +164,9 @@
             },
             onChangeConfigLoading (val) {
                 this.configLoading = val
+            },
+            onCancelRetry () {
+                this.$emit('packUp')
             }
         }
     }
@@ -167,6 +176,7 @@
     @import '@/scss/mixins/scrollbar.scss';
     .modify-params-container {
         position: relative;
+        height: 100%;
         overflow: hidden;
         .panel-notice-task-run {
             margin: 20px 20px 10px 20px;
@@ -186,9 +196,11 @@
             overflow-y: auto;
             @include scrollbar;
         }
+        .cancel-check {
+            height: calc(100% - 126px);
+        }
         .action-wrapper {
-            margin-top: 30px;
-            padding-left: 55px;
+            padding-left: 20px;
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;
