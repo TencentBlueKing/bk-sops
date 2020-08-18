@@ -59,14 +59,14 @@
                         'common-icon',
                         'common-icon-solid-eye',
                         {
-                            actived: nodeInfoType === 'viewParams'
+                            actived: nodeInfoType === 'executeInfo'
                         }
                     ]"
                     v-bk-tooltips="{
                         content: $t('查看节点详情'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('viewParams', $t('节点详情'))">
+                    @click="onTaskParamsClick('executeInfo', $t('节点详情'))">
                 </i>
                 <i
                     :class="[
