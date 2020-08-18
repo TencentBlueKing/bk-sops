@@ -20,7 +20,7 @@
                 {{ $t('已开始执行的任务不能修改参数') }}
             </p>
         </div>
-        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) }]">
+        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) && !paramsCanBeModify }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
@@ -31,17 +31,19 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
-            <bk-button
-                v-if="!isParamsEmpty && paramsCanBeModify"
-                theme="primary"
-                :class="{
-                    'btn-permission-disable': !hasSavePermission
-                }"
-                :loading="pending"
-                v-cursor="{ active: !hasSavePermission }"
-                @click="onModifyParams">
-                {{ $t('保存') }}
-            </bk-button>
+            <div v-if="!isParamsEmpty && paramsCanBeModify">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasSavePermission
+                    }"
+                    :loading="pending"
+                    v-cursor="{ active: !hasSavePermission }"
+                    @click="onModifyParams">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            </div>
             <bk-button v-else theme="default" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
 
