@@ -43,7 +43,9 @@ def _candidate_exc_ensure(propagate):
     try:
         yield
     except Exception:
-        logger.error("candidate data backend operate error: {}".format(traceback.format_exc()))
+        logger.error(
+            "candidate data backend operate error: {}".format(traceback.format_exc())
+        )
 
         if propagate:
             raise
@@ -56,11 +58,27 @@ if not _candidate_backend and settings.PIPELINE_DATA_CANDIDATE_BACKEND:
     _candidate_backend = _import_backend(settings.PIPELINE_DATA_CANDIDATE_BACKEND)
 
 
+if settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE and not (_backend and _candidate_backend):
+    raise RuntimeError(
+        "PIPELINE_DATA_BACKEND and PIPELINE_DATA_CANDIDATE_BACKEND can't both be empty when PIPELINE_DATA_BACKEND_AUTO_EXPIRE is set."  # noqa
+    )
+
+
 def _write_operation(method, *args, **kwargs):
     propagate = False
 
     try:
-        getattr(_backend, method)(*args, **kwargs)
+
+        if settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE and method == "set_object":
+            # change set_object to expire_cache
+            getattr(_backend, "expire_cache")(
+                *args,
+                **kwargs,
+                expires=settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS
+            )
+        else:
+            getattr(_backend, method)(*args, **kwargs)
+
     except Exception:
         logger.error("data backend operate error: {}".format(traceback.format_exc()))
 

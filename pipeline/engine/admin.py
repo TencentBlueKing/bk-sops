@@ -53,7 +53,17 @@ def force_fail_node(modeladmin, request, queryset):
 
 @admin.register(models.Status)
 class StatusAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "state", "retry", "skip", "loop", "created_time", "started_time", "archived_time"]
+    list_display = [
+        "id",
+        "name",
+        "state",
+        "retry",
+        "skip",
+        "loop",
+        "created_time",
+        "started_time",
+        "archived_time",
+    ]
     search_fields = ["id"]
     list_filter = ["state", "skip"]
     actions = [force_fail_node]
@@ -61,7 +71,14 @@ class StatusAdmin(admin.ModelAdmin):
 
 @admin.register(models.ScheduleService)
 class ScheduleServiceAdmin(admin.ModelAdmin):
-    list_display = ["id", "activity_id", "process_id", "schedule_times", "wait_callback", "is_finished"]
+    list_display = [
+        "id",
+        "activity_id",
+        "process_id",
+        "schedule_times",
+        "wait_callback",
+        "is_finished",
+    ]
     search_fields = ["id"]
     list_filter = ["wait_callback", "is_finished"]
 
@@ -142,6 +159,29 @@ class FunctionAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj:  # obj is not None, so this is an edit
-            return ["name", "is_active"]  # Return a list or tuple of readonly fields' names
+            return [
+                "name",
+                "is_active",
+            ]  # Return a list or tuple of readonly fields' names
         else:  # This is an addition
             return []
+
+
+def resend_task(modeladmin, request, queryset):
+    for item in queryset:
+        item.resend()
+
+
+@admin.register(models.SendFailedCeleryTask)
+class SendFailedCeleryTaskAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "name",
+        "kwargs",
+        "type",
+        "extra_kwargs",
+        "exec_trace",
+        "created_at",
+    ]
+    search_fields = ["id", "name"]
+    actions = [resend_task]

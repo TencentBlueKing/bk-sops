@@ -1,39 +1,39 @@
 <!-- TOC -->
 
-- [自定义组件](#%e8%87%aa%e5%ae%9a%e4%b9%89%e7%bb%84%e4%bb%b6)
-  - [开发一个自定义组件](#%e5%bc%80%e5%8f%91%e4%b8%80%e4%b8%aa%e8%87%aa%e5%ae%9a%e4%b9%89%e7%bb%84%e4%bb%b6)
-    - [1. 使用 APP 统一管理你的组件](#1-%e4%bd%bf%e7%94%a8-app-%e7%bb%9f%e4%b8%80%e7%ae%a1%e7%90%86%e4%bd%a0%e7%9a%84%e7%bb%84%e4%bb%b6)
-    - [2. 编写 Service](#2-%e7%bc%96%e5%86%99-service)
-    - [3. 编写 Component](#3-%e7%bc%96%e5%86%99-component)
-    - [4. 执行一下刚刚编写的组件](#4-%e6%89%a7%e8%a1%8c%e4%b8%80%e4%b8%8b%e5%88%9a%e5%88%9a%e7%bc%96%e5%86%99%e7%9a%84%e7%bb%84%e4%bb%b6)
-  - [组件的行为](#%e7%bb%84%e4%bb%b6%e7%9a%84%e8%a1%8c%e4%b8%ba)
-    - [单次执行](#%e5%8d%95%e6%ac%a1%e6%89%a7%e8%a1%8c)
-    - [周期性轮询](#%e5%91%a8%e6%9c%9f%e6%80%a7%e8%bd%ae%e8%af%a2)
-    - [等待回调](#%e7%ad%89%e5%be%85%e5%9b%9e%e8%b0%83)
-  - [组件的注册](#%e7%bb%84%e4%bb%b6%e7%9a%84%e6%b3%a8%e5%86%8c)
+- [自定义组件](#自定义组件)
+  - [开发一个自定义组件](#开发一个自定义组件)
+    - [1. 使用 APP 统一管理你的组件](#1-使用-app-统一管理你的组件)
+    - [2. 编写 Service](#2-编写-service)
+    - [3. 编写 Component](#3-编写-component)
+    - [4. 执行一下刚刚编写的组件](#4-执行一下刚刚编写的组件)
+  - [组件的行为](#组件的行为)
+    - [单次执行](#单次执行)
+    - [周期性轮询](#周期性轮询)
+    - [等待回调](#等待回调)
+  - [组件的注册](#组件的注册)
   - [Component](#component)
-    - [类属性](#%e7%b1%bb%e5%b1%9e%e6%80%a7)
+    - [类属性](#类属性)
       - [name](#name)
       - [code](#code)
-      - [bound_service](#boundservice)
+      - [bound_service](#bound_service)
       - [form](#form)
       - [version](#version)
-      - [embedded_form](#embeddedform)
+      - [embedded_form](#embedded_form)
   - [Service](#service)
-    - [类属性](#%e7%b1%bb%e5%b1%9e%e6%80%a7-1)
+    - [类属性](#类属性-1)
       - [interval](#interval)
-      - [__need_schedule__](#needschedule)
-    - [实例 API](#%e5%ae%9e%e4%be%8b-api)
+      - [`__need_schedule__`](#need_schedule)
+    - [实例 API](#实例-api)
       - [execute](#execute)
-      - [outputs_format](#outputsformat)
-      - [inputs_format](#inputsformat)
+      - [outputs_format](#outputs_format)
+      - [inputs_format](#inputs_format)
       - [logger](#logger)
-  - [Interval](#interval)
+  - [Interval](#interval-1)
     - [StaticIntervalGenerator](#staticintervalgenerator)
     - [SquareIntervalGenerator](#squareintervalgenerator)
     - [LinearIntervalGenerator](#linearintervalgenerator)
     - [DefaultIntervalGenerator](#defaultintervalgenerator)
-    - [自定义 interval](#%e8%87%aa%e5%ae%9a%e4%b9%89-interval)
+    - [自定义 interval](#自定义-interval)
 
 <!-- /TOC -->
 
@@ -375,18 +375,18 @@ class WaitCallbackService(Service):
 
 ### 组件的注册
 
-pipeline 会扫描每个已经注册到 Django 中的 APP 下特定的目录来寻找用户定义的组件，这些被扫描的目录能够通过 Django settings 下的 `COMPONENT_PATH` 进行配置：
+pipeline 通过插件自动发现机制，在启动 SaaS 服务时扫描每个已经注册到 Django 中的 APP （INSTALLED_APPS）下特定的目录（包括子目录），自动发现并注册合法的插件，这些待扫描的目录能够通过 Django settings 下的 `COMPONENT_PATH` 进行配置：
 
 ```python
-...
 COMPONENT_PATH = [
-    'path.to.components',
-    ...
+    'custom.components.path',
 ]
-...
 ```
 
-而 pipeline 还会尝试扫描已注册 APP 的 `components.collections` 目录，尝试从该目录下所有的 Python 模块中寻找用户定义的组件。
+pipeline 默认会扫描已注册 APP 的 `components.collections` 目录，尝试从该目录下（包括子目录）所有的 Python 模块中发现并注册合法的标准插件。
+
+pipeline 插件自动发现机制的实现代码可以参考 `pipeline.component_framework.apps` 和 `pipeline.utils.register` 模块。
+
 
 现在回过头来看看我们之前创建的 APP，其目录结构与 pipeline 默认扫描的路径一致，所以我们在 `custom_plugins.components.collections.atom` 模块中定义的组件就会自动的被注册到组件库中：
 

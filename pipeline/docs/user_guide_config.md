@@ -1,23 +1,10 @@
-<!-- TOC -->
 
-- [配置项](#%e9%85%8d%e7%bd%ae%e9%a1%b9)
-  - [PIPELINE_DATA_BACKEND](#pipelinedatabackend)
-  - [PIPELINE_WORKER_STATUS_CACHE_EXPIRES](#pipelineworkerstatuscacheexpires)
-  - [PIPELINE_RERUN_MAX_TIMES](#pipelinererunmaxtimes)
-  - [COMPONENT_PATH](#componentpath)
-  - [VARIABLE_PATH](#variablepath)
-  - [ENABLE_EXAMPLE_COMPONENTS](#enableexamplecomponents)
-  - [UUID_DIGIT_STARTS_SENSITIVE](#uuiddigitstartssensitive)
-  - [EXTERNAL_PLUGINS_SOURCE_PROXY](#externalpluginssourceproxy)
-  - [EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT](#externalpluginssourcesecurerestrict)
-
-<!-- /TOC -->
 
 ## 配置项
 
 ### PIPELINE_DATA_BACKEND
 
-引擎在执行过程中用户数据交换的后端，默认值为 `pipeline.engine.core.data.mysql_backend.MySQLDataBackend`。
+引擎在执行过程中用户数据交换的主要后端，默认值为 `pipeline.engine.core.data.mysql_backend.MySQLDataBackend`。
 
 可选值为：
 - `pipeline.engine.core.data.mysql_backend.MySQLDataBackend`：使用 MySQL 作为数据交换后端。
@@ -36,6 +23,24 @@ redis = {
     'db': 0 # single 模式下使用的 db
 }
 ```
+
+### PIPELINE_DATA_CANDIDATE_BACKEND
+
+引擎在执行过程中用户数据交换的备用后端，当引擎操作主要后端 `PIPELINE_DATA_BACKEND` 失败时，会转而去请求备用后端
+
+可选值为：
+- `pipeline.engine.core.data.mysql_backend.MySQLDataBackend`：使用 MySQL 作为数据交换后端。
+- `pipeline.engine.core.data.redis_backend.RedisDataBackend`：使用 Redis 作为数据交换后端。
+
+建议将 DB 作为引擎的备用后端使用
+
+### PIPELINE_DATA_BACKEND_AUTO_EXPIRE
+
+引擎数据交换主要后端中的数据是否设置自动过期，默认为 `False`，当值为 `True` 时，`PIPELINE_DATA_BACKEND` 与 `PIPELINE_DATA_CANDIDATE_BACKEND` 两者都不能为空。
+
+### PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS
+
+引擎数据交换主要后端中的数据自动过期的时间，单位为秒，默认为 1 天。
 
 ### PIPELINE_WORKER_STATUS_CACHE_EXPIRES
 
@@ -87,3 +92,11 @@ proxies = {
 ### EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT
 
 是否强制远程插件源使用安全协议，默认为 `True`。
+
+### ENGINE_ZOMBIE_PROCESS_DOCTORS
+
+处理僵尸进程的 doctor 配置，可参考 [僵尸进程](./user_guide_zombie_process.md)
+
+### ENGINE_ZOMBIE_PROCESS_HEAL_CRON
+
+处理僵尸进程的周期任务调度规则配置，可参考 [僵尸进程](./user_guide_zombie_process.md)

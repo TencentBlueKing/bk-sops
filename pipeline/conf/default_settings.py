@@ -28,9 +28,11 @@ from django.conf import settings
 
 PIPELINE_TEMPLATE_CONTEXT = getattr(settings, "PIPELINE_TEMPLATE_CONTEXT", "")
 PIPELINE_INSTANCE_CONTEXT = getattr(settings, "PIPELINE_INSTANCE_CONTEXT", "")
+
 PIPELINE_ENGINE_ADAPTER_API = getattr(
     settings, "PIPELINE_ENGINE_ADAPTER_API", "pipeline.service.pipeline_engine_adapter.adapter_api",
 )
+
 PIPELINE_DATA_BACKEND = getattr(
     settings, "PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend",
 )
@@ -39,7 +41,7 @@ PIPELINE_DATA_BACKEND_AUTO_EXPIRE = getattr(settings, "PIPELINE_DATA_BACKEND_AUT
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS = int(
     getattr(settings, "PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS", 60 * 60 * 24)
 )
-PIPELINE_DATA_CANDIDATE_BACKEND = getattr(settings, "PIPELINE_DATA_CANDIDATE_BACKEND", None)
+
 PIPELINE_END_HANDLER = getattr(
     settings, "PIPELINE_END_HANDLER", "pipeline.engine.signals.handlers.pipeline_end_handler",
 )
