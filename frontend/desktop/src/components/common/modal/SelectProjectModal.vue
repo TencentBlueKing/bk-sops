@@ -59,7 +59,7 @@
     </bk-dialog>
 </template>
 <script>
-    import { mapGetters } from 'vuex'
+    import { mapState } from 'vuex'
     import i18n from '@/config/i18n/index.js'
 
     export default {
@@ -84,8 +84,8 @@
             }
         },
         computed: {
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
+            ...mapState('project', {
+                projectList: state => state.userProjectList
             }),
             projects () {
                 const projects = []
