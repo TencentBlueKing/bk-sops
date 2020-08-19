@@ -324,6 +324,7 @@
                 createTplRequired: ['create_template'],
                 tplOperations: [], // 模板权限字典
                 tplResource: {}, // 模板资源信息
+                createTplPermLoading: false,
                 hasCreateTplPerm: false // 创建流程模板权限
             }
         },
@@ -391,6 +392,7 @@
             ]),
             async queryCreateTplPerm () {
                 try {
+                    this.createTplPermLoading = true
                     const res = await this.queryUserPermission({
                         resource_type: 'project',
                         instance_id: this.project_id,
@@ -401,6 +403,8 @@
                     })
                 } catch (err) {
                     errorHandler(err, this)
+                } finally {
+                    this.createTplPermLoading = false
                 }
             },
             async getTemplateList () {
@@ -488,7 +492,10 @@
                 }
             },
             checkCreatePermission () {
-                if (!this.hasPermission(this.createTplRequired, this.authActions, this.authOperations)) {
+                if (this.createTplPermLoading) {
+                    return
+                }
+                if (!this.hasCreateTplPerm) {
                     const resourceData = {
                         name: i18n.t('项目'),
                         id: this.project_id,
