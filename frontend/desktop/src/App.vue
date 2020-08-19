@@ -281,10 +281,10 @@
         min-width: 1320px;
     }
     .main-container {
-        width: 100%;
+        // width: 100%;
         height: calc(100% - 50px);
         min-width: 1320px;
         min-height: calc(100% - 50px);
-        overflow-x: hidden;
+        // overflow-x: hidden;
     }
 </style>

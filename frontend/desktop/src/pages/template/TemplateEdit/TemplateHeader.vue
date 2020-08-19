@@ -236,7 +236,7 @@
                 this.saveTemplate(saveAndCreate)
             },
             onExportClick () {
-                this.$emit('onExportClick')
+                this.$emit('onExportClick', this.tName)
             },
             saveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()

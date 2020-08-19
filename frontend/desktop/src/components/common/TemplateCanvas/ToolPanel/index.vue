@@ -15,7 +15,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: $t('放大'),
+                    content: $t('小地图'),
                     delay: 300,
                     placements: ['bottom']
                 }"

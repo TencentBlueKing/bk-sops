@@ -102,6 +102,9 @@
                 <i class="bk-icon icon-download"></i>
             </div>
         </div>
+        <div class="samll-map" v-if="showSamllMap">
+            <img :src="smallMapImg" alt="">
+        </div>
     </div>
 </template>
 <script>
@@ -187,6 +190,10 @@
             exportImage: {
                 type: Boolean,
                 defauly: false
+            },
+            tName: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -204,6 +211,8 @@
                 })
             }
             return {
+                smallMapImg: '',
+                showSamllMap: false,
                 canvasImgDownloading: false,
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
@@ -246,7 +255,7 @@
                 }
             },
             exportImage (val) {
-                this.onDownloadCanvas()
+                this.onDownloadCanvas(this.tName)
             }
         },
         mounted () {
@@ -275,6 +284,10 @@
         methods: {
             onShowMap () {
                 console.log('2222')
+                this.showSamllMap = !this.showSamllMap
+                if (this.showSamllMap) {
+                    this.onDownloadCanvas('showSmallMap')
+                }
             },
             onZoomIn (pos) {
                 if (pos) {
@@ -1137,12 +1150,13 @@
                 }
             },
             // 下载画布图片
-            onDownloadCanvas (event) {
-                // html2canvas(document.querySelector('#canvas-flow')).then(canvas => {
-                //     debugger
+            onDownloadCanvas (val) {
+                // html2canvas(document.querySelector('.canvas-flow-wrap')).then(canvas => {
+                //     // debugger
                 //     const imgEl = document.createElement('a')
                 //     imgEl.download = 'bk_sops_template.png'
                 //     imgEl.href = canvas.toDataURL('image/jpeg')
+                //     this.smallMapImg = canvas.toDataURL('image/jpeg')
                 //     imgEl.click()
                 // })
                 if (this.canvasImgDownloading) {
@@ -1156,6 +1170,14 @@
                     const imgEl = document.createElement('a')
                     imgEl.download = `bk_sops_template_${+new Date()}.png`
                     imgEl.href = dataURL
+                    if (val === 'showSmallMap') {
+                        this.smallMapImg = dataURL
+                        this.canvasImgDownloading = false
+                        return
+                    }
+                    if (val) {
+                        imgEl.download = `${val}.png`
+                    }
                     imgEl.click()
                     this.canvasImgDownloading = false
                 }).catch(error => {
@@ -1184,7 +1206,7 @@
 <style lang="scss">
     .canvas-container {
         position: relative;
-        width: 100%;
+        // width: 100%;
         height: 100%;
     }
     .canvas-wrapper.jsflow {
@@ -1205,6 +1227,7 @@
             user-select: none;
         }
         .canvas-flow-wrap {
+            overflow: visible;
             margin-left: 60px;
         }
         .jtk-endpoint {
@@ -1335,6 +1358,23 @@
         }
         &:hover {
             color: #3a84ff;
+        }
+    }
+    .samll-map {
+        position: absolute;
+        z-index: 5;
+        left: 80px;
+        top: 80px;
+        width: 344px;
+        // height: 216px;
+        min-height: 165px;
+        border-radius: 4px;
+        background-color: #fafbfd;
+        transition: all 0.5s ease;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        img {
+            // height: 100%;
+            width: 100%;
         }
     }
 </style>
