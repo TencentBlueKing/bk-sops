@@ -218,6 +218,12 @@ class UserProjectResource(ModelResource):
 
         return Project.objects.filter(id__in=project_ids, is_disable=False)
 
+    def alter_list_data_to_serialize(self, request, data):
+        data["meta"]["auth_operations"] = project_resource.operations
+        data["meta"]["auth_resource"] = project_resource.base_info()
+
+        return data
+
 
 class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(attribute="group_icon", readonly=True, null=True)
