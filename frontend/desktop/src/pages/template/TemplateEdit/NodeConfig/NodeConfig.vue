@@ -942,7 +942,7 @@
                 })
                 // 设置全局变量面板icon小红点
                 const localConstantKeys = Object.keys(this.localConstants)
-                if (Object.keys(this.constants).length !== localConstantKeys) {
+                if (Object.keys(this.constants).length !== localConstantKeys.length) {
                     this.$emit('globalVariableUpdate', true)
                 } else {
                     localConstantKeys.some(key => {
@@ -962,7 +962,6 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
-                        console.log('result', result)
                         const { skippable, retryable, selectable: optional } = this.basicInfo
                         this.syncActivity()
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
