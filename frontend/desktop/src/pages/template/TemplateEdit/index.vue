@@ -21,6 +21,7 @@
                 :template_id="template_id"
                 :is-global-variable-update="isGlobalVariableUpdate"
                 :is-template-data-changed="isTemplateDataChanged"
+                :is-from-tpl-list-route="isFromTplListRoute"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
                 :active-tab="activeSettingTab"
@@ -159,6 +160,7 @@
                 isTemplateDataChanged: false,
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false,
+                isFromTplListRoute: false, // 是否由模板列表页跳转进入
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
                 activeSettingTab: '',
@@ -264,6 +266,13 @@
                 }
                 return []
             }
+        },
+        beforeRouteEnter (to, from, next) {
+            next(vm => {
+                if (['commonProcessList', 'process'].includes(from.name)) {
+                    vm.isFromTplListRoute = true
+                }
+            })
         },
         async created () {
             this.initTemplateData()
