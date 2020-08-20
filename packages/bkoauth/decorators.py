@@ -17,6 +17,7 @@ from functools import wraps
 from django.utils.decorators import available_attrs
 
 from .jwt_client import JWTClient, jwt_invalid_view
+from .utils import FancyDict
 
 
 def apigw_required(view_func):
@@ -28,8 +29,6 @@ def apigw_required(view_func):
 
         request.jwt = JWTClient(request)
         if "BKAPP_API_JWT_EXEMPT" in os.environ:
-            from packages.bkoauth.utils import FancyDict
-
             request.jwt.user = FancyDict({"bk_username": request.META.get("HTTP_BK_USERNAME")})
             request.jwt.app = FancyDict({"bk_app_code": request.META.get("HTTP_BK_APP_CODE")})
 
