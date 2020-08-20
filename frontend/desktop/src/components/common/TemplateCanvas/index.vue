@@ -108,8 +108,10 @@
     </div>
 </template>
 <script>
+    // import canvg from 'canvg'
     // import html2canvas from 'html2canvas'
-    import domtoimage from 'dom-to-image'
+    import domtoimage from '../../../utils/domToImage.js'
+    // import domtoimage from 'dom-to-image'
     // import htmltoimage from 'html-to-image'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
@@ -121,7 +123,6 @@
     import dom from '@/utils/dom.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
-
     export default {
         name: 'TemplateCanvas',
         components: {
@@ -1151,7 +1152,39 @@
             },
             // 下载画布图片
             onDownloadCanvas (val) {
-                // html2canvas(document.querySelector('.canvas-flow-wrap')).then(canvas => {
+                // const canvasEl = document.querySelector('#canvas-flow')
+                // // 图片高度
+                // const w = parseInt(canvasEl.getBoundingClientRect().width)
+                // // 图片宽度
+                // const h = parseInt(canvasEl.getBoundingClientRect().height)
+                // console.log(w, h)
+                // html2canvas(canvasEl, {
+                //     width: w,
+                //     height: h,
+                //     allowTaint: true,
+                //     useCORS: true,
+                //     backgroundColor: '#e1e4e8',
+                //     onclone: (e) => {
+                //         const tempElem = e.querySelector('#canvas-flow')
+                //         // 在临时div上将svg都转换成canvas，并删除原有的svg节点
+                //         const svgElem = tempElem.querySelectorAll('svg')
+                //         console.log(svgElem)
+                //         svgElem.forEach((node) => {
+                //             const parentNode = node.parentNode
+                //             const svg = node.outerHTML.trim()
+                //             const canvas = document.createElement('canvas')
+                //             canvg(canvas, svg)
+                //             canvas.style.zIndex = 9
+                //             if (node.style.position) {
+                //                 canvas.style.position += node.style.position
+                //                 canvas.style.left += node.style.left
+                //                 canvas.style.top += node.style.top
+                //             }
+                //             parentNode.removeChild(node)
+                //             parentNode.appendChild(canvas)
+                //         })
+                //     }
+                // }).then(canvas => {
                 //     // debugger
                 //     const imgEl = document.createElement('a')
                 //     imgEl.download = 'bk_sops_template.png'
@@ -1159,13 +1192,42 @@
                 //     this.smallMapImg = canvas.toDataURL('image/jpeg')
                 //     imgEl.click()
                 // })
+
+                const canvasFlWp = document.querySelector('.canvas-flow-wrap')
+                const oldWidth = canvasFlWp.getBoundingClientRect().width
+                const oldHeight = canvasFlWp.getBoundingClientRect().height
+                const baseOffset = 200
                 if (this.canvasImgDownloading) {
                     return
                 }
                 this.canvasImgDownloading = true
-                const canvasEl = document.querySelector('#canvas-flow')
-                domtoimage.toJpeg(canvasEl, {
-                    bgcolor: '#ffffff'
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const minY = Math.min(...yList)
+                const offsetX = minX < 0 ? -minX : 0
+                const offsetY = minY < 0 ? -minY : 0
+                let width = Math.max(...xList) - Math.min(...xList)
+                let height = Math.max(...yList) - Math.min(...yList)
+                if (width < oldWidth) {
+                    width = oldWidth
+                }
+                if (height < oldHeight) {
+                    height = oldHeight
+                }
+                domtoimage.toJpeg(canvasFlWp, {
+                    bgcolor: '#ffffff',
+                    height: height + baseOffset + offsetY + 30,
+                    width: width + baseOffset + offsetX + 30,
+                    cloneBack: clone => {
+                        clone.style.width = width + baseOffset + 30 + 'px'
+                        clone.style.height = height + baseOffset + 30 + 'px'
+                        const canvasDom = clone.querySelector('#canvas-flow')
+                        canvasDom.style.left = offsetX + 30 + 'px'
+                        canvasDom.style.top = offsetY + 30 + 'px'
+                        canvasDom.style.transform = 'inherit'
+                        canvasDom.style.border = 0
+                    }
                 }).then(dataURL => {
                     const imgEl = document.createElement('a')
                     imgEl.download = `bk_sops_template_${+new Date()}.png`
@@ -1227,7 +1289,6 @@
             user-select: none;
         }
         .canvas-flow-wrap {
-            overflow: visible;
             margin-left: 60px;
         }
         .jtk-endpoint {
