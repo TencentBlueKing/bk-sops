@@ -17,27 +17,25 @@ from functools import wraps
 from django.utils.decorators import available_attrs
 
 from .jwt_client import JWTClient, jwt_invalid_view
+from .utils import FancyDict
 
 
 def apigw_required(view_func):
     """apigw装饰器
     """
+
     @wraps(view_func, assigned=available_attrs(view_func))
     def _wrapped_view(request, *args, **kwargs):
 
         request.jwt = JWTClient(request)
-        if 'BKAPP_API_JWT_EXEMPT' in os.environ:
-            from packages.bkoauth.utils import FancyDict
-            request.jwt.user = FancyDict({
-                'bk_username': request.META.get('HTTP_BK_USERNAME')
-            })
-            request.jwt.app = FancyDict({
-                'bk_app_code': request.META.get('HTTP_BK_APPCODE')
-            })
+        if "BKAPP_API_JWT_EXEMPT" in os.environ:
+            request.jwt.user = FancyDict({"bk_username": request.META.get("HTTP_BK_USERNAME")})
+            request.jwt.app = FancyDict({"bk_app_code": request.META.get("HTTP_BK_APP_CODE")})
 
         else:
             if not request.jwt.is_valid:
                 return jwt_invalid_view(request)
 
         return view_func(request, *args, **kwargs)
+
     return _wrapped_view
