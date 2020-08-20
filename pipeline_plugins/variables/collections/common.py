@@ -156,4 +156,4 @@ class Time(LazyVariable):
         """
         由于用户需要，这里的时间格式由“小时:分钟:秒”处理成“小时:分钟”
         """
-        return ":".join(self.value.split(":")[0:2])
+        return self.value[:-3]
