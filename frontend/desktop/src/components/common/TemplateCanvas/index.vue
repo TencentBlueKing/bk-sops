@@ -104,6 +104,8 @@
         </div>
         <div class="samll-map" v-if="showSamllMap">
             <img :src="smallMapImg" alt="">
+            <div class="select-box">
+            </div>
         </div>
     </div>
 </template>
@@ -1207,8 +1209,8 @@
                 const minY = Math.min(...yList)
                 const offsetX = minX < 0 ? -minX : 0
                 const offsetY = minY < 0 ? -minY : 0
-                let width = Math.max(...xList) - Math.min(...xList)
-                let height = Math.max(...yList) - Math.min(...yList)
+                let width = Math.min(...xList) < 0 ? Math.max(...xList) - Math.min(...xList) : Math.max(...xList)
+                let height = Math.min(...yList) < 0 ? Math.max(...yList) - Math.min(...yList) : Math.max(...yList)
                 if (width < oldWidth) {
                     width = oldWidth
                 }
@@ -1217,8 +1219,8 @@
                 }
                 domtoimage.toJpeg(canvasFlWp, {
                     bgcolor: '#ffffff',
-                    height: height + baseOffset + offsetY + 30,
-                    width: width + baseOffset + offsetX + 30,
+                    height: height + baseOffset + 30,
+                    width: width + baseOffset + 80,
                     cloneBack: clone => {
                         clone.style.width = width + baseOffset + 30 + 'px'
                         clone.style.height = height + baseOffset + 30 + 'px'
@@ -1230,16 +1232,17 @@
                     }
                 }).then(dataURL => {
                     const imgEl = document.createElement('a')
-                    imgEl.download = `bk_sops_template_${+new Date()}.png`
-                    imgEl.href = dataURL
                     if (val === 'showSmallMap') {
                         this.smallMapImg = dataURL
                         this.canvasImgDownloading = false
                         return
                     }
-                    if (val) {
+                    if (val === this.tName) {
                         imgEl.download = `${val}.png`
+                    } else {
+                        imgEl.download = `bk_sops_template_${+new Date()}.png`
                     }
+                    imgEl.href = dataURL
                     imgEl.click()
                     this.canvasImgDownloading = false
                 }).catch(error => {
@@ -1427,15 +1430,26 @@
         left: 80px;
         top: 80px;
         width: 344px;
-        // height: 216px;
+        height: 216px;
         min-height: 165px;
         border-radius: 4px;
         background-color: #fafbfd;
         transition: all 0.5s ease;
         box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
         img {
-            // height: 100%;
+            height: 100%;
             width: 100%;
+        }
+        .select-box {
+            position: absolute;
+            z-index: 6;
+            top: 0;
+            left: 0;
+            width: 205px;
+            height: 112px;
+            border: 1px solid #738abe;
+            border-radius: 2px;
+            cursor: pointer;
         }
     }
 </style>
