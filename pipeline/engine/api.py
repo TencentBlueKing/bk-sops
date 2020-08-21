@@ -439,6 +439,16 @@ def get_outputs(node_id):
     return {"outputs": data.outputs, "ex_data": data.ex_data}
 
 
+def get_batch_outputs(node_ids):
+    """
+    get outputs data for a batch of nodes
+    :param node_ids: a list of node_id
+    :return:
+    """
+    nodes_data = Data.objects.filter(id__in=node_ids)
+    return {node_data.id: {"outputs": node_data.outputs, "ex_data": node_data.ex_data} for node_data in nodes_data}
+
+
 def get_activity_histories(node_id, loop=None):
     """
     get get_activity_histories data for a node

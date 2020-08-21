@@ -20,7 +20,7 @@
 |   bk_biz_id   |   string   |   是   |  模板所属业务ID   |
 |   task_id     |   string   |   是   |  任务或节点ID     |
 |   subprocess_id |   string   |   否   |  任务中的子流程节点 ID   |
-|   with_ex_data     |   bool   |   否   |  是否带有错误节点数据     |
+|   with_ex_data     |   bool   |   否   |  是否返回错误节点异常数据 |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
