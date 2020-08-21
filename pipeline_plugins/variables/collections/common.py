@@ -18,8 +18,11 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
+from gcloud.core.models import StaffGroupSet
 from pipeline.core.data.var import SpliceVariable, LazyVariable, RegisterVariableMeta
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.bk.notify.legacy import get_notify_receivers, get_client_by_user
 
 logger = logging.getLogger("root")
 
@@ -157,3 +160,34 @@ class Time(LazyVariable):
         由于用户需要，这里的时间格式由“小时:分钟:秒”处理成“小时:分钟”
         """
         return ":".join(self.value.split(":")[0:2])
+
+
+class StaffGroupSelector(LazyVariable):
+    code = "staff_group_selector"
+    name = _("人员分组选择器")
+    type = "general"
+    tag = "staff_group_multi_selector.staff_group_selector"
+    form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
+
+    def get_value(self):
+        operator = self.pipeline_data.get("executor", "")
+        bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
+        supplier_account = supplier_account_for_business(bk_biz_id)
+        client = get_client_by_user(operator)
+
+        # 自定义项目分组和cc 人员分组
+        staff_group_id_list = [group_id for group_id in self.value if str(group_id).isdigit()]
+        cc_staff_group = list(set(self.value).difference(set(staff_group_id_list)))
+
+        # 获取项目的自定义人员分组人员
+        staff_names_list = StaffGroupSet.objects.filter(id__in=staff_group_id_list).values_list("members", flat=True)
+        staff_names = ",".join(list(set(",".join(staff_names_list).split(","))))
+
+        # 拼接cc分组人员和自定义分组人员
+        res, _msg, data = get_notify_receivers(client, bk_biz_id, supplier_account, cc_staff_group, staff_names)
+
+        if res:
+            return data
+        else:
+            logger.error("get cc({}) staff_group failed".format(bk_biz_id))
+            return staff_names

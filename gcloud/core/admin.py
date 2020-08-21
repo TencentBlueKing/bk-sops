@@ -75,3 +75,9 @@ class ProjectCounterAdmin(admin.ModelAdmin):
 class ProjectConfigAdmin(admin.ModelAdmin):
     list_display = ["project_id"]
     search_fields = ["project_id", "executor_proxy"]
+
+
+@admin.register(models.StaffGroupSet)
+class StaffGroupSetAdmin(admin.ModelAdmin):
+    list_display = ["name", "members"]
+    search_fields = ["name", "members"]
