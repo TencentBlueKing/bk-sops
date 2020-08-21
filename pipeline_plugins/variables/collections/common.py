@@ -191,4 +191,3 @@ class StaffGroupSelector(LazyVariable):
         else:
             logger.error("get cc({}) staff_group failed".format(bk_biz_id))
             return staff_names
-
