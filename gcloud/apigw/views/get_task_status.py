@@ -91,6 +91,7 @@ def get_task_status(request, task_id, project_id):
     if with_ex_data and task_status["state"] == states.FAILED:
         task_status["ex_data"] = {}
         children_list = [task_status["children"]]
+        failed_nodes = []
         while len(children_list) > 0:
             children = children_list.pop(0)
             for node_id, node in children.items():
@@ -98,7 +99,9 @@ def get_task_status(request, task_id, project_id):
                     if len(node["children"]) > 0:
                         children_list.append(node["children"])
                         continue
-                    ex_data = pipeline_api.get_outputs(node_id).get("ex_data", "")
-                    task_status["ex_data"].update({node_id: ex_data})
+                    failed_nodes.append(node_id)
+        failed_nodes_outputs = pipeline_api.get_batch_outputs(failed_nodes)
+        for node_id in failed_nodes:
+            task_status["ex_data"].update({node_id: failed_nodes_outputs[node_id]["ex_data"]})
     result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
     return JsonResponse(result)
