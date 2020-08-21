@@ -154,6 +154,7 @@
     @import '@/scss/mixins/scrollbar.scss';
     .modify-time-container {
         position: relative;
+        height: 100%;
         overflow: hidden;
         .edit-wrapper {
             padding: 20px 20px 0;
@@ -162,7 +163,6 @@
             @include scrollbar;
         }
         .action-wrapper {
-            margin-top: 30px;
             padding-left: 55px;
             height: 60px;
             line-height: 60px;

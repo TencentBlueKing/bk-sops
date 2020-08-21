@@ -20,8 +20,8 @@ def _test(*arg, **kwargs):
     return "called"
 
 
-class TestMockStrMeta(TestCase):
-    def test_sandbox(self):
+class TestSandbox(TestCase):
+    def test_mock_str_meta(self):
         class MockTest(metaclass=sandbox.MockStrMeta):
             call = _test
             str_return = "_test"
@@ -30,3 +30,14 @@ class TestMockStrMeta(TestCase):
         self.assertEqual(sandbox.SANDBOX["_test"], MockTest)
 
         self.assertEqual(MockTest(), "called")
+
+    def test_shield_words(self):
+        _sandbox = {}
+        sandbox._shield_words(_sandbox, ["compile", "exec"])
+        self.assertDictEqual(_sandbox, {"compile": None, "exec": None})
+
+    def test_import_modules(self):
+        _sandbox = {}
+        sandbox._import_modules(_sandbox, {"datetime": "datetime", "pipeline.core": "core"})
+        self.assertEqual(type(_sandbox["datetime"]).__name__, "module")
+        self.assertEqual(type(_sandbox["core"]).__name__, "module")
