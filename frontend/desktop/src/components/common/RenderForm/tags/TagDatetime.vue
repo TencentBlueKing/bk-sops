@@ -78,7 +78,7 @@
 <style lang="scss" scoped>
 .tag-datetime {
     /deep/ .el-date-editor {
-        width: 100%;
+        width: 598px;
         &.el-input {
             .el-input__inner {
                 padding: 0 30px;
