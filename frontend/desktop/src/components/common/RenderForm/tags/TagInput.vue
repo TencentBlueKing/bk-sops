@@ -151,6 +151,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 
 .tag-input {
+    width: 598px;
     /deep/ .el-input__inner {
         padding: 0 10px;
     }

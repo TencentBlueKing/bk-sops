@@ -92,6 +92,7 @@
 }
 .el-textarea {
     /deep/ .el-textarea__inner {
+        width: 598px;
         padding-left: 10px;
         padding-right: 10px;
         font-size: 12px;

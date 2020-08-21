@@ -224,7 +224,7 @@
                 const self = this
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
                 if (!remote_url) return
-
+                
                 // 请求远程数据
                 this.loading = true
                 $.ajax({
@@ -247,7 +247,7 @@
 </script>
 <style lang="scss" scoped>
     .el-select {
-        width: 100%;
+        width: 598px;
         /deep/ .el-input__inner {
             padding-left: 10px;
             height: 32px;
