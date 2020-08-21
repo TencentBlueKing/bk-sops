@@ -78,7 +78,7 @@ class JobExecuteTaskService(JobService):
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
-                key="ip_is_exit",
+                key="ip_is_exist",
                 type="string",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
@@ -111,7 +111,7 @@ class JobExecuteTaskService(JobService):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
-        ip_is_exit = data.get_one_of_inputs("ip_is_exit")
+        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
         for _value in original_global_var:
             # 3-IP
@@ -122,14 +122,20 @@ class JobExecuteTaskService(JobService):
                 if val and not ip_list:
                     data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                     return False
-                # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-                input_ip_list = get_ip_by_regex(val)
-                self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
 
-                difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
-                if ip_is_exit and len(ip_list) != len(input_ip_list):
-                    data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                    return False
+                if ip_is_exist:
+                    # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
+                    input_ip_list = get_ip_by_regex(val)
+                    self.logger.info(
+                        "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list)
+                    )
+
+                    difference_ip_list = list(
+                        set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list]))
+                    )
+                    if len(ip_list) != len(input_ip_list):
+                        data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
+                        return False
                 if ip_list:
                     global_vars.append({"name": _value["name"], "ip_list": ip_list})
             else:

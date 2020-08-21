@@ -123,7 +123,7 @@ class JobFastExecuteScriptService(JobService):
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
-                key="ip_is_exit",
+                key="ip_is_exist",
                 type="string",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
@@ -148,7 +148,7 @@ class JobFastExecuteScriptService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
-        ip_is_exit = data.get_one_of_inputs("ip_is_exit")
+        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
@@ -161,15 +161,16 @@ class JobFastExecuteScriptService(JobService):
         )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
-        # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-        input_ip_list = get_ip_by_regex(original_ip_list)
-        self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
+        if ip_is_exist:
+            # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
+            input_ip_list = get_ip_by_regex(original_ip_list)
+            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
 
-        difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
+            difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
 
-        if ip_is_exit and len(ip_list) != len(input_ip_list):
-            data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-            return False
+            if len(ip_list) != len(input_ip_list):
+                data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
+                return False
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
