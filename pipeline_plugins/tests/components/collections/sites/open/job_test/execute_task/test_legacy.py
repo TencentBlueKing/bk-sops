@@ -38,7 +38,7 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
             EXECUTE_SUCCESS_CASE,
             GET_VAR_ERROR_SUCCESS_CASE,
             INVALID_IP_CASE,
-            IP_IS_EXIT_CASE,
+            IP_IS_EXIST_CASE,
         ]
 
     def component_cls(self):
@@ -78,9 +78,9 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                         {
                             "ip": "1.1.1.1",
                             "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"
-                                           "<SOPS_VAR>key4:   v   </SOPS_VAR><SOPS_VAR>key5:  </SOPS_VAR>"
-                                           "<SOPS_VAR>key6:v:v</SOPS_VAR><SOPS_VAR>key empty</SOPS_VAR>"
-                                           "<SOPS_VAR>:1</SOPS_VAR><SOPS_VAR>:1   fgdshgdsh</SOPS_VAR>"
+                            "<SOPS_VAR>key4:   v   </SOPS_VAR><SOPS_VAR>key5:  </SOPS_VAR>"
+                            "<SOPS_VAR>key6:v:v</SOPS_VAR><SOPS_VAR>key empty</SOPS_VAR>"
+                            "<SOPS_VAR>:1</SOPS_VAR><SOPS_VAR>:1   fgdshgdsh</SOPS_VAR>",
                         },
                         {"ip": "1.1.1.2", "log_content": ""},
                     ],
@@ -97,10 +97,10 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                         {
                             "ip": "1.1.1.1",
                             "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;"
-                                           "&lt;SOPS_VAR&gt;k: v  &lt;/SOPS_VAR&gt;"
-                                           "&lt;SOPS_VAR&gt;k1: :v  &lt;/SOPS_VAR&gt;"
-                                           "&lt;SOPS_VAR&gt;k1      &lt;/SOPS_VAR&gt;"
+                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;"
+                            "&lt;SOPS_VAR&gt;k: v  &lt;/SOPS_VAR&gt;"
+                            "&lt;SOPS_VAR&gt;k1: :v  &lt;/SOPS_VAR&gt;"
+                            "&lt;SOPS_VAR&gt;k1      &lt;/SOPS_VAR&gt;",
                         },
                     ],
                     "ip_status": 9,
@@ -490,7 +490,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                 "k": " v  ",
                 "key5": "  ",
                 "key6": "v:v",
-                "k1": " :v  "
+                "k1": " :v  ",
             },
         },
         callback_data={"job_instance_id": 56789, "status": 3},
@@ -641,8 +641,8 @@ INVALID_IP_CASE = ComponentTestCase(
     ],
 )
 
-IP_IS_EXIT_CASE = ComponentTestCase(
-    name="ip is exit case",
+IP_IS_EXIST_CASE = ComponentTestCase(
+    name="ip is exist case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -651,7 +651,7 @@ IP_IS_EXIT_CASE = ComponentTestCase(
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
-        "ip_is_exit": True,
+        "ip_is_exist": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 2.2.2.2 是否合法"}),

@@ -224,7 +224,7 @@
             ]
         },
         {
-            tag_code: "ip_is_exit",
+            tag_code: "ip_is_exist",
             type: "radio",
             attrs: {
                 name: gettext("IP 存在性校验"),
