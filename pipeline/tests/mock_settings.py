@@ -49,6 +49,7 @@ PIPELINE_SCHEDULE_SCHEDULE_FOR = "pipeline.engine.models.ScheduleService.objects
 PIPELINE_SCHEDULE_DELETE_SCHEDULE = "pipeline.engine.models.ScheduleService.objects.delete_schedule"
 
 PIPELINE_DATA_GET = "pipeline.engine.models.Data.objects.get"
+PIPELINE_DATA_FILTER = "pipeline.engine.models.Data.objects.filter"
 PIPELINE_DATA_WRITE_NODE_DATA = "pipeline.engine.models.Data.objects.write_node_data"
 PIPELINE_DATA_FORCED_FAIL = "pipeline.engine.models.Data.objects.forced_fail"
 PIPELINE_DATA_WIRTE_EX_DATA = "pipeline.engine.models.Data.objects.write_ex_data"
@@ -133,9 +134,12 @@ UTILS_IMPORTER_GIT_IS_PACKAGE = "pipeline.utils.importer.git.GitRepoModuleImport
 APPS_SETTINGS = "pipeline.apps.settings"
 APPS_SENTINEL = "pipeline.apps.Sentinel"
 
+
 ENGINE_DATA_API_SETTINGS = "pipeline.engine.core.data.api.settings"
 ENGINE_DATA_API_IMPORT_BACKEND = "pipeline.engine.core.data.api._import_backend"
 ENGINE_DATA_API_BACKEND = "pipeline.engine.core.data.api._backend"
 ENGINE_DATA_API_CANDIDATE_BACKEND = "pipeline.engine.core.data.api._candidate_backend"
 
 ENGINE_HEALTH_ZOMBIE_HEAL_DEFAULT_SETTINGS = "pipeline.engine.health.zombie.heal.default_settings"
+
+DJCELERY_APP_CURRENT_APP_CONNECTION = "djcelery.app.current_app.connection"
