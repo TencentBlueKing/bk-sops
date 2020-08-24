@@ -72,7 +72,7 @@
                                     <th>{{$t('所属模块')}}</th>
                                 </tr>
                             </thead>
-                            <tbody v-if="value.imported_plugins.length">
+                            <tbody v-if="value.imported_plugins && value.imported_plugins.length">
                                 <tr v-for="(item, key) in value.imported_plugins" :key="key">
                                     <td>{{item.group_name}}-{{item.name}}</td>
                                     <td>{{item.class_name}}</td>
@@ -80,7 +80,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <NoData class="local-no-data" v-if="!value.imported_plugins.length" />
+                        <NoData class="local-no-data" v-if="value.imported_plugins && !value.imported_plugins.length" />
                     </td>
                 </tr>
             </tbody>
