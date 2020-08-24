@@ -102,9 +102,14 @@
                 <i class="bk-icon icon-download"></i>
             </div>
         </div>
-        <div class="samll-map" v-if="showSamllMap">
+        <div class="samll-map" v-if="smallMapImg" @mouseenter="onMouseEneterMap" @mouseleave="OnMouseLeaveMap">
             <img :src="smallMapImg" alt="">
-            <div class="select-box">
+            <div
+                v-if="showSelectBox"
+                ref="selectBox"
+                class="select-box"
+                @mousedown.prevent="onMouserDownSelect"
+                @mouseup.prevent="onMouserUpSelect">
             </div>
         </div>
     </div>
@@ -125,6 +130,13 @@
     import dom from '@/utils/dom.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
+    
+    // 兼容移动端的点击、拖拽事件
+    const eventDict = {
+        'mousedown': 'ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown',
+        'mousemove': 'ontouchmove' in document.documentElement ? 'touchmove' : 'mousemove',
+        'mouseup': 'ontouchend' in document.documentElement ? 'touchend' : 'mouseup'
+    }
     export default {
         name: 'TemplateCanvas',
         components: {
@@ -214,8 +226,11 @@
                 })
             }
             return {
+                ...eventDict,
+                showSelectBox: false,
                 smallMapImg: '',
-                showSamllMap: false,
+                offsetX: '',
+                offsetY: '',
                 canvasImgDownloading: false,
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
@@ -1264,6 +1279,46 @@
                 //     console.error(error)
                 //     this.canvasImgDownloading = false
                 // })
+            },
+            onMouseEneterMap () {
+                this.showSelectBox = true
+            },
+            OnMouseLeaveMap (e) {
+                this.onMouserUpSelect()
+            },
+            onMouserDownSelect (e) {
+                this.offsetX = e.offsetX
+                this.offsetY = e.offsetY
+                this.$refs.selectBox.addEventListener(this.mousemove, this.selectBoxMoveHandler, false)
+            },
+            onMouserUpSelect () {
+                this.$refs.selectBox.removeEventListener(this.mousemove, this.selectBoxMoveHandler, false)
+            },
+            selectBoxMoveHandler (e) {
+                const selectBox = document.querySelector('.select-box')
+                const targetX = e.clientX - this.offsetX - 80
+                const targetY = e.clientY - this.offsetY - 80 - 60 - 50
+                let left = null
+                let top = null
+                // 边界检查
+                // 344 - 205 = 139
+                if (targetX < 0) {
+                    left = 0
+                } else if (targetX > 139) {
+                    left = 139
+                } else {
+                    left = targetX
+                }
+                // 216 - 112 = 104
+                if (targetY < 0) {
+                    top = 0
+                } else if (targetY > 104) {
+                    top = 104
+                } else {
+                    top = targetY
+                }
+                selectBox.style.left = left + 'px'
+                selectBox.style.top = top + 'px'
             }
         }
     }
@@ -1431,7 +1486,6 @@
         top: 80px;
         width: 344px;
         height: 216px;
-        min-height: 165px;
         border-radius: 4px;
         background-color: #fafbfd;
         transition: all 0.5s ease;
