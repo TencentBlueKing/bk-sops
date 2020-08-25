@@ -98,10 +98,12 @@ class VarSetModuleSelector(LazyVariable):
         """
         获取该变量中对应属性值
         example:
-            set: ${var.set}
+            set_name: ${var.set_name}
             set_id: ${var.set_id}
-            module: ${var.module}
+            module_name: ${var.module_name}
             module_id: ${var.module_id}
+            flat__module_name: ${var.flat__module_name}
+            flat_module_id: ${var.flat__module_id}
         """
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
