@@ -358,3 +358,6 @@ for _setting in dir(ver_settings):
 
 # version log config
 VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
+
+# migrate api token
+MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48001122")
