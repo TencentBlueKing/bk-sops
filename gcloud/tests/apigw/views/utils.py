@@ -27,7 +27,7 @@ except ImportError:
     BKOAUTH_DECORATOR_JWT_CLIENT = "packages.bkoauth.decorators.JWTClient"
 
 TEST_APP_CODE = "app_code"
-TEST_USERNAME = ""
+TEST_USERNAME = "tester"
 
 
 def dummy_params_wrapper(perm):
