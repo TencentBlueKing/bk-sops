@@ -102,10 +102,9 @@
                 <i class="bk-icon icon-download"></i>
             </div>
         </div>
-        <div class="samll-map" v-if="smallMapImg" @mouseenter="onMouseEneterMap" @mouseleave="OnMouseLeaveMap">
+        <div class="samll-map" v-if="showSamllMap" @mouseleave="OnMouseLeaveMap">
             <img :src="smallMapImg" alt="">
             <div
-                v-if="showSelectBox"
                 ref="selectBox"
                 class="select-box"
                 @mousedown.prevent="onMouserDownSelect"
@@ -227,10 +226,14 @@
             }
             return {
                 ...eventDict,
-                showSelectBox: false,
                 smallMapImg: '',
+                showSamllMap: false,
                 offsetX: '',
                 offsetY: '',
+                windowWidth: document.documentElement.offsetWidth - 60,
+                windowHeight: document.documentElement.offsetHeight - 60 - 50,
+                width: 0,
+                height: 0,
                 canvasImgDownloading: false,
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
@@ -301,10 +304,12 @@
         },
         methods: {
             onShowMap () {
-                console.log('2222')
                 this.showSamllMap = !this.showSamllMap
                 if (this.showSamllMap) {
                     this.onDownloadCanvas('showSmallMap')
+                    this.$nextTick(() => {
+                        this.getInitialValue()
+                    })
                 }
             },
             onZoomIn (pos) {
@@ -1211,8 +1216,8 @@
                 // })
 
                 const canvasFlWp = document.querySelector('.canvas-flow-wrap')
-                const oldWidth = canvasFlWp.getBoundingClientRect().width
-                const oldHeight = canvasFlWp.getBoundingClientRect().height
+                // const oldWidth = canvasFlWp.getBoundingClientRect().width
+                // const oldHeight = canvasFlWp.getBoundingClientRect().height
                 const baseOffset = 200
                 if (this.canvasImgDownloading) {
                     return
@@ -1224,14 +1229,36 @@
                 const minY = Math.min(...yList)
                 const offsetX = minX < 0 ? -minX : 0
                 const offsetY = minY < 0 ? -minY : 0
-                let width = Math.min(...xList) < 0 ? Math.max(...xList) - Math.min(...xList) : Math.max(...xList)
-                let height = Math.min(...yList) < 0 ? Math.max(...yList) - Math.min(...yList) : Math.max(...yList)
-                if (width < oldWidth) {
-                    width = oldWidth
+                let width = null
+                if (Math.min(...xList) < 0) {
+                    if (Math.max(...xList) > this.windowWidth) {
+                        width = Math.max(...xList) - Math.min(...xList)
+                    } else {
+                        width = this.windowWidth - Math.min(...xList)
+                    }
+                } else {
+                    if (Math.max(...xList) > this.windowWidth) {
+                        width = Math.max(...xList)
+                    } else {
+                        width = this.windowWidth
+                    }
                 }
-                if (height < oldHeight) {
-                    height = oldHeight
+                let height = null
+                if (Math.min(...yList) < 0) {
+                    if (Math.max(...yList) > this.windowHeight) {
+                        height = Math.max(...yList) - Math.min(...yList)
+                    } else {
+                        height = this.windowHeight - Math.min(...yList)
+                    }
+                } else {
+                    if (Math.max(...yList) > this.windowHeight) {
+                        height = Math.max(...yList)
+                    } else {
+                        height = this.windowHeight
+                    }
                 }
+                this.height = height + baseOffset + 30
+                this.width = width + baseOffset + 80
                 domtoimage.toJpeg(canvasFlWp, {
                     bgcolor: '#ffffff',
                     height: height + baseOffset + 30,
@@ -1264,7 +1291,6 @@
                     console.error(error)
                     this.canvasImgDownloading = false
                 })
-                
                 // const canvasEl = document.querySelector('#canvas-flow')
                 // canvasEl.style.overflow = 'scroll'
                 // htmltoimage.toJpeg(canvasEl, {
@@ -1280,10 +1306,47 @@
                 //     this.canvasImgDownloading = false
                 // })
             },
-            onMouseEneterMap () {
-                this.showSelectBox = true
+            getInitialValue () {
+                // 计算选择框的初始left top
+                const canvasFlow = document.querySelector('#canvas-flow')
+                const selectBox = document.querySelector('.select-box')
+                const selectWidth = this.windowWidth / this.width * 344
+                const selectHeight = this.windowHeight / this.height * 216
+                // 画布的Top和Left
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const minY = Math.min(...yList)
+                let initialLeft = null
+                if (canvasFlow.offsetLeft > 0) {
+                    initialLeft = 344 / this.width * [(-canvasFlow.offsetLeft) - (minX < 0 ? -minX : 0)]
+                } else if (canvasFlow.offsetLeft < 0) {
+                    initialLeft = 344 / this.width * [(-canvasFlow.offsetLeft) + (minX < 0 ? -minX : 0)]
+                } else {
+                    initialLeft = 344 / this.width * (minX < 0 ? -minX : 0)
+                }
+                initialLeft = initialLeft >= 344 - selectWidth ? 344 - selectWidth : initialLeft
+                initialLeft = initialLeft < 0 ? 0 : initialLeft
+                let initialTop = null
+                if (canvasFlow.offsetTop > 0) {
+                    initialTop = 216 / this.height * [(-canvasFlow.offsetTop) - (minY < 0 ? -minY : 0)]
+                } else if (canvasFlow.offsetTop < 0) {
+                    initialTop = 216 / this.height * [(-canvasFlow.offsetTop) + (minY < 0 ? -minY : 0)]
+                } else {
+                    initialTop = 216 / this.height * (minY < 0 ? -minY : 0)
+                }
+                initialTop = initialTop >= 216 - selectHeight ? 216 - selectHeight : initialTop
+                initialTop = initialTop < 0 ? 0 : initialTop
+                // const initialLeft = 344 / this.width * [(minX < 0 ? -minX : 0) - canvasFlow.offsetLeft]
+                // const initialTop = 216 / this.height * [(minY < 0 ? -minY : 0) - canvasFlow.offsetTop]
+                this.initialLeft = (minX < 0 ? -minX : 0)
+                this.initialTop = (minY < 0 ? -minY : 0)
+                selectBox.style.width = selectWidth + 'px'
+                selectBox.style.height = selectHeight + 'px'
+                selectBox.style.left = initialLeft + 'px'
+                selectBox.style.top = initialTop + 'px'
             },
-            OnMouseLeaveMap (e) {
+            OnMouseLeaveMap () {
                 this.onMouserUpSelect()
             },
             onMouserDownSelect (e) {
@@ -1298,27 +1361,36 @@
                 const selectBox = document.querySelector('.select-box')
                 const targetX = e.clientX - this.offsetX - 80
                 const targetY = e.clientY - this.offsetY - 80 - 60 - 50
+                // 计算选择框宽高
+                const selectWidth = this.windowWidth / this.width * 344
+                const selectHeight = this.windowHeight / this.height * 216
+                selectBox.style.width = selectWidth + 'px'
+                selectBox.style.height = selectHeight + 'px'
+                // 边界检查
                 let left = null
                 let top = null
-                // 边界检查
-                // 344 - 205 = 139
+                const maxLeft = 344 - selectWidth
                 if (targetX < 0) {
                     left = 0
-                } else if (targetX > 139) {
-                    left = 139
+                } else if (targetX > maxLeft) {
+                    left = maxLeft
                 } else {
                     left = targetX
                 }
-                // 216 - 112 = 104
+                const maxTop = 216 - selectHeight
                 if (targetY < 0) {
                     top = 0
-                } else if (targetY > 104) {
-                    top = 104
+                } else if (targetY > maxTop) {
+                    top = maxTop
                 } else {
                     top = targetY
                 }
                 selectBox.style.left = left + 'px'
                 selectBox.style.top = top + 'px'
+                // 计算画布的Top和Left
+                const canvasFlow = document.querySelector('#canvas-flow')
+                canvasFlow.style.left = -left * (this.width / 344) + this.initialLeft + 30 + 'px'
+                canvasFlow.style.top = -top * (this.height / 216) + this.initialTop + 10 + 'px'
             }
         }
     }
