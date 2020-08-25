@@ -33,12 +33,14 @@ class MockClient(object):
 
 INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
     search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
-    search_module_return={"result": True, "data": {"info": [{"bk_module_name": "module"}]}},
+    search_module_return={"result": True,
+                          "data": {"info": [{"bk_module_name": "module", "bk_module_id": 789}], "count": 1}},
 )
 
 GET_SET_INFO_FAIL_CLIENT = MockClient(
     search_set_return={"result": False},
-    search_module_return={"result": True, "data": {"info": [{"bk_module_name": "module"}]}},
+    search_module_return={"result": True,
+                          "data": {"info": [{"bk_module_name": "module", "bk_module_id": 789}], "count": 1}},
 )
 
 GET_MODULE_INFO_FAIL_CLIENT = MockClient(
@@ -49,15 +51,41 @@ GET_MODULE_INFO_FAIL_CLIENT = MockClient(
 
 class VarSetModuleSelectorTestCase(TestCase):
     def setUp(self):
-        self.value = {"bk_set_id": "456", "bk_module_id": "789"}
+        self.value = {"bk_set_id": "456", "bk_module_id": [789]}
         self.pipeline_data = {
             "executor": "admin",
             "biz_cc_id": "123",
         }
         self.input_output_success_return = SetModuleInfo(
-            {"set": "set", "set_id": 456, "module": "module", "module_id": 789})
-        self.get_set_info_fail_return = SetModuleInfo({"set": "", "set_id": 456, "module": "module", "module_id": 789})
-        self.get_module_info_fail_return = SetModuleInfo({"set": "set", "set_id": 456, "module": "", "module_id": 789})
+            {
+                "set_name": "set",
+                "set_id": 456,
+                "module_name": ["module"],
+                "module_id": [789],
+                "flat__module_id": "789",
+                "flat__module_name": "module"
+            }
+        )
+        self.get_set_info_fail_return = SetModuleInfo(
+            {
+                "set_name": "",
+                "set_id": 456,
+                "module_name": ["module"],
+                "module_id": [789],
+                "flat__module_id": "789",
+                "flat__module_name": "module"
+            }
+        )
+        self.get_module_info_fail_return = SetModuleInfo(
+            {
+                "set_name": "set",
+                "set_id": 456,
+                "module_name": [],
+                "module_id": [789],
+                "flat__module_id": "789",
+                "flat__module_name": ""
+            }
+        )
 
     @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
     def test_input_output_success_case(self, mock_get_client_by_user_return):
@@ -94,10 +122,12 @@ class VarSetModuleSelectorTestCase(TestCase):
         自定义断言：用于判断两个对象的属性值是否相等
         """
         if not (
-                first_inst.set == second_inst.set
+                first_inst.set_name == second_inst.set_name
                 and first_inst.set_id == second_inst.set_id
-                and first_inst.module == second_inst.module
+                and first_inst.module_name == second_inst.module_name
                 and first_inst.module_id == second_inst.module_id
+                and first_inst.flat__module_id == second_inst.flat__module_id
+                and first_inst.flat__module_name == second_inst.flat__module_name
         ):
             msg = self._formatMessage("%s == %s" % (safe_repr(first_inst), safe_repr(second_inst)))
             raise self.failureException(msg)
