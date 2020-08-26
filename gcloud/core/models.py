@@ -319,15 +319,10 @@ class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
-    staff_group = models.ManyToManyField(StaffGroupSet, verbose_name=_("人员分组"), blank=True)
+    staff_groups = models.ManyToManyField(StaffGroupSet, verbose_name=_("人员分组"), blank=True)
 
     objects = ProjectConfigManager()
 
     class Meta:
         verbose_name = _("项目配置 ProjectConfig")
         verbose_name_plural = _("项目配置 ProjectConfig")
-
-    def staff_name_of_project(self):
-        groups = self.staff_group
-        members_list = groups.values_list("members", flat=True)
-        return set(list(members_list))
