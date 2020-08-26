@@ -79,7 +79,7 @@
 <style lang="scss" scoped>
 .tag-int {
     .el-input-number {
-        width: 598px;
+        width: 100%;
     }
     /deep/ .el-input__inner {
         height: 32px;

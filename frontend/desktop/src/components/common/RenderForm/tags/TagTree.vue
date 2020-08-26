@@ -177,7 +177,6 @@
 <style lang="scss" scoped>
 .tag-tree {
     /deep/ .el-tree {
-        width: 598px;
         & > .el-tree-node > .el-tree-node__content {
             height: 36px;
         }
