@@ -15,7 +15,6 @@ import re
 import os
 import logging
 
-from urllib.parse import urlencode
 from cryptography.fernet import Fernet
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -147,23 +146,8 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
 
 def get_job_instance_url(biz_cc_id, job_instance_id):
-
-    if settings.BK_JOB_VERSION == "V2":
-        url_format = "%s?taskInstanceList&appId=%s#taskInstanceId=%s"
-
-        if settings.OPEN_VER == "community":
-            return url_format % (settings.BK_JOB_HOST, biz_cc_id, job_instance_id,)
-
-        else:
-            query = {
-                "app": JOB_APP_CODE,
-                "url": url_format % (settings.BK_JOB_HOST, biz_cc_id, job_instance_id,),
-            }
-            return "%s/console/?%s" % (settings.BK_PAAS_HOST, urlencode(query))
-    else:
-        url_format = "{}/api_execute/{}"
-
-        return url_format.format(settings.BK_JOB_HOST, job_instance_id)
+    url_format = "{}/api_execute/{}"
+    return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
 
 def get_node_callback_url(node_id):
