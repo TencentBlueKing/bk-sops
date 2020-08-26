@@ -174,7 +174,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
   - `pagination`：表格数据分页展示，默认不展示（false）
-  - `page_size`：表格分页展示时，每页显示的条数(Boolean)，默认 10 条每页
+  - `page_size`：表格分页展示时，每页显示的条数(Number)，默认 10 条每页
   - `value`：表格的值
 
 **方法**
