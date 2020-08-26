@@ -274,7 +274,6 @@ INIT_SUPERUSER = ["admin"]
 # cc、job配置
 BK_CC_HOST = os.environ.get("BK_CC_HOST")
 BK_JOB_HOST = os.environ.get("BK_JOB_HOST")
-BK_JOB_VERSION = os.environ.get("BKAPP_BK_JOB_VERSION", "V2")
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"
