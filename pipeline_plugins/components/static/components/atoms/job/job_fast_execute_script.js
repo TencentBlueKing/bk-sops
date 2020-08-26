@@ -128,7 +128,8 @@
                 hookable: true,
                 placeholder: gettext("填写执行脚本内容"),
                 language: "shell",
-                height: "200px",
+                showLanguageSwitch: false,
+                height: "400px",
                 validation: [
                     {
                         type: "custom",
@@ -385,6 +386,23 @@
                 name: gettext("目标账户"),
                 placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "ip_is_exist",
+            type: "radio",
+            attrs: {
+                name: gettext("IP 存在性校验"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
                 validation: [
                     {
                         type: "required"

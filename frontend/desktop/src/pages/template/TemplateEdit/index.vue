@@ -87,6 +87,7 @@
                     :is-template-config-valid="isTemplateConfigValid"
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
+                    :common="common"
                     @templateDataChanged="templateDataChanged"
                     @onCitedNodeClick="onCitedNodeClick"
                     @modifyTemplateData="modifyTemplateData"
@@ -341,7 +342,11 @@
             async getSingleAtomList () {
                 this.singleAtomListLoading = true
                 try {
-                    const data = await this.loadSingleAtomList()
+                    const params = {}
+                    if (!this.common) {
+                        params.project_id = this.project_id
+                    }
+                    const data = await this.loadSingleAtomList(params)
                     const atomList = []
                     data.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
@@ -436,6 +441,7 @@
                 const code = location.atomId
                 const version = location.version
                 const atomConfig = this.atomConfig[code]
+                const project_id = this.common ? undefined : this.project_id
                 if (atomConfig && atomConfig[version]) {
                     this.addSingleAtomActivities(location, atomConfig[version])
                     return
@@ -443,7 +449,7 @@
                 // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atom: code, version })
+                    await this.loadAtomConfig({ atom: code, version, project_id })
                     this.addSingleAtomActivities(location, $.atoms[code])
                 } catch (e) {
                     errorHandler(e, this)
@@ -459,13 +465,14 @@
                     const subflowConfig = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
                     const constants = tools.deepClone(subflowConfig.form)
                     const activities = tools.deepClone(this.activities[location.id])
+                    const project_id = this.common ? undefined : this.project_id
                     for (const key in constants) {
                         const form = constants[key]
                         const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
                         if (!atomFilter.isConfigExists(atom, version, this.atomConfig)) {
-                            await this.loadAtomConfig({ name, atom, classify, version })
+                            await this.loadAtomConfig({ name, atom, classify, version, project_id })
                         }
                         const atomConfig = this.atomConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))

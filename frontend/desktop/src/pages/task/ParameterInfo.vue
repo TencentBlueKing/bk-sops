@@ -77,7 +77,7 @@
         },
         watch: {
             isParameterInfoLoading (Val) {
-                this.$emit('onParameterInfoLoading', Val)
+                this.$emit('paramsLoadingChange', Val)
             },
             taskMessageLoading (val) {
                 if (!val) {

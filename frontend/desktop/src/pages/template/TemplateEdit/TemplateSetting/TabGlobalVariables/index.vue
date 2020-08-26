@@ -90,6 +90,7 @@
                                 :key="constant.key"
                                 :outputed="outputs.indexOf(constant.key) > -1"
                                 :variable-data="constant"
+                                :common="common"
                                 @onEditVariable="onEditVariable"
                                 @onChangeVariableOutput="onChangeVariableOutput"
                                 @onDeleteVariable="onDeleteVariable"
@@ -107,6 +108,7 @@
             <variable-edit
                 v-else
                 :variable-data="variableData"
+                :common="common"
                 @closeEditingPanel="closeEditingPanel">
             </variable-edit>
             <bk-dialog
@@ -139,6 +141,9 @@
             VariableItem,
             draggable,
             NoData
+        },
+        props: {
+            common: [String, Number]
         },
         data () {
             return {

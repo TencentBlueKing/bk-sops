@@ -60,6 +60,9 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config
             }),
+            ...mapState('project', {
+                project_id: state => state.project_id
+            }),
             isEmptyParams () {
                 return Object.keys(this.renderData).length === 0
             }
@@ -100,7 +103,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atom: type, version })
+                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)
@@ -151,6 +154,7 @@
     @import '@/scss/mixins/scrollbar.scss';
     .modify-time-container {
         position: relative;
+        height: 100%;
         overflow: hidden;
         .edit-wrapper {
             padding: 20px 20px 0;
@@ -159,7 +163,6 @@
             @include scrollbar;
         }
         .action-wrapper {
-            margin-top: 30px;
             padding-left: 55px;
             height: 60px;
             line-height: 60px;

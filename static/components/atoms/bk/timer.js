@@ -52,7 +52,7 @@
             tag_code: "force_check",
             type: "radio",
             attrs: {
-                name: gettext("是否强制晚于当前时间"),
+                name: gettext("强制晚于当前时间"),
                 hookable: true,
                 items: [
                     {value: true, name: gettext("是")},

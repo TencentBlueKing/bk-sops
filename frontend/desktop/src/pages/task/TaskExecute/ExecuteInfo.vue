@@ -124,11 +124,11 @@
             </section>
             <section class="info-section" v-if="adminView">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="code-block-wrap">
-                    <div class="code-wrapper" v-if="logInfo">
-                        <VueJsonPretty :data="logInfo"></VueJsonPretty>
-                    </div>
-                    <NoData v-else></NoData>
+                <div class="code-block-wrap code-editor">
+                    <code-editor
+                        :value="logInfo"
+                        :options="{ readOnly: readOnly, language: 'javascript' }">
+                    </code-editor>
                 </div>
             </section>
             <section class="info-section" v-if="historyInfo && historyInfo.length">
@@ -423,6 +423,9 @@
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormInfo': state => state.atomForm.form
             }),
+            ...mapState('project', {
+                project_id: state => state.project_id
+            }),
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
             },
@@ -589,7 +592,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atom: type, version })
+                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
@@ -703,6 +706,9 @@
     }
     /deep/ .vjs-tree {
         font-size: 12px;
+    }
+    /deep/ .code-editor {
+        height: 300px;
     }
     .excute-time {
         margin-bottom: 40px;

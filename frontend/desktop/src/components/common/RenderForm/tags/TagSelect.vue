@@ -15,8 +15,8 @@
             <el-select
                 v-model="seletedValue"
                 v-loading="loading"
-                clearable
                 filterable
+                :clearable="clearable"
                 popper-class="tag-select-popperover"
                 :allow-create="allowCreate"
                 :disabled="!editable || disabled"
@@ -97,6 +97,12 @@
             required: false,
             default: 0,
             desc: 'limit of selected items when multiple is true'
+        },
+        clearable: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show the icon for clearing input value'
         },
         allowCreate: {
             type: Boolean,

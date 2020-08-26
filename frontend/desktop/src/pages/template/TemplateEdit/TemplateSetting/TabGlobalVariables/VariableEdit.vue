@@ -147,7 +147,8 @@
             RenderForm
         },
         props: {
-            variableData: Object
+            variableData: Object,
+            common: [String, Number]
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
@@ -191,6 +192,9 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants
+            }),
+            ...mapState('project', {
+                'project_id': state => state.project_id
             }),
             // 是否为系统内置变量
             isSystemVar () {
@@ -323,6 +327,7 @@
                         classify,
                         isMeta: isMeta,
                         name: this.atomType,
+                        project_id: this.project_id,
                         version,
                         atom
                     })

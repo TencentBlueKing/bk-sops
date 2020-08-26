@@ -145,7 +145,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.20"
+STATIC_VERSION = "3.5.23"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -327,6 +327,12 @@ PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
 )
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
+
+# pipeline mako render settings
+MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+
+MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
