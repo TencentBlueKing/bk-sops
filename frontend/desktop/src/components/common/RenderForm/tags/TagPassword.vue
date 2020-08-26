@@ -103,8 +103,3 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-/deep/.el-input__inner {
-    width: 598px;
-}
-</style>

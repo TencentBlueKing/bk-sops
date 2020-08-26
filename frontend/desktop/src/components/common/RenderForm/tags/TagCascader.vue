@@ -212,7 +212,7 @@
 </script>
 <style lang="scss" scoped>
     /deep/ .el-cascader {
-        width: 598px;
+        width: 100%;
         line-height: 32px;
         .el-cascader__search-input,
         .el-input__inner {

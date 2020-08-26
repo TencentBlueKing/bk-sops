@@ -96,8 +96,7 @@
 <style lang="scss" scoped>
     .checkbox-item {
         display: inline-block;
-        width: 160px;
-        margin-right: 24px;
+        min-width: 100px;
         height: 32px;
         line-height: 32px;
         /deep/ .el-checkbox__input.is-checked + .el-checkbox__label {

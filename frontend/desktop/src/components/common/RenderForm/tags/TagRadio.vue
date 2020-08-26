@@ -95,8 +95,7 @@
         /deep/ .el-radio__label {
             display: inline-block;
             padding-right: 10px;
-            width: 160px;
-            margin-right: 24px;
+            min-width: 80px;
         }
         .el-radio {
             height: 32px;
