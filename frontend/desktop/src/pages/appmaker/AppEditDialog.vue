@@ -78,10 +78,8 @@
                         class="common-icon-info scheme-tooltip"
                         v-bk-tooltips="{
                             content: $t('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。'),
-                            placements: ['left'],
-                            customClass: 'offset-left-tooltip',
-                            width: 400,
-                            zIndex: 1501 }">
+                            placements: ['bottom-end'],
+                            width: 400 }">
                     </i>
                 </div>
             </div>

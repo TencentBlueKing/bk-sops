@@ -11,7 +11,6 @@
 */
 <template>
     <bk-dialog
-        v-if="isModalShow"
         width="600"
         ext-cls="error-content-dialog"
         header-position="left"
