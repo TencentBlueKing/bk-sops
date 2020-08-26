@@ -65,10 +65,10 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
 def get_staff_groups(request, biz_cc_id):
     try:
         config_query = ProjectConfig.objects.get(project_id=biz_cc_id)
-        staff_groups = config_query.staff_group.all().values("id", "name")
+        staff_groups = config_query.staff_groups.all().values("id", "name")
         staff_groups = [{"text": group["name"], "value": group["id"]} for group in staff_groups]
     except ProjectConfig.DoesNotExist:
-        logger.error("project_id(%s) does not exist" % biz_cc_id)
+        logger.warning("project(%s) config does not exist" % biz_cc_id)
         staff_groups = []
 
     return JsonResponse({"result": True, "data": staff_groups})

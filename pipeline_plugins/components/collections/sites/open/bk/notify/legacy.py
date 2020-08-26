@@ -21,51 +21,13 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
-from gcloud.core.roles import CC_V2_ROLE_MAP
+from gcloud.utils.cmdb import get_notify_receivers
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
-
-def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver):
-    """
-    @summary: 根据通知分组和附加通知人获取最终通知人
-    @param biz_cc_id: 业务CC ID
-    @param supplier_account: 租户 ID
-    @param receiver_group: 通知分组
-    @param more_receiver: 附加通知人
-    @return:
-    """
-    kwargs = {
-        "bk_supplier_account": supplier_account,
-        "condition": {
-            "bk_biz_id": int(biz_cc_id)
-        }
-    }
-    cc_result = client.cc.search_business(kwargs)
-    if not cc_result['result']:
-        return False, cc_result['message'], None
-
-    biz_count = cc_result['data']['count']
-    if biz_count != 1:
-        return False, _("从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)), None
-
-    biz_data = cc_result['data']['info'][0]
-    receivers = []
-
-    if not isinstance(receiver_group, list):
-        receiver_group = receiver_group.split(',')
-
-    for group in receiver_group:
-        receivers.extend(biz_data[CC_V2_ROLE_MAP[group]].split(','))
-
-    if more_receiver:
-        receivers.extend([name.strip() for name in more_receiver.split(',')])
-
-    return True, 'success', ','.join(set(receivers))
 
 
 class NotifyService(Service):
@@ -135,11 +97,13 @@ class NotifyService(Service):
 
         code = ''
         message = ''
-        result, msg, receivers = get_notify_receivers(client,
-                                                      biz_cc_id,
-                                                      supplier_account,
-                                                      receiver_group,
-                                                      more_receiver)
+        res = get_notify_receivers(client,
+                                   biz_cc_id,
+                                   supplier_account,
+                                   receiver_group,
+                                   more_receiver)
+
+        result, msg, receivers = res["result"], res["message"], res["data"]
 
         if not result:
             data.set_outputs('ex_data', msg)
