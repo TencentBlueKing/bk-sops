@@ -397,18 +397,18 @@
     }
 }
 /deep/ .render-form {
-    /deep/ .el-input__inner,
-    /deep/ .el-tree,
-    /deep/ .el-date-editor,
-    /deep/ .el-textarea__inner,
-    /deep/ .el-input-number,
-    /deep/ .tag-input,
-    /deep/ .el-date-editor,
-    /deep/ .el-cascader {
+    .el-input__inner,
+    .el-tree,
+    .el-date-editor,
+    .el-textarea__inner,
+    .el-input-number,
+    .tag-input,
+    .el-date-editor,
+    .el-cascader {
         max-width: 598px;
     }
-    /deep/ .el-radio__label,
-    /deep/ .checkbox-item {
+    .el-radio__label,
+    .checkbox-item {
         max-width: 160px;
         margin-right: 24px;
     }
