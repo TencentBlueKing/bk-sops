@@ -61,7 +61,7 @@
             desc: gettext('禁用表单输入')
         },
         value: {
-            type: String,
+            type: [String, Number],
             required: false,
             default: ''
         },
