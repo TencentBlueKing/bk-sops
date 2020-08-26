@@ -1,2 +1,2 @@
 improvement:
-  - "修改forEach需求 .length问题"
+  - "修改未执行节点打开详情页forEach报错问题  添加对执行记录的判断"
