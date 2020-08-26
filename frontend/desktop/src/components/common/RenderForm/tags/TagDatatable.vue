@@ -450,6 +450,9 @@
         .rf-form-item {
             margin: 0;
         }
+        /deep/ .rf-view-textarea-value textarea {
+            text-align: center;
+        }
     }
     .button-area {
         margin-bottom: 10px;
