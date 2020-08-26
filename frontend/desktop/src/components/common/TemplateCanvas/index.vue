@@ -1308,7 +1308,7 @@
             },
             getInitialValue () {
                 // 计算选择框的初始left top
-                // const canvasFlow = document.querySelector('#canvas-flow')
+                const canvasFlow = document.querySelector('#canvas-flow')
                 const selectBox = document.querySelector('.select-box')
                 const selectWidth = this.windowWidth / this.width * 344
                 const selectHeight = this.windowHeight / this.height * 216
@@ -1317,12 +1317,28 @@
                 const yList = this.canvasData.locations.map(node => node.y)
                 const minX = Math.min(...xList)
                 const minY = Math.min(...yList)
-                let initialLeft = 344 / this.width * (minX < 0 ? -minX : 0)
-                let initialTop = 216 / this.height * (minY < 0 ? -minY : 0)
+                let initialLeft = null
+                if (canvasFlow.offsetLeft > 0) {
+                    initialLeft = 344 / this.width * [(-canvasFlow.offsetLeft) - (minX < 0 ? -minX : 0)]
+                } else if (canvasFlow.offsetLeft < 0) {
+                    initialLeft = 344 / this.width * [(-canvasFlow.offsetLeft) + (minX < 0 ? -minX : 0)]
+                } else {
+                    initialLeft = 344 / this.width * (minX < 0 ? -minX : 0)
+                }
                 initialLeft = initialLeft >= 344 - selectWidth ? 344 - selectWidth : initialLeft
                 initialLeft = initialLeft < 0 ? 0 : initialLeft
+                let initialTop = null
+                if (canvasFlow.offsetTop > 0) {
+                    initialTop = 216 / this.height * [(-canvasFlow.offsetTop) - (minY < 0 ? -minY : 0)]
+                } else if (canvasFlow.offsetTop < 0) {
+                    initialTop = 216 / this.height * [(-canvasFlow.offsetTop) + (minY < 0 ? -minY : 0)]
+                } else {
+                    initialTop = 216 / this.height * (minY < 0 ? -minY : 0)
+                }
                 initialTop = initialTop >= 216 - selectHeight ? 216 - selectHeight : initialTop
                 initialTop = initialTop < 0 ? 0 : initialTop
+                // const initialLeft = 344 / this.width * [(minX < 0 ? -minX : 0) - canvasFlow.offsetLeft]
+                // const initialTop = 216 / this.height * [(minY < 0 ? -minY : 0) - canvasFlow.offsetTop]
                 this.initialLeft = (minX < 0 ? -minX : 0)
                 this.initialTop = (minY < 0 ? -minY : 0)
                 selectBox.style.width = selectWidth + 'px'

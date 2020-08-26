@@ -15,12 +15,12 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: $t('小地图'),
+                    content: $t('缩略视图'),
                     delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onShowMap">
-                <i class="common-icon-zoom-in"></i>
+                <i class="common-icon-xiaodetu"></i>
             </div>
             <div
                 class="tool-icon"
