@@ -73,48 +73,70 @@
                 </table>
                 <NoData v-else></NoData>
             </section>
-            <section class="info-section" v-if="!adminView">
-                <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-                <div>
-                    <RenderForm
-                        v-if="!isEmptyParams && !loading"
-                        :scheme="renderConfig"
-                        :form-option="renderOption"
-                        v-model="renderData">
-                    </RenderForm>
-                    <NoData v-else></NoData>
+            <section class="info-section">
+                <div class="common-section-title input-parameter">
+                    <div class="input-title">{{ $t('输入参数') }}</div>
+                    <div class="origin-value" v-if="!adminView">
+                        <bk-switcher @change="inPutSwitcher" v-model="inPutOriginValue"></bk-switcher>
+                        {{ $t('原始值') }}
+                    </div>
                 </div>
-            </section>
-            <section class="info-section" v-else>
-                <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-                <div class="code-block-wrap">
+                <div v-if="!adminView">
+                    <div v-if="inPutOriginValue">
+                        <RenderForm
+                            v-if="!isEmptyParams && !loading"
+                            :scheme="renderConfig"
+                            :form-option="renderOption"
+                            v-model="renderData">
+                        </RenderForm>
+                        <NoData v-else></NoData>
+                    </div>
+                    <code-editor
+                        v-else
+                        :value="inputsInfo"
+                        :options="{ readOnly: readOnly, language: 'json' }">
+                    </code-editor>
+                </div>
+                <div class="code-block-wrap" v-else>
                     <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                 </div>
             </section>
-            <section class="info-section" v-if="!adminView">
-                <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-                <table class="operation-table outputs-table">
-                    <thead>
-                        <tr>
-                            <th class="output-name">{{ $t('参数名') }}</th>
-                            <th class="output-value">{{ $t('参数值') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="output in outputsInfo" :key="output.name">
-                            <td class="output-name">{{getOutputName(output)}}</td>
-                            <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
-                            <td v-else class="output-value">{{ getOutputValue(output) }}</td>
-                        </tr>
-                        <tr v-if="Object.keys(outputsInfo).length === 0">
-                            <td colspan="2"><no-data></no-data></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-            <section class="info-section" v-else>
-                <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-                <div class="code-block-wrap">
+            
+            <section class="info-section">
+                <div class="common-section-title input-parameter">
+                    <div class="input-title">{{ $t('输出参数') }}</div>
+                    <div class="origin-value">
+                        <bk-switcher @change="outPutSwitcher" v-model="outPutOriginValue"></bk-switcher>
+                        {{ $t('原始值') }}
+                    </div>
+                </div>
+                <div v-if="!adminView">
+                    <table class="operation-table outputs-table" v-if="outPutOriginValue">
+                        <thead>
+                            <tr>
+                                <th class="output-name">{{ $t('参数名') }}</th>
+                                <th class="output-value">{{ $t('参数值') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="output in outputsInfo" :key="output.name">
+                                <td class="output-name">{{getOutputName(output)}}</td>
+                                <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
+                                <td v-else class="output-value">{{ getOutputValue(output) }}</td>
+                            </tr>
+                            <tr v-if="Object.keys(outputsInfo).length === 0">
+                                <td colspan="2"><no-data></no-data></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <code-editor
+                        v-else
+                        :value="outputsInfo"
+                        :options="{ readOnly: readOnly, language: 'json' }">
+                    </code-editor>
+                </div>
+                
+                <div class="code-block-wrap" v-else>
                     <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
                     <NoData v-else></NoData>
                 </div>
@@ -405,6 +427,8 @@
         },
         data () {
             return {
+                inPutOriginValue: true,
+                outPutOriginValue: true,
                 readOnly: true,
                 loading: true,
                 executeInfo: {},
@@ -682,6 +706,20 @@
             },
             onSelectNode (nodeHeirarchy, isClick, nodeType) {
                 this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
+            },
+            inPutSwitcher () {
+                if (this.inPutOriginValue) {
+                    this.inputsInfo = JSON.parse(this.inputsInfo)
+                } else {
+                    this.inputsInfo = JSON.stringify(this.inputsInfo, null, 4)
+                }
+            },
+            outPutSwitcher () {
+                if (this.outPutOriginValue) {
+                    this.outputsInfo = JSON.parse(this.outputsInfo)
+                } else {
+                    this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
+                }
             }
         }
     }
@@ -779,6 +817,24 @@
         font-size: 14px;
         margin-bottom: 20px;
     }
+    .input-parameter {
+        height: 20px;
+        line-height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+        .input-title {
+            color: #313238;
+        }
+        .origin-value {
+            font-size: 12px;
+            color: #87878e;
+            .bk-switcher {
+                margin-right: 5px;
+            }
+        }
+    }
     .operation-table {
         font-size: 12px;
         table-layout: fixed;
@@ -835,6 +891,9 @@
     }
     /deep/ .bk-table .bk-table-expanded-cell {
         padding: 20px;
+    }
+    /deep/ .code-editor {
+        height: 300px;
     }
 }
 </style>
