@@ -52,15 +52,11 @@
                             multiple: true,
                             remote: true,
                             remote_data_init: function (resp) {
-                                if (resp === "") {
-                                    return [];
-                                } else {
-                                    // 返回值格式：{
-                                    // "text": "xxx",
-                                    // "value": "xxx"
-                                    // }
-                                    return resp.data;
-                                }
+                                // 返回值格式：{
+                                // "text": "xxx",
+                                // "value": "xxx"
+                                // }
+                                return resp.data;
                             },
                             validation: [
                                 {
