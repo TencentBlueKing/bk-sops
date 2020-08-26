@@ -337,5 +337,8 @@
             }
         }
     }
+    /deep/.bk-button .bk-icon {
+        font-size: 14px;
+    }
 }
 </style>
