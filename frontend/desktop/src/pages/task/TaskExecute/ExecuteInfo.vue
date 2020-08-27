@@ -122,7 +122,7 @@
                     :node-info="executeInfo">
                 </IpLogContent>
             </section>
-            <section class="info-section" v-if="adminView">
+            <section class="info-section" v-if="logInfo">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
                 <div class="code-block-wrap code-editor">
                     <code-editor
@@ -201,6 +201,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
+    import CodeEditor from '@/components/common/CodeEditor.vue'
     import NodeTree from './NodeTree'
 
     const EXECUTE_INFO_COL = [
@@ -358,7 +359,8 @@
             RenderForm,
             NoData,
             IpLogContent,
-            NodeTree
+            NodeTree,
+            CodeEditor
         },
         props: {
             adminView: {
@@ -415,7 +417,8 @@
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
-                onNodeState: true
+                onNodeState: true,
+                performLog: null
             }
         },
         computed: {
@@ -479,7 +482,8 @@
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'getNodeActDetail'
+                'getNodeActDetail',
+                'getNodePerformLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -515,6 +519,7 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
+                        this.logInfo = log
                         this.historyInfo = respData.histories
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
@@ -570,15 +575,19 @@
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
-                    
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
+                    } else {
+                        // 非admin 用户执行记录
+                        this.performLog = await this.getNodePerformLog(query)
                     }
-
                     const res = await getData(query)
                     if (res.result) {
+                        if (!this.adminView) {
+                            res.data.log = this.performLog.data
+                        }
                         return res.data
                     } else {
                         errorHandler(res, this)
