@@ -224,7 +224,7 @@
                 const self = this
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
                 if (!remote_url) return
-                
+
                 // 请求远程数据
                 this.loading = true
                 $.ajax({
