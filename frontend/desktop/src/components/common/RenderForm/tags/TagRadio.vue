@@ -55,7 +55,7 @@
             desc: 'disable radio'
         },
         value: {
-            type: String,
+            type: [String, Boolean],
             required: false,
             default: ''
         }
