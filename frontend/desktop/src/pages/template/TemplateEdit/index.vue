@@ -26,8 +26,6 @@
                 :tpl-resource="tplResource"
                 :tpl-actions="tplActions"
                 :tpl-operations="tplOperations"
-                @tName="tName"
-                @onExportClick="onExportClick"
                 @onChangeName="onChangeName"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
@@ -50,8 +48,6 @@
                 :name="name"
                 :type="type"
                 :common="common"
-                :export-image="isExportImg"
-                :t-name="tName"
                 :canvas-data="canvasData"
                 :node-memu-open.sync="nodeMenuOpen"
                 @hook:mounted="canvasMounted"
@@ -151,8 +147,6 @@
         props: ['template_id', 'type', 'common'],
         data () {
             return {
-                tName: '',
-                isExportImg: false,
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -879,11 +873,6 @@
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            // 导出图片
-            onExportClick (val) {
-                this.isExportImg = !this.isExportImg
-                this.tName = val
-            },
             // 流程名称修改
             onChangeName (name) {
                 this.templateDataChanged()
@@ -1187,9 +1176,6 @@
                 this.leaveToPath = to.fullPath
                 this.isLeaveDialogShow = true
             }
-        },
-        tName (val) {
-            this.taskName = val
         }
     }
 </script>

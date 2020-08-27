@@ -1,3 +1,4 @@
+// 原插件 dom-to-image   gitHub仓库地址 https://github.com/tsayen/dom-to-image#readme
 /* eslint-disable */
 'use strict';
 
