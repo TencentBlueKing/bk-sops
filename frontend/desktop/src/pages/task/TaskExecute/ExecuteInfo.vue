@@ -128,16 +128,15 @@
                     :node-info="executeInfo">
                 </IpLogContent>
             </section>
-            <section class="info-section" v-if="adminView">
+            <section class="info-section" v-if="logInfo">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
                 <div class="code-block-wrap">
-                    <div class="code-wrapper" v-if="logInfo">
+                    <div class="code-wrapper">
                         <code-editor
                             :value="logInfo"
                             :options="{ readOnly: readOnly, language: 'javascript' }">
                         </code-editor>
                     </div>
-                    <NoData v-else></NoData>
                 </div>
             </section>
             <section class="info-section" v-if="historyInfo && historyInfo.length">
@@ -426,7 +425,8 @@
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
-                onNodeState: true
+                onNodeState: true,
+                performLog: null
             }
         },
         computed: {
@@ -493,7 +493,8 @@
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'getNodeActDetail'
+                'getNodeActDetail',
+                'getNodePerformLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -529,6 +530,7 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
+                        this.logInfo = log
                         this.historyInfo = respData.histories
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
@@ -589,10 +591,15 @@
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
+                    } else {
+                        // 非admin 用户执行记录
+                        this.performLog = await this.getNodePerformLog(query)
                     }
-
                     const res = await getData(query)
                     if (res.result) {
+                        if (!this.adminView) {
+                            res.data.log = this.performLog.data
+                        }
                         return res.data
                     } else {
                         errorHandler(res, this)
