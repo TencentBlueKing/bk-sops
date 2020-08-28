@@ -1183,7 +1183,7 @@
     .template-page {
         position: relative;
         height: 100%;
-        // overflow: hidden;
+        overflow: hidden;
     }
     .update-tips {
         position: absolute;
