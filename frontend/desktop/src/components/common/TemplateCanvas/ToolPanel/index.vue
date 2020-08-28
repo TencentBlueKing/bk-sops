@@ -20,7 +20,7 @@
                     placements: ['bottom']
                 }"
                 @click="onShowMap">
-                <i class="common-icon-xiaodetu"></i>
+                <i class="common-icon-small-map"></i>
             </div>
             <div
                 class="tool-icon"
