@@ -14,6 +14,7 @@
         <div v-if="formMode">
             <el-time-picker
                 v-model="timeValue"
+                popper-class="tag-component-popper"
                 :is-range="isRange"
                 :value-format="format"
                 :start-placeholder="startPlaceholder"
