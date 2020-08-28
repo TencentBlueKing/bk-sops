@@ -14,8 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import include, url
 from tastypie.api import Api
 
-from gcloud.contrib.admin import views
-
+from gcloud.contrib.admin import views, migration_api
 from gcloud.contrib.admin.resources import (
     AdminTaskTemplateResource,
     AdminTaskFlowInstanceResource,
@@ -42,4 +41,5 @@ urlpatterns = [
     url(r"^command/delete_cache_key/(?P<key>\w+)/$", views.delete_cache_key),
     url(r"^command/get_settings/$", views.get_settings),
     url(r"^command/migrate_pipeline_parent_data/$", views.migrate_pipeline_parent_data),
+    url(r"^migration/register_resource_config/$", migration_api.register_resource_config),
 ]
