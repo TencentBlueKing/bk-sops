@@ -122,13 +122,16 @@
                     :node-info="executeInfo">
                 </IpLogContent>
             </section>
-            <section class="info-section" v-if="logInfo">
+            <section class="info-section">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="code-block-wrap code-editor">
-                    <code-editor
-                        :value="logInfo"
-                        :options="{ readOnly: readOnly, language: 'javascript' }">
-                    </code-editor>
+                <div v-bkloading="{ isLogLoading: loading, opacity: 1 }">
+                    <div class="code-block-wrap code-editor" v-if="logInfo">
+                        <code-editor
+                            :value="logInfo"
+                            :options="{ readOnly: readOnly, language: 'javascript' }">
+                        </code-editor>
+                    </div>
+                    <NoData v-else></NoData>
                 </div>
             </section>
             <section class="info-section" v-if="historyInfo && historyInfo.length">
@@ -396,6 +399,7 @@
         },
         data () {
             return {
+                isLogLoading: true,
                 readOnly: true,
                 loading: true,
                 executeInfo: {},
@@ -417,8 +421,7 @@
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
-                onNodeState: true,
-                performLog: null
+                onNodeState: true
             }
         },
         computed: {
@@ -570,7 +573,6 @@
                 try {
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let getData = this.getNodeActDetail
-
                     // 分支网关请求参数不传 component_code
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
@@ -579,19 +581,28 @@
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
-                    } else {
-                        // 非admin 用户执行记录
-                        this.performLog = await this.getNodePerformLog(query)
                     }
                     const res = await getData(query)
                     if (res.result) {
                         if (!this.adminView) {
-                            res.data.log = this.performLog.data
+                            const performLog = await this.getPerformLog(query)
+                            // 非admin 用户执行日志
+                            res.data.log = performLog.data
+                            this.isLogLoading = false
                         }
                         return res.data
                     } else {
                         errorHandler(res, this)
                     }
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            // 非admin 用户执行日志
+            getPerformLog (query) {
+                try {
+                    this.isLogLoading = true
+                    return this.getNodePerformLog(query)
                 } catch (error) {
                     errorHandler(error, this)
                 }
