@@ -13,8 +13,9 @@
     $.atoms.date = [
         {
             tag_code: "date",
-            type: "date",
+            type: "datetime",
             attrs: {
+                type: "date",
                 format: "yyyy-MM-dd",
                 placeholder: gettext("请选择日期"),
                 name: gettext("日期"),

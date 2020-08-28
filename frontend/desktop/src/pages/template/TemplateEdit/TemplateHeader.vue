@@ -102,6 +102,7 @@
             activeTab: String,
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
+            isFromTplListRoute: Boolean,
             tplResource: {
                 type: Object,
                 default () {
@@ -135,9 +136,6 @@
             }
         },
         computed: {
-            ...mapState({
-                'isFirstLoadAtTemplatePanel': state => state.isFirstLoadAtTemplatePanel
-            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
@@ -272,11 +270,11 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                if (this.isFirstLoadAtTemplatePanel) {
+                if (this.isFromTplListRoute) {
+                    this.$router.back() // 由模板页跳转进入需要保留分页参数
+                } else {
                     const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
                     this.$router.push(url)
-                } else {
-                    this.$router.back()
                 }
             },
             goToTaskUrl () {

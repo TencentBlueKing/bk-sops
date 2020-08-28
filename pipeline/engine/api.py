@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import functools
 import logging
-import sys
 import time
 
 from celery import current_app
@@ -75,16 +74,15 @@ def _worker_check(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         def on_connection_error(exc, interval):
-            logger.warning("Connection Error: {!r}. Retry in {}s.".format(exc, interval), file=sys.stderr)
+            logger.warning("Connection Error: {!r}. Retry in {}s.".format(exc, interval))
 
         if kwargs.get("check_workers", True):
             try:
                 with current_app.connection() as conn:
                     try:
                         conn.ensure_connection(on_connection_error, current_app.conf.BROKER_CONNECTION_MAX_RETRIES)
-                        print(dir(conn))
                     except conn.connection_errors + conn.channel_errors as exc:
-                        logger.warning("Connection lost: {!r}".format(exc), file=sys.stderr)
+                        logger.warning("Connection lost: {!r}".format(exc))
                     if not workers(conn):
                         return ActionResult(
                             result=False, message="can not find celery workers, please check worker status"
@@ -453,6 +451,16 @@ def get_outputs(node_id):
     """
     data = Data.objects.get(id=node_id)
     return {"outputs": data.outputs, "ex_data": data.ex_data}
+
+
+def get_batch_outputs(node_ids):
+    """
+    get outputs data for a batch of nodes
+    :param node_ids: a list of node_id
+    :return:
+    """
+    nodes_data = Data.objects.filter(id__in=node_ids)
+    return {node_data.id: {"outputs": node_data.outputs, "ex_data": node_data.ex_data} for node_data in nodes_data}
 
 
 def get_activity_histories(node_id, loop=None):

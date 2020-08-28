@@ -351,7 +351,7 @@ class PipelineTemplate(models.Model):
         """
         if not version:
             return self.data
-        return Snapshot.objects.get(md5sum=version).data
+        return Snapshot.objects.filter(md5sum=version).order_by("-id").first().data
 
     def referencer(self):
         """

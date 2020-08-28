@@ -26,7 +26,7 @@ from gcloud.core.models import Project
 from gcloud.core.permissions import project_resource
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ, DEFAULT_APP_WHITELIST
-from gcloud.apigw.exceptions import UserNotExistError
+from gcloud.apigw.exceptions import InvalidUserError
 from gcloud.apigw.whitelist import EnvWhitelist
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
@@ -40,6 +40,10 @@ def check_white_apps(request):
 
 def inject_user(request):
     username = getattr(request.jwt.user, settings.APIGW_USER_USERNAME_KEY)
+    if not username:
+        raise InvalidUserError(
+            "username cannot be empty, make sure api gateway has sent correct params: {}".format(request.jwt.user)
+        )
     user_model = get_user_model()
     user, _ = user_model.objects.get_or_create(username=username)
 
@@ -54,8 +58,8 @@ def mark_request_whether_is_trust(view_func):
 
         try:
             inject_user(request)
-        except UserNotExistError as e:
-            return JsonResponse({"result": False, "message": str(e), "code": err_code.CONTENT_NOT_EXIST.code})
+        except InvalidUserError as e:
+            return JsonResponse({"result": False, "message": str(e), "code": err_code.REQUEST_PARAM_INVALID.code})
 
         return view_func(request, *args, **kwargs)
 
