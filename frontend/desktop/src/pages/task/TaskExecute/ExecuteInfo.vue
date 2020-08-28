@@ -77,12 +77,12 @@
                 <div class="common-section-title input-parameter">
                     <div class="input-title">{{ $t('输入参数') }}</div>
                     <div class="origin-value" v-if="!adminView">
-                        <bk-switcher @change="inPutSwitcher" v-model="inPutOriginValue"></bk-switcher>
+                        <bk-switcher @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
                         {{ $t('原始值') }}
                     </div>
                 </div>
                 <div v-if="!adminView">
-                    <div v-if="inPutOriginValue">
+                    <div v-if="!isShowInputOrigin">
                         <RenderForm
                             v-if="!isEmptyParams && !loading"
                             :scheme="renderConfig"
@@ -103,15 +103,15 @@
             </section>
             
             <section class="info-section">
-                <div class="common-section-title input-parameter">
-                    <div class="input-title">{{ $t('输出参数') }}</div>
-                    <div class="origin-value">
-                        <bk-switcher @change="outPutSwitcher" v-model="outPutOriginValue"></bk-switcher>
+                <div class="common-section-title output-parameter">
+                    <div class="output-title">{{ $t('输出参数') }}</div>
+                    <div class="origin-value" v-if="!adminView">
+                        <bk-switcher @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
                         {{ $t('原始值') }}
                     </div>
                 </div>
                 <div v-if="!adminView">
-                    <table class="operation-table outputs-table" v-if="outPutOriginValue">
+                    <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
                         <thead>
                             <tr>
                                 <th class="output-name">{{ $t('参数名') }}</th>
@@ -427,8 +427,8 @@
         },
         data () {
             return {
-                inPutOriginValue: true,
-                outPutOriginValue: true,
+                isShowInputOrigin: false,
+                isShowOutputOrigin: false,
                 readOnly: true,
                 loading: true,
                 executeInfo: {},
@@ -707,15 +707,15 @@
             onSelectNode (nodeHeirarchy, isClick, nodeType) {
                 this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
             },
-            inPutSwitcher () {
-                if (this.inPutOriginValue) {
+            inputSwitcher () {
+                if (!this.isShowInputOrigin) {
                     this.inputsInfo = JSON.parse(this.inputsInfo)
                 } else {
                     this.inputsInfo = JSON.stringify(this.inputsInfo, null, 4)
                 }
             },
-            outPutSwitcher () {
-                if (this.outPutOriginValue) {
+            outputSwitcher () {
+                if (!this.isShowOutputOrigin) {
                     this.outputsInfo = JSON.parse(this.outputsInfo)
                 } else {
                     this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
@@ -817,14 +817,16 @@
         font-size: 14px;
         margin-bottom: 20px;
     }
-    .input-parameter {
+    .input-parameter,
+    .output-parameter {
         height: 20px;
         line-height: 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 22px;
-        .input-title {
+        .input-title,
+        .output-title {
             color: #313238;
         }
         .origin-value {
