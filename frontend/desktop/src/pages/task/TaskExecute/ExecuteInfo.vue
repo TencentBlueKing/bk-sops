@@ -130,7 +130,7 @@
             </section>
             <section class="info-section">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="perform-log" v-bkloading="{ isLogLoading: loading, opacity: 1 }">
+                <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
                     <code-editor
                         v-if="logInfo"
                         :value="logInfo"
@@ -609,9 +609,10 @@
                     this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
-                    this.isLogLoading = false
                 } catch (error) {
                     errorHandler(error, this)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getNodeConfig (type, version) {
