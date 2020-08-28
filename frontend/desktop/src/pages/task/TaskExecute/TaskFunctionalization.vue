@@ -353,7 +353,7 @@
     padding-bottom: 0px;
 }
 .task-param-wrapper {
-    width: 620px;
+    width: 100%;
 }
 .form-wrapper {
     min-height: 200px;
@@ -394,6 +394,23 @@
     .tool-wrapper {
         top: 20px;
         left: 40px;
+    }
+}
+/deep/ .render-form {
+    .el-input__inner,
+    .el-tree,
+    .el-date-editor,
+    .el-textarea__inner,
+    .el-input-number,
+    .tag-input,
+    .el-date-editor,
+    .el-cascader {
+        max-width: 598px;
+    }
+    .el-radio__label,
+    .checkbox-item {
+        max-width: 160px;
+        margin-right: 24px;
     }
 }
 </style>
