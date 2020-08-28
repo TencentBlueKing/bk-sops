@@ -21,15 +21,15 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/get_staff_groups/' + $.context.getBkBizId() + '/'
-                    return url
+
+                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/get_staff_groups/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
                     return [
-                        {text: gettext("运维人员"), value: "Maintainers"},
-                        {text: gettext("产品人员"), value: "ProductPm"},
-                        {text: gettext("开发人员"), value: "Developer"},
-                        {text: gettext("测试人员"), value: "Tester"},
+                        {text: gettext("运维人员"), value: "bk_biz_maintainer"},
+                        {text: gettext("产品人员"), value: "bk_biz_productor"},
+                        {text: gettext("开发人员"), value: "bk_biz_developer"},
+                        {text: gettext("测试人员"), value: "bk_biz_tester"},
                     ].concat(resp.data)
                 },
                 disabled: $.context.canSelectBiz(),

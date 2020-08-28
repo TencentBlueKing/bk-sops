@@ -82,12 +82,12 @@
                         attrs: {
                             name: gettext("通知分组"),
                             items: [
-                                {name: gettext("运维人员"), value: "Maintainers"},
-                                {name: gettext("产品人员"), value: "ProductPm"},
-                                {name: gettext("开发人员"), value: "Developer"},
-                                {name: gettext("测试人员"), value: "Tester"},
+                                {name: gettext("运维人员"), value: "bk_biz_maintainer"},
+                                {name: gettext("产品人员"), value: "bk_biz_productor"},
+                                {name: gettext("开发人员"), value: "bk_biz_developer"},
+                                {name: gettext("测试人员"), value: "bk_biz_tester"},
                             ],
-                            default: ["Maintainers"],
+                            default: ["bk_biz_maintainer"],
                             validation: [
                                 {
                                     type: "custom",

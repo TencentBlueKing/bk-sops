@@ -44,7 +44,7 @@ mock_staff_group = MagicMock()
 class StaffGroupSelectorTestCase(TestCase):
     def setUp(self):
         self.name = "staff_group"
-        self.internal_staff_group = ["Maintainers", "ProductPm", "Developer", "Tester"]
+        self.internal_staff_group = ["bk_biz_maintainer", "bk_biz_productor", "bk_biz_developer", "bk_biz_tester"]
         self.custom_staff_group = ["1", "2", "3"]
         self.context = {}
         self.pipeline_data = {}
