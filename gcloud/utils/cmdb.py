@@ -16,7 +16,6 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
-from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.handlers import handle_api_error
 
 from .thread import ThreadPool
@@ -238,7 +237,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         receiver_group = receiver_group.split(",")
 
     for group in receiver_group:
-        receivers.extend(biz_data[CC_V2_ROLE_MAP[group]].split(","))
+        receivers.extend(biz_data[group].split(","))
 
     if more_receiver:
         receivers.extend(more_receivers)

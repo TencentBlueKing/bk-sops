@@ -24,6 +24,7 @@ from pipeline.component_framework.component import Component
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.core.roles import CC_V2_ROLE_MAP
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -81,8 +82,11 @@ class NotifyService(Service):
         content = data.get_one_of_inputs("bk_notify_content")
 
         receiver_info = data.get_one_of_inputs("bk_receiver_info")
-        receiver_group = receiver_info.get("bk_receiver_group")
+        receiver_groups = receiver_info.get("bk_receiver_group")
         more_receiver = receiver_info.get("bk_more_receiver")
+
+        # 转换为cc3.0字段
+        receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
 
         result = get_notify_receivers(client,
                                       biz_cc_id,
