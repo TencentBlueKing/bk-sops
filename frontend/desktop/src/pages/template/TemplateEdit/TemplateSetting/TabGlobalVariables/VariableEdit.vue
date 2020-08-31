@@ -329,7 +329,8 @@
                         name: this.atomType,
                         project_id: this.project_id,
                         version,
-                        atom
+                        atom,
+                        common: this.common
                     })
                     this.getRenderConfig()
                 } catch (e) {
