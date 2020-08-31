@@ -150,15 +150,14 @@
                     :node-info="executeInfo">
                 </IpLogContent>
             </section>
-            <section class="info-section" v-if="adminView">
+            <section class="info-section">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="code-block-wrap">
-                    <div class="code-wrapper" v-if="logInfo">
-                        <code-editor
-                            :value="logInfo"
-                            :options="{ readOnly: readOnly, language: 'javascript' }">
-                        </code-editor>
-                    </div>
+                <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
+                    <code-editor
+                        v-if="logInfo"
+                        :value="logInfo"
+                        :options="{ readOnly: readOnly, language: 'javascript' }">
+                    </code-editor>
                     <NoData v-else></NoData>
                 </div>
             </section>
@@ -427,6 +426,7 @@
         },
         data () {
             return {
+                isLogLoading: true,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
                 readOnly: true,
@@ -517,7 +517,8 @@
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'getNodeActDetail'
+                'getNodeActDetail',
+                'getNodePerformLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -613,8 +614,9 @@
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
+                    } else {
+                        this.getPerformLog(query)
                     }
-
                     const res = await getData(query)
                     if (res.result) {
                         return res.data
@@ -623,6 +625,18 @@
                     }
                 } catch (error) {
                     errorHandler(error, this)
+                }
+            },
+            // 非admin 用户执行记录
+            async getPerformLog (query) {
+                try {
+                    this.isLogLoading = true
+                    const performLog = await this.getNodePerformLog(query)
+                    this.logInfo = performLog.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getNodeConfig (type, version) {
@@ -734,9 +748,6 @@
         border-right: 1px solid #DCDEE5;
     }
 }
-.code-wrapper {
-    height: 160px;
-}
 .execute-info {
     flex: 1;
     padding: 30px 20px;
@@ -811,6 +822,9 @@
         /deep/ a {
             color: #4b9aff;
         }
+    }
+    .perform-log {
+        height: 300px;
     }
     .common-section-title {
         color: #313238;
