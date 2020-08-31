@@ -17,7 +17,7 @@
                 v-loading="loading"
                 filterable
                 :clearable="clearable"
-                popper-class="tag-select-popperover"
+                popper-class="tag-component-popper"
                 :allow-create="allowCreate"
                 :disabled="!editable || disabled"
                 :remote="remote"
@@ -257,7 +257,7 @@
     }
 </style>
 <style lang="scss">
-    .tag-select-popperover.el-select-dropdown {
+    .tag-component-popper.el-select-dropdown {
         max-width: 500px;
         .el-select-dropdown__item {
             white-space: normal;

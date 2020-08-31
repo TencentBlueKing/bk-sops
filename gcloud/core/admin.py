@@ -77,6 +77,12 @@ class ProjectConfigAdmin(admin.ModelAdmin):
     search_fields = ["project_id", "executor_proxy"]
 
 
+@admin.register(models.StaffGroupSet)
+class StaffGroupSetAdmin(admin.ModelAdmin):
+    list_display = ["name", "members"]
+    search_fields = ["name", "members"]
+
+
 @admin.register(models.ResourceConfig)
 class ResourceConfigAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "project_id", "config_type", "creator", "create_time"]

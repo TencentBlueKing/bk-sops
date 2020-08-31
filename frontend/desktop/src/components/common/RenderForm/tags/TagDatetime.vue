@@ -14,6 +14,7 @@
         <div v-if="formMode">
             <el-date-picker
                 v-model="dateValue"
+                popper-class="tag-component-popper"
                 :type="type"
                 :format="format"
                 :value-format="format"

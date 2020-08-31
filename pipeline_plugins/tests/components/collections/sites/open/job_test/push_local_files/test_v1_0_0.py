@@ -114,7 +114,13 @@ def FILE_MANAGER_TYPE_ERR_CASE():
 
 def PUSH_FILE_TO_IPS_FAIL_CASE():
 
-    PUSH_FAIL_RESULT = {"result": False, "message": "msg token"}
+    PUSH_FAIL_RESULT = {
+        "result": False,
+        "message": "msg token",
+        "job_api": "api token",
+        "response": {"result": False, "message": "msg token"},
+        "kwargs": "kwargs token",
+    }
     PUSH_FAIL_ESB_CLIENT = MagicMock()
     PUSH_FAIL_MANAGER = MagicMock()
     PUSH_FAIL_MANAGER.push_files_to_ips = MagicMock(return_value=PUSH_FAIL_RESULT)
@@ -129,7 +135,9 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             "job_target_path": "job_target_path",
         },
         parent_data={"executor": "executor", "project_id": "project_id"},
-        execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": PUSH_FAIL_RESULT["message"]}),
+        execute_assertion=ExecuteAssertion(
+            success=False, outputs={"ex_data": '调用作业平台(JOB)接口api token返回失败, params="kwargs token", error=msg token'}
+        ),
         schedule_assertion=None,
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),

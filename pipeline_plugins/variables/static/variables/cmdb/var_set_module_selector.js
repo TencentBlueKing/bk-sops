@@ -49,17 +49,14 @@
                         attrs: {
                             name: gettext("选择模块"),
                             hookable: true,
+                            multiple: true,
                             remote: true,
                             remote_data_init: function (resp) {
-                                if (resp === ""){
-                                    return [];
-                                }else{
                                 // 返回值格式：{
                                 // "text": "xxx",
                                 // "value": "xxx"
                                 // }
                                 return resp.data;
-                                }
                             },
                             validation: [
                                 {
@@ -89,9 +86,12 @@
                                 source: "bk_set_id",
                                 type: "change",
                                 action: function (value) {
-                                    //这里传入集群ID
-                                    this.remote_url = $.context.get("site_url") + "pipeline/cc_get_module/" + $.context.getBkBizId() + "/" + value + "/";
-                                    this.remoteMethod();
+                                    this._set_value('');
+                                    if (value !== "") {
+                                        //这里传入集群ID
+                                        this.remote_url = $.context.get("site_url") + "pipeline/cc_get_module/" + $.context.getBkBizId() + "/" + value + "/";
+                                        this.remoteMethod();
+                                    }
                                 }
                             }
                         ]

@@ -1,6 +1,9 @@
 const en = {
+    '导出为图片': 'Export image',
+    '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',
+    '原始值': 'Original value',
     '查看节点详情': 'View Node Details',
     '节点详情': 'Node Details',
     '接口数据返回为空': 'No data returned by API',

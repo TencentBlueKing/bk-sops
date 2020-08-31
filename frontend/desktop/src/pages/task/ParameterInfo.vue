@@ -117,7 +117,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
-    max-width: 620px;
+    width: 100%;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
@@ -163,6 +163,23 @@
             line-height: 60px;
             font-size: 14px
         }
+    }
+}
+/deep/ .render-form {
+    .el-input__inner,
+    .el-tree,
+    .el-date-editor,
+    .el-textarea__inner,
+    .el-input-number,
+    .tag-input,
+    .el-date-editor,
+    .el-cascader {
+        max-width: 598px;
+    }
+    .el-radio__label,
+    .checkbox-item {
+        max-width: 160px;
+        margin-right: 24px;
     }
 }
 </style>

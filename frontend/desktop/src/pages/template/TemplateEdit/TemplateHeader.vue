@@ -67,6 +67,14 @@
                 {{createTaskBtnText}}
             </bk-button>
             <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
+            <!-- <bk-button
+                :class="[
+                    'save-canvas',
+                    { 'btn-permission-disable': !isSaveBtnEnable }]"
+                :loading="templateSaving"
+                @click.stop="onExportClick(false)">
+                {{$t('导出为图片')}}
+            </bk-button> -->
         </div>
         <ProjectSelectorModal
             :is-new-task="false"
@@ -102,6 +110,7 @@
             activeTab: String,
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
+            isFromTplListRoute: Boolean,
             tplResource: {
                 type: Object,
                 default () {
@@ -135,9 +144,6 @@
             }
         },
         computed: {
-            ...mapState({
-                'isFirstLoadAtTemplatePanel': state => state.isFirstLoadAtTemplatePanel
-            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
@@ -227,6 +233,9 @@
                 }
                 this.saveTemplate(saveAndCreate)
             },
+            // onExportClick () {
+            //     this.$emit('onExportClick', this.tName)
+            // },
             saveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
@@ -272,11 +281,11 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                if (this.isFirstLoadAtTemplatePanel) {
+                if (this.isFromTplListRoute) {
+                    this.$router.back() // 由模板页跳转进入需要保留分页参数
+                } else {
                     const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
                     this.$router.push(url)
-                } else {
-                    this.$router.back()
                 }
             },
             goToTaskUrl () {

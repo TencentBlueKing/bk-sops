@@ -47,53 +47,60 @@
                 </el-upload>
             </template>
         </div>
-        <el-table
-            v-if="Array.isArray(value) && !loading"
-            style="width: 100%; font-size: 12px"
-            :data="tableValue"
-            :empty-text="empty_text"
-            :fit="true"
-            border>
-            <template v-for="(item, cIndex) in columns">
-                <el-table-column
-                    v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
-                    :key="item.tag_code"
-                    :index="cIndex"
-                    :prop="item.tag_code"
-                    :label="'name' in item.attrs ? item.attrs.name : ''"
-                    :width="'width' in item.attrs ? item.attrs.width : ''"
-                    align="center">
+        <template v-if="Array.isArray(value) && !loading">
+            <el-table
+                style="width: 100%; font-size: 12px"
+                :data="dataList"
+                :empty-text="empty_text"
+                :fit="true"
+                border>
+                <template v-for="(item, cIndex) in columns">
+                    <el-table-column
+                        v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
+                        :key="item.tag_code"
+                        :index="cIndex"
+                        :prop="item.tag_code"
+                        :label="'name' in item.attrs ? item.attrs.name : ''"
+                        :width="'width' in item.attrs ? item.attrs.width : ''"
+                        align="center">
+                        <template slot-scope="scope">
+                            <component
+                                :is="item.type === 'combine' ? 'form-group' : 'form-item'"
+                                :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
+                                :scheme="item"
+                                :option="getColumnOptions(scope.$index)"
+                                :value="scope.row[item.tag_code]"
+                                :parent-value="scope.row"
+                                @change="onEditColumn">
+                            </component>
+                        </template>
+                    </el-table-column>
+                </template>
+                <el-table-column v-if="editable && formMode"
+                    prop="operation"
+                    fixed="right"
+                    align="center"
+                    width="100"
+                    :label="i18n.operate_text">
                     <template slot-scope="scope">
-                        <component
-                            :is="item.type === 'combine' ? 'form-group' : 'form-item'"
-                            :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
-                            :scheme="item"
-                            :option="getColumnOptions(scope.$index)"
-                            :value="scope.row[item.tag_code]"
-                            :parent-value="scope.row"
-                            @change="onEditColumn">
-                        </component>
+                        <div v-if="scope.$index === editRowNumber">
+                            <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
+                            <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
+                        </div>
+                        <div v-else>
+                            <a v-if="rowEditable" class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
+                            <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
+                        </div>
                     </template>
                 </el-table-column>
-            </template>
-            <el-table-column v-if="editable && formMode"
-                prop="operation"
-                fixed="right"
-                align="center"
-                width="100"
-                :label="i18n.operate_text">
-                <template slot-scope="scope">
-                    <div v-if="scope.$index === editRowNumber">
-                        <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
-                        <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
-                    </div>
-                    <div v-else>
-                        <a v-if="rowEditable" class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
-                        <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
-                    </div>
-                </template>
-            </el-table-column>
-        </el-table>
+            </el-table>
+            <el-pagination
+                v-if="pagination && (tableValue.length / page_size) > 1 "
+                layout="prev, pager, next"
+                :total="tableValue.length"
+                :current-page.sync="currentPage">
+            </el-pagination>
+        </template>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -198,6 +205,18 @@
                 return []
             },
             desc: 'dataTable buttons setting'
+        },
+        pagination: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show table pagination'
+        },
+        page_size: {
+            type: Number,
+            required: false,
+            default: 10,
+            desc: 'number of items displayed per page'
         }
     }
     export default {
@@ -222,6 +241,7 @@
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
                 loading: false,
+                currentPage: 1,
                 i18n: {
                     save_text: gettext('保存'),
                     cancel_text: gettext('取消'),
@@ -230,6 +250,15 @@
                     delete_text: gettext('删除'),
                     add_text: gettext('添加')
                 }
+            }
+        },
+        computed: {
+            dataList () {
+                if (this.pagination) {
+                    const start = (this.currentPage - 1) * this.page_size
+                    return this.tableValue.slice(start, start + this.page_size)
+                }
+                return this.tableValue
             }
         },
         watch: {
@@ -367,6 +396,9 @@
                 typeof callback === 'function' && callback.bind(this)()
             },
             onEdit (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 this.editRowNumber = index
             },
             onEditColumn (fieldsArr, val) {
@@ -374,17 +406,23 @@
                 this.$set(this.tableValue[this.editRowNumber], field, val)
             },
             onDelete (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 this.tableValue.splice(index, 1)
                 this.updateForm(this.tableValue)
             },
             onSave (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 const valueValid = this.validateSubCom(index)
                 if (!valueValid) return
 
                 this.editRowNumber = undefined
                 this.updateForm(tools.deepClone(this.tableValue))
             },
-            onCancel (index, row) {
+            onCancel () {
                 this.editRowNumber = undefined
                 this.tableValue = tools.deepClone(this.value)
             },
@@ -449,6 +487,12 @@
         }
         .rf-form-item {
             margin: 0;
+        }
+        /deep/ .rf-view-textarea-value textarea {
+            text-align: center;
+        }
+        .el-pagination {
+            text-align: right;
         }
     }
     .button-area {
