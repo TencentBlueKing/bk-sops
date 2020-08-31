@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import traceback
 from datetime import datetime
 
 from django.http.response import JsonResponse
@@ -46,23 +47,39 @@ def register_resource_config(request):
         project_id = project.id
     except Project.DoesNotExist:
         return JsonResponse(
-            {"result": False, "message": "biz_id: {} has not corresponding project in v3".format(biz_id)}
+            {
+                "result": False,
+                "message": "biz_id: {} has not corresponding project in v3".format(biz_id),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
         )
     config_data = params.get("data", {})
 
+    migrate_result = []
     for name, data in config_data.items():
-        create_time = datetime.strptime(data["create_time"], "%Y-%m-%d %H:%M:%S")
-        defaults = {
-            "config_type": data["config_type"],
-            "data": data["json_data"],
-            "creator": data["creator"],
-            "create_time": create_time,
-        }
-        resource_config, create = ResourceConfig.objects.update_or_create(
-            project_id=project_id, name=name, defaults=defaults
-        )
-        # 将时间重置为旧数据的时间
-        if create:
-            resource_config.create_time = create_time
-            resource_config.save()
-    return JsonResponse({"result": True, "message": "migrate success"})
+        try:
+            create_time = datetime.strptime(data["create_time"], "%Y-%m-%d %H:%M:%S")
+            defaults = {
+                "config_type": data["config_type"],
+                "data": data["json_data"],
+                "creator": data["creator"],
+                "create_time": create_time,
+            }
+            resource_config, create = ResourceConfig.objects.update_or_create(
+                project_id=project_id, name=name, defaults=defaults
+            )
+            # 将时间重置为旧数据的时间
+            if create:
+                resource_config.create_time = create_time
+                resource_config.save()
+        except Exception:
+            migrate_result.append(
+                {
+                    "name": name,
+                    "success": False,
+                    "error": "save resource config error: {}".format(traceback.format_exc()),
+                }
+            )
+        else:
+            migrate_result.append({"name": name, "success": True, "error": None})
+    return JsonResponse({"result": True, "data": migrate_result})
