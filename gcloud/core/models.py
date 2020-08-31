@@ -128,6 +128,38 @@ class EnvironmentVariables(models.Model):
         verbose_name_plural = _("环境变量 EnvironmentVariables")
 
 
+RESOURCE_CONFIG_TYPES = [
+    ("set", _("集群筛选配置")),
+    ("host", _("主机筛选配置")),
+]
+
+
+class ResourceConfig(models.Model):
+    """
+    资源筛选配置方案，包括集群资源和主机资源的筛选配置方案
+    """
+
+    project_id = models.IntegerField(_("项目 ID"))
+    name = models.CharField(_("配置名称"), max_length=255, help_text=_("每个项目下的配置名称要保证唯一"))
+    config_type = models.CharField(_("配置类型"), max_length=255, choices=RESOURCE_CONFIG_TYPES)
+    creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
+    data = models.TextField(_("筛选配置参数"), default="{}")
+    create_time = models.DateTimeField(_("最近编辑时间"), auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = _("集群资源筛选方案")
+        verbose_name_plural = _("集群资源筛选方案")
+        unique_together = ("project_id", "name", "config_type")
+        ordering = ["-id"]
+
+    @property
+    def config_type_name(self):
+        return self.get_config_type_display()
+
+    def __str__(self):
+        return self.name
+
+
 class ProjectManager(models.Manager):
     def sync_project_from_cmdb_business(self, businesses):
         with transaction.atomic():
