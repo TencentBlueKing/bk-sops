@@ -15,6 +15,7 @@
             <el-cascader
                 v-model="seletedValue"
                 :options="items"
+                popper-class="tag-component-popper"
                 :disabled="!editable || disabled"
                 :props="{
                     multiple,
@@ -211,7 +212,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    /deep/ .el-cascader {
+    /deep/ .tag-cascader-popperover.el-cascader {
         width: 100%;
         line-height: 32px;
         .el-cascader__search-input,
