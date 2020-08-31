@@ -58,7 +58,7 @@ def mysetting(request):
         "MEDIA_URL": settings.MEDIA_URL,  # MEDIA_URL
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
         "BK_PAAS_HOST": settings.BK_PAAS_HOST,
-        "MEMBER_SELECTOR_DATA_HOST": os.getenv("BKAPP_MEMBER_SELECTOR_DATA_HOST", settings.BK_PAAS_HOST),
+        "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
         "BK_CC_HOST": settings.BK_CC_HOST,
         "BK_JOB_HOST": settings.BK_JOB_HOST,
         "BK_IAM_SAAS_HOST": settings.BK_IAM_SAAS_HOST,
