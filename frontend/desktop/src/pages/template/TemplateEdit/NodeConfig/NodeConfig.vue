@@ -1020,7 +1020,7 @@
         overflow: hidden;
         .config-form {
             padding: 20px 30px 0 30px;
-            max-height: calc(100% - 49px);
+            height: calc(100% - 49px);
             overflow-y: auto;
             @include scrollbar;
         }

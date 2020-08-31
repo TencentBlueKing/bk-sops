@@ -17,6 +17,7 @@ from django.http import JsonResponse
 
 from gcloud.conf import settings
 from gcloud.utils.cmdb import batch_request
+from gcloud.core.models import ProjectConfig
 from pipeline_plugins.variables.query.sites.open import select
 
 logger = logging.getLogger("root")
@@ -61,7 +62,20 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
     return JsonResponse({"result": True, "data": result})
 
 
+def get_staff_groups(request, biz_cc_id):
+    try:
+        config_query = ProjectConfig.objects.get(project_id=biz_cc_id)
+        staff_groups = config_query.staff_groups.all().values("id", "name")
+        staff_groups = [{"text": group["name"], "value": group["id"]} for group in staff_groups]
+    except ProjectConfig.DoesNotExist:
+        logger.warning("project(%s) config does not exist" % biz_cc_id)
+        staff_groups = []
+
+    return JsonResponse({"result": True, "data": staff_groups})
+
+
 urlpatterns += [
     url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
+    url(r"^get_staff_groups/(?P<biz_cc_id>\d+)/$", get_staff_groups),
 ]
