@@ -217,13 +217,13 @@
             },
             onSelectAllClick () {
                 if (this.listAllSelected) {
-                    this.listInPage.forEach(item => {
+                    this.staticIpList.forEach(item => {
                         const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
                         this.selectedIp.splice(index, 1)
                     })
                     this.listAllSelected = false
                 } else {
-                    this.listInPage.forEach(item => {
+                    this.staticIpList.forEach(item => {
                         const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
                         if (index === -1) {
                             this.selectedIp.push(item)
@@ -235,7 +235,6 @@
             onHostItemClick (host) {
                 const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
                 let checkedNumInPage = 0
-            
                 this.listInPage.forEach(el => {
                     if (this.selectedIp.findIndex(item => item.bk_host_id === el.bk_host_id) > -1) {
                         checkedNumInPage += 1
@@ -246,7 +245,7 @@
                     this.listAllSelected = checkedNumInPage > 1 ? 'half' : false
                 } else {
                     this.selectedIp.push(host)
-                    this.listAllSelected = checkedNumInPage === this.listInPage.length - 1 ? true : 'half'
+                    this.listAllSelected = checkedNumInPage === this.staticIpList.length - 1 ? true : 'half'
                 }
             },
             getSortIpList (list, way = 'up') {
@@ -274,7 +273,11 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                this.listAllSelected = false
+                if (this.listAllSelected) {
+                    this.listAllSelected = true
+                } else {
+                    this.listAllSelected = false
+                }
                 this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             onAddIpConfirm () {
