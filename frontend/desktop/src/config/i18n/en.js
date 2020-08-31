@@ -1,6 +1,7 @@
 const en = {
     '': '',
     '（': '(',
+    '原始值': 'Original value',
     '查看节点详情': 'View Node Details',
     '节点详情': 'Node Details',
     '接口数据返回为空': 'No data returned by API',
