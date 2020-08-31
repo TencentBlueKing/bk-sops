@@ -1,4 +1,5 @@
 const en = {
+    '缩略视图': 'Thumbnail view',
     '': '',
     '原始值': 'Original value',
     '查看节点详情': 'View Node Details',
