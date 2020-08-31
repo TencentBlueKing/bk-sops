@@ -42,4 +42,5 @@ urlpatterns = [
     url(r"^command/get_settings/$", views.get_settings),
     url(r"^command/migrate_pipeline_parent_data/$", views.migrate_pipeline_parent_data),
     url(r"^migration/register_resource_config/$", migration_api.register_resource_config),
+    url(r"^migration/migrate_app_maker/$", migration_api.migrate_app_maker),
 ]
