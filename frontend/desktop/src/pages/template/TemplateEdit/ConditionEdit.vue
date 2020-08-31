@@ -27,8 +27,7 @@
                     <bk-input
                         v-model.trim="conditionName"
                         v-validate="conditionRule"
-                        name="conditionName"
-                        :clearable="true">
+                        name="conditionName">
                     </bk-input>
                     <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
                 </div>
@@ -68,6 +67,7 @@
 
 <script>
     import i18n from '@/config/i18n/index.js'
+    import { mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import CodeEditor from '@/components/common/CodeEditor.vue'
     export default {
@@ -76,15 +76,17 @@
             CodeEditor
         },
         props: {
-            isShow: Boolean
+            isShow: Boolean,
+            conditionData: Object
         },
         data () {
+            const { name, value } = this.conditionData
             return {
                 i18n: {
                     tips: i18n.t('支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == "Test"`')
                 },
-                conditionName: '',
-                expression: '',
+                conditionName: name,
+                expression: value,
                 conditionRule: {
                     required: true,
                     max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
@@ -92,34 +94,22 @@
                 },
                 expressionRule: {
                     required: true
-                },
-                conditionData: {}
+                }
+            }
+        },
+        watch: {
+            conditionData (val) {
+                const { name, value } = val
+                this.conditionName = name
+                this.expression = value
             }
         },
         methods: {
-            updateConditionData (data) {
-                this.conditionData = data
-                this.conditionName = data.name
-                this.expression = data.value
-            },
-            getConditionData () {
-                const { id, nodeId, overlayId } = this.conditionData
-                return {
-                    id,
-                    nodeId,
-                    overlayId,
-                    value: this.expression,
-                    name: this.conditionName
-                }
-            },
-            checkCurrentConditionData () {
-                this.closeConditionEdit()
-                return this.$validator.validateAll()
-            },
+            ...mapMutations('template/', [
+                'setBranchCondition'
+            ]),
             onDataChange (val) {
-                if (val !== this.expression) {
-                    this.expression = val.trim()
-                }
+                this.expression = val
             },
             // 关闭配置面板
             onBeforeClose () {
@@ -127,13 +117,20 @@
                 return true
             },
             confirm () {
-                const { id, nodeId, overlayId } = this.conditionData
-                this.$emit('onCloseConditionEdit', {
-                    id,
-                    nodeId,
-                    overlayId,
-                    value: this.expression,
-                    name: this.conditionName
+                this.$validator.validateAll().then(result => {
+                    if (result) {
+                        const { id, nodeId, overlayId } = this.conditionData
+                        const data = {
+                            id,
+                            nodeId,
+                            overlayId,
+                            value: this.expression.trim(),
+                            name: this.conditionName
+                        }
+                        this.setBranchCondition(data)
+                        this.$emit('updataCanvasCondition', data)
+                        this.close()
+                    }
                 })
             },
             close () {
