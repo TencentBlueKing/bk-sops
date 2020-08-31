@@ -97,7 +97,7 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify = 'component', isMeta, version = 'legacy', project_id } = payload
+            const { name, atom, classify = 'component', isMeta, version = 'legacy', project_id, common } = payload
             const atomClassify = classify
             const atomFile = name || atom
             const atomVersion = atomClassify === 'component' ? version : 'legacy'
@@ -110,7 +110,7 @@ const atomForm = {
             }
             params.meta = isMeta ? 1 : undefined
 
-            await axios.get(url, { params }).then(async response => {
+            await axios.get(url, common ? {} : { params }).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
                 commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })
