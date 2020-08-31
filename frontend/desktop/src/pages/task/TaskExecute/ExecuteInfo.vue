@@ -149,13 +149,15 @@
                     :node-info="executeInfo">
                 </IpLogContent>
             </section>
-            <section class="info-section" v-if="adminView">
+            <section class="info-section">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="code-block-wrap code-editor">
+                <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
                     <code-editor
+                        v-if="logInfo"
                         :value="logInfo"
                         :options="{ readOnly: readOnly, language: 'javascript' }">
                     </code-editor>
+                    <NoData v-else></NoData>
                 </div>
             </section>
             <section class="info-section" v-if="historyInfo && historyInfo.length">
@@ -228,6 +230,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
+    import CodeEditor from '@/components/common/CodeEditor.vue'
     import NodeTree from './NodeTree'
     import CodeEditor from '@/components/common/CodeEditor.vue'
 
@@ -423,6 +426,7 @@
         },
         data () {
             return {
+                isLogLoading: true,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
                 readOnly: true,
@@ -510,7 +514,8 @@
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'getNodeActDetail'
+                'getNodeActDetail',
+                'getNodePerformLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -596,18 +601,17 @@
                 try {
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let getData = this.getNodeActDetail
-
                     // 分支网关请求参数不传 component_code
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
-                    
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
+                    } else {
+                        this.getPerformLog(query)
                     }
-
                     const res = await getData(query)
                     if (res.result) {
                         return res.data
@@ -616,6 +620,18 @@
                     }
                 } catch (error) {
                     errorHandler(error, this)
+                }
+            },
+            // 非admin 用户执行日志
+            async getPerformLog (query) {
+                try {
+                    this.isLogLoading = true
+                    const performLog = await this.getNodePerformLog(query)
+                    this.logInfo = performLog.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getNodeConfig (type, version) {
@@ -807,6 +823,9 @@
         /deep/ a {
             color: #4b9aff;
         }
+    }
+    .perform-log {
+        height: 300px;
     }
     .common-section-title {
         color: #313238;
