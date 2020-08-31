@@ -232,7 +232,6 @@
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import CodeEditor from '@/components/common/CodeEditor.vue'
     import NodeTree from './NodeTree'
-    import CodeEditor from '@/components/common/CodeEditor.vue'
 
     const EXECUTE_INFO_COL = [
         {
