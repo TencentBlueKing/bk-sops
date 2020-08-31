@@ -271,15 +271,15 @@
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
             if (this.type === 'edit' || this.type === 'clone') {
-                this.getTemplateData()
+                await this.getTemplateData()
             } else {
                 const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
+            this.getSingleAtomList()
         },
         mounted () {
-            this.getSingleAtomList()
             this.getProjectBaseInfo()
             this.openSnapshootTimer()
             window.onbeforeunload = function () {
@@ -364,6 +364,7 @@
                     })
                     this.atomList = atomList
                     this.handleAtomGroup(atomList)
+                    this.markNodesPhase()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -730,6 +731,29 @@
              */
             markInvalidNode (id) {
                 this.onUpdateNodeInfo(id, { status: 'FAILED' })
+            },
+            /**
+             * 标记任务节点的生命周期
+             */
+            markNodesPhase () {
+                Object.keys(this.canvasData.activities).forEach(id => {
+                    const node = this.canvasData.activities[id]
+                    if (node.type === 'ServiceActivity') {
+                        let atom = ''
+                        this.atomList.some(group => {
+                            if (group.code === node.component.code) {
+                                return group.list.some(item => {
+                                    if (item.version === (node.component.version || 'legacy')) {
+                                        atom = item
+                                    }
+                                })
+                            }
+                        })
+                        if (atom && [1, 2].includes(atom.phase)) {
+                            this.onUpdateNodeInfo(node.id, { phase: atom.phase })
+                        }
+                    }
+                })
             },
             /**
              * 打开节点配置面板
