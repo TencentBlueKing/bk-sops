@@ -22,8 +22,9 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
-from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.core.roles import CC_V2_ROLE_MAP
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -31,77 +32,6 @@ __group_name__ = _("蓝鲸服务(BK)")
 logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 bk_handle_api_error = partial(handle_api_error, __group_name__)
-
-
-def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
-    """
-    @summary: 根据通知分组和附加通知人获取最终通知人
-    @param client: API 客户端
-    @param biz_cc_id: 业务CC ID
-    @param supplier_account: 租户 ID
-    @param receiver_group: 通知分组
-    @param more_receiver: 附加通知人
-    @param logger: 日志句柄
-    @note: 如果 receiver_group 为空，则直接返回 more_receiver；如果 receiver_group 不为空，需要从 CMDB 获取人员信息，人员信息
-        无先后顺序
-    @return:
-    """
-    more_receivers = [name.strip() for name in more_receiver.split(",")]
-    if not receiver_group:
-        result = {
-            "result": True,
-            "message": "success",
-            "data": ",".join(more_receivers)
-        }
-        return result
-
-    if logger is None:
-        logger = logger_celery
-    kwargs = {
-        "bk_supplier_account": supplier_account,
-        "condition": {
-            "bk_biz_id": int(biz_cc_id)
-        }
-    }
-    cc_result = client.cc.search_business(kwargs)
-    if not cc_result["result"]:
-        message = handle_api_error("CMDB", "cc.search_business", kwargs, cc_result)
-        logger.error(message)
-        result = {
-            "result": False,
-            "message": message,
-            "data": None
-        }
-        return result
-
-    biz_count = cc_result["data"]["count"]
-    if biz_count != 1:
-        logger.error(handle_api_error("CMDB", "cc.search_business", kwargs, cc_result))
-        result = {
-            "result": False,
-            "message": _("从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)),
-            "data": None
-        }
-        return result
-
-    biz_data = cc_result["data"]["info"][0]
-    receivers = []
-
-    if isinstance(receiver_group, str):
-        receiver_group = receiver_group.split(",")
-
-    for group in receiver_group:
-        receivers.extend(biz_data[CC_V2_ROLE_MAP[group]].split(","))
-
-    if more_receiver:
-        receivers.extend(more_receivers)
-
-    result = {
-        "result": True,
-        "message": "success",
-        "data": ",".join(sorted(set(receivers)))
-    }
-    return result
 
 
 class NotifyService(Service):
@@ -152,8 +82,11 @@ class NotifyService(Service):
         content = data.get_one_of_inputs("bk_notify_content")
 
         receiver_info = data.get_one_of_inputs("bk_receiver_info")
-        receiver_group = receiver_info.get("bk_receiver_group")
+        receiver_groups = receiver_info.get("bk_receiver_group")
         more_receiver = receiver_info.get("bk_more_receiver")
+
+        # 转换为cc3.0字段
+        receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
 
         result = get_notify_receivers(client,
                                       biz_cc_id,

@@ -296,10 +296,30 @@ class ProjectConfigManager(models.Manager):
         return executor_proxy
 
 
+class StaffGroupSet(models.Model):
+    """
+    人员分组设置
+    """
+
+    name = models.CharField(_("分组名称"), max_length=255)
+    members = models.TextField(_("分组成员"), default="", help_text=_("多个成员以英文,分隔"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("人员分组设置 StaffGroupSet")
+        verbose_name_plural = _("人员分组设置 StaffGroupSet")
+
+    def __unicode__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
+
 class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
+    staff_groups = models.ManyToManyField(StaffGroupSet, verbose_name=_("人员分组"), blank=True)
 
     objects = ProjectConfigManager()
 
