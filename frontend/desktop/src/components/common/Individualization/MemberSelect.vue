@@ -12,11 +12,12 @@
 <template>
     <bk-user-selector
         v-model="setValue"
-        api="/api/c/compapi/v2/usermanage/fs_list_users/"
+        :api="api"
         :placeholder="placeholder"
         :disabled="disabled"
+        :search-limit="maxResult"
         :tag-clearable="hasDeleteIcon"
-        :fixed-height="false"
+        :fixed-height="fixedHeight"
         @change="change"
         @select-user="select"
         @remove-selected="remove">
@@ -47,6 +48,20 @@
             hasDeleteIcon: {
                 type: Boolean,
                 default: true
+            },
+            maxData: {
+                type: Number,
+                default: -1
+            },
+            maxResult: {
+                type: Number,
+                default: 5
+            }
+        },
+        data () {
+            return {
+                fixedHeight: false,
+                api: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }
         },
         computed: {
@@ -72,11 +87,10 @@
         }
     }
 </script>
-
 <style lang="scss" scoped>
-.tag-member-selector-wrap {
-    .user-selector {
-        width: 100%;
+    .tag-member-selector-wrap {
+        .user-selector {
+            width: 100%;
+        }
     }
-}
 </style>
