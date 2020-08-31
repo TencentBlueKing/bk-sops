@@ -13,7 +13,9 @@
     <transition name="wrapperLeft">
         <div class="tool-position">
             <div
-                class="tool-icon"
+                :class="['tool-icon', {
+                    'actived': showSmallMap
+                }]"
                 v-bk-tooltips="{
                     content: $t('缩略视图'),
                     delay: 300,
@@ -35,7 +37,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: $t('放大'),
+                    content: $t('缩小'),
                     delay: 300,
                     placements: ['bottom']
                 }"
@@ -126,6 +128,10 @@
                 default: false
             },
             isSelectionOpen: {
+                type: Boolean,
+                default: false
+            },
+            showSmallMap: {
                 type: Boolean,
                 default: false
             }

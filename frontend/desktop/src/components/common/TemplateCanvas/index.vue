@@ -50,6 +50,7 @@
                     :is-show-select-all-tool="isShowSelectAllTool"
                     :is-select-all-tool-disabled="isSelectAllToolDisabled"
                     :is-all-selected="isAllSelected"
+                    :show-small-map="showSmallMap "
                     :editable="editable"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
@@ -198,10 +199,6 @@
             isCanvasImg: {
                 type: Boolean,
                 default: false
-            },
-            tName: {
-                type: String,
-                default: ''
             }
         },
         data () {
@@ -219,6 +216,7 @@
                 })
             }
             return {
+                isSmallMap: false, // 小地图激活态
                 smallMapWidth: 344, // 344 小地图宽度
                 smallMapHeight: 216, // 216 小地图高度
                 smallMapImg: '',
@@ -283,6 +281,9 @@
             //     })
             // }
         },
+        created () {
+            this.onWindowResize = tools.throttle(this.handlerWindowResize, 300)
+        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -310,23 +311,14 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            onWindowResize () {
+            handlerWindowResize () {
                 this.windowWidth = document.documentElement.offsetWidth - 60
                 this.windowHeight = document.documentElement.offsetHeight - 60 - 50
                 if (this.showSmallMap) {
-                    const nowTime = +new Date()
-                    if (this.lastTime && nowTime - this.lastTime > 200) {
-                        clearTimeout(this.timer)
-                        this.timer = setTimeout(() => {
-                            this.onGenerateCanvas().then(res => {
-                                this.smallMapImg = res
-                            })
-                            this.getInitialValue()
-                        }, 200)
-                        this.lastTime = nowTime
-                    } else {
-                        this.lastTime = nowTime
-                    }
+                    this.onGenerateCanvas().then(res => {
+                        this.smallMapImg = res
+                    })
+                    this.getInitialValue()
                 }
             },
             onToggleMapShow () {
@@ -348,6 +340,7 @@
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.showSmallMap = false
             },
             onZoomOut (pos) {
                 if (pos) {
@@ -357,14 +350,18 @@
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+                this.showSmallMap = false
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
+                this.showSmallMap = false
             },
             onOpenFrameSelect () {
+                this.showSmallMap = false
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
             },
@@ -507,6 +504,7 @@
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
+                this.showSmallMap = false
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
@@ -910,6 +908,7 @@
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
             onToggleHotKeyInfo (val) {
+                this.showSmallMap = false
                 this.isShowHotKey = !this.isShowHotKey
             },
             onCloseHotkeyInfo () {
