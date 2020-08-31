@@ -63,7 +63,13 @@ class UploadModuleManager(Manager):
         job_result = esb_client.job.fast_push_file(job_kwargs)
 
         if not job_result["result"]:
-            return {"result": job_result["result"], "message": job_result["message"]}
+            return {
+                "result": job_result["result"],
+                "message": job_result["message"],
+                "response": job_result,
+                "kwargs": job_kwargs,
+                "job_api": "job.fast_push_file",
+            }
 
         return {"result": job_result["result"], "data": {"job_id": job_result["data"]["job_instance_id"]}}
 

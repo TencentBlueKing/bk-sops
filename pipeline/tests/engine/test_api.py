@@ -790,6 +790,23 @@ class TestEngineAPI(TestCase):
             outputs = api.get_outputs(self.node_id)
             self.assertEqual(outputs, {"outputs": data.outputs, "ex_data": data.ex_data})
 
+    def test_get_batch_outputs(self):
+        data1 = MockData(get_inputs_return=uniqid(), get_outputs_return=uniqid())
+        data2 = MockData(get_inputs_return=uniqid(), get_outputs_return=uniqid())
+        data3 = MockData(get_inputs_return=uniqid(), get_outputs_return=uniqid())
+        with patch(
+            PIPELINE_DATA_FILTER, MagicMock(return_value=MockQuerySet(exists_return=True, qs=[data1, data2, data3]))
+        ):
+            outputs = api.get_batch_outputs([data1.id, data2.id, data3.id])
+            self.assertEqual(
+                outputs,
+                {
+                    data1.id: {"outputs": data1.outputs, "ex_data": data1.ex_data},
+                    data2.id: {"outputs": data2.outputs, "ex_data": data2.ex_data},
+                    data3.id: {"outputs": data3.outputs, "ex_data": data3.ex_data},
+                },
+            )
+
     def test_get_activity_histories(self):
         with patch(PIPELINE_HISTORY_GET_HISTORY, MagicMock(return_value=self.dummy_return)):
             history = api.get_activity_histories(self.node_id)

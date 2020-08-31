@@ -230,24 +230,33 @@ class HostNFSManagerTestCase(TestCase):
             account=account,
         )
 
-        esb_client.job.fast_push_file.assert_called_once_with(
-            {
-                "bk_biz_id": bk_biz_id,
-                "account": account,
-                "file_target_path": target_path,
-                "file_source": [
-                    {
-                        "files": [
-                            os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
-                            os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
-                            os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
-                        ],
-                        "account": "root",
-                        "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
-                    }
-                ],
-                "ip_list": ips,
-            }
-        )
+        job_kwargs = {
+            "bk_biz_id": bk_biz_id,
+            "account": account,
+            "file_target_path": target_path,
+            "file_source": [
+                {
+                    "files": [
+                        os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
+                        os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
+                        os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
+                    ],
+                    "account": "root",
+                    "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                }
+            ],
+            "ip_list": ips,
+        }
 
-        self.assertEqual(result, {"result": False, "message": "msg token"})
+        esb_client.job.fast_push_file.assert_called_once_with(job_kwargs)
+
+        self.assertEqual(
+            result,
+            {
+                "result": False,
+                "message": "msg token",
+                "kwargs": job_kwargs,
+                "response": {"result": False, "message": "msg token"},
+                "job_api": "job.fast_push_file",
+            },
+        )
