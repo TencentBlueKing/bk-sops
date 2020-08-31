@@ -1,4 +1,6 @@
 const en = {
+    '导出为图片': 'Export image',
+    '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',
     '原始值': 'Original value',

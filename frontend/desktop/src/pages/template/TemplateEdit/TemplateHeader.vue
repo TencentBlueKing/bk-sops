@@ -67,6 +67,14 @@
                 {{createTaskBtnText}}
             </bk-button>
             <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
+            <!-- <bk-button
+                :class="[
+                    'save-canvas',
+                    { 'btn-permission-disable': !isSaveBtnEnable }]"
+                :loading="templateSaving"
+                @click.stop="onExportClick(false)">
+                {{$t('导出为图片')}}
+            </bk-button> -->
         </div>
         <ProjectSelectorModal
             :is-new-task="false"
@@ -225,6 +233,9 @@
                 }
                 this.saveTemplate(saveAndCreate)
             },
+            // onExportClick () {
+            //     this.$emit('onExportClick', this.tName)
+            // },
             saveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
