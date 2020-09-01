@@ -327,10 +327,8 @@
                         classify,
                         isMeta: isMeta,
                         name: this.atomType,
-                        project_id: this.project_id,
                         version,
-                        atom,
-                        common: this.common
+                        atom
                     })
                     this.getRenderConfig()
                 } catch (e) {

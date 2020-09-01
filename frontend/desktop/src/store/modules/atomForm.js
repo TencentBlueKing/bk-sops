@@ -97,7 +97,7 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify = 'component', isMeta, version = 'legacy', project_id, common } = payload
+            const { name, atom, classify = 'component', isMeta, version = 'legacy', project_id } = payload
             const atomClassify = classify
             const atomFile = name || atom
             const atomVersion = atomClassify === 'component' ? version : 'legacy'
@@ -109,9 +109,6 @@ const atomForm = {
                 params.version = atomVersion
             }
             params.meta = isMeta ? 1 : undefined
-            if (common) {
-                Vue.delete(params, project_id)
-            }
             await axios.get(url, { params }).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
