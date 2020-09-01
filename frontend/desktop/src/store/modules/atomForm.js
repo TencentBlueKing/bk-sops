@@ -109,7 +109,6 @@ const atomForm = {
                 params.version = atomVersion
             }
             params.meta = isMeta ? 1 : undefined
-
             await axios.get(url, { params }).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 

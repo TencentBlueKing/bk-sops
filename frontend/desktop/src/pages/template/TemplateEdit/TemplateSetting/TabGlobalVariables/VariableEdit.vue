@@ -349,7 +349,7 @@
                         classify,
                         isMeta: isMeta,
                         name: this.atomType,
-                        project_id: this.project_id,
+                        project_id: this.common ? undefined : this.project_id,
                         version,
                         atom
                     })
