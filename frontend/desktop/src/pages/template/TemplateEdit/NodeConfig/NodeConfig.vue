@@ -268,8 +268,8 @@
                                 if (val.find(v => v.id === item.id)) {
                                     return
                                 }
-                                Object.keys(this.constants).some(key => {
-                                    const constant = this.constants[key]
+                                Object.keys(this.localConstants).some(key => {
+                                    const constant = this.localConstants[key]
                                     const sourceInfo = constant.source_info[this.nodeId]
                                     if (sourceInfo && sourceInfo.includes(item.name)) {
                                         this.deleteVariable(key)
@@ -550,8 +550,8 @@
             },
             // 输入参数是否已被勾选到全局变量
             isInputParamsInConstants (form) {
-                return Object.keys(this.constants).some(key => {
-                    const varItem = this.constants[key]
+                return Object.keys(this.localConstants).some(key => {
+                    const varItem = this.localConstants[key]
                     const sourceInfo = varItem.source_info[this.nodeId]
                     return sourceInfo && sourceInfo.includes(form.tag_code)
                 })
@@ -655,7 +655,7 @@
                 this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
-                this.setNodeOptional(this.constants)
+                this.setNodeOptional(this.localConstants)
             },
             /**
              * 子流程切换
@@ -704,7 +704,7 @@
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
                 this.subflowUpdateParamsChange()
-                this.setNodeOptional(this.constants)
+                this.setNodeOptional(this.localConstants)
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
@@ -717,8 +717,8 @@
              */
             subflowUpdateParamsChange () {
                 const nodeId = this.nodeConfig.id
-                for (const key in this.constants) {
-                    const varItem = this.constants[key]
+                for (const key in this.localConstants) {
+                    const varItem = this.localConstants[key]
                     const { source_type, source_info } = varItem
                     const sourceInfo = source_info[this.nodeId]
                     if (sourceInfo) {
@@ -752,8 +752,8 @@
             // 取消已勾选为全局变量的输入、输出参数勾选状态
             clearParamsSourceInfo () {
                 const nodeId = this.nodeConfig.id
-                for (const key in this.constants) {
-                    const varItem = this.constants[key]
+                for (const key in this.localConstants) {
+                    const varItem = this.localConstants[key]
                     const { source_type, source_info } = varItem
                     const sourceInfo = source_info[this.nodeId]
                     if (sourceInfo) {
