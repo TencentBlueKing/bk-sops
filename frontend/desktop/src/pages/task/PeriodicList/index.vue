@@ -57,7 +57,7 @@
                                 v-else
                                 class="periodic-name"
                                 :title="props.row.task_template_name"
-                                :to="templateNameUrl(props.row.template_id, props.row.template_source)">
+                                :to="templateNameUrl(props.row)">
                                 {{props.row.task_template_name}}
                             </router-link>
                         </template>
@@ -120,7 +120,7 @@
                                 <router-link
                                     :to="{
                                         name: 'taskList',
-                                        params: { project_id: project_id },
+                                        params: { project_id: props.row.project.id },
                                         query: { template_id: props.row.template_id, create_method: 'periodic', create_info: props.row.id }
                                     }">
                                     {{ $t('执行历史') }}
@@ -504,10 +504,11 @@
                 this.selectedPeriodicId = task.id
                 this.isBootRecordDialogShow = true
             },
-            templateNameUrl (templateId, templateSource) {
+            templateNameUrl (template) {
+                const { template_id: templateId, template_source: templateSource, project } = template
                 const url = {
                     name: 'templatePanel',
-                    params: { type: 'edit' },
+                    params: { type: 'edit', project_id: project.id },
                     query: { template_id: templateId, common: templateSource === 'common' || undefined }
                 }
                 return url
