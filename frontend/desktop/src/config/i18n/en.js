@@ -166,7 +166,7 @@ const en = {
     '所有分组': 'All groups',
     '所有分类': 'All categories',
     '标准插件节点：': 'Standard Plugins Node: ',
-    '已封装好的可用插件，可直接选中拖拽至画布中。': 'Standard Plugins, drag to cavas to use',
+    '已封装好的可用插件，可直接选中拖拽至画布中。': 'Standard Plugins, drag to canvas to use',
     '子流程：': 'Subprocess: ',
     '同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。': 'Exist process in current project can be embed in current process',
     '并行网关：': 'Parallel Gateway: ',
@@ -1000,7 +1000,9 @@ const en = {
     '最近快照已保存，并恢复至原序号为': 'The most recent snapshot has been saved and restored to the original number',
     '的快照': 'snapshot',
     '历史搜索记录': 'Search History',
-    '：': ': '
+    '：': ': ',
+    '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
+    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version'
 }
 
 export default en

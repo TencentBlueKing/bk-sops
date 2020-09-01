@@ -190,6 +190,7 @@
             return {
                 defaultActiveId: '',
                 locations: [],
+                atomList: [],
                 quickClose: true,
                 sideSliderTitle: '',
                 taskId: this.instance_id,
@@ -310,6 +311,7 @@
         },
         mounted () {
             this.loadTaskStatus()
+            this.getSingleAtomList()
         },
         beforeDestroy () {
             if (source) {
@@ -331,6 +333,9 @@
                 'skipExclusiveGateway',
                 'pauseNodeResume',
                 'getNodeActInfo'
+            ]),
+            ...mapActions('atomForm/', [
+                'loadSingleAtomList'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeForceFail'
@@ -392,6 +397,65 @@
                     source = null
                     this.$emit('taskStatusLoadChange', false)
                 }
+            },
+            /**
+             * 加载标准插件列表
+             */
+            async getSingleAtomList () {
+                try {
+                    const params = {}
+                    if (!this.common) {
+                        params.project_id = this.project_id
+                    }
+                    const data = await this.loadSingleAtomList(params)
+                    const atomList = []
+                    data.forEach(item => {
+                        const atom = atomList.find(atom => atom.code === item.code)
+                        if (atom) {
+                            atom.list.push(item)
+                        } else {
+                            const { code, desc, name, group_name, group_icon } = item
+                            atomList.push({
+                                code,
+                                desc,
+                                name,
+                                group_name,
+                                group_icon,
+                                type: group_name,
+                                list: [item]
+                            })
+                        }
+                    })
+                    this.atomList = atomList
+                    this.markNodesPhase()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.singleAtomListLoading = false
+                }
+            },
+            /**
+             * 标记任务节点的生命周期
+             */
+            markNodesPhase () {
+                Object.keys(this.pipelineData.activities).forEach(id => {
+                    const node = this.pipelineData.activities[id]
+                    if (node.type === 'ServiceActivity') {
+                        let atom = ''
+                        this.atomList.some(group => {
+                            if (group.code === node.component.code) {
+                                return group.list.some(item => {
+                                    if (item.version === (node.component.version || 'legacy')) {
+                                        atom = item
+                                    }
+                                })
+                            }
+                        })
+                        if (atom) {
+                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: 2 })
+                        }
+                    }
+                })
             },
             /**
              * 从总任务实例状态信息中取数据
@@ -717,6 +781,7 @@
             setCanvasData () {
                 this.$nextTick(() => {
                     this.nodeSwitching = false
+                    this.markNodesPhase()
                 })
             },
             getOptBtnIsClickable (action) {
