@@ -235,7 +235,7 @@
             onHostItemClick (host) {
                 const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
                 let checkedNumInPage = 0
-                this.listInPage.forEach(el => {
+                this.staticIpList.forEach(el => {
                     if (this.selectedIp.findIndex(item => item.bk_host_id === el.bk_host_id) > -1) {
                         checkedNumInPage += 1
                     }
