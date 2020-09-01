@@ -43,11 +43,11 @@ def migrate_staff_group(request):
             }
         )
 
-    groups = params.get('info')
+    groups = params.get("info")
     bk_biz_id = params.get("biz_id")
 
     try:
-        Project.objects.get(bk_biz_id=bk_biz_id)
+        project = Project.objects.get(bk_biz_id=bk_biz_id)
     except Project.DoesNotExist:
         return JsonResponse(
             {
@@ -58,13 +58,15 @@ def migrate_staff_group(request):
         )
 
     try:
-        project_config, res = ProjectConfig.objects.get_or_create(project_id=bk_biz_id)
+        project_config, res = ProjectConfig.objects.get_or_create(project_id=project.id)
     except Exception as err:
-        return JsonResponse({
-            "result": False,
-            "message": "get project config for bk_biz_id{}: {}".format(bk_biz_id, str(err)),
-            "code": err_code.OPERATION_FAIL.code,
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "get project config for bk_biz_id{}: {}".format(bk_biz_id, str(err)),
+                "code": err_code.OPERATION_FAIL.code,
+            }
+        )
 
     staff_groups = project_config.staff_groups.all()
     group_names = [_group["name"] for _group in groups]
@@ -83,30 +85,21 @@ def migrate_staff_group(request):
             group_obj = StaffGroupSet.objects.create(**group)
             project_config.staff_groups.add(group_obj)
 
-            migrate_result.append({
-                "name": group["name"],
-                "success": True,
-                "error": None
-            })
+            migrate_result.append({"name": group["name"], "success": True, "error": None})
 
         # 项目配置中人员分组存在则更新
         elif group_query_count == 1:
             group_id = group_dict[group["name"]][0]["id"]
             staff_groups.filter(id=group_id).update(**group)
-            migrate_result.append({
-                "name": group["name"],
-                "success": True,
-                "error": None
-            })
+            migrate_result.append({"name": group["name"], "success": True, "error": None})
         else:
             # 未处理的人员分组
-            migrate_result.append({
-                "name": group["name"],
-                "success": False,
-                "error": "There are multiple groups with the same name in the configuration"
-            })
+            migrate_result.append(
+                {
+                    "name": group["name"],
+                    "success": False,
+                    "error": "There are multiple groups with the same name in the configuration",
+                }
+            )
 
-    return JsonResponse({
-        "result": True,
-        "data": migrate_result
-    })
+    return JsonResponse({"result": True, "data": migrate_result})
