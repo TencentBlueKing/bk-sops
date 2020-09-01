@@ -191,15 +191,21 @@
                                     <div v-html="props.row.ex_data"></div>
                                 </div>
                             </div>
-                            <div class="common-form-item" v-if="adminView">
+                            <div class="common-form-item">
                                 <label>{{ $t('日志') }}</label>
-                                <div class="common-form-content">
+                                <div class="common-form-content" v-if="historyLog[props.row.history_id]">
                                     <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
-                                        <div class="code-block-wrap">
+                                        <div class="code-block-wrap" v-if="adminView">
                                             <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
                                         </div>
+                                        <code-editor
+                                            v-else
+                                            :value="historyLog[props.row.history_id]"
+                                            :options="{ readOnly: readOnly, language: 'javascript' }">
+                                        </code-editor>
                                     </div>
                                 </div>
+                                <NoData v-else></NoData>
                             </div>
                         </template>
                     </bk-table-column>
@@ -518,7 +524,8 @@
             ...mapActions('task/', [
                 'getNodeActInfo',
                 'getNodeActDetail',
-                'getNodePerformLog'
+                'getNodePerformLog',
+                'getNodeExcutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -659,11 +666,21 @@
                     this.$set(this.historyLogLoading, id, true)
                     const data = {
                         node_id: this.nodeDetailConfig.node_id,
-                        history_id: id
+                        history_id: id,
+                        instance_id: this.nodeDetailConfig.instance_id
                     }
-                    const resp = await this.taskflowHistroyLog(data)
+                    let resp = null
+                    if (this.adminView) {
+                        resp = await this.taskflowHistroyLog(data)
+                    } else {
+                        resp = await this.getNodeExcutionRecordLog(data)
+                    }
                     if (resp.result) {
-                        this.$set(this.historyLog, id, resp.data.log)
+                        if (this.adminView) {
+                            this.$set(this.historyLog, id, resp.data.log)
+                        } else {
+                            this.$set(this.historyLog, id, resp.data)
+                        }
                     } else {
                         errorHandler(resp, this)
                     }
@@ -714,9 +731,7 @@
             },
             onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
-                if (this.adminView && expended && !this.historyLog.hasOwnProperty(id)) {
-                    this.getHistoryLog(id)
-                }
+                this.getHistoryLog(id)
             },
             onSelectNode (nodeHeirarchy, isClick, nodeType) {
                 this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
