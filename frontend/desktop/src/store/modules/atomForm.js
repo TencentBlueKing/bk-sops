@@ -109,8 +109,11 @@ const atomForm = {
                 params.version = atomVersion
             }
             params.meta = isMeta ? 1 : undefined
+            if (common) {
+                Vue.delete(params, project_id)
+            }
 
-            await axios.get(url, common ? {} : { params }).then(async response => {
+            await axios.get(url, { params }).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
                 commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })
