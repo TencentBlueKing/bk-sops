@@ -273,17 +273,6 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                switch (this.listAllSelected) {
-                    case 'half':
-                        this.listAllSelected = 'half'
-                        break
-                    case true:
-                        this.listAllSelected = true
-                        break
-                    case false:
-                        this.listAllSelected = false
-                        break
-                }
                 this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             onAddIpConfirm () {
