@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from config import RUN_VER
 
-if RUN_VER == 'open':
+if RUN_VER == "open":
     from blueapps.patch.settings_open_saas import *  # noqa
 else:
     from blueapps.patch.settings_paas_services import *  # noqaJobExecuteTaskComponent
 
 # 预发布环境
-RUN_MODE = 'STAGING'
+RUN_MODE = "STAGING"
 
-AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.BKIAMResourceMigration'
+AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = "auth_backend.resources.migrations.migration.BKIAMResourceMigration"
 
 BK_IAM_SYNC_TEMPLATES = True
 
@@ -49,3 +49,14 @@ BK_IAM_SYNC_TEMPLATES = True
 #         },
 #     }
 # )
+
+LOGGING["handlers"]["engine_component"] = {
+    "class": "pipeline.log.handlers.EngineContextLogHandler",
+    "formatter": "verbose",
+}
+
+LOGGING["loggers"]["component"] = {
+    "handlers": ["component", "engine_component"],
+    "level": "DEBUG",
+    "propagate": True,
+}

@@ -13,15 +13,34 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from . import models
+from pipeline.engine.core import context
 
 
 class EngineLogHandler(logging.Handler):
     def emit(self, record):
+        from . import models
+
         models.LogEntry.objects.create(
             logger_name=record.name,
             level_name=record.levelname,
             message=self.format(record),
             exception=record.exc_text,
             node_id=record._id,
+        )
+
+
+class EngineContextLogHandler(logging.Handler):
+    def emit(self, record):
+        from . import models
+
+        node_id = context.get_node_id()
+        if not node_id:
+            return
+
+        models.LogEntry.objects.create(
+            logger_name=record.name,
+            level_name=record.levelname,
+            message=self.format(record),
+            exception=record.exc_text,
+            node_id=node_id,
         )
