@@ -67,3 +67,14 @@ try:
     from local_settings import *  # noqa
 except ImportError:
     pass
+
+LOGGING["handlers"]["engine_component"] = {
+    "class": "pipeline.log.handlers.EngineContextLogHandler",
+    "formatter": "verbose",
+}
+
+LOGGING["loggers"]["component"] = {
+    "handlers": ["component", "engine_component"],
+    "level": "DEBUG",
+    "propagate": True,
+}

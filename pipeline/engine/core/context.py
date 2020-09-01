@@ -11,33 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from config import RUN_VER
+import logging
+from werkzeug.local import Local
 
-if RUN_VER == "open":
-    from blueapps.patch.settings_open_saas import *  # noqa
-else:
-    from blueapps.patch.settings_paas_services import *  # noqa
+logger = logging.getLogger("celery")
+local = Local()
 
-# 正式环境
-RUN_MODE = "PRODUCT"
 
-BK_IAM_SYNC_TEMPLATES = True
+def set_node_id(node_id):
+    try:
+        local.currnet_node_id = node_id
+    except Exception:
+        logger.exception("[engine context] set current_node_id for node({}) err.".format(node_id))
 
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
 
-LOGGING["loggers"]["iam"] = {
-    "handlers": ["component"],
-    "level": "INFO",
-    "propagate": True,
-}
-
-LOGGING["handlers"]["engine_component"] = {
-    "class": "pipeline.log.handlers.EngineContextLogHandler",
-    "formatter": "verbose",
-}
-
-LOGGING["loggers"]["component"] = {
-    "handlers": ["component", "engine_component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
+def get_node_id():
+    return getattr(local, "currnet_node_id", None)

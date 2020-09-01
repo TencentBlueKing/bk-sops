@@ -145,9 +145,7 @@ class ConstantTemplate(object):
         try:
             resolved = tm.render_unicode(**data)
         except (NameError, TypeError, KeyError) as e:
-            logger.warning(
-                "constant content is invalid, variable referred does not exist or variable type error[%s]" % e
-            )
+            logger.warning("constant content({}) is invalid, data({}), error: {}".format(template, data, e))
             return template
         except AttributeError as e:
             # lazy Variable resolve failed before execution
