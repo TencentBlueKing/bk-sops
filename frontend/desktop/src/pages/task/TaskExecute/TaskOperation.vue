@@ -459,7 +459,7 @@
                             }
                         })
                         if (atom) {
-                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: 2 })
+                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: atom.phase })
                         }
                     }
                 })
