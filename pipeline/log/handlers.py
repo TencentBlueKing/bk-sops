@@ -13,12 +13,17 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.core.exceptions import AppRegistryNotReady
+
 from pipeline.engine.core import context
 
 
 class EngineLogHandler(logging.Handler):
     def emit(self, record):
-        from . import models
+        try:
+            from . import models
+        except AppRegistryNotReady:
+            return
 
         models.LogEntry.objects.create(
             logger_name=record.name,
@@ -31,7 +36,10 @@ class EngineLogHandler(logging.Handler):
 
 class EngineContextLogHandler(logging.Handler):
     def emit(self, record):
-        from . import models
+        try:
+            from . import models
+        except AppRegistryNotReady:
+            return
 
         node_id = context.get_node_id()
         if not node_id:
