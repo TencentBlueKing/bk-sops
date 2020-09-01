@@ -711,7 +711,7 @@
             /**
              * 子流程版本更新后，输入、输出参数如果有变更，需要处理全局变量的 source_info 更新
              * 分为两种情况：
-             * 1.输入、输出参数被勾选，并且在新流程模板中被删除，需要在更新后修改全局变量 source_info 信息
+             * 1.输入、输出参数被勾选，并且对应变量在新流程模板中被删除或者变量 source_tag 有更新，需要在更新后修改全局变量 source_info 信息
              * 2.新增和修改输入、输出参数，不做处理
              */
             subflowUpdateParamsChange () {
@@ -723,7 +723,9 @@
                     if (sourceInfo) {
                         if (source_type === 'component_inputs') {
                             sourceInfo.forEach(nodeFormItem => {
-                                if (!this.inputs.find(item => item.tag_code === nodeFormItem)) {
+                                const newTplVar = this.subflowForms[nodeFormItem]
+
+                                if (!newTplVar || newTplVar.source_tag !== varItem.source_tag) { // 变量被删除或者变量类型有变更
                                     this.setVariableSourceInfo({
                                         key,
                                         id: nodeId,

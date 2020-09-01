@@ -27,10 +27,10 @@
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
                         <bk-button
-                            v-cursor="{ active: !hasPermission(createTplRequired, authActions, authOperations) }"
+                            v-cursor="{ active: !hasCreateTplPerm }"
                             theme="primary"
                             :class="['create-template', {
-                                'btn-permission-disable': !hasPermission(createTplRequired, authActions, authOperations)
+                                'btn-permission-disable': !hasCreateTplPerm
                             }]"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
@@ -324,7 +324,8 @@
                 createTplRequired: ['create_template'],
                 tplOperations: [], // 模板权限字典
                 tplResource: {}, // 模板资源信息
-                createCommonTplAction: [] // 创建公共流程权限
+                createTplPermLoading: false,
+                hasCreateTplPerm: false // 创建流程模板权限
             }
         },
         computed: {
@@ -352,6 +353,7 @@
             }
         },
         created () {
+            this.queryCreateTplPerm()
             this.getTemplateList()
             this.getProjectBaseInfo()
             this.getExpiredSubflowData()
@@ -388,6 +390,23 @@
             ...mapMutations('templateList/', [
                 'setTemplateListData'
             ]),
+            async queryCreateTplPerm () {
+                try {
+                    this.createTplPermLoading = true
+                    const res = await this.queryUserPermission({
+                        resource_type: 'project',
+                        instance_id: this.project_id,
+                        action_ids: JSON.stringify(['create_template'])
+                    })
+                    this.hasCreateTplPerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create_template' && item.is_pass
+                    })
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.createTplPermLoading = false
+                }
+            },
             async getTemplateList () {
                 this.listLoading = true
                 try {
@@ -473,7 +492,10 @@
                 }
             },
             checkCreatePermission () {
-                if (!this.hasPermission(this.createTplRequired, this.authActions, this.authOperations)) {
+                if (this.createTplPermLoading) {
+                    return
+                }
+                if (!this.hasCreateTplPerm) {
                     const resourceData = {
                         name: i18n.t('项目'),
                         id: this.project_id,

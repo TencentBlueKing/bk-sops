@@ -47,7 +47,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
@@ -81,11 +81,9 @@
                 
             }),
             ...mapState('project', {
+                projectList: state => state.userProjectList,
                 project_id: state => state.project_id,
                 projectName: state => state.projectName
-            }),
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
             }),
             projects () {
                 const projects = []

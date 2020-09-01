@@ -189,6 +189,42 @@ class ProjectResource(GCloudModelResource):
         raise BadRequest("can not delete project")
 
 
+class UserProjectResource(ModelResource):
+    class Meta(GCloudModelResource.Meta):
+        queryset = Project.objects.all().order_by("-id")
+        resource_name = "user_project"
+        authorization = ReadOnlyAuthorization()
+        filtering = {}
+        q_fields = []
+
+    def obj_get(self, bundle, **kwargs):
+        raise BadRequest("invalid operation")
+
+    def get_object_list(self, request):
+        authorized_projects = project_resource.backend.search_authorized_resources(
+            resource=project_resource,
+            principal_type=PRINCIPAL_TYPE_USER,
+            principal_id=request.user.username,
+            action_ids=[project_resource.actions.view.id],
+        )
+
+        if not authorized_projects["result"]:
+            logger.error(
+                "[user project]get authorized projects error: {error}".format(error=authorized_projects["message"])
+            )
+            project_ids = []
+        else:
+            project_ids = [int(ap[0]["resource_id"]) for ap in authorized_projects["data"][0]["resource_ids"]]
+
+        return Project.objects.filter(id__in=project_ids, is_disable=False)
+
+    def alter_list_data_to_serialize(self, request, data):
+        data["meta"]["auth_operations"] = project_resource.operations
+        data["meta"]["auth_resource"] = project_resource.base_info()
+
+        return data
+
+
 class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(attribute="group_icon", readonly=True, null=True)
 
