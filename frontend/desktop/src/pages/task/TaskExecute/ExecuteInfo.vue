@@ -191,8 +191,8 @@
                                 </div>
                                 <div class="common-form-item">
                                     <label>{{ $t('日志') }}</label>
-                                    <div class="common-form-content" v-if="historyLog[props.row.history_id]">
-                                        <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                        <div class="common-form-content" v-if="historyLog[props.row.history_id]">
                                             <div class="code-block-wrap" v-if="adminView">
                                                 <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
                                             </div>
@@ -202,8 +202,8 @@
                                                 :options="{ readOnly: readOnly, language: 'javascript' }">
                                             </code-editor>
                                         </div>
+                                        <NoData v-else></NoData>
                                     </div>
-                                    <NoData v-else></NoData>
                                 </div>
                             </div>
                         </template>
@@ -521,7 +521,7 @@
                 'getNodeActInfo',
                 'getNodeActDetail',
                 'getNodePerformLog',
-                'getNodeExcutionRecordLog'
+                'getNodeExecutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -667,7 +667,7 @@
                     if (this.adminView) {
                         resp = await this.taskflowHistroyLog(data)
                     } else {
-                        resp = await this.getNodeExcutionRecordLog(data)
+                        resp = await this.getNodeExecutionRecordLog(data)
                     }
                     if (resp.result) {
                         if (this.adminView) {
@@ -725,7 +725,9 @@
             },
             onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
-                this.getHistoryLog(id)
+                if (expended && !this.historyLog.hasOwnProperty(id)) {
+                    this.getHistoryLog(id)
+                }
             },
             onSelectNode (nodeHeirarchy, isClick, nodeType) {
                 this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)

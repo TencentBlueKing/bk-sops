@@ -261,7 +261,7 @@ const task = {
          * 获取执行记录日志
          * @param {Object} data 节点配置数据
          */
-        getNodeExcutionRecordLog ({ commit }, data) {
+        getNodeExecutionRecordLog ({ commit }, data) {
             const { project_id } = store.state.project
             const { history_id, instance_id, node_id } = data
             return axios.get(`taskflow/api/nodes/log/${project_id}/${node_id}/`, {
