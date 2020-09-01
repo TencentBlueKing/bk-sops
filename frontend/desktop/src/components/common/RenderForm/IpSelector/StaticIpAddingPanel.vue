@@ -273,10 +273,16 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                if (this.listAllSelected) {
-                    this.listAllSelected = true
-                } else {
-                    this.listAllSelected = false
+                switch (this.listAllSelected) {
+                    case 'half':
+                        this.listAllSelected = 'half'
+                        break
+                    case true:
+                        this.listAllSelected = true
+                        break
+                    case false:
+                        this.listAllSelected = false
+                        break
                 }
                 this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
