@@ -84,7 +84,8 @@
         props: {
             atomTypeList: Object,
             isSubflow: Boolean,
-            basicInfo: Object
+            basicInfo: Object,
+            common: [String, Number]
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
@@ -193,17 +194,29 @@
                 return item.code === this.basicInfo.plugin
             },
             onApplyPermission (tpl) {
-                const resourceData = {
-                    flow: [{
-                        id: tpl.id,
-                        name: tpl.name
-                    }],
-                    project: [{
-                        id: tpl.project.id,
-                        name: tpl.project.name
-                    }]
+                let reqPerm, resourceData
+                if (this.common) {
+                    reqPerm = 'common_flow_view'
+                    resourceData = {
+                        common_flow: [{
+                            id: tpl.id,
+                            name: tpl.name
+                        }]
+                    }
+                } else {
+                    reqPerm = 'flow_view'
+                    resourceData = {
+                        flow: [{
+                            id: tpl.id,
+                            name: tpl.name
+                        }],
+                        project: [{
+                            id: tpl.project.id,
+                            name: tpl.project.name
+                        }]
+                    }
                 }
-                this.applyForPermission(['flow_view'], [], resourceData)
+                this.applyForPermission([reqPerm], [], resourceData)
             }
         }
     }

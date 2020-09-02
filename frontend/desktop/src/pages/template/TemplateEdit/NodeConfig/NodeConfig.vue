@@ -143,6 +143,7 @@
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
+                    :common="common"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
