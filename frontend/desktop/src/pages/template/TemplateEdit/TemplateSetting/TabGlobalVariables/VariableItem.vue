@@ -176,9 +176,9 @@
                 if (nodes.includes(id)) {
                     return
                 }
-                const escapeStr = this.variableData.key.replace(/[${}]/g, '\\$&')
-                const keyReg = new RegExp(escapeStr)
-                if (typeof value === 'string' && keyReg.test(value)) {
+
+                const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
+                if (typeof value === 'string' && /^\$\{(.|\s)+\}$/.test(value) && value.includes(keyStr)) {
                     nodes.push(id)
                 } else if (typeof value === 'object') {
                     if (Array.isArray(value)) {
