@@ -72,3 +72,16 @@ LOGGING["loggers"]["component"] = {
     "level": "DEBUG",
     "propagate": True,
 }
+
+LOGGING["formatters"]["light"] = {"format": "%(message)s"}
+
+LOGGING["handlers"]["engine"] = {
+    "class": "pipeline.log.handlers.EngineLogHandler",
+    "formatter": "light",
+}
+
+LOGGING["loggers"]["pipeline.logging"] = {
+    "handlers": ["engine"],
+    "level": "INFO",
+    "propagate": True,
+}
