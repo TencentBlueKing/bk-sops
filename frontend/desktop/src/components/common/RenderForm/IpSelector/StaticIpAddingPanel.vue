@@ -216,19 +216,11 @@
                 }
             },
             onSelectAllClick () {
-                if (this.listAllSelected) {
-                    this.staticIpList.forEach(item => {
-                        const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
-                        this.selectedIp.splice(index, 1)
-                    })
+                if (this.listAllSelected === true) {
+                    this.selectedIp = []
                     this.listAllSelected = false
                 } else {
-                    this.staticIpList.forEach(item => {
-                        const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
-                        if (index === -1) {
-                            this.selectedIp.push(item)
-                        }
-                    })
+                    this.selectedIp = [...this.staticIpList]
                     this.listAllSelected = true
                 }
             },
