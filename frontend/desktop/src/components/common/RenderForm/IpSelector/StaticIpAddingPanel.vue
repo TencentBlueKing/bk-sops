@@ -216,10 +216,14 @@
                 }
             },
             onSelectAllClick () {
-                if (this.listAllSelected === true) {
+                if (this.listAllSelected) {
                     this.selectedIp = []
                     this.listAllSelected = false
                 } else {
+                    this.selectedIp = [...this.staticIpList]
+                    this.listAllSelected = true
+                }
+                if (this.selectedIp.lenght > 0 && this.selectedIp.length < this.staticIpList.length) {
                     this.selectedIp = [...this.staticIpList]
                     this.listAllSelected = true
                 }
