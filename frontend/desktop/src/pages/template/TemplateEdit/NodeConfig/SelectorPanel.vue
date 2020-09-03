@@ -45,7 +45,7 @@
                                 :key="index"
                                 :title="item.name"
                                 @click="onSelect(item)">
-                                <span class="node-name" v-if="item.highlightName" v-html="item.name"></span>
+                                <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
                                 <span class="node-name" v-else>{{ item.name }}</span>
                                 <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
                                     <i class="common-icon-box-top-right-corner"></i>
