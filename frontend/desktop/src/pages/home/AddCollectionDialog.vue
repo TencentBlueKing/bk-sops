@@ -54,10 +54,10 @@
                                             'template-item',
                                             {
                                                 'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission([viewPermission], template.auth_actions)
+                                                'permission-disable': !hasPermission(['view'], template.auth_actions, tplOperations)
                                             }
                                         ]"
-                                        @click="onSelectItem(template)">
+                                        @click="onSelectTemplate(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
                                         <div class="item-name-box">
                                             <div class="template-item-name">{{template.name}}</div>
@@ -90,7 +90,7 @@
                         <div class="item-name-box">
                             <div class="selected-item-name">{{template.name}}</div>
                         </div>
-                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="onUnselectItem(template)"></i>
+                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
                     </li>
                 </ul>
             </div>
@@ -114,7 +114,6 @@
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
-
     const FILTER_LIST = [
         {
             name: i18n.t('选择类型'),
@@ -122,19 +121,19 @@
             children: [
                 {
                     name: i18n.t('公共流程'),
-                    id: 'common_flow'
+                    id: 'common'
                 },
                 {
                     name: i18n.t('项目流程'),
-                    id: 'flow'
+                    id: 'process'
                 },
                 {
                     name: i18n.t('周期任务'),
-                    id: 'periodic_task'
+                    id: 'periodic'
                 },
                 {
                     name: i18n.t('轻应用'),
-                    id: 'mini_app'
+                    id: 'app_maker'
                 }
             ]
         },
@@ -144,7 +143,6 @@
             children: []
         }
     ]
-
     export default {
         name: 'AddCollectionDialog',
         components: {
@@ -166,6 +164,8 @@
             return {
                 selectError: false,
                 collectionPending: false,
+                tplOperations: [],
+                tplResource: {},
                 panelList: [],
                 selectedList: [],
                 dialogFooterData: [
@@ -184,7 +184,7 @@
                     {
                         id: 'type',
                         name: i18n.t('选择类型'),
-                        values: [{ id: 'common_flow', name: i18n.t('公共流程') }]
+                        values: [{ id: 'common', name: i18n.t('公共流程') }]
                     }
                 ]
             }
@@ -205,17 +205,6 @@
                 set (val) {
                     this.filterList = val
                 }
-            },
-            listItemType () {
-                const typeCondition = this.searchValue.find(item => item.id === 'type')
-                if (!typeCondition) {
-                    return ''
-                } else {
-                    return typeCondition.values[0].id
-                }
-            },
-            viewPermission () {
-                return `${this.listItemType}_view`
             }
         },
         watch: {
@@ -256,21 +245,21 @@
                             searchStr += value.id
                         }
                     })
-                    if (reqType !== 'common_flow' && !projectId) {
+                    if (reqType !== 'common' && !projectId) {
                         return false
                     }
                     this.collectionPending = true
                     switch (reqType) {
-                        case 'common_flow':
+                        case 'common':
                             panelList = await this.getTemplateList(1, searchStr)
                             break
-                        case 'flow':
+                        case 'process':
                             panelList = await this.getTemplateList(false, searchStr, projectId)
                             break
-                        case 'periodic_task':
+                        case 'periodic':
                             panelList = await this.getPeriodicList(projectId, searchStr)
                             break
-                        case 'mini_app':
+                        case 'app_maker':
                             panelList = await this.getAppMakerList(projectId, searchStr)
                             break
                         default:
@@ -295,6 +284,8 @@
                     project__id: projectId || undefined,
                     pipeline_template__name__contains: searchStr || undefined
                 })
+                this.tplOperations = data.meta.auth_operations
+                this.tplResource = data.meta.auth_resource
                 return data.objects || []
             },
             async getAppMakerList (projectId, searchStr) {
@@ -346,33 +337,24 @@
             getTemplateIcon (template) {
                 return template.name.trim().substr(0, 1).toUpperCase()
             },
-            // 选中/取消选中
-            onSelectItem (item) {
-                if (this.hasPermission([this.viewPermission], item.auth_actions)) {
+            // 选择收藏
+            onSelectTemplate (template) {
+                if (this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
                     this.selectError = false
-                    const index = this.getTplIndexInSelected(item)
-                    if (index > -1) {
-                        this.selectedList.splice(index, 1)
+                    const tplIndex = this.getTplIndexInSelected(template)
+                    if (tplIndex > -1) {
+                        this.selectedList.splice(tplIndex, 1)
                     } else {
-                        this.selectedList.push(item)
+                        this.selectedList.push(template)
                     }
                 } else {
-                    const resources = {
-                        [this.listItemType]: [item]
-                    }
-                    if (this.listItemType !== 'common_flow') {
-                        resources.project = [{
-                            id: item.project.id,
-                            name: item.project.name
-                        }]
-                    }
-                    this.applyForPermission([this.viewPermission], item.auth_actions, resources)
+                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
                 }
             },
             // 取消选中
-            onUnselectItem (item) {
-                const index = this.getTplIndexInSelected(item)
-                this.selectedList.splice(index, 1)
+            deleteTemplate (template) {
+                const tplIndex = this.getTplIndexInSelected(template)
+                this.selectedList.splice(tplIndex, 1)
             },
             /**
              *过滤已选项
@@ -387,7 +369,7 @@
                         const item = list[0]
                         // type
                         if (item.id === 'type') {
-                            if (item.values[0].id === 'common_flow') {
+                            if (item.values[0].id === 'common') {
                                 this.searchOptionalList = []
                                 break
                             }
@@ -424,9 +406,15 @@
                 }
                 const saveList = this.selectedList.map(template => {
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
+                    const saveCategoryMap = {
+                        'process': 'flow',
+                        'common': 'common_flow',
+                        'periodic': 'periodic_task',
+                        'app_maker': 'mini_app'
+                    }
                     return {
                         extra_info,
-                        category: template.collectType
+                        category: saveCategoryMap[template.collectType]
                     }
                 })
                 try {
@@ -449,14 +437,14 @@
             getExtraInfo (template, type, projectId) {
                 let extraInfo = {}
                 switch (type) {
-                    case 'common_flow':
+                    case 'common':
                         extraInfo = {
                             template_id: template.template_id,
                             name: template.name,
                             id: template.id
                         }
                         break
-                    case 'flow':
+                    case 'process':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
@@ -465,7 +453,7 @@
                             id: template.id
                         }
                         break
-                    case 'periodic_task':
+                    case 'periodic':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
@@ -473,7 +461,7 @@
                             id: template.id
                         }
                         break
-                    case 'mini_app':
+                    case 'app_maker':
                         extraInfo = {
                             app_id: template.id,
                             project_id: projectId,
