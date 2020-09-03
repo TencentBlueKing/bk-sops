@@ -41,7 +41,9 @@
                     @onChangeConfigLoading="changeLoading">
                 </TaskParamEdit>
             </div>
-            <NoData v-else></NoData>
+            <div class="no-data" v-else>
+                <NoData></NoData>
+            </div>
         </div>
         <div class="action-wrapper">
             <bk-button
@@ -407,13 +409,22 @@
     .el-input-number,
     .tag-input,
     .el-date-editor,
-    .el-cascader {
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
         max-width: 598px;
     }
     .el-radio__label,
     .checkbox-item {
         max-width: 160px;
         margin-right: 24px;
+    }
+}
+.no-data {
+    /deep/ .no-data-wrapper {
+        position: relative;
+        top: 90px;
     }
 }
 </style>

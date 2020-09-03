@@ -40,7 +40,9 @@
                 @onChangeConfigLoading="onUnrefVarLoadingChange">
             </TaskParamEdit>
         </div>
-        <NoData v-if="isNoData"></NoData>
+        <div class="no-data" v-if="isNoData">
+            <NoData></NoData>
+        </div>
     </div>
 </template>
 <script>
@@ -173,13 +175,22 @@
     .el-input-number,
     .tag-input,
     .el-date-editor,
-    .el-cascader {
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
         max-width: 598px;
     }
     .el-radio__label,
     .checkbox-item {
         max-width: 160px;
         margin-right: 24px;
+    }
+}
+.no-data {
+    /deep/ .no-data-wrapper {
+        position: relative;
+        top: 90px;
     }
 }
 </style>
