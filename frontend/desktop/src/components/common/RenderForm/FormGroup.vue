@@ -13,8 +13,8 @@
     <div class="rf-form-group" v-show="showForm">
         <!-- 分组名称和描述 -->
         <div v-if="showFormTitle" class="rf-group-name">
-            <h3 class="name">{{scheme.name || scheme.attrs.name}}</h3>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc">
+            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+            <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
                         content: scheme.attrs.desc,
@@ -23,7 +23,7 @@
                     }"
                     class="common-icon-info">
                 </i>
-            </div>
+            </span>
         </div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
@@ -236,6 +236,9 @@
     position: relative;
     .rf-group-name {
         display: block
+    }
+    .tag-checkbox {
+        margin-left: 130px;
     }
     .rf-tag-hook {
         position: absolute;
