@@ -217,8 +217,13 @@
             },
             onSelectAllClick () {
                 if (this.listAllSelected) {
-                    this.selectedIp = []
-                    this.listAllSelected = false
+                    if (this.selectedIp.length > 0 && this.selectedIp.length < this.staticIpList.length) {
+                        this.selectedIp = [...this.staticIpList]
+                        this.listAllSelected = true
+                    } else {
+                        this.selectedIp = []
+                        this.listAllSelected = false
+                    }
                 } else {
                     this.selectedIp = [...this.staticIpList]
                     this.listAllSelected = true
