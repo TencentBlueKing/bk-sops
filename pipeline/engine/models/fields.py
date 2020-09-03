@@ -18,6 +18,7 @@ import zlib
 from django.db import models
 
 from pipeline.utils.utils import convert_bytes_to_str
+from . import nr_pickle
 
 
 class IOField(models.BinaryField):
@@ -27,7 +28,11 @@ class IOField(models.BinaryField):
 
     def get_prep_value(self, value):
         value = super(IOField, self).get_prep_value(value)
-        return zlib.compress(pickle.dumps(value), self.compress_level)
+        try:
+            serialized = zlib.compress(pickle.dumps(value), self.compress_level)
+        except RecursionError:
+            serialized = zlib.compress(nr_pickle.dumps(value), self.compress_level)
+        return serialized
 
     def to_python(self, value):
         try:
