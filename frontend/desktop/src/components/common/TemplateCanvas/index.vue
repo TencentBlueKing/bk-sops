@@ -16,7 +16,7 @@
         <js-flow
             ref="jsFlow"
             selector="entry-item"
-            :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }]"
+            :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }, { 'task-management-page': !editable }]"
             :data="flowData"
             :show-palette="showPalette"
             :show-tool="showTool"
@@ -1332,9 +1332,9 @@
                 selectBox.style.left = left + 'px'
                 selectBox.style.top = top + 'px'
                 // 计算画布的Top和Left
-                const canvasFlow = document.querySelector('#canvas-flow')
-                canvasFlow.style.left = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft + 'px'
-                canvasFlow.style.top = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop + 'px'
+                const canvasPositionX = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft
+                const canvasPositionY = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop
+                this.setCanvasPosition(canvasPositionX, canvasPositionY)
             }
         }
     }
@@ -1361,9 +1361,6 @@
             z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
-        }
-        .canvas-flow-wrap {
-            margin-left: 60px;
         }
         .jtk-endpoint {
             z-index: 3;
@@ -1456,6 +1453,11 @@
         }
         .jsflow-node.actived {
             z-index: 4;
+        }
+    }
+    .task-management-page {
+        .canvas-flow-wrap {
+            padding-left: 60px;
         }
     }
     .drag-reference-line {
