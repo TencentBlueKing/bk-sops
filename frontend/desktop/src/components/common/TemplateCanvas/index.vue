@@ -1440,11 +1440,6 @@
             z-index: 4;
         }
     }
-    .task-management-page {
-        .canvas-flow-wrap {
-            padding-left: 60px;
-        }
-    }
     .drag-reference-line {
         display: none;
         position: absolute;
