@@ -32,3 +32,17 @@ LOGGING["loggers"]["iam"] = {
 BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
+
+# 正式环境数据库可以在这里配置
+# USE FOLLOWING SQL TO CREATE THE DATABASE NAMED APP_CODE
+# SQL: CREATE DATABASE `bk_sops` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("BKAPP_SOPS_DB_NAME"),  # 外部数据库名
+        "USER": os.getenv("BKAPP_SOPS_DB_USER"),  # 外部数据库用户
+        "PASSWORD": os.getenv("BKAPP_SOPS_DB_PASSWORD"),  # 外部数据库密码
+        "HOST": os.getenv("BKAPP_SOPS_DB_HOST"),  # 外部数据库主机
+        "PORT": os.getenv("BKAPP_SOPS_DB_PORT"),  # 外部数据库端口
+    },
+}
