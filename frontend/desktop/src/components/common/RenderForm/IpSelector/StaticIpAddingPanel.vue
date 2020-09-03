@@ -223,10 +223,6 @@
                     this.selectedIp = [...this.staticIpList]
                     this.listAllSelected = true
                 }
-                if (this.selectedIp.lenght > 0 && this.selectedIp.length < this.staticIpList.length) {
-                    this.selectedIp = [...this.staticIpList]
-                    this.listAllSelected = true
-                }
             },
             onHostItemClick (host) {
                 const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
