@@ -13,3 +13,4 @@ specific language governing permissions and limitations under the License.
 
 from .app_maker import migrate_app_maker  # noqa
 from .resource_config import register_resource_config  # noqa
+from .staff_group import migrate_staff_group  # noqa
