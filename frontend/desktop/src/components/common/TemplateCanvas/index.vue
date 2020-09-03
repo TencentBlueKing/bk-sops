@@ -38,6 +38,7 @@
             @onCloseFrameSelect="onCloseFrameSelect">
             <template v-slot:palettePanel>
                 <palette-panel
+                    :common="common"
                     :atom-type-list="atomTypeList"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
@@ -172,6 +173,10 @@
             },
             hasAdminPerm: {
                 type: Boolean,
+                default: false
+            },
+            common: {
+                type: [String, Number],
                 default: false
             },
             canvasData: {
