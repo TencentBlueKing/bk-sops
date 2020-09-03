@@ -23,10 +23,34 @@ RUN_MODE = "STAGING"
 
 BK_IAM_SYNC_TEMPLATES = True
 
+BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
+
 LOGGING["loggers"]["iam"] = {
     "handlers": ["component"],
     "level": "DEBUG",
     "propagate": True,
 }
 
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
+LOGGING["handlers"]["engine_component"] = {
+    "class": "pipeline.log.handlers.EngineContextLogHandler",
+    "formatter": "verbose",
+}
+
+LOGGING["loggers"]["component"] = {
+    "handlers": ["component", "engine_component"],
+    "level": "DEBUG",
+    "propagate": True,
+}
+
+LOGGING["formatters"]["light"] = {"format": "%(message)s"}
+
+LOGGING["handlers"]["engine"] = {
+    "class": "pipeline.log.handlers.EngineLogHandler",
+    "formatter": "light",
+}
+
+LOGGING["loggers"]["pipeline.logging"] = {
+    "handlers": ["engine"],
+    "level": "INFO",
+    "propagate": True,
+}
