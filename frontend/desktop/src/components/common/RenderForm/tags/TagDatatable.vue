@@ -98,6 +98,7 @@
                 v-if="pagination && (tableValue.length / page_size) > 1 "
                 layout="prev, pager, next"
                 :total="tableValue.length"
+                :page-size="page_size"
                 :current-page.sync="currentPage">
             </el-pagination>
         </template>
@@ -209,7 +210,7 @@
         pagination: {
             type: Boolean,
             required: false,
-            default: true,
+            default: false,
             desc: 'show table pagination'
         },
         page_size: {
