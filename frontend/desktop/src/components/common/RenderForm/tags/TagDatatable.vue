@@ -54,7 +54,7 @@
                 :empty-text="empty_text"
                 :fit="true"
                 border>
-                <template v-for="(item, cIndex) in columns">
+                <template v-for="(item, cIndex) in cellColumns">
                     <el-table-column
                         v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
                         :key="item.tag_code"
@@ -71,7 +71,8 @@
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
-                                @change="onEditColumn">
+                                @init="onInitColumn(scope)"
+                                @change="onEditColumn(scope, ...arguments)">
                             </component>
                         </template>
                     </el-table-column>
@@ -238,6 +239,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                cellColumns: [], // 单元格的 scheme 配置项
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
                 loading: false,
@@ -273,6 +275,18 @@
                 if (this.tagCode === 'job_global_var' && this.formEdit) {
                     this.setOutputParams(val, oldVal)
                 }
+            },
+            columns: {
+                handler (value) {
+                    // 去掉单元格第一层事件监听，改由 datable 组件外层管理
+                    this.cellColumns = value.map(item => {
+                        return {
+                            ...item,
+                            events: []
+                        }
+                    })
+                },
+                immediate: true
             }
         },
         mounted () {
@@ -392,8 +406,33 @@
                     validateSet: ['required', 'custom', 'regex']
                 }
             },
+            /**
+             * 触发同一行单元格注册的监听事件
+             * @param {String} type 事件类型
+             * @param {Number} row 行序号
+             * @param {Number} col 列序号
+             */
+            triggerSameRowEvent (type, row, col) {
+                const tagCode = this.columns[col].tag_code
+                this.columns.forEach((col, index) => {
+                    if (tagCode !== col.tag_code) {
+                        const listenedEvents = (col.events || []).filter(item => item.source === tagCode && item.type === type)
+                        if (listenedEvents.length > 0) {
+                            const cellComp = this.$refs[`row_${row}_${index}_${col.tag_code}`][0]
+                            if (cellComp && cellComp.$refs.tagComponent) {
+                                listenedEvents.forEach(event => {
+                                    event.action.call(cellComp.$refs.tagComponent, cellComp.$refs.tagComponent.value)
+                                })
+                            }
+                        }
+                    }
+                })
+            },
             onBtnClick (callback) {
                 typeof callback === 'function' && callback.bind(this)()
+            },
+            onInitColumn (scope) {
+                this.triggerSameRowEvent('init', scope.$index, scope.column.index)
             },
             onEdit (index, row) {
                 if (this.pagination) {
@@ -401,9 +440,10 @@
                 }
                 this.editRowNumber = index
             },
-            onEditColumn (fieldsArr, val) {
+            onEditColumn (scope, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
+                this.triggerSameRowEvent('change', scope.$index, scope.column.index)
             },
             onDelete (index, row) {
                 if (this.pagination) {
