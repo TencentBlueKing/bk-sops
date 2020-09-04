@@ -82,7 +82,6 @@
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants,
                 'systemConstants': state => state.template.systemConstants
             }),
             constantArr: {
