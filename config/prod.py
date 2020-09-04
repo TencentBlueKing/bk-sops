@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from config import RUN_VER
 
-if RUN_VER == 'open':
+if RUN_VER == "open":
     from blueapps.patch.settings_open_saas import *  # noqa
 else:
     from blueapps.patch.settings_paas_services import *  # noqa
 
 # 正式环境
-RUN_MODE = 'PRODUCT'
+RUN_MODE = "PRODUCT"
 
-AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.BKIAMResourceMigration'
+AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = "auth_backend.resources.migrations.migration.BKIAMResourceMigration"
 
 BK_IAM_SYNC_TEMPLATES = True
 
@@ -37,15 +37,13 @@ BK_IAM_SYNC_TEMPLATES = True
 # 正式环境数据库可以在这里配置
 # USE FOLLOWING SQL TO CREATE THE DATABASE NAMED APP_CODE
 # SQL: CREATE DATABASE `bk_sops` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-# DATABASES = (
-#     {
-#         'default': {
-#             'ENGINE': 'django.db.backends.mysql',
-#             'NAME': '',  # 外部数据库名
-#             'USER': '',  # 外部数据库用户
-#             'PASSWORD': '',  # 外部数据库密码
-#             'HOST': '',  # 外部数据库主机
-#             'PORT': '',  # 外部数据库端口
-#         },
-#     }
-# )
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("BKAPP_SOPS_DB_NAME"),  # 外部数据库名
+        "USER": os.getenv("BKAPP_SOPS_DB_USER"),  # 外部数据库用户
+        "PASSWORD": os.getenv("BKAPP_SOPS_DB_PASSWORD"),  # 外部数据库密码
+        "HOST": os.getenv("BKAPP_SOPS_DB_HOST"),  # 外部数据库主机
+        "PORT": os.getenv("BKAPP_SOPS_DB_PORT"),  # 外部数据库端口
+    },
+}
