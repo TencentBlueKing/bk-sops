@@ -41,7 +41,7 @@
                     @onChangeConfigLoading="changeLoading">
                 </TaskParamEdit>
             </div>
-            <NoData></NoData>
+            <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
             <bk-button
