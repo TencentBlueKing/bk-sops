@@ -295,6 +295,9 @@ AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic
 # 用户管理配置
 BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
 
+# 人员选择数据来源
+BK_MEMBER_SELECTOR_DATA_HOST = os.getenv("BKAPP_MEMBER_SELECTOR_DATA_HOST", BK_PAAS_HOST)
+
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ["json"]
 
