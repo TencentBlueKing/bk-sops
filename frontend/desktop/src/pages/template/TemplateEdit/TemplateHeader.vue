@@ -176,7 +176,7 @@
                 this.tName = val
             },
             type (val, oldVal) {
-                if (['new', 'clone'].includes(oldVal) && val === 'edit' && this.common) {
+                if (['new', 'clone'].includes(oldVal) && val === 'edit' && this.common && this.isSelectProjectShow) {
                     this.queryCommonTplCreateTaskPerm().then(() => {
                         if (this.hasCommonTplCreateTaskPerm) {
                             this.saveTemplate(true)
