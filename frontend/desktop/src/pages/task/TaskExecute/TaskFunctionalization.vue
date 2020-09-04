@@ -41,9 +41,7 @@
                     @onChangeConfigLoading="changeLoading">
                 </TaskParamEdit>
             </div>
-            <div class="no-data" v-else>
-                <NoData></NoData>
-            </div>
+            <NoData></NoData>
         </div>
         <div class="action-wrapper">
             <bk-button
@@ -425,10 +423,9 @@
         margin-right: 24px;
     }
 }
-.no-data {
-    /deep/ .no-data-wrapper {
-        position: relative;
-        top: 90px;
-    }
+/deep/ .no-data-wrapper {
+    position: relative;
+    top: 90px;
 }
+
 </style>
