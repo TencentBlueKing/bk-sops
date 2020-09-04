@@ -1,0 +1,2 @@
+improvement:
+    - "tag 组件支持获取当表单项勾选为全局变量时的实际 value 值"

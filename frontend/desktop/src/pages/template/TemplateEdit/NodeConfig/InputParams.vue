@@ -14,6 +14,7 @@
             ref="renderForm"
             :scheme="scheme"
             :hooked="hooked"
+            :constants="constants"
             :form-option="option"
             :form-data="formData"
             @change="onInputsValChange"
