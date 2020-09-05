@@ -181,7 +181,7 @@ const routers = new VueRouter({
                             pathToRegexpOptions: { strict: true },
                             props: (route) => ({
                                 project_id: route.params.project_id,
-                                common: route.query.common,
+                                template_source: route.query.template_source,
                                 create_method: route.query.create_method,
                                 create_info: route.query.create_info
                             }),
