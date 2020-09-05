@@ -41,6 +41,7 @@
             :key="`${form.tag_code}_${index}`"
             :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
             :class="{ 'rf-has-hook': form.type !== 'combine' && showHook }"
+            :constants="constants"
             :scheme="form"
             :option="groupOption"
             :value="value[form.tag_code]"
@@ -91,6 +92,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {

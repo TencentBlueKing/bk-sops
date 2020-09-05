@@ -177,7 +177,7 @@
             },
             common: {
                 type: [String, Number],
-                default: false
+                default: ''
             },
             canvasData: {
                 type: Object,
