@@ -15,12 +15,10 @@ from pipeline.component_framework.test import ComponentTestMixin
 
 class AComponentTestCase(TestCase, ComponentTestMixin):
 
-    @property
     def component_cls(self):
         # return the component class which should be testet
         return TheScheduleComponent
 
-    @property
     def cases(self):
         # return your component test cases here
         return []
@@ -214,11 +212,9 @@ from pipeline_test_use.components.collections.experience import TheScheduleCompo
 
 class TheScheduleComponentTest(TestCase, ComponentTestMixin):
 
-    @property
     def component_cls(self):
         return TheScheduleComponent
 
-    @property
     def cases(self):
         return [
             ComponentTestCase(name='success case',
@@ -254,7 +250,7 @@ class TheScheduleComponentTest(TestCase, ComponentTestMixin):
                                       'fail': True},
                               parent_data={'k': 'v'},
                               execute_assertion=ExecuteAssertion(success=False,
-                                                                 outputs=None),
+                                                                 outputs={}),
                               schedule_assertion=None),
             ComponentTestCase(name='schedule fail case',
                               inputs={'k1': 'v1',
@@ -267,7 +263,10 @@ class TheScheduleComponentTest(TestCase, ComponentTestMixin):
                                                                           'schedule_fail': True,
                                                                           'parent_data': {'k': 'v'}}),
                               schedule_assertion=ScheduleAssertion(success=False,
-                                                                   outputs=None,
+                                                                   outputs={'k1': 'v1',
+                                                                          'k2': 'v2',
+                                                                          'schedule_fail': True,
+                                                                          'parent_data': {'k': 'v'}},
                                                                    callback_data=None
                                                                    ))]
 ```
