@@ -34,6 +34,9 @@
                                 // "text": "xxx",
                                 // "value": "xxx"
                                 // }
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
                                 return resp.data;
                             },
                             validation: [
@@ -56,6 +59,9 @@
                                 // "text": "xxx",
                                 // "value": "xxx"
                                 // }
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
                                 return resp.data;
                             },
                             validation: [
