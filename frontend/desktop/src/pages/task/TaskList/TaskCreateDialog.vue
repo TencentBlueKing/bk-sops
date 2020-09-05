@@ -118,7 +118,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'dialogTitle', 'entrance'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'project_id', 'taskCategory', 'entrance'],
         data () {
             return {
                 selectedId: '',
@@ -159,9 +159,6 @@
             },
             isNoData () {
                 return this.templateList.length === 0
-            },
-            title () {
-                return this.dialogTitle || i18n.t('新建任务')
             },
             operations () {
                 return this.selectedTplType === 'businessProcess' ? this.tplOperations : this.commonTplOperations
