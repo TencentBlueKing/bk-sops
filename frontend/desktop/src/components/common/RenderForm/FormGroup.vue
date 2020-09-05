@@ -46,6 +46,7 @@
             :option="groupOption"
             :value="value[form.tag_code]"
             :parent-value="value"
+            @init="$emit('init')"
             @change="updateForm">
         </component>
         <!-- 变量勾选checkbox -->
