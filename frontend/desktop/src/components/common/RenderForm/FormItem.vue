@@ -66,10 +66,13 @@
                 :is="tagComponent"
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
+                :hook="hook"
+                :constants="constants"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
                 :parent-value="parentValue"
+                @init="$emit('init')"
                 @change="updateForm"
                 @onShow="onShowForm"
                 @onHide="onHideForm">
@@ -156,6 +159,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {

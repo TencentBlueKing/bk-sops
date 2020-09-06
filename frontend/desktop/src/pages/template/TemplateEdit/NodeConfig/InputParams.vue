@@ -14,6 +14,7 @@
             ref="renderForm"
             :scheme="scheme"
             :hooked="hooked"
+            :constants="constants"
             :form-option="option"
             :form-data="formData"
             @change="onInputsValChange"
@@ -108,48 +109,28 @@
             /**
              * 勾选表单
              *
-             * 1.判断表单全局变量 source_tag 中 tag_code 和勾选表单 tag_code 相同的项：
-             * a.不存在
-             * 判断全局变量中是否存在和勾选表单相同的 key，存在则弹出变量复用弹窗，只提供新建变量选项，若不存在则新建全局变量
-             * b.存在
-             * 弹出是否变量复用弹窗，提供复用或新建选项
+             * 判断全局变量中是否有相同 key，有则显示复用弹窗，没有直接创建新变量
              *
-             * 2.新建全局变量时，勾选表单项已有的表单值需要同步到全局变量中，注意带上后来版本加上的 version、fromScheme 字段
+             * 新建全局变量时，勾选表单项已有的表单值需要同步到全局变量中，注意带上后来版本加上的 version、fromScheme 字段
              */
             hookForm (form) {
                 const reuseList = []
                 const variableKey = this.isSubflow ? form : `\${${form}}`
-                const formCode = this.isSubflow ? form.match(varKeyReg)[1] : form
-                const version = this.isSubflow ? this.subflowForms[form].version : this.version
-                let isKeyInVariables = false
                 this.hookingVarForm = form
                 this.hooked[form] = true
 
                 Object.keys(this.constants).forEach(keyItem => {
                     const constant = this.constants[keyItem]
-                    const sourceTag = constant.source_tag
-                    const consVersion = constant.version || 'legacy' // 旧数据全局变量不存在 version 字段需要做兼容
-                    // 变量的版本需要和勾选表单一致，判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
-                    if (consVersion === version && sourceTag) {
-                        const tagCode = sourceTag.split('.')[1]
-                        if (tagCode === formCode) {
-                            reuseList.push({
-                                name: `${constant.name}(${constant.key})`,
-                                id: constant.key
-                            })
-                        }
-                    }
                     if (keyItem === variableKey) {
-                        isKeyInVariables = true
+                        reuseList.push({
+                            name: `${constant.name}(${constant.key})`,
+                            id: constant.key
+                        })
                     }
                 })
 
                 if (reuseList.length > 0) { // 复用变量
                     this.reuseableVarList = reuseList
-                    this.isKeyExist = false
-                    this.isReuseDialogShow = true
-                } else if (isKeyInVariables) { // 创建变量(手动填写变量name、key)
-                    this.isKeyExist = true
                     this.isReuseDialogShow = true
                 } else { // 自动创建新变量
                     const formConfig = this.scheme.find(item => item.tag_code === form)
