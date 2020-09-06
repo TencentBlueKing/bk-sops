@@ -71,7 +71,7 @@
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
-                                @init="onInitColumn(scope)"
+                                @init="onInitColumn(scope, ...arguments)"
                                 @change="onEditColumn(scope, ...arguments)">
                             </component>
                         </template>
@@ -112,6 +112,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
+    import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import bus from '@/utils/bus.js'
 
@@ -411,8 +412,9 @@
              * @param {String} type 事件类型
              * @param {Number} row 行序号
              * @param {Number} col 列序号
+             * @param {Any} value 当前表单值
              */
-            triggerSameRowEvent (type, row, col) {
+            triggerSameRowEvent (type, row, col, value) {
                 const tagCode = this.columns[col].tag_code
                 this.columns.forEach((col, index) => {
                     if (tagCode !== col.tag_code) {
@@ -421,7 +423,7 @@
                             const cellComp = this.$refs[`row_${row}_${index}_${col.tag_code}`][0]
                             if (cellComp && cellComp.$refs.tagComponent) {
                                 listenedEvents.forEach(event => {
-                                    event.action.call(cellComp.$refs.tagComponent, cellComp.$refs.tagComponent.value)
+                                    event.action.call(cellComp.$refs.tagComponent, value)
                                 })
                             }
                         }
@@ -431,8 +433,8 @@
             onBtnClick (callback) {
                 typeof callback === 'function' && callback.bind(this)()
             },
-            onInitColumn (scope) {
-                this.triggerSameRowEvent('init', scope.$index, scope.column.index)
+            onInitColumn (scope, val) {
+                this.triggerSameRowEvent('init', scope.$index, scope.column.index, val)
             },
             onEdit (index, row) {
                 if (this.pagination) {
@@ -443,7 +445,7 @@
             onEditColumn (scope, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
-                this.triggerSameRowEvent('change', scope.$index, scope.column.index)
+                this.triggerSameRowEvent('change', scope.$index, scope.column.index, val)
             },
             onDelete (index, row) {
                 if (this.pagination) {
@@ -477,7 +479,15 @@
 
                 const originData = {}
                 this.columns.forEach((item, index) => {
-                    originData[item.tag_code] = item.default || ''
+                    let value = ''
+                    if ('value' in item.attrs) {
+                        value = item.attrs.value
+                    } else if ('default' in item.attrs) {
+                        value = item.attrs.default
+                    } else {
+                        value = atomFilter.getFormItemDefaultValue([item])[item.tag_code]
+                    }
+                    originData[item.tag_code] = value
                 })
                 this.editRowNumber = this.tableValue.length
                 this.tableValue.push(originData)
