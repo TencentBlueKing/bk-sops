@@ -16,7 +16,7 @@
         <js-flow
             ref="jsFlow"
             selector="entry-item"
-            :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }, { 'task-management-page': !editable }]"
+            :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }]"
             :data="flowData"
             :show-palette="showPalette"
             :show-tool="showTool"
