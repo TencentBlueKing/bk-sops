@@ -43,6 +43,7 @@
 <script>
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
@@ -73,15 +74,13 @@
             const defaultDateRange = [moment().subtract(1, 'month').format(format), moment().format(format)]
             return {
                 routers: ROUTERS,
-                dateRange: defaultDateRange.slice(0)
+                dateRange: defaultDateRange.slice(0),
+                projectList: []
             }
         },
         computed: {
             ...mapState({
                 categorys: state => state.categorys
-            }),
-            ...mapState('project', {
-                projectList: state => state.projectList
             }),
             categoryList () {
                 return this.categorys.map(item => {
@@ -97,11 +96,27 @@
         },
         created () {
             this.getCategorys()
+            this.getProjectList()
         },
         methods: {
             ...mapActions([
                 'getCategorys'
             ]),
+            ...mapActions('project', [
+                'loadProjectList'
+            ]),
+            async getProjectList () {
+                this.loading = true
+
+                try {
+                    const res = await this.loadProjectList({ limit: 0 })
+                    this.projectList = res.objects
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.loading = false
+                }
+            },
             onChangeDateRange (dateRange) {
                 this.dateRange = dateRange
             }

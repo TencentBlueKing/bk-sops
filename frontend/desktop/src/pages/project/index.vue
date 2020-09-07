@@ -240,8 +240,6 @@
         },
         computed: {
             ...mapState('project', {
-                'authResource': state => state.authResource,
-                'authOperations': state => state.authOperations,
                 'project_id': state => state.project_id
             }),
             projectDialogTitle () {
@@ -265,6 +263,7 @@
             ]),
             ...mapActions('project', [
                 'loadProjectList',
+                'loadUserProjectList',
                 'createProject',
                 'loadProjectDetail',
                 'updateProject',
@@ -349,7 +348,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
-                    this.loadProjectList({ limit: 0 })
+                    this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
@@ -407,7 +406,7 @@
                 this.getProjectList()
             },
             onCreateProject () {
-                if (!this.hasPermission(['create'], this.projectActions, this.authOperations)) {
+                if (!this.hasPermission(['create'], this.projectActions, this.projectResource)) {
                     const resourceData = {
                         name: i18n.t('项目'),
                         auth_actions: this.projectActions
