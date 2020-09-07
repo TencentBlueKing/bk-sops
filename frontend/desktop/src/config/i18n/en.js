@@ -3,6 +3,7 @@ const en = {
     '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',
+    '）': ')',
     '原始值': 'Original value',
     '查看节点详情': 'View Node Details',
     '节点详情': 'Node Details',
@@ -1001,6 +1002,8 @@ const en = {
     '的快照': 'snapshot',
     '历史搜索记录': 'Search History',
     '：': ': ',
+    '即将下线': 'coming offline',
+    '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version'
 }
