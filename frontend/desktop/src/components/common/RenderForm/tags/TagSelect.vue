@@ -198,12 +198,6 @@
                 })
                 return label
             },
-            _set_value (value) {
-                this.updateForm(value)
-            },
-            _get_value () {
-                return this.value
-            },
             set_loading (loading) {
                 this.loading = loading
             },
