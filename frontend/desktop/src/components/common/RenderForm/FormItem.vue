@@ -428,7 +428,6 @@
     }
     &.show-label > .rf-tag-form {
         margin-left: 130px;
-        margin-right: 40px;
     }
     .rf-tag-hook {
         position: absolute;
