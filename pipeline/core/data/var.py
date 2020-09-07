@@ -62,7 +62,7 @@ class SpliceVariable(Variable):
         if not self._value:
             try:
                 self._resolve()
-            except exceptions as e:
+            except Exception as e:
                 logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
                 return self.value
         return self._value
@@ -132,7 +132,7 @@ class LazyVariable(SpliceVariable, metaclass=RegisterVariableMeta):
         self.value = super(LazyVariable, self).get()
         try:
             return self.get_value()
-        except exceptions as e:
+        except Exception as e:
             logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
             return self.value
 

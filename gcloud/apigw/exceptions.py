@@ -14,5 +14,5 @@ specific language governing permissions and limitations under the License.
 from gcloud.exceptions import BkSopsError
 
 
-class UserNotExistError(BkSopsError):
+class InvalidUserError(BkSopsError):
     pass

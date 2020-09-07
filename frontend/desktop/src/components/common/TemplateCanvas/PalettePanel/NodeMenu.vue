@@ -147,6 +147,10 @@
                 default () {
                     return []
                 }
+            },
+            common: {
+                type: [String, Number],
+                default: ''
             }
         },
         data () {
@@ -255,17 +259,29 @@
                 }
             },
             onApplyPermission (node) {
-                const permissionData = {
-                    flow: [{
-                        id: node.id,
-                        name: node.name
-                    }],
-                    project: [{
-                        id: this.projectId,
-                        name: this.projectName
-                    }]
+                let reqPerm, permissionData
+                if (this.common) {
+                    reqPerm = 'common_flow_view'
+                    permissionData = {
+                        common_flow: [{
+                            id: node.id,
+                            name: node.name
+                        }]
+                    }
+                } else {
+                    reqPerm = 'flow_view'
+                    permissionData = {
+                        flow: [{
+                            id: node.id,
+                            name: node.name
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
                 }
-                this.applyForPermission(['flow_view'], [], permissionData)
+                this.applyForPermission([reqPerm], [], permissionData)
             }
         }
     }

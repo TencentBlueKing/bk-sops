@@ -14,7 +14,6 @@
         <template v-if="hasViewPerm">
             <base-title
                 class="title"
-                type="router"
                 :tab-list="routers"
                 :title="title">
             </base-title>

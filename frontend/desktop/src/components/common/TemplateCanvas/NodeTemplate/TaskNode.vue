@@ -18,13 +18,16 @@
                 node.status ? node.status.toLowerCase() : '',
                 { 'actived': node.isActived }
             ]">
+            <!-- 节点左侧的色块区域 -->
             <div class="node-status-block">
                 <img v-if="node.icon" class="node-icon" :src="node.icon" />
                 <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
             </div>
+            <!-- 节点名称 -->
             <div class="node-name">
                 <div class="name-text">{{ node.name }}</div>
             </div>
+            <!-- 节点顶部左侧区域 icon，是否可选、跳过等 -->
             <div class="node-options-icon">
                 <template v-if="node.optional">
                     <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
@@ -39,12 +42,25 @@
                 <span v-if="node.isSkipped || node.skippable" class="dark-circle common-icon-dark-circle-s"></span>
                 <span v-if="node.can_retry || node.retryable" class="dark-circle common-icon-dark-circle-r"></span>
             </div>
+            <!-- 节点执行顶部右侧 icon， 定时、暂停、执行中-->
             <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon">
                 <i v-if="node.status === 'RUNNING' && node.code === 'sleep_timer'" class="common-icon-clock"></i>
                 <template v-else>
                     <i v-if="node.status === 'SUSPENDED' || node.code === 'pause_node'" class="common-icon-double-vertical-line"></i>
                     <i v-else-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
                 </template>
+            </div>
+            <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
+                <i
+                    :class="['bk-icon', 'icon-exclamation-circle', {
+                        'phase-warn': node.phase === 1,
+                        'phase-error': node.phase === 2
+                    }]"
+                    v-bk-tooltips="{
+                        content: phaseStr[node.phase],
+                        width: 210
+                    }">
+                </i>
             </div>
         </div>
         <div class="node-tooltip-content" slot="content">
@@ -81,6 +97,7 @@
 
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
 
     export default {
@@ -94,6 +111,14 @@
                 type: Object,
                 default () {
                     return {}
+                }
+            }
+        },
+        data () {
+            return {
+                phaseStr: {
+                    '1': i18n.t('当前插件即将停止维护，请更新插件版本'),
+                    '2': i18n.t('当前插件已停止维护，请更新插件版本')
                 }
             }
         },

@@ -61,7 +61,7 @@
             desc: gettext('禁用表单输入')
         },
         value: {
-            type: String,
+            type: [String, Number],
             required: false,
             default: ''
         },
@@ -82,7 +82,6 @@
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants,
                 'systemConstants': state => state.template.systemConstants
             }),
             constantArr: {

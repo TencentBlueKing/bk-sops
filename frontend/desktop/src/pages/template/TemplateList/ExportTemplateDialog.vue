@@ -293,15 +293,25 @@
                         this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                     }
                 } else {
-                    const permissionData = {
-                        flow: [{
-                            id: template.id,
-                            name: template.name
-                        }],
-                        project: [{
-                            id: template.project.id,
-                            name: template.project.name
-                        }]
+                    let permissionData
+                    if (this.common) {
+                        permissionData = {
+                            common_flow: [{
+                                id: template.id,
+                                name: template.name
+                            }]
+                        }
+                    } else {
+                        permissionData = {
+                            flow: [{
+                                id: template.id,
+                                name: template.name
+                            }],
+                            project: [{
+                                id: template.project.id,
+                                name: template.project.name
+                            }]
+                        }
                     }
                     this.applyForPermission(this.reqPerm, template.auth_actions, permissionData)
                 }

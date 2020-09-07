@@ -115,7 +115,6 @@
                     errorHandler(e, this)
                 } finally {
                     this.cntLoading = false
-                    this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
                 }
             },
             async onModifyParams () {

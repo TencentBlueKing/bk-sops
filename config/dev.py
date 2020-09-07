@@ -48,6 +48,8 @@ DATABASES = {
         "TEST": {"NAME": "test_sops", "CHARSET": "utf8", "COLLATION": "utf8_general_ci"},
     },
 }
+# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
+BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 
 LOG_PERSISTENT_DAYS = 1
 
@@ -67,3 +69,27 @@ try:
     from local_settings import *  # noqa
 except ImportError:
     pass
+
+LOGGING["handlers"]["engine_component"] = {
+    "class": "pipeline.log.handlers.EngineContextLogHandler",
+    "formatter": "verbose",
+}
+
+LOGGING["loggers"]["component"] = {
+    "handlers": ["component", "engine_component"],
+    "level": "DEBUG",
+    "propagate": True,
+}
+
+LOGGING["formatters"]["light"] = {"format": "%(message)s"}
+
+LOGGING["handlers"]["engine"] = {
+    "class": "pipeline.log.handlers.EngineLogHandler",
+    "formatter": "light",
+}
+
+LOGGING["loggers"]["pipeline.logging"] = {
+    "handlers": ["engine"],
+    "level": "INFO",
+    "propagate": True,
+}

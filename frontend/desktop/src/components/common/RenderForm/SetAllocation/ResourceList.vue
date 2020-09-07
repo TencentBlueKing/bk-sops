@@ -44,12 +44,12 @@
             </el-upload>
         </div>
         <div class="data-table">
-            <bk-table v-if="!colsLoading" :data="tableData" :fit="false">
+            <bk-table v-if="!colsLoading" :data="tableData">
                 <bk-table-column
                     v-for="(item, colIndex) in cols"
                     :key="item.config.tag_code"
                     :label="item.config.attrs.name"
-                    :width="item.width"
+                    :min-width="item.width"
                     :index="colIndex"
                     :prop="item.config.tag_code"
                     :fixed="item.config.tag_code === 'tb_btns' ? 'right' : false"

@@ -132,10 +132,8 @@
         props: {
             isNewTaskDialogShow: Boolean,
             businessInfoLoading: Boolean,
-            common: String,
             project_id: [Number, String],
             taskCategory: Array,
-            dialogTitle: String,
             entrance: String
         },
         data () {
@@ -187,9 +185,6 @@
             },
             isNoData () {
                 return this.templateList.length === 0
-            },
-            title () {
-                return this.dialogTitle || i18n.t('新建任务')
             },
             resource () {
                 return this.selectedTplType === 'businessProcess' ? this.tplResource : this.commonTplResource
