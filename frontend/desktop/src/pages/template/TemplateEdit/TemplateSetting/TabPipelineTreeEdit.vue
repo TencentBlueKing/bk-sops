@@ -13,7 +13,7 @@
     <bk-sideslider
         :is-show="true"
         :width="800"
-        :title="$t('本地快照')"
+        :title="$t('流程模板数据')"
         :quick-close="!hasAdminPerm"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
