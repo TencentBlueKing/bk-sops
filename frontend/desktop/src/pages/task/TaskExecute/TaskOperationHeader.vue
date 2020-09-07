@@ -97,7 +97,7 @@
                     :class="[
                         'params-btn',
                         'common-icon',
-                        'common-icon-paper',
+                        'common-icon-flow-data',
                         {
                             actived: nodeInfoType === 'templateData'
                         }
