@@ -91,6 +91,11 @@
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
                 </TaskInfo>
+                <TemplateData
+                    v-if="nodeInfoType === 'templateData'"
+                    :template-data="templateData"
+                    @onshutDown="onshutDown">
+                </TemplateData>
             </div>
         </bk-sideslider>
         <gatewaySelectDialog
@@ -108,7 +113,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapGetters } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -123,6 +128,7 @@
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
+    import TemplateData from './TemplateData'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -167,7 +173,8 @@
             TaskInfo,
             gatewaySelectDialog,
             revokeDialog,
-            TaskOperationHeader
+            TaskOperationHeader,
+            TemplateData
         },
         mixins: [permission],
         props: {
@@ -191,6 +198,7 @@
             })
 
             return {
+                templateData: '', // 模板数据
                 defaultActiveId: '',
                 locations: [],
                 setNodeDetail: true,
@@ -346,6 +354,9 @@
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeForceFail'
+            ]),
+            ...mapGetters('template/', [
+                'getLocalTemplateData'
             ]),
             async loadTaskStatus () {
                 try {
@@ -884,7 +895,7 @@
                 this.isNodeInfoPanelShow = isNodeInfoPanelShow
                 this.nodeInfoType = type
                 this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
+                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
                     this.quickClose = false
                 }
                 if (name === i18n.t('节点详情')) {
@@ -900,6 +911,9 @@
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
+                }
+                if (name === i18n.t('流程模板数据')) {
+                    this.transPipelineTreeStr()
                 }
             },
             
@@ -1188,6 +1202,15 @@
             packUp () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
+            },
+            async transPipelineTreeStr () {
+                const templateData = await this.getLocalTemplateData()
+                this.templateData = JSON.stringify(templateData, null, 4)
+            },
+            onshutDown () {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+                this.templateData = ''
             }
         }
     }

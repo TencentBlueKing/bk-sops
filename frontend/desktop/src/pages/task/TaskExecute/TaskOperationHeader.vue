@@ -94,6 +94,21 @@
                     :to="getTplURL()">
                 </router-link>
                 <i
+                    :class="[
+                        'params-btn',
+                        'common-icon',
+                        'common-icon-paper',
+                        {
+                            actived: nodeInfoType === 'templateData'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('流程模板数据'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('templateData', $t('流程模板数据'))">
+                </i>
+                <i
                     v-if="adminView"
                     :class="[
                         'params-btn',
