@@ -237,10 +237,6 @@
     .rf-group-name {
         display: block
     }
-    .tag-checkbox,
-    .tag-radio {
-        margin-left: 130px;
-    }
     .rf-tag-hook {
         position: absolute;
         top: 6px;
