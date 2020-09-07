@@ -10,7 +10,7 @@
                 <bk-button
                     theme="primary"
                     :loading="loading"
-                    @click="applyBtnClick">
+                    @click="goToAuthCenter">
                     {{$t('去申请')}}
                 </bk-button>
                 <!-- <bk-button
@@ -29,7 +29,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapMutations, mapActions, mapState, mapGetters } from 'vuex'
+    import { mapMutations, mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import openOtherApp from '@/utils/openOtherApp.js'
@@ -61,13 +61,9 @@
                 'viewMode': state => state.view_mode
             }),
             ...mapState('project', {
-                'projectList': state => state.projectList,
                 'authResource': state => state.authResource,
                 'authOperations': state => state.authOperations
             }),
-            ...mapGetters('project', [
-                'userCanViewProjects'
-            ]),
             permissionTitle () {
                 return this.permissionData.type === 'project' ? i18n.t('无权限访问项目') : i18n.t('无权限访问')
             },
@@ -104,26 +100,6 @@
             ...mapMutations('project', [
                 'setProjectActions'
             ]),
-            applyBtnClick () {
-                if (this.permissionData.type === 'project') {
-                    const isProjectValid = this.permissionData.permission.length && this.permissionData.permission.every(perm => {
-                        return perm.resources.every(resource => {
-                            return resource.every(item => {
-                                return this.projectList.find(project => {
-                                    return project.id === item.resource_id
-                                })
-                            })
-                        })
-                    })
-                    if (isProjectValid) {
-                        this.goToAuthCenter()
-                    } else {
-                        this.$router.push({ name: 'projectHome' })
-                    }
-                } else {
-                    this.goToAuthCenter()
-                }
-            },
             goToAuthCenter () {
                 if (this.loading || !this.url) {
                     return

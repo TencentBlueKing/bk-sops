@@ -23,7 +23,7 @@ fi
 python3 scripts/extract_version_log.py ${RELEASE_VERSION}
 
 # rename dev_log
-mv dev_log/dev ${RELEASE_VERSION}
+mv dev_log/dev dev_log/${RELEASE_VERSION}
 
 # i18n process
 sh scripts/i18n/django_i18n.sh

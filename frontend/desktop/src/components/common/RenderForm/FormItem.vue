@@ -70,6 +70,7 @@
                 :atom-methods="scheme.methods"
                 :value="formValue"
                 :parent-value="parentValue"
+                @init="$emit('init', $event)"
                 @change="updateForm"
                 @onShow="onShowForm"
                 @onHide="onHideForm">

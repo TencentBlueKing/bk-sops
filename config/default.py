@@ -145,7 +145,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.23"
+STATIC_VERSION = "3.5.24"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -298,6 +298,9 @@ AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic
 
 # 用户管理配置
 BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
+
+# 人员选择数据来源
+BK_MEMBER_SELECTOR_DATA_HOST = os.getenv("BKAPP_MEMBER_SELECTOR_DATA_HOST", BK_PAAS_HOST)
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ["json"]

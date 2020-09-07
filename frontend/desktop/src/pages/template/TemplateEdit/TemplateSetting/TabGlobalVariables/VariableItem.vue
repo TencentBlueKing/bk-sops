@@ -128,10 +128,7 @@
                 const sourceInfo = this.variableData.source_info
                 // 该全局变量被哪些节点勾选的集合
                 const nodes = Object.keys(sourceInfo).map(id => id)
-
                 // 输入参数表单直接填写变量key的情况
-                const escapeStr = this.variableData.key.replace(/[${}]/g, '\\$&')
-                const keyReg = new RegExp(escapeStr)
                 Object.keys(this.activities).forEach(id => {
                     // 节点已在引用节点列表中需要去重
                     if (nodes.includes(id)) {
@@ -151,9 +148,7 @@
                                 return
                             }
                             // 匹配表单项的值是否包含变量的key
-                            if (typeof varItem.value === 'string' && keyReg.test(varItem.value)) {
-                                nodes.push(id)
-                            }
+                            this.setCitingVarNodes(varItem.value, nodes, id)
                         })
                     } else { // 标准插件任务节点
                         const component = activity.component
@@ -163,9 +158,7 @@
                             if (isExist) {
                                 return
                             }
-                            if (typeof val === 'string' && keyReg.test(val)) {
-                                nodes.push(id)
-                            }
+                            this.setCitingVarNodes(val, nodes, id)
                         })
                     }
                 })
@@ -173,6 +166,33 @@
             }
         },
         methods: {
+            /**
+             * 递归查找标准插件/子流程保存值中，存在匹配变量 key 的情况，更新节点引用列表
+             * @param {Any} value 表单保存的值
+             * @param {Array} nodes 保存引用节点的数组
+             * @param {String} id 当前节点 id
+             */
+            setCitingVarNodes (value, nodes, id) {
+                if (nodes.includes(id)) {
+                    return
+                }
+
+                const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
+                if (typeof value === 'string' && /^\$\{(.|\s)+\}$/.test(value) && value.includes(keyStr)) {
+                    nodes.push(id)
+                } else if (typeof value === 'object') {
+                    if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            this.setCitingVarNodes(item, nodes, id)
+                        })
+                    } else if (Object.prototype.toString.call(value) === '[object Object]') {
+                        Object.keys(value).forEach(key => {
+                            const item = value[key]
+                            this.setCitingVarNodes(item, nodes, id)
+                        })
+                    }
+                }
+            },
             /**
              * 变量 key 复制
              */
@@ -197,9 +217,10 @@
             },
             // 查看引用节点信息
             onViewCitedList () {
-                // 节点详情点开时不显示引用列表
-                if (this.citedList.length > 0) {
+                if (this.citedList.length > 0 && !this.showCitedList) {
                     this.showCitedList = true
+                } else {
+                    this.showCitedList = false
                 }
             },
             onChangeVariableOutput (key, checked) {

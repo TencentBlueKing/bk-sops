@@ -25,7 +25,7 @@
                 <div class="search-wrapper">
                     <bk-search-select
                         ref="bkSearchSelect"
-                        :popover-zindex="2003"
+                        :popover-zindex="3000"
                         :show-condition="false"
                         :data="searchOptionalList"
                         :show-popover-tag-change="searchOptionalList.length !== 0"
@@ -109,7 +109,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapGetters, mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
@@ -190,8 +190,8 @@
             }
         },
         computed: {
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
+            ...mapState('project', {
+                projectList: state => state.userProjectList
             }),
             searchOptionalList: {
                 get () {

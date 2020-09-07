@@ -54,7 +54,7 @@
                 :empty-text="empty_text"
                 :fit="true"
                 border>
-                <template v-for="(item, cIndex) in columns">
+                <template v-for="(item, cIndex) in cellColumns">
                     <el-table-column
                         v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
                         :key="item.tag_code"
@@ -71,7 +71,8 @@
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
-                                @change="onEditColumn">
+                                @init="onInitColumn(scope, ...arguments)"
+                                @change="onEditColumn(scope, ...arguments)">
                             </component>
                         </template>
                     </el-table-column>
@@ -98,6 +99,7 @@
                 v-if="pagination && (tableValue.length / page_size) > 1 "
                 layout="prev, pager, next"
                 :total="tableValue.length"
+                :page-size="page_size"
                 :current-page.sync="currentPage">
             </el-pagination>
         </template>
@@ -111,6 +113,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
+    import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import bus from '@/utils/bus.js'
 
@@ -209,7 +212,7 @@
         pagination: {
             type: Boolean,
             required: false,
-            default: true,
+            default: false,
             desc: 'show table pagination'
         },
         page_size: {
@@ -238,6 +241,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                cellColumns: [], // 单元格的 scheme 配置项
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
                 loading: false,
@@ -273,6 +277,18 @@
                 if (this.tagCode === 'job_global_var' && this.formEdit) {
                     this.setOutputParams(val, oldVal)
                 }
+            },
+            columns: {
+                handler (value) {
+                    // 去掉单元格第一层事件监听，改由 datable 组件外层管理
+                    this.cellColumns = value.map(item => {
+                        return {
+                            ...item,
+                            events: []
+                        }
+                    })
+                },
+                immediate: true
             }
         },
         mounted () {
@@ -392,8 +408,34 @@
                     validateSet: ['required', 'custom', 'regex']
                 }
             },
+            /**
+             * 触发同一行单元格注册的监听事件
+             * @param {String} type 事件类型
+             * @param {Number} row 行序号
+             * @param {Number} col 列序号
+             * @param {Any} value 当前表单值
+             */
+            triggerSameRowEvent (type, row, col, value) {
+                const tagCode = this.columns[col].tag_code
+                this.columns.forEach((col, index) => {
+                    if (tagCode !== col.tag_code) {
+                        const listenedEvents = (col.events || []).filter(item => item.source === tagCode && item.type === type)
+                        if (listenedEvents.length > 0) {
+                            const cellComp = this.$refs[`row_${row}_${index}_${col.tag_code}`][0]
+                            if (cellComp && cellComp.$refs.tagComponent) {
+                                listenedEvents.forEach(event => {
+                                    event.action.call(cellComp.$refs.tagComponent, value)
+                                })
+                            }
+                        }
+                    }
+                })
+            },
             onBtnClick (callback) {
                 typeof callback === 'function' && callback.bind(this)()
+            },
+            onInitColumn (scope, val) {
+                this.triggerSameRowEvent('init', scope.$index, scope.column.index, val)
             },
             onEdit (index, row) {
                 if (this.pagination) {
@@ -401,9 +443,10 @@
                 }
                 this.editRowNumber = index
             },
-            onEditColumn (fieldsArr, val) {
+            onEditColumn (scope, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
+                this.triggerSameRowEvent('change', scope.$index, scope.column.index, val)
             },
             onDelete (index, row) {
                 if (this.pagination) {
@@ -437,7 +480,15 @@
 
                 const originData = {}
                 this.columns.forEach((item, index) => {
-                    originData[item.tag_code] = item.default || ''
+                    let value = ''
+                    if ('value' in item.attrs) {
+                        value = item.attrs.value
+                    } else if ('default' in item.attrs) {
+                        value = item.attrs.default
+                    } else {
+                        value = atomFilter.getFormItemDefaultValue([item])[item.tag_code]
+                    }
+                    originData[item.tag_code] = value
                 })
                 this.editRowNumber = this.tableValue.length
                 this.tableValue.push(originData)
