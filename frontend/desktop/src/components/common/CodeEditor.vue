@@ -21,7 +21,9 @@
         automaticLayout: true,
         minimap: {
             enabled: false
-        }
+        },
+        wordWrap: 'on',
+        wrappingIndent: 'indent'
     }
     export default {
         name: 'CodeEditor',
