@@ -428,6 +428,7 @@
                                 cells.some(crtCell => { // 找到 element table 提供给用户编辑的 body
                                     if (crtCell.$parent.fixed === undefined) {
                                         editingCell = crtCell
+                                        return true
                                     }
                                 })
                             }
