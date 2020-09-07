@@ -36,6 +36,7 @@
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
+                    class="task-management-page"
                     ref="templateCanvas"
                     v-if="!nodeSwitching"
                     :editable="false"
