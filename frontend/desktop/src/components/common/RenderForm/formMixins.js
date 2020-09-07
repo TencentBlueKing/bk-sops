@@ -168,12 +168,12 @@ export function getFormMixins (attrs = {}) {
             // 部分 Tag 组件需要执行初始化操作
             if (typeof this._tag_init === 'function') {
                 this._tag_init()
-                this.$emit('init')
             }
 
             // 组件插入到 DOM 后， 在父父组件上发布该 Tag 组件的 init 事件，触发标准插件配置项里监听的函数
             this.$nextTick(() => {
                 this.$parent.$parent.$emit(`${this.tagCode}_init`, this.value)
+                this.$emit('init', this.value)
             })
         },
         methods: {
