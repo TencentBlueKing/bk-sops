@@ -102,7 +102,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import bus from '@/utils/bus.js'
-    import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
@@ -213,13 +213,11 @@
                 notFoundPage: state => state.notFoundPage,
                 userRights: state => state.userRights
             }),
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
-            }),
             ...mapState('appmaker', {
                 appmakerTemplateId: state => state.appmakerTemplateId
             }),
             ...mapState('project', {
+                projectList: state => state.userProjectList,
                 project_id: state => state.project_id,
                 authResource: state => state.authResource
             }),
@@ -255,10 +253,7 @@
         },
         methods: {
             ...mapActions('project', [
-                'loadProjectList'
-            ]),
-            ...mapMutations('project', [
-                'setProjectPerm'
+                'loadUserProjectList'
             ]),
             ...mapMutations([
                 'setUserRights',
@@ -281,8 +276,7 @@
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
-                    const res = await this.loadProjectList({ limit: 0 })
-                    this.setProjectPerm(res.meta)
+                    await this.loadUserProjectList({ limit: 0 })
                     // 是否展示管理员入口
                     const hasAdminPerm = await this.getActionPerm('admin_operate', ['view'])
                     this.hasAdminPerm = hasAdminPerm

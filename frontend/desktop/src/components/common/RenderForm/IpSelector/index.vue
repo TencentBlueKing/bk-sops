@@ -186,6 +186,7 @@
                     this.topo = topo.slice(0)
                     this.filters = filters.slice(0)
                     this.excludes = excludes.slice(0)
+                    this.conditions = this.getConditions(filters, excludes)
                 },
                 deep: true
             }

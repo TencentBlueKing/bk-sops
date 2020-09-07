@@ -66,7 +66,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
-    import { mapGetters, mapState } from 'vuex'
+    import { mapState } from 'vuex'
     export default {
         name: 'SelectCreateTaskDialog',
         components: {
@@ -107,11 +107,9 @@
             }
         },
         computed: {
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
-            }),
             ...mapState('project', {
-                'authOperations': state => state.authOperations
+                projectList: state => state.userProjectList,
+                authOperations: state => state.authOperations
             }),
             okText () {
                 return this.hasCreateTaskPer && this.hasUseCommonTplPer ? i18n.t('确定') : i18n.t('去申请')
