@@ -41,10 +41,12 @@
             :key="`${form.tag_code}_${index}`"
             :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
             :class="{ 'rf-has-hook': form.type !== 'combine' && showHook }"
+            :constants="constants"
             :scheme="form"
             :option="groupOption"
             :value="value[form.tag_code]"
             :parent-value="value"
+            @init="$emit('init', $event)"
             @change="updateForm">
         </component>
         <!-- 变量勾选checkbox -->
@@ -91,6 +93,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {

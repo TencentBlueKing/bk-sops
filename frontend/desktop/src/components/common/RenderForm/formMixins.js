@@ -104,6 +104,16 @@ export function getFormMixins (attrs = {}) {
         props: {
             ...COMMON_ATTRS, // 公共属性
             ...inheritAttrs, // tag 继承属性(value)
+            hook: {
+                type: Boolean,
+                default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
             atomEvents: {
                 type: Array,
                 default () {
@@ -156,11 +166,14 @@ export function getFormMixins (attrs = {}) {
         },
         mounted () {
             // 部分 Tag 组件需要执行初始化操作
-            this._tag_init && this._tag_init()
+            if (typeof this._tag_init === 'function') {
+                this._tag_init()
+            }
 
             // 组件插入到 DOM 后， 在父父组件上发布该 Tag 组件的 init 事件，触发标准插件配置项里监听的函数
             this.$nextTick(() => {
                 this.$parent.$parent.$emit(`${this.tagCode}_init`, this.value)
+                this.$emit('init', this.value)
             })
         },
         methods: {
@@ -266,8 +279,21 @@ export function getFormMixins (attrs = {}) {
             get_parent () {
                 return this.$parent.$parent
             },
-            _get_value () {
-                return this.value
+            /**
+             * 获取 tag 组件值
+             * @param {Boolean} keepValKey 表单勾选后是否返回当前变量 key 值
+             */
+            _get_value (keepValKey = false) {
+                if (keepValKey) {
+                    return this.value
+                } else {
+                    if (this.hook && this.constants) {
+                        const key = /^\$\{(\w+)\}$/.test(this.tagCode) ? this.tagCode : `\${${this.tagCode}}`
+                        const variable = this.constants[key]
+                        return variable ? variable.value : this.value
+                    }
+                    return this.value
+                }
             },
             _set_value (value) {
                 this.updateForm(value)

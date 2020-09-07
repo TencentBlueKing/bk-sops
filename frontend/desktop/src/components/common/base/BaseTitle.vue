@@ -17,7 +17,7 @@
                 <li
                     v-for="(item, index) in tabList"
                     :key="index"
-                    :class="['base-tab-item', { 'active': isActive(item) }]"
+                    :class="['base-tab-item', { 'active': $route.name === item.routerName }]"
                     @click="tabChange(item)">
                     {{ item.name }}
                 </li>
@@ -39,26 +39,10 @@
                 type: String,
                 default: ''
             },
-            /**
-             * type
-             * router/default
-             */
-            type: {
-                type: String,
-                default: 'default'
+            selfReload: {
+                type: Boolean,
+                default: false
             },
-            active: {
-                type: String,
-                default: ''
-            },
-            /**
-             * default:
-             * tabList[index].name 显示名
-             * tabList[index].key 匹配值，与 active 传入值映射
-             * router:
-             * tabList[index].name 显示名
-             * tabList[index].routerName 匹配路由名,与当前路由有关
-             */
             tabList: {
                 type: Array,
                 default: () => ([])
@@ -67,19 +51,14 @@
         methods: {
             tabChange (tabItem) {
                 if (this.$route.name === tabItem.routerName) {
-                    this.reload()
+                    if (this.selfReload) {
+                        this.$emit('tabChange', tabItem)
+                    } else {
+                        this.reload()
+                    }
                     return false
                 }
-                if (tabItem.routerName) {
-                    this.$router.push({ name: tabItem.routerName, params: tabItem.params, query: tabItem.query })
-                }
-                this.$emit('tabChange', tabItem.key)
-            },
-            isActive (tabItem) {
-                if (this.type === 'router' && tabItem.routerName) {
-                    return this.$route.name === tabItem.routerName
-                }
-                return this.active === tabItem.key
+                this.$router.push({ name: tabItem.routerName, params: tabItem.params, query: tabItem.query })
             }
         }
     }

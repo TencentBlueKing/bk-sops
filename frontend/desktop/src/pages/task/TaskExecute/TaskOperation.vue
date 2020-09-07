@@ -63,7 +63,6 @@
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
-                    @hideOperateBtn="hideOperateBtn"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -888,10 +887,6 @@
                     this.defaultActiveId = firstNodeId
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
-            },
-
-            hideOperateBtn (val) {
-                this.quickClose = !val
             },
             
             onToggleNodeInfoPanel () {

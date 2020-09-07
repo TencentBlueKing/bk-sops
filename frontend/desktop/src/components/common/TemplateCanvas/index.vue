@@ -38,6 +38,7 @@
             @onCloseFrameSelect="onCloseFrameSelect">
             <template v-slot:palettePanel>
                 <palette-panel
+                    :common="common"
                     :atom-type-list="atomTypeList"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
@@ -184,6 +185,10 @@
             hasAdminPerm: {
                 type: Boolean,
                 default: false
+            },
+            common: {
+                type: [String, Number],
+                default: ''
             },
             canvasData: {
                 type: Object,
@@ -485,7 +490,7 @@
                         overlayId
                     })
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
@@ -549,7 +554,7 @@
                     })
                     return false
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 return true
             },
             onCreateNodeAfter (node) {
@@ -624,7 +629,7 @@
                 const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', data)
-                    this.$emit('variableDataChanged')
+                    this.$emit('templateDataChanged')
                     return true
                 } else {
                     this.$bkMessage({
@@ -690,11 +695,11 @@
                         id: connection.targetId
                     }
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 this.$emit('onLineChange', 'delete', line)
             },
             onNodeMoveStop (loc) {
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 if (this.selectedNodes.length) {
                     const item = this.selectedNodes.find(m => m.id === loc.id)
                     if (!item) {
@@ -736,7 +741,7 @@
             },
             onNodeRemove (node) {
                 this.$refs.jsFlow.removeNode(node)
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
 
                 if (node.type === 'startpoint') {
@@ -1128,7 +1133,7 @@
                         by = length
                         break
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 selectedIds.forEach((node, index) => {
                     const el = document.getElementById(node.id)
                     const newX = node.x + bx

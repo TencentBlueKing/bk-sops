@@ -47,53 +47,62 @@
                 </el-upload>
             </template>
         </div>
-        <el-table
-            v-if="Array.isArray(value) && !loading"
-            style="width: 100%; font-size: 12px"
-            :data="tableValue"
-            :empty-text="empty_text"
-            :fit="true"
-            border>
-            <template v-for="(item, cIndex) in columns">
-                <el-table-column
-                    v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
-                    :key="item.tag_code"
-                    :index="cIndex"
-                    :prop="item.tag_code"
-                    :label="'name' in item.attrs ? item.attrs.name : ''"
-                    :width="'width' in item.attrs ? item.attrs.width : ''"
-                    align="center">
+        <template v-if="Array.isArray(value) && !loading">
+            <el-table
+                style="width: 100%; font-size: 12px"
+                :data="dataList"
+                :empty-text="empty_text"
+                :fit="true"
+                border>
+                <template v-for="(item, cIndex) in cellColumns">
+                    <el-table-column
+                        v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
+                        :key="item.tag_code"
+                        :index="cIndex"
+                        :prop="item.tag_code"
+                        :label="'name' in item.attrs ? item.attrs.name : ''"
+                        :width="'width' in item.attrs ? item.attrs.width : ''"
+                        align="center">
+                        <template slot-scope="scope">
+                            <component
+                                :is="item.type === 'combine' ? 'form-group' : 'form-item'"
+                                :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
+                                :scheme="item"
+                                :option="getColumnOptions(scope.$index)"
+                                :value="scope.row[item.tag_code]"
+                                :parent-value="scope.row"
+                                @init="onInitColumn(scope, ...arguments)"
+                                @change="onEditColumn(scope, ...arguments)">
+                            </component>
+                        </template>
+                    </el-table-column>
+                </template>
+                <el-table-column v-if="editable && formMode"
+                    prop="operation"
+                    fixed="right"
+                    align="center"
+                    width="100"
+                    :label="i18n.operate_text">
                     <template slot-scope="scope">
-                        <component
-                            :is="item.type === 'combine' ? 'form-group' : 'form-item'"
-                            :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
-                            :scheme="item"
-                            :option="getColumnOptions(scope.$index)"
-                            :value="scope.row[item.tag_code]"
-                            :parent-value="scope.row"
-                            @change="onEditColumn">
-                        </component>
+                        <div v-if="scope.$index === editRowNumber">
+                            <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
+                            <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
+                        </div>
+                        <div v-else>
+                            <a v-if="rowEditable" class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
+                            <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
+                        </div>
                     </template>
                 </el-table-column>
-            </template>
-            <el-table-column v-if="editable && formMode"
-                prop="operation"
-                fixed="right"
-                align="center"
-                width="100"
-                :label="i18n.operate_text">
-                <template slot-scope="scope">
-                    <div v-if="scope.$index === editRowNumber">
-                        <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
-                        <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
-                    </div>
-                    <div v-else>
-                        <a v-if="rowEditable" class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
-                        <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
-                    </div>
-                </template>
-            </el-table-column>
-        </el-table>
+            </el-table>
+            <el-pagination
+                v-if="pagination && (tableValue.length / page_size) > 1 "
+                layout="prev, pager, next"
+                :total="tableValue.length"
+                :page-size="page_size"
+                :current-page.sync="currentPage">
+            </el-pagination>
+        </template>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -104,6 +113,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
+    import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import bus from '@/utils/bus.js'
 
@@ -198,6 +208,18 @@
                 return []
             },
             desc: 'dataTable buttons setting'
+        },
+        pagination: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'show table pagination'
+        },
+        page_size: {
+            type: Number,
+            required: false,
+            default: 10,
+            desc: 'number of items displayed per page'
         }
     }
     export default {
@@ -219,9 +241,11 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                cellColumns: [], // 单元格的 scheme 配置项
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
                 loading: false,
+                currentPage: 1,
                 i18n: {
                     save_text: gettext('保存'),
                     cancel_text: gettext('取消'),
@@ -230,6 +254,15 @@
                     delete_text: gettext('删除'),
                     add_text: gettext('添加')
                 }
+            }
+        },
+        computed: {
+            dataList () {
+                if (this.pagination) {
+                    const start = (this.currentPage - 1) * this.page_size
+                    return this.tableValue.slice(start, start + this.page_size)
+                }
+                return this.tableValue
             }
         },
         watch: {
@@ -244,6 +277,18 @@
                 if (this.tagCode === 'job_global_var' && this.formEdit) {
                     this.setOutputParams(val, oldVal)
                 }
+            },
+            columns: {
+                handler (value) {
+                    // 去掉单元格第一层事件监听，改由 datable 组件外层管理
+                    this.cellColumns = value.map(item => {
+                        return {
+                            ...item,
+                            events: []
+                        }
+                    })
+                },
+                immediate: true
             }
         },
         mounted () {
@@ -363,28 +408,64 @@
                     validateSet: ['required', 'custom', 'regex']
                 }
             },
+            /**
+             * 触发同一行单元格注册的监听事件
+             * @param {String} type 事件类型
+             * @param {Number} row 行序号
+             * @param {Number} col 列序号
+             * @param {Any} value 当前表单值
+             */
+            triggerSameRowEvent (type, row, col, value) {
+                const tagCode = this.columns[col].tag_code
+                this.columns.forEach((col, index) => {
+                    if (tagCode !== col.tag_code) {
+                        const listenedEvents = (col.events || []).filter(item => item.source === tagCode && item.type === type)
+                        if (listenedEvents.length > 0) {
+                            const cellComp = this.$refs[`row_${row}_${index}_${col.tag_code}`][0]
+                            if (cellComp && cellComp.$refs.tagComponent) {
+                                listenedEvents.forEach(event => {
+                                    event.action.call(cellComp.$refs.tagComponent, value)
+                                })
+                            }
+                        }
+                    }
+                })
+            },
             onBtnClick (callback) {
                 typeof callback === 'function' && callback.bind(this)()
             },
+            onInitColumn (scope, val) {
+                this.triggerSameRowEvent('init', scope.$index, scope.column.index, val)
+            },
             onEdit (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 this.editRowNumber = index
             },
-            onEditColumn (fieldsArr, val) {
+            onEditColumn (scope, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
+                this.triggerSameRowEvent('change', scope.$index, scope.column.index, val)
             },
             onDelete (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 this.tableValue.splice(index, 1)
                 this.updateForm(this.tableValue)
             },
             onSave (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 const valueValid = this.validateSubCom(index)
                 if (!valueValid) return
 
                 this.editRowNumber = undefined
                 this.updateForm(tools.deepClone(this.tableValue))
             },
-            onCancel (index, row) {
+            onCancel () {
                 this.editRowNumber = undefined
                 this.tableValue = tools.deepClone(this.value)
             },
@@ -399,7 +480,15 @@
 
                 const originData = {}
                 this.columns.forEach((item, index) => {
-                    originData[item.tag_code] = item.default || ''
+                    let value = ''
+                    if ('value' in item.attrs) {
+                        value = item.attrs.value
+                    } else if ('default' in item.attrs) {
+                        value = item.attrs.default
+                    } else {
+                        value = atomFilter.getFormItemDefaultValue([item])[item.tag_code]
+                    }
+                    originData[item.tag_code] = value
                 })
                 this.editRowNumber = this.tableValue.length
                 this.tableValue.push(originData)
@@ -449,6 +538,12 @@
         }
         .rf-form-item {
             margin: 0;
+        }
+        /deep/ .rf-view-textarea-value textarea {
+            text-align: center;
+        }
+        .el-pagination {
+            text-align: right;
         }
     }
     .button-area {
