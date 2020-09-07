@@ -117,6 +117,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
+    max-width: 100%;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
