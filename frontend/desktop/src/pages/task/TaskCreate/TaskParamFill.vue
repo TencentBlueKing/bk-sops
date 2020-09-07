@@ -581,4 +581,9 @@
         width: 140px;
     }
 }
+/deep/ .rf-form-item {
+    &.show-label > .rf-tag-form {
+        margin-right: 40px;
+    }
+}
 </style>
