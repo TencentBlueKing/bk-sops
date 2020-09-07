@@ -463,10 +463,6 @@
     box-sizing: border-box;
     min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    /deep/ .no-data-wrapper {
-        position: relative;
-        top: 122px;
-    }
 }
 .task-info,
 .param-info {
