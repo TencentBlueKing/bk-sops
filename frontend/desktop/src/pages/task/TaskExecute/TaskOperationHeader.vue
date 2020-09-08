@@ -56,7 +56,6 @@
                     :class="[
                         'params-btn',
                         'solid-eye',
-                        'common-icon',
                         'common-icon-solid-eye',
                         {
                             actived: nodeInfoType === 'executeInfo'
@@ -71,7 +70,6 @@
                 <i
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-edit',
                         {
                             actived: nodeInfoType === 'modifyParams'
@@ -96,7 +94,6 @@
                 <i
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-flow-data',
                         {
                             actived: nodeInfoType === 'templateData'
@@ -112,7 +109,6 @@
                     v-if="adminView"
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-paper',
                         {
                             actived: nodeInfoType === 'taskExecuteInfo'

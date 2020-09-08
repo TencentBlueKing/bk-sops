@@ -898,7 +898,7 @@
                     this.defaultActiveId = firstNodeId
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
-                if (name === i18n.t('流程模板数据')) {
+                if (type === 'templateData') {
                     this.transPipelineTreeStr()
                 }
             },
