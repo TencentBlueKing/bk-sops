@@ -27,7 +27,12 @@
             <bk-form ref="setForm" :model="formData" :rules="setRules">
                 <!--筛选方案-->
                 <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
-                    <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
+                    <!-- :data="[]"
+                        v-model="formData.clusterCount" -->
+                    <bk-search-select
+                        filter
+                        clearable>
+                    </bk-search-select>
                 </bk-form-item>
                 <!--主机个数-->
                 <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
@@ -115,7 +120,6 @@
         },
         data () {
             const { set_count, host_resources, module_detail } = tools.deepClone(this.config)
-            const $this = this
             return {
                 formData: {
                     clusterCount: set_count,
@@ -144,23 +148,9 @@
                             message: gettext('必选项'),
                             trigger: 'blur'
                         }
-                    ]
-                },
-                moduleRules: {
+                    ],
                     count: [{
                         required: true,
-                        message: gettext('必填项'),
-                        trigger: 'blur'
-                    }],
-                    reuse: [{
-                        validator (val) {
-                            if ($this.formData.modules[$this.validatingTabIndex].isReuse
-                                && $this.formData.modules[$this.validatingTabIndex].reuse === ''
-                            ) {
-                                return false
-                            }
-                            return true
-                        },
                         message: gettext('必填项'),
                         trigger: 'blur'
                     }]
@@ -467,24 +457,7 @@
                 }
 
                 this.$refs.setForm.validate().then(async validator => {
-                    let tabValid = true
-                    if (this.$refs.moduleTab && this.$refs.moduleTab.length) {
-                        const len = this.$refs.moduleTab.length
-                        for (let i = 0; i < len; i++) {
-                            this.validatingTabIndex = i
-                            try {
-                                await this.$refs.moduleTab[i].validate()
-                            } catch (error) {
-                                tabValid = false
-                            }
-                        }
-                    }
-
-                    if (tabValid) {
-                        this.getHostsAndSave()
-                    } else {
-                        errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
-                    }
+                    this.getHostsAndSave()
                 })
             },
             // 保存资源筛选面板的表单数据，向父级同步
