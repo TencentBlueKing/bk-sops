@@ -54,7 +54,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -1190,6 +1190,9 @@
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
                 this.templateData = ''
+            },
+            onHiddenSideslider () {
+                this.nodeInfoType = ''
             }
         }
     }
