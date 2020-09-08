@@ -258,7 +258,7 @@
             },
             template_source: {
                 type: String,
-                default: 'project'
+                default: ''
             },
             create_method: {
                 type: String,
@@ -294,7 +294,7 @@
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
                 createInfo: this.create_info || '',
-                templateSource: this.template_source || 'project',
+                templateSource: this.template_source || '',
                 requestData: {
                     executeTime: [],
                     category: '',
@@ -394,7 +394,7 @@
                         create_method: createMethod || undefined,
                         create_info: this.createInfo || undefined,
                         project__id: this.project_id,
-                        template_source: this.templateSource
+                        template_source: this.templateSource || undefined
                     }
 
                     if (executeTime[0] && executeTime[1]) {
@@ -579,7 +579,7 @@
                 // 高级搜索手动点击时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
                 this.templateId = ''
-                this.templateSource = 'project'
+                this.templateSource = ''
                 this.$router.push({ name: 'taskList', params: { project_id: this.project_id } })
                 this.getTaskList()
             },
