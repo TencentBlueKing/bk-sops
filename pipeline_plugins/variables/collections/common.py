@@ -180,7 +180,9 @@ class StaffGroupSelector(LazyVariable):
         cc_staff_group = list(set(self.value).difference(set(staff_group_id_list)))
 
         # 获取项目的自定义人员分组人员
-        staff_names_list = StaffGroupSet.objects.filter(id__in=staff_group_id_list).values_list("members", flat=True)
+        staff_names_list = StaffGroupSet.objects.filter(id__in=staff_group_id_list, is_deleted=False).values_list(
+            "members", flat=True
+        )
 
         staff_names_str = ",".join(staff_names_list)
         staff_names_list_clear = list(set(staff_names_str.split(",")))

@@ -333,8 +333,10 @@ class StaffGroupSet(models.Model):
     人员分组设置
     """
 
-    name = models.CharField(_("分组名称"), max_length=255)
+    project_id = models.IntegerField(_("项目 ID"), default=0)
+    name = models.CharField(_("分组名称"), help_text=_("同项目下名称唯一"), max_length=255)
     members = models.TextField(_("分组成员"), default="", help_text=_("多个成员以英文,分隔"), null=True, blank=True)
+    is_deleted = models.BooleanField(_("是否已删除"), default=False)
 
     class Meta:
         verbose_name = _("人员分组设置 StaffGroupSet")
@@ -351,7 +353,6 @@ class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
-    staff_groups = models.ManyToManyField(StaffGroupSet, verbose_name=_("人员分组"), blank=True)
 
     objects = ProjectConfigManager()
 
