@@ -54,7 +54,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -1147,7 +1147,6 @@
             },
             onRetryCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onModifyTimeSuccess (id) {
@@ -1157,7 +1156,6 @@
             },
             onModifyTimeCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onConfirmGatewaySelect (selected) {
@@ -1186,7 +1184,6 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
             },
             async transPipelineTreeStr () {
                 const templateData = await this.getLocalTemplateData()
@@ -1194,8 +1191,10 @@
             },
             onshutDown () {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.templateData = ''
+            },
+            onHiddenSideslider () {
+                this.nodeInfoType = ''
             }
         }
     }
