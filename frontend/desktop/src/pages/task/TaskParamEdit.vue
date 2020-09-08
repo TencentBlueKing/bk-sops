@@ -149,6 +149,49 @@
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
                 }
+                this.renderConfig.push({
+                    name: 'test',
+                    tag_code: 'ssss',
+                    type: 'host_allocation',
+                    attrs: {
+                        name: '主机资源筛选',
+                        hookable: true,
+                        validation: [{
+                            type: 'required'
+                        }],
+                        remote_url: function () {
+                            if (!$.context.canSelectBiz()) {
+                                return {
+                                    'cc_search_host': $.context.get('site_url') + 'pipeline/cc_search_host/' + $.context.getBkBizId() + '/',
+                                    'cc_search_topo_set': $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/',
+                                    'cc_search_topo_module': $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/',
+                                    'cc_search_module': $.context.get('site_url') + 'pipeline/cc_search_module/' + $.context.getBkBizId() + '/',
+                                    'cc_search_object_attribute_host': $.context.get('site_url') + 'pipeline/cc_search_object_attribute/host/' + $.context.getBkBizId() + '/',
+                                    'cc_search_create_object_attribute_set': $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
+                                }
+                            } else {
+                                return {
+                                    'cc_search_host': '',
+                                    'cc_search_topo_set': '',
+                                    'cc_search_topo_module': '',
+                                    'cc_search_module': '',
+                                    'cc_search_object_attribute_host': '',
+                                    'cc_search_create_object_attribute_set': ''
+                                }
+                            }
+                        },
+                        desc: ''
+                    }
+                })
+                this.renderData['ssss'] = {
+                    config: {
+                        set_count: 0,
+                        set_template_id: '',
+                        host_resources: [],
+                        module_detail: []
+                    },
+                    data: []
+                }
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)

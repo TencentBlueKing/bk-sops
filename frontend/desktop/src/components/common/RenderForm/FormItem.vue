@@ -333,6 +333,7 @@
                         }
                         break
                     case 'set_allocation':
+                    case 'host_allocation':
                         valueFormat = {
                             type: 'Object',
                             value: {

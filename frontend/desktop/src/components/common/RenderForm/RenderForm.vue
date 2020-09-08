@@ -218,6 +218,7 @@
                             }
                             break
                         case 'set_allocation':
+                        case 'host_allocation':
                             val = {
                                 config: {
                                     set_count: 0,
