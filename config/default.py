@@ -83,6 +83,7 @@ INSTALLED_APPS += (
     "version_log",
     "files",
     "corsheaders",
+    "rest_framework",
     "iam",
     "iam.contrib.iam_migration",
 )
