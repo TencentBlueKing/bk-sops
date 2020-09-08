@@ -23,7 +23,7 @@
             enabled: false
         },
         wordWrap: 'on',
-        wrappingIndent: 'indent'
+        wrappingIndent: 'same'
     }
     export default {
         name: 'CodeEditor',
