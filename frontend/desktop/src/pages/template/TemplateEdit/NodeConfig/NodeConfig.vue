@@ -700,9 +700,9 @@
             async updateSubflowVersion () {
                 const oldForms = Object.assign({}, this.subflowForms)
                 await this.getSubflowDetail(this.basicInfo.tpl)
+                this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                this.subflowUpdateParamsChange()
                 this.setNodeOptional(this.localConstants)
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
