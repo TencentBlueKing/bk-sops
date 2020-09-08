@@ -1141,7 +1141,6 @@
             },
             onRetryCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onModifyTimeSuccess (id) {
@@ -1151,7 +1150,6 @@
             },
             onModifyTimeCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onConfirmGatewaySelect (selected) {
@@ -1180,7 +1178,6 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
             },
             async transPipelineTreeStr () {
                 const templateData = await this.getLocalTemplateData()
@@ -1188,7 +1185,6 @@
             },
             onshutDown () {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.templateData = ''
             },
             onHiddenSideslider () {
