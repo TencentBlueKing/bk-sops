@@ -50,7 +50,7 @@ except ImportError:
 @iam_intercept(FastCreateTaskInterceptor())
 def fast_create_task(request, project_id):
 
-    params = request.dict_params
+    params = request.params_json
     project = request.project
     logger.info(
         "[API] fast_create_task info, project_id: {project_id}, params: {params}".format(

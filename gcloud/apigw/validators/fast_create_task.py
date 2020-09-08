@@ -64,5 +64,5 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
                 logger.warning(message)
                 return False, message
 
-        setattr(request, "dict_params", params)
+        setattr(request, "params_json", params)
         return True, ""

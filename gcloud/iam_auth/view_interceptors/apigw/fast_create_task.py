@@ -35,7 +35,7 @@ class FastCreateTaskInterceptor(ViewInterceptor):
         resources = res_factory.resources_for_project_obj(project)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
 
-        params = request.dict_params
+        params = request.params_json
         has_common_subprocess = params.get("has_common_subprocess", False)
         templates_in_task = set()
         pipeline_tree = params["pipeline_tree"]
