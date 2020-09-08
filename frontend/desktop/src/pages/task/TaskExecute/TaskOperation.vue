@@ -912,7 +912,7 @@
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
                 }
-                if (name === i18n.t('流程模板数据')) {
+                if (type === 'templateData') {
                     this.transPipelineTreeStr()
                 }
             },
