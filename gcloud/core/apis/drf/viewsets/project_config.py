@@ -11,15 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
-from django.http import Http404
 from rest_framework import mixins, permissions, viewsets
 
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.core.apis.drf.serilaziers.project_config import ProjectConfigSerializer
+from gcloud.core.apis.drf.viewsets.utils import ApiMixin
+from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
 
 
-class ProjectConfigViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin, mixins.UpdateModelMixin):
+class ProjectConfigViewSet(ApiMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = ProjectConfig.objects.all()
     serializer_class = ProjectConfigSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -28,7 +28,7 @@ class ProjectConfigViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin, m
         project_id = self.kwargs["pk"]
 
         if not Project.objects.filter(id=project_id).exists():
-            raise Http404()
+            raise ObjectDoesNotExistException("Project id: {} does not exist".format(project_id))
 
         obj, _ = ProjectConfig.objects.get_or_create(project_id=project_id)
 
