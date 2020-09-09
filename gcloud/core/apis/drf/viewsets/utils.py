@@ -26,7 +26,7 @@ class ApiMixin(GenericViewSet):
                 error = response.data.get(
                     "detail", ErrorDetail("Error from API exception", err_code.UNKNOWN_ERROR.code)
                 )
-                response.data = {"result": False, "data": None, "code": error.code, "message": str(error)}
+                response.data = {"result": False, "data": response.data, "code": error.code, "message": str(error)}
             else:
                 response.data = {"result": True, "data": response.data, "code": err_code.SUCCESS.code, "message": ""}
 

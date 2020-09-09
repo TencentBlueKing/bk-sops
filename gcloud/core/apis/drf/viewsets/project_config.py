@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from rest_framework import mixins, permissions, viewsets
 
 from gcloud.core.models import Project, ProjectConfig
-from gcloud.core.apis.drf.serilaziers.project_config import ProjectConfigSerializer
+from gcloud.core.apis.drf.serilaziers import ProjectConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
 

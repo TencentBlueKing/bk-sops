@@ -11,5 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
+from rest_framework import serializers
+
+from gcloud.core.models import ResourceConfig
+from gcloud.core.apis.drf.validators import ProjectExistValidator
+
+
+class ResourceConfigSerializer(serializers.ModelSerializer):
+    project_id = serializers.IntegerField(validators=[ProjectExistValidator()])
+
+    class Meta:
+        model = ResourceConfig
+        fields = "__all__"
