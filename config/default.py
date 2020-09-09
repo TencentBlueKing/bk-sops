@@ -303,6 +303,11 @@ TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processor
 
 STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 
+# drf 配置
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+}
+
 # pipeline settings
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
