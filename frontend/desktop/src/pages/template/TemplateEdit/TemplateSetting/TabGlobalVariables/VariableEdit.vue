@@ -42,7 +42,7 @@
                     </div>
                 </li>
                 <!-- 类型 -->
-                <li class="form-item clearfix" v-if="!isSystemVar">
+                <li class="form-item variable-type clearfix" v-if="!isSystemVar">
                     <label class="required">{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -72,6 +72,7 @@
                                 </bk-option-group>
                             </template>
                         </bk-select>
+                        <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
                 </li>
                 <!-- 默认值 -->
@@ -153,9 +154,12 @@
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(theEditingData.source_type)
+            const currentValType = isHookedVar ? 'component' : theEditingData.custom_type
+
             return {
                 theEditingData,
                 isHookedVar, // 是否为勾选生成的变量
+                currentValType,
                 showTypeList: [
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
@@ -170,7 +174,6 @@
                     showVarList: true,
                     validateSet: ['custom', 'regex']
                 },
-                currentValType: isHookedVar ? 'component' : theEditingData.custom_type,
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
                 varGroup: '', // 变量类型分组，general、meta
@@ -211,6 +214,25 @@
                 } else {
                     return custom_type
                 }
+            },
+            // 变量生命周期
+            varPhase () {
+                let phaseStr = ''
+                const phaseMap = {
+                    '1': i18n.t('即将下线'),
+                    '2': i18n.t('已下线')
+                }
+                if (this.currentValType !== 'component' && this.varTypeList.length) {
+                    this.varTypeList.some(group => {
+                        return group.children.some(item => {
+                            if (item.code === this.currentValType) {
+                                phaseStr = phaseMap[item.phase]
+                                return true
+                            }
+                        })
+                    })
+                }
+                return phaseStr
             },
             // 变量 Key 校验规则
             variableKeyRule () {
@@ -327,7 +349,7 @@
                         classify,
                         isMeta: isMeta,
                         name: this.atomType,
-                        project_id: this.project_id,
+                        project_id: this.common ? undefined : this.project_id,
                         version,
                         atom
                     })
@@ -591,6 +613,20 @@
     }
     .error-msg {
         margin-top: 10px;
+    }
+    .variable-type {
+        position: relative;
+        .phase-tag {
+            position: absolute;
+            right: 30px;
+            top: 4px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            border-bottom-left-radius: 0;
+            font-size: 12px;
+            color: #ffffff;
+            background: #b8b8b8;
+        }
     }
     .btn-wrap {
         padding: 8px 20px;

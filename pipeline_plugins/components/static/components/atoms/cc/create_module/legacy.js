@@ -16,10 +16,14 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
+                allowCreate: true,
                 hookable: true,
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 disabled: !$.context.canSelectBiz(),
@@ -76,6 +80,9 @@
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 validation: [
@@ -234,6 +241,9 @@
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     const data = resp.data;
                     // 将每一列的tag类型修改为input类型，扩充宽度
                     data.forEach(function (column) {
@@ -354,6 +364,9 @@
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/';
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     let data = resp.data;
                     data.forEach(function (column) {
                         column.type = 'input';
@@ -383,8 +396,11 @@
                                 return $.context.get('site_url') + 'pipeline/cc_list_service_template/' + $.context.getBkBizId() + '/';
                             },
                             remote_data_init: function (resp) {
-                                return resp.data;
-                            },
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
+                    return resp.data;
+                },
                         }
                     });
                     return data;

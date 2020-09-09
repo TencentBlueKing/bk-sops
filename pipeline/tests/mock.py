@@ -296,6 +296,7 @@ class MockEngineModelStatus(object):
 
 class MockData(object):
     def __init__(self, get_outputs_return=None, get_inputs_return=None, get_one_of_outputs_return=None, ex_data=None):
+        self.id = uniqid()
         get_inputs_return = get_inputs_return or FancyDict()
         get_outputs_return = get_outputs_return or FancyDict()
         self.update_outputs = mock.MagicMock()

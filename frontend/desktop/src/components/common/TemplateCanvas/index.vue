@@ -51,7 +51,9 @@
                     :is-show-select-all-tool="isShowSelectAllTool"
                     :is-select-all-tool-disabled="isSelectAllToolDisabled"
                     :is-all-selected="isAllSelected"
+                    :show-small-map="showSmallMap "
                     :editable="editable"
+                    @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
                     @onResetPosition="onResetPosition"
@@ -100,6 +102,15 @@
         <div class="picture-download-btn" @click="onDownloadCanvas">
             <div class="btn-wrapper" v-bkloading="{ isLoading: canvasImgDownloading, size: 'mini', opacity: 1 }">
                 <i class="bk-icon icon-download"></i>
+            </div>
+        </div>
+        <div class="small-map" v-if="showSmallMap">
+            <img :src="smallMapImg" alt="">
+            <div
+                ref="selectBox"
+                class="select-box"
+                @mousedown.prevent="onMouseDownSelect"
+                @mouseup.prevent="onMouseUpSelect">
             </div>
         </div>
     </div>
@@ -187,6 +198,10 @@
                         'locations': []
                     }
                 }
+            },
+            isCanvasImg: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -204,6 +219,17 @@
                 })
             }
             return {
+                isSmallMap: false, // 小地图激活态
+                smallMapWidth: 344, // 344 小地图宽度
+                smallMapHeight: 216, // 216 小地图高度
+                smallMapImg: '',
+                showSmallMap: false,
+                isMouseEnterX: '', // 鼠标在选择框中按下的offsetX值
+                isMouseEnterY: '', // 鼠标在选择框中按下的offsetY值
+                windowWidth: document.documentElement.offsetWidth - 60, // 60 header的宽度
+                windowHeight: document.documentElement.offsetHeight - 60 - 50, // 50 tab栏的宽度
+                canvasWidth: 0, // 生成画布的宽
+                canvasHeight: 0, // 生成画布的高
                 canvasImgDownloading: false,
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
@@ -246,6 +272,9 @@
                 }
             }
         },
+        created () {
+            this.onWindowResize = tools.throttle(this.handlerWindowResize, 300)
+        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -255,6 +284,8 @@
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
             canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false)
             canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
+            // 监听页面视图变化
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
@@ -268,8 +299,30 @@
                 canvasPaintArea.removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
                 canvasPaintArea.removeEventListener('mousemove', this.onCanvasMouseMove, false)
             }
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            handlerWindowResize () {
+                this.windowWidth = document.documentElement.offsetWidth - 60
+                this.windowHeight = document.documentElement.offsetHeight - 60 - 50
+                if (this.showSmallMap) {
+                    this.onGenerateCanvas().then(res => {
+                        this.smallMapImg = res
+                    })
+                    this.getInitialValue()
+                }
+            },
+            onToggleMapShow () {
+                this.showSmallMap = !this.showSmallMap
+                if (this.showSmallMap) {
+                    this.onGenerateCanvas().then(res => {
+                        this.smallMapImg = res
+                    })
+                    this.$nextTick(() => {
+                        this.getInitialValue()
+                    })
+                }
+            },
             onZoomIn (pos) {
                 if (pos) {
                     const { x, y } = pos
@@ -278,6 +331,7 @@
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.showSmallMap = false
             },
             onZoomOut (pos) {
                 if (pos) {
@@ -287,16 +341,19 @@
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
+                this.showSmallMap = false
             },
             onOpenFrameSelect () {
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
+                this.showSmallMap = false
             },
             onFrameSelectEnd (nodes) {
                 this.selectedNodes = nodes
@@ -437,6 +494,7 @@
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
+                this.showSmallMap = false
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
@@ -840,6 +898,7 @@
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
             onToggleHotKeyInfo (val) {
+                this.showSmallMap = false
                 this.isShowHotKey = !this.isShowHotKey
             },
             onCloseHotkeyInfo () {
@@ -1132,45 +1191,140 @@
             },
             // 下载画布图片
             onDownloadCanvas () {
-                // html2canvas(document.querySelector('#canvas-flow')).then(canvas => {
-                //     debugger
-                //     const imgEl = document.createElement('a')
-                //     imgEl.download = 'bk_sops_template.png'
-                //     imgEl.href = canvas.toDataURL('image/jpeg')
-                //     imgEl.click()
-                // })
-                if (this.canvasImgDownloading) {
-                    return
-                }
-                this.canvasImgDownloading = true
-                const canvasEl = document.querySelector('#canvas-flow')
-                domtoimage.toJpeg(canvasEl, {
-                    bgcolor: '#ffffff'
-                }).then(dataURL => {
+                this.onGenerateCanvas().then(res => {
+                    if (this.canvasImgDownloading) {
+                        return
+                    }
+                    this.canvasImgDownloading = true
                     const imgEl = document.createElement('a')
                     imgEl.download = `bk_sops_template_${+new Date()}.png`
-                    imgEl.href = dataURL
+                    imgEl.href = res
                     imgEl.click()
                     this.canvasImgDownloading = false
-                }).catch(error => {
-                    console.error(error)
-                    this.canvasImgDownloading = false
                 })
-                
-                // const canvasEl = document.querySelector('#canvas-flow')
-                // canvasEl.style.overflow = 'scroll'
-                // htmltoimage.toJpeg(canvasEl, {
-                //     backgroundColor: '#ffffff'
-                // }).then(dataURL => {
-                //     const imgEl = document.createElement('a')
-                //     imgEl.download = `bk_sops_template_${+new Date()}.png`
-                //     imgEl.href = dataURL
-                //     imgEl.click()
-                //     this.canvasImgDownloading = false
-                // }).catch(error => {
-                //     console.error(error)
-                //     this.canvasImgDownloading = false
-                // })
+            },
+            // 生成画布图片
+            onGenerateCanvas  () {
+                const canvasFlWp = document.querySelector('.canvas-flow-wrap')
+                const baseOffset = 200 // 节点宽度
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const maxX = Math.max(...xList)
+                const minY = Math.min(...yList)
+                const maxY = Math.max(...yList)
+                const offsetX = minX < 0 ? -minX : 0
+                const offsetY = minY < 0 ? -minY : 0
+                let width = null
+                if (minX < 0) {
+                    width = maxX > this.windowWidth ? maxX - minX : this.windowWidth - minX
+                } else {
+                    width = maxX > this.windowWidth ? maxX : this.windowWidth
+                }
+                let height = null
+                if (minY < 0) {
+                    height = maxY > this.windowHeight ? maxY - minY : this.windowHeight - minY
+                } else {
+                    height = maxY > this.windowHeight ? maxY : this.windowHeight
+                }
+                this.canvasHeight = height + baseOffset + 30
+                this.canvasWidth = width + baseOffset + 80
+                return domtoimage.toJpeg(canvasFlWp, {
+                    bgcolor: '#ffffff',
+                    height: this.canvasHeight,
+                    width: this.canvasWidth,
+                    cloneBack: clone => {
+                        clone.style.width = this.canvasWidth + 'px'
+                        clone.style.height = this.canvasHeight + 'px'
+                        const canvasDom = clone.querySelector('#canvas-flow')
+                        canvasDom.style.left = offsetX + 30 + 'px'
+                        canvasDom.style.top = offsetY + 30 + 'px'
+                        canvasDom.style.transform = 'inherit'
+                        canvasDom.style.border = 0
+                    }
+                })
+            },
+            getInitialValue () {
+                // 计算选择框的初始left top
+                const canvasFlow = document.querySelector('#canvas-flow')
+                const selectBox = document.querySelector('.select-box')
+                const miniMapWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
+                const miniMapHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight
+                // 画布的Top和Left
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const minY = Math.min(...yList)
+                let initialLeft = null
+                const leftMostNodeLeft = minX < 0 ? -minX : 0
+                const topMostNodeTop = minY < 0 ? -minY : 0
+                const offsetGapLeft = (canvasFlow.offsetLeft > 0 ? -leftMostNodeLeft : leftMostNodeLeft) - canvasFlow.offsetLeft
+                const scaleOffsetLeft = this.smallMapWidth / this.canvasWidth * offsetGapLeft
+                if (scaleOffsetLeft + miniMapWidth >= this.smallMapWidth) {
+                    initialLeft = miniMapWidth < this.smallMapWidth ? this.smallMapWidth - miniMapWidth : scaleOffsetLeft
+                } else {
+                    initialLeft = scaleOffsetLeft > 0 ? scaleOffsetLeft : 0
+                }
+                let initialTop = null
+                const offsetGapTop = (canvasFlow.offsetTop > 0 ? -topMostNodeTop : topMostNodeTop) - canvasFlow.offsetTop
+                const scaleOffsetTop = this.smallMapHeight / this.canvasHeight * offsetGapTop
+                if (scaleOffsetTop + miniMapHeight >= this.smallMapHeight) {
+                    initialTop = miniMapHeight < this.smallMapHeight ? this.smallMapHeight - miniMapHeight : scaleOffsetTop
+                } else {
+                    initialTop = scaleOffsetTop > 0 ? scaleOffsetTop : 0
+                }
+                this.initialLeft = leftMostNodeLeft
+                this.initialTop = topMostNodeTop
+                selectBox.style.width = miniMapWidth + 'px'
+                selectBox.style.height = miniMapHeight + 'px'
+                selectBox.style.left = initialLeft + 'px'
+                selectBox.style.top = initialTop + 'px'
+            },
+            onMouseDownSelect (e) {
+                this.isMouseEnterX = e.offsetX
+                this.isMouseEnterY = e.offsetY
+                this.$refs.selectBox.addEventListener('mousemove', this.selectBoxMoveHandler, false)
+            },
+            onMouseUpSelect () {
+                this.$refs.selectBox.removeEventListener('mousemove', this.selectBoxMoveHandler, false)
+            },
+            selectBoxMoveHandler (e) {
+                const cavasMargin = 80 // 80 画布margin值
+                const headerWidth = 60 // 60 header的宽度
+                const tabWidth = 50 // 50 tab栏的宽度
+                const moreOffsetTop = 10 // 画布多向上偏移10px  露出点空白
+                const moreOffsetLeft = 30 // 画布多向左偏移30px  露出点空白
+                const selectBox = document.querySelector('.select-box')
+                const targetX = e.clientX - this.isMouseEnterX - cavasMargin
+                const targetY = e.clientY - this.isMouseEnterY - cavasMargin - headerWidth - tabWidth
+                // // 计算选择框宽高
+                const selectWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
+                const selectHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight
+                // 边界检查
+                let left = null
+                let top = null
+                const maxLeft = this.smallMapWidth - selectWidth
+                if (targetX < 0) {
+                    left = 0
+                } else if (targetX > maxLeft) {
+                    left = maxLeft
+                } else {
+                    left = targetX
+                }
+                const maxTop = this.smallMapHeight - selectHeight
+                if (targetY < 0) {
+                    top = 0
+                } else if (targetY > maxTop) {
+                    top = maxTop
+                } else {
+                    top = targetY
+                }
+                selectBox.style.left = left + 'px'
+                selectBox.style.top = top + 'px'
+                // 计算画布的Top和Left
+                const canvasPositionX = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft
+                const canvasPositionY = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop
+                this.setCanvasPosition(canvasPositionX, canvasPositionY)
             }
         }
     }
@@ -1197,9 +1351,6 @@
             z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
-        }
-        .canvas-flow-wrap {
-            margin-left: 60px;
         }
         .jtk-endpoint {
             z-index: 3;
@@ -1329,6 +1480,33 @@
         }
         &:hover {
             color: #3a84ff;
+        }
+    }
+    .small-map {
+        position: absolute;
+        z-index: 5;
+        left: 80px;
+        top: 80px;
+        width: 344px;
+        height: 216px;
+        border-radius: 4px;
+        background-color: #fafbfd;
+        transition: all 0.5s ease;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        img {
+            height: 100%;
+            width: 100%;
+        }
+        .select-box {
+            position: absolute;
+            z-index: 6;
+            top: 0;
+            left: 0;
+            width: 205px;
+            height: 112px;
+            border: 1px solid #738abe;
+            border-radius: 2px;
+            cursor: pointer;
         }
     }
 </style>

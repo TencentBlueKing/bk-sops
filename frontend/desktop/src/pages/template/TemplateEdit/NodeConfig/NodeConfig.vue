@@ -958,6 +958,22 @@
 
                 this.setContants(this.localConstants)
             },
+            /**
+             * 获取标准插件生命周期状态
+             */
+            getAtomPhase () {
+                let phase = ''
+                this.atomList.some(group => {
+                    if (group.code === this.basicInfo.plugin) {
+                        return group.list.some(item => {
+                            if (item.version === (this.basicInfo.version || 'legacy')) {
+                                phase = item.phase
+                            }
+                        })
+                    }
+                })
+                return phase
+            },
             beforeClose () {
                 this.$emit('update:isShow', false)
                 return true
@@ -966,9 +982,14 @@
                 this.validate().then(result => {
                     if (result) {
                         const { skippable, retryable, selectable: optional } = this.basicInfo
+                        const nodeData = { status: '', skippable, retryable, optional }
+                        if (!this.isSubflow) {
+                            const phase = this.getAtomPhase()
+                            nodeData.phase = phase
+                        }
                         this.syncActivity()
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
-                        this.$emit('updateNodeInfo', this.nodeId, { status: '', skippable, retryable, optional })
+                        this.$emit('updateNodeInfo', this.nodeId, nodeData)
                         this.$emit('templateDataChanged')
                         this.$emit('close')
                     }
@@ -1001,7 +1022,7 @@
         overflow: hidden;
         .config-form {
             padding: 20px 30px 0 30px;
-            max-height: calc(100% - 49px);
+            height: calc(100% - 49px);
             overflow-y: auto;
             @include scrollbar;
         }
