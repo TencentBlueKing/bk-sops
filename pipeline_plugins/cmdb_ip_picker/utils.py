@@ -438,7 +438,10 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
             "bk_obj_name": _("集群"),
             "bk_inst_id": inter_data["bk_set_id"],
             "bk_inst_name": inter_data["bk_set_name"],
-            "child": [
+            "child": [],
+        }
+        if inter_data["module"]:
+            default_set["child"] = [
                 {
                     "default": 1,
                     "bk_obj_id": "module",
@@ -447,8 +450,7 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
                     "bk_inst_name": mod["bk_module_name"],
                 }
                 for mod in inter_data["module"]
-            ],
-        }
+            ]
         data[0]["child"].insert(0, default_set)
     return {"result": True, "code": NO_ERROR, "data": data, "messsage": ""}
 
