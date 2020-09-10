@@ -275,7 +275,6 @@ INIT_SUPERUSER = ["admin"]
 # cc、job、iam域名
 BK_CC_HOST = os.environ.get("BK_CC_HOST")
 BK_JOB_HOST = os.environ.get("BK_JOB_HOST")
-BK_IAM_HOST = os.environ.get("BK_IAM_HOST")
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"
