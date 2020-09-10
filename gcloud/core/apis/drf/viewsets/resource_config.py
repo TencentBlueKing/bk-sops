@@ -21,7 +21,12 @@ from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 
 
 class ResourceConfigViewSet(
-    ApiMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+    ApiMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
 ):
     queryset = ResourceConfig.objects.all().order_by("-id")
     serializer_class = ResourceConfigSerializer
