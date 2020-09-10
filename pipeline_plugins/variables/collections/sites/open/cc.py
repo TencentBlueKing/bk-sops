@@ -72,7 +72,9 @@ class VarIpPickerVariable(LazyVariable):
                     logger.warning("ip_picker module ip transit failed: {origin}".format(origin=custom_id))
 
             # query cc to get module's ip list and filter tree_ip_list
-            host_list = cc_get_inner_ip_by_module_id(username, bk_biz_id, module_inst_id_list, bk_supplier_account)
+            host_list = cc_get_inner_ip_by_module_id(
+                username, bk_biz_id, module_inst_id_list, bk_supplier_account, ["host_id", "bk_host_innerip"]
+            )
             cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
             select_ip = set()
 
