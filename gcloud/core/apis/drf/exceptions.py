@@ -10,6 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
+from gcloud import err_code
+
+
+class RestApiException(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = err_code.UNKNOWN_ERROR.description
+    default_code = err_code.UNKNOWN_ERROR.code
+
+
+class ObjectDoesNotExistException(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = err_code.CONTENT_NOT_EXIST.description
+    default_code = err_code.CONTENT_NOT_EXIST.code

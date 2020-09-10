@@ -11,5 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
+from gcloud.core.models import Project
+from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
+
+
+class ProjectExistValidator:
+    def __call__(self, project_id):
+        if not Project.objects.filter(id=project_id).exists():
+            raise ObjectDoesNotExistException("Project id: {} does not exist".format(project_id))
