@@ -17,4 +17,4 @@ from iam import IAM
 
 
 def get_iam_client():
-    return IAM(settings.APP_CODE, settings.SECRET_KEY, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_INNER_HOST)
+    return IAM(settings.APP_CODE, settings.SECRET_KEY, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
