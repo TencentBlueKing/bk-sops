@@ -341,7 +341,7 @@ class StaffGroupSet(models.Model):
     人员分组设置
     """
 
-    project_id = models.IntegerField(_("项目 ID"), default=0)
+    project_id = models.IntegerField(_("项目 ID"))
     name = models.CharField(_("分组名称"), help_text=_("同项目下名称唯一"), max_length=255)
     members = models.TextField(_("分组成员"), default="", help_text=_("多个成员以英文,分隔"), null=True, blank=True)
     is_deleted = models.BooleanField(_("是否已删除"), default=False)
