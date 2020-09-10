@@ -26,16 +26,29 @@
         <section class="module-form">
             <bk-form ref="setForm" :model="formData" :rules="setRules">
                 <!--筛选方案-->
-                <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
-                    <!-- :data="[]"
-                        v-model="formData.clusterCount" -->
-                    <bk-search-select
-                        filter
-                        clearable>
-                    </bk-search-select>
+                <bk-form-item :label="i18n.screenScheme" :required="true" property="screenValue">
+                    <el-autocomplete
+                        class="inline-input"
+                        v-model="formData.screenValue"
+                        :fetch-suggestions="querySearch"
+                        @select="handleSelect"
+                    ></el-autocomplete>
+                    <!-- <bk-select
+                        :disabled="false"
+                        v-model="formData.screenValue"
+                        searchable
+                        :loading="pending.screen"
+                        @selected="onSelected">
+                        <bk-option v-for="option in screenListArr"
+                            :key="option.id"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select> -->
+                    <!-- <bk-button theme="primary" class="save-screen" @click="onSaveProgram">{{i18n.save}}</bk-button> -->
                 </bk-form-item>
                 <!--主机个数-->
-                <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
+                <bk-form-item :label="i18n.resourceNum" :required="true" property="clusterCount">
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
                 </bk-form-item>
                 <!--主机资源所属-->
@@ -74,8 +87,8 @@
                         ref="filterConditions"
                         :label="i18n.filter"
                         :condition-fields="conditions"
-                        :conditions="formData.modules[0]"
-                        @change="updateCondition('filters', $event, formData.modules[0])">
+                        :conditions="screenArr"
+                        @change="updateCondition($event)">
                     </select-condition>
                 </div>
             </bk-form>
@@ -90,7 +103,7 @@
     import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
-        name: 'ResourceFilter',
+        name: 'HostFilter',
         filters: {
             filterResourceId (data) {
                 return data.map(item => item.id)
@@ -119,13 +132,17 @@
             }
         },
         data () {
-            const { set_count, host_resources, module_detail } = tools.deepClone(this.config)
+            const { set_count, host_resources, set_template_id } = tools.deepClone(this.config)
             return {
+                screenArr: [],
                 formData: {
                     clusterCount: set_count,
-                    set: [],
+                    screenValue: set_template_id,
                     resource: host_resources,
-                    modules: module_detail
+                    host_filter_list: [{
+                        filter: [],
+                        exclude: []
+                    }]
                 },
                 setRules: {
                     clusterCount: [
@@ -135,7 +152,7 @@
                             trigger: 'blur'
                         }
                     ],
-                    set: [
+                    screenValue: [
                         {
                             required: true,
                             message: gettext('必选项'),
@@ -162,7 +179,7 @@
                 activeTab: '',
                 conditions: [],
                 pending: {
-                    set: false,
+                    screen: false,
                     resource: false,
                     module: false,
                     condition: false,
@@ -179,44 +196,21 @@
                     reuse: gettext('复用其他模块机器'),
                     reuseModule: gettext('复用模块'),
                     filter: gettext('主机筛选条件'),
-                    exclude: gettext('主机排除条件')
-                }
-            }
-        },
-        computed: {
-            // 模块可引用列表，去掉相互引用，暂未处理三层或更多层的循环引用
-            canReusedModules (id) {
-                return this.moduleList.filter((item, index) => {
-                    return item.bk_module_id !== this.activeTab && this.formData.modules[index].reuse !== this.activeTab
-                })
+                    exclude: gettext('主机排除条件'),
+                    save: gettext('保存'),
+                    screenScheme: gettext('筛选方案')
+                },
+                screenListArr: []
             }
         },
         async mounted () {
-            this.getSetTopo()
+            // this.getSetTopo()
             this.getResource()
             this.getCondition()
-            if (this.config.set_template_id !== '') { // 筛选面板编辑时，组装模块列表数据
-                await this.getModule(this.config.set_template_id)
-                this.moduleList.forEach((item, index) => {
-                    const moduleItem = this.config.module_detail.find(md => md.id === item.bk_module_id)
-                    if (moduleItem) {
-                        const { host_count: count, name, id, reuse_module: reuse, filters, excludes } = tools.deepClone(moduleItem)
-                        const isReuse = reuse !== ''
-                        const moduleData = {
-                            count, name, id, isReuse, reuse, filters, excludes
-                        }
-                        this.$set(this.formData.modules, index, moduleData)
-                    } else {
-                        this.$set(this.formData.modules, index, {
-                            count: 0,
-                            name: item.bk_module_name,
-                            id: item.bk_module_id,
-                            isReuse: false,
-                            reuse: '',
-                            filters: [],
-                            excludes: []
-                        })
-                    }
+            const { module_detail } = tools.deepClone(this.config)
+            if (module_detail.length) {
+                module_detail.forEach(item => {
+                    this.screenArr = [...item.exclude, ...item.filter]
                 })
             }
         },
@@ -228,34 +222,74 @@
                 'getCCSearchModule',
                 'getCCSearchObjAttrHost'
             ]),
-            async getSetTopo () {
+            ...mapActions('task/', [
+                'configProgramList',
+                'saveScreenProgram'
+            ]),
+            // 获取筛选方案数据
+            async querySearch (queryString, cb) {
                 try {
-                    if (!this.urls['cc_search_topo_set']) {
-                        return
-                    }
-                    this.pending.set = true
-                    const resp = await this.getCCSearchTopoSet({
-                        url: this.urls['cc_search_topo_set']
-                    })
+                    this.pending.screen = true
+                    const resp = await this.configProgramList('host')
                     if (resp.result) {
-                        this.setList = resp.data
-                        if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
-                            this.$refs.setTree && this.$refs.setTree.setCheckedKeys([this.config.set_template_id])
-                            const checkedName = this.filterSetName(this.config.set_template_id, resp.data)
-                            this.formData.set = [{
-                                id: this.config.set_template_id,
-                                label: checkedName
-                            }]
-                        }
+                        const screenListArr = resp.data
+                        screenListArr.forEach(item => {
+                            item['value'] = item.name
+                        })
+                        const results = queryString ? screenListArr.filter(this.createFilter(queryString)) : screenListArr
+                        // 调用 callback 返回建议列表的数据
+                        cb(results)
                     } else {
                         errorHandler(resp, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
-                    this.pending.set = false
+                    this.pending.screen = false
                 }
             },
+            createFilter (queryString) {
+                return (restaurant) => {
+                    return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0)
+                }
+            },
+            handleSelect (item) {
+                console.log(item, '22222222')
+            },
+            // 获取筛选方案数据
+            // async getSetTopo () {
+            //     try {
+            //         this.pending.screen = true
+            //         const resp = await this.configProgramList('host')
+            //         if (resp.result) {
+            //             this.screenListArr = resp.data
+            //         } else {
+            //             errorHandler(resp, this)
+            //         }
+            //     } catch (error) {
+            //         errorHandler(error, this)
+            //     } finally {
+            //         this.pending.screen = false
+            //     }
+            // },
+            // 保存筛选方案
+            async onSaveProgram () {
+                const selectObj = this.screenListArr.filter(item => {
+                    return item.id === this.formData.screenValue
+                })[0]
+                selectObj['config_type'] = 'host'
+                try {
+                    const resp = await this.saveScreenProgram(selectObj)
+                    if (resp.result) {
+                        this.screenListArr = resp.data
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            // 获取资源所属数据
             async getResource () {
                 try {
                     if (!this.urls['cc_search_topo_module']) {
@@ -278,30 +312,6 @@
                     errorHandler(error, this)
                 } finally {
                     this.pending.resource = false
-                }
-            },
-            async getModule (id) {
-                const setId = id.replace(/^set_/, '')
-                try {
-                    if (!this.urls['cc_search_module']) {
-                        return
-                    }
-                    this.pending.set = true
-                    const params = {
-                        url: this.urls['cc_search_module'],
-                        bk_set_id: setId
-                    }
-                    const resp = await this.getCCSearchModule(params)
-                    if (resp.result) {
-                        this.moduleList = resp.data.info
-                        this.formData.modules = []
-                    } else {
-                        errorHandler(resp, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
-                } finally {
-                    this.pending.set = false
                 }
             },
             async getCondition () {
@@ -329,44 +339,7 @@
                     this.pending.condition = false
                 }
             },
-            async onSetSelect (checked) {
-                this.formData.set = [checked]
-                this.$refs.setTree.setCheckedKeys([checked.id])
-                this.$refs.setSelect.close()
-                await this.getModule(checked.id)
-                this.moduleList.forEach((item, index) => {
-                    this.$set(this.formData.modules, index, {
-                        count: 0,
-                        name: item.bk_module_name,
-                        id: item.bk_module_id,
-                        isReuse: false,
-                        reuse: '',
-                        filters: [],
-                        excludes: []
-                    })
-                })
-            },
-            // 由集群ID递归查找集群名称
-            filterSetName (id, list) {
-                let name = ''
-                list.some(item => {
-                    if (item.id === id) {
-                        name = item.label
-                        return true
-                    } else if (item.children && item.children.length > 0) {
-                        const val = this.filterSetName(id, item.children)
-                        if (val) {
-                            name = val
-                            return true
-                        }
-                    }
-                })
-                return name
-            },
-            // 集群模板只有 id 以 "set_" 开头的节点可选
-            setLeafDisabled (data) {
-                return !data.id.startsWith('set_')
-            },
+            
             // 主机资源所属，选中父节点后子节点不可选
             setResourceDisabled (data, node) {
                 if (this.formData.resource.length > 0) {
@@ -403,6 +376,7 @@
                 this.formData.resource = []
                 this.$refs.resourceTree.setCheckedNodes([])
             },
+            // 主机资源所属节点点击事件
             onResourceSelect (checked, data) {
                 const checkedNodes = data.checkedNodes
                 if (checked.children && checked.children.length > 0) {
@@ -416,64 +390,36 @@
                 })
                 this.$refs.resourceTree.setCheckedNodes(checkedNodes)
             },
-            onChangeReuse (val, data) {
-                if (val) {
-                    data.filters = []
-                    data.excludes = []
-                } else {
-                    data.reuse = ''
-                }
-            },
-            updateCondition (type, value, data) {
-                data[type] = value
+
+            // 主机筛选条件change事件
+            updateCondition (value) {
+                this.screenArr = value
             },
             // 点击确定，校验表单，提交数据
             onConfigConfirm () {
                 if (this.pending.host) {
                     return
                 }
-
-                // 检查模块复用是否有循环引用，a->b,b->c,c->a
-                let cycleCiting = false
-                let cycled = []
-                const passedModule = {}
-                this.formData.modules.some(md => {
-                    if (md.isReuse) {
-                        if (passedModule.hasOwnProperty(md.reuse)) {
-                            cycleCiting = true
-                            cycled = [passedModule[md.reuse], md.name]
-                            return true
-                        } else {
-                            passedModule[md.id] = md.name
-                        }
-                    }
+                this.screenArr.forEach(item => {
+                    this.formData.host_filter_list[0][item.type].push(item)
                 })
-                // 节点循环引用退出保存，弹出提示
-                if (cycleCiting) {
-                    errorHandler({
-                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
-                    }, this)
-                    return
-                }
-
                 this.$refs.setForm.validate().then(async validator => {
                     this.getHostsAndSave()
                 })
             },
             // 保存资源筛选面板的表单数据，向父级同步
             async getHostsAndSave () {
-                const { clusterCount, modules, resource, set } = this.formData
-
+                const { clusterCount, host_filter_list, resource, screenValue } = this.formData
                 try {
                     this.pending.host = true
                     const fields = []
-                    modules.forEach(md => {
-                        md.filters.forEach(item => {
+                    host_filter_list.forEach(md => {
+                        md.filter.forEach(item => {
                             if (item.field !== '' && !fields.includes(item.field)) {
                                 fields.push(item.field)
                             }
                         })
-                        md.excludes.forEach(item => {
+                        md.exclude.forEach(item => {
                             if (item.field !== '' && !fields.includes(item.field)) {
                                 fields.push(item.field)
                             }
@@ -492,24 +438,20 @@
                         topo
                     })
                     const moduleHosts = this.filterModuleHost(hostData.data)
-                    const moduleDetail = modules.map(item => {
-                        const { count, name, id, reuse, filters, excludes } = item
+                    const moduleDetail = host_filter_list.map(item => {
+                        const { filter, exclude } = item
                         // 取有效筛选、排除条件，不做校验（和 ip 选择器有区别，这里多个 tab 有多个相同 refs）
-                        const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
-                        const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
+                        const validFilters = filter.filter(item => item.filed !== '' && item.value.length > 0)
+                        const validExclude = exclude.filter(item => item.filed !== '' && item.value.length > 0)
 
                         return {
-                            name,
-                            id,
-                            filters: validFilters,
-                            excludes: validExclude,
-                            host_count: count,
-                            reuse_module: reuse
+                            filter: validFilters,
+                            exclude: validExclude
                         }
                     })
                     const config = {
                         set_count: clusterCount,
-                        set_template_id: set[0].id,
+                        set_template_id: screenValue,
                         host_resources: resource,
                         module_detail: moduleDetail
                     }
@@ -533,91 +475,48 @@
              * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [xx.xx.x.x, x.x.x.xxx], ...}
              */
             filterModuleHost (data) {
-                let fullMdHosts = [] // 所有满足各模块的主机数据
-                const hosts = [] // 去重、按照实际数量截取的模块主机数据
-                const reuseOthers = []
-                const usedHosts = []
-                for (let i = 0; i < this.formData.clusterCount; i++) {
-                    const moduleHosts = {}
-                    this.formData.modules.forEach(md => {
-                        const { filters, excludes, name, isReuse } = md
-                        const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
-                        const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
-                        let list = []
+                let hostLists = [] // 所有满足主机数据
+                this.formData.host_filter_list.forEach(md => {
+                    const { filter, exclude } = md
+                    const validFilters = filter.filter(item => item.filed !== '' && item.value.length > 0)
+                    const validExclude = exclude.filter(item => item.filed !== '' && item.value.length > 0)
+                    // 未复用其他模块主机，则计算本模块数据
+                    if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
+                        hostLists = data.map(d => d)
+                    } else {
+                        const filterObj = this.transFieldArrToObj(validFilters)
+                        const excludeObj = this.transFieldArrToObj(validExclude)
+                        data.forEach(item => {
+                            let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
+                            let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
 
-                        if (isReuse) {
-                            reuseOthers.push(md)
-                        } else { // 未复用其他模块主机，则计算本模块数据
-                            if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                                list = data.map(d => d.bk_host_innerip)
+                            if (validFilters.length === 0) {
+                                included = true
                             } else {
-                                const filterObj = this.transFieldArrToObj(validFilters)
-                                const excludeObj = this.transFieldArrToObj(validExclude)
-
-                                data.forEach(item => {
-                                    let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
-                                    let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
-
-                                    if (validFilters.length === 0) {
+                                Object.keys(filterObj).some(filterKey => {
+                                    if (filterObj[filterKey].includes(item[filterKey])) {
                                         included = true
-                                    } else {
-                                        Object.keys(filterObj).some(filterKey => {
-                                            if (filterObj[filterKey].includes(item[filterKey])) {
-                                                included = true
-                                                return true
-                                            }
-                                        })
-                                    }
-                                    
-                                    if (included) {
-                                        Object.keys(excludeObj).some(excludeKey => {
-                                            if (excludeObj[excludeKey].includes(item[excludeKey])) {
-                                                excluded = true
-                                                return true
-                                            }
-                                        })
-                                    }
-
-                                    if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                        list.push(item.bk_host_innerip)
+                                        return true
                                     }
                                 })
                             }
-                            fullMdHosts.push({
-                                name,
-                                list,
-                                percent: data.length > 0 ? list.length / data.length : 0
-                            })
-                        }
-                    })
-                    fullMdHosts = fullMdHosts.sort((a, b) => b.percent - a.percent)
-                    fullMdHosts.forEach(item => {
-                        const md = this.formData.modules.find(m => m.name === item.name)
-                        moduleHosts[item.name] = []
-                        item.list.forEach(h => {
-                            if (!usedHosts.includes(h) && moduleHosts[item.name].length < md.count) {
-                                moduleHosts[item.name].push(h)
-                                usedHosts.push(h)
+                            
+                            if (included) {
+                                Object.keys(excludeObj).some(excludeKey => {
+                                    if (excludeObj[excludeKey].includes(item[excludeKey])) {
+                                        excluded = true
+                                        return true
+                                    }
+                                })
+                            }
+
+                            if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
+                                hostLists.push(item)
                             }
                         })
-                    })
-
-                    reuseOthers.forEach(md => { // 复用其他模块主机数据，数量取按照本模块设置数
-                        let citedModule = this.formData.modules.find(item => item.id === md.reuse)
-                        const citePath = [md]
-                        while (!moduleHosts[citedModule.name]) {
-                            citePath.unshift(Object.assign({}, citedModule))
-                            citedModule = this.formData.modules.find(item => item.id === citedModule.reuse)
-                        }
-                        citePath.forEach(item => {
-                            const cModule = this.formData.modules.find(cm => cm.id === item.reuse)
-                            moduleHosts[item.name] = moduleHosts[cModule.name].slice(0, item.count)
-                        })
-                    })
-                    hosts.push(moduleHosts)
-                }
-
-                return hosts
+                    }
+                })
+                return hostLists
             },
             /**
              * 条件数据转换为对象，整合相同条件的 value, 减少条件遍历次数
@@ -678,6 +577,11 @@
     .module-empty {
         padding-top: 185px;
     }
+    .save-screen {
+        position: absolute;
+        top: 0;
+        left: 620px;
+    }
 </style>
 <style lang="scss">
     .common-bk-select-hide-option {
@@ -686,4 +590,17 @@
             display: none;
         }
     }
+    .bk-form-content {
+        /deep/ .el-autocomplete,
+            .el-input{
+                height: 30px;
+                width: 100%;
+                /deep/.el-input__inner {
+                        height: 30px !important;
+                        border: 1px solid #c4c6cc;
+                }
+        }
+        
+    }
+    
 </style>

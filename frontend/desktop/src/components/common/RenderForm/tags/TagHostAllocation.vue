@@ -84,7 +84,7 @@
                 this.setValue = val
             },
             customValidate () {
-                return this.$refs.setAllocation && this.$refs.setAllocation.validate()
+                return this.$refs.hostAllocation && this.$refs.hostAllocation.validate()
             }
         }
     }

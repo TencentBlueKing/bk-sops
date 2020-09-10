@@ -11,7 +11,6 @@
 */
 <template>
     <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
-        {{showFilter}}
         <resource-list
             v-if="!showFilter"
             ref="resourceList"
@@ -44,7 +43,7 @@
     import ResourceList from '../SetAllocation/ResourceList.vue'
 
     export default {
-        name: 'ResourceAllocation',
+        name: 'HostAllocation',
         components: {
             HostFilter,
             ResourceList
@@ -193,47 +192,47 @@
             },
             // 将模块列拼接到表格中，从第二列开始
             joinCols (modules) {
-                const modulesConfig = []
+                // const modulesConfig = []
                 const originalConfig = this.originalCols.map(item => {
                     return {
                         width: 100,
                         config: item
                     }
                 })
-                modules.forEach(item => {
-                    const count = item.host_count
-                    modulesConfig.push({
-                        width: 150,
-                        config: {
-                            tag_code: item.name,
-                            type: 'textarea',
-                            module: true, // module 字段用来标识表格列是否为模块数据
-                            attrs: {
-                                name: gettext('模块：') + item.name + '(' + item.host_count + ')',
-                                editable: true,
-                                validation: [
-                                    {
-                                        type: 'custom',
-                                        args (val) {
-                                            let result = true
-                                            let message = ''
-                                            const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
-                                            if (hosts.length < count) {
-                                                result = false
-                                                message = gettext('资源不足')
-                                            }
-                                            return {
-                                                result,
-                                                error_message: message
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    })
-                })
-                const cols = [...originalConfig.slice(0, 1), ...modulesConfig, ...originalConfig.slice(1)]
+                // modules.forEach(item => {
+                //     const count = item.host_count
+                //     modulesConfig.push({
+                //         width: 150,
+                //         config: {
+                //             tag_code: item.name,
+                //             type: 'textarea',
+                //             module: true, // module 字段用来标识表格列是否为模块数据
+                //             attrs: {
+                //                 name: gettext('模块：') + item.name + '(' + item.host_count + ')',
+                //                 editable: true,
+                //                 validation: [
+                //                     {
+                //                         type: 'custom',
+                //                         args (val) {
+                //                             let result = true
+                //                             let message = ''
+                //                             const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
+                //                             if (hosts.length < count) {
+                //                                 result = false
+                //                                 message = gettext('资源不足')
+                //                             }
+                //                             return {
+                //                                 result,
+                //                                 error_message: message
+                //                             }
+                //                         }
+                //                     }
+                //                 ]
+                //             }
+                //         }
+                //     })
+                // })
+                const cols = [...originalConfig]
                 if (!this.viewValue) {
                     cols.push({
                         width: 100,
@@ -263,9 +262,8 @@
                             if (tagCode !== 'tb_btns') {
                                 const rowData = data[i]
                                 if (rowData.hasOwnProperty(tagCode)) {
-                                    const val = item.config.module ? rowData[tagCode].join('\n') : rowData[tagCode]
                                     valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
-                                        [tagCode]: val
+                                        [tagCode]: rowData
                                     }
                                 } else {
                                     valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
@@ -290,7 +288,7 @@
                 for (let i = 0; i < conf.set_count; i++) {
                     data.push(Object.assign({}, moduleData[i]))
                 }
-
+                console.log(data, '2222')
                 this.localConfig = conf
                 this.joinCols(this.localConfig.module_detail)
                 this.joinValue(conf.set_count, data)

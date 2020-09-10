@@ -85,6 +85,17 @@ const task = {
             return axios.post(`taskflow/api/preview_task_tree/${project_id}/`, dataJson).then(response => response.data)
         },
         /**
+         * 资源筛选配置方案全量列表
+         * @param {String} payload 资源类型
+         */
+        configProgramList ({ commit }, payload) {
+            const requestData = {
+                project_id: store.state.project,
+                config_type: payload
+            }
+            return axios.get('taskflow/api/v3/resource_config/', requestData).then(response => response.data)
+        },
+        /**
          * 创建任务
          * @param {Object} data 模板数据
          */

@@ -1,4 +1,5 @@
 const en = {
+    '筛选方案': 'Screening scheme',
     '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',
