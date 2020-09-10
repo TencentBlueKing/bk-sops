@@ -60,7 +60,7 @@ def migrate_staff_group(request):
     for group in groups:
 
         try:
-            StaffGroupSet.objects.update_or_create(project_id=project.id, naem=group["name"], defaults=group)
+            StaffGroupSet.objects.update_or_create(project_id=project.id, name=group["name"], defaults=group)
 
             # 记录同步成功人员分组
             migrate_result.append({"name": group["name"], "success": True, "error": None})
