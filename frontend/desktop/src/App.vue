@@ -78,8 +78,10 @@
             }
         },
         watch: {
-            '$route' (val) {
-                this.handleRouteChange()
+            '$route' (val, oldVal) {
+                const prevRouterProjectId = oldVal.params.project_id
+                const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
+                this.handleRouteChange(id)
             }
         },
         created () {
@@ -232,16 +234,19 @@
                     this.footerLoading = false
                 }
             },
-            handleRouteChange () {
+            handleRouteChange (preProjectId) {
                 this.isRouterAlive = true
                 if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
                     setConfigContext(this.site_url)
                 } else {
+                    // 项目上下文页面
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
                         this.permissinApplyShow = false
-                        this.getProjectDetail()
-                    } else { // 需要项目id页面，id为空时，显示无权限页面，申请按钮跳转到项目管理页面
+                        if (this.project_id !== preProjectId) {
+                            this.getProjectDetail()
+                        }
+                    } else { // 需要项目id页面，id为空时，显示无权限页面
                         this.permissinApplyShow = true
                     }
                 }
