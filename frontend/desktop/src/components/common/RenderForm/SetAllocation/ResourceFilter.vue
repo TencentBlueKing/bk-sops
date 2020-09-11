@@ -174,7 +174,10 @@
                                 </div>
                             </template>
                             <!-- 自定义ip -->
-                            <bk-form-item v-if="formData.modules[moduleIndex].selectMethod === 1" :label="'ip' + i18n.list" property="customIpList">
+                            <bk-form-item
+                                v-show="formData.modules[moduleIndex].selectMethod === 1"
+                                :label="'ip' + i18n.list"
+                                property="customIpList">
                                 <bk-input
                                     type="textarea"
                                     :rows="10"
@@ -184,7 +187,7 @@
                             </bk-form-item>
                             <!-- 复用模块 -->
                             <bk-form-item
-                                v-if="formData.modules[moduleIndex].selectMethod === 2"
+                                v-show="formData.modules[moduleIndex].selectMethod === 2"
                                 property="reuse"
                                 :label="i18n.reuseModule"
                                 :required="true">
@@ -280,9 +283,27 @@
                         message: gettext('必填项'),
                         trigger: 'blur'
                     }],
+                    customIpList: [{
+                        validator (val) {
+                            if ($this.formData.modules[$this.validatingTabIndex].selectMethod === 1) {
+                                const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
+                                const ipString = $this.formData.modules[$this.validatingTabIndex].customIpList
+                                const arr = ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
+                                return arr.every(item => {
+                                    if (item.trim()) {
+                                        return ipPattern.test(item)
+                                    }
+                                    return true
+                                })
+                            }
+                            return true
+                        },
+                        message: gettext('IP地址不合法'),
+                        trigger: 'blur'
+                    }],
                     reuse: [{
                         validator (val) {
-                            if ($this.formData.modules[$this.validatingTabIndex].isReuse
+                            if ($this.formData.modules[$this.validatingTabIndex].selectMethod === 2
                                 && $this.formData.modules[$this.validatingTabIndex].reuse === ''
                             ) {
                                 return false
@@ -322,7 +343,7 @@
                     default: gettext('默认'),
                     manual: gettext('手动指定'),
                     list: gettext('列表'),
-                    ip: gettext('请输入IP，多个以逗号隔开'),
+                    ip: gettext('请输入IP，多个以逗号或者换行符隔开'),
                     reuse: gettext('复用其他模块机器'),
                     reuseModule: gettext('复用模块'),
                     muteMethod: gettext('互斥方案'),
@@ -356,22 +377,50 @@
                 await this.getModule(this.config.set_template_id)
                 this.moduleList.forEach((item, index) => {
                     const moduleItem = this.config.module_detail.find(md => md.id === item.bk_module_id)
+
                     if (moduleItem) {
-                        const { host_count: count, name, id, reuse_module: reuse, filters, excludes } = tools.deepClone(moduleItem)
-                        const isReuse = reuse !== ''
+                        const {
+                            id, name, host_count, reuse_module,
+                            select_method, custom_ip_list, mute_method, mute_modules, host_filter_list, // v1 迁移后新增字段
+                            filters, excludes // v1 迁移前存在的字段
+                        } = tools.deepClone(moduleItem)
+                        
+                        let filterList = []
+                        if (filters && excludes) { // filters、excludes 字段存在说明是 v1 迁移前的旧数据，需要兼容
+                            filterList = filters.concat(excludes)
+                        } else {
+                            filterList = host_filter_list.map(item => {
+                                return {
+                                    type: item.type_val === 1 ? 'exclude' : 'filter',
+                                    field: item.name,
+                                    value: item.value
+                                }
+                            })
+                        }
+
                         const moduleData = {
-                            count, name, id, isReuse, reuse, filters, excludes
+                            id,
+                            name,
+                            count: host_count,
+                            selectMethod: select_method === undefined ? 0 : select_method,
+                            reuse: reuse_module,
+                            customIpList: custom_ip_list || '',
+                            muteMethod: mute_method === undefined ? 0 : mute_method,
+                            muteModules: mute_modules || [],
+                            hostFilterList: filterList
                         }
                         this.$set(this.formData.modules, index, moduleData)
                     } else {
                         this.$set(this.formData.modules, index, {
-                            count: 0,
-                            name: item.bk_module_name,
                             id: item.bk_module_id,
-                            isReuse: false,
+                            name: item.bk_module_name,
+                            count: 0,
+                            selectMethod: 0,
                             reuse: '',
-                            filters: [],
-                            excludes: []
+                            customIpList: '',
+                            muteMethod: 0,
+                            muteModules: [],
+                            hostFilterList: []
                         })
                     }
                 })
@@ -686,11 +735,34 @@
                 try {
                     this.pending.host = true
                     const fields = []
-                    modules.forEach(md => { // 取出所有模块的筛选、排除条件字段
-                        md.hostFilterList.forEach(item => {
-                            if (item.field !== '' && !fields.includes(item.field)) {
-                                fields.push(item.field)
+                    const moduleDetail = []
+                    modules.forEach(md => { // 取出所有模块的筛选、排除条件字段，并模块详情数据转换为接口保存格式
+                        const { id, name, count, selectMethod, reuse, customIpList, muteMethod, muteModules, hostFilterList } = md
+                        const filterList = []
+                        hostFilterList.forEach(item => {
+                            if (item.field !== '') {
+                                if (!fields.includes(item.field)) {
+                                    fields.push(item.field)
+                                }
+                                if (item.value.length > 0) {
+                                    filterList.push({
+                                        type_val: item.type === 'exclude' ? 1 : 0,
+                                        name: item.field,
+                                        value: item.value
+                                    })
+                                }
                             }
+                        })
+                        moduleDetail.push({
+                            id,
+                            name,
+                            host_count: count,
+                            reuse_module: reuse,
+                            select_method: selectMethod,
+                            custom_ip_list: customIpList.split(/[\,|\n|\uff0c]/).join('\n'),
+                            mute_method: muteMethod,
+                            mute_modules: muteModules,
+                            host_filter_list: filterList
                         })
                     })
                     const topo = resource.map(item => {
@@ -706,21 +778,6 @@
                         topo
                     })
                     const moduleHosts = this.filterModuleHost(hostData.data)
-                    const moduleDetail = modules.map(item => {
-                        const { count, name, id, reuse, filters, excludes } = item
-                        // 取有效筛选、排除条件，不做校验（和 ip 选择器有区别，这里多个 tab 有多个相同 refs）
-                        const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
-                        const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
-
-                        return {
-                            name,
-                            id,
-                            filters: validFilters,
-                            excludes: validExclude,
-                            host_count: count,
-                            reuse_module: reuse
-                        }
-                    })
                     const config = {
                         set_count: clusterCount,
                         set_template_id: set[0].id,
@@ -763,9 +820,11 @@
 
                         if (selectMethod === 2) { // 复用其他模块，则暂时不计算该模块的主机
                             reuseOthers.push(md)
-                        } else if (selectMethod === 1) { // 模块手动填写 ip @todo：ip字符串校验、格式转换
-                            customIpList.forEach(ipItem => {
-                                if (data.find(item => item.bk_host_innerip === ipItem)) {
+                        } else if (selectMethod === 1) { // 模块手动填写 ip
+                            const ipArr = customIpList.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
+                            ipArr.forEach(ipItem => {
+                                const ipStr = ipItem.trim()
+                                if (ipStr && data.find(item => item.bk_host_innerip === ipItem)) {
                                     list.push(ipItem)
                                 }
                             })
@@ -829,7 +888,7 @@
                     fullMdHosts = fullMdHosts.sort((a, b) => b.percent - a.percent)
                     fullMdHosts.forEach(item => {
                         const md = this.formData.modules.find(m => m.id === item.id)
-                        const mutedHostAttrs = this.getModuleMutedHosts(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
+                        const mutedHostAttrs = this.getModuleMutedHostAttrs(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
                         moduleHosts[item.id] = []
 
                         item.list.some(h => {
