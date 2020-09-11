@@ -11,6 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .staff_group import *  # noqa
+from rest_framework import serializers
+
+from gcloud.core.apis.drf.validators import ProjectExistValidator
+
+
+class StaffGroupSetSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    project_id = serializers.IntegerField(validators=[ProjectExistValidator()])
+    name = serializers.CharField(required=True)
+    members = serializers.CharField(required=True)
+
+
+class ListSerializer(serializers.Serializer):
+    """
+    list查询时序列化使用
+    """
+
+    project_id = serializers.IntegerField(required=True)
