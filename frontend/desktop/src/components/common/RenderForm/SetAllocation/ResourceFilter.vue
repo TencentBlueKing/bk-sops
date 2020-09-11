@@ -25,6 +25,16 @@
         </header>
         <section class="module-form">
             <bk-form ref="setForm" :model="formData" :rules="setRules">
+                <bk-form-item :label="i18n.scheme" property="scheme">
+                    <bk-select :value="formData.scheme" :loading="pending.scheme">
+                        <bk-option
+                            v-for="scheme in schemes"
+                            :key="scheme.id"
+                            :id="scheme.id"
+                            :name="scheme.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
                 <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
                 </bk-form-item>
@@ -86,6 +96,16 @@
                         </el-tree>
                     </bk-select>
                 </bk-form-item>
+                <bk-form-item :label="i18n.exclusive" :required="true" property="muteAttribute">
+                    <bk-select :value="formData.muteAttribute">
+                        <bk-option
+                            v-for="condition in conditions"
+                            :key="condition.id"
+                            :id="condition.id"
+                            :name="condition.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
             </bk-form>
             <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1 }">
                 <bk-tab
@@ -101,13 +121,20 @@
                             <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
                                 <bk-input v-model="formData.modules[moduleIndex].count" type="number" :min="0"></bk-input>
                             </bk-form-item>
-                            <bk-form-item :label="i18n.reuse" property="isReuse">
+                            <!-- <bk-form-item :label="i18n.reuse" property="isReuse">
                                 <bk-switcher
                                     v-model="formData.modules[moduleIndex].isReuse"
                                     theme="primary"
                                     size="small"
                                     @change="onChangeReuse($event, formData.modules[moduleIndex])">
                                 </bk-switcher>
+                            </bk-form-item> -->
+                            <bk-form-item :label="i18n.selectMethod" property="selectMethod">
+                                <bk-radio-group v-model="formData.selectMethod">
+                                    <bk-radio :value="0">{{ i18n.default }}</bk-radio>
+                                    <bk-radio :value="1">{{ i18n.manual }}</bk-radio>
+                                    <bk-radio :value="2">{{ i18n.reuseModule }}</bk-radio>
+                                </bk-radio-group>
                             </bk-form-item>
                             <bk-form-item
                                 v-show="formData.modules[moduleIndex].isReuse"
@@ -123,21 +150,41 @@
                                     </bk-option>
                                 </bk-select>
                             </bk-form-item>
+                            <bk-form-item :label="'ip' + i18n.list" property="customIpList">
+                                <bk-input type="textarea" v-model="formData.customIpList"></bk-input>
+                            </bk-form-item>
+                            <bk-form-item :label="i18n.muteMethod" property="muteMethod">
+                                <bk-radio-group v-model="formData.muteMethod">
+                                    <bk-radio :value="0" :disabled="true">{{ i18n.notMute }}</bk-radio>
+                                    <bk-radio :value="1" :disabled="true">{{ i18n.innerMute }}</bk-radio>
+                                    <bk-radio :value="2" :disabled="true">{{ i18n.moduleMute }}</bk-radio>
+                                </bk-radio-group>
+                            </bk-form-item>
+                            <bk-form-item :label="i18n.muteModule" property="muteModule">
+                                <bk-select v-model="formData.muteModules">
+                                    <bk-option
+                                        v-for="item in moduleList"
+                                        :key="item.bk_module_id"
+                                        :name="item.bk_module_name"
+                                        :id="item.bk_module_id">
+                                    </bk-option>
+                                </bk-select>
+                            </bk-form-item>
                             <div class="condition-wrapper" v-if="!formData.modules[moduleIndex].isReuse">
                                 <select-condition
                                     ref="filterConditions"
-                                    :label="i18n.filter"
+                                    :label="i18n.condition"
                                     :condition-fields="conditions"
-                                    :conditions="formData.modules[moduleIndex].filters"
-                                    @change="updateCondition('filters', $event, formData.modules[moduleIndex])">
+                                    :conditions="formData.modules[moduleIndex].filters.concat(formData.modules[moduleIndex].excludes)"
+                                    @change="updateCondition">
                                 </select-condition>
-                                <select-condition
+                                <!-- <select-condition
                                     ref="excludeConditions"
                                     :label="i18n.exclude"
                                     :condition-fields="conditions"
                                     :conditions="formData.modules[moduleIndex].excludes"
                                     @change="updateCondition('excludes', $event, formData.modules[moduleIndex])">
-                                </select-condition>
+                                </select-condition> -->
                             </div>
                         </bk-form>
                     </bk-tab-panel>
@@ -235,12 +282,14 @@
                     }]
                 },
                 validatingTabIndex: 0, // 正在被校验的 module tab，每次校验之前清零
+                schemes: [], // 筛选方案列表
                 setList: [], // 集群模板 tree
                 resourceList: [], // 主机资源所属 tree
                 moduleList: [], // 集群下模块列表
                 activeTab: '',
                 conditions: [],
                 pending: {
+                    scheme: false,
                     set: false,
                     resource: false,
                     module: false,
@@ -251,14 +300,24 @@
                     title: gettext('资源筛选'),
                     confirm: gettext('确认'),
                     cancel: gettext('取消'),
+                    scheme: gettext('筛选方案'),
                     cluster: gettext('集群个数'),
                     set: gettext('集群模板'),
                     resource: gettext('主机资源所属'),
+                    exclusive: gettext('互斥属性'),
                     resourceNum: gettext('主机数量'),
+                    selectMethod: gettext('筛选方式'),
+                    default: gettext('默认'),
+                    manual: gettext('手动指定'),
+                    list: gettext('列表'),
                     reuse: gettext('复用其他模块机器'),
                     reuseModule: gettext('复用模块'),
-                    filter: gettext('主机筛选条件'),
-                    exclude: gettext('主机排除条件')
+                    muteMethod: gettext('互斥方案'),
+                    notMute: gettext('不互斥'),
+                    innerMute: gettext('模块内互斥'),
+                    moduleMute: gettext('模块间互斥'),
+                    muteModule: gettext('互斥模块'),
+                    condition: gettext('筛选条件和排除条件')
                 }
             }
         },
@@ -271,6 +330,7 @@
             }
         },
         async mounted () {
+            this.gitResourceSchemes()
             this.getSetTopo()
             this.getResource()
             this.getCondition()
@@ -301,12 +361,30 @@
         },
         methods: {
             ...mapActions([
+                'getResourceConfig',
                 'getHostInCC',
                 'getCCSearchTopoSet',
                 'getCCSearchTopoResource',
                 'getCCSearchModule',
                 'getCCSearchObjAttrHost'
             ]),
+            async gitResourceSchemes () {
+                try {
+                    this.pending.scheme = true
+                    const resp = await this.getResourceConfig({
+                        url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/?project_id=${$.context.getBkBizId()}&config_type=set`
+                    })
+                    if (resp.result) {
+                        this.schemes = resp.data
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.pending.scheme = false
+                }
+            },
             async getSetTopo () {
                 try {
                     if (!this.urls['cc_search_topo_set']) {
@@ -503,8 +581,8 @@
                     data.reuse = ''
                 }
             },
-            updateCondition (type, value, data) {
-                data[type] = value
+            updateCondition (data) {
+                debugger
             },
             // 点击确定，校验表单，提交数据
             onConfigConfirm () {

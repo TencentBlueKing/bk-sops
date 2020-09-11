@@ -138,6 +138,9 @@ const store = new Vuex.Store({
         },
         // <--- ip 选择器接口 end
         // 开区资源选择器接口 start --->
+        getResourceConfig ({ commit }, data) {
+            return axios.get(data.url).then(response => response.data)
+        },
         getCCSearchTopoSet ({ commit }, data) {
             return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
