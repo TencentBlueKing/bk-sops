@@ -206,9 +206,8 @@
                 //         config: {
                 //             tag_code: item.name,
                 //             type: 'textarea',
-                //             module: true, // module 字段用来标识表格列是否为模块数据
                 //             attrs: {
-                //                 name: gettext('模块：') + item.name + '(' + item.host_count + ')',
+                //                 name: item.name + '(' + item.host_count + ')',
                 //                 editable: true,
                 //                 validation: [
                 //                     {
@@ -291,7 +290,8 @@
                 console.log(data, '2222')
                 this.localConfig = conf
                 this.joinCols(this.localConfig.module_detail)
-                this.joinValue(conf.set_count, data)
+                // this.joinValue(conf.set_count, data)
+                this.localValue = data
                 this.updatePropsData()
             },
             /**
