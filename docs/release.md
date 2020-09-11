@@ -1,5 +1,12 @@
 # Release
 
+## 3.6.11
+
+- bugfix
+  - 修复业务下没有空闲机模块时 IP 选择器加载静态数据 500 的问题
+  - 修复 iam_auth.conf SYSTEM_ID 没有从 settings 获取的问题
+  - 创建任务选择任务节点时，排除节点丢失问题修复
+
 ## 3.6.10
 
 - feature
