@@ -87,22 +87,11 @@
                 'setProjectActions'
             ]),
             applyBtnClick () {
-                if (this.permissionData.type === 'project') {
-                    if (this.url) {
-                        this.goToAuthCenter()
-                    } else {
-                        this.$router.push({ name: 'projectHome' })
-                    }
-                } else {
-                    this.goToAuthCenter()
+                let url = this.url
+                if (this.permissionData.type === 'project' & !this.url) {
+                    url = window.BK_IAM_SAAS_HOST
                 }
-            },
-            goToAuthCenter () {
-                if (this.loading || !this.url) {
-                    return
-                }
-                
-                openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                openOtherApp(window.BK_IAM_APP_CODE, url)
             },
             goToApply () {
                 this.applyForPermission(['project_create'])
