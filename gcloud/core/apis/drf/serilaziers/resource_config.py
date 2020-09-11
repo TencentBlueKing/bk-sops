@@ -23,3 +23,4 @@ class ResourceConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResourceConfig
         fields = "__all__"
+        read_only_fields = ["project_id"]
