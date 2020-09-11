@@ -14,7 +14,14 @@
         <header class="set-form">
             <span class="title">{{ i18n.title }}</span>
             <div class="btns">
-                <bk-button theme="primary" size="small" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    size="small"
+                    :disabled="pending.set || pending.resource || pending.module"
+                    :loading="pending.host"
+                    @click="onConfigConfirm">
+                    {{ i18n.confirm }}
+                </bk-button>
                 <bk-button
                     theme="default"
                     size="small"
@@ -25,8 +32,9 @@
         </header>
         <section class="module-form">
             <bk-form ref="setForm" :model="formData" :rules="setRules">
+                <!-- 筛选方案 -->
                 <bk-form-item :label="i18n.scheme" property="scheme">
-                    <bk-select :value="formData.scheme" :loading="pending.scheme">
+                    <bk-select :value="formData.scheme" :loading="pending.scheme" @selected="onSchemeSelect">
                         <bk-option
                             v-for="scheme in schemes"
                             :key="scheme.id"
@@ -35,9 +43,11 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
+                <!-- 集群个数 -->
                 <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
                 </bk-form-item>
+                <!-- 集群模板 -->
                 <bk-form-item :label="i18n.set" :required="true" property="set">
                     <bk-select
                         ref="setSelect"
@@ -67,6 +77,7 @@
                         </el-tree>
                     </bk-select>
                 </bk-form-item>
+                <!-- 主机资源所属 -->
                 <bk-form-item :label="i18n.resource" :required="true" property="resource">
                     <bk-select
                         multiple
@@ -96,8 +107,9 @@
                         </el-tree>
                     </bk-select>
                 </bk-form-item>
-                <bk-form-item :label="i18n.exclusive" :required="true" property="muteAttribute">
-                    <bk-select :value="formData.muteAttribute">
+                <!-- 互斥属性 -->
+                <bk-form-item :label="i18n.exclusive" property="muteAttribute">
+                    <bk-select v-model="formData.muteAttribute" @clear="onMuteAttributeClear">
                         <bk-option
                             v-for="condition in conditions"
                             :key="condition.id"
@@ -118,26 +130,61 @@
                         :name="moduleItem.bk_module_id"
                         :label="moduleItem.bk_module_name">
                         <bk-form :model="formData.modules[moduleIndex]" ref="moduleTab" :rules="moduleRules">
+                            <!-- 主机数量 -->
                             <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
                                 <bk-input v-model="formData.modules[moduleIndex].count" type="number" :min="0"></bk-input>
                             </bk-form-item>
-                            <!-- <bk-form-item :label="i18n.reuse" property="isReuse">
-                                <bk-switcher
-                                    v-model="formData.modules[moduleIndex].isReuse"
-                                    theme="primary"
-                                    size="small"
-                                    @change="onChangeReuse($event, formData.modules[moduleIndex])">
-                                </bk-switcher>
-                            </bk-form-item> -->
+                            <!-- 筛选方式 -->
                             <bk-form-item :label="i18n.selectMethod" property="selectMethod">
-                                <bk-radio-group v-model="formData.selectMethod">
+                                <bk-radio-group v-model="formData.modules[moduleIndex].selectMethod" class="bk-radio-group">
                                     <bk-radio :value="0">{{ i18n.default }}</bk-radio>
                                     <bk-radio :value="1">{{ i18n.manual }}</bk-radio>
                                     <bk-radio :value="2">{{ i18n.reuseModule }}</bk-radio>
                                 </bk-radio-group>
                             </bk-form-item>
+                            <template v-if="formData.modules[moduleIndex].selectMethod === 0">
+                                <!-- 互斥方案 -->
+                                <bk-form-item :label="i18n.muteMethod" property="muteMethod">
+                                    <bk-radio-group v-model="formData.modules[moduleIndex].muteMethod" class="bk-radio-group">
+                                        <bk-radio :value="0" :disabled="!formData.muteAttribute">{{ i18n.notMute }}</bk-radio>
+                                        <bk-radio :value="1" :disabled="!formData.muteAttribute">{{ i18n.innerMute }}</bk-radio>
+                                        <bk-radio :value="2" :disabled="!formData.muteAttribute">{{ i18n.moduleMute }}</bk-radio>
+                                    </bk-radio-group>
+                                </bk-form-item>
+                                <!-- 互斥模块 -->
+                                <bk-form-item v-if="formData.modules[moduleIndex].muteMethod === 2" :label="i18n.muteModule" property="muteModule" :required="true">
+                                    <bk-select v-model="formData.modules[moduleIndex].muteModules" multiple>
+                                        <bk-option
+                                            v-for="item in canMuteModules"
+                                            :key="item.bk_module_id"
+                                            :name="item.bk_module_name"
+                                            :id="item.bk_module_id">
+                                        </bk-option>
+                                    </bk-select>
+                                </bk-form-item>
+                                <!-- 筛选条件 -->
+                                <div class="condition-wrapper">
+                                    <select-condition
+                                        ref="filterConditions"
+                                        :label="i18n.condition"
+                                        :condition-fields="conditions"
+                                        :conditions="formData.modules[moduleIndex].hostFilterList"
+                                        @change="updateCondition($event, formData.modules[moduleIndex])">
+                                    </select-condition>
+                                </div>
+                            </template>
+                            <!-- 自定义ip -->
+                            <bk-form-item v-if="formData.modules[moduleIndex].selectMethod === 1" :label="'ip' + i18n.list" property="customIpList">
+                                <bk-input
+                                    type="textarea"
+                                    :rows="10"
+                                    :placeholder="i18n.ipPlaceholder"
+                                    v-model="formData.modules[moduleIndex].customIpList">
+                                </bk-input>
+                            </bk-form-item>
+                            <!-- 复用模块 -->
                             <bk-form-item
-                                v-show="formData.modules[moduleIndex].isReuse"
+                                v-if="formData.modules[moduleIndex].selectMethod === 2"
                                 property="reuse"
                                 :label="i18n.reuseModule"
                                 :required="true">
@@ -150,42 +197,6 @@
                                     </bk-option>
                                 </bk-select>
                             </bk-form-item>
-                            <bk-form-item :label="'ip' + i18n.list" property="customIpList">
-                                <bk-input type="textarea" v-model="formData.customIpList"></bk-input>
-                            </bk-form-item>
-                            <bk-form-item :label="i18n.muteMethod" property="muteMethod">
-                                <bk-radio-group v-model="formData.muteMethod">
-                                    <bk-radio :value="0" :disabled="true">{{ i18n.notMute }}</bk-radio>
-                                    <bk-radio :value="1" :disabled="true">{{ i18n.innerMute }}</bk-radio>
-                                    <bk-radio :value="2" :disabled="true">{{ i18n.moduleMute }}</bk-radio>
-                                </bk-radio-group>
-                            </bk-form-item>
-                            <bk-form-item :label="i18n.muteModule" property="muteModule">
-                                <bk-select v-model="formData.muteModules">
-                                    <bk-option
-                                        v-for="item in moduleList"
-                                        :key="item.bk_module_id"
-                                        :name="item.bk_module_name"
-                                        :id="item.bk_module_id">
-                                    </bk-option>
-                                </bk-select>
-                            </bk-form-item>
-                            <div class="condition-wrapper" v-if="!formData.modules[moduleIndex].isReuse">
-                                <select-condition
-                                    ref="filterConditions"
-                                    :label="i18n.condition"
-                                    :condition-fields="conditions"
-                                    :conditions="formData.modules[moduleIndex].filters.concat(formData.modules[moduleIndex].excludes)"
-                                    @change="updateCondition">
-                                </select-condition>
-                                <!-- <select-condition
-                                    ref="excludeConditions"
-                                    :label="i18n.exclude"
-                                    :condition-fields="conditions"
-                                    :conditions="formData.modules[moduleIndex].excludes"
-                                    @change="updateCondition('excludes', $event, formData.modules[moduleIndex])">
-                                </select-condition> -->
-                            </div>
                         </bk-form>
                     </bk-tab-panel>
                 </bk-tab>
@@ -230,13 +241,14 @@
             }
         },
         data () {
-            const { set_count, host_resources, module_detail } = tools.deepClone(this.config)
+            const { set_count, host_resources, mute_attribute = '', module_detail } = tools.deepClone(this.config)
             const $this = this
             return {
                 formData: {
                     clusterCount: set_count,
                     set: [],
                     resource: host_resources,
+                    muteAttribute: mute_attribute,
                     modules: module_detail
                 },
                 setRules: {
@@ -310,6 +322,7 @@
                     default: gettext('默认'),
                     manual: gettext('手动指定'),
                     list: gettext('列表'),
+                    ip: gettext('请输入IP，多个以逗号隔开'),
                     reuse: gettext('复用其他模块机器'),
                     reuseModule: gettext('复用模块'),
                     muteMethod: gettext('互斥方案'),
@@ -322,8 +335,13 @@
             }
         },
         computed: {
+            canMuteModules () {
+                return this.moduleList.filter((item, index) => {
+                    return item.bk_module_id !== this.activeTab
+                })
+            },
             // 模块可引用列表，去掉相互引用，暂未处理三层或更多层的循环引用
-            canReusedModules (id) {
+            canReusedModules () {
                 return this.moduleList.filter((item, index) => {
                     return item.bk_module_id !== this.activeTab && this.formData.modules[index].reuse !== this.activeTab
                 })
@@ -486,6 +504,31 @@
                     this.pending.condition = false
                 }
             },
+            onSchemeSelect (id) {
+                const scheme = this.schemes.find(item => item.id === id)
+                const { module_detail, mute_attribute, set_count, host_resources, set_template_id, set_template_name } = JSON.parse(scheme.data)
+                const modules = module_detail.map(item => {
+                    const { custom_ip_list, host_count, host_filter_list, id, mute_method, mute_modules, name, reuse_module, select_method } = item
+                    return {
+                        id,
+                        name,
+                        count: host_count,
+                        selectMethod: select_method,
+                        reuse: reuse_module,
+                        customIpList: custom_ip_list,
+                        muteMethod: mute_method,
+                        muteModules: mute_modules,
+                        hostFilterList: host_filter_list
+                    }
+                })
+                this.formData = {
+                    clusterCount: set_count,
+                    set: [{ id: set_template_id, label: set_template_name }],
+                    resource: host_resources,
+                    muteAttribute: mute_attribute,
+                    modules
+                }
+            },
             async onSetSelect (checked) {
                 this.formData.set = [checked]
                 this.$refs.setTree.setCheckedKeys([checked.id])
@@ -498,8 +541,11 @@
                         id: item.bk_module_id,
                         isReuse: false,
                         reuse: '',
-                        filters: [],
-                        excludes: []
+                        selectMethod: 0,
+                        customIpList: '',
+                        muteMethod: 0,
+                        muteModules: [],
+                        hostFilterList: []
                     })
                 })
             },
@@ -573,16 +619,15 @@
                 })
                 this.$refs.resourceTree.setCheckedNodes(checkedNodes)
             },
-            onChangeReuse (val, data) {
-                if (val) {
-                    data.filters = []
-                    data.excludes = []
-                } else {
-                    data.reuse = ''
-                }
+            // 清除互斥属性后，所有模板默认的互斥方法置为不互斥
+            onMuteAttributeClear () {
+                this.formData.modules.forEach(item => {
+                    item.muteMethod = 0
+                })
             },
-            updateCondition (data) {
-                debugger
+            // 设置筛选和排除条件
+            updateCondition (conditions, moduleData) {
+                moduleData.hostFilterList = conditions
             },
             // 点击确定，校验表单，提交数据
             onConfigConfirm () {
@@ -595,7 +640,7 @@
                 let cycled = []
                 const passedModule = {}
                 this.formData.modules.some(md => {
-                    if (md.isReuse) {
+                    if (md.selectMethod === 2) {
                         if (passedModule.hasOwnProperty(md.reuse)) {
                             cycleCiting = true
                             cycled = [passedModule[md.reuse], md.name]
@@ -612,7 +657,7 @@
                     }, this)
                     return
                 }
-
+                // 校验所有模块的表单项是否合法
                 this.$refs.setForm.validate().then(async validator => {
                     let tabValid = true
                     if (this.$refs.moduleTab && this.$refs.moduleTab.length) {
@@ -636,18 +681,13 @@
             },
             // 保存资源筛选面板的表单数据，向父级同步
             async getHostsAndSave () {
-                const { clusterCount, modules, resource, set } = this.formData
+                const { clusterCount, modules, resource, set, muteAttribute } = this.formData
 
                 try {
                     this.pending.host = true
                     const fields = []
-                    modules.forEach(md => {
-                        md.filters.forEach(item => {
-                            if (item.field !== '' && !fields.includes(item.field)) {
-                                fields.push(item.field)
-                            }
-                        })
-                        md.excludes.forEach(item => {
+                    modules.forEach(md => { // 取出所有模块的筛选、排除条件字段
+                        md.hostFilterList.forEach(item => {
                             if (item.field !== '' && !fields.includes(item.field)) {
                                 fields.push(item.field)
                             }
@@ -660,7 +700,7 @@
                             bk_inst_id
                         }
                     })
-                    const hostData = await this.getHostInCC({
+                    const hostData = await this.getHostInCC({ // 加载所有主机列表
                         url: this.urls['cc_search_host'],
                         fields,
                         topo
@@ -684,7 +724,9 @@
                     const config = {
                         set_count: clusterCount,
                         set_template_id: set[0].id,
+                        set_template_name: set[0].label,
                         host_resources: resource,
+                        mute_attribute: muteAttribute,
                         module_detail: moduleDetail
                     }
                     this.$emit('update', config, moduleHosts)
@@ -708,25 +750,37 @@
              */
             filterModuleHost (data) {
                 let fullMdHosts = [] // 所有满足各模块的主机数据
-                const hosts = [] // 去重、按照实际数量截取的模块主机数据
+                const hosts = [] // 模块实际的主机数据，去重、按照实际数量配置截取
                 const reuseOthers = []
                 const usedHosts = []
                 for (let i = 0; i < this.formData.clusterCount; i++) {
                     const moduleHosts = {}
                     this.formData.modules.forEach(md => {
-                        const { filters, excludes, name, isReuse } = md
-                        const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
-                        const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
+                        const { id, selectMethod, customIpList, muteMethod, muteModules, hostFilterList } = md
+                        const validFilters = hostFilterList.filter(item => item.type === 'filter' && item.filed !== '' && item.value.length > 0)
+                        const validExclude = hostFilterList.filter(item => item.type === 'exclude' && item.filed !== '' && item.value.length > 0)
                         let list = []
 
-                        if (isReuse) {
+                        if (selectMethod === 2) { // 复用其他模块，则暂时不计算该模块的主机
                             reuseOthers.push(md)
-                        } else { // 未复用其他模块主机，则计算本模块数据
-                            if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
+                        } else if (selectMethod === 1) { // 模块手动填写 ip @todo：ip字符串校验、格式转换
+                            customIpList.forEach(ipItem => {
+                                if (data.find(item => item.bk_host_innerip === ipItem)) {
+                                    list.push(ipItem)
+                                }
+                            })
+                            fullMdHosts.push({
+                                id,
+                                list,
+                                percent: data.length > 0 ? list.length / data.length : 0
+                            })
+                        } else { // 默认筛选方式，则计算本模块数据
+                            if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
                                 list = data.map(d => d.bk_host_innerip)
                             } else {
                                 const filterObj = this.transFieldArrToObj(validFilters)
                                 const excludeObj = this.transFieldArrToObj(validExclude)
+                                const innerMuteAttr = [] // 模块内互斥，已使用的属性的值
 
                                 data.forEach(item => {
                                     let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
@@ -753,12 +807,20 @@
                                     }
 
                                     if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                        list.push(item.bk_host_innerip)
+                                        if (muteMethod === 1) { // 模块内互斥
+                                            if (!innerMuteAttr.includes(item[this.formData.muteAttribute])) {
+                                                innerMuteAttr.push(item[this.formData.muteAttribute])
+                                                list.push(item)
+                                            }
+                                        } else {
+                                            list.push(item)
+                                        }
                                     }
                                 })
                             }
                             fullMdHosts.push({
-                                name,
+                                id,
+                                muteModules,
                                 list,
                                 percent: data.length > 0 ? list.length / data.length : 0
                             })
@@ -766,26 +828,31 @@
                     })
                     fullMdHosts = fullMdHosts.sort((a, b) => b.percent - a.percent)
                     fullMdHosts.forEach(item => {
-                        const md = this.formData.modules.find(m => m.name === item.name)
-                        moduleHosts[item.name] = []
-                        item.list.forEach(h => {
-                            if (!usedHosts.includes(h) && moduleHosts[item.name].length < md.count) {
-                                moduleHosts[item.name].push(h)
-                                usedHosts.push(h)
+                        const md = this.formData.modules.find(m => m.id === item.id)
+                        const mutedHostAttrs = this.getModuleMutedHosts(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
+                        moduleHosts[item.id] = []
+
+                        item.list.some(h => {
+                            if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.mutedHostAttrs])) {
+                                moduleHosts[item.id].push(h.bk_host_innerip)
+                                usedHosts.push(h.bk_host_innerip)
+                            }
+                            if (moduleHosts[item.id].length === md.count) {
+                                return true
                             }
                         })
                     })
 
-                    reuseOthers.forEach(md => { // 复用其他模块主机数据，数量取按照本模块设置数
+                    reuseOthers.forEach(md => { // 复用其他模块主机数据，主机数量取本模块设置的值
                         let citedModule = this.formData.modules.find(item => item.id === md.reuse)
                         const citePath = [md]
-                        while (!moduleHosts[citedModule.name]) {
+                        while (!moduleHosts[citedModule.id]) {
                             citePath.unshift(Object.assign({}, citedModule))
                             citedModule = this.formData.modules.find(item => item.id === citedModule.reuse)
                         }
                         citePath.forEach(item => {
                             const cModule = this.formData.modules.find(cm => cm.id === item.reuse)
-                            moduleHosts[item.name] = moduleHosts[cModule.name].slice(0, item.count)
+                            moduleHosts[item.id] = moduleHosts[cModule.id].slice(0, item.count)
                         })
                     })
                     hosts.push(moduleHosts)
@@ -813,6 +880,27 @@
 
                     return acc
                 }, {})
+            },
+            /**
+             * 获取目标模块，已经被其他互斥模块引用的主机互斥属性
+             * @param {Number} id 模块 id
+             * @param {Array} prevModulesHost 已被遍历的模块使用的主机
+             * @param {Array} hosts 全量主机数据
+             */
+            getModuleMutedHostAttrs (id, prevModulesHost, hosts) {
+                const mutedHostAttrs = []
+                Object.keys(prevModulesHost).keys(mid => {
+                    const moduleItem = this.formData.modules.find(item => item.id === mid)
+                    if (moduleItem.muteMethod === 2 && moduleItem.muteModule.includes(id)) {
+                        prevModulesHost.forEach(ip => {
+                            const hostItem = hosts.find(item => item.bk_host_innerip === ip)
+                            if (!mutedHostAttrs.includes(hostItem[this.formData.mutedHostAttrs])) {
+                                mutedHostAttrs.push(hostItem[this.formData.mutedHostAttrs])
+                            }
+                        })
+                    }
+                })
+                return mutedHostAttrs
             }
         }
     }
@@ -846,6 +934,10 @@
                     color: #313138;
                     font-size: 12px;
                 }
+            }
+            .bk-radio-group /deep/ .bk-form-radio {
+                margin-right: 30px;
+                font-size: 12px;
             }
         }
     }
