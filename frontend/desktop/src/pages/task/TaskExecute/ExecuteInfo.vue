@@ -552,6 +552,7 @@
                         this.outputsInfo = outputs
                         this.inputsInfo = inputs
                         this.logInfo = log
+                        this.isLogLoading = false
                         this.historyInfo = history.sort((a, b) => {
                             if (a.loop === b.loop) {
                                 return b.history_id - a.history_id

@@ -192,7 +192,6 @@
 
             return {
                 defaultActiveId: '',
-                locations: [],
                 setNodeDetail: true,
                 atomList: [],
                 quickClose: true,
@@ -1060,7 +1059,6 @@
                     }
                 } else {
                     this.selectedFlowPath = nodePath
-                    await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
                 if (nodeType !== 'subflow') {
@@ -1074,7 +1072,6 @@
                 this.pipelineData = isRootNode ? nodeActivities : nodeActivities.pipeline
                 this.cancelTaskStatusTimer()
                 await this.updateTaskStatus(id)
-                this.locations = this.canvasData.locations
             },
             // 更新节点的参数面板信息
             updataNodeParamsInfo (nodeActivities) {
