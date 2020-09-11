@@ -171,12 +171,12 @@
             // 获取表格原始列配置项
             async getColsConfig () {
                 try {
-                    if (!this.urls['cc_search_create_object_attribute_set']) {
+                    if (!this.urls['cc_search_create_object_attribute_host']) {
                         return
                     }
                     this.colsLoading = true
                     const resp = await this.getCCSearchColAttrSet({
-                        url: this.urls['cc_search_create_object_attribute_set']
+                        url: this.urls['cc_search_create_object_attribute_host']
                     })
                     if (resp.result) {
                         this.originalCols = resp.data
@@ -193,45 +193,13 @@
             // 将模块列拼接到表格中，从第二列开始
             joinCols (modules) {
                 // const modulesConfig = []
-                const originalConfig = this.originalCols.map(item => {
+                const cols = this.originalCols.map(item => {
                     return {
                         width: 100,
                         config: item
                     }
                 })
-                // modules.forEach(item => {
-                //     const count = item.host_count
-                //     modulesConfig.push({
-                //         width: 150,
-                //         config: {
-                //             tag_code: item.name,
-                //             type: 'textarea',
-                //             attrs: {
-                //                 name: item.name + '(' + item.host_count + ')',
-                //                 editable: true,
-                //                 validation: [
-                //                     {
-                //                         type: 'custom',
-                //                         args (val) {
-                //                             let result = true
-                //                             let message = ''
-                //                             const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
-                //                             if (hosts.length < count) {
-                //                                 result = false
-                //                                 message = gettext('资源不足')
-                //                             }
-                //                             return {
-                //                                 result,
-                //                                 error_message: message
-                //                             }
-                //                         }
-                //                     }
-                //                 ]
-                //             }
-                //         }
-                //     })
-                // })
-                const cols = [...originalConfig]
+
                 if (!this.viewValue) {
                     cols.push({
                         width: 100,
@@ -262,7 +230,7 @@
                                 const rowData = data[i]
                                 if (rowData.hasOwnProperty(tagCode)) {
                                     valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
-                                        [tagCode]: rowData
+                                        [tagCode]: rowData[tagCode]
                                     }
                                 } else {
                                     valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
@@ -274,6 +242,7 @@
                         value.push(valItem)
                     }
                 }
+                console.log(value, '3333333333333333')
                 this.localValue = value
             },
             /**
@@ -284,14 +253,15 @@
              */
             updateConfig (conf, moduleData) {
                 const data = []
+                // if (conf.set_count > moduleData.length) {
+                //     conf.set_count = moduleData.length
+                // }
                 for (let i = 0; i < conf.set_count; i++) {
                     data.push(Object.assign({}, moduleData[i]))
                 }
-                console.log(data, '2222')
                 this.localConfig = conf
-                this.joinCols(this.localConfig.module_detail)
-                // this.joinValue(conf.set_count, data)
-                this.localValue = data
+                this.getColsConfig()
+                this.joinValue(conf.set_count, data)
                 this.updatePropsData()
             },
             /**

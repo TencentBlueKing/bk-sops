@@ -26,7 +26,7 @@
         <section class="module-form">
             <bk-form ref="setForm" :model="formData" :rules="setRules">
                 <!--筛选方案-->
-                <bk-form-item :label="i18n.screenScheme" :required="true" property="screenValue">
+                <bk-form-item :label="i18n.screenScheme">
                     <el-autocomplete
                         class="inline-input"
                         v-model="formData.screenValue"

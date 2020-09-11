@@ -91,9 +91,10 @@ const task = {
         configProgramList ({ commit }, payload) {
             const requestData = {
                 project_id: store.state.project,
-                config_type: payload
+                config_type: payload,
+                all: true
             }
-            return axios.get('taskflow/api/v3/resource_config/', requestData).then(response => response.data)
+            return axios.get('api/v3/resource_config/', requestData).then(response => response.data)
         },
         /**
          * 创建任务
