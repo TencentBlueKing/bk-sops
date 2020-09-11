@@ -66,7 +66,7 @@
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
-                    v-if="nodeInfoType === 'executeInfo'"
+                    v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
@@ -754,7 +754,7 @@
                 }
             },
             onRetryClick (id) {
-                this.onTaskParamsClick('retryNode', true, i18n.t('重试'))
+                this.onSidesliderConfig('retryNode', i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -766,7 +766,7 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
-                this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
+                this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -877,28 +877,19 @@
             },
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
-                let nodeData = tools.deepClone(this.nodeData)
-                let firstNodeId = null
-                let firstNodeData = null
-                const rootNode = []
-                while (nodeData[0]) {
-                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-                        firstNodeId = nodeData[0].id
-                        firstNodeData = nodeData[0]
-                        nodeData[0] = false
-                    } else {
-                        rootNode.push(nodeData[0])
-                        nodeData = nodeData[0].children
+                if (type === 'viewNodeDetails') {
+                    let nodeData = tools.deepClone(this.nodeData)
+                    let firstNodeId = null
+                    let firstNodeData = null
+                    while (nodeData[0]) {
+                        if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                            firstNodeId = nodeData[0].id
+                            firstNodeData = nodeData[0]
+                            nodeData[0] = false
+                        } else {
+                            nodeData = nodeData[0].children
+                        }
                     }
-                }
-                this.sideSliderTitle = name
-                this.isNodeInfoPanelShow = isNodeInfoPanelShow
-                this.nodeInfoType = type
-                this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
-                    this.quickClose = false
-                }
-                if (name === i18n.t('节点详情')) {
                     this.defaultActiveId = firstNodeId
                     let subprocessStack = []
                     if (rootNode.length > 1) {
@@ -914,6 +905,17 @@
                 }
                 if (type === 'templateData') {
                     this.transPipelineTreeStr()
+                }
+                this.onSidesliderConfig(type, name)
+            },
+            // 侧滑面板配置
+            onSidesliderConfig (type, name) {
+                this.sideSliderTitle = name
+                this.isNodeInfoPanelShow = true
+                this.nodeInfoType = type
+                this.quickClose = true
+                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
+                    this.quickClose = false
                 }
             },
             
@@ -976,7 +978,7 @@
                         isPanelShow = nodeState.state === 'FAILED'
                     }
                 }
-                this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                 if (isPanelShow) {
                     let subprocessStack = []
                     if (this.selectedFlowPath.length > 1) {

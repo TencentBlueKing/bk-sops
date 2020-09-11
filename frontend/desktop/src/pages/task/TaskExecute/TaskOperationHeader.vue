@@ -58,14 +58,14 @@
                         'solid-eye',
                         'common-icon-solid-eye',
                         {
-                            actived: nodeInfoType === 'executeInfo'
+                            actived: nodeInfoType === 'viewNodeDetails'
                         }
                     ]"
                     v-bk-tooltips="{
                         content: $t('查看节点详情'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('executeInfo', $t('节点详情'))">
+                    @click="onTaskParamsClick('viewNodeDetails', $t('节点详情'))">
                 </i>
                 <i
                     :class="[
@@ -185,7 +185,7 @@
                 this.$emit('onOperationClick', action)
             },
             onTaskParamsClick (type, name) {
-                this.$emit('onTaskParamsClick', type, true, name)
+                this.$emit('onTaskParamsClick', type, name)
             },
             onBack () {
                 if (this.view_mode === 'appmaker') {
