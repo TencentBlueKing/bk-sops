@@ -85,7 +85,7 @@
             return {
                 showFilter: false,
                 localConfig: tools.deepClone(this.config),
-                localValue: this.tranformPropsModuleData(this.value),
+                localValue: this.tranformPropsValueData(this.value),
                 colsLoading: false,
                 originalCols: [], // 表格列原始配置项
                 tbCols: [] // 增加模块列后的表格配置项
@@ -100,7 +100,7 @@
             },
             value: {
                 handler (val) {
-                    this.localValue = this.tranformPropsModuleData(val)
+                    this.localValue = this.tranformPropsValueData(val)
                 },
                 deep: true
             }
@@ -113,27 +113,20 @@
                 'getCCSearchColAttrSet'
             ]),
             /**
-             * 转换 value 的格式
-             * value 中保存的模块数据统一放在 key 为 `__module` 的数组里，需要把里面的数据提取出来
-             *
+             * 转换props的 value 的格式
              */
-            tranformPropsModuleData (data) {
+            tranformPropsValueData (data) {
                 const localData = []
                 data.forEach(item => {
                     const dataItem = {}
                     Object.keys(item).forEach(key => {
-                        if (key !== '__module') {
-                            dataItem[key] = { // renderForm 组件 value 需要接受 object 类型数据
-                                [key]: tools.deepClone(item[key])
-                            }
-                        } else {
-                            if (item[key].length > 0) {
-                                item[key].forEach(md => {
-                                    dataItem[md.key] = {
-                                        [md.key]: md.value.join('\n')
-                                    }
-                                })
-                            }
+                        // renderForm 组件 value 需要接受 object 类型数据
+                        if (item[key].length > 0) {
+                            item[key].forEach(md => {
+                                dataItem[md.key] = {
+                                    [md.key]: md.value.join('\n')
+                                }
+                            })
                         }
                     })
                     localData.push(dataItem)
@@ -150,7 +143,6 @@
                     this.tbCols.forEach(col => {
                         const { tag_code: tagCode } = col.config
                         if (tagCode !== 'tb_btns') {
-                            // 普通数据列
                             dataItem[tagCode] = tools.deepClone(rowData[tagCode][tagCode])
                         }
                     })
@@ -270,7 +262,6 @@
              * @param {Object} sheetData excel数据
              */
             importData (sheetData) {
-                const modules = []
                 const data = []
                 const rowCount = sheetData.length
                 const headerMap = {}
@@ -291,7 +282,7 @@
                     })
                     data.push(value)
                 })
-                this.joinCols(modules)
+                this.joinCols()
                 this.joinValue(rowCount, data)
                 this.updatePropsData()
             },

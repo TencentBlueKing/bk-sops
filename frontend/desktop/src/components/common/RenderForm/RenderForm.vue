@@ -218,6 +218,16 @@
                             }
                             break
                         case 'set_allocation':
+                            val = {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: []
+                            }
+                            break
                         case 'host_allocation':
                             val = {
                                 config: {
