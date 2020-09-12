@@ -488,7 +488,7 @@
                 try {
                     this.pending.scheme = true
                     const resp = await this.getResourceConfig({
-                        url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/?project_id=${$.context.getBkBizId()}&config_type=set`
+                        url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/?project_id=${$.context.project.id}&config_type=set`
                     })
                     if (resp.result) {
                         this.schemes = resp.data
@@ -650,12 +650,12 @@
                             const params = {
                                 url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/`,
                                 data: {
-                                    project_id: $.context.getBkBizId(),
+                                    project_id: $.context.project ? $.context.project.id : '',
                                     config_type: 'set',
                                     name: this.schemeData.name
                                 }
                             }
-                            if (!scheme) {
+                            if (scheme) {
                                 configData.id = scheme.id
                                 configData.name = scheme.name
                                 params.data.data = JSON.stringify(configData)

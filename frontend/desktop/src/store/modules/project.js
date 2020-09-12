@@ -83,16 +83,11 @@ const project = {
         // 更新项目详情
         updateProject ({ commit }, data) {
             const { id, name, time_zone, desc, is_disable } = data
-            return axios.post(`api/v3/project/${id}/`, {
+            return axios.patch(`api/v3/project/${id}/`, {
                 name,
                 time_zone,
                 desc,
                 is_disable
-            }, {
-                headers: {
-                    'content-type': 'application/json',
-                    'X-HTTP-Method-Override': 'PATCH'
-                }
             }).then(response => response.data)
         }
     },
