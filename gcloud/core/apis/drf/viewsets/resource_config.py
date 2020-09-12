@@ -10,8 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
+from django.http import QueryDict
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.response import Response
 
@@ -40,6 +39,7 @@ class ResourceConfigViewSet(
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        request.data._mutable = True
+        if isinstance(request.data, QueryDict):
+            request.data._mutable = True
         request.data.update({"creator": request.user.username})
         return super(ResourceConfigViewSet, self).create(request, *args, **kwargs)
