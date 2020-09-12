@@ -143,7 +143,12 @@ const store = new Vuex.Store({
         },
         saveResourceScheme ({ commit }, params) {
             const { url, data } = params
-            return axios.post(url, data).then(response => response.data)
+            return axios.post(url, data, {
+                headers: {
+                    'content-type': 'application/json',
+                    'X-HTTP-Method-Override': 'PATCH'
+                }
+            }).then(response => response.data)
         },
         createResourceScheme ({ commit }, params) {
             const { url, data } = params

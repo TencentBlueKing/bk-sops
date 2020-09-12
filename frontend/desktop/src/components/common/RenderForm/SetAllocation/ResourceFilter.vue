@@ -628,6 +628,7 @@
                 }
                 this.schemeData.name = scheme.name
             },
+            // 保存或创建筛选方案
             onSchemeConfirm () {
                 if (this.pending.saveScheme) {
                     return
@@ -636,24 +637,25 @@
                     if (result) {
                         const isConfigFormValid = await this.validateConfigForm()
                         if (!isConfigFormValid) {
+                            this.isSchemeDialogShow = false
                             return
                         }
 
+                        this.pending.saveScheme = true
                         let resp
-                        const scheme = this.schemes.find(item => item.name === this.schemeData.name)
-                        const configData = this.getConfigData()
-                        configData.config_type = 'set'
-                        const params = {
-                            url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/`,
-                            data: {
-                                project_id: $.context.getBkBizId(),
-                                config_type: 'set',
-                                name: this.schemeData.name
-                            }
-                        }
                         try {
-                            this.pending.saveScheme = true
-                            if (scheme) {
+                            const scheme = this.schemes.find(item => item.name === this.schemeData.name)
+                            const configData = this.getConfigData()
+                            configData.config_type = 'set'
+                            const params = {
+                                url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/`,
+                                data: {
+                                    project_id: $.context.getBkBizId(),
+                                    config_type: 'set',
+                                    name: this.schemeData.name
+                                }
+                            }
+                            if (!scheme) {
                                 configData.id = scheme.id
                                 configData.name = scheme.name
                                 params.data.data = JSON.stringify(configData)
@@ -816,8 +818,11 @@
                     }, this)
                     return false
                 }
-                // 校验所有模块的表单项是否合法
-                return this.$refs.setForm.validate().then(async validator => {
+                return this.$refs.setForm.validate().then(async result => {
+                    if (!result) {
+                        return false
+                    }
+
                     let tabValid = true
                     if (this.$refs.moduleTab && this.$refs.moduleTab.length) {
                         const len = this.$refs.moduleTab.length
