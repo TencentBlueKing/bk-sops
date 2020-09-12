@@ -57,10 +57,10 @@
                 type: Object,
                 default () {
                     return {
-                        set_template_id: '',
+                        host_count: 0,
+                        host_screenValue: '',
                         host_resources: [],
-                        set_count: 0,
-                        module_detail: []
+                        host_filter_detail: []
                     }
                 }
             },
@@ -142,25 +142,16 @@
             },
             /**
              * 转换组件的 localValue 格式
-             * 把组件模块数据收到 `__module` 属性中
              */
-            transformLocalModuleData (data) {
+            transformLocalValueData (data) {
                 const propsValue = []
                 data.forEach((rowData) => {
-                    const dataItem = {
-                        '__module': []
-                    }
+                    const dataItem = {}
                     this.tbCols.forEach(col => {
-                        const { tag_code: tagCode, module } = col.config
+                        const { tag_code: tagCode } = col.config
                         if (tagCode !== 'tb_btns') {
-                            if (module) { // 模块列
-                                dataItem.__module.push({
-                                    key: tagCode,
-                                    value: rowData[tagCode][tagCode].split('\n').map(item => item.trim()).filter(item => item !== '')
-                                })
-                            } else { // 普通数据列
-                                dataItem[tagCode] = tools.deepClone(rowData[tagCode][tagCode])
-                            }
+                            // 普通数据列
+                            dataItem[tagCode] = tools.deepClone(rowData[tagCode][tagCode])
                         }
                     })
                     propsValue.push(dataItem)
@@ -180,7 +171,7 @@
                     })
                     if (resp.result) {
                         this.originalCols = resp.data
-                        this.joinCols(this.localConfig.module_detail)
+                        this.joinCols()
                     } else {
                         errorHandler(resp, this)
                     }
@@ -190,16 +181,14 @@
                     this.colsLoading = false
                 }
             },
-            // 将模块列拼接到表格中，从第二列开始
-            joinCols (modules) {
-                // const modulesConfig = []
+            // 设置表格头
+            joinCols () {
                 const cols = this.originalCols.map(item => {
                     return {
                         width: 100,
                         config: item
                     }
                 })
-
                 if (!this.viewValue) {
                     cols.push({
                         width: 100,
@@ -211,13 +200,12 @@
                         }
                     })
                 }
-
                 this.tbCols = cols
             },
             /**
              * 组装表格数据对象为 renderForm 组件使用的数据格式
              * @param {Number} rowCount 表格行数
-             * @param {Array} data 表格原始数据 [{bk_set_name: 'aaa', gamser: ''}...]
+             * @param {Array} data 表格原始数据 [{bk_host_id: 'aaa', gamser: ''}...]
              */
             joinValue (rowCount, data) {
                 const value = []
@@ -242,27 +230,22 @@
                         value.push(valItem)
                     }
                 }
-                console.log(value, '3333333333333333')
                 this.localValue = value
             },
             /**
              * 同步资源筛选面板的数据
              *
              * @param {Object} conf 资源筛选表单配置项数据
-             * @param {Object} moduleData 包含模块的主机数据
+             * @param {Object} eligibleHosts 主机数据
              */
-            updateConfig (conf, moduleData) {
+            updateConfig (conf, eligibleHosts) {
                 const data = []
-                // if (conf.set_count > moduleData.length) {
-                //     conf.set_count = moduleData.length
-                // }
-                for (let i = 0; i < conf.set_count; i++) {
-                    data.push(Object.assign({}, moduleData[i]))
+                for (let i = 0; i < conf.host_count; i++) {
+                    data.push(Object.assign({}, eligibleHosts[i]))
                 }
                 this.localConfig = conf
                 this.getColsConfig()
-                this.joinValue(conf.set_count, data)
-                // this.localValue = data
+                this.joinValue(conf.host_count, data)
                 this.updatePropsData()
             },
             /**
@@ -276,7 +259,7 @@
             updatePropsData () {
                 const propsData = {
                     config: tools.deepClone(this.localConfig),
-                    data: this.transformLocalModuleData(this.localValue)
+                    data: this.transformLocalValueData(this.localValue)
                 }
                 this.$emit('update', propsData)
             },
@@ -291,7 +274,6 @@
                 const data = []
                 const rowCount = sheetData.length
                 const headerMap = {}
-                const moduleNameReg = /[\u4e00-\u9fa5\w]+\:(\w+)\((\d+)\)$/ // 表头模块列字符匹配
 
                 this.originalCols.forEach(col => {
                     const tagCode = col.tag_code
@@ -302,23 +284,9 @@
                 sheetData.forEach(row => {
                     const value = {}
                     Object.keys(row).map(header => {
-                        const moduleMatchResult = header.match(moduleNameReg)
-                        if (moduleMatchResult) { // 模块列
-                            const key = moduleMatchResult[1]
-                            const count = moduleMatchResult[2]
-                            if (!headerMap.hasOwnProperty(header)) {
-                                headerMap[header] = key
-                                modules.push({
-                                    name: key,
-                                    host_count: count
-                                })
-                            }
-                            value[key] = row[header].split('\n').map(ip => ip.trim()).filter(item => item !== '')
-                        } else {
-                            const key = headerMap[header]
-                            if (key) {
-                                value[key] = row[header]
-                            }
+                        const key = headerMap[header]
+                        if (key) {
+                            value[key] = row[header]
                         }
                     })
                     data.push(value)

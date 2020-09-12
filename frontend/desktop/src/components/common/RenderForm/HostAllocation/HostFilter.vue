@@ -85,9 +85,9 @@
                 <div class="condition-wrapper">
                     <select-condition
                         ref="filterConditions"
-                        :label="i18n.filter"
+                        :label="i18n.filterExcludeTitle"
                         :condition-fields="conditions"
-                        :conditions="screenArr"
+                        :conditions="host_filter_list"
                         @change="updateCondition($event)">
                     </select-condition>
                 </div>
@@ -117,10 +117,10 @@
                 type: Object,
                 default () {
                     return {
-                        set_count: 0,
-                        set_template_id: '',
+                        host_count: 0,
+                        host_screenValue: '',
                         host_resources: [],
-                        module_detail: []
+                        host_filter_detail: []
                     }
                 }
             },
@@ -132,17 +132,19 @@
             }
         },
         data () {
-            const { set_count, host_resources, set_template_id } = tools.deepClone(this.config)
+            const { host_count, host_resources, host_screenValue, host_filter_detail } = tools.deepClone(this.config)
             return {
-                screenArr: [],
+                // 传递给SelectCondition的所有数据
+                host_filter_list: host_filter_detail,
                 formData: {
-                    clusterCount: set_count,
-                    screenValue: set_template_id,
+                    clusterCount: host_count,
+                    screenValue: host_screenValue,
                     resource: host_resources,
-                    host_filter_list: [{
+                    // 用来做筛选排除的
+                    filterExcludeSet: {
                         filter: [],
                         exclude: []
-                    }]
+                    }
                 },
                 hostRules: {
                     clusterCount: [
@@ -158,22 +160,13 @@
                             message: gettext('必选项'),
                             trigger: 'blur'
                         }
-                    ],
-                    count: [{
-                        required: true,
-                        message: gettext('必填项'),
-                        trigger: 'blur'
-                    }]
+                    ]
                 },
-                validatingTabIndex: 0, // 正在被校验的 module tab，每次校验之前清零
                 resourceList: [], // 主机资源所属 tree
-                moduleList: [], // 集群下模块列表
-                activeTab: '',
                 conditions: [],
                 pending: {
                     screen: false,
                     resource: false,
-                    module: false,
                     condition: false,
                     host: false
                 },
@@ -183,8 +176,7 @@
                     cancel: gettext('取消'),
                     resource: gettext('主机资源所属'),
                     resourceNum: gettext('主机数量'),
-                    filter: gettext('主机筛选条件'),
-                    exclude: gettext('主机排除条件'),
+                    filterExcludeTitle: gettext('筛选条件和排除条件'),
                     save: gettext('保存'),
                     screenScheme: gettext('筛选方案')
                 },
@@ -192,22 +184,13 @@
             }
         },
         async mounted () {
-            // this.getSetTopo()
             this.getResource()
             this.getCondition()
-            const { module_detail } = tools.deepClone(this.config)
-            if (module_detail.length) {
-                module_detail.forEach(item => {
-                    this.screenArr = [...item.exclude, ...item.filter]
-                })
-            }
         },
         methods: {
             ...mapActions([
                 'getHostInCC',
-                'getCCSearchTopoSet',
                 'getCCSearchTopoResource',
-                'getCCSearchModule',
                 'getCCSearchObjAttrHost'
             ]),
             ...mapActions('task/', [
@@ -381,15 +364,23 @@
 
             // 主机筛选条件change事件
             updateCondition (value) {
-                this.screenArr = value
+                this.host_filter_list = value
             },
             // 点击确定，校验表单，提交数据
             onConfigConfirm () {
                 if (this.pending.host) {
                     return
                 }
-                this.screenArr.forEach(item => {
-                    this.formData.host_filter_list[0][item.type].push(item)
+                const newFilterList = this.host_filter_list.map(item => {
+                    return {
+                        type_val: item.type === 'filter' ? '1' : '2',
+                        name: item.field,
+                        value: item.value
+                    }
+                })
+                newFilterList.forEach(item => {
+                    const type = item.type_val === '1' ? 'filter' : 'exclude'
+                    this.formData.filterExcludeSet[type].push(item)
                 })
                 this.$refs.hostForm.validate().then(async validator => {
                     this.getHostsAndSave()
@@ -397,22 +388,17 @@
             },
             // 保存资源筛选面板的表单数据，向父级同步
             async getHostsAndSave () {
-                const { clusterCount, host_filter_list, resource, screenValue } = this.formData
+                const { clusterCount, filterExcludeSet, resource, screenValue } = this.formData
                 try {
                     this.pending.host = true
                     const fields = []
-                    host_filter_list.forEach(md => {
-                        md.filter.forEach(item => {
-                            if (item.field !== '' && !fields.includes(item.field)) {
-                                fields.push(item.field)
+                    for (const k in filterExcludeSet) {
+                        filterExcludeSet[k].forEach(item => {
+                            if (item.name !== '' && !fields.includes(item.name)) {
+                                fields.push(item.name)
                             }
                         })
-                        md.exclude.forEach(item => {
-                            if (item.field !== '' && !fields.includes(item.field)) {
-                                fields.push(item.field)
-                            }
-                        })
-                    })
+                    }
                     const topo = resource.map(item => {
                         const [bk_obj_id, bk_inst_id] = item.id.split('_')
                         return {
@@ -425,25 +411,23 @@
                         fields,
                         topo
                     })
-                    const moduleHosts = this.filterModuleHost(hostData.data)
-                    const moduleDetail = host_filter_list.map(item => {
-                        const { filter, exclude } = item
-                        // 取有效筛选、排除条件，不做校验（和 ip 选择器有区别，这里多个 tab 有多个相同 refs）
-                        const validFilters = filter.filter(item => item.filed !== '' && item.value.length > 0)
-                        const validExclude = exclude.filter(item => item.filed !== '' && item.value.length > 0)
-
+                    const eligibleHosts = this.filterHost(hostData.data)
+                    const { filter, exclude } = filterExcludeSet
+                    const oldConditionsArr = [...filter, ...exclude]
+                    const newConditionsArr = oldConditionsArr.map(item => {
                         return {
-                            filter: validFilters,
-                            exclude: validExclude
+                            type: item.type_val === '1' ? 'filter' : 'exclude',
+                            field: item.name,
+                            value: item.value
                         }
                     })
                     const config = {
-                        set_count: clusterCount,
-                        set_template_id: screenValue,
+                        host_count: clusterCount,
+                        host_screenValue: screenValue,
                         host_resources: resource,
-                        module_detail: moduleDetail
+                        host_filter_detail: newConditionsArr
                     }
-                    this.$emit('update', config, moduleHosts)
+                    this.$emit('update', config, eligibleHosts)
                     this.$emit('update:showFilter', false)
                 } catch (error) {
                     errorHandler(error, this)
@@ -452,58 +436,53 @@
                 }
             },
             /**
-             * 根据接口返回的全量 host 数据，筛选出对应模块的 host 值，每个集群(资源表格的每一行)主机资源不能重复
+             * 根据接口返回的全量 host 数据，筛选出符合条件的 host 值
              * host 值需要同时满足筛选条件和排除条件
-             * 非复用模块间主机不能重复，先分别计算所有满足模块条件的主机，再计算模块所需主机数与满足条件主机的比值，值大的模块优先在主机里取值
-             * 模块复用时，取其复用的模块主机数据
-             * 每个模块的 host 数量不能超过 moudule.count 设置
              *
              * @param {Array} data 全量的 host 数据
              *
-             * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [xx.xx.x.x, x.x.x.xxx], ...}
+             * @return {Object} 符合筛选条件的 host 值，格式: [{...}, ...]
              */
-            filterModuleHost (data) {
+            filterHost (data) {
                 let hostLists = [] // 所有满足主机数据
-                this.formData.host_filter_list.forEach(md => {
-                    const { filter, exclude } = md
-                    const validFilters = filter.filter(item => item.filed !== '' && item.value.length > 0)
-                    const validExclude = exclude.filter(item => item.filed !== '' && item.value.length > 0)
-                    // 未复用其他模块主机，则计算本模块数据
-                    if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                        hostLists = data.map(d => d)
-                    } else {
-                        const filterObj = this.transFieldArrToObj(validFilters)
-                        const excludeObj = this.transFieldArrToObj(validExclude)
-                        data.forEach(item => {
-                            let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
-                            let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
+                const { filter, exclude } = this.formData.filterExcludeSet
+                const validFilters = filter.filter(item => item.name !== '' && item.value.length > 0)
+                const validExclude = exclude.filter(item => item.name !== '' && item.value.length > 0)
+                // 筛选条件和排序条件为空，按照设置的主机数截取
+                if (validFilters.length === 0 && validExclude.length === 0) {
+                    hostLists = data.map(d => d)
+                } else {
+                    const filterObj = this.transFieldArrToObj(validFilters)
+                    const excludeObj = this.transFieldArrToObj(validExclude)
+                    data.forEach(item => {
+                        let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
+                        let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
 
-                            if (validFilters.length === 0) {
-                                included = true
-                            } else {
-                                Object.keys(filterObj).some(filterKey => {
-                                    if (filterObj[filterKey].includes(item[filterKey])) {
-                                        included = true
-                                        return true
-                                    }
-                                })
-                            }
-                            
-                            if (included) {
-                                Object.keys(excludeObj).some(excludeKey => {
-                                    if (excludeObj[excludeKey].includes(item[excludeKey])) {
-                                        excluded = true
-                                        return true
-                                    }
-                                })
-                            }
+                        if (validFilters.length === 0) {
+                            included = true
+                        } else {
+                            Object.keys(filterObj).some(filterKey => {
+                                if (filterObj[filterKey].includes(item[filterKey])) {
+                                    included = true
+                                    return true
+                                }
+                            })
+                        }
+                        
+                        if (included) {
+                            Object.keys(excludeObj).some(excludeKey => {
+                                if (excludeObj[excludeKey].includes(item[excludeKey])) {
+                                    excluded = true
+                                    return true
+                                }
+                            })
+                        }
 
-                            if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                hostLists.push(item)
-                            }
-                        })
-                    }
-                })
+                        if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
+                            hostLists.push(item)
+                        }
+                    })
+                }
                 return hostLists
             },
             /**

@@ -1,5 +1,6 @@
 const en = {
     '筛选方案': 'Screening scheme',
+    '筛选条件和排除条件': 'Screening criteria and exclusion criteria',
     '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',

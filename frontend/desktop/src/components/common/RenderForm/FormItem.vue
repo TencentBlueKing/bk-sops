@@ -338,10 +338,10 @@
                             type: 'Object',
                             value: {
                                 config: {
-                                    set_count: 0,
-                                    set_template_id: '',
+                                    host_count: 0,
+                                    host_screenValue: '',
                                     host_resources: [],
-                                    module_detail: []
+                                    host_filter_detail: []
                                 },
                                 data: []
                             }
