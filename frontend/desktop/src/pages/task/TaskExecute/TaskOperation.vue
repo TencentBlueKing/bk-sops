@@ -891,20 +891,19 @@
                     this.defaultActiveId = firstNodeId
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
+                if (type === 'templateData') {
+                    this.transPipelineTreeStr()
+                }
                 this.onSidesliderConfig(type, name)
             },
             // 侧滑面板配置
-            onSidesliderConfig (type, isNodeInfoPanelShow, name) {
+            onSidesliderConfig (type, name) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
                 this.quickClose = true
                 if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
                     this.quickClose = false
-                }
-                
-                if (type === 'templateData') {
-                    this.transPipelineTreeStr()
                 }
             },
             
