@@ -906,6 +906,9 @@
                 if (type === 'templateData') {
                     this.transPipelineTreeStr()
                 }
+                if (type === 'templateData') {
+                    this.transPipelineTreeStr()
+                }
                 this.onSidesliderConfig(type, name)
             },
             // 侧滑面板配置
