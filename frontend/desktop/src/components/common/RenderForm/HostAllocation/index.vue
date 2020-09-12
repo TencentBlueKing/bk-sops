@@ -262,6 +262,7 @@
                 this.localConfig = conf
                 this.getColsConfig()
                 this.joinValue(conf.set_count, data)
+                // this.localValue = data
                 this.updatePropsData()
             },
             /**
@@ -337,5 +338,15 @@
         padding: 10px;
         border: 1px solid #ececec;
         border-radius: 2px;
+    }
+</style>
+<style lang="scss" scoped>
+    /deep/ .data-table {
+        .bk-table-empty-text {
+            width: 100%;
+            .no-data-wrapper {
+                width: 50%;
+            }
+        }
     }
 </style>

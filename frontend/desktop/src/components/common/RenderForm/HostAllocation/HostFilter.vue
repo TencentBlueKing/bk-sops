@@ -11,7 +11,7 @@
 */
 <template>
     <div class="resource-filter">
-        <header class="set-form">
+        <header class="host-form">
             <span class="title">{{ i18n.title }}</span>
             <div class="btns">
                 <bk-button theme="primary" size="small" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
@@ -24,7 +24,7 @@
             </div>
         </header>
         <section class="module-form">
-            <bk-form ref="setForm" :model="formData" :rules="setRules">
+            <bk-form ref="hostForm" :model="formData" :rules="hostRules">
                 <!--筛选方案-->
                 <bk-form-item :label="i18n.screenScheme">
                     <el-autocomplete
@@ -74,7 +74,7 @@
                             show-checkbox
                             check-strictly
                             :props="{
-                                disabled: setResourceDisabled
+                                disabled: hostResourceDisabled
                             }"
                             :data="resourceList"
                             @check="onResourceSelect">
@@ -144,15 +144,8 @@
                         exclude: []
                     }]
                 },
-                setRules: {
+                hostRules: {
                     clusterCount: [
-                        {
-                            required: true,
-                            message: gettext('必选项'),
-                            trigger: 'blur'
-                        }
-                    ],
-                    screenValue: [
                         {
                             required: true,
                             message: gettext('必选项'),
@@ -173,7 +166,6 @@
                     }]
                 },
                 validatingTabIndex: 0, // 正在被校验的 module tab，每次校验之前清零
-                setList: [], // 集群模板 tree
                 resourceList: [], // 主机资源所属 tree
                 moduleList: [], // 集群下模块列表
                 activeTab: '',
@@ -189,12 +181,8 @@
                     title: gettext('资源筛选'),
                     confirm: gettext('确认'),
                     cancel: gettext('取消'),
-                    cluster: gettext('集群个数'),
-                    set: gettext('集群模板'),
                     resource: gettext('主机资源所属'),
                     resourceNum: gettext('主机数量'),
-                    reuse: gettext('复用其他模块机器'),
-                    reuseModule: gettext('复用模块'),
                     filter: gettext('主机筛选条件'),
                     exclude: gettext('主机排除条件'),
                     save: gettext('保存'),
@@ -341,7 +329,7 @@
             },
             
             // 主机资源所属，选中父节点后子节点不可选
-            setResourceDisabled (data, node) {
+            hostResourceDisabled (data, node) {
                 if (this.formData.resource.length > 0) {
                     let parentNode = node.parent
                     let isParentChecked = false
@@ -403,7 +391,7 @@
                 this.screenArr.forEach(item => {
                     this.formData.host_filter_list[0][item.type].push(item)
                 })
-                this.$refs.setForm.validate().then(async validator => {
+                this.$refs.hostForm.validate().then(async validator => {
                     this.getHostsAndSave()
                 })
             },
@@ -543,7 +531,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    .set-form {
+    .host-form {
         margin-bottom: 20px;
         vertical-align: middle;
         overflow: hidden;
