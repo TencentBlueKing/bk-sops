@@ -34,14 +34,17 @@
             <bk-form ref="setForm" :model="formData" :rules="setRules">
                 <!-- 筛选方案 -->
                 <bk-form-item :label="i18n.scheme" property="scheme">
-                    <bk-select :value="formData.scheme" :loading="pending.scheme" @selected="onSchemeSelect">
-                        <bk-option
-                            v-for="scheme in schemes"
-                            :key="scheme.id"
-                            :id="scheme.id"
-                            :name="scheme.name">
-                        </bk-option>
-                    </bk-select>
+                    <div class="scheme-select">
+                        <bk-select :value="formData.scheme" :loading="pending.scheme" @selected="onSchemeSelect">
+                            <bk-option
+                                v-for="scheme in schemes"
+                                :key="scheme.id"
+                                :id="scheme.id"
+                                :name="scheme.name">
+                            </bk-option>
+                        </bk-select>
+                        <bk-button theme="success" size="small" class="scheme-save-btn" @click="isSchemeDialogShow = true">{{ i18n.saveScheme }}</bk-button>
+                    </div>
                 </bk-form-item>
                 <!-- 集群个数 -->
                 <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
@@ -161,6 +164,7 @@
                                             :id="item.bk_module_id">
                                         </bk-option>
                                     </bk-select>
+                                    <div class="mute-module-tip">{{ i18n.muteModuleTips }}</div>
                                 </bk-form-item>
                                 <!-- 筛选条件 -->
                                 <div class="condition-wrapper">
@@ -205,6 +209,25 @@
                 </bk-tab>
             </div>
         </section>
+        <bk-dialog
+            width="600"
+            ext-cls="common-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="i18n.scheme"
+            :loading="pending.saveScheme"
+            :value="isSchemeDialogShow"
+            @confirm="onSchemeConfirm"
+            @cancel="isSchemeDialogShow = false">
+            <bk-form ref="schemeForm" class="scheme-dialog" :model="schemeData" :rules="schemeNameRules">
+                <bk-form-item property="name" :label="i18n.schemeName">
+                    <bk-input v-model="schemeData.name" />
+                    <div class="scheme-tip">{{ i18n.schemeTips }}</div>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script >
@@ -248,11 +271,29 @@
             const $this = this
             return {
                 formData: {
+                    scheme: '',
                     clusterCount: set_count,
                     set: [],
                     resource: host_resources,
                     muteAttribute: mute_attribute,
                     modules: module_detail
+                },
+                schemeData: {
+                    name: ''
+                },
+                schemeNameRules: {
+                    name: [
+                        {
+                            required: true,
+                            message: gettext('必选项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: gettext('方法名称不能超过50个字符'),
+                            trigger: 'blur'
+                        }
+                    ]
                 },
                 setRules: {
                     clusterCount: [
@@ -321,8 +362,10 @@
                 moduleList: [], // 集群下模块列表
                 activeTab: '',
                 conditions: [],
+                isSchemeDialogShow: false,
                 pending: {
                     scheme: false,
+                    saveScheme: false,
                     set: false,
                     resource: false,
                     module: false,
@@ -331,9 +374,12 @@
                 },
                 i18n: {
                     title: gettext('资源筛选'),
+                    scheme: gettext('筛选方案'),
+                    schemeName: gettext('方案名称'),
+                    schemeTips: gettext('修改名称会新建方案记录'),
+                    saveScheme: gettext('保存筛选方案'),
                     confirm: gettext('确认'),
                     cancel: gettext('取消'),
-                    scheme: gettext('筛选方案'),
                     cluster: gettext('集群个数'),
                     set: gettext('集群模板'),
                     resource: gettext('主机资源所属'),
@@ -350,6 +396,7 @@
                     notMute: gettext('不互斥'),
                     innerMute: gettext('模块内互斥'),
                     moduleMute: gettext('模块间互斥'),
+                    muteModuleTips: gettext('如果互斥模块复用本模块，则该互斥约束失效'),
                     muteModule: gettext('互斥模块'),
                     condition: gettext('筛选条件和排除条件')
                 }
@@ -429,6 +476,8 @@
         methods: {
             ...mapActions([
                 'getResourceConfig',
+                'saveResourceScheme',
+                'createResourceScheme',
                 'getHostInCC',
                 'getCCSearchTopoSet',
                 'getCCSearchTopoResource',
@@ -577,6 +626,57 @@
                     muteAttribute: mute_attribute,
                     modules
                 }
+                this.schemeData.name = scheme.name
+            },
+            onSchemeConfirm () {
+                if (this.pending.saveScheme) {
+                    return
+                }
+                this.$refs.schemeForm.validate().then(async result => {
+                    if (result) {
+                        const isConfigFormValid = await this.validateConfigForm()
+                        if (!isConfigFormValid) {
+                            return
+                        }
+
+                        let resp
+                        const scheme = this.schemes.find(item => item.name === this.schemeData.name)
+                        const configData = this.getConfigData()
+                        configData.config_type = 'set'
+                        const params = {
+                            url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/`,
+                            data: {
+                                project_id: $.context.getBkBizId(),
+                                config_type: 'set',
+                                name: this.schemeData.name
+                            }
+                        }
+                        try {
+                            this.pending.saveScheme = true
+                            if (scheme) {
+                                configData.id = scheme.id
+                                configData.name = scheme.name
+                                params.data.data = JSON.stringify(configData)
+                                resp = await this.saveResourceScheme(params)
+                            } else {
+                                configData.name = this.schemeData.name
+                                params.data.data = JSON.stringify(configData)
+                                resp = await this.createResourceScheme(params)
+                            }
+                            if (resp.result) {
+                                this.isSchemeDialogShow = false
+                                this.formData.scheme = resp.data.id
+                                this.gitResourceSchemes()
+                            } else {
+                                errorHandler(resp, this)
+                            }
+                        } catch (error) {
+                            errorHandler(error, this)
+                        } finally {
+                            this.pending.saveScheme = false
+                        }
+                    }
+                })
             },
             async onSetSelect (checked) {
                 this.formData.set = [checked]
@@ -679,11 +779,21 @@
                 moduleData.hostFilterList = conditions
             },
             // 点击确定，校验表单，提交数据
-            onConfigConfirm () {
+            async onConfigConfirm () {
                 if (this.pending.host) {
                     return
                 }
 
+                try {
+                    const isValid = await this.validateConfigForm()
+                    if (isValid) {
+                        this.getHostsAndSave()
+                    }
+                } catch (error) {
+                    console.error(error)
+                }
+            },
+            async validateConfigForm () {
                 // 检查模块复用是否有循环引用，a->b,b->c,c->a
                 let cycleCiting = false
                 let cycled = []
@@ -704,10 +814,10 @@
                     errorHandler({
                         message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
                     }, this)
-                    return
+                    return false
                 }
                 // 校验所有模块的表单项是否合法
-                this.$refs.setForm.validate().then(async validator => {
+                return this.$refs.setForm.validate().then(async validator => {
                     let tabValid = true
                     if (this.$refs.moduleTab && this.$refs.moduleTab.length) {
                         const len = this.$refs.moduleTab.length
@@ -721,51 +831,27 @@
                         }
                     }
 
-                    if (tabValid) {
-                        this.getHostsAndSave()
-                    } else {
+                    if (!tabValid) {
                         errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
+                    } else {
+                        return true
                     }
                 })
             },
             // 保存资源筛选面板的表单数据，向父级同步
             async getHostsAndSave () {
-                const { clusterCount, modules, resource, set, muteAttribute } = this.formData
-
                 try {
                     this.pending.host = true
                     const fields = []
-                    const moduleDetail = []
-                    modules.forEach(md => { // 取出所有模块的筛选、排除条件字段，并模块详情数据转换为接口保存格式
-                        const { id, name, count, selectMethod, reuse, customIpList, muteMethod, muteModules, hostFilterList } = md
-                        const filterList = []
-                        hostFilterList.forEach(item => {
-                            if (item.field !== '') {
-                                if (!fields.includes(item.field)) {
-                                    fields.push(item.field)
-                                }
-                                if (item.value.length > 0) {
-                                    filterList.push({
-                                        type_val: item.type === 'exclude' ? 1 : 0,
-                                        name: item.field,
-                                        value: item.value
-                                    })
-                                }
+                    
+                    this.formData.modules.forEach(md => { // 取出所有模块的筛选、排除条件字段
+                        md.hostFilterList.forEach(item => {
+                            if (item.field !== '' && !fields.includes(item.field)) {
+                                fields.push(item.field)
                             }
                         })
-                        moduleDetail.push({
-                            id,
-                            name,
-                            host_count: count,
-                            reuse_module: reuse,
-                            select_method: selectMethod,
-                            custom_ip_list: customIpList.split(/[\,|\n|\uff0c]/).join('\n'),
-                            mute_method: muteMethod,
-                            mute_modules: muteModules,
-                            host_filter_list: filterList
-                        })
                     })
-                    const topo = resource.map(item => {
+                    const topo = this.formData.resource.map(item => {
                         const [bk_obj_id, bk_inst_id] = item.id.split('_')
                         return {
                             bk_obj_id,
@@ -778,15 +864,8 @@
                         topo
                     })
                     const moduleHosts = this.filterModuleHost(hostData.data)
-                    const config = {
-                        set_count: clusterCount,
-                        set_template_id: set[0].id,
-                        set_template_name: set[0].label,
-                        host_resources: resource,
-                        mute_attribute: muteAttribute,
-                        module_detail: moduleDetail
-                    }
-                    this.$emit('update', config, moduleHosts)
+                    const configData = this.getConfigData()
+                    this.$emit('update', configData, moduleHosts)
                     this.$emit('update:showFilter', false)
                 } catch (error) {
                     errorHandler(error, this)
@@ -960,6 +1039,43 @@
                     }
                 })
                 return mutedHostAttrs
+            },
+            // 将本地表单编辑数据格式转换为接口所需数据格式
+            getConfigData () {
+                const { clusterCount, modules, resource, set, muteAttribute } = this.formData
+                const moduleDetail = []
+                modules.forEach(md => { // 取出所有模块的筛选、排除条件字段，并模块详情数据转换为接口保存格式
+                    const { id, name, count, selectMethod, reuse, customIpList, muteMethod, muteModules, hostFilterList } = md
+                    const filterList = []
+                    hostFilterList.forEach(item => {
+                        if (item.field !== '' && item.value.length > 0) {
+                            filterList.push({
+                                type_val: item.type === 'exclude' ? 1 : 0,
+                                name: item.field,
+                                value: item.value
+                            })
+                        }
+                    })
+                    moduleDetail.push({
+                        id,
+                        name,
+                        host_count: count,
+                        reuse_module: reuse,
+                        select_method: selectMethod,
+                        custom_ip_list: customIpList.split(/[\,|\n|\uff0c]/).join('\n'),
+                        mute_method: muteMethod,
+                        mute_modules: muteModules,
+                        host_filter_list: filterList
+                    })
+                })
+                return {
+                    set_count: clusterCount,
+                    set_template_id: set[0].id,
+                    set_template_name: set[0].label,
+                    host_resources: resource,
+                    mute_attribute: muteAttribute,
+                    module_detail: moduleDetail
+                }
             }
         }
     }
@@ -999,9 +1115,34 @@
                 font-size: 12px;
             }
         }
+        .mute-module-tip {
+            font-size: 12px;
+            color: #ffb400;
+        }
+    }
+    .scheme-select {
+        position: relative;
+        /deep/ .bk-select {
+            margin-right: 150px;
+        }
+        .scheme-save-btn {
+            position: absolute;
+            right: 0;
+            top: 3px;
+        }
     }
     .module-empty {
         padding-top: 185px;
+    }
+    .scheme-dialog {
+        padding: 30px;
+        /deep/ .bk-form-content {
+            margin-right: 60px;
+        }
+        .scheme-tip {
+            font-size: 12px;
+            color: #ffb400;
+        }
     }
 </style>
 <style lang="scss">

@@ -141,6 +141,14 @@ const store = new Vuex.Store({
         getResourceConfig ({ commit }, data) {
             return axios.get(data.url).then(response => response.data)
         },
+        saveResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.post(url, data).then(response => response.data)
+        },
+        createResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.post(url, data).then(response => response.data)
+        },
         getCCSearchTopoSet ({ commit }, data) {
             return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
