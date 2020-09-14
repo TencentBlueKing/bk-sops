@@ -58,7 +58,7 @@
                 default () {
                     return {
                         host_count: 0,
-                        host_screenValue: '',
+                        host_screen_value: '',
                         host_resources: [],
                         host_filter_detail: []
                     }
@@ -121,7 +121,7 @@
                     const dataItem = {}
                     Object.keys(item).forEach(key => {
                         // renderForm 组件 value 需要接受 object 类型数据
-                        if (item[key].length > 0) {
+                        if (item[key] && item[key].length > 0) {
                             item[key].forEach(md => {
                                 dataItem[md.key] = {
                                     [md.key]: md.value.join('\n')
@@ -227,7 +227,7 @@
             /**
              * 同步资源筛选面板的数据
              *
-             * @param {Object} conf 资源筛选表单配置项数据
+             * @param {Object} conf 表单配置项数据
              * @param {Object} eligibleHosts 主机数据
              */
             updateConfig (conf, eligibleHosts) {
@@ -257,7 +257,7 @@
             },
             /**
              * excel 数据导入到表格
-             * 解析表头数据，模块列取导入数据，其他表单列以表格原始配置项基准，匹配导入数据对应列的数据
+             * 解析表头数据, 表单列以表格原始配置项基准，匹配导入数据对应列的数据
              *
              * @param {Object} sheetData excel数据
              */

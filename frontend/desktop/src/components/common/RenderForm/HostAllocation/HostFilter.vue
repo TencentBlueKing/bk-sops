@@ -26,26 +26,18 @@
         <section class="module-form">
             <bk-form ref="hostForm" :model="formData" :rules="hostRules">
                 <!--筛选方案-->
-                <bk-form-item :label="i18n.screenScheme">
-                    <el-autocomplete
-                        class="inline-input"
-                        v-model="formData.screenValue"
-                        :fetch-suggestions="querySearch"
-                        @select="handleSelect"
-                    ></el-autocomplete>
-                    <!-- <bk-select
-                        :disabled="false"
-                        v-model="formData.screenValue"
-                        searchable
-                        :loading="pending.screen"
-                        @selected="onSelected">
-                        <bk-option v-for="option in screenListArr"
-                            :key="option.id"
-                            :id="option.id"
-                            :name="option.name">
-                        </bk-option>
-                    </bk-select> -->
-                    <!-- <bk-button theme="primary" class="save-screen" @click="onSaveProgram">{{i18n.save}}</bk-button> -->
+                <bk-form-item :label="i18n.screenScheme" property="scheme">
+                    <div class="scheme-select">
+                        <bk-select :value="formData.schemeValue" :loading="pending.scheme" @selected="onSchemeSelect">
+                            <bk-option
+                                v-for="scheme in schemeListArr"
+                                :key="scheme.id"
+                                :id="scheme.id"
+                                :name="scheme.name">
+                            </bk-option>
+                        </bk-select>
+                        <bk-button theme="success" size="small" class="scheme-save-btn" @click="isSchemeDialogShow = true">{{ i18n.saveScheme }}</bk-button>
+                    </div>
                 </bk-form-item>
                 <!--主机个数-->
                 <bk-form-item :label="i18n.resourceNum" :required="true" property="clusterCount">
@@ -87,12 +79,31 @@
                         ref="filterConditions"
                         :label="i18n.filterExcludeTitle"
                         :condition-fields="conditions"
-                        :conditions="host_filter_list"
+                        :conditions="formData.host_filter_list"
                         @change="updateCondition($event)">
                     </select-condition>
                 </div>
             </bk-form>
         </section>
+        <bk-dialog
+            width="600"
+            ext-cls="common-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="i18n.screenScheme"
+            :loading="pending.saveScheme"
+            :value="isSchemeDialogShow"
+            @confirm="onSchemeConfirm"
+            @cancel="isSchemeDialogShow = false">
+            <bk-form ref="schemeForm" class="scheme-dialog" :model="schemeData" :rules="schemeNameRules">
+                <bk-form-item property="name" :label="i18n.schemeName">
+                    <bk-input v-model="schemeData.name" />
+                    <div class="scheme-tip">{{ i18n.schemeTips }}</div>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script >
@@ -118,7 +129,7 @@
                 default () {
                     return {
                         host_count: 0,
-                        host_screenValue: '',
+                        host_screen_value: '',
                         host_resources: [],
                         host_filter_detail: []
                     }
@@ -132,19 +143,36 @@
             }
         },
         data () {
-            const { host_count, host_resources, host_screenValue, host_filter_detail } = tools.deepClone(this.config)
+            const { host_count, host_resources, host_screen_value, host_filter_detail } = tools.deepClone(this.config)
             return {
-                // 传递给SelectCondition的所有数据
-                host_filter_list: host_filter_detail,
                 formData: {
                     clusterCount: host_count,
-                    screenValue: host_screenValue,
+                    schemeValue: host_screen_value,
                     resource: host_resources,
-                    // 用来做筛选排除的
-                    filterExcludeSet: {
-                        filter: [],
-                        exclude: []
-                    }
+                    // 传递给SelectCondition的所有数据
+                    host_filter_list: host_filter_detail
+                },
+                // 用来做筛选排除的
+                filterExcludeSet: {
+                    filter: [],
+                    exclude: []
+                },
+                schemeData: {
+                    name: ''
+                },
+                schemeNameRules: {
+                    name: [
+                        {
+                            required: true,
+                            message: gettext('必选项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: gettext('方法名称不能超过50个字符'),
+                            trigger: 'blur'
+                        }
+                    ]
                 },
                 hostRules: {
                     clusterCount: [
@@ -165,10 +193,12 @@
                 resourceList: [], // 主机资源所属 tree
                 conditions: [],
                 pending: {
+                    scheme: false,
                     screen: false,
                     resource: false,
                     condition: false,
-                    host: false
+                    host: false,
+                    saveScheme: false
                 },
                 i18n: {
                     title: gettext('资源筛选'),
@@ -178,12 +208,17 @@
                     resourceNum: gettext('主机数量'),
                     filterExcludeTitle: gettext('筛选条件和排除条件'),
                     save: gettext('保存'),
-                    screenScheme: gettext('筛选方案')
+                    screenScheme: gettext('筛选方案'),
+                    schemeName: gettext('方案名称'),
+                    schemeTips: gettext('修改名称会新建方案记录'),
+                    saveScheme: gettext('保存筛选方案')
                 },
-                screenListArr: []
+                schemeListArr: [],
+                isSchemeDialogShow: false
             }
         },
         async mounted () {
+            this.getSetTopo()
             this.getResource()
             this.getCondition()
         },
@@ -195,70 +230,98 @@
             ]),
             ...mapActions('task/', [
                 'configProgramList',
-                'saveScreenProgram'
+                'saveResourceScheme',
+                'createResourceScheme',
+                'getResourceConfig'
             ]),
             // 获取筛选方案数据
-            async querySearch (queryString, cb) {
+            async getSetTopo () {
                 try {
-                    this.pending.screen = true
+                    this.pending.scheme = true
                     const resp = await this.configProgramList('host')
                     if (resp.result) {
-                        const screenListArr = resp.data
-                        screenListArr.forEach(item => {
-                            item['value'] = item.name
-                        })
-                        const results = queryString ? screenListArr.filter(this.createFilter(queryString)) : screenListArr
-                        // 调用 callback 返回建议列表的数据
-                        cb(results)
+                        this.schemeListArr = resp.data
                     } else {
                         errorHandler(resp, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
-                    this.pending.screen = false
+                    this.pending.scheme = false
                 }
             },
-            createFilter (queryString) {
-                return (restaurant) => {
-                    return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0)
-                }
-            },
-            handleSelect (item) {
-                console.log(item, '22222222')
-            },
-            // 获取筛选方案数据
-            // async getSetTopo () {
-            //     try {
-            //         this.pending.screen = true
-            //         const resp = await this.configProgramList('host')
-            //         if (resp.result) {
-            //             this.screenListArr = resp.data
-            //         } else {
-            //             errorHandler(resp, this)
-            //         }
-            //     } catch (error) {
-            //         errorHandler(error, this)
-            //     } finally {
-            //         this.pending.screen = false
-            //     }
-            // },
-            // 保存筛选方案
-            async onSaveProgram () {
-                const selectObj = this.screenListArr.filter(item => {
-                    return item.id === this.formData.screenValue
-                })[0]
-                selectObj['config_type'] = 'host'
-                try {
-                    const resp = await this.saveScreenProgram(selectObj)
-                    if (resp.result) {
-                        this.screenListArr = resp.data
-                    } else {
-                        errorHandler(resp, this)
+            // 筛选方案列表选中事件
+            onSchemeSelect (id) {
+                const scheme = this.schemeListArr.find(item => item.id === id)
+                const { host_resources, module_detail } = JSON.parse(scheme.data)
+                let hostCount
+                const hostFilterList = []
+                module_detail.forEach(item => {
+                    const { host_count, host_filter_list } = item
+                    hostCount = host_count
+                    if (host_filter_list.length) {
+                        host_filter_list.forEach(filterItem => {
+                            hostFilterList.push({
+                                type: filterItem.type_val === 1 ? 'filter' : 'exclude',
+                                field: filterItem.name,
+                                value: filterItem.value
+                            })
+                        })
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                })
+                this.formData = {
+                    clusterCount: hostCount,
+                    resource: host_resources,
+                    host_filter_list: hostFilterList
                 }
+                this.formData.schemeValue = scheme.id
+            },
+            // 保存或创建筛选方案
+            onSchemeConfirm () {
+                if (this.pending.saveScheme) {
+                    return
+                }
+                this.$refs.schemeForm.validate().then(async result => {
+                    if (result) {
+                        this.pending.saveScheme = true
+                        let resp
+                        try {
+                            const scheme = this.schemeListArr.find(item => item.name === this.schemeData.name)
+                            const configData = this.getConfigData()
+                            configData.config_type = 'host'
+                            const params = {
+                                url: `api/v3/resource_config/`,
+                                data: {
+                                    project_id: $.context.project ? $.context.project.id : '',
+                                    config_type: 'host',
+                                    name: this.schemeData.name
+                                }
+                            }
+                            if (scheme) {
+                                configData.id = scheme.id
+                                configData.name = scheme.name
+                                params.data.data = JSON.stringify(configData)
+                                resp = await this.saveResourceScheme(params)
+                            } else {
+                                configData.name = this.schemeData.name
+                                params.data.data = JSON.stringify(configData)
+                                resp = await this.createResourceScheme(params)
+                            }
+                            if (resp.result) {
+                                this.isSchemeDialogShow = false
+                                this.formData.schemeValue = resp.data.id
+                                this.schemeData.name = ''
+                                this.getSetTopo()
+                            } else {
+                                errorHandler(resp, this)
+                            }
+                        } catch (error) {
+                            errorHandler(error, this)
+                        } finally {
+                            this.pending.saveScheme = false
+                        }
+                    }
+                })
             },
             // 获取资源所属数据
             async getResource () {
@@ -364,23 +427,26 @@
 
             // 主机筛选条件change事件
             updateCondition (value) {
-                this.host_filter_list = value
+                this.formData.host_filter_list = value
             },
             // 点击确定，校验表单，提交数据
             onConfigConfirm () {
                 if (this.pending.host) {
                     return
                 }
-                const newFilterList = this.host_filter_list.map(item => {
-                    return {
-                        type_val: item.type === 'filter' ? '1' : '2',
-                        name: item.field,
-                        value: item.value
+                const newFilterList = []
+                this.formData.host_filter_list.forEach(item => {
+                    if (item.field !== '' && item.value.length > 0) {
+                        newFilterList.push({
+                            type_val: item.type === 'filter' ? 1 : 0,
+                            name: item.field,
+                            value: item.value
+                        })
                     }
                 })
                 newFilterList.forEach(item => {
-                    const type = item.type_val === '1' ? 'filter' : 'exclude'
-                    this.formData.filterExcludeSet[type].push(item)
+                    const type = item.type_val === 1 ? 'filter' : 'exclude'
+                    this.filterExcludeSet[type].push(item)
                 })
                 this.$refs.hostForm.validate().then(async validator => {
                     this.getHostsAndSave()
@@ -388,12 +454,12 @@
             },
             // 保存资源筛选面板的表单数据，向父级同步
             async getHostsAndSave () {
-                const { clusterCount, filterExcludeSet, resource, screenValue } = this.formData
+                const { clusterCount, resource, schemeValue } = this.formData
                 try {
                     this.pending.host = true
                     const fields = []
-                    for (const k in filterExcludeSet) {
-                        filterExcludeSet[k].forEach(item => {
+                    for (const k in this.filterExcludeSet) {
+                        this.filterExcludeSet[k].forEach(item => {
                             if (item.name !== '' && !fields.includes(item.name)) {
                                 fields.push(item.name)
                             }
@@ -412,18 +478,18 @@
                         topo
                     })
                     const eligibleHosts = this.filterHost(hostData.data)
-                    const { filter, exclude } = filterExcludeSet
+                    const { filter, exclude } = this.filterExcludeSet
                     const oldConditionsArr = [...filter, ...exclude]
                     const newConditionsArr = oldConditionsArr.map(item => {
                         return {
-                            type: item.type_val === '1' ? 'filter' : 'exclude',
+                            type: item.type_val === 1 ? 'filter' : 'exclude',
                             field: item.name,
                             value: item.value
                         }
                     })
                     const config = {
                         host_count: clusterCount,
-                        host_screenValue: screenValue,
+                        host_screen_value: schemeValue,
                         host_resources: resource,
                         host_filter_detail: newConditionsArr
                     }
@@ -445,7 +511,7 @@
              */
             filterHost (data) {
                 let hostLists = [] // 所有满足主机数据
-                const { filter, exclude } = this.formData.filterExcludeSet
+                const { filter, exclude } = this.filterExcludeSet
                 const validFilters = filter.filter(item => item.name !== '' && item.value.length > 0)
                 const validExclude = exclude.filter(item => item.name !== '' && item.value.length > 0)
                 // 筛选条件和排序条件为空，按照设置的主机数截取
@@ -505,6 +571,19 @@
 
                     return acc
                 }, {})
+            },
+            // 将本地表单编辑数据格式转换为接口所需数据格式
+            getConfigData () {
+                const { clusterCount, resource, host_filter_list } = this.formData
+                const moduleDetail = []
+                moduleDetail.push({
+                    clusterCount,
+                    host_filter_list
+                })
+                return {
+                    host_resources: resource,
+                    module_detail: moduleDetail
+                }
             }
         }
     }
@@ -541,6 +620,17 @@
             }
         }
     }
+    .scheme-select {
+        position: relative;
+        /deep/ .bk-select {
+            margin-right: 150px;
+        }
+        .scheme-save-btn {
+            position: absolute;
+            right: 0;
+            top: 3px;
+        }
+    }
     .module-empty {
         padding-top: 185px;
     }
@@ -548,6 +638,16 @@
         position: absolute;
         top: 0;
         left: 620px;
+    }
+    .scheme-dialog {
+        padding: 30px;
+        /deep/ .bk-form-content {
+            margin-right: 60px;
+        }
+        .scheme-tip {
+            font-size: 12px;
+            color: #ffb400;
+        }
     }
 </style>
 <style lang="scss">

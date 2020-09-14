@@ -352,7 +352,7 @@
                             value: {
                                 config: {
                                     host_count: 0,
-                                    host_screenValue: '',
+                                    host_screen_value: '',
                                     host_resources: [],
                                     host_filter_detail: []
                                 },

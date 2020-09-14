@@ -97,6 +97,18 @@ const task = {
             return axios.get('api/v3/resource_config/', requestData).then(response => response.data)
         },
         /**
+         * 保存筛选方案
+         * @param {String} params 项目信息数据
+         */
+        saveResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.patch(url, data).then(response => response.data)
+        },
+        createResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.post(url, data).then(response => response.data)
+        },
+        /**
          * 创建任务
          * @param {Object} data 模板数据
          */
