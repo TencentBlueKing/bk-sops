@@ -177,9 +177,10 @@
                     return
                 }
 
-                const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
-                if (typeof value === 'string' && /\$\{(.|\s)+\}/.test(value) && value.includes(keyStr)) {
-                    nodes.push(id)
+                if (typeof value === 'string') {
+                    if (value.includes(this.variableData.key)) {
+                        nodes.push(id)
+                    }
                 } else if (typeof value === 'object') {
                     if (Array.isArray(value)) {
                         value.forEach(item => {
