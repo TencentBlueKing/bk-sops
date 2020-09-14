@@ -68,7 +68,7 @@
                                 :is="item.type === 'combine' ? 'form-group' : 'form-item'"
                                 :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
                                 :scheme="item"
-                                :key="+new Date"
+                                :key="`${item.tag_code}_${cIndex}`"
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
