@@ -187,6 +187,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
+            :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">

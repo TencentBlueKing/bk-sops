@@ -108,7 +108,12 @@
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
                 <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-                <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+                <bk-button
+                    theme="default"
+                    @click="importSubmit(false)"
+                    :class="{ 'btn-permission-disable': !hasPermission(['flow_create'], authActions) }">
+                    {{overrideConflict}}
+                </bk-button>
                 <bk-button theme="default" @click="onCancel"> {{ $t('取消') }} </bk-button>
             </div>
         </div>
@@ -126,7 +131,7 @@
         components: {
             NoData
         },
-        props: ['isImportDialogShow', 'common'],
+        props: ['isImportDialogShow', 'common', 'authActions'],
         data () {
             return {
                 file: null,
@@ -274,6 +279,9 @@
                 this.templateFileError = false
             },
             exportSubmit (isOverride) {
+                this.onConfirm(isOverride)
+            },
+            importSubmit (isOverride) {
                 this.onConfirm(isOverride)
             },
             resetData () {
