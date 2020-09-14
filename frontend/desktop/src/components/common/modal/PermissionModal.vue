@@ -61,7 +61,7 @@
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
-                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
+                <bk-button theme="primary" :disabled="hasPromission" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
                 <bk-button theme="default" @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
@@ -80,7 +80,8 @@
                 isModalShow: false,
                 permissionData: {},
                 loading: false,
-                lock: require('../../../assets/images/lock-radius.svg')
+                lock: require('../../../assets/images/lock-radius.svg'),
+                hasPromission: false // 判断是否有权限
             }
         },
         watch: {
@@ -101,6 +102,7 @@
                     if (res.result) {
                         this.url = res.data.url
                     } else {
+                        this.hasPromission = true
                         errorHandler(res, this)
                     }
                 } catch (err) {
