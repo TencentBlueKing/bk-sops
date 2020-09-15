@@ -206,6 +206,14 @@
             background: $color;
         }
     }
+    @mixin taskNodeNameStyle ($color) {
+        .node-name {
+            border: 1px solid $color;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+    }
+
     @mixin gatewayStyle ($color) {
         .node-type-icon {
             color: $color;
@@ -324,6 +332,21 @@
             }
             &:hover {
                 box-shadow: 0px 0px 20px 0px $activeShadow;
+                &.failed {
+                    @include taskNodeNameStyle ($redDark);
+                }
+                &.suspended {
+                    @include taskNodeNameStyle ($yellowDark);
+                }
+                &.running {
+                    @include taskNodeNameStyle ($yellowDark);
+                }
+                &.finished {
+                    @include taskNodeNameStyle ($greenDark);
+                }
+                &.default {
+                    @include taskNodeNameStyle ($blueDark);
+                }
             }
             &.failed {
                 @include taskNodeStyle ($redDark)
@@ -390,6 +413,11 @@
                     font-size: 12px;
                     color: #979ba5;
                 }
+            }
+            .state-icon {
+                position: absolute;
+                right: 5px;
+                bottom: -20px;
             }
         }
         .task-status-icon {
