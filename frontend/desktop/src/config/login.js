@@ -16,8 +16,8 @@ const topWindow = isCrossOrigin ? window : window.top
 const topDocument = topWindow.document
 
 try {
-    topWindow.BLUEKING.corefunc.open_login_dialog = openLoginDialog
-    topWindow.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
+    window.top.BLUEKING.corefunc.open_login_dialog = openLoginDialog
+    window.top.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
 } catch (_) {
     topWindow.BLUEKING = {
         corefunc: {
@@ -25,6 +25,9 @@ try {
             close_login_dialog: closeLoginDialog
         }
     }
+    // 兼容接口返回的登录成功 html
+    window.open_login_dialog = openLoginDialog
+    window.close_login_dialog = closeLoginDialog
 }
 
 function openLoginDialog (src, width = 460, height = 490, method = 'get') {
