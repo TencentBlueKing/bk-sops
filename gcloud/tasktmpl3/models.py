@@ -20,6 +20,7 @@ from django.contrib.auth import get_user_model
 from pipeline.parser.utils import replace_all_id
 
 from gcloud import err_code
+from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.mixins import TaskTmplStatisticsMixin
@@ -45,6 +46,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTmplStatisticsMixin):
         if self.filter(id__in=template_id_list, project_id=project_id).count() != len(template_id_list):
             raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, template_id_list))
         data = super(TaskTemplateManager, self).export_templates(template_id_list)
+        data["template_source"] = TEMPLATE_EXPORTER_SOURCE_PROJECT
         return data
 
     def import_operation_check(self, template_data, project_id):

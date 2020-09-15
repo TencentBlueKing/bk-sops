@@ -24,6 +24,7 @@ from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurr
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
+from gcloud.constants import TEMPLATE_EXPORTER_VERSION, TEMPLATE_EXPORTER_SOURCE_COMMON
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
@@ -90,7 +91,11 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             sub_temp["pipeline_template_str_id"] = sub_temp["pipeline_template_id"]
             template[sub_temp["id"]] = sub_temp
 
-        result = {"template": template, "pipeline_template_data": pipeline_temp_data}
+        result = {
+            "template": template,
+            "pipeline_template_data": pipeline_temp_data,
+            "exporter_version": TEMPLATE_EXPORTER_VERSION,
+        }
         return result
 
     def import_operation_check(self, template_data):
@@ -415,6 +420,11 @@ class CommonTemplateManager(BaseTemplateManager):
             defaults_getter=defaults_getter,
             operator=operator,
         )
+
+    def export_templates(self, template_id_list):
+        data = super(CommonTemplateManager, self).export_templates(template_id_list)
+        data["template_source"] = TEMPLATE_EXPORTER_SOURCE_COMMON
+        return data
 
 
 class CommonTemplate(BaseTemplate):
