@@ -48,9 +48,9 @@
         height: calc(100% - 60px);
     }
     .action-wrapper {
-            padding-left: 20px;
-            height: 60px;
-            line-height: 60px;
-            border-top: 1px solid $commonBorderColor;
-        }
+        padding-left: 20px;
+        height: 60px;
+        line-height: 60px;
+        border-top: 1px solid $commonBorderColor;
+    }
 </style>
