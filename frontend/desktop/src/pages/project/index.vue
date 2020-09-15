@@ -178,7 +178,7 @@
         },
         {
             name: 'mandate',
-            power: 'project_view',
+            power: 'project_edit',
             text: i18n.t('项目配置')
         },
         {
