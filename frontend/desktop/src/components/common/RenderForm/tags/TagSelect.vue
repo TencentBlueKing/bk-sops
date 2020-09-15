@@ -15,9 +15,10 @@
             <el-select
                 v-model="seletedValue"
                 v-loading="loading"
-                clearable
                 filterable
-                popper-class="tag-select-popperover"
+                :clearable="clearable"
+                popper-class="tag-component-popper"
+                :allow-create="allowCreate"
                 :disabled="!editable || disabled"
                 :remote="remote"
                 :multiple-limit="multiple_limit"
@@ -96,6 +97,18 @@
             required: false,
             default: 0,
             desc: 'limit of selected items when multiple is true'
+        },
+        clearable: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show the icon for clearing input value'
+        },
+        allowCreate: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'create value in input field'
         },
         remote: {
             type: Boolean,
@@ -198,12 +211,6 @@
                 })
                 return label
             },
-            _set_value (value) {
-                this.updateForm(value)
-            },
-            _get_value () {
-                return this.value
-            },
             set_loading (loading) {
                 this.loading = loading
             },
@@ -244,7 +251,7 @@
     }
 </style>
 <style lang="scss">
-    .tag-select-popperover.el-select-dropdown {
+    .tag-component-popper.el-select-dropdown {
         max-width: 500px;
         .el-select-dropdown__item {
             white-space: normal;

@@ -66,6 +66,8 @@
                 :is="tagComponent"
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
+                :hook="hook"
+                :constants="constants"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
@@ -157,6 +159,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -289,6 +297,19 @@
                         } else {
                             valueFormat = {
                                 type: ['String', 'Number', 'Boolean'],
+                                value: ''
+                            }
+                        }
+                        break
+                    case 'time':
+                        if (this.scheme.attrs.isRange) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: ['00:00:00', '23:59:59']
+                            }
+                        } else {
+                            valueFormat = {
+                                type: 'String',
                                 value: ''
                             }
                         }
@@ -474,6 +495,13 @@
     .el-tree__empty-block {
         font-size: 12px;
     }
+}
+.tag-component-popper {
+    // magicbox 组件引入了 popover 管理，z-index 起始值从 2000 开始，而 element-ui 组件自己的 popover 管理也是从 2000 开始
+    // 两边组件的 z-index 维护，并不能保证所有组件层级按照一个值递增，所以会出现弹出层可能被盖住的情况
+    // 这里把 tag 组件里涉及到弹出层情况的 z-index 固定为 3300
+    // notice：新增的弹出层组件需要手动添加这个 class
+    z-index: 3300 !important;
 }
 .el-select-dropdown .el-select-dropdown__item {
     font-size: 12px;

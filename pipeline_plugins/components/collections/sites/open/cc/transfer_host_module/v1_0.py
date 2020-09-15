@@ -22,6 +22,7 @@ from pipeline.component_framework.component import Component
 
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
+    SelectMethod,
     cc_get_host_id_by_innerip,
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
@@ -108,9 +109,9 @@ class CCTransferHostModuleService(Service):
 
         cc_is_increment = data.get_one_of_inputs("cc_is_increment")
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
-        if cc_module_select_method == "topo":
+        if cc_module_select_method == SelectMethod.TOPO.value:
             cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_module_select_topo"))
-        elif cc_module_select_method == "text":
+        elif cc_module_select_method == SelectMethod.TEXT.value:
             cc_module_select_text = data.get_one_of_inputs("cc_module_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
                 executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text

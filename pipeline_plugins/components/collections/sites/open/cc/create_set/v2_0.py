@@ -25,6 +25,7 @@ from pipeline.component_framework.component import Component
 
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
+    SelectMethod,
     cc_format_tree_mode_id,
     cc_format_prop_data,
     cc_list_select_node_inst_id
@@ -129,10 +130,10 @@ class CCCreateSetService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_select_set_parent_method = data.get_one_of_inputs("cc_select_set_parent_method")
-        if cc_select_set_parent_method == "topo":
+        if cc_select_set_parent_method == SelectMethod.TOPO.value:
             # topo类型直接通过cc_format_tree_mode_id解析父节点bz_inst_id
             cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_parent_select_topo"))
-        elif cc_select_set_parent_method == "text":
+        elif cc_select_set_parent_method == SelectMethod.TEXT.value:
             cc_set_parent_select_text = data.get_one_of_inputs("cc_set_parent_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
                 executor, biz_cc_id, supplier_account, BkObjType.LAST_CUSTOM, cc_set_parent_select_text

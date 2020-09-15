@@ -260,31 +260,40 @@ class UploadModuleManagerTestCase(TestCase):
 
             UploadModuleFileTag.objects.filter.assert_called_once_with(id__in=[1, 2, 3])
 
-            esb_client.job.fast_push_file.assert_called_once_with(
-                {
-                    "bk_biz_id": bk_biz_id,
-                    "account": account,
-                    "file_target_path": target_path,
-                    "file_source": [
-                        {
-                            "files": ["path1/file_name1"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
-                        },
-                        {
-                            "files": ["path2/file_name2"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
-                        },
-                        {
-                            "files": ["path3/file_name3"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
-                        },
-                    ],
-                    "ip_list": ips,
-                    "bk_callback_url": callback_url,
-                }
-            )
+            job_kwargs = {
+                "bk_biz_id": bk_biz_id,
+                "account": account,
+                "file_target_path": target_path,
+                "file_source": [
+                    {
+                        "files": ["path1/file_name1"],
+                        "account": "root",
+                        "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
+                    },
+                    {
+                        "files": ["path2/file_name2"],
+                        "account": "root",
+                        "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
+                    },
+                    {
+                        "files": ["path3/file_name3"],
+                        "account": "root",
+                        "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
+                    },
+                ],
+                "ip_list": ips,
+                "bk_callback_url": callback_url,
+            }
 
-            self.assertEqual(result, {"result": False, "message": "msg token"})
+            esb_client.job.fast_push_file.assert_called_once_with(job_kwargs)
+
+            self.assertEqual(
+                result,
+                {
+                    "result": False,
+                    "message": "msg token",
+                    "kwargs": job_kwargs,
+                    "response": {"result": False, "message": "msg token"},
+                    "job_api": "job.fast_push_file",
+                },
+            )

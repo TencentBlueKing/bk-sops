@@ -48,7 +48,7 @@ function openLoginDialog (src, width = 460, height = 490, method = 'get') {
 
     const wraper = topDocument.createElement('div')
     wraper.id = 'bk-gloabal-login-iframe'
-    wraper.style.cssText = 'position: fixed;top: 0;bottom: 0;left: 0;right: 0;background-color: rgba(0,0,0,.6);height: 100%;z-index: 1000;'
+    wraper.style.cssText = 'position: fixed;top: 0;bottom: 0;left: 0;right: 0;background-color: rgba(0,0,0,.6);height: 100%;z-index: 5000;'
     wraper.appendChild(dialogDiv)
     topDocument.body.appendChild(wraper)
 }

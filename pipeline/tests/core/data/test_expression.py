@@ -11,9 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import datetime
+
 from django.test import TestCase
 
-from pipeline.core.data import expression
+from pipeline.core.data import expression, sandbox
 from pipeline.core.data.expression import format_constant_key, deformat_constant_key
 
 
@@ -83,6 +85,29 @@ class TestConstantTemplate(TestCase):
 
         template_syntax_error = "${a:b}"
         self.assertEqual(cons_tmpl.resolve_template(template_syntax_error, {}), template_syntax_error)
+
+    def test_resolve_template__with_sandbox(self):
+
+        r1 = expression.ConstantTemplate.resolve_template("""${exec(print(''))}""", {})
+        self.assertEqual(r1, """${exec(print(''))}""")
+
+        expression.SANDBOX.pop("datetime")
+        r2 = expression.ConstantTemplate.resolve_template("""${datetime.datetime.now().strftime("%Y")}""", {})
+        self.assertEqual(r2, """${datetime.datetime.now().strftime("%Y")}""")
+
+        sandbox._shield_words(expression.SANDBOX, ["exec", "compile"])
+        sandbox._import_modules(expression.SANDBOX, {"datetime": "datetime"})
+
+        r1 = expression.ConstantTemplate.resolve_template("""${exec(print(''))}""", {})
+        self.assertEqual(r1, """${exec(print(''))}""")
+
+        r2 = expression.ConstantTemplate.resolve_template("""${datetime.datetime.now().strftime("%Y")}""", {})
+        year = datetime.datetime.now().strftime("%Y")
+        self.assertEqual(r2, year)
+
+        # clean
+        expression.SANDBOX.pop("exec")
+        expression.SANDBOX.pop("compile")
 
     def test_resolve(self):
         list_template = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])

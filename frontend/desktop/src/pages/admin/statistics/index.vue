@@ -11,10 +11,7 @@
 */
 <template>
     <div class="page-statistics">
-        <base-title
-            type="router"
-            :title="$t('运营数据')"
-            :tab-list="routers">
+        <base-title :title="$t('运营数据')" :tab-list="routers">
             <template v-slot:expand>
                 <div class="date-picker">
                     <bk-form form-type="inline">

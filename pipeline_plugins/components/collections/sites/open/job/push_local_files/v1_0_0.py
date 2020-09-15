@@ -85,7 +85,9 @@ class JobPushLocalFilesService(JobService):
         )
 
         if not push_result["result"]:
-            data.outputs.ex_data = push_result["message"]
+            err_message = job_handle_api_error(push_result["job_api"], push_result["kwargs"], push_result["response"])
+            self.logger.error(err_message)
+            data.outputs.ex_data = err_message
             return False
 
         job_instance_id = push_result["data"]["job_id"]

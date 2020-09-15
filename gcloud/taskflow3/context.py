@@ -16,7 +16,7 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.core.models import Business
+from gcloud.core.models import Business, ProjectConfig
 
 logger = logging.getLogger("root")
 
@@ -25,7 +25,8 @@ class TaskContext(object):
     """
     @summary: 流程任务内置环境变量
     """
-    prefix = '_system'
+
+    prefix = "_system"
 
     def __init__(self, taskflow, username):
         # 执行任务的操作员
@@ -40,8 +41,8 @@ class TaskContext(object):
         else:
             self.biz_supplier_account = None
         self.operator = operator
-        # 调用ESB接口的执行者，V3.4.X版本后和操作员一致，如无权限请前往对应系统申请
-        self.executor = operator
+        # 调用ESB接口的执行者
+        self.executor = ProjectConfig.objects.task_executor_for_project(self.project_id, operator)
         self.task_id = taskflow.id
         self.task_name = taskflow.pipeline_instance.name
         # 兼容V3.4.X版本之前的引用非标准命名的插件
@@ -50,73 +51,64 @@ class TaskContext(object):
 
     @classmethod
     def to_flat_key(cls, key):
-        return '${%s.%s}' % (cls.prefix, key)
+        return "${%s.%s}" % (cls.prefix, key)
 
     def context(self):
-        return {
-            '${%s}' % TaskContext.prefix: {
-                'type': 'plain',
-                'is_param': True,
-                'value': self
-            }
-        }
+        return {"${%s}" % TaskContext.prefix: {"type": "plain", "is_param": True, "value": self}}
 
     @classmethod
     def flat_details(cls):
         # index: 展示在前端全局变量的顺序，越小越靠前
         details = {
-            cls.to_flat_key('language'): {
-                'key': cls.to_flat_key('language'),
-                'name': _("执行环境语言CODE"),
-                'index': -7,
-                'desc': _("中文对应 zh-hans，英文对应 en")
+            cls.to_flat_key("language"): {
+                "key": cls.to_flat_key("language"),
+                "name": _("执行环境语言CODE"),
+                "index": -7,
+                "desc": _("中文对应 zh-hans，英文对应 en"),
             },
-            cls.to_flat_key('bk_biz_id'): {
-                'key': cls.to_flat_key('bk_biz_id'),
-                'name': _("任务所属的CMDB业务ID"),
-                'index': -6,
-                'desc': ''
+            cls.to_flat_key("bk_biz_id"): {
+                "key": cls.to_flat_key("bk_biz_id"),
+                "name": _("任务所属的CMDB业务ID"),
+                "index": -6,
+                "desc": "",
             },
-            cls.to_flat_key('bk_biz_name'): {
-                'key': cls.to_flat_key('bk_biz_name'),
-                'name': _("任务所属的CMDB业务名称"),
-                'index': -5,
-                'desc': ''
+            cls.to_flat_key("bk_biz_name"): {
+                "key": cls.to_flat_key("bk_biz_name"),
+                "name": _("任务所属的CMDB业务名称"),
+                "index": -5,
+                "desc": "",
             },
-            cls.to_flat_key('operator'): {
-                'key': cls.to_flat_key('operator'),
-                'name': _("任务的操作员（点击开始执行的人员）"),
-                'index': -4,
-                'desc': ''
+            cls.to_flat_key("operator"): {
+                "key": cls.to_flat_key("operator"),
+                "name": _("任务的操作员（点击开始执行的人员）"),
+                "index": -4,
+                "desc": "",
             },
-            cls.to_flat_key('executor'): {
-                'key': cls.to_flat_key('executor'),
-                'name': _("任务的执行者（调用API网关接口的人员）"),
-                'index': -3,
-                'desc': ''
+            cls.to_flat_key("executor"): {
+                "key": cls.to_flat_key("executor"),
+                "name": _("任务的执行者（调用API网关接口的人员）"),
+                "index": -3,
+                "desc": "",
             },
-            cls.to_flat_key('task_id'): {
-                'key': cls.to_flat_key('task_id'),
-                'index': -2,
-                'name': _("任务ID"),
-                'desc': ''
+            cls.to_flat_key("task_id"): {"key": cls.to_flat_key("task_id"), "index": -2, "name": _("任务ID"), "desc": ""},
+            cls.to_flat_key("task_name"): {
+                "key": cls.to_flat_key("task_name"),
+                "name": _("任务名称"),
+                "index": -1,
+                "desc": "",
             },
-            cls.to_flat_key('task_name'): {
-                'key': cls.to_flat_key('task_name'),
-                'name': _("任务名称"),
-                'index': -1,
-                'desc': ''
-            }
         }
         for item in list(details.values()):
-            item.update({
-                'show_type': 'hide',
-                'source_type': 'system',
-                'source_tag': '',
-                'source_info': {},
-                'custom_type': '',
-                'value': '',
-                'hook': False,
-                'validation': ''
-            })
+            item.update(
+                {
+                    "show_type": "hide",
+                    "source_type": "system",
+                    "source_tag": "",
+                    "source_info": {},
+                    "custom_type": "",
+                    "value": "",
+                    "hook": False,
+                    "validation": "",
+                }
+            )
         return details

@@ -91,7 +91,7 @@
                     :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
-                    @onParameterInfoLoading="onParameterInfoLoading">
+                    @paramsLoadingChange="paramsLoadingChange">
                 </ParameterInfo>
             </div>
         </div>
@@ -106,7 +106,8 @@
                     'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
                 theme="primary"
-                :loading="isSubmit"
+                :loading="paramsLoading || isSubmit"
+                :disabled="paramsLoading || nextBtnDisable"
                 v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
                 {{$t('下一步')}}
@@ -159,6 +160,8 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
+                paramsLoading: false,
+                nextBtnDisable: false,
                 disabledButton: true,
                 tplActions: [],
                 tplOperations: [],
@@ -243,7 +246,9 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     if (templateData.result === false) {
-                        throw (templateData)
+                        errorHandler(templateData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
 
                     this.tplActions = templateData.auth_actions
@@ -260,7 +265,9 @@
                     }
                     const previewData = await this.loadPreviewNodeData(params)
                     if (previewData.result === false) {
-                        throw (previewData)
+                        errorHandler(previewData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
                     this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
@@ -441,10 +448,8 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onParameterInfoLoading (val) {
-                if (this.taskMessageLoading === false && val === false) {
-                    this.disabledButton = false
-                }
+            paramsLoadingChange (val) {
+                this.paramsLoading = val
             }
         }
     }
@@ -458,10 +463,6 @@
     box-sizing: border-box;
     min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    /deep/ .no-data-wrapper {
-        position: relative;
-        top: 122px;
-    }
 }
 .task-info,
 .param-info {

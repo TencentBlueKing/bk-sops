@@ -239,7 +239,7 @@ class PeriodicTaskManager(models.Manager):
         priority=PIPELINE_DEFAULT_PRIORITY,
         queue="",
     ):
-        snapshot, _ = Snapshot.objects.create_or_get_snapshot(data)
+        snapshot = Snapshot.objects.create_snapshot(data)
         schedule, _ = CrontabSchedule.objects.get_or_create(
             minute=cron.get("minute", "*"),
             hour=cron.get("hour", "*"),

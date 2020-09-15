@@ -13,6 +13,18 @@
     <transition name="wrapperLeft">
         <div class="tool-position">
             <div
+                :class="['tool-icon', {
+                    'actived': showSmallMap
+                }]"
+                v-bk-tooltips="{
+                    content: $t('缩略视图'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
+                @click="onShowMap">
+                <i class="common-icon-small-map"></i>
+            </div>
+            <div
                 class="tool-icon"
                 v-bk-tooltips="{
                     content: $t('放大'),
@@ -25,7 +37,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: $t('放大'),
+                    content: $t('缩小'),
                     delay: 300,
                     placements: ['bottom']
                 }"
@@ -118,6 +130,10 @@
             isSelectionOpen: {
                 type: Boolean,
                 default: false
+            },
+            showSmallMap: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -131,6 +147,9 @@
             }
         },
         methods: {
+            onShowMap () {
+                this.$emit('onShowMap')
+            },
             onZoomIn () {
                 this.$emit('onZoomIn')
             },

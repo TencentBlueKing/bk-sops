@@ -29,28 +29,27 @@
         </div>
         <div class="advanced-form-area" v-if="isAdvanceOpen">
             <div class="search-record" v-if="recordsData.length > 0">
-                <p class="record-title">{{ $t('历史记录') }}</p>
+                <p class="record-title">{{ $t('历史搜索记录') }}</p>
                 <div class="record-list">
-                    <bk-radio-group v-model="selectedRecord" @change="handleRecordSelect">
-                        <bk-radio
-                            class="record-item"
-                            v-for="item in recordsData"
-                            :key="item.id"
-                            :value="item.id">
-                            <template v-for="form in item.data">
-                                <div
-                                    :class="['form-history', {
-                                        'en': lang === 'en',
-                                        'daterange': form.type === 'dateRange'
-                                    }]"
-                                    :key="form.key"
-                                    :title="form.value">
-                                    <span class="label">{{ form.label }}{{ $t('：') }}</span>
-                                    <span class="value">{{ form.value }}</span>
-                                </div>
-                            </template>
-                        </bk-radio>
-                    </bk-radio-group>
+                    <div
+                        :class="['record-item', { 'selected': item.id === selectedRecord }]"
+                        v-for="item in recordsData"
+                        :key="item.id"
+                        @click="onSelectRecord(item.id)">
+                        <template v-for="form in item.data">
+                            <div
+                                :class="['form-history', {
+                                    'en': lang === 'en',
+                                    'daterange': form.type === 'dateRange'
+                                }]"
+                                :key="form.key"
+                                :title="form.value">
+                                <span class="label">{{ form.label }}{{ $t('：') }}</span>
+                                <span class="value">{{ form.value }}</span>
+                            </div>
+                        </template>
+                        <span class="delete-btn" @click.stop="onDeleteRecord(item.id)">{{ $t('删除') }}</span>
+                    </div>
                 </div>
             </div>
             <div class="advanced-search-form">
@@ -217,7 +216,7 @@
                 }
                 return []
             },
-            setSearchRecords (data) {
+            addSearchRecord (data) {
                 if (!this.dataShouldStoreInStorage(data)) {
                     return
                 }
@@ -233,7 +232,7 @@
                 if (!records[this.username][this.id]) {
                     records[this.username][this.id] = [{
                         id,
-                        form: this.formData
+                        form: data
                     }]
                 } else {
                     if (records[this.username][this.id].length === 4) {
@@ -241,10 +240,17 @@
                     }
                     records[this.username][this.id].push({
                         id,
-                        form: this.formData
+                        form: data
                     })
                 }
                 localStorage.setItem(`advanced_search_record`, JSON.stringify(records))
+            },
+            deleteSearchRecord (id) {
+                const records = JSON.parse(localStorage.getItem(`advanced_search_record`))
+                if (records && records[this.username] && records[this.username][this.id]) {
+                    records[this.username][this.id] = records[this.username][this.id].filter(item => item.id !== id)
+                    localStorage.setItem(`advanced_search_record`, JSON.stringify(records))
+                }
             },
             /**
              * 校验数据是否应该添加到历史记录中
@@ -275,10 +281,6 @@
                     })
                 })
             },
-            handleRecordSelect (value) {
-                const record = this.records.find(item => item.id === value)
-                this.formData = tools.deepClone(record.form)
-            },
             onSearchInput (val) {
                 this.$emit('onSearchInput', val)
             },
@@ -296,15 +298,25 @@
                 }
                 this.formData[key] = val
             },
+            onSelectRecord (id) {
+                this.selectedRecord = id
+                const record = this.records.find(item => item.id === id)
+                this.formData = tools.deepClone(record.form)
+            },
+            onDeleteRecord (id) {
+                this.records = this.records.filter(item => item.id !== id)
+                this.deleteSearchRecord(id)
+            },
             submit () {
                 if (this.showRecord) {
-                    this.setSearchRecords(this.formData)
+                    this.addSearchRecord(this.formData)
                     this.records = this.getSearchRecords()
                     this.selectedRecord = null
                 }
                 this.$emit('submit', this.formData)
             },
             onResetForm () {
+                this.selectedRecord = null
                 Object.keys(this.formData).forEach(key => {
                     const form = this.searchForm.find(item => item.key === key)
                     const val = form.type === 'dateRange' ? [] : ''
@@ -327,24 +339,40 @@
         }
     }
     .search-record {
-        padding: 0 30px;
         color: #63656e;
         background: #fafbfd;
         border: 1px solid #dcdee5;
         border-bottom: none;
         .record-title {
-            padding: 20px 0;
+            padding: 20px 30px;
             border-bottom: 1px solid #dcdee5;
         }
-        .record-list {
-            padding: 10px 0;
-        }
         .record-item {
+            position: relative;
             display: flex;
             align-items: center;
-            margin-bottom: 22px;
+            padding: 10px 40px 10px 30px;
+            cursor: pointer;
+            &:hover {
+                .delete-btn {
+                    display: inline-block;
+                }
+            }
+            &:hover,
+            &.selected {
+                background: #d9e8f9;
+            }
             &:last-child {
                 margin-bottom: 0;
+            }
+            .delete-btn {
+                display: none;
+                position: absolute;
+                right: 20px;
+                top: 13px;
+                color: #3a84ff;
+                font-size: 12px;
+                cursor: pointer;
             }
         }
     }

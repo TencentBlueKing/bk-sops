@@ -15,6 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from pipeline.celery.queues import ScalableQueues
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -144,7 +145,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.24"
+STATIC_VERSION = "3.5.27"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -330,9 +331,23 @@ PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
+# pipeline mako render settings
+MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+
+MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+
+
 ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
+
+# 添加通过api gateway调用的celery任务队列
+API_TASK_QUEUE_NAME = "api_task_queue"
+ScalableQueues.add(name=API_TASK_QUEUE_NAME)
+
+# 添加周期任务的celery任务队列
+PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
+ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 
@@ -346,3 +361,6 @@ for _setting in dir(ver_settings):
 
 # version log config
 VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
+
+# migrate api token
+MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48001122")

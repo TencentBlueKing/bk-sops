@@ -14,9 +14,10 @@
         <div v-if="formMode">
             <el-date-picker
                 v-model="dateValue"
-                type="datetime"
-                format="yyyy-MM-dd HH:mm:ss"
-                value-format="yyyy-MM-dd HH:mm:ss"
+                popper-class="tag-component-popper"
+                :type="type"
+                :format="format"
+                :value-format="format"
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-date-picker>
@@ -41,6 +42,18 @@
             required: false,
             default: false,
             desc: gettext('禁用选择器')
+        },
+        type: {
+            type: String,
+            required: false,
+            default: 'datetime',
+            desc: gettext('日期选择器显示类型')
+        },
+        format: {
+            type: String,
+            required: false,
+            default: 'yyyy-MM-dd HH:mm:ss',
+            desc: gettext('选中的时间以及展示的值')
         },
         value: {
             type: String,
