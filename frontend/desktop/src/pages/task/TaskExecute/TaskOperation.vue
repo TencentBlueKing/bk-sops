@@ -54,7 +54,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -968,6 +968,7 @@
                     this.updateNodeActived(id, true)
                 } else {
                     this.setNodeDetailConfig(id)
+                    this.updateNodeActived(id, true)
                 }
             },
             handleSubflowAtomClick (id) {
@@ -1018,7 +1019,9 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
-               
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
@@ -1034,7 +1037,6 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-                    
                     this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
                         await this.switchCanvasView(nodeActivities)
@@ -1066,6 +1068,7 @@
                 if (nodeType !== 'subflow') {
                     this.setNodeDetailConfig(selectNodeId)
                 }
+                this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {
@@ -1173,6 +1176,9 @@
             packUp () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
+            },
+            onHiddenSideslider () {
+                this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             }
         }
     }

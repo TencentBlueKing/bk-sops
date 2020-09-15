@@ -209,8 +209,28 @@
     @mixin taskNodeNameStyle ($color) {
         .node-name {
             border: 1px solid $color;
+            border-left: 0;
             border-top-right-radius: 4px;
             border-bottom-right-radius: 4px;
+        }
+        .state-icon {
+            display: block;
+        }
+    }
+
+    @mixin nodeClick ($color) {
+        .node-name {
+            border: 1px solid $color;
+            border-left: 0;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            background-color: rgba($color: $color, $alpha: 0.3);
+            .name-text {
+                color: #fff;
+            }
+        }
+        .state-icon {
+            display: block;
         }
     }
 
@@ -330,35 +350,50 @@
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
-            &:hover {
-                box-shadow: 0px 0px 20px 0px $activeShadow;
-                &.failed {
+            &.failed {
+                @include taskNodeStyle ($redDark);
+                &.actived {
+                    @include nodeClick ($redDark);
+                }
+                &:hover {
                     @include taskNodeNameStyle ($redDark);
                 }
-                &.suspended {
-                    @include taskNodeNameStyle ($yellowDark);
-                }
-                &.running {
-                    @include taskNodeNameStyle ($yellowDark);
-                }
-                &.finished {
-                    @include taskNodeNameStyle ($greenDark);
-                }
-                &.default {
-                    @include taskNodeNameStyle ($blueDark);
-                }
-            }
-            &.failed {
-                @include taskNodeStyle ($redDark)
             }
             &.suspended {
-                @include taskNodeStyle ($yellowDark)
+                @include taskNodeStyle ($yellowDark);
+                &.actived {
+                    @include nodeClick ($yellowDark);
+                }
+                &:hover {
+                    @include taskNodeNameStyle ($yellowDark);
+                }
             }
             &.running {
-                @include taskNodeStyle ($yellowDark)
+                @include taskNodeStyle ($yellowDark);
+                &.actived {
+                    @include nodeClick ($yellowDark);
+                }
+                &:hover {
+                    @include taskNodeNameStyle ($yellowDark);
+                }
             }
             &.finished {
-                @include taskNodeStyle ($greenDark)
+                @include taskNodeStyle ($greenDark);
+                &.actived {
+                     @include nodeClick ($greenDark);
+                }
+                &:hover {
+                    @include taskNodeNameStyle ($greenDark);
+                }
+            }
+            &.default {
+                @include taskNodeStyle ($blueDark);
+                &.actived {
+                     @include nodeClick ($blueDark);
+                }
+                &:hover {
+                    @include taskNodeNameStyle ($blueDark);
+                }
             }
             .node-status-block {
                 float: left;
@@ -418,6 +453,12 @@
                 position: absolute;
                 right: 5px;
                 bottom: -20px;
+                display: none;
+                .el-tooltip {
+                    &:hover {
+                        color: #4b85f7;
+                    }
+                }
             }
         }
         .task-status-icon {

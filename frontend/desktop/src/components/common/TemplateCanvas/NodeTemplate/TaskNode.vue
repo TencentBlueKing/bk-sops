@@ -10,10 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <!-- <el-tooltip placement="bottom" popper-class="task-node-tooltip" :disabled="!isOpenTooltip"> -->
     <div
-        @mouseenter.prevent="onEnterNode"
-        @mouseleave.prevent="onLeaveNode"
         :class="[
             'task-node',
             'process-node',
@@ -64,51 +61,53 @@
                 }">
             </i>
         </div>
-        <div v-if="isShow" class="state-icon">
-            <el-tooltip placement="bottom" popper-class="task-node-tooltip" :disabled="!isOpenTooltip">
-                <div class="node-tooltip-content" slot="content">
-                    <span
-                        v-if="node.status && node.status !== 'DEFAULT'"
-                        class="dark-circle common-icon-dark-circle-s"
-                        @click.stop="lalala">
-                    </span>
-                </div>
+        <!-- tooltip提示 -->
+        <div class="state-icon">
+            <el-tooltip placement="bottom" :content="$t('重试')">
+                <span
+                    v-if="isShowSkipBtn"
+                    class="dark-circle common-icon-dark-circle-r"
+                    @click.stop="onRetryClick">
+                </span>
             </el-tooltip>
-            <!-- <span class="dark-circle common-icon-dark-circle-s"></span> -->
+            <el-tooltip placement="bottom" :content="$t('跳过')">
+                <span
+                    v-if="isShowSkipBtn"
+                    class="dark-circle common-icon-dark-circle-s"
+                    @click.stop="onSkipClick">
+                </span>
+            </el-tooltip>
+            <el-tooltip placement="bottom" :content="$t('流程模板中该标准插件节点未配置失败处理方式，不可操作')">
+                <span
+                    v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn"
+                    class="dark-circle common-icon-dark-circle-i">
+                </span>
+            </el-tooltip>
+            <template v-if="node.status === 'RUNNING'">
+                <el-tooltip placement="bottom" :content="$t('修改时间')">
+                    <span
+                        v-if="node.code === 'sleep_timer'"
+                        class="common-icon-loading"
+                        @click.stop="onModifyTimeClick">
+                    </span>
+                </el-tooltip>
+                <el-tooltip placement="bottom" :content="$t('继续执行')">
+                    <span
+                        v-if="node.code === 'pause_node'"
+                        class="common-icon-double-vertical-line"
+                        @click.stop="onResumeClick">
+                    </span>
+                </el-tooltip>
+                <el-tooltip placement="bottom" :content="$t('强制失败')">
+                    <span
+                        v-if="hasAdminPerm"
+                        class="dark-circle common-icon-dark-circle-r"
+                        @click.stop="mandatoryFailure">
+                    </span>
+                </el-tooltip>
+            </template>
         </div>
     </div>
-    <!-- <div class="node-tooltip-content" slot="content">
-        <bk-button
-            v-if="isShowSkipBtn"
-            @click.stop="onRetryClick">
-            {{ $t('重试') }}
-        </bk-button>
-        <bk-button
-            v-if="isShowRetryBtn"
-            @click.stop="onSkipClick">
-            {{ $t('跳过') }}
-        </bk-button>
-        <span v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn">{{ $t('流程模板中该标准插件节点未配置失败处理方式，不可操作') }}</span>
-        <template v-if="node.status === 'RUNNING'">
-            <bk-button
-                v-if="node.code === 'sleep_timer'"
-                @click.stop="onModifyTimeClick">
-                {{ $t('修改时间') }}
-            </bk-button>
-            <bk-button
-                v-if="node.code === 'pause_node'"
-                @click.stop="onResumeClick">
-                {{ $t('继续') }}
-            </bk-button>
-            <bk-button
-                v-if="hasAdminPerm"
-                @click.stop="$emit('onForceFail', node.id)">
-                {{ $t('强制失败') }}
-            </bk-button>
-        </template>
-    </div>
-    </el-tooltip> -->
-
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
@@ -130,7 +129,6 @@
         },
         data () {
             return {
-                isShow: false,
                 phaseStr: {
                     '1': i18n.t('当前插件即将停止维护，请更新插件版本'),
                     '2': i18n.t('当前插件已停止维护，请更新插件版本')
@@ -168,25 +166,13 @@
                 return false
             }
         },
-        watch: {
-            node (val) {
-                if (!val.status) {
-                    val.status = 'DEFAULT'
-                }
+        mounted () {
+            if (!this.node.status) {
+                this.node.status = 'DEFAULT'
+                this.node.isActived = false
             }
         },
         methods: {
-            lalala () {
-                console.log('xxxx')
-            },
-            onEnterNode () {
-                this.isShow = true
-                console.log('1111')
-            },
-            onLeaveNode () {
-                this.isShow = false
-                this.hoverNode = false
-            },
             getIconCls (node) {
                 const { code, group } = node
                 if (BK_PLUGIN_ICON[code]) {
@@ -216,6 +202,9 @@
                     return
                 }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
+            },
+            mandatoryFailure () {
+                this.$emit('onForceFail', this.node.id)
             }
         }
     }
