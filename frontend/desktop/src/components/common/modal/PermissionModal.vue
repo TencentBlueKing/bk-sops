@@ -140,6 +140,7 @@
             },
             onCloseDialog () {
                 this.isModalShow = false
+                this.hasAbnormalReturn = false
             }
         }
     }
