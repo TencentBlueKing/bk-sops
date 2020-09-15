@@ -654,3 +654,12 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/list_set_template/",
             description="查询集群模板",
         )
+        self.add_host_lock = ComponentAPI(
+            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/", description="新加主机锁",
+        )
+        self.delete_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/delete_host_lock/",
+            description="删除主机锁",
+        )
