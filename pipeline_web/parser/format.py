@@ -52,9 +52,19 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
         elif act["type"] == "SubProcess":
             parent_params = {}
             for key, info in list(act["pipeline"]["constants"].items()):
+                # 为子流程设置 params 使得外层参数能够往子流程中传递
                 if info["show_type"] == "show":
-                    # 为子流程设置 params 使得外层参数能够往子流程中传递
-                    parent_params[key] = {"type": "splice", "value": info["value"]}
+                    # lazy 变量
+                    var_cls = library.VariableLibrary.get_var_class(info["custom_type"])
+                    if var_cls and issubclass(var_cls, var.LazyVariable):
+                        parent_params[key] = {
+                            "type": "lazy",
+                            "source_tag": info["source_tag"],
+                            "custom_type": info["custom_type"],
+                            "value": info["value"],
+                        }
+                    else:
+                        parent_params[key] = {"type": "splice", "value": info["value"]}
             act["params"] = parent_params
             act["pipeline"] = format_web_data_to_pipeline(act["pipeline"], is_subprocess=True)
         else:
