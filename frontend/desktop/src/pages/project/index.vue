@@ -179,7 +179,7 @@
         {
             name: 'mandate',
             power: 'project_view',
-            text: i18n.t('授权管理')
+            text: i18n.t('项目配置')
         },
         {
             name: 'edit',
