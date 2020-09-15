@@ -107,7 +107,7 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button theme="primary" @click="importSubmit(true)">{{exportConflict}}</bk-button>
                 <bk-button
                     theme="default"
                     @click="importSubmit(false)"
@@ -125,12 +125,14 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ImportTemplateDialog',
         components: {
             NoData
         },
+        mixins: [permission],
         props: ['isImportDialogShow', 'common', 'authActions'],
         data () {
             return {
@@ -277,9 +279,6 @@
                 this.templateFileEmpty = false
                 this.templateFileErrorExt = false
                 this.templateFileError = false
-            },
-            exportSubmit (isOverride) {
-                this.onConfirm(isOverride)
             },
             importSubmit (isOverride) {
                 this.onConfirm(isOverride)
