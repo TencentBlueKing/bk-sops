@@ -350,6 +350,15 @@
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
+            &.default {
+                @include taskNodeStyle ($blueDark);
+                &.actived {
+                     @include nodeClick ($blueDark);
+                }
+                &:hover {
+                    @include taskNodeNameStyle ($blueDark);
+                }
+            }
             &.failed {
                 @include taskNodeStyle ($redDark);
                 &.actived {
@@ -386,15 +395,7 @@
                     @include taskNodeNameStyle ($greenDark);
                 }
             }
-            &.default {
-                @include taskNodeStyle ($blueDark);
-                &.actived {
-                     @include nodeClick ($blueDark);
-                }
-                &:hover {
-                    @include taskNodeNameStyle ($blueDark);
-                }
-            }
+            
             .node-status-block {
                 float: left;
                 display: flex;

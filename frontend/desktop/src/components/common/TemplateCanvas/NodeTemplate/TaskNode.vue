@@ -12,6 +12,7 @@
 <template>
     <div
         :class="[
+            node.mode === 'execute' ? 'default' : '',
             'task-node',
             'process-node',
             node.status ? node.status.toLowerCase() : '',
@@ -80,13 +81,13 @@
                 placement="bottom"
                 :content="$t('流程模板中该标准插件节点未配置失败处理方式，不可操作')">
                 <span
-                    class="dark-circle common-icon-dark-circle-i">
+                    class="common-icon-mandatory-failure">
                 </span>
             </el-tooltip>
             <template v-if="node.status === 'RUNNING'">
                 <el-tooltip v-if="node.code === 'sleep_timer'" placement="bottom" :content="$t('修改时间')">
                     <span
-                        class="common-icon-loading"
+                        class="common-icon-clock"
                         @click.stop="onModifyTimeClick">
                     </span>
                 </el-tooltip>
@@ -96,13 +97,13 @@
                         @click.stop="onResumeClick">
                     </span>
                 </el-tooltip>
-                <el-tooltip v-if="hasAdminPerm" placement="bottom" :content="$t('强制失败')">
-                    <span
-                        class="common-icon-mandatory-failure"
-                        @click.stop="mandatoryFailure">
-                    </span>
-                </el-tooltip>
             </template>
+            <el-tooltip v-if="['RUNNING', 'SUSPENDED'].includes(node.status)" placement="bottom" :content="$t('强制失败')">
+                <span
+                    class="common-icon-mandatory-failure"
+                    @click.stop="mandatoryFailure">
+                </span>
+            </el-tooltip>
         </div>
     </div>
 </template>
@@ -161,13 +162,6 @@
                     }
                 }
                 return false
-            }
-        },
-        watch: {
-            node (val) {
-                if (!val.status) {
-                    val.status = 'DEFAULT'
-                }
             }
         },
         methods: {

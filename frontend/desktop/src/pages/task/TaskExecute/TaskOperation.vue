@@ -342,7 +342,8 @@
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
                 'pauseNodeResume',
-                'getNodeActInfo'
+                'getNodeActInfo',
+                'onForcedFail'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -628,7 +629,7 @@
                         node_id: id,
                         task_id: Number(this.instance_id)
                     }
-                    const res = await this.taskflowNodeForceFail(params)
+                    const res = await this.onForcedFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制失败执行成功'),
