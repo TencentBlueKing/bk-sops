@@ -777,7 +777,7 @@ const en = {
     '模板上传内容不合法，请重新选择文件': 'The content of file is illegal, please select the file again',
     '该文件后缀不为.dat': 'The file suffix is not .dat',
     '其中': 'And ',
-    '覆盖ID相同的流程': 'Overwrite processes with the same ID',
+    '覆盖ID相同的流程': 'Overwrite same ID',
     '创建新流程': 'Create a new process',
     '覆盖冲突项, 并提交': 'Override conflict items and submit',
     '保留两者, 并提交': 'Keep both and submit',
