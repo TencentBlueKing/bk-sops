@@ -11,9 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from gcloud.taskflow3 import api
+from gcloud.taskflow3.apis.views.v4.urls import v4_urlpatterns
 
 urlpatterns = [
     url(r"^api/context/$", api.context),
@@ -32,4 +33,5 @@ urlpatterns = [
     url(r"^api/nodes/log/(?P<project_id>\d+)/(?P<node_id>\w+)/$", api.get_node_log),
     url(r"^api/get_task_create_method/$", api.get_task_create_method),
     url(r"^api/nodes/callback/(?P<token>.+)/$", api.node_callback),
+    url(r"^api/v4/", include(v4_urlpatterns)),
 ]
