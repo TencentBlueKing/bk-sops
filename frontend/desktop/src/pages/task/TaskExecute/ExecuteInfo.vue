@@ -553,7 +553,6 @@
                         this.outputsInfo = outputs
                         this.inputsInfo = inputs
                         this.logInfo = log
-                        this.isLogLoading = false
                         this.historyInfo = history.sort((a, b) => {
                             if (a.loop === b.loop) {
                                 return b.history_id - a.history_id
@@ -568,7 +567,7 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
-                        if (this.executeInfo.state && this.executeInfo.state !== 'READY') {
+                        if (this.executeInfo.state && this.executeInfo.state !== ('READY' || 'CREATED')) {
                             const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                             this.getPerformLog(query)
                         }
@@ -613,6 +612,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.loading = false
+                    this.isLogLoading = false
                 }
             },
             async getTaskNodeDetail () {
@@ -642,13 +642,10 @@
             // 非admin 用户执行记录
             async getPerformLog (query) {
                 try {
-                    this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
                 } catch (error) {
                     errorHandler(error, this)
-                } finally {
-                    this.isLogLoading = false
                 }
             },
             async getNodeConfig (type, version) {
