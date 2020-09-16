@@ -224,22 +224,18 @@
                     </bk-table-column>
                 </bk-table>
             </section>
-            <div class="action-wrapper">
-                <!-- <div v-if="!isParamsEmpty && paramsCanBeModify">
+            <div v-if="executeInfo.state && executeInfo.state !== 'READY'" class="action-wrapper">
+                <div v-if="executeInfo.state === 'FAILED'">
                     <bk-button
                         theme="primary"
-                        :class="{
-                            'btn-permission-disable': !hasSavePermission
-                        }"
-                        :loading="pending"
-                        v-cursor="{ active: !hasSavePermission }"
-                        @click="onModifyParams">
-                        {{ $t('保存') }}
+                        @click="onRetryClick">
+                        {{ $t('重试') }}
                     </bk-button>
-                    <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
-                </div> -->
-                
-                <bk-button theme="default">{{ $t('关闭') }}</bk-button>
+                    <bk-button theme="default" @click="onSkipClick">{{ $t('跳过') }}</bk-button>
+                </div>
+                <div v-if="executeInfo.state === 'SUSPENDED'">
+                    <bk-button theme="default" @click="onResumeClick">{{ $t('跳过') }}</bk-button>
+                </div>
             </div>
         </div>
     </div>
@@ -769,6 +765,15 @@
                 } else {
                     this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
                 }
+            },
+            onRetryClick () {
+                this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
+            },
+            onSkipClick () {
+                this.$emit('onSkipClick', this.nodeDetailConfig.node_id)
+            },
+            onResumeClick () {
+                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)
             }
         }
     }

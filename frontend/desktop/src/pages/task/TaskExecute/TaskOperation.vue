@@ -73,6 +73,9 @@
                     :admin-view="adminView"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
+                    @onRetryClick="onRetryClick"
+                    @onSkipClick="onSkipClick"
+                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
