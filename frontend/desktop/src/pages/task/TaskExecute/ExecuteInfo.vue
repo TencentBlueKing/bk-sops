@@ -433,7 +433,7 @@
         },
         data () {
             return {
-                isLogLoading: true,
+                isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
                 readOnly: true,
@@ -537,6 +537,7 @@
             ]),
             async loadNodeInfo () {
                 this.loading = true
+                this.isLogLoading = true
                 try {
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history, state } = respData
