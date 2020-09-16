@@ -869,19 +869,14 @@
                 let nodeData = tools.deepClone(this.nodeData)
                 let firstNodeId = null
                 let firstNodeData = null
-                const rootNood = []
-                const rootNoodeId = this.selectedFlowPath.map(item => {
-                    return item.nodeId
-                })
+                const rootNode = []
                 while (nodeData[0]) {
                     if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
                         firstNodeId = nodeData[0].id
                         firstNodeData = nodeData[0]
                         nodeData[0] = false
                     } else {
-                        if (!rootNoodeId.includes(nodeData[0].id)) {
-                            rootNood.push(nodeData[0])
-                        }
+                        rootNode.push(nodeData[0])
                         nodeData = nodeData[0].children
                     }
                 }
@@ -893,16 +888,18 @@
                     this.quickClose = false
                 }
                 if (name === i18n.t('节点详情')) {
-                    rootNood.slice(1).forEach(item => {
-                        this.selectedFlowPath.push({
-                            id: item.id,
-                            name: item.name,
-                            nodeId: item.id,
-                            type: 'SubProcess'
-                        })
-                    })
                     this.defaultActiveId = firstNodeId
-                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
+                    let subprocessStack = []
+                    if (rootNode.length > 1) {
+                        subprocessStack = rootNode.map(item => item.id).slice(1)
+                    }
+                    this.nodeDetailConfig = {
+                        component_code: firstNodeData.component.code,
+                        version: firstNodeData.component.version || 'legacy',
+                        node_id: firstNodeData.id,
+                        instance_id: this.instance_id,
+                        subprocess_stack: JSON.stringify(subprocessStack)
+                    }
                 }
             },
             
@@ -991,17 +988,12 @@
                 this.cancelTaskStatusTimer()
                 const nodeActivities = this.pipelineData.activities[id]
                 this.nodeSwitching = true
-                const rootNoodeId = this.selectedFlowPath.map(item => {
-                    return item.nodeId
+                this.selectedFlowPath.push({
+                    id: nodeActivities.id,
+                    name: nodeActivities.name,
+                    nodeId: nodeActivities.id,
+                    type: 'SubProcess'
                 })
-                if (!rootNoodeId.includes(nodeActivities.id)) {
-                    this.selectedFlowPath.push({
-                        id: nodeActivities.id,
-                        name: nodeActivities.name,
-                        nodeId: nodeActivities.id,
-                        type: 'SubProcess'
-                    })
-                }
                 
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
