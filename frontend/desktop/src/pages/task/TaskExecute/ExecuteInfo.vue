@@ -433,7 +433,7 @@
         },
         data () {
             return {
-                isLogLoading: false,
+                isLogLoading: true,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
                 readOnly: true,
@@ -622,10 +622,13 @@
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
+                    
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
+                    } else {
+                        this.getPerformLog(query)
                     }
                     const res = await getData(query)
                     if (res.result) {
