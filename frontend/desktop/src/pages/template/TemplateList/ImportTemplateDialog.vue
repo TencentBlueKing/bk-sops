@@ -107,10 +107,11 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" @click="importSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button theme="primary" @click="CoverSubmit(true)">{{exportConflict}}</bk-button>
                 <bk-button
                     theme="default"
                     @click="importSubmit(false)"
+                    v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                     :class="{ 'btn-permission-disable': !hasPermission(['flow_create'], authActions) }">
                     {{overrideConflict}}
                 </bk-button>
@@ -136,6 +137,7 @@
         props: ['isImportDialogShow', 'common', 'authActions'],
         data () {
             return {
+                active: true,
                 file: null,
                 filename: '',
                 exportList: [],
@@ -158,7 +160,8 @@
                 'site_url': state => state.site_url
             }),
             ...mapState('project', {
-                'project_id': state => state.project_id
+                'project_id': state => state.project_id,
+                'projectName': state => state.projectName
             }),
             exportConflict () {
                 return this.overrideList.length ? i18n.t('覆盖冲突项, 并提交') : i18n.t('流程ID不变提交')
@@ -280,8 +283,21 @@
                 this.templateFileErrorExt = false
                 this.templateFileError = false
             },
-            importSubmit (isOverride) {
+            CoverSubmit (isOverride) {
                 this.onConfirm(isOverride)
+            },
+            importSubmit (isOverride) {
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
+                } else {
+                    this.onConfirm(isOverride)
+                }
             },
             resetData () {
                 this.file = null
