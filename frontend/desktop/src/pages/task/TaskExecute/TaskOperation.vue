@@ -756,6 +756,8 @@
                     node_id: id
                 }
                 this.nodeTaskSkip(data)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             },
             onModifyTimeClick (id) {
                 this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
@@ -782,6 +784,8 @@
                     data: { callback: 'resume' }
                 }
                 this.nodeResume(data)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             },
             onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return

@@ -65,13 +65,13 @@
         <div class="state-icon">
             <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('重试')">
                 <span
-                    class="dark-circle common-icon-dark-circle-r"
+                    class="common-icon-retry"
                     @click.stop="onRetryClick">
                 </span>
             </el-tooltip>
             <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
                 <span
-                    class="dark-circle common-icon-dark-circle-s"
+                    class="common-icon-skip"
                     @click.stop="onSkipClick">
                 </span>
             </el-tooltip>
@@ -92,13 +92,13 @@
                 </el-tooltip>
                 <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
                     <span
-                        class="common-icon-double-vertical-line"
+                        class="common-icon-resume"
                         @click.stop="onResumeClick">
                     </span>
                 </el-tooltip>
                 <el-tooltip v-if="hasAdminPerm" placement="bottom" :content="$t('强制失败')">
                     <span
-                        class="dark-circle common-icon-dark-circle-r"
+                        class="common-icon-mandatory-failure"
                         @click.stop="mandatoryFailure">
                     </span>
                 </el-tooltip>

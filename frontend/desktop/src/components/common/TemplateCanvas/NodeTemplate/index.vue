@@ -455,6 +455,9 @@
                 bottom: -20px;
                 display: none;
                 .el-tooltip {
+                   font-size: 14px;
+                   margin-left: 5px;
+                   color: #52699D;
                     &:hover {
                         color: #4b85f7;
                     }
