@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.data.var import LazyVariable
 from pipeline.core.flow.io import StringItemSchema
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 class DataTableValue(object):
@@ -31,18 +31,19 @@ class DataTableValue(object):
                 item_values.setdefault(key, []).append(val)
         for attr, attr_val in item_values.items():
             setattr(self, attr, attr_val)
-            flat_val = '\n'.join(map(str, attr_val))
-            setattr(self, 'flat__{}'.format(attr), flat_val)
+            flat_val = "\n".join(map(str, attr_val))
+            setattr(self, "flat__{}".format(attr), flat_val)
+        self.default_value = "DataTable with {} Fields".format(",".join(item_values.keys()))
 
 
 class DataTable(LazyVariable):
-    code = 'datatable'
+    code = "datatable"
     name = _("表格")
-    type = 'meta'
-    tag = 'datatable.datatable'
-    meta_tag = 'datatable.datatable_meta'
-    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = StringItemSchema(description=_('表格变量'))
+    type = "meta"
+    tag = "datatable.datatable"
+    meta_tag = "datatable.datatable_meta"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_("表格变量"))
 
     def get_value(self):
         """

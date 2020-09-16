@@ -34,11 +34,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
     :return:
     """
     str_module_ids = [str(item) for item in bk_module_ids]
-    set_module_info = {
-        "set_id": bk_set_id,
-        "module_id": bk_module_ids,
-        "flat__module_id": ",".join(str_module_ids)
-    }
+    set_module_info = {"set_id": bk_set_id, "module_id": bk_module_ids, "flat__module_id": ",".join(str_module_ids)}
     client = get_client_by_user(operator)
 
     set_kwargs = {
@@ -57,11 +53,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
         logger.error(err_msg)
         set_module_info["set_name"] = ""
 
-    module_kwargs = {
-        "bk_biz_id": bk_biz_id,
-        "bk_set_id": bk_set_id,
-        "fields": ["bk_module_id", "bk_module_name"]
-    }
+    module_kwargs = {"bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id, "fields": ["bk_module_id", "bk_module_name"]}
     module_info = batch_request(client.cc.search_module, module_kwargs)
     bk_module_names = []
     for item in module_info:
@@ -85,6 +77,7 @@ class SetModuleInfo(object):
         self.module_id = data.get("module_id", [])
         self.flat__module_id = data.get("flat__module_id", "")
         self.flat__module_name = data.get("flat__module_name", "")
+        self.default_value = "set: {}, modules: {}".format(self.set_name, ",".join(self.module_name))
 
 
 class VarSetModuleSelector(LazyVariable):
