@@ -120,7 +120,6 @@
                 data.forEach(item => {
                     const dataItem = {}
                     Object.keys(item).forEach(key => {
-                        console.log(item[key])
                         // renderForm 组件 value 需要接受 object 类型数据
                         dataItem[key] = {
                             [key]: item[key]
