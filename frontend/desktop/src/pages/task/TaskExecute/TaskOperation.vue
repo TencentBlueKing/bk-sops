@@ -788,7 +788,9 @@
             setCanvasData () {
                 this.$nextTick(() => {
                     this.nodeSwitching = false
-                    this.markNodesPhase()
+                    this.$nextTick(() => {
+                        this.markNodesPhase()
+                    })
                 })
             },
             getOptBtnIsClickable (action) {
@@ -867,12 +869,19 @@
                 let nodeData = tools.deepClone(this.nodeData)
                 let firstNodeId = null
                 let firstNodeData = null
+                const rootNood = []
+                const rootNoodeId = this.selectedFlowPath.map(item => {
+                    return item.nodeId
+                })
                 while (nodeData[0]) {
                     if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
                         firstNodeId = nodeData[0].id
                         firstNodeData = nodeData[0]
                         nodeData[0] = false
                     } else {
+                        if (!rootNoodeId.includes(nodeData[0].id)) {
+                            rootNood.push(nodeData[0])
+                        }
                         nodeData = nodeData[0].children
                     }
                 }
@@ -884,6 +893,14 @@
                     this.quickClose = false
                 }
                 if (name === i18n.t('节点详情')) {
+                    rootNood.slice(1).forEach(item => {
+                        this.selectedFlowPath.push({
+                            id: item.id,
+                            name: item.name,
+                            nodeId: item.id,
+                            type: 'SubProcess'
+                        })
+                    })
                     this.defaultActiveId = firstNodeId
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
@@ -974,12 +991,18 @@
                 this.cancelTaskStatusTimer()
                 const nodeActivities = this.pipelineData.activities[id]
                 this.nodeSwitching = true
-                this.selectedFlowPath.push({
-                    id: nodeActivities.id,
-                    name: nodeActivities.name,
-                    nodeId: nodeActivities.id,
-                    type: 'SubProcess'
+                const rootNoodeId = this.selectedFlowPath.map(item => {
+                    return item.nodeId
                 })
+                if (!rootNoodeId.includes(nodeActivities.id)) {
+                    this.selectedFlowPath.push({
+                        id: nodeActivities.id,
+                        name: nodeActivities.name,
+                        nodeId: nodeActivities.id,
+                        type: 'SubProcess'
+                    })
+                }
+                
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },
@@ -1018,7 +1041,7 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
-               
+
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
@@ -1034,7 +1057,7 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-                    
+
                     this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
                         await this.switchCanvasView(nodeActivities)

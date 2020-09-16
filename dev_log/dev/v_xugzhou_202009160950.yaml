@@ -1,0 +1,2 @@
+bugfix:
+    - '修复3.6.X 节点日志loading问题和 请求未携带subprocess_stack参数问题'
