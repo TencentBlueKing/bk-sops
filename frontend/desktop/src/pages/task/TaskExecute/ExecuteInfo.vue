@@ -537,7 +537,6 @@
             ]),
             async loadNodeInfo () {
                 this.loading = true
-                this.isLogLoading = true
                 try {
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history, state } = respData
@@ -612,7 +611,6 @@
                     errorHandler(e, this)
                 } finally {
                     this.loading = false
-                    this.isLogLoading = false
                 }
             },
             async getTaskNodeDetail () {
@@ -642,10 +640,13 @@
             // 非admin 用户执行记录
             async getPerformLog (query) {
                 try {
+                    this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
                 } catch (error) {
                     errorHandler(error, this)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getNodeConfig (type, version) {
