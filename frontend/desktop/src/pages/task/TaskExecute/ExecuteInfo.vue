@@ -224,6 +224,23 @@
                     </bk-table-column>
                 </bk-table>
             </section>
+            <div class="action-wrapper">
+                <!-- <div v-if="!isParamsEmpty && paramsCanBeModify">
+                    <bk-button
+                        theme="primary"
+                        :class="{
+                            'btn-permission-disable': !hasSavePermission
+                        }"
+                        :loading="pending"
+                        v-cursor="{ active: !hasSavePermission }"
+                        @click="onModifyParams">
+                        {{ $t('保存') }}
+                    </bk-button>
+                    <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+                </div> -->
+                
+                <bk-button theme="default">{{ $t('关闭') }}</bk-button>
+            </div>
         </div>
     </div>
 </template>
@@ -769,6 +786,7 @@
 .execute-info {
     flex: 1;
     padding: 30px 20px;
+    padding-bottom: 0;
     height: 100%;
     color: #313238;
     overflow-y: auto;
@@ -928,6 +946,11 @@
     }
     /deep/ .code-editor {
         height: 300px;
+    }
+    .action-wrapper {
+        height: 60px;
+        line-height: 60px;
+        border-top: 1px solid $commonBorderColor;
     }
 }
 </style>

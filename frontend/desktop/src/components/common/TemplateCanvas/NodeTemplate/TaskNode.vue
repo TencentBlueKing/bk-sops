@@ -63,44 +63,41 @@
         </div>
         <!-- tooltip提示 -->
         <div class="state-icon">
-            <el-tooltip placement="bottom" :content="$t('重试')">
+            <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('重试')">
                 <span
-                    v-if="isShowSkipBtn"
                     class="dark-circle common-icon-dark-circle-r"
                     @click.stop="onRetryClick">
                 </span>
             </el-tooltip>
-            <el-tooltip placement="bottom" :content="$t('跳过')">
+            <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
                 <span
-                    v-if="isShowSkipBtn"
                     class="dark-circle common-icon-dark-circle-s"
                     @click.stop="onSkipClick">
                 </span>
             </el-tooltip>
-            <el-tooltip placement="bottom" :content="$t('流程模板中该标准插件节点未配置失败处理方式，不可操作')">
+            <el-tooltip
+                v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn"
+                placement="bottom"
+                :content="$t('流程模板中该标准插件节点未配置失败处理方式，不可操作')">
                 <span
-                    v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn"
                     class="dark-circle common-icon-dark-circle-i">
                 </span>
             </el-tooltip>
             <template v-if="node.status === 'RUNNING'">
-                <el-tooltip placement="bottom" :content="$t('修改时间')">
+                <el-tooltip v-if="node.code === 'sleep_timer'" placement="bottom" :content="$t('修改时间')">
                     <span
-                        v-if="node.code === 'sleep_timer'"
                         class="common-icon-loading"
                         @click.stop="onModifyTimeClick">
                     </span>
                 </el-tooltip>
-                <el-tooltip placement="bottom" :content="$t('继续执行')">
+                <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
                     <span
-                        v-if="node.code === 'pause_node'"
                         class="common-icon-double-vertical-line"
                         @click.stop="onResumeClick">
                     </span>
                 </el-tooltip>
-                <el-tooltip placement="bottom" :content="$t('强制失败')">
+                <el-tooltip v-if="hasAdminPerm" placement="bottom" :content="$t('强制失败')">
                     <span
-                        v-if="hasAdminPerm"
                         class="dark-circle common-icon-dark-circle-r"
                         @click.stop="mandatoryFailure">
                     </span>
@@ -166,10 +163,11 @@
                 return false
             }
         },
-        mounted () {
-            if (!this.node.status) {
-                this.node.status = 'DEFAULT'
-                this.node.isActived = false
+        watch: {
+            node (val) {
+                if (!val.status) {
+                    val.status = 'DEFAULT'
+                }
             }
         },
         methods: {
