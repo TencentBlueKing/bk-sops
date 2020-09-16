@@ -566,7 +566,7 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
-                        if (this.executeInfo.state && this.executeInfo.state !== ('READY' || 'CREATED')) {
+                        if (this.executeInfo.state && !['READY', 'CREATED'].includes(this.executeInfo.state)) {
                             const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                             this.getPerformLog(query)
                         }
