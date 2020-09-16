@@ -627,8 +627,6 @@
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
-                    } else {
-                        this.getPerformLog(query)
                     }
                     const res = await getData(query)
                     if (res.result) {
