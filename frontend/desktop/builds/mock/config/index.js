@@ -67,9 +67,4 @@ module.exports = {
     //     method: 'GET',
     //     data: permission
     // }
-    '/o/bk_sops/static/variables/cmdb/var_ip_picker.js': {
-        type: 'file',
-        method: 'GET',
-        data: './var_ip_picker.js'
-    }
 }
