@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.utils import translation
+from django.utils import translation, timezone
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.core.models import Business, ProjectConfig
@@ -60,6 +60,12 @@ class TaskContext(object):
     def flat_details(cls):
         # index: 展示在前端全局变量的顺序，越小越靠前
         details = {
+            cls.to_flat_key("task_start_time"): {
+                "key": cls.to_flat_key("task_start_time"),
+                "name": _("任务开始时间"),
+                "index": -8,
+                "desc": ""
+            },
             cls.to_flat_key("language"): {
                 "key": cls.to_flat_key("language"),
                 "name": _("执行环境语言CODE"),
@@ -111,4 +117,10 @@ class TaskContext(object):
                     "validation": "",
                 }
             )
+            if item["key"] == cls.to_flat_key("task_start_time"):
+                item.update(
+                    {
+                        "value": timezone.localtime(timezone.now()).strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                )
         return details
