@@ -211,7 +211,7 @@ def get_ip_result_by_input_method(
         bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template
     )
     if not var_module_name or var_module_name == "ip":
-        # 根据模块id列表获取ip并返回
+        # 根据模块 id 列表获取 ip 并返回
         data = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
     else:
         # 根据模块属性名获取模块信息
