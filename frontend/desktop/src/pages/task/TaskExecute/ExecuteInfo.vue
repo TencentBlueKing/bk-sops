@@ -506,6 +506,8 @@
                     state = 'common-icon-dark-circle-close'
                 } else if (this.executeInfo.state === 'CREATED') {
                     state = 'common-icon-dark-circle-shape'
+                } else if (this.executeInfo.state === 'READY') {
+                    state = 'common-icon-dark-circle-shape'
                 }
                 return state
             },
