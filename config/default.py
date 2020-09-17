@@ -345,6 +345,9 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 
+# CELERY与RabbitMQ增加60秒心跳设置项
+BROKER_HEARTBEAT = 60
+
 SYSTEM_USE_API_ACCOUNT = "admin"
 
 # VER settings
