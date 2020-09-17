@@ -131,7 +131,9 @@ def get_module_id_list(
     if not filter_set_names:
         set_ids = [set_item["bk_set_id"] for set_item in set_list]
     else:
-        set_ids = [set_item["bk_set_id"] for set_item in set_list if set_item["bk_set_name"] in filter_set_names.split(",")]
+        set_ids = [
+            set_item["bk_set_id"] for set_item in set_list if set_item["bk_set_name"] in filter_set_names.split(",")
+        ]
     if not filter_service_template_names:
         service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     else:
@@ -143,7 +145,6 @@ def get_module_id_list(
 
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
-
     return module_id_list
 
 
