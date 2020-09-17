@@ -1,4 +1,8 @@
 const en = {
+    '保存筛选方案': 'Save the filter scheme',
+    '修改名称会新建方案记录': 'Changing the name creates a new schema record',
+    '筛选方案': 'Screening scheme',
+    '筛选条件和排除条件': 'Screening criteria and exclusion criteria',
     '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',
