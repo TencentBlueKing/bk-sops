@@ -19,8 +19,6 @@
  * data 为 mock 数据，当 type 取值为 'json' 时，直接返回实际的 mock 数据对象，当 type 取值为 'file' 时，返回文件的相对路径(相对于 config 文件夹)
  */
 
- const permission = require('./permission.js')
-
 module.exports = {
     // demo 参考：
     // '/t/bk_sops/api/v3/template/': {
@@ -69,4 +67,9 @@ module.exports = {
     //     method: 'GET',
     //     data: permission
     // }
+    '/o/bk_sops/static/variables/cmdb/var_ip_picker.js': {
+        type: 'file',
+        method: 'GET',
+        data: './var_ip_picker.js'
+    }
 }

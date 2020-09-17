@@ -20,6 +20,43 @@ const webpackBaseConfig = require('./webpack.base.js')
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 module.exports = merge(webpackBaseConfig, {
+    mode: 'production',
+    output: {
+        publicPath: '{{ BK_STATIC_URL }}',
+        filename: 'js/[name].[contenthash:10].js'
+    },
+    module: {
+        rules: [
+            {
+                test: /\.s?[ac]ss$/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            publicPath: '../'
+                        }
+                    },
+                    'css-loader',
+                    'postcss-loader',
+                    'sass-loader'
+                ]
+        
+            }
+        ]
+    },
+    plugins: [
+        new CleanWebpackPlugin([path.resolve('static')], {
+            root: process.cwd(),
+            verbose: true,
+            dry: false
+        }),
+        // 只打 moment.js 中文包，减小体积
+        new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
+        new MiniCssExtractPlugin({
+            filename: path.posix.join('css/[name].[contenthash:10].css')
+        })
+        // new BundleAnalyzerPlugin()
+    ],
     optimization: {
         minimizer: [
             new TerserPlugin({
@@ -30,24 +67,6 @@ module.exports = merge(webpackBaseConfig, {
             })
         ]
     },
-    plugins: [
-        new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: '"production"'
-            }
-        }),
-        new CleanWebpackPlugin([path.resolve('static', process.env.STATIC_ENV)], {
-            root: process.cwd(),
-            verbose: true,
-            dry: false
-        }),
-        // 只打 moment.js 中文包，减小体积
-        new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
-        new MiniCssExtractPlugin({
-            filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name].css' + process.env.VERSION)
-        })
-        // new BundleAnalyzerPlugin()
-    ],
     stats: {
         performance: true,
         chunks: false,
@@ -59,7 +78,6 @@ module.exports = merge(webpackBaseConfig, {
         errors: true,
         warnings: true
     },
-    mode: 'production',
     performance: {
         // maxEntrypointSize: 500000,
         // hints: "error"

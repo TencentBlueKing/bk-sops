@@ -9,7 +9,6 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const webpackBaseConfig = require('./webpack.base.js')
@@ -35,7 +34,8 @@ const proxyPath = [
     'admin/taskflow/*',
     'admin/template/*',
     'develop/api/*',
-    'version_log/*'
+    'version_log/*',
+    'iam/*'
 ]
 const proxyRule = {}
 proxyPath.forEach(item => {
@@ -50,6 +50,25 @@ proxyPath.forEach(item => {
 })
 
 module.exports = merge(webpackBaseConfig, {
+    mode: 'development',
+    output: {
+        publicPath: '/',
+        filename: 'js/[name].[hash:10].js'
+    },
+    module: {
+        rules: [
+            {
+                test: /\.s?[ac]ss$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    'postcss-loader',
+                    'sass-loader'
+                ]
+        
+            }
+        ]
+    },
     plugins: [
         new webpack.DefinePlugin({
             'process.env': {
@@ -59,7 +78,6 @@ module.exports = merge(webpackBaseConfig, {
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ],
-    mode: 'development',
     performance: {
         hints: false
     },
@@ -71,7 +89,7 @@ module.exports = merge(webpackBaseConfig, {
         https: false,
         historyApiFallback: {
             rewrites: [
-                { from: /^.*$/, to: '/static/dist/index.html' }
+                { from: /^.*$/, to: '/index.html' }
             ]
         },
         proxy: proxyRule,
