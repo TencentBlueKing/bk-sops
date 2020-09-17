@@ -73,6 +73,12 @@
             initIntance () {
                 this.monacoInstance = monaco.editor.create(this.$el, this.editorOptions)
                 const model = this.monacoInstance.getModel()
+                model.setEOL(0) // 设置编辑器在各系统平台下 EOL 统一为 \n
+                if (this.value.indexOf('\r\n') > -1) { // 转换已保存的旧数据
+                    const textareaEl = document.createElement('textarea')
+                    textareaEl.value = this.value
+                    this.$emit('input', textareaEl.value)
+                }
                 model.onDidChangeContent(event => {
                     const value = this.monacoInstance.getValue()
                     this.$emit('input', value)

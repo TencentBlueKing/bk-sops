@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from iam import meta
 
-SYSTEM_ID = settings.APP_ID
+SYSTEM_ID = settings.BK_IAM_SYSTEM_ID
 
 SYSTEM_INFO = [
     {"id": SYSTEM_ID, "name": settings.APP_NAME},

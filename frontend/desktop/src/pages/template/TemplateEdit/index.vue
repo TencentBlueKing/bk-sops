@@ -533,6 +533,7 @@
                     if (this.type !== 'edit') {
                         this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
+                        this.isFromTplListRoute = false // 克隆、新建保存后，url 会发生变更，点击返回按钮需要回到流程列表页
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
                             url.name = 'commonTemplatePanel'
