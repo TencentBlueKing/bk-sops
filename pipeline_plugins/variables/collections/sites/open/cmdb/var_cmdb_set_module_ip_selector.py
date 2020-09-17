@@ -215,7 +215,6 @@ def get_ip_result_by_input_method(
         data = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
     else:
         # 根据模块属性名获取模块信息
-
         kwargs = {"bk_ids": module_ids, "fields": var_module_name.split(",")}
         data = [module_attr[var_module_name] for module_attr in get_module_list(username, bk_biz_id, kwargs=kwargs)]
     return data
