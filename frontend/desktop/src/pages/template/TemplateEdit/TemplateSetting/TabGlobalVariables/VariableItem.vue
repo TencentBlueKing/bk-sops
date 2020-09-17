@@ -179,9 +179,16 @@
 
                 if (typeof value === 'string') {
                     const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
-                    const reg = new RegExp('[.\\s]*\\$\\{[.\\s]*' + keyStr + '[.\\s]*\\}', 'm')
-                    if (reg.test(value)) { // 判断用户编辑的 value 如: mmmm${xxxx}nnnn 中，xxxx 是否包含变量 key 字符串
-                        nodes.push(id)
+                    const reg = /\$\{[\S\s]*?\}/gm
+                    const matchResult = value.match(reg)
+
+                    if (matchResult && matchResult.length) {
+                        matchResult.some(result => {
+                            if (result.includes(keyStr)) {
+                                nodes.push(id)
+                                return true
+                            }
+                        })
                     }
                 } else if (typeof value === 'object') {
                     if (Array.isArray(value)) {
