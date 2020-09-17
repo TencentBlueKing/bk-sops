@@ -157,6 +157,8 @@ def get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_id
     @param module_ids: 模块id列表
     @return: 逗号分隔的ip字符串
     """
+    if not module_ids:
+        return ""
     kwargs = {"bk_module_ids": [module_id["bk_module_id"] for module_id in module_ids], "fields": ["bk_host_innerip"]}
     ip_result = list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs)
     return ",".join([ip["bk_host_innerip"] for ip in ip_result])
