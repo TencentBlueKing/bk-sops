@@ -796,9 +796,7 @@
             setCanvasData () {
                 this.$nextTick(() => {
                     this.nodeSwitching = false
-                    this.$nextTick(() => {
-                        this.markNodesPhase()
-                    })
+                    this.markNodesPhase()
                 })
             },
             getOptBtnIsClickable (action) {
@@ -877,14 +875,12 @@
                 let nodeData = tools.deepClone(this.nodeData)
                 let firstNodeId = null
                 let firstNodeData = null
-                const rootNode = []
                 while (nodeData[0]) {
                     if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
                         firstNodeId = nodeData[0].id
                         firstNodeData = nodeData[0]
                         nodeData[0] = false
                     } else {
-                        rootNode.push(nodeData[0])
                         nodeData = nodeData[0].children
                     }
                 }
@@ -897,17 +893,7 @@
                 }
                 if (name === i18n.t('节点详情')) {
                     this.defaultActiveId = firstNodeId
-                    let subprocessStack = []
-                    if (rootNode.length > 1) {
-                        subprocessStack = rootNode.map(item => item.id).slice(1)
-                    }
-                    this.nodeDetailConfig = {
-                        component_code: firstNodeData.component.code,
-                        version: firstNodeData.component.version || 'legacy',
-                        node_id: firstNodeData.id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
+                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
             },
             

@@ -1,5 +1,4 @@
 const en = {
-    '节点参数': '节点参数',
     '继续执行': 'Continue to perform',
     '缩略视图': 'Thumbnail view',
     '': '',
