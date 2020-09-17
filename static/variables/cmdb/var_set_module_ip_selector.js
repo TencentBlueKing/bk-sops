@@ -41,7 +41,15 @@
                                 source: "var_ip_method",
                                 type: "init",
                                 action: function () {
-                                    this.emit_event(this.tagCode, "change", this.value)
+                                     var self = this;
+
+                                    function init_self(self) {
+                                        setTimeout(function () {
+                                            self.emit_event(self.tag_code, "change", self.value)
+                                        }, 500)
+                                    }
+
+                                    init_self(self);
                                 }
                             }
                         ]
@@ -139,6 +147,18 @@
                         events: [
                             {
                                 source: "var_ip_method",
+                                type: "init",
+                                action: function (value) {
+                                    var self = this;
+                                    if (value === 'select') {
+                                        self.show();
+                                    } else {
+                                        self.hide()
+                                    }
+                                }
+                            },
+                            {
+                                source: "var_ip_method",
                                 type: "change",
                                 action: function (value) {
                                     var self = this;
@@ -186,6 +206,18 @@
                             ]
                         },
                         events: [
+                            {
+                                source: "var_ip_method",
+                                type: "init",
+                                action: function (value) {
+                                    var self = this;
+                                    if (value === 'manual') {
+                                        self.show();
+                                    } else {
+                                        self.hide()
+                                    }
+                                }
+                            },
                             {
                                 source: "var_ip_method",
                                 type: "change",
