@@ -50,7 +50,6 @@
                         :key="item.id"
                         @click="onSelectScheme(item.id)">
                         <bk-checkbox @change="onCheckChange($event, item.id)" v-model="item.select"></bk-checkbox>
-                        {{item.select}}
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
                     </li>
@@ -167,7 +166,7 @@
                         isCommon: this.isCommonProcess
                     })
                     this.schemaList.forEach(item => {
-                        item.select = false
+                        this.$set(item, 'select', this.selectedScheme.includes(item.id))
                     })
                 } catch (error) {
                     errorHandler(error, this)
@@ -219,15 +218,6 @@
                         this.schemaName = ''
                         this.nameEditing = false
                         this.loadSchemeList()
-                        this.schemaList.forEach(item => {
-                            if (this.selectedScheme.includes(item.id)) {
-                                console.log('222')
-                                console.log(item)
-                                this.$nextTick(() => {
-                                    item.select = true
-                                })
-                            }
-                        })
                         this.$bkMessage({
                             message: i18n.t('方案添加成功'),
                             theme: 'success'
@@ -263,11 +253,6 @@
                     this.loadSchemeList()
                     const cancelId = this.selectedScheme.indexOf(id)
                     this.selectedScheme.splice(cancelId, 1)
-                    this.schemaList.forEach(item => {
-                        if (this.selectedScheme.includes(item.id)) {
-                            item.select = true
-                        }
-                    })
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
