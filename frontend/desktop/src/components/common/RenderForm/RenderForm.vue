@@ -19,6 +19,7 @@
             :option="option"
             :value="getFormValue(atom)"
             :hook="hooked[atom.tag_code]"
+            :constants="constants"
             @change="updateForm"
             @onHook="updateHook">
         </component>
@@ -79,6 +80,12 @@
                 }
             },
             hooked: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            constants: {
                 type: Object,
                 default () {
                     return {}

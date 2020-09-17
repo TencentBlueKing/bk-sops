@@ -17,20 +17,26 @@
                 <h3 class="canvas-name" :title="tName">{{tName}}</h3>
                 <span class="common-icon-edit" @click="onNameEditing"></span>
             </div>
-            <bk-input
-                v-else
-                ref="canvasNameInput"
-                v-validate="templateNameRule"
-                data-vv-name="templateName"
-                :name="'templateName'"
-                :has-error="errors.has('templateName')"
-                :value="name"
-                :placeholder="$t('请输入名称')"
-                @input="onInputName"
-                @enter="onInputBlur"
-                @blur="onInputBlur">
-            </bk-input>
-            <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
+            <template v-else>
+                <bk-input
+                    ref="canvasNameInput"
+                    v-validate="templateNameRule"
+                    data-vv-name="templateName"
+                    :class="['name-input', errors.first('templateName') ? 'name-error' : '']"
+                    :name="'templateName'"
+                    :has-error="errors.has('templateName')"
+                    :value="name"
+                    :placeholder="$t('请输入名称')"
+                    @input="onInputName"
+                    @enter="onInputBlur"
+                    @blur="onInputBlur">
+                </bk-input>
+                <i
+                    v-if="errors.first('templateName')"
+                    class="bk-icon icon-exclamation-circle-shape error-tip-icon"
+                    v-bk-tooltips="errors.first('templateName')">
+                </i>
+            </template>
         </div>
         <div class="button-area">
             <div class="setting-tab-wrap">
@@ -365,6 +371,17 @@
             white-space: nowrap;
             color: #606266;
         }
+        .name-input.name-error /deep/.bk-form-input {
+            border-color: #ea3636;
+        }
+        .error-tip-icon {
+            position: absolute;
+            right: 10px;
+            top: 8px;
+            font-size: 16px;
+            color: #ea3636;
+            cursor: pointer;
+        }
         .common-icon-edit {
             margin-left: 4px;
             font-size: 12px;
@@ -373,14 +390,6 @@
             &:hover {
                 color: #3480ff;
             }
-        }
-        .name-error {
-            position: absolute;
-            margin: 6px 0 0 4px;
-            left: 100%;
-            top: 6px;
-            font-size: 12px;
-            white-space: nowrap;
         }
         .setting-tab-wrap {
             display: inline-block;

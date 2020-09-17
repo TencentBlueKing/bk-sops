@@ -17,6 +17,7 @@
                     type="text"
                     v-model="inputValue"
                     :disabled="!editable || disabled"
+                    :show-password="showPassword"
                     :placeholder="placeholder"
                     @input="onInput">
                 </el-input>
@@ -60,6 +61,12 @@
             default: false,
             desc: gettext('禁用表单输入')
         },
+        showPassword: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('是否以密码模式显示')
+        },
         value: {
             type: [String, Number],
             required: false,
@@ -82,7 +89,6 @@
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants,
                 'systemConstants': state => state.template.systemConstants
             }),
             constantArr: {

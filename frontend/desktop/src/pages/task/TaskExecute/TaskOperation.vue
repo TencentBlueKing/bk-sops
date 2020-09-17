@@ -36,6 +36,7 @@
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
+                    class="task-management-page"
                     ref="templateCanvas"
                     v-if="!nodeSwitching"
                     :editable="false"
@@ -463,7 +464,7 @@
                             }
                         })
                         if (atom) {
-                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: 2 })
+                            this.$refs.templateCanvas.onUpdateNodeInfo(node.id, { phase: atom.phase })
                         }
                     }
                 })

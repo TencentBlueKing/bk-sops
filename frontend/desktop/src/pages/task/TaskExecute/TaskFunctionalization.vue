@@ -404,8 +404,18 @@
     .el-input-number,
     .tag-input,
     .el-date-editor,
-    .el-cascader {
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
         max-width: 598px;
+    }
+    /deep/.module-form  {
+        .bk-form-content,
+        .bk-input-number,
+        .bk-select {
+            max-width: 598px;
+        }
     }
     .el-radio__label,
     .checkbox-item {
@@ -413,4 +423,9 @@
         margin-right: 24px;
     }
 }
+/deep/ .no-data-wrapper {
+    position: relative;
+    top: 90px;
+}
+
 </style>

@@ -163,4 +163,9 @@
     .task-function-container {
         background-color: #ffffff;
     }
+    /deep/ .task-management-page {
+        .canvas-flow-wrap {
+            padding-left: 60px;
+        }
+    }
 </style>

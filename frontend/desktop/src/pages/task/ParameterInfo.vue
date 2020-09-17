@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="parameter-info-wrap" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
+    <div :class="['parameter-info-wrap', { 'no-data': isNoData }]" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
         <TaskParamEdit
             v-if="isReferencedShow"
             class="task-param-wrapper"
@@ -117,7 +117,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
-    width: 100%;
+    max-width: 100%;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
@@ -173,13 +173,29 @@
     .el-input-number,
     .tag-input,
     .el-date-editor,
-    .el-cascader {
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
         max-width: 598px;
+    }
+    /deep/.module-form  {
+        .bk-form-content,
+        .bk-input-number,
+        .bk-select {
+            max-width: 598px;
+        }
     }
     .el-radio__label,
     .checkbox-item {
         max-width: 160px;
         margin-right: 24px;
+    }
+}
+.no-data {
+    /deep/ .no-data-wrapper {
+        position: relative;
+        top: 90px;
     }
 }
 </style>

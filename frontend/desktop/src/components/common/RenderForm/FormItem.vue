@@ -66,6 +66,8 @@
                 :is="tagComponent"
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
+                :hook="hook"
+                :constants="constants"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
                 :value="formValue"
@@ -157,6 +159,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {

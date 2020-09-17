@@ -135,7 +135,6 @@
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :entrance="'taskflow'"
-            :common="common"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -248,7 +247,7 @@
                 type: [String, Number],
                 default: ''
             },
-            common: {
+            template_source: {
                 type: String,
                 default: ''
             },
@@ -288,6 +287,7 @@
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
                 createInfo: this.create_info || '',
+                templateSource: this.template_source || '',
                 requestData: {
                     executeTime: [],
                     category: '',
@@ -386,11 +386,12 @@
                         pipeline_instance__is_revoked,
                         create_method: createMethod || undefined,
                         create_info: this.createInfo || undefined,
-                        project__id: this.project_id
+                        project__id: this.project_id,
+                        template_source: this.templateSource || undefined
                     }
 
                     if (executeTime[0] && executeTime[1]) {
-                        if (this.common) {
+                        if (this.template_source === 'common') {
                             data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
@@ -558,9 +559,11 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.pagination.current = 1
-                // 高级搜索手动点击时，清空 createInfo、templateId 筛选条件
+                // 高级搜索手动点击时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
                 this.templateId = ''
+                this.templateSource = ''
+                this.$router.push({ name: 'taskList', params: { project_id: this.project_id } })
                 this.getTaskList()
             },
             handlePageLimitChange (val) {
