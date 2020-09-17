@@ -46,9 +46,11 @@
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
-                        :class="['scheme-item', { 'selected': item.id === selectedScheme }]"
+                        :class="['scheme-item', { 'selected': selectedScheme.includes(item.id) }]"
                         :key="item.id"
                         @click="onSelectScheme(item.id)">
+                        <bk-checkbox @change="onCheckChange($event, item.id)" v-model="item.select"></bk-checkbox>
+                        {{item.select}}
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
                     </li>
@@ -129,7 +131,7 @@
                     regex: NAME_REG
                 },
                 schemaList: [],
-                selectedScheme: undefined,
+                selectedScheme: [],
                 submiting: false,
                 deleting: false
             }
@@ -149,12 +151,23 @@
                 'createTaskScheme',
                 'deleteTaskScheme'
             ]),
+            onCheckChange (e, id) {
+                if (e) {
+                    this.selectedScheme.push(id)
+                } else {
+                    const cancelId = this.selectedScheme.indexOf(id)
+                    this.selectedScheme.splice(cancelId, 1)
+                }
+            },
             async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
                         project__id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
+                    })
+                    this.schemaList.forEach(item => {
+                        item.select = false
                     })
                 } catch (error) {
                     errorHandler(error, this)
@@ -202,10 +215,19 @@
                     }
                     try {
                         const newScheme = await this.createTaskScheme(scheme)
-                        this.selectedScheme = newScheme.id
+                        this.selectedScheme.push(newScheme.id)
                         this.schemaName = ''
                         this.nameEditing = false
                         this.loadSchemeList()
+                        this.schemaList.forEach(item => {
+                            if (this.selectedScheme.includes(item.id)) {
+                                console.log('222')
+                                console.log(item)
+                                this.$nextTick(() => {
+                                    item.select = true
+                                })
+                            }
+                        })
                         this.$bkMessage({
                             message: i18n.t('方案添加成功'),
                             theme: 'success'
@@ -221,12 +243,12 @@
              * 选择方案并进行切换更新选择的节点
              */
             async onSelectScheme (id) {
-                let selectedScheme
-                if (this.selectedScheme !== id) {
-                    selectedScheme = id
-                }
-                this.selectedScheme = selectedScheme
-                this.$emit('selectScheme', selectedScheme)
+                // let selectedScheme
+                // if (this.selectedScheme !== id) {
+                //     selectedScheme = id
+                // }
+                // this.selectedScheme = selectedScheme
+                // this.$emit('selectScheme', selectedScheme)
             },
             /**
              * 删除方案
@@ -239,6 +261,13 @@
                 try {
                     await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
                     this.loadSchemeList()
+                    const cancelId = this.selectedScheme.indexOf(id)
+                    this.selectedScheme.splice(cancelId, 1)
+                    this.schemaList.forEach(item => {
+                        if (this.selectedScheme.includes(item.id)) {
+                            item.select = true
+                        }
+                    })
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
@@ -353,48 +382,43 @@
             overflow-y: auto;
             @include scrollbar;
             .scheme-item {
+                position: relative;
                 margin: 0 20px;
                 height: 42px;
                 font-weight: 400;
-                line-height: 42px;
+                display: flex;
+                align-items: center;
                 font-size: 14px;
                 cursor: pointer;
                 border-bottom: 1px solid #ebebeb;
+                &.selected {
+                    /deep/.icon-close-circle-shape {
+                        opacity: 1;
+                        right: 5px;
+                    }
+                }
                 &:hover {
                     margin: 0;
                     padding: 0 20px;
                     background-color: #d9e8f8;
                     .icon-close-circle-shape {
                         opacity: 1;
-                    }
-                }
-                &.selected {
-                    margin: -1px 0 0 0;
-                    padding: 0 20px;
-                    background-color: #3a84ff;
-                    .scheme-name {
-                        color: #ffffff;
-                    }
-                    .scheme-division-line {
-                        background-color: #3a84ff;
-                    }
-                    .icon-close-circle-shape {
-                        color: #ffffff;
-                        opacity: 1;
+                        right: 25px;
                     }
                 }
                 .scheme-name {
                     display: inline-block;
                     width: 240px;
+                    margin-left: 10px;
                     overflow: hidden;
                     white-space: nowrap;
                     text-overflow: ellipsis;
                     color: #313238;
                 }
                 .icon-close-circle-shape {
-                    float: right;
-                    margin-top: 15px;
-                    margin-right: 5px;
+                    position: absolute;
+                    top: 15px;
+                    right: 5px;
                     width: 12px;
                     height: 12px;
                     text-align: center;
