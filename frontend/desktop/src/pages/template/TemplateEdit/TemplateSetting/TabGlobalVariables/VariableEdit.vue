@@ -176,7 +176,6 @@
                 },
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
-                varGroup: '', // 变量类型分组，general、meta
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 // 变量名称校验规则
@@ -251,11 +250,14 @@
         },
         async created () {
             this.extendFormValidate()
+        },
+        async mounted () {
+            const { is_meta, custom_type, source_tag } = this.theEditingData
+
             if (this.isHookedVar) {
                 this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
             } else {
                 await this.getVarTypeList()
-                const { is_meta, custom_type } = this.theEditingData
                 // 若当前编辑变量为元变量，则取meta_tag
                 if (is_meta) {
                     this.varTypeList[1].children.some(item => {
@@ -266,16 +268,16 @@
                     })
                 }
             }
-        },
-        async mounted () {
             // 非输出参数勾选变量和系统内置变量(目前有自定义变量和输入参数勾选变量)需要加载标准插件配置项
             if (!['component_outputs', 'system'].includes(this.theEditingData.source_type)) {
-                await this.getAtomConfig()
                 if (this.theEditingData.hasOwnProperty('value')) {
+                    const sourceTag = is_meta ? this.metaTag : source_tag
+                    const tagCode = sourceTag.split('.')[1]
                     this.renderData = {
-                        [this.renderConfig[0].tag_code]: this.theEditingData.value
+                        [tagCode]: this.theEditingData.value
                     }
                 }
+                this.getAtomConfig()
             }
         },
         methods: {
@@ -327,7 +329,6 @@
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 const atom = tagStr.split('.')[0] || custom_type
-                const isMeta = this.varGroup === 'meta' ? 1 : 0
                 let classify = ''
                 this.atomConfigLoading = true
                 this.atomTypeKey = atom
@@ -347,7 +348,6 @@
                 try {
                     await this.loadAtomConfig({
                         classify,
-                        isMeta: isMeta,
                         name: this.atomType,
                         project_id: this.common ? undefined : this.project_id,
                         version,
@@ -369,7 +369,6 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-
                 const atomConfig = this.atomFormConfig[atom][version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {
@@ -466,7 +465,6 @@
                 this.theEditingData.source_tag = data.tag
                 this.theEditingData.is_meta = data.type === 'meta'
                 this.metaTag = data.meta_tag
-                this.varGroup = data.type
 
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
