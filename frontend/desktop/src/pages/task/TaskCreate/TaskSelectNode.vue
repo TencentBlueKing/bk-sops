@@ -90,7 +90,8 @@
                 templateName: '',
                 templateLoading: true,
                 previewDataLoading: true,
-                tplActions: []
+                tplActions: [],
+                planDataObj: {} // 包含所有方案的对象
             }
         },
         computed: {
@@ -334,19 +335,34 @@
             /**
              * 选择执行方案
              */
-            async selectScheme (scheme) {
+            async selectScheme (scheme, name) {
+                let allNodeId = []
+                const selectNodeArr = []
                 // 取消已选择方案
                 if (scheme === undefined) {
-                    this.selectedNodes = this.allSelectableNodes.map(item => item.id)
+                    this.$delete(this.planDataObj, name)
+                    if (Object.keys(this.planDataObj).length) {
+                        for (const key in this.planDataObj) {
+                            allNodeId = this.planDataObj[key]
+                            selectNodeArr.push(...allNodeId)
+                            const nodeIdArr = Array.from(new Set(selectNodeArr))
+                            this.selectedNodes = nodeIdArr
+                        }
+                    } else {
+                        this.selectedNodes = []
+                    }
                 } else {
                     try {
                         const data = await this.getSchemeDetail({ id: scheme, isCommon: this.isCommonProcess })
-                        this.selectedNodes = JSON.parse(data.data)
+                        allNodeId = JSON.parse(data.data)
+                        selectNodeArr.push(...allNodeId)
+                        this.planDataObj[name] = allNodeId
+                        const nodeIdArr = Array.from(new Set(selectNodeArr))
+                        this.selectedNodes = nodeIdArr
                     } catch (e) {
                         errorHandler(e, this)
                     }
                 }
-
                 this.updateExcludeNodes()
                 this.canvasData.locations.forEach(item => {
                     if (this.isSelectableNode(item.id)) {
