@@ -143,6 +143,7 @@ def get_module_id_list(
 
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
+
     return module_id_list
 
 
