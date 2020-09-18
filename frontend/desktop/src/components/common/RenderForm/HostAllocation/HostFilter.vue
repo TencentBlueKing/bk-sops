@@ -309,9 +309,9 @@
                             }
                             if (resp.result) {
                                 this.isSchemeDialogShow = false
-                                this.formData.schemeValue = resp.data.id
                                 this.schemeData.name = ''
-                                this.getSetTopo()
+                                await this.getSetTopo()
+                                this.formData.schemeValue = resp.data.id
                             } else {
                                 errorHandler(resp, this)
                             }

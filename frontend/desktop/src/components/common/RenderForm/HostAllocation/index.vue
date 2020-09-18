@@ -88,7 +88,8 @@
                 localValue: this.tranformPropsValueData(this.value),
                 colsLoading: false,
                 originalCols: [], // 表格列原始配置项
-                tbCols: [] // 增加模块列后的表格配置项
+                tbCols: [], // 增加模块列后的表格配置项
+                eligibleHosts: [] // 筛选得到的主机数量
             }
         },
         watch: {
@@ -167,15 +168,52 @@
                     errorHandler(error, this)
                 } finally {
                     this.colsLoading = false
+                    this.$nextTick(() => {
+                        this.validate()
+                    })
                 }
             },
             // 设置表格头
             joinCols () {
                 const cols = this.originalCols.map(item => {
-                    return {
-                        width: 100,
-                        config: item
+                    let colObj = {}
+                    if (item.tag_code === 'bk_host_outerip') {
+                        colObj = {
+                            width: 150,
+                            config: {
+                                tag_code: item.tag_code,
+                                type: 'textarea',
+                                attrs: {
+                                    name: item.attrs.name,
+                                    editable: true,
+                                    validation: [
+                                        {
+                                            type: 'custom',
+                                            args (val) {
+                                                let result = true
+                                                let message = ''
+                                                const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
+                                                if (!hosts.length) {
+                                                    result = false
+                                                    message = gettext('资源不足')
+                                                }
+                                                return {
+                                                    result,
+                                                    error_message: message
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    } else {
+                        colObj = {
+                            width: 100,
+                            config: item
+                        }
                     }
+                    return colObj
                 })
                 if (!this.viewValue) {
                     cols.push({
@@ -227,6 +265,7 @@
              * @param {Object} eligibleHosts 主机数据
              */
             updateConfig (conf, eligibleHosts) {
+                this.eligibleHosts = eligibleHosts
                 const data = []
                 for (let i = 0; i < conf.host_count; i++) {
                     data.push(Object.assign({}, eligibleHosts[i]))
