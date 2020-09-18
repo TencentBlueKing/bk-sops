@@ -89,12 +89,8 @@ const task = {
          * @param {String} payload 资源类型
          */
         configProgramList ({ commit }, payload) {
-            const requestData = {
-                project_id: store.state.project,
-                config_type: payload,
-                all: true
-            }
-            return axios.get('api/v3/resource_config/', requestData).then(response => response.data)
+            const { project_id } = store.state.project
+            return axios.get(`api/v3/resource_config/?project_id=${project_id}&config_type=${payload}`).then(response => response.data)
         },
         /**
          * 保存筛选方案
