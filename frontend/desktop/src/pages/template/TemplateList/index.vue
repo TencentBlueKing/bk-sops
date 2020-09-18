@@ -187,6 +187,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
+            :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
@@ -598,7 +599,7 @@
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id }
+                    query: { template_id: id, template_source: 'project' }
                 }
             },
             // 获得表格中“子流程更新”列展示内容
