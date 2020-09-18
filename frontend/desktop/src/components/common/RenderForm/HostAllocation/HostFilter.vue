@@ -257,13 +257,13 @@
                 let hostCount
                 const hostFilterList = []
                 module_detail.forEach(item => {
-                    const { host_count, host_filter_list } = item
-                    hostCount = host_count
+                    const { clusterCount, host_filter_list } = item
+                    hostCount = clusterCount
                     if (host_filter_list.length) {
                         host_filter_list.forEach(filterItem => {
                             hostFilterList.push({
-                                type: filterItem.type_val === 1 ? 'filter' : 'exclude',
-                                field: filterItem.name,
+                                type: filterItem.type,
+                                field: filterItem.field,
                                 value: filterItem.value
                             })
                         })
