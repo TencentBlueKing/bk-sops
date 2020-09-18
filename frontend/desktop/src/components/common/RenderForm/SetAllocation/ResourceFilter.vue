@@ -389,7 +389,7 @@
                     default: gettext('默认'),
                     manual: gettext('手动指定'),
                     list: gettext('列表'),
-                    ip: gettext('请输入IP，多个以逗号或者换行符隔开'),
+                    ipPlaceholder: gettext('请输入IP，多个以逗号或者换行符隔开'),
                     reuse: gettext('复用其他模块机器'),
                     reuseModule: gettext('复用模块'),
                     muteMethod: gettext('互斥方案'),
@@ -602,7 +602,7 @@
                     this.pending.condition = false
                 }
             },
-            onSchemeSelect (id) {
+            async onSchemeSelect (id) {
                 const scheme = this.schemes.find(item => item.id === id)
                 const { module_detail, mute_attribute, set_count, host_resources, set_template_id, set_template_name } = JSON.parse(scheme.data)
                 const modules = module_detail.map(item => {
@@ -619,6 +619,7 @@
                         hostFilterList: host_filter_list
                     }
                 })
+                await this.getModule(set_template_id)
                 this.formData = {
                     clusterCount: set_count,
                     set: [{ id: set_template_id, label: set_template_name }],
@@ -648,7 +649,6 @@
                             const configData = this.getConfigData()
                             configData.config_type = 'set'
                             const params = {
-                                url: $.context.canSelectBiz() ? '' : `api/v3/resource_config/`,
                                 data: {
                                     project_id: $.context.project ? $.context.project.id : '',
                                     config_type: 'set',
@@ -658,10 +658,12 @@
                             if (scheme) {
                                 configData.id = scheme.id
                                 configData.name = scheme.name
+                                params.url = $.context.canSelectBiz() ? '' : `api/v3/resource_config/${scheme.id}/`
                                 params.data.data = JSON.stringify(configData)
                                 resp = await this.saveResourceScheme(params)
                             } else {
                                 configData.name = this.schemeData.name
+                                params.url = $.context.canSelectBiz() ? '' : `api/v3/resource_config/`
                                 params.data.data = JSON.stringify(configData)
                                 resp = await this.createResourceScheme(params)
                             }
