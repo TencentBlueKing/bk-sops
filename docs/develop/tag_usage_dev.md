@@ -227,6 +227,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `min`：最小值，默认为 -Infinity
   - `max`：最大值，默认为 Infinity
   - `disabled`：设置是否禁用组件
+  - `showPassword`：是否以密码模式显示
   - `value`：文本框值
 
 **方法**

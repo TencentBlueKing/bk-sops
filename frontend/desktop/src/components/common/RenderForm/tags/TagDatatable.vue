@@ -68,6 +68,7 @@
                                 :is="item.type === 'combine' ? 'form-group' : 'form-item'"
                                 :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
                                 :scheme="item"
+                                :key="`${item.tag_code}_${cIndex}`"
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
@@ -421,10 +422,19 @@
                     if (tagCode !== col.tag_code) {
                         const listenedEvents = (col.events || []).filter(item => item.source === tagCode && item.type === type)
                         if (listenedEvents.length > 0) {
-                            const cellComp = this.$refs[`row_${row}_${index}_${col.tag_code}`][0]
-                            if (cellComp && cellComp.$refs.tagComponent) {
+                            let editingCell = null
+                            const cells = this.$refs[`row_${row}_${index}_${col.tag_code}`]
+                            if (cells && cells.length > 0) {
+                                cells.some(crtCell => { // 找到 element table 提供给用户编辑的 body
+                                    if (crtCell.$parent.fixed === undefined) {
+                                        editingCell = crtCell
+                                        return true
+                                    }
+                                })
+                            }
+                            if (editingCell) {
                                 listenedEvents.forEach(event => {
-                                    event.action.call(cellComp.$refs.tagComponent, value)
+                                    event.action.call(editingCell.$refs.tagComponent, value)
                                 })
                             }
                         }
