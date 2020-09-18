@@ -238,8 +238,8 @@
             variableKeyRule () {
                 const rule = {
                     required: true,
-                    max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
                     regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                    keyLength: true,
                     keyRepeat: true
                 }
                 // 勾选的变量不做长度校验
@@ -388,7 +388,7 @@
             // 注册表单校验规则
             extendFormValidate () {
                 this.validator = new Validator({})
-                // 注册变量 key 校验规则
+                // 注册变量 key 是否重复校验规则
                 this.validator.extend('keyRepeat', (value) => {
                     value = /^\$\{\w+\}$/.test(value) ? value : '${' + value + '}'
                     if (this.variableData.key === value) {
@@ -398,6 +398,11 @@
                         return false
                     }
                     return true
+                })
+                // 注册变量 key 长度规则
+                this.validator.extend('keyLength', (value) => {
+                    const reqLenth = /^\$\{\w+\}$/.test(value) ? (STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + 3) : STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH
+                    return value.length <= reqLenth
                 })
                 // 注册正则表达式校验规则
                 this.validator.extend('validReg', (value) => {
