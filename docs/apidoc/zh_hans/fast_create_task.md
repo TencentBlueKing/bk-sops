@@ -20,6 +20,7 @@
 |   project_id  |   int      |   是   |  项目ID           |
 |   name        |   string   |   是   |  任务名称         |
 |   pipeline_tree | dict     |   是   |  任务实例树，详细信息请见下面说明 |
+|   has_common_subprocess | bool | 否 |  所包含的子流程来源，true：来自公共流程模版，false：来自项目流程模版，默认值为false |
 |   flow_type   |   string   |   否   |  任务流程类型，common: 常规流程，common_func：职能化流程，默认值为common |
 |   description |   string   |   否   |  任务描述         |
 |   category    |   string   |   否   |  任务分类，详细信息请见下面说明 |
@@ -151,7 +152,7 @@
     "bk_biz_id": "2",
     "name": "tasktest",
     "flow_type": "common",
-    "pipeline_tree"：{
+    "pipeline_tree": {
         "start_event": {
             "incoming": "",
             "outgoing": "line7ed74aa679d19063b6d7037ce6db",

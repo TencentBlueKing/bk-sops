@@ -116,7 +116,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.items = [];
                         if (biz_cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + biz_cc_id + '/';
@@ -331,7 +331,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.columns = [];
                         if (biz_cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + biz_cc_id + '/';
@@ -450,7 +450,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.columns = [];
                         if (biz_cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + biz_cc_id + '/';
