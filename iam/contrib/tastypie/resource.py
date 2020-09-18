@@ -67,6 +67,13 @@ class IAMResourceMixin(object):
         if not resources_list:
             return data
 
+        # 临时方案
+        owner_rids_list = [
+            resource[0].id
+            for resource in resources_list
+            if getattr(resource[0], "attribute").get("iam_resource_owner") == request.user.username
+        ]
+
         # 2. make request
         request = MultiActionRequest(
             helper.system,
@@ -87,7 +94,11 @@ class IAMResourceMixin(object):
         for bundle in data["objects"]:
             rid = str(helper.get_resources_id(bundle))
             bundle.data["auth_actions"] = [
-                action for action, allowed in resource_actions_allowed.get(rid, {}).items() if allowed
+                # action for action, allowed in resource_actions_allowed.get(rid, {}).items() if allowed
+                # 临时方案
+                action
+                for action, allowed in resource_actions_allowed.get(rid, {}).items()
+                if allowed or rid in owner_rids_list
             ]
 
         return data
@@ -98,6 +109,9 @@ class IAMResourceMixin(object):
             return data
 
         bundle = data
+
+        # 临时方案
+        user = request.user.username
 
         # 1. get resources
         resources = helper.get_resources(bundle)
@@ -119,6 +133,19 @@ class IAMResourceMixin(object):
         )
 
         # 3. assemble action allowed data
-        bundle.data["auth_actions"] = [action for action, allowed in actions_allowed.items() if allowed]
+
+        # 临时方案
+        owner_rids_list = [
+            resource.id for resource in resources if getattr(resource, "attribute").get("iam_resource_owner") == user
+        ]
+        rid = str(helper.get_resources_id(bundle))
+
+        bundle.data["auth_actions"] = [
+            # action for action, allowed in actions_allowed.items() if allowed
+            # 临时方案
+            action
+            for action, allowed in actions_allowed.items()
+            if allowed or rid in owner_rids_list
+        ]
 
         return data
