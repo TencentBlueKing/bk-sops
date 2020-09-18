@@ -13,12 +13,11 @@
         <div class="schema-list-panel" v-if="showPanel">
             <div class="scheme-title">
                 <span> {{$t('执行方案列表')}}</span>
-                <bk-button size="small" @click="onChangePreviewNode">{{$t( isPreview ? '关闭预览' : '节点预览')}}</bk-button>
+                <bk-button size="small" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
             <div :class="['scheme-header', { 'disabled-btn': !hasPermission(['flow_edit'], tplActions) }]">
                 <div class="scheme-form" v-if="nameEditing">
                     <bk-input
-                        id="input"
                         v-model="schemaName"
                         v-validate="schemaNameRule"
                         data-vv-validate-on=" "
@@ -33,13 +32,13 @@
                 </div>
                 <div
                     v-else
-                    :class="['add-plan']"
+                    class="add-plan"
                     @click="onCreateScheme">
                     <span class="common-icon-add"></span>
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div :class="['scheme-content', { 'disabled-schemList': isPreviewMode }]">
+            <div :class="['scheme-content', { 'disable-schem-list': isPreviewMode }]">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
@@ -117,7 +116,6 @@
                     regex: NAME_REG
                 },
                 schemaList: [],
-                submiting: false,
                 deleting: false,
                 isPreview: false
             }
@@ -178,16 +176,15 @@
              * 添加方案
              */
             onAddScheme () {
-                if (this.submiting) return
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
                     errorHandler({ message: i18n.t('方案名称已存在') }, this)
                     return
                 }
-                this.submiting = true
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) {
-                        this.submiting = false
+                        this.schemaName = ''
+                        this.nameEditing = false
                         return
                     }
                     this.schemaName = this.schemaName.trim()
@@ -201,8 +198,6 @@
                     }
                     try {
                         await this.createTaskScheme(scheme)
-                        this.schemaName = ''
-                        this.nameEditing = false
                         this.loadSchemeList()
                         this.$bkMessage({
                             message: i18n.t('方案添加成功'),
@@ -211,7 +206,8 @@
                     } catch (e) {
                         errorHandler(e, this)
                     } finally {
-                        this.submiting = false
+                        this.schemaName = ''
+                        this.nameEditing = false
                     }
                 })
             },
@@ -403,7 +399,7 @@
                 border-top: 1px solid $commonBorderColor;
             }
         }
-        .disabled-schemList {
+        .disable-schem-list {
             &:after {
                 content: '';
                 position: absolute;
