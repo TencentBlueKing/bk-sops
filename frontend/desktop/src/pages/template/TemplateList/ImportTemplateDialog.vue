@@ -107,8 +107,14 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-                <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+                <bk-button theme="primary" @click="CoverSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button
+                    theme="default"
+                    @click="importSubmit(false)"
+                    v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                    :class="{ 'btn-permission-disable': !hasPermission(['flow_create'], authActions) }">
+                    {{overrideConflict}}
+                </bk-button>
                 <bk-button theme="default" @click="onCancel"> {{ $t('取消') }} </bk-button>
             </div>
         </div>
@@ -120,15 +126,18 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ImportTemplateDialog',
         components: {
             NoData
         },
-        props: ['isImportDialogShow', 'common'],
+        mixins: [permission],
+        props: ['isImportDialogShow', 'common', 'authActions'],
         data () {
             return {
+                active: true,
                 file: null,
                 filename: '',
                 exportList: [],
@@ -151,7 +160,8 @@
                 'site_url': state => state.site_url
             }),
             ...mapState('project', {
-                'project_id': state => state.project_id
+                'project_id': state => state.project_id,
+                'projectName': state => state.projectName
             }),
             exportConflict () {
                 return this.overrideList.length ? i18n.t('覆盖冲突项, 并提交') : i18n.t('流程ID不变提交')
@@ -273,8 +283,21 @@
                 this.templateFileErrorExt = false
                 this.templateFileError = false
             },
-            exportSubmit (isOverride) {
+            CoverSubmit (isOverride) {
                 this.onConfirm(isOverride)
+            },
+            importSubmit (isOverride) {
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
+                } else {
+                    this.onConfirm(isOverride)
+                }
             },
             resetData () {
                 this.file = null
