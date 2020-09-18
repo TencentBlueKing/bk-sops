@@ -164,10 +164,10 @@
                 'projectName': state => state.projectName
             }),
             exportConflict () {
-                return this.overrideList.length ? i18n.t('覆盖冲突项, 并提交') : i18n.t('流程ID不变提交')
+                return this.overrideList.length ? i18n.t('覆盖冲突项, 并提交') : i18n.t('覆盖ID相同的流程')
             },
             overrideConflict () {
-                return this.overrideList.length ? i18n.t('保留两者, 并提交') : i18n.t('流程ID自增提交')
+                return this.overrideList.length ? i18n.t('保留两者, 并提交') : i18n.t('创建新流程')
             },
             isEmpty () {
                 return !this.exportList.length || (this.isChecked && !this.overrideList.length)
