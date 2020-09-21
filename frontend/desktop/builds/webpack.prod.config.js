@@ -13,6 +13,7 @@ const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
@@ -22,7 +23,7 @@ const webpackBaseConfig = require('./webpack.base.js')
 module.exports = merge(webpackBaseConfig, {
     mode: 'production',
     output: {
-        publicPath: '{{ BK_STATIC_URL }}',
+        publicPath: '{{BK_STATIC_URL}}',
         filename: 'js/[name].[contenthash:10].js'
     },
     module: {
@@ -50,10 +51,14 @@ module.exports = merge(webpackBaseConfig, {
             verbose: true,
             dry: false
         }),
+        new HtmlWebpackPlugin({
+            template: './src/assets/html/index.html',
+            filename: path.posix.join('index.html')
+        }),
         // 只打 moment.js 中文包，减小体积
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
-            filename: path.posix.join('css/[name].[contenthash:10].css')
+            filename: 'css/[name].[contenthash:10].css'
         })
         // new BundleAnalyzerPlugin()
     ],

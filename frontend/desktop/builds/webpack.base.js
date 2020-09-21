@@ -11,7 +11,6 @@
 */
 const path = require('path')
 const webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
@@ -102,10 +101,6 @@ module.exports = {
     plugins: [
         new CaseSensitivePathsPlugin(),
         new VueLoaderPlugin(),
-        new HtmlWebpackPlugin({
-            template: './src/assets/html/template.html',
-            filename: 'index.html'
-        }),
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',

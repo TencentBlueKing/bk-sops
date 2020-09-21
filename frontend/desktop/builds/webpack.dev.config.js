@@ -11,6 +11,7 @@
 */
 const webpack = require('webpack')
 const merge = require('webpack-merge')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
 const mocker = require('./mock/index.js')
 const SITE_URL = '/'
@@ -76,7 +77,11 @@ module.exports = merge(webpackBaseConfig, {
             }
         }),
         new webpack.NamedModulesPlugin(),
-        new webpack.HotModuleReplacementPlugin()
+        new webpack.HotModuleReplacementPlugin(),
+        new HtmlWebpackPlugin({
+            template: './src/assets/html/index-dev.html',
+            filename: 'index.html'
+        })
     ],
     performance: {
         hints: false
