@@ -112,7 +112,7 @@
                     theme="default"
                     @click="importSubmit(false)"
                     v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
-                    :class="{ 'btn-permission-disable': !hasPermission(['flow_create'], authActions) }">
+                    :class="{ 'btn-permission-disable': common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }">
                     {{overrideConflict}}
                 </bk-button>
                 <bk-button theme="default" @click="onCancel"> {{ $t('取消') }} </bk-button>
@@ -134,7 +134,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['isImportDialogShow', 'common', 'authActions'],
+        props: ['isImportDialogShow', 'common', 'authActions', 'hasCreateCommonTplPerm'],
         data () {
             return {
                 active: true,
