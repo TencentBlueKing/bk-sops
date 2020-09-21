@@ -1,0 +1,2 @@
+improvement:
+    - "JOB 回调默认链接使用 PAAS_INNER_HOST 拼接"

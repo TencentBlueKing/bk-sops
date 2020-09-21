@@ -153,6 +153,6 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
 def get_node_callback_url(node_id):
     f = Fernet(settings.CALLBACK_KEY)
     return "%staskflow/api/nodes/callback/%s/" % (
-        os.getenv("BKAPP_INNER_CALLBACK_HOST", settings.APP_HOST),
+        os.getenv("BKAPP_INNER_CALLBACK_HOST", settings.BK_PAAS_INNER_HOST),
         f.encrypt(bytes(node_id, encoding="utf8")).decode(),
     )
