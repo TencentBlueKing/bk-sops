@@ -13,7 +13,6 @@
     <bk-dialog
         width="768"
         ext-cls="permission-dialog"
-        :z-index="2010"
         :mask-close="false"
         :header-position="'left'"
         :title="''"
@@ -61,7 +60,7 @@
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
-                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
+                <bk-button theme="primary" :disabled="hasAbnormalReturn" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
                 <bk-button theme="default" @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
@@ -80,7 +79,8 @@
                 isModalShow: false,
                 permissionData: {},
                 loading: false,
-                lock: require('../../../assets/images/lock-radius.svg')
+                lock: require('../../../assets/images/lock-radius.svg'),
+                hasAbnormalReturn: false // 接口是否返回异常
             }
         },
         watch: {
@@ -101,6 +101,7 @@
                     if (res.result) {
                         this.url = res.data.url
                     } else {
+                        this.hasAbnormalReturn = true
                         errorHandler(res, this)
                     }
                 } catch (err) {
@@ -139,6 +140,7 @@
             },
             onCloseDialog () {
                 this.isModalShow = false
+                this.hasAbnormalReturn = false
             }
         }
     }

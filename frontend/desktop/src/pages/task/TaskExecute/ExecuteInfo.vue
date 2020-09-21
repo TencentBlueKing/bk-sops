@@ -453,7 +453,7 @@
         },
         data () {
             return {
-                isLogLoading: true,
+                isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
                 readOnly: true,
@@ -588,6 +588,10 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
+                        if (this.executeInfo.state && !['READY', 'CREATED'].includes(this.executeInfo.state)) {
+                            const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                            this.getPerformLog(query)
+                        }
                         
                         // 兼容 JOB 执行作业输出参数
                         // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
@@ -609,6 +613,7 @@
                             this.theExecuteTime = respData.loop
                         }
                     }
+                    
                     this.executeInfo.plugin_version = version
                     if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
@@ -639,13 +644,11 @@
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
-                    
+
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
-                    } else {
-                        this.getPerformLog(query)
                     }
                     const res = await getData(query)
                     if (res.result) {
