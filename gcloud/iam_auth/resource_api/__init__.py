@@ -23,7 +23,7 @@ from .periodic_task import PeriodicTaskResourceProvider
 from .project import ProjectResourceProvider
 from .task import TaskResourceProvider
 
-dispatcher = DjangoBasicResourceApiDispatcher(get_iam_client(), settings.APP_CODE)
+dispatcher = DjangoBasicResourceApiDispatcher(get_iam_client(), settings.BK_IAM_SYSTEM_ID)
 dispatcher.register("project", ProjectResourceProvider())
 dispatcher.register("flow", FlowResourceProvider())
 dispatcher.register("task", TaskResourceProvider())

@@ -48,6 +48,7 @@ class MockClient(object):
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.get_client_by_user"
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.handle_api_error"
+NOTIFY_HANDLE_API_ERROR = "gcloud.utils.cmdb.handle_api_error"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.bk_handle_api_error"
 
 COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
@@ -103,8 +104,7 @@ GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER,
                 return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_FAIL_RETURN)),
-        Patcher(target=HANDLE_API_ERROR,
-                return_value="search business fail")
+        Patcher(target=NOTIFY_HANDLE_API_ERROR, return_value="search business fail")
     ],
 )
 

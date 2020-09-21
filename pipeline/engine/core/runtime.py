@@ -18,6 +18,7 @@ import traceback
 from pipeline.conf import settings as pipeline_settings
 from pipeline.core.flow.activity import SubProcess
 from pipeline.engine import states
+from pipeline.engine.core import context
 from pipeline.engine.core.handlers import HandlersFactory
 from pipeline.engine.models import NAME_MAX_LENGTH, FunctionSwitch, NodeRelationship, Status
 
@@ -118,6 +119,9 @@ def run_loop(process):
 
             # build relationship
             NodeRelationship.objects.build_relationship(process.top_pipeline.id, current_node.id)
+            # set up context
+            context.set_node_id(current_node.id)
+
             result = HandlersFactory.handlers_for(current_node)(process, current_node, action.extra)
 
             if result.should_return or result.should_sleep:

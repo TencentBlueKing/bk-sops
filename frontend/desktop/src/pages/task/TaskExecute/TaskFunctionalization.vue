@@ -356,7 +356,7 @@
     padding-bottom: 80px;
 }
 .task-param-wrapper {
-    width: 620px;
+    width: 100%;
 }
 .form-wrapper {
     min-height: 200px;
@@ -399,4 +399,36 @@
         left: 40px;
     }
 }
+/deep/ .render-form {
+    .el-input__inner,
+    .el-tree,
+    .el-date-editor,
+    .el-textarea__inner,
+    .el-input-number,
+    .tag-input,
+    .el-date-editor,
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
+        max-width: 598px;
+    }
+    /deep/.module-form  {
+        .bk-form-content,
+        .bk-input-number,
+        .bk-select {
+            max-width: 598px;
+        }
+    }
+    .el-radio__label,
+    .checkbox-item {
+        max-width: 160px;
+        margin-right: 24px;
+    }
+}
+/deep/ .no-data-wrapper {
+    position: relative;
+    top: 90px;
+}
+
 </style>

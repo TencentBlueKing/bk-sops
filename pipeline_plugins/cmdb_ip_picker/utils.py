@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import re
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -193,6 +194,7 @@ def format_condition_value(conditions):
     @summary:
         ['111', '222'] -> ['111', '222']
         ['111', '222\n333'] -> ['111', '222', '333']
+        ['111', '222\\n333'] -> ['111', '222', '333']
         ['', '222\n', ' 333  '] -> ['222', '333']
         [111, 222, 333] -> [111, 222, 333]
     @param conditions:
@@ -201,7 +203,7 @@ def format_condition_value(conditions):
     formatted = []
     for val in conditions:
         if isinstance(val, str):
-            formatted += [item.strip() for item in val.strip().split("\n") if item.strip()]
+            formatted += [item.strip() for item in re.split(r"\n|\\n", val.strip()) if item.strip()]
         else:
             formatted.append(val)
     return list(set(formatted))
@@ -440,7 +442,10 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
             "bk_obj_name": _("集群"),
             "bk_inst_id": inter_data["bk_set_id"],
             "bk_inst_name": inter_data["bk_set_name"],
-            "child": [
+            "child": [],
+        }
+        if inter_data["module"]:
+            default_set["child"] = [
                 {
                     "default": 1,
                     "bk_obj_id": "module",
@@ -449,8 +454,7 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
                     "bk_inst_name": mod["bk_module_name"],
                 }
                 for mod in inter_data["module"]
-            ],
-        }
+            ]
         data[0]["child"].insert(0, default_set)
     return {"result": True, "code": NO_ERROR, "data": data, "messsage": ""}
 

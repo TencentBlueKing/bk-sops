@@ -53,7 +53,6 @@
                 @hook:mounted="canvasMounted"
                 @onConditionClick="onOpenConditionEdit"
                 @templateDataChanged="templateDataChanged"
-                @onNodeMousedown="onNodeMousedown"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
@@ -80,7 +79,7 @@
                     ref="conditionEdit"
                     :is-show.sync="isShowConditionEdit"
                     :condition-data="conditionData"
-                    @onCloseConditionEdit="onCloseConditionEdit">
+                    @updataCanvasCondition="updataCanvasCondition">
                 </condition-edit>
                 <template-setting
                     :project-info-loading="projectInfoLoading"
@@ -281,15 +280,15 @@
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
             if (this.type === 'edit' || this.type === 'clone') {
-                this.getTemplateData()
+                await this.getTemplateData()
             } else {
                 const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
+            this.getSingleAtomList()
         },
         mounted () {
-            this.getSingleAtomList()
             this.getProjectBaseInfo()
             this.openSnapshootTimer()
             window.onbeforeunload = function () {
@@ -374,6 +373,7 @@
                     })
                     this.atomList = atomList
                     this.handleAtomGroup(atomList)
+                    this.markNodesPhase()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -533,6 +533,7 @@
                     if (this.type !== 'edit') {
                         this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
+                        this.isFromTplListRoute = false // 克隆、新建保存后，url 会发生变更，点击返回按钮需要回到流程列表页
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
                             url.name = 'commonTemplatePanel'
@@ -742,10 +743,27 @@
                 this.onUpdateNodeInfo(id, { status: 'FAILED' })
             },
             /**
-             * 节点 Mousedown 回调
+             * 标记任务节点的生命周期
              */
-            onNodeMousedown (id) {
-                this.$refs.conditionEdit && this.$refs.conditionEdit.confirm()
+            markNodesPhase () {
+                Object.keys(this.canvasData.activities).forEach(id => {
+                    const node = this.canvasData.activities[id]
+                    if (node.type === 'ServiceActivity') {
+                        let atom = ''
+                        this.atomList.some(group => {
+                            if (group.code === node.component.code) {
+                                return group.list.some(item => {
+                                    if (item.version === (node.component.version || 'legacy')) {
+                                        atom = item
+                                    }
+                                })
+                            }
+                        })
+                        if (atom && [1, 2].includes(atom.phase)) {
+                            this.onUpdateNodeInfo(node.id, { phase: atom.phase })
+                        }
+                    }
+                })
             },
             /**
              * 打开节点配置面板
@@ -936,8 +954,7 @@
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
-                const isAllConditionValid = this.checkConditionData(true)
-                if (isAllNodeValid && isAllConditionValid) {
+                if (isAllNodeValid) {
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
@@ -976,53 +993,12 @@
             // 打开分支条件编辑
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
-                this.$refs.conditionEdit.updateConditionData(data)
-            },
-            // 校验分支数据
-            checkConditionData (isShowError = false) {
-                let checkResult = true
-                const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
-                branchConditionDoms.forEach(dom => {
-                    const nodeId = dom.dataset.nodeid
-                    const lineId = dom.dataset.lineid
-                    const { name, evaluate } = this.canvasData.branchConditions[nodeId][lineId]
-                    if (!name || !evaluate) {
-                        dom.classList.add('failed')
-                        checkResult = false
-                    }
-                })
-                if (!checkResult && isShowError) {
-                    this.$bkMessage({
-                        'message': i18n.t('分支节点参数错误，请点击错误节点查看详情'),
-                        'theme': 'error'
-                    })
-                }
-                return checkResult
-            },
-            // 关闭分支节点
-            onCloseConditionEdit () {
-                if (this.isShowConditionEdit) {
-                    const data = this.$refs.conditionEdit.getConditionData()
-                    this.updataConditionData(data)
-                    this.isShowConditionEdit = false
-                    // 删除分支条件节点选中样式
-                    document.querySelectorAll('.branch-condition.editing').forEach(dom => {
-                        dom.classList.remove('editing')
-                    })
-                }
+                this.conditionData = { ...data }
             },
             // 更新分支数据
-            updataConditionData (data) {
-                // 更新 store 数据
-                this.setBranchCondition(data)
+            updataCanvasCondition (data) {
                 // 更新 cavans 页面数据
                 this.$refs.templateCanvas.updataConditionCanvasData(data)
-                this.$nextTick(() => {
-                    this.checkConditionData()
-                })
-            },
-            onSaveConditionData () {
-                return this.$refs.conditionEdit.checkCurrentConditionData()
             },
             // 流程模板数据编辑更新
             modifyTemplateData (data) {
@@ -1194,7 +1170,7 @@
     .update-tips {
         position: absolute;
         top: 76px;
-        left: 400px;
+        left: 500px;
         min-height: 40px;
         overflow: hidden;
         z-index: 4;

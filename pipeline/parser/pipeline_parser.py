@@ -60,6 +60,7 @@ def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params
                 act_outputs.setdefault(source_info[PE.source_act], {}).update({source_info[PE.source_key]: key})
 
         is_param = info.get(PE.is_param, False)
+        info = params.get(key, info) if is_param else info
         if is_subprocess and is_param:
             subprocess_params.update({key: info})
             continue

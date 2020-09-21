@@ -12,7 +12,7 @@
 <template>
     <div id="app">
         <navigator v-if="!hideHeader" :appmaker-data-loading="appmakerDataLoading" />
-        <div class="main-container" v-bkloading="{ isloading: adminPermLoading, opacity: 1 }">
+        <div class="main-container">
             <router-view v-if="isRouterViewShow"></router-view>
         </div>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
@@ -59,7 +59,7 @@
                     permission: null
                 },
                 isRouterAlive: false,
-                adminPermLoading: false, // 管理员权限加载
+                projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false // 轻应用加载 app 详情,
             }
         },
@@ -74,12 +74,14 @@
                 'project_id': state => state.project_id
             }),
             isRouterViewShow () {
-                return !this.permissinApplyShow && this.isRouterAlive && !this.adminPermLoading
+                return !this.permissinApplyShow && this.isRouterAlive && !this.projectDetailLoading
             }
         },
         watch: {
-            '$route' (val) {
-                this.handleRouteChange()
+            '$route' (val, oldVal) {
+                const prevRouterProjectId = oldVal.params.project_id
+                const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
+                this.handleRouteChange(id)
             }
         },
         created () {
@@ -156,7 +158,7 @@
             ]),
             async initData () {
                 if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
-                    this.getProjectDetail()
+                    await this.getProjectDetail()
                 }
                 await this.getPermissionMeta()
                 if (this.viewMode === 'appmaker') {
@@ -168,6 +170,7 @@
             },
             async getProjectDetail () {
                 try {
+                    this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
@@ -178,6 +181,8 @@
                     }
                 } catch (err) {
                     errorHandler(err, this)
+                } finally {
+                    this.projectDetailLoading = false
                 }
             },
             async getAppmakerDetail () {
@@ -229,16 +234,19 @@
                     this.footerLoading = false
                 }
             },
-            handleRouteChange () {
+            handleRouteChange (preProjectId) {
                 this.isRouterAlive = true
                 if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
                     setConfigContext(this.site_url)
                 } else {
+                    // 项目上下文页面
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
                         this.permissinApplyShow = false
-                        this.getProjectDetail()
-                    } else { // 需要项目id页面，id为空时，显示无权限页面，申请按钮跳转到项目管理页面
+                        if (this.project_id !== preProjectId) {
+                            this.getProjectDetail()
+                        }
+                    } else { // 需要项目id页面，id为空时，显示无权限页面
                         this.permissinApplyShow = true
                     }
                 }

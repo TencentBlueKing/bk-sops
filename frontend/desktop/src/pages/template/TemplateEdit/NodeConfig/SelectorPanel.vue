@@ -45,7 +45,8 @@
                                 :key="index"
                                 :title="item.name"
                                 @click="onSelect(item)">
-                                <span class="node-name" v-html="item.name"></span>
+                                <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
+                                <span class="node-name" v-else>{{ item.name }}</span>
                                 <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
                                     <i class="common-icon-box-top-right-corner"></i>
                                 </span>
@@ -84,7 +85,8 @@
         props: {
             atomTypeList: Object,
             isSubflow: Boolean,
-            basicInfo: Object
+            basicInfo: Object,
+            common: [String, Number]
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
@@ -156,7 +158,7 @@
                             group.list.forEach(item => {
                                 if (reg.test(item.name)) {
                                     const node = { ...item }
-                                    node.name = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                    node.highlightName = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
                                     list.push(node)
                                 }
                             })
@@ -193,17 +195,29 @@
                 return item.code === this.basicInfo.plugin
             },
             onApplyPermission (tpl) {
-                const resourceData = {
-                    flow: [{
-                        id: tpl.id,
-                        name: tpl.name
-                    }],
-                    project: [{
-                        id: tpl.project.id,
-                        name: tpl.project.name
-                    }]
+                let reqPerm, resourceData
+                if (this.common) {
+                    reqPerm = 'common_flow_view'
+                    resourceData = {
+                        common_flow: [{
+                            id: tpl.id,
+                            name: tpl.name
+                        }]
+                    }
+                } else {
+                    reqPerm = 'flow_view'
+                    resourceData = {
+                        flow: [{
+                            id: tpl.id,
+                            name: tpl.name
+                        }],
+                        project: [{
+                            id: tpl.project.id,
+                            name: tpl.project.name
+                        }]
+                    }
                 }
-                this.applyForPermission(['flow_view'], [], resourceData)
+                this.applyForPermission([reqPerm], [], resourceData)
             }
         }
     }

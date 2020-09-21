@@ -73,48 +73,70 @@
                 </table>
                 <NoData v-else></NoData>
             </section>
-            <section class="info-section" v-if="!adminView">
-                <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-                <div>
-                    <RenderForm
-                        v-if="!isEmptyParams && !loading"
-                        :scheme="renderConfig"
-                        :form-option="renderOption"
-                        v-model="renderData">
-                    </RenderForm>
-                    <NoData v-else></NoData>
+            <section class="info-section">
+                <div class="common-section-title input-parameter">
+                    <div class="input-title">{{ $t('输入参数') }}</div>
+                    <div class="origin-value" v-if="!adminView">
+                        <bk-switcher @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
+                        {{ $t('原始值') }}
+                    </div>
                 </div>
-            </section>
-            <section class="info-section" v-else>
-                <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-                <div class="code-block-wrap">
+                <div v-if="!adminView">
+                    <div v-if="!isShowInputOrigin">
+                        <RenderForm
+                            v-if="!isEmptyParams && !loading"
+                            :scheme="renderConfig"
+                            :form-option="renderOption"
+                            v-model="renderData">
+                        </RenderForm>
+                        <NoData v-else></NoData>
+                    </div>
+                    <code-editor
+                        v-else
+                        :value="inputsInfo"
+                        :options="{ readOnly: readOnly, language: 'json' }">
+                    </code-editor>
+                </div>
+                <div class="code-block-wrap" v-else>
                     <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                 </div>
             </section>
-            <section class="info-section" v-if="!adminView">
-                <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-                <table class="operation-table outputs-table">
-                    <thead>
-                        <tr>
-                            <th class="output-name">{{ $t('参数名') }}</th>
-                            <th class="output-value">{{ $t('参数值') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="output in outputsInfo" :key="output.name">
-                            <td class="output-name">{{getOutputName(output)}}</td>
-                            <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
-                            <td v-else class="output-value">{{ getOutputValue(output) }}</td>
-                        </tr>
-                        <tr v-if="Object.keys(outputsInfo).length === 0">
-                            <td colspan="2"><no-data></no-data></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-            <section class="info-section" v-else>
-                <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-                <div class="code-block-wrap">
+            
+            <section class="info-section">
+                <div class="common-section-title output-parameter">
+                    <div class="output-title">{{ $t('输出参数') }}</div>
+                    <div class="origin-value" v-if="!adminView">
+                        <bk-switcher @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
+                        {{ $t('原始值') }}
+                    </div>
+                </div>
+                <div v-if="!adminView">
+                    <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
+                        <thead>
+                            <tr>
+                                <th class="output-name">{{ $t('参数名') }}</th>
+                                <th class="output-value">{{ $t('参数值') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="output in outputsInfo" :key="output.name">
+                                <td class="output-name">{{getOutputName(output)}}</td>
+                                <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
+                                <td v-else class="output-value">{{ getOutputValue(output) }}</td>
+                            </tr>
+                            <tr v-if="Object.keys(outputsInfo).length === 0">
+                                <td colspan="2"><no-data></no-data></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <code-editor
+                        v-else
+                        :value="outputsInfo"
+                        :options="{ readOnly: readOnly, language: 'json' }">
+                    </code-editor>
+                </div>
+                
+                <div class="code-block-wrap" v-else>
                     <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
                     <NoData v-else></NoData>
                 </div>
@@ -128,19 +150,18 @@
                     :node-info="executeInfo">
                 </IpLogContent>
             </section>
-            <section class="info-section" v-if="adminView">
+            <section class="info-section">
                 <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="code-block-wrap">
-                    <div class="code-wrapper" v-if="logInfo">
-                        <code-editor
-                            :value="logInfo"
-                            :options="{ readOnly: readOnly, language: 'javascript' }">
-                        </code-editor>
-                    </div>
+                <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
+                    <code-editor
+                        v-if="logInfo"
+                        :value="logInfo"
+                        :options="{ readOnly: readOnly, language: 'javascript' }">
+                    </code-editor>
                     <NoData v-else></NoData>
                 </div>
             </section>
-            <section class="info-section" v-if="historyInfo.length">
+            <section class="info-section" v-if="historyInfo && historyInfo.length">
                 <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
                 <bk-table
                     class="retry-table"
@@ -170,15 +191,22 @@
                                     <div v-html="props.row.ex_data"></div>
                                 </div>
                             </div>
-                            <div class="common-form-item" v-if="adminView">
+                            <div class="common-form-item">
                                 <label>{{ $t('日志') }}</label>
-                                <div class="common-form-content">
-                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
-                                        <div class="code-block-wrap">
+                                <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                    <div class="common-form-content" v-if="historyLog[props.row.history_id]">
+                                        <div class="code-block-wrap" v-if="adminView">
                                             <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
                                         </div>
+                                        <code-editor
+                                            v-else
+                                            :value="historyLog[props.row.history_id]"
+                                            :options="{ readOnly: readOnly, language: 'javascript' }">
+                                        </code-editor>
                                     </div>
+                                    <NoData v-else></NoData>
                                 </div>
+                               
                             </div>
                         </template>
                     </bk-table-column>
@@ -405,6 +433,9 @@
         },
         data () {
             return {
+                isLogLoading: false,
+                isShowInputOrigin: false,
+                isShowOutputOrigin: false,
                 readOnly: true,
                 loading: true,
                 executeInfo: {},
@@ -493,7 +524,9 @@
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'getNodeActDetail'
+                'getNodeActDetail',
+                'getNodePerformLog',
+                'getNodeExecutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -533,6 +566,10 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
+                        if (this.executeInfo.state && !['READY', 'CREATED'].includes(this.executeInfo.state)) {
+                            const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                            this.getPerformLog(query)
+                        }
                         
                         // 兼容 JOB 执行作业输出参数
                         // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
@@ -554,15 +591,17 @@
                             this.theExecuteTime = respData.loop
                         }
                     }
+                    
                     this.executeInfo.plugin_version = version
                     if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }
-                    this.historyInfo.forEach(item => {
-                        item.last_time = this.getLastTime(item.elapsed_time)
-                    })
-
+                    if (this.historyInfo) {
+                        this.historyInfo.forEach(item => {
+                            item.last_time = this.getLastTime(item.elapsed_time)
+                        })
+                    }
                     if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data.exception_msg)
                     } else {
@@ -583,13 +622,12 @@
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
-                    
+
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
                     }
-
                     const res = await getData(query)
                     if (res.result) {
                         return res.data
@@ -598,6 +636,18 @@
                     }
                 } catch (error) {
                     errorHandler(error, this)
+                }
+            },
+            // 非admin 用户执行记录
+            async getPerformLog (query) {
+                try {
+                    this.isLogLoading = true
+                    const performLog = await this.getNodePerformLog(query)
+                    this.logInfo = performLog.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getNodeConfig (type, version) {
@@ -620,11 +670,21 @@
                     this.$set(this.historyLogLoading, id, true)
                     const data = {
                         node_id: this.nodeDetailConfig.node_id,
-                        history_id: id
+                        history_id: id,
+                        instance_id: this.nodeDetailConfig.instance_id
                     }
-                    const resp = await this.taskflowHistroyLog(data)
+                    let resp = null
+                    if (this.adminView) {
+                        resp = await this.taskflowHistroyLog(data)
+                    } else {
+                        resp = await this.getNodeExecutionRecordLog(data)
+                    }
                     if (resp.result) {
-                        this.$set(this.historyLog, id, resp.data.log)
+                        if (this.adminView) {
+                            this.$set(this.historyLog, id, resp.data.log)
+                        } else {
+                            this.$set(this.historyLog, id, resp.data)
+                        }
                     } else {
                         errorHandler(resp, this)
                     }
@@ -675,12 +735,26 @@
             },
             onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
-                if (this.adminView && expended && !this.historyLog.hasOwnProperty(id)) {
+                if (expended && !this.historyLog.hasOwnProperty(id)) {
                     this.getHistoryLog(id)
                 }
             },
             onSelectNode (nodeHeirarchy, isClick, nodeType) {
                 this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
+            },
+            inputSwitcher () {
+                if (!this.isShowInputOrigin) {
+                    this.inputsInfo = JSON.parse(this.inputsInfo)
+                } else {
+                    this.inputsInfo = JSON.stringify(this.inputsInfo, null, 4)
+                }
+            },
+            outputSwitcher () {
+                if (!this.isShowOutputOrigin) {
+                    this.outputsInfo = JSON.parse(this.outputsInfo)
+                } else {
+                    this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
+                }
             }
         }
     }
@@ -694,9 +768,6 @@
     .nodeTree{
         border-right: 1px solid #DCDEE5;
     }
-}
-.code-wrapper {
-    height: 160px;
 }
 .execute-info {
     flex: 1;
@@ -773,10 +844,33 @@
             color: #4b9aff;
         }
     }
+    .perform-log {
+        height: 300px;
+    }
     .common-section-title {
         color: #313238;
         font-size: 14px;
         margin-bottom: 20px;
+    }
+    .input-parameter,
+    .output-parameter {
+        height: 20px;
+        line-height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+        .input-title,
+        .output-title {
+            color: #313238;
+        }
+        .origin-value {
+            font-size: 12px;
+            color: #87878e;
+            .bk-switcher {
+                margin-right: 5px;
+            }
+        }
     }
     .operation-table {
         font-size: 12px;
@@ -834,6 +928,9 @@
     }
     /deep/ .bk-table .bk-table-expanded-cell {
         padding: 20px;
+    }
+    /deep/ .code-editor {
+        height: 300px;
     }
 }
 </style>

@@ -18,7 +18,7 @@ from datetime import datetime
 
 
 def extract_logs(log_yaml, version_logs):
-    logs = yaml.load(log_yaml)
+    logs = yaml.load(log_yaml, Loader=yaml.FullLoader)
     logs.pop("i18n", None)
 
     for section, contents in logs.items():

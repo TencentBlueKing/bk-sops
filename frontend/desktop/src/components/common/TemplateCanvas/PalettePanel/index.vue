@@ -59,6 +59,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :nodes="nodes"
+            :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
         </node-menu>
@@ -87,6 +88,10 @@
             },
             isDisableEndPoint: {
                 type: Boolean,
+                default: false
+            },
+            common: {
+                type: [String, Number],
                 default: false
             }
         },

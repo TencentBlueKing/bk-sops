@@ -17,10 +17,14 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
+                allowCreate: true,
                 hookable: true,
                 remote: true,
                 remote_url: $.context.get("site_url") + "pipeline/cc_get_business_list/",
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 disabled: !$.context.canSelectBiz(),

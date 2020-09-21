@@ -42,7 +42,7 @@
                     </div>
                 </li>
                 <!-- 类型 -->
-                <li class="form-item clearfix" v-if="!isSystemVar">
+                <li class="form-item variable-type clearfix" v-if="!isSystemVar">
                     <label class="required">{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -72,6 +72,7 @@
                                 </bk-option-group>
                             </template>
                         </bk-select>
+                        <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
                 </li>
                 <!-- 默认值 -->
@@ -153,9 +154,12 @@
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(theEditingData.source_type)
+            const currentValType = isHookedVar ? 'component' : theEditingData.custom_type
+
             return {
                 theEditingData,
                 isHookedVar, // 是否为勾选生成的变量
+                currentValType,
                 showTypeList: [
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
@@ -170,10 +174,8 @@
                     showVarList: true,
                     validateSet: ['custom', 'regex']
                 },
-                currentValType: isHookedVar ? 'component' : theEditingData.custom_type,
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
-                varGroup: '', // 变量类型分组，general、meta
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 // 变量名称校验规则
@@ -212,6 +214,25 @@
                     return custom_type
                 }
             },
+            // 变量生命周期
+            varPhase () {
+                let phaseStr = ''
+                const phaseMap = {
+                    '1': i18n.t('即将下线'),
+                    '2': i18n.t('已下线')
+                }
+                if (this.currentValType !== 'component' && this.varTypeList.length) {
+                    this.varTypeList.some(group => {
+                        return group.children.some(item => {
+                            if (item.code === this.currentValType) {
+                                phaseStr = phaseMap[item.phase]
+                                return true
+                            }
+                        })
+                    })
+                }
+                return phaseStr
+            },
             // 变量 Key 校验规则
             variableKeyRule () {
                 const rule = {
@@ -229,11 +250,14 @@
         },
         async created () {
             this.extendFormValidate()
+        },
+        async mounted () {
+            const { is_meta, custom_type, source_tag } = this.theEditingData
+
             if (this.isHookedVar) {
                 this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
             } else {
                 await this.getVarTypeList()
-                const { is_meta, custom_type } = this.theEditingData
                 // 若当前编辑变量为元变量，则取meta_tag
                 if (is_meta) {
                     this.varTypeList[1].children.some(item => {
@@ -244,16 +268,16 @@
                     })
                 }
             }
-        },
-        async mounted () {
             // 非输出参数勾选变量和系统内置变量(目前有自定义变量和输入参数勾选变量)需要加载标准插件配置项
             if (!['component_outputs', 'system'].includes(this.theEditingData.source_type)) {
-                await this.getAtomConfig()
                 if (this.theEditingData.hasOwnProperty('value')) {
+                    const sourceTag = is_meta ? this.metaTag : source_tag
+                    const tagCode = sourceTag.split('.')[1]
                     this.renderData = {
-                        [this.renderConfig[0].tag_code]: this.theEditingData.value
+                        [tagCode]: this.theEditingData.value
                     }
                 }
+                this.getAtomConfig()
             }
         },
         methods: {
@@ -305,7 +329,6 @@
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 const atom = tagStr.split('.')[0] || custom_type
-                const isMeta = this.varGroup === 'meta' ? 1 : 0
                 let classify = ''
                 this.atomConfigLoading = true
                 this.atomTypeKey = atom
@@ -325,9 +348,8 @@
                 try {
                     await this.loadAtomConfig({
                         classify,
-                        isMeta: isMeta,
                         name: this.atomType,
-                        project_id: this.project_id,
+                        project_id: this.common ? undefined : this.project_id,
                         version,
                         atom
                     })
@@ -347,7 +369,6 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-
                 const atomConfig = this.atomFormConfig[atom][version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {
@@ -444,7 +465,6 @@
                 this.theEditingData.source_tag = data.tag
                 this.theEditingData.is_meta = data.type === 'meta'
                 this.metaTag = data.meta_tag
-                this.varGroup = data.type
 
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
@@ -591,6 +611,20 @@
     }
     .error-msg {
         margin-top: 10px;
+    }
+    .variable-type {
+        position: relative;
+        .phase-tag {
+            position: absolute;
+            right: 30px;
+            top: 4px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            border-bottom-left-radius: 0;
+            font-size: 12px;
+            color: #ffffff;
+            background: #b8b8b8;
+        }
     }
     .btn-wrap {
         padding: 8px 20px;
