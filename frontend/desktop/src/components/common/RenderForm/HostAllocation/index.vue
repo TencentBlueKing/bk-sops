@@ -30,6 +30,7 @@
             :show-filter.sync="showFilter"
             :config="localConfig"
             :urls="urls"
+            :cols="tbCols"
             @update="updateConfig">
         </host-filter>
     </div>
