@@ -42,9 +42,10 @@
                             {{$t('模板文件上传为空')}}
                         </span>
                         <span
+                            v-bk-tooltips.top="commonErrorMsg"
                             v-show="templateFileError"
-                            class="common-error-tip error-msg">
-                            {{$t('模板上传内容不合法，请重新选择文件')}}
+                            class="common-error-tip error-msg multi-character-limit">
+                            {{ commonErrorMsg }}
                         </span>
                         <span
                             v-show="templateFileErrorExt"
@@ -143,7 +144,8 @@
                 templateFileEmpty: false,
                 templateFileError: false,
                 templateFileErrorExt: false,
-                dataConflict: false
+                dataConflict: false,
+                commonErrorMsg: ''
             }
         },
         computed: {
@@ -191,6 +193,7 @@
                         this.overrideList = checkResult.override_template
                         this.templateFileError = false
                     } else {
+                        this.commonErrorMsg = resp.message
                         this.templateFileError = true
                         this.pending.upload = false
                         this.dataConflict = false
@@ -313,6 +316,13 @@
             margin-right: 20px;
             .bk-button.bk-primary {
                 width: 120px;
+            }
+            .multi-character-limit {
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow:ellipsis;
+                white-space: nowrap;
+                cursor: default;
             }
         }
     }
