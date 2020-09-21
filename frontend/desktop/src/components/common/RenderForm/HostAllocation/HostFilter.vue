@@ -140,6 +140,9 @@
                 default () {
                     return {}
                 }
+            },
+            cols: {
+                type: Array
             }
         },
         data () {
@@ -465,6 +468,12 @@
                             }
                         })
                     }
+                    this.cols.forEach(item => {
+                        const tagCode = item.config.tag_code
+                        if (tagCode !== 'tb_btns') {
+                            fields.push(tagCode)
+                        }
+                    })
                     const topo = resource.map(item => {
                         const [bk_obj_id, bk_inst_id] = item.id.split('_')
                         return {
