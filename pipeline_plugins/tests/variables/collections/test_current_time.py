@@ -35,11 +35,19 @@ class CurrentTimeTestCase(TestCase):
             ["month", "day", "minute", "second"],
             ["day", "hour", "minute"],
         ]
-        output_formats = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%H:%M:%S", "%m-%d %M:%S", "%d %H:%M"]
+        input_formats = [
+            "%Y-%m-%d %H:%M:%S",
+            "%Y%m%d%H%M%S",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y%m%d %H:%M:%S",
+            "%Y-%m-%d %H:%M:%S",
+        ]
+        output_formats = ["%Y-%m-%d %H:%M:%S", "%Y%m%d", "%H:%M:%S", "%m%d %M:%S", "%d %H:%M"]
         for case_idx in range(len(needed_units_cases)):
             needed_units = needed_units_cases[case_idx]
+            input_format = input_formats[case_idx]
             output_format = output_formats[case_idx]
-            self.assertEqual(generate_time_format_func(needed_units), output_format)
+            self.assertEqual(generate_time_format_func(needed_units, input_format), output_format)
 
     def test_get_value_with_all_units(self):
         value = {"time_unit": ["year", "month", "day", "hour", "minute", "second"], "time_zone": "Asia/Shanghai"}

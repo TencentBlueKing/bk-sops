@@ -50,6 +50,36 @@
                         }
                     },
                     {
+                        tag_code: "time_format",
+                        type: "input",
+                        attrs: {
+                            name: "time_format",
+                            hookable: true,
+                            default: "%Y-%m-%d %H:%M:%S",
+                            validation: [
+                                {
+                                    type: "required"
+                                },
+                                {
+                                    type: "custom",
+                                    args: function (value) {
+                                        var result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        var strRegex = "^%Y(.*?)%m(.*?)%d(.*?)%H(.*?)%M(.*?)%S$"
+                                        var re = new RegExp(strRegex, 'i')
+                                        if (!re.test(value)) {
+                                            result.result = false
+                                            result.error_message = gettext("请输入包含所有时间单位的格式，如%Y-%m-%d %H:%M:%S。（未勾选的时间单位会在转换过程中被屏蔽）")
+                                        }
+                                        return result
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         tag_code: "time_zone",
                         type: "select",
                         attrs: {

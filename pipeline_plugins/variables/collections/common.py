@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import datetime
 import logging
+import re
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -108,33 +109,40 @@ class CurrentTime(LazyVariable):
     def get_value(self):
         time_units = self.value.get("time_unit") or ["year", "month", "day", "hour", "minute", "second"]
         time_zone = self.value.get("time_zone", "Asia/Shanghai")
+        time_format = self.value.get("time_format", "%Y-%m-%d %H:%M:%S")
         now = datetime.datetime.now(timezone.pytz.timezone(time_zone))
-        current_time = now.strftime(self._generate_time_format(time_units))
+        current_time = now.strftime(self._generate_time_format(time_units, time_format))
         return current_time
 
     @staticmethod
-    def _generate_time_format(needed_units):
+    def _generate_time_format(needed_units, time_format):
         """
         根据用户选择的时间格式生成对应的转换格式字符串
         """
+        pattern = re.compile(r"^%Y(.*?)%m(.*?)%d(.*?)%H(.*?)%M(.*?)%S$")
+        re_results = re.findall(pattern, time_format)[0]
         time_units = [
             ("year", "%Y", ""),
-            ("month", "%m", "-"),
-            ("day", "%d", "-"),
-            ("hour", "%H", ""),
-            ("minute", "%M", ":"),
-            ("second", "%S", ":"),
+            ("month", "%m", re_results[0]),
+            ("day", "%d", re_results[1]),
+            ("hour", "%H", re_results[2]),
+            ("minute", "%M", re_results[3]),
+            ("second", "%S", re_results[4]),
         ]
         final_format = ""
+        pause = False
         # needed_units 形如['year', 'month', 'day', 'hour', 'minute', 'second']
         for time_unit in time_units:
-            unit, time_format, separator = time_unit[0], time_unit[1], time_unit[2]
-            if unit == "hour":
-                final_format += " "
+            unit, unit_format, separator = time_unit[0], time_unit[1], time_unit[2]
+            # 不管是否包含小时单位，年月日&时分秒之间的分隔符都保留，除非不包含年月日单位
+            if unit == "hour" and len(final_format) > 0:
+                final_format += separator
+                pause = True
             if unit in needed_units:
-                if len(final_format) > 0 and final_format[-1] != " ":
+                if len(final_format) > 0 and not pause:
                     final_format += separator
-                final_format += time_format
+                final_format += unit_format
+                pause = False
         return final_format.strip()
 
 
