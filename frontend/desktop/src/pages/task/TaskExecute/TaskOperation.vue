@@ -799,7 +799,9 @@
             setCanvasData () {
                 this.$nextTick(() => {
                     this.nodeSwitching = false
-                    this.markNodesPhase()
+                    this.$nextTick(() => {
+                        this.markNodesPhase()
+                    })
                 })
             },
             getOptBtnIsClickable (action) {
@@ -879,17 +881,29 @@
                     let nodeData = tools.deepClone(this.nodeData)
                     let firstNodeId = null
                     let firstNodeData = null
+                    const rootNode = []
                     while (nodeData[0]) {
                         if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
                             firstNodeId = nodeData[0].id
                             firstNodeData = nodeData[0]
                             nodeData[0] = false
                         } else {
+                            rootNode.push(nodeData[0])
                             nodeData = nodeData[0].children
                         }
                     }
                     this.defaultActiveId = firstNodeId
-                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
+                    let subprocessStack = []
+                    if (rootNode.length > 1) {
+                        subprocessStack = rootNode.map(item => item.id).slice(1)
+                    }
+                    this.nodeDetailConfig = {
+                        component_code: firstNodeData.component.code,
+                        version: firstNodeData.component.version || 'legacy',
+                        node_id: firstNodeData.id,
+                        instance_id: this.instance_id,
+                        subprocess_stack: JSON.stringify(subprocessStack)
+                    }
                 }
                 if (type === 'templateData') {
                     this.transPipelineTreeStr()
@@ -998,6 +1012,7 @@
                     nodeId: nodeActivities.id,
                     type: 'SubProcess'
                 })
+                
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },
@@ -1036,7 +1051,7 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
-               
+
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
@@ -1052,7 +1067,7 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-                    
+
                     this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
                         await this.switchCanvasView(nodeActivities)

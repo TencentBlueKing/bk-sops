@@ -19,54 +19,77 @@
  * data 为 mock 数据，当 type 取值为 'json' 时，直接返回实际的 mock 数据对象，当 type 取值为 'file' 时，返回文件的相对路径(相对于 config 文件夹)
  */
 
- const permission = require('./permission.js')
+//  const permission = require('./permission.js')
 
 module.exports = {
     // demo 参考：
-    // '/t/bk_sops/api/v3/template/': {
-    //     type: 'json',
-    //     method: 'GET',
-    //     data: {
-    //         meta: {
-    //             limit: 15,
-    //             next: null,
-    //             offset: 0,
-    //             previous: null,
-    //             total_count: 1
-    //         },
-    //         objects: [
-    //             {
-    //                 category: "MonitorAfdfdsflarm",
-    //                 category_name: "监控告警",
-    //                 create_time: "2019-10-10 10:05:31 +0800",
-    //                 creator_name: "admin",
-    //                 edit_time: "2019-10-10 10:05:31 +0800",
-    //                 editor_name: "fgdfg",
-    //                 has_subprocess: false,
-    //                 id: 9,
-    //                 is_add: 0,
-    //                 is_deleted: false,
-    //                 name: "new20191010020512",
-    //                 notify_receivers: "{'receiver_group':[],'more_receiver':''}",
-    //                 notify_type: "[]",
-    //                 pipeline_template: "",
-    //                 resource_uri: "/t/bk_sops/weixin/api/v3/template/9/",
-    //                 subprocess_has_update: false,
-    //                 template_id: 9,
-    //                 time_out: 20,
-    //                 version: "56dbcc8e7a72cd57c1aaa8d23e11ae31",
-    //             }
-    //         ]
-    //     }
-    // },
-    // '/t/bk_sops/static/components/atoms/job/job_fast_execute_script.js': {
-    //     type: 'file',
-    //     method: 'GET',
-    //     data: './data.js'
-    // }
-    // '/o/bk_sops/iam/api/meta/': {
-    //     type: 'json',
-    //     method: 'GET',
-    //     data: permission
-    // }
+    '/o/bk_sops/api/v3/variable/': {
+        type: 'json',
+        method: 'GET',
+        data: {
+            meta: {
+                limit: 0,
+                offset: 0,
+                total_count: 17
+            },
+            objects: [
+                {
+                    code: "input",
+                    form: "/o/bk_sops/static/variables/input.js",
+                    meta_tag: null,
+                    name: "输入框",
+                    phase: 0,
+                    resource_uri: "/o/bk_sops/api/v3/variable/input/",
+                    tag: "input.input",
+                    type: "general",
+                },
+                {
+                    code: "hostAllocation",
+                    form: "/o/bk_sops/static/variables/hostAllocation.js",
+                    meta_tag: null,
+                    name: "主机筛选",
+                    phase: 0,
+                    resource_uri: "/o/bk_sops/api/v3/variable/hostAllocation/",
+                    tag: "host_allocation.host_allocation",
+                    type: "general",
+                }
+            ]
+        }
+    },
+    '/o/bk_sops/api/v3/variable/input/': {
+        type: 'json',
+        method: 'GET',
+        data: {
+            code: "input",
+            form: "/o/bk_sops/static/variables/input.js",
+            meta_tag: null,
+            name: "输入框",
+            resource_uri: "/o/bk_sops/api/v3/variable/input/",
+            tag: "input.input",
+            type: "general"
+        }
+    },
+    '/o/bk_sops/api/v3/variable/hostAllocation/': {
+        type: 'json',
+        method: 'GET',
+        data: {
+            code: "input",
+            form: "/o/bk_sops/static/variables/hostAllocation.js",
+            meta_tag: null,
+            name: "主机筛选",
+            resource_uri: "/o/bk_sops/api/v3/variable/hostAllocation/",
+            tag: "host_allocation.host_allocation",
+            type: "general"
+        }
+    },
+    '/o/bk_sops/static/variables/input.js': {
+        type: 'file',
+        method: 'GET',
+        data: './data.js'
+    },
+    '/o/bk_sops/static/variables/hostAllocation.js': {
+        type: 'file',
+        method: 'GET',
+        data: './host.js'
+    }
 }

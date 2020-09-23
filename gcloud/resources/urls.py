@@ -22,6 +22,7 @@ from gcloud.core.resources import (
     CommonProjectResource,
     LabelGroupModelResource,
     LabelModelResource,
+    UserProjectResource,
 )
 from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.tasktmpl3.resources import (
@@ -38,6 +39,7 @@ from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskRes
 v3_api = Api(api_name="v3")
 v3_api.register(BusinessResource())
 v3_api.register(ProjectResource())
+v3_api.register(UserProjectResource())
 v3_api.register(CommonProjectResource())
 v3_api.register(TaskTemplateResource())
 v3_api.register(ComponentModelResource())

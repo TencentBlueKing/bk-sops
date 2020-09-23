@@ -14,10 +14,11 @@ const webpack = require('webpack')
 const merge = require('webpack-merge')
 const webpackBaseConfig = require('./webpack.base.js')
 const mocker = require('./mock/index.js')
-const SITE_URL = '/'
+const SITE_URL = '/o/bk_sops/'
 const proxyPath = [
     'static/*',
     'jsi18n/*',
+    'iam/*',
     'api/*',
     'core/api/*',
     'config/api/*',
@@ -40,11 +41,11 @@ const proxyPath = [
 const proxyRule = {}
 proxyPath.forEach(item => {
     proxyRule[SITE_URL + item] = {
-        target: 'http://dev.{BK_PAAS_HOST}:8000',
+        target: 'http://f17paas.ee23.bktencent.com',
         secure: false,
         changeOrigin: true,
         headers: {
-            referer: 'http://dev.{BK_PAAS_HOST}:8000'
+            referer: 'http://f17paas.ee23.bktencent.com'
         }
     }
 })
@@ -66,7 +67,7 @@ module.exports = merge(webpackBaseConfig, {
     devtool: 'cheap-module-eval-source-map',
     devServer: {
         port: 9000,
-        public: 'dev.{BK_PAAS_HOST}',
+        public: 'dev.f17paas.ee23.bktencent.com',
         hot: true,
         https: false,
         historyApiFallback: {

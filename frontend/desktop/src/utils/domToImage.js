@@ -1,4 +1,5 @@
 // 原插件 dom-to-image   gitHub仓库地址 https://github.com/tsayen/dom-to-image#readme
+// 添加cloneBack 配置
 /* eslint-disable */
 'use strict';
 var util = newUtil();

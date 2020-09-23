@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from iam import Action, Subject
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response_for_resources_list
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.iam_auth import IAMMeta
@@ -33,3 +34,20 @@ class FastCreateTaskInterceptor(ViewInterceptor):
         action = Action(IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION)
         resources = res_factory.resources_for_project_obj(project)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+
+        params = request.params_json
+        has_common_subprocess = params.get("has_common_subprocess", False)
+        templates_in_task = set()
+        pipeline_tree = params["pipeline_tree"]
+        for activity in pipeline_tree["activities"].values():
+            if "template_id" in activity:
+                templates_in_task.add(activity["template_id"])
+        if not has_common_subprocess:
+            action = Action(IAMMeta.FLOW_VIEW_ACTION)
+            resources_list = res_factory.resources_list_for_flows(list(templates_in_task))
+        else:
+            action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
+            resources_list = res_factory.resources_list_for_common_flows(list(templates_in_task))
+        allow_or_raise_immediate_response_for_resources_list(
+            iam=iam, system=IAMMeta.SYSTEM_ID, subject=subject, action=action, resources_list=resources_list,
+        )

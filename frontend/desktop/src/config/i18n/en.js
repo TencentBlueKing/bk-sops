@@ -1,4 +1,5 @@
 const en = {
+    '节点参数': 'Node parameter',
     '缩略视图': 'Thumbnail view',
     '': '',
     '（': '(',
@@ -777,8 +778,8 @@ const en = {
     '模板上传内容不合法，请重新选择文件': 'The content of file is illegal, please select the file again',
     '该文件后缀不为.dat': 'The file suffix is not .dat',
     '其中': 'And ',
-    '流程ID不变提交': 'Keep ID and submit',
-    '流程ID自增提交': 'Increment ID and submit',
+    '覆盖ID相同的流程': 'Overwrite same ID',
+    '创建新流程': 'Create a new process',
     '覆盖冲突项, 并提交': 'Override conflict items and submit',
     '保留两者, 并提交': 'Keep both and submit',
     '条流程与项目已有流程ID存在冲突': ' conflict with IDs of existing flows',
@@ -1006,7 +1007,8 @@ const en = {
     '即将下线': 'coming offline',
     '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
-    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version'
+    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
+    '复制/粘贴': 'Copy/Paste'
 }
 
 export default en

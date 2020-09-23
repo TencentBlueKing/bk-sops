@@ -131,6 +131,36 @@ class ProjectResource(GCloudModelResource):
         raise BadRequest("can not delete project")
 
 
+class UserProjectResource(GCloudModelResource):
+    class Meta(GCloudModelResource.Meta):
+        queryset = Project.objects.all().order_by("-id")
+        resource_name = "user_project"
+        authorization = ReadOnlyAuthorization()
+        iam_resource_helper = SimpleResourceHelper(
+            type=IAMMeta.PROJECT_RESOURCE,
+            id_field="id",
+            creator_field=None,
+            name_field="name",
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            actions=[
+                IAMMeta.PROJECT_VIEW_ACTION,
+                IAMMeta.PROJECT_EDIT_ACTION,
+                IAMMeta.FLOW_CREATE_ACTION,
+                IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
+            ],
+        )
+        filtering = {}
+        q_fields = []
+
+    def obj_get(self, bundle, **kwargs):
+        raise BadRequest("invalid operation")
+
+    def get_object_list(self, request):
+        projects = get_user_projects(request.user.username)
+        return projects.filter(is_disable=False)
+
+
 class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(attribute="group_icon", readonly=True, null=True)
 
