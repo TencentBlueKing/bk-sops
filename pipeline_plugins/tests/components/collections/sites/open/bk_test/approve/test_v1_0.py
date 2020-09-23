@@ -75,7 +75,6 @@ CREAT_TICKET_FAIL_RETURN_CLIENT = MockClient(create_ticket=CREAT_TICKET_FAIL_RET
 
 CREAT_TICKET_CALL = {
     "creator": "admin",
-    "service_id": 10,
     "fields": [
         {"key": "title", "value": "this is a test"},
         {"key": "APPROVER", "value": "tester,tester1"},
@@ -89,7 +88,6 @@ INPUTS = {
     "bk_approve_title": "this is a test",
     "bk_notify_title": "title",
     "bk_approve_content": "test content",
-    "bk_service_id": 10,
 }
 
 CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(

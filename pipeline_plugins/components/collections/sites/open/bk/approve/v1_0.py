@@ -35,12 +35,6 @@ class ApproveService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("服务 ID"),
-                key="service_id",
-                type="string",
-                schema=StringItemSchema(description=_("服务 ID")),
-            ),
-            self.InputItem(
                 name=_("审核人"),
                 key="bk_verifier",
                 type="string",
@@ -66,13 +60,11 @@ class ApproveService(Service):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
 
-        service_id = data.get_one_of_inputs("bk_service_id")
         verifier = data.get_one_of_inputs("bk_verifier")
         title = data.get_one_of_inputs("bk_approve_title")
         approve_content = data.get_one_of_inputs("bk_approve_content")
         kwargs = {
             "creator": executor,
-            "service_id": service_id,
             "fields": [
                 {"key": "title", "value": title},
                 {"key": "APPROVER", "value": verifier.replace(" ", "")},
@@ -83,7 +75,7 @@ class ApproveService(Service):
         }
         result = client.itsm.create_ticket(kwargs)
         if not result["result"]:
-            message = handle_api_error("itsm", "create_ticket", kwargs, result)
+            message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False

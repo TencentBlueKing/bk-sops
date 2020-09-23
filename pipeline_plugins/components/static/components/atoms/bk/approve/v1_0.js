@@ -12,19 +12,6 @@
 (function () {
     $.atoms.bk_approve = [
         {
-            tag_code: "bk_service_id",
-            type: "input",
-            attrs: {
-                name: gettext("服务 ID"),
-                hookable: true,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ]
-            }
-        },
-        {
             tag_code: "bk_verifier",
             type: "input",
             attrs: {
