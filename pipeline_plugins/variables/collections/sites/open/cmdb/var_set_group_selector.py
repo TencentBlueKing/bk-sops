@@ -22,30 +22,21 @@ from pipeline.core.data.var import LazyVariable
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-set_field = [
-    "bk_set_id",
-    "bk_set_name",
-    "bk_set_env",
-    "bk_category",
-    "bk_set_desc",
-    "bk_uniq_id",
-    "bk_alias_name",
-    "bk_service_status",
-    "bk_open_time",
-    "bk_capacity",
-    "description",
-    "bk_world_id",
-    "bk_svc_name",
-    "bk_customer",
-    "bk_operation_state",
-    "bk_enable_relate_webplat",
-    "bk_is_gcs",
-    "bk_outer_source",
-    "bk_set_idc",
-    "bk_system",
-    "bk_platform",
-    "bk_chn_name"
-]
+
+def get_set_property(operator):
+    """
+    @summary: 获取集群所有的属性
+    @return:
+    """
+    client = get_client_by_user(operator)
+    kwargs = {"bk_obj_id": "set"}
+    cc_result = client.cc.search_object_attribute(kwargs)
+    if not cc_result["result"]:
+        return []
+    obj_property = ["bk_set_id"]
+    for item in cc_result["data"]:
+        obj_property.append(item["bk_property_id"])
+    return obj_property
 
 
 def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id):
@@ -58,6 +49,7 @@ def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id):
     """
     client = get_client_by_user(operator)
     set_data_dir = {}
+    set_field = get_set_property(operator)
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "id": bk_group_id,
@@ -81,7 +73,8 @@ class SetGroupInfo(object):
     设置集群和模块的信息
     """
 
-    def __init__(self, data):
+    def __init__(self, data, operator):
+        set_field = get_set_property(operator)
         for _field in set_field:
             flat_field_name = "flat__{}".format(_field)
             setattr(self, _field, data[_field])
@@ -106,4 +99,4 @@ class VarSetGroupSelector(LazyVariable):
 
         set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id)
 
-        return SetGroupInfo(set_module_info)
+        return SetGroupInfo(set_module_info, operator)
