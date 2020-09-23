@@ -858,6 +858,9 @@
                             }
                         })
                     })
+                    if (this.formData.muteAttribute && !fields.includes(this.formData.muteAttribute)) {
+                        fields.push(this.formData.muteAttribute)
+                    }
                     const topo = this.formData.resource.map(item => {
                         const [bk_obj_id, bk_inst_id] = item.id.split('_')
                         return {
@@ -910,8 +913,9 @@
                             const ipArr = customIpList.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
                             ipArr.forEach(ipItem => {
                                 const ipStr = ipItem.trim()
-                                if (ipStr && data.find(item => item.bk_host_innerip === ipItem)) {
-                                    list.push(ipItem)
+                                const matchedData = data.find(item => item.bk_host_innerip === ipItem)
+                                if (ipStr && matchedData) {
+                                    list.push(matchedData)
                                 }
                             })
                             fullMdHosts.push({
@@ -921,7 +925,7 @@
                             })
                         } else { // 默认筛选方式，则计算本模块数据
                             if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                                list = data.map(d => d.bk_host_innerip)
+                                list = data
                             } else {
                                 const filterObj = this.transFieldArrToObj(validFilters)
                                 const excludeObj = this.transFieldArrToObj(validExclude)
@@ -975,29 +979,28 @@
                     fullMdHosts.forEach(item => {
                         const md = this.formData.modules.find(m => m.id === item.id)
                         const mutedHostAttrs = this.getModuleMutedHostAttrs(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
-                        moduleHosts[item.id] = []
+                        moduleHosts[md.name] = []
 
                         item.list.some(h => {
-                            if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.mutedHostAttrs])) {
-                                moduleHosts[item.id].push(h.bk_host_innerip)
+                            if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
+                                moduleHosts[md.name].push(h.bk_host_innerip)
                                 usedHosts.push(h.bk_host_innerip)
                             }
-                            if (moduleHosts[item.id].length === md.count) {
+                            if (moduleHosts[md.name].length === md.count) {
                                 return true
                             }
                         })
                     })
-
                     reuseOthers.forEach(md => { // 复用其他模块主机数据，主机数量取本模块设置的值
                         let citedModule = this.formData.modules.find(item => item.id === md.reuse)
                         const citePath = [md]
-                        while (!moduleHosts[citedModule.id]) {
+                        while (!moduleHosts[citedModule.name]) {
                             citePath.unshift(Object.assign({}, citedModule))
                             citedModule = this.formData.modules.find(item => item.id === citedModule.reuse)
                         }
                         citePath.forEach(item => {
                             const cModule = this.formData.modules.find(cm => cm.id === item.reuse)
-                            moduleHosts[item.id] = moduleHosts[cModule.id].slice(0, item.count)
+                            moduleHosts[item.name] = moduleHosts[cModule.name].slice(0, item.count)
                         })
                     })
                     hosts.push(moduleHosts)
@@ -1039,8 +1042,8 @@
                     if (moduleItem.muteMethod === 2 && moduleItem.muteModule.includes(id)) {
                         prevModulesHost.forEach(ip => {
                             const hostItem = hosts.find(item => item.bk_host_innerip === ip)
-                            if (!mutedHostAttrs.includes(hostItem[this.formData.mutedHostAttrs])) {
-                                mutedHostAttrs.push(hostItem[this.formData.mutedHostAttrs])
+                            if (!mutedHostAttrs.includes(hostItem[this.formData.muteAttribute])) {
+                                mutedHostAttrs.push(hostItem[this.formData.muteAttribute])
                             }
                         })
                     }
