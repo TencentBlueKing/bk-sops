@@ -34,7 +34,7 @@ def get_job_content(remote_files, operator, biz_cc_id):
     @param biz_cc_id: 业务id
     @return: {
                 "success": [
-                    {"filename": "file_name", "content": "content"}
+                    {"filename": "file_name", "content": "content", "ip": "1.1.1.2"}
                 ],
                 "failure": [
                     {"file_name": "file_name", "ip": "1.1.1.1", "message": "error"}
@@ -44,32 +44,41 @@ def get_job_content(remote_files, operator, biz_cc_id):
     client = get_client_by_user(operator)
     job_execute_suc_records = []
     job_execute_fail_records = []
+
+    ip_str = ",".join([remote_file["ip"] for remote_file in remote_files])
+    ip_info = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False,)
+    ip_list_result = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+
     for remote_file in remote_files:
         script_param = remote_file["file_path"]
         _, file_name = os.path.split(script_param)
         job_account = remote_file["job_account"]
-        ip_info = cc_get_ips_info_by_str(
-            username=operator, biz_cc_id=biz_cc_id, ip_str=remote_file["ip"], use_cache=False,
-        )
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
-        job_kwargs = {
-            "bk_biz_id": biz_cc_id,
-            "account": job_account,
-            "ip_list": ip_list,
-            "script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8"),
-            "script_type": SCRIPT_TYPE,
-            "script_content": base64.b64encode(SCRIPT_CONTENT.encode("utf-8")).decode("utf-8"),
-        }
-        job_result = client.job.fast_execute_script(job_kwargs)
-        logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
-        if job_result["result"]:
-            job_instance_id = job_result["data"]["job_instance_id"]
-            job_execute_suc_records.append(({"file_name": file_name, "ip": remote_file["ip"]}, job_instance_id))
-        else:
-            job_execute_fail_records.append(
-                {"file_name": file_name, "ip": remote_file["ip"], "message": job_result["message"], "ip_list": ip_list}
-            )
+        for ip_list in ip_list_result:
+            if remote_file["ip"] != ip_list["ip"]:
+                continue
+            job_kwargs = {
+                "bk_biz_id": biz_cc_id,
+                "account": job_account,
+                "ip_list": ip_list,
+                "script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8"),
+                "script_type": SCRIPT_TYPE,
+                "script_content": base64.b64encode(SCRIPT_CONTENT.encode("utf-8")).decode("utf-8"),
+            }
+            job_result = client.job.fast_execute_script(job_kwargs)
+            logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
+            if job_result["result"]:
+                job_instance_id = job_result["data"]["job_instance_id"]
+                job_execute_suc_records.append(({"file_name": file_name, "ip": remote_file["ip"]}, job_instance_id))
+            else:
+                job_execute_fail_records.append(
+                    {
+                        "file_name": file_name,
+                        "ip": remote_file["ip"],
+                        "message": job_result["message"],
+                        "ip_list": ip_list,
+                    }
+                )
 
     polling_job_results = []
     with ThreadPoolExecutor(max_workers=10) as t:
@@ -82,7 +91,19 @@ def get_job_content(remote_files, operator, biz_cc_id):
     for polling_job_result in polling_job_results:
         if polling_job_result["result"]:
             result_success.append(
-                {"filename": polling_job_result["key"]["file_name"], "content": polling_job_result["log_content"]}
+                {
+                    "filename": polling_job_result["key"]["file_name"],
+                    "content": polling_job_result["log_content"],
+                    "ip": polling_job_result["key"]["ip"],
+                }
+            )
+        else:
+            job_execute_fail_records.append(
+                {
+                    "file_name": polling_job_result["key"]["file_name"],
+                    "ip": polling_job_result["key"]["ip"],
+                    "message": polling_job_result["message"],
+                }
             )
     result = {"failure": job_execute_fail_records, "success": result_success}
 
@@ -92,7 +113,7 @@ def get_job_content(remote_files, operator, biz_cc_id):
 def get_job_instance_log(job_instance_record, operator, bk_biz_id):
     """
     轮询job执行结果
-    @param job_instance_record: [("1.1.1.1_1.txt", 123123)]
+    @param job_instance_record: [({"file_name": file_name, "ip": remote_file["ip"]}, job_instant_id)]
     @param operator: admin
     @param bk_biz_id: 123
     @return:
@@ -117,7 +138,7 @@ def get_job_instance_log(job_instance_record, operator, bk_biz_id):
                         ]
                     ),
                 }
-            if job_status > 3:
+            elif job_status > 3:
                 return {
                     "result": False,
                     "message": get_job_instance_log_return["message"],
