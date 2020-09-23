@@ -116,9 +116,35 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 
+def cc_get_set_group(request, biz_cc_id):
+    """
+    通过bk_biz_id获取当前业务下所有集群类型的动态分组
+    :param biz_cc_id: 业务ID
+    :param request:
+    :param operator: 操作者
+    :return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "condition": {
+            "bk_obj_id": "set"
+        }
+    }
+    group_info = batch_request(client.cc.search_dynamic_group, kwargs, limit=200)
+    group_data = []
+    for group in group_info:
+        group_data.append({
+            "text": group["name"],
+            "value": group["id"]
+        })
+    return JsonResponse({"result": True, "data": group_data})
+
+
 urlpatterns += [
     url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
     url(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
+    url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group)
 ]
