@@ -65,12 +65,12 @@
         </div>
         <div class="node-tooltip-content" slot="content">
             <bk-button
-                v-if="isShowSkipBtn"
+                v-if="isShowRetryBtn"
                 @click.stop="onRetryClick">
                 {{ $t('重试') }}
             </bk-button>
             <bk-button
-                v-if="isShowRetryBtn"
+                v-if="isShowSkipBtn"
                 @click.stop="onSkipClick">
                 {{ $t('跳过') }}
             </bk-button>
