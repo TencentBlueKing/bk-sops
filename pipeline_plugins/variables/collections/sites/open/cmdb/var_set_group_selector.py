@@ -30,7 +30,7 @@ def get_set_property(operator):
     """
     client = get_client_by_user(operator)
     kwargs = {"bk_obj_id": "set"}
-    cc_result = client.cc.search_object_attribute(kwargs)
+    cc_result = client.cc.search_object_attribute(**kwargs)
     if not cc_result["result"]:
         return []
     obj_property = ["bk_set_id"]
