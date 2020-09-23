@@ -328,7 +328,7 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        if (this.hasPermission(['flow_export'], template.auth_actions)) {
+                        if (this.hasPermission(this.reqPerm, template.auth_actions)) {
                             const tplIndex = this.getTplIndexInSelected(template)
                             if (this.isTplInPanelAllSelected) {
                                 if (tplIndex > -1) {
