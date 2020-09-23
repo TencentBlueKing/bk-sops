@@ -48,6 +48,8 @@ class TaskContext(object):
         # 兼容V3.4.X版本之前的引用非标准命名的插件
         self.biz_cc_id = self.bk_biz_id
         self.biz_cc_name = self.bk_biz_name
+        # 任务开始时间
+        self.task_start_time = timezone.localtime(timezone.now()).strftime("%Y-%m-%d %H:%M:%S")
 
     @classmethod
     def to_flat_key(cls, key):
@@ -117,10 +119,4 @@ class TaskContext(object):
                     "validation": "",
                 }
             )
-            if item["key"] == cls.to_flat_key("task_start_time"):
-                item.update(
-                    {
-                        "value": timezone.localtime(timezone.now()).strftime("%Y-%m-%d %H:%M:%S")
-                    }
-                )
         return details
