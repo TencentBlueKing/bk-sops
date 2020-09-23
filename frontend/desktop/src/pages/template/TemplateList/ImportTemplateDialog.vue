@@ -112,7 +112,7 @@
                 <bk-button
                     theme="default"
                     @click="importSubmit(false)"
-                    v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                    v-cursor="{ active: common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }"
                     :class="{ 'btn-permission-disable': common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }">
                     {{overrideConflict}}
                 </bk-button>
