@@ -93,10 +93,12 @@ class VarSetGroupSelector(LazyVariable):
         获取该变量中对应属性值
         """
         operator = self.pipeline_data.get("executor", "")
+        print(operator)
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
-
+        print(bk_biz_id)
         bk_group_id = self.value
-
+        print(bk_group_id)
         set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id)
+        print(set_module_info)
 
         return SetGroupInfo(set_module_info, operator)
