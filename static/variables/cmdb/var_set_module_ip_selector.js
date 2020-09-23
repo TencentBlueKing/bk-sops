@@ -48,7 +48,6 @@
                                             self.emit_event(self.tag_code, "change", self.value)
                                         }, 500)
                                     }
-
                                     init_self(self);
                                 }
                             }
@@ -119,10 +118,10 @@
                                     tag_code: "var_module",
                                     type: "select",
                                     attrs: {
-                                        name: gettext("选择模块"),
+                                        name: gettext("选择服务模板"),
                                         hookable: true,
                                         multiple: true,
-                                        placeholder: gettext("请选择模块"),
+                                        placeholder: gettext("请选择服务模板"),
                                         remote: true,
                                         remote_url: $.context.get('site_url') + 'pipeline/cc_get_service_template_list/' + $.context.getBkBizId() + '/' + '?&all=true',
                                         remote_data_init: function (resp) {
@@ -190,8 +189,8 @@
                                     tag_code: "var_manual_module",
                                     type: "textarea",
                                     attrs: {
-                                        name: gettext("输入模块"),
-                                        placeholder: gettext("请输入模块")
+                                        name: gettext("输入服务模板"),
+                                        placeholder: gettext("请输入服务模板")
                                     },
                                 },
                                 {
@@ -246,8 +245,8 @@
                         type: "textarea",
                         hookable: true,
                         attrs: {
-                            name: gettext("筛选模块"),
-                            placeholder: gettext("请输入筛选模块名称，英文逗号分隔")
+                            name: gettext("筛选服务模板"),
+                            placeholder: gettext("请输入筛选服务模板名称，英文逗号分隔")
                         },
                     },
                 ]
