@@ -171,6 +171,7 @@
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
             common="1"
+            :has-create-common-tpl-perm="hasCreateCommonTplPerm"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
