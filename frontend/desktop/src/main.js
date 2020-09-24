@@ -110,7 +110,7 @@ Validator.localize({
             variableKey: {
                 required: i18n.t('变量KEY值不能为空'),
                 regex: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
-                max: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
+                keyLength: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
                 keyRepeat: i18n.t('变量KEY值已存在')
             },
             defaultValue: {
