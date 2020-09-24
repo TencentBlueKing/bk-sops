@@ -48,22 +48,25 @@ def get_job_content(remote_files, operator, biz_cc_id):
     ip_str = ",".join([remote_file["ip"] for remote_file in remote_files])
     ip_info = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False,)
     ip_list_result = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+    _ip_list_result = [_ip["InnerIP"] for _ip in ip_info["ip_result"]]
 
     for remote_file in remote_files:
         script_param = remote_file["file_path"]
         _, file_name = os.path.split(script_param)
         job_account = remote_file["job_account"]
 
+        if remote_file["ip"] not in _ip_list_result:
+            job_execute_fail_records.append(
+                {
+                    "file_name": file_name,
+                    "ip": remote_file["ip"],
+                    "message": "ip 信息在 cmdb 不存在",
+                    "ip_list": remote_file["ip"],
+                }
+            )
+            continue
         for ip_list in ip_list_result:
             if remote_file["ip"] != ip_list["ip"]:
-                job_execute_fail_records.append(
-                    {
-                        "file_name": file_name,
-                        "ip": remote_file["ip"],
-                        "message": _("ip 信息 在 cmdb 不存在"),
-                        "ip_list": ip_list,
-                    }
-                )
                 continue
             job_kwargs = {
                 "bk_biz_id": biz_cc_id,
