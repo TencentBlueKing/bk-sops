@@ -193,7 +193,8 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
-                'constants': state => state.template.constants
+                'constants': state => state.template.constants,
+                'outputs': state => state.template.outputs
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id
@@ -289,7 +290,8 @@
             ]),
             ...mapMutations('template/', [
                 'addVariable',
-                'editVariable'
+                'editVariable',
+                'setOutputs'
             ]),
             // 获取变量类型
             async getVarTypeList () {
@@ -549,6 +551,10 @@
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })
+                        // 如果全局变量有被勾选为输出，修改变量 key 后需要更新 outputs 字段
+                        if (this.variableData.key !== this.theEditingData.key && this.outputs.includes(this.variableData.key)) {
+                            this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
+                        }
                     }
                     this.$emit('closeEditingPanel')
                     return true

@@ -726,16 +726,19 @@ const template = {
         },
         // 全局变量勾选是否为输出
         setOutputs (state, payload) {
-            const { changeType, key } = payload
+            const { changeType, key, newKey } = payload
             if (changeType === 'add') {
                 if (state.outputs.includes(key)) {
                     return
                 }
                 state.outputs.push(key)
-            } else {
+            } else if (changeType === 'delete') {
                 state.outputs = state.outputs.filter(item => {
                     return item !== key
                 })
+            } else {
+                const index = state.outputs.find(item => item === key)
+                state.outputs.splice(index, 1, newKey)
             }
         },
         // 修改state中的模板数据
