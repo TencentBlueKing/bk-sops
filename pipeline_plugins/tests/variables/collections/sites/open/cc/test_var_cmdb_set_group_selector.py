@@ -228,13 +228,7 @@ class VarSetGroupSelectorTestCase(TestCase):
         """
         自定义断言：用于判断两个对象的属性值是否相等
         """
-        set_field = ['bk_set_id', 'bk_set_name', 'bk_set_desc', 'bk_set_env',
-                     'bk_service_status', 'description', 'bk_capacity', 'aaa']
         for _field in set_field:
             flat_field_name = "flat__{}".format(_field)
-            print(first_inst.__getattribute__(_field))
-            print(second_inst.__getattribute__(_field))
-            print(first_inst.__getattribute__(flat_field_name))
-            print(second_inst.__getattribute__(flat_field_name))
-            # assert first_inst.__getattribute__(_field) == second_inst.__getattribute__(_field)
-            # assert first_inst.__getattribute__(flat_field_name) == second_inst.__getattribute__(flat_field_name)
+            assert first_inst.__getattribute__(_field) == second_inst.__getattribute__(_field)
+            assert first_inst.__getattribute__(flat_field_name) == second_inst.__getattribute__(flat_field_name)
