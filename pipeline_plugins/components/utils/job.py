@@ -34,7 +34,7 @@ def get_job_content(remote_files, operator, biz_cc_id):
     @param biz_cc_id: 业务id
     @return: {
                 "success": [
-                    {"filename": "file_name", "content": "content", "ip": "1.1.1.2"}
+                    {"file_name": "file_name", "content": "content", "ip": "1.1.1.2"}
                 ],
                 "failure": [
                     {"file_name": "file_name", "ip": "1.1.1.1", "message": "error"}
