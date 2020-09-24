@@ -108,8 +108,12 @@ class CCHostCustomPropertyChangeService(Service):
         hostname_rule = sorted(hostname_rule, key=lambda e: e.__getitem__("field_order"))
 
         ip_list = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=sa_ip_list, use_cache=False)
-        if not ip_list["result"] or not ip_list["ip_count"] or ip_list["invalid_ip"]:
+        if not ip_list["result"] or not ip_list["ip_count"]:
             data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            return False
+        if ip_list["invalid_ip"]:
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            data.outputs.invalid_ip = ",".join(ip_list["invalid_ip"])
             return False
 
         # 规则中包含的自增变量个数
@@ -227,6 +231,14 @@ class CCHostCustomPropertyChangeService(Service):
             return False
 
         return True
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(name=_('不合法的IP'),
+                            key='invalid_ip',
+                            type='string',
+                            schema=StringItemSchema(description=_('不合法的IP'))),
+        ]
 
 
 class CCHostCustomPropertyChangeComponent(Component):
