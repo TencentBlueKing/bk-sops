@@ -108,7 +108,7 @@ class CCHostCustomPropertyChangeService(Service):
         hostname_rule = sorted(hostname_rule, key=lambda e: e.__getitem__("field_order"))
 
         ip_list = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=sa_ip_list, use_cache=False)
-        if not ip_list["result"] or not ip_list["ip_count"]:
+        if not ip_list["result"] or not ip_list["ip_count"] or ip_list["invalid_ip"]:
             data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
             return False
 
@@ -127,38 +127,44 @@ class CCHostCustomPropertyChangeService(Service):
             if rule["field_rule_code"] == self.FileCode.auto_var_rule:
                 inc_num += 1
 
-        # 获取所有的集群id和模型id
-        set_id_list = []
-        module_id_list = []
-        for host_data in ip_list["ip_result"]:
-            set_id_list.append(host_data["SetID"])
-            module_id_list.append((host_data["ModuleID"]))
-
-        set_rule_list.append("bk_set_id")
-        # 查询集群的属性值
-        set_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": set_id_list, "fields": set_rule_list}
-        set_result = client.cc.find_set_batch(set_kwargs)
-        if not set_result.get("result"):
-            error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_set_batch", set_kwargs, set_result)
-            data.set_outputs("ex_data", error_message)
-            self.logger.error(error_message)
-            return False
+        # 如果集群规则不为空，拉取集群属性信息
         set_property = {}
-        for set_data in set_result["data"]:
-            set_property[set_data["bk_set_id"]] = set_data
+        if set_rule_list:
+            # 获取所有的集群id和模型id
+            set_id_list = []
+            for host_data in ip_list["ip_result"]:
+                set_id_list.append(host_data["SetID"])
+            set_rule_list.append("bk_set_id")
+            # 查询集群的属性值
+            set_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": set_id_list, "fields": set_rule_list}
+            set_result = client.cc.find_set_batch(set_kwargs)
+            if not set_result.get("result"):
+                error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_set_batch", set_kwargs, set_result)
+                data.set_outputs("ex_data", error_message)
+                self.logger.error(error_message)
+                return False
 
-        module_rule_list.append("bk_module_id")
-        # 查询模块的属性值
-        module_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": module_id_list, "fields": module_rule_list}
-        module_result = client.cc.find_module_batch(module_kwargs)
-        if not module_result.get("result"):
-            error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result)
-            data.set_outputs("ex_data", error_message)
-            self.logger.error(error_message)
-            return False
+            for set_data in set_result["data"]:
+                set_property[set_data["bk_set_id"]] = set_data
+
+        # 如果模块规则不为空，拉取模块属性信息
         module_property = {}
-        for module_data in module_result["data"]:
-            module_property[module_data["bk_module_id"]] = module_data
+        if module_rule_list:
+            module_id_list = []
+            for host_data in ip_list["ip_result"]:
+                module_id_list.append((host_data["ModuleID"]))
+            module_rule_list.append("bk_module_id")
+            # 查询模块的属性值
+            module_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": module_id_list, "fields": module_rule_list}
+            module_result = client.cc.find_module_batch(module_kwargs)
+            if not module_result.get("result"):
+                error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result)
+                data.set_outputs("ex_data", error_message)
+                self.logger.error(error_message)
+                return False
+
+            for module_data in module_result["data"]:
+                module_property[module_data["bk_module_id"]] = module_data
 
         # 数据组装，将规则连接起来，并和ip对应
         host_list = []
@@ -170,7 +176,6 @@ class CCHostCustomPropertyChangeService(Service):
             # 主机属性
             host_kwargs = {"bk_host_id": host["HostID"]}
             host_result = client.cc.get_host_base_info(**host_kwargs)
-
             if not host_result.get("result"):
                 error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.get_host_base_info", host_kwargs, host_result)
                 data.set_outputs("ex_data", error_message)

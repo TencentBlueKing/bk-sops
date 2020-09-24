@@ -224,6 +224,7 @@ CC_GET_IPS_INFO_BY_STR_VALUE = {
         {"ModuleID": 1111, "HostID": 1212, "InnerIP": "1.1.1.1", "SetID": 111},
         {"ModuleID": 2222, "HostID": 3434, "InnerIP": "2.2.2.2", "SetID": 222},
     ],
+    "invalid_ip": []
 }
 
 # test case
