@@ -10,13 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import datetime
 import logging
 
 from django.utils import translation, timezone
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.core.models import Business, ProjectConfig
+from gcloud.core.models import Business, ProjectConfig, Project
 
 logger = logging.getLogger("root")
 
@@ -49,7 +49,9 @@ class TaskContext(object):
         self.biz_cc_id = self.bk_biz_id
         self.biz_cc_name = self.bk_biz_name
         # 任务开始时间
-        self.task_start_time = timezone.localtime(timezone.now()).strftime("%Y-%m-%d %H:%M:%S")
+        project = Project.objects.get(id=self.project_id)
+        project_tz = timezone.pytz.timezone(project.time_zone)
+        self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
 
     @classmethod
     def to_flat_key(cls, key):
