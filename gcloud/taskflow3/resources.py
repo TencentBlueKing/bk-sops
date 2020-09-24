@@ -43,7 +43,7 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -128,25 +128,53 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
     def alter_list_data_to_serialize(self, request, data):
         data = super().alter_list_data_to_serialize(request, data)
-        templates_id = {bundle.obj.template_id for bundle in data["objects"] if bundle.obj.template_id}
+        templates_id = {
+            bundle.obj.template_id
+            for bundle in data["objects"]
+            if bundle.obj.template_id and bundle.obj.template_source == "project"
+        }
+        common_templates_id = {
+            bundle.obj.template_id
+            for bundle in data["objects"]
+            if bundle.obj.template_id and bundle.obj.template_source == "common"
+        }
 
         templates_allowed_actions = get_flow_allowed_actions_for_user(
             request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], templates_id
+        )
+        common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username,
+            [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
+            common_templates_id,
         )
 
         template_info = TaskTemplate.objects.filter(id__in=templates_id).values(
             "id", "pipeline_template__name", "is_deleted"
         )
+        common_template_info = CommonTemplate.objects.filter(id__in=common_templates_id).values(
+            "id", "pipeline_template__name", "is_deleted"
+        )
         template_info_map = {
             str(t["id"]): {"name": t["pipeline_template__name"], "is_deleted": t["is_deleted"]} for t in template_info
         }
+        template_info_map.update(
+            {
+                str(t["id"]): {"name": t["pipeline_template__name"], "is_deleted": t["is_deleted"]}
+                for t in common_template_info
+            }
+        )
 
         for bundle in data["objects"]:
             bundle.data["template_name"] = template_info_map.get(bundle.obj.template_id, {}).get("name")
             bundle.data["template_deleted"] = template_info_map.get(bundle.obj.template_id, {}).get("is_deleted", True)
-            for act, allowed in templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
-                if allowed:
-                    bundle.data["auth_actions"].append(act)
+            if bundle.obj.template_source == "project":
+                for act, allowed in templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
+                    if allowed:
+                        bundle.data["auth_actions"].append(act)
+            elif bundle.obj.template_source == "common":
+                for act, allowed in common_templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
+                    if allowed:
+                        bundle.data["auth_actions"].append(act)
 
         return data
 
