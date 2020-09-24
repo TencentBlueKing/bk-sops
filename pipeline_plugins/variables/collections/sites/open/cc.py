@@ -15,6 +15,7 @@ import logging
 import re
 
 from django.conf import settings
+from django.contrib.admin.utils import flatten
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.data.var import LazyVariable
@@ -72,7 +73,9 @@ class VarIpPickerVariable(LazyVariable):
                     logger.warning("ip_picker module ip transit failed: {origin}".format(origin=custom_id))
 
             # query cc to get module's ip list and filter tree_ip_list
-            host_list = cc_get_inner_ip_by_module_id(username, bk_biz_id, module_inst_id_list, bk_supplier_account)
+            host_list = cc_get_inner_ip_by_module_id(
+                username, bk_biz_id, module_inst_id_list, bk_supplier_account, ["host_id", "bk_host_innerip"]
+            )
             cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
             select_ip = set()
 
@@ -115,20 +118,24 @@ class VarCmdbIpSelector(LazyVariable):
 class SetDetailData(object):
     def __init__(self, data):
         self._value = data
+        self.open_zone_count = len(self._value)
         item_values = {}
         modules = []
+        total_ip_set = set()
         for item in data:
             for key, val in item.items():
                 if key == "__module":
+                    total_ip_set.update(flatten([mod["value"] for mod in val]))
                     item_module = {mod["key"]: ",".join(mod["value"]) for mod in val}
                     modules.append(item_module)
                 else:
                     item_values.setdefault(key, []).append(val)
         for attr, attr_val in item_values.items():
             setattr(self, attr, attr_val)
-            flat_val = "\n".join(map(str, attr_val))
+            flat_val = ",".join(map(str, attr_val))
             setattr(self, "flat__{}".format(attr), flat_val)
         setattr(self, "_module", modules)
+        setattr(self, "flat__ip_list", ",".join(list(total_ip_set)))
 
 
 class VarCmdbSetAllocation(LazyVariable):

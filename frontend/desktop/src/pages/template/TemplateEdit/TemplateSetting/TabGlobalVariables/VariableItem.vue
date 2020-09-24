@@ -10,23 +10,20 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <li
-        :class="['clearfix', 'variable-item',
-                 { 'variable-editing': isVariableEditing && theKeyOfEditing === constant.key }
-        ]">
-        <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
-            <i v-if="!isSystemVar && !isShowVariableEdit && theKeyOfViewCited !== constant.key" class="col-item-drag bk-icon icon-sort"></i>
+    <div class="variable-item">
+        <div class="variable-content" @click="onEditVariable(variableData.key, variableData.index)">
+            <i v-if="!isSystemVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
             <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
-            <span :title="constant.name" class="col-item col-name">
-                {{ constant.name }}
+            <span :title="variableData.name" class="col-item col-name">
+                {{ variableData.name }}
             </span>
             <span class="col-item col-key">
-                {{ constant.key }}
+                {{ variableData.key }}
             </span>
             <span class="col-item col-attributes">
                 <span class="icon-wrap">
                     <i
-                        v-if="constant.source_type !== 'component_outputs'"
+                        v-if="variableData.source_type !== 'component_outputs'"
                         class="common-icon-show-left"
                         v-bk-tooltips="{
                             content: $t('输入'),
@@ -42,7 +39,7 @@
                         }">
                     </i>
                     <i
-                        v-if="constant.show_type === 'show'"
+                        v-if="variableData.show_type === 'show'"
                         class="common-icon-eye-show"
                         v-bk-tooltips="{
                             content: $t('显示'),
@@ -62,10 +59,10 @@
             <span class="col-item col-output">
                 <div @click.stop>
                     <bk-switcher
-                        size="min"
+                        size="small"
                         theme="primary"
                         :value="outputed"
-                        @change="onChangeVariableOutput(constant.key, $event)">
+                        @change="onChangeVariableOutput(variableData.key, $event)">
                     </bk-switcher>
                 </div>
             </span>
@@ -82,78 +79,41 @@
             </span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
-                    v-bk-tooltips.click="{
-                        content: $t('已复制'),
-                        placements: ['bottom']
-                    }"
-                    @click.stop="onCopyKey(constant.key)">
+                    @click.stop="onCopyKey(variableData.key)">
                     {{ $t('复制') }}
                 </span>
                 <span
                     v-if="!isSystemVar"
                     class="col-operation-item"
-                    @click.stop="onDeleteVariable(constant.key)">
+                    @click.stop="onDeleteVariable(variableData.key)">
                     {{ $t('删除') }}
                 </span>
             </span>
         </div>
-        <div
-            v-if="isShowVariableEdit && !isSystemVar"
-            :key="`${constant.key}-edit`">
-            <VariableEdit
-                ref="editVariablePanel"
-                :variable-data="variableData"
-                :variable-type-list="variableTypeList"
-                :is-system-var="isSystemVar"
-                :is-new-variable="false"
-                :is-hide-system-var="isHideSystemVar"
-                :system-constants="systemConstants"
-                :var-operating-tips="varOperatingTips"
-                @scrollPanelToView="scrollPanelToView"
-                @onChangeEdit="onChangeEdit">
-            </VariableEdit>
-        </div>
-        <div
-            v-if="isShowVariableEdit && isSystemVar">
-            <SystemVariableEdit
-                :variable-data="variableData"
-                :var-operating-tips="varOperatingTips">
-            </SystemVariableEdit>
-        </div>
         <VariableCitedList
-            v-if="theKeyOfViewCited === constant.key"
-            :constant="constant"
+            v-if="showCitedList"
             :cited-list="citedList"
-            @onCitedNodeClick="onCitedNodeClick">
+            @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
         </VariableCitedList>
-    </li>
+    </div>
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
-    import VariableEdit from './VariableEdit.vue'
     import VariableCitedList from './VariableCitedList.vue'
-    import SystemVariableEdit from './SystemVariableEdit.vue'
+
     export default {
         name: 'VariableItem',
         components: {
-            VariableEdit,
-            VariableCitedList,
-            SystemVariableEdit
+            VariableCitedList
         },
-        props: [
-            'outputed',
-            'constant',
-            'variableData',
-            'varOperatingTips',
-            'theKeyOfEditing',
-            'theKeyOfViewCited',
-            'isHideSystemVar',
-            'systemConstants',
-            'variableTypeList',
-            'isVariableEditing'
-        ],
+        props: {
+            outputed: Boolean,
+            variableData: Object
+        },
         data () {
             return {
+                showCitedList: false,
                 copyText: ''
             }
         },
@@ -162,19 +122,13 @@
                 'activities': state => state.template.activities
             }),
             isSystemVar () {
-                return this.constant.source_type === 'system'
-            },
-            isShowVariableEdit () {
-                return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
+                return this.variableData.source_type === 'system'
             },
             citedList () {
-                const sourceInfo = this.constant.source_info
+                const sourceInfo = this.variableData.source_info
                 // 该全局变量被哪些节点勾选的集合
                 const nodes = Object.keys(sourceInfo).map(id => id)
-
                 // 输入参数表单直接填写变量key的情况
-                const escapeStr = this.constant.key.replace(/[${}]/g, '\\$&')
-                const keyReg = new RegExp(escapeStr)
                 Object.keys(this.activities).forEach(id => {
                     // 节点已在引用节点列表中需要去重
                     if (nodes.includes(id)) {
@@ -194,9 +148,7 @@
                                 return
                             }
                             // 匹配表单项的值是否包含变量的key
-                            if (typeof varItem.value === 'string' && keyReg.test(varItem.value)) {
-                                nodes.push(id)
-                            }
+                            this.setCitingVarNodes(varItem.value, nodes, id)
                         })
                     } else { // 标准插件任务节点
                         const component = activity.component
@@ -206,9 +158,7 @@
                             if (isExist) {
                                 return
                             }
-                            if (typeof val === 'string' && keyReg.test(val)) {
-                                nodes.push(id)
-                            }
+                            this.setCitingVarNodes(val, nodes, id)
                         })
                     }
                 })
@@ -216,6 +166,36 @@
             }
         },
         methods: {
+            /**
+             * 递归查找标准插件/子流程保存值中，存在匹配变量 key 的情况，更新节点引用列表
+             * @param {Any} value 表单保存的值
+             * @param {Array} nodes 保存引用节点的数组
+             * @param {String} id 当前节点 id
+             */
+            setCitingVarNodes (value, nodes, id) {
+                if (nodes.includes(id)) {
+                    return
+                }
+
+                if (typeof value === 'string') {
+                    const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
+                    const reg = new RegExp('(.|\\s)*\\$\\{(.|\\s)*' + keyStr + '(.|\\s)*\\}', 'm')
+                    if (reg.test(value)) { // 判断用户编辑的 value 如: mmmm${xxxx}nnnn 中，xxxx 是否包含变量 key 字符串
+                        nodes.push(id)
+                    }
+                } else if (typeof value === 'object') {
+                    if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            this.setCitingVarNodes(item, nodes, id)
+                        })
+                    } else if (Object.prototype.toString.call(value) === '[object Object]') {
+                        Object.keys(value).forEach(key => {
+                            const item = value[key]
+                            this.setCitingVarNodes(item, nodes, id)
+                        })
+                    }
+                }
+            },
             /**
              * 变量 key 复制
              */
@@ -230,16 +210,20 @@
              * 复制操作回调函数
              */
             copyHandler (e) {
+                e.preventDefault()
                 e.clipboardData.setData('text/html', this.copyText)
                 e.clipboardData.setData('text/plain', this.copyText)
-                e.preventDefault()
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
             },
             // 查看引用节点信息
             onViewCitedList () {
-                // 节点详情点开时不显示引用列表
-                if (this.citedList.length > 0) {
-                    this.onChangeEdit(false)
-                    this.$emit('onViewCitedList', this.constant.key)
+                if (this.citedList.length > 0 && !this.showCitedList) {
+                    this.showCitedList = true
+                } else {
+                    this.showCitedList = false
                 }
             },
             onChangeVariableOutput (key, checked) {
@@ -250,15 +234,6 @@
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
-            },
-            scrollPanelToView (index) {
-                this.$emit('scrollPanelToView', index)
-            },
-            onChangeEdit (val) {
-                this.$emit('onChangeEdit', val)
-            },
-            onCitedNodeClick (nodeId) {
-                this.$emit('onCitedNodeClick', nodeId)
             }
         }
     }
@@ -275,9 +250,6 @@ $localBorderColor: #d8e2e7;
     position: relative;
     &:not(:last-child) {
         border-bottom: 1px solid #ebebeb;
-    }
-    &.variable-editing {
-        background: $blueStatus;
     }
     .variable-content {
         position: relative;

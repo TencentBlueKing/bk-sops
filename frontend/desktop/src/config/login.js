@@ -16,8 +16,8 @@ const topWindow = isCrossOrigin ? window : window.top
 const topDocument = topWindow.document
 
 try {
-    topWindow.BLUEKING.corefunc.open_login_dialog = openLoginDialog
-    topWindow.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
+    window.top.BLUEKING.corefunc.open_login_dialog = openLoginDialog
+    window.top.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
 } catch (_) {
     topWindow.BLUEKING = {
         corefunc: {
@@ -25,6 +25,9 @@ try {
             close_login_dialog: closeLoginDialog
         }
     }
+    // 兼容接口返回的登录成功 html
+    window.open_login_dialog = openLoginDialog
+    window.close_login_dialog = closeLoginDialog
 }
 
 function openLoginDialog (src, width = 460, height = 490, method = 'get') {
@@ -48,7 +51,7 @@ function openLoginDialog (src, width = 460, height = 490, method = 'get') {
 
     const wraper = topDocument.createElement('div')
     wraper.id = 'bk-gloabal-login-iframe'
-    wraper.style.cssText = 'position: fixed;top: 0;bottom: 0;left: 0;right: 0;background-color: rgba(0,0,0,.6);height: 100%;z-index: 1000;'
+    wraper.style.cssText = 'position: fixed;top: 0;bottom: 0;left: 0;right: 0;background-color: rgba(0,0,0,.6);height: 100%;z-index: 5000;'
     wraper.appendChild(dialogDiv)
     topDocument.body.appendChild(wraper)
 }

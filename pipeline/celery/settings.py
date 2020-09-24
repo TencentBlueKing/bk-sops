@@ -21,7 +21,7 @@ from pipeline.constants import PIPELINE_MAX_PRIORITY
 default_exchange = Exchange("default", type="direct")
 
 # new priority queues
-PISH_DEFAULT_QUEUE_NAME = "pipeline_priority"
+PUSH_DEFAULT_QUEUE_NAME = "pipeline_priority"
 PUSH_DEFAULT_ROUTING_KEY = "pipeline_push_priority"
 
 SCHEDULE_DEFAULT_QUEUE_NAME = "service_schedule_priority"
@@ -31,11 +31,11 @@ ADDITIONAL_DEFAULT_QUEUE_NAME = "pipeline_additional_task_priority"
 ADDITIONAL_DEFAULT_ROUTING_KEY = "additional_task_priority"
 
 SCALABLE_QUEUES_CONFIG = {
-    PISH_DEFAULT_QUEUE_NAME: {"name": PISH_DEFAULT_QUEUE_NAME, "routing_key": PUSH_DEFAULT_ROUTING_KEY},
+    PUSH_DEFAULT_QUEUE_NAME: {"name": PUSH_DEFAULT_QUEUE_NAME, "routing_key": PUSH_DEFAULT_ROUTING_KEY},
     SCHEDULE_DEFAULT_QUEUE_NAME: {"name": SCHEDULE_DEFAULT_QUEUE_NAME, "routing_key": SCHEDULE_DEFAULT_ROUTING_KEY},
 }
 
-PIPELINE_PRIORITY_ROUTING = {"queue": PISH_DEFAULT_QUEUE_NAME, "routing_key": PUSH_DEFAULT_ROUTING_KEY}
+PIPELINE_PRIORITY_ROUTING = {"queue": PUSH_DEFAULT_QUEUE_NAME, "routing_key": PUSH_DEFAULT_ROUTING_KEY}
 
 PIPELINE_SCHEDULE_PRIORITY_ROUTING = {"queue": SCHEDULE_DEFAULT_QUEUE_NAME, "routing_key": SCHEDULE_DEFAULT_ROUTING_KEY}
 
@@ -122,7 +122,7 @@ CELERY_QUEUES = (
     Queue("pipeline_additional_task", default_exchange, routing_key="additional_task"),
     # priority queues
     Queue(
-        PISH_DEFAULT_QUEUE_NAME,
+        PUSH_DEFAULT_QUEUE_NAME,
         default_exchange,
         routing_key=PUSH_DEFAULT_ROUTING_KEY,
         queue_arguments={"x-max-priority": PIPELINE_MAX_PRIORITY},

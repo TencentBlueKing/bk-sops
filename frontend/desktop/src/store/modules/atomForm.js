@@ -73,8 +73,8 @@ const atomForm = {
         /**
          * 加载全量标准插件
          */
-        loadSingleAtomList ({ commit }) {
-            return axios.get('api/v3/component/').then(response => response.data.objects)
+        loadSingleAtomList ({ commit }, params) {
+            return axios.get('api/v3/component/', { params }).then(response => response.data.objects)
         },
         /**
          * 加载全量子流程
@@ -97,28 +97,20 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify = 'component', isMeta, version = 'legacy' } = payload
+            const { name, atom, classify = 'component', isMeta, version = 'legacy', project_id } = payload
             const atomClassify = classify
             const atomFile = name || atom
-            const atomVersion = atomClassify === 'variable' ? 'legacy' : version
-
-            let url = ''
-            if (atomClassify === 'component') {
-                url = 'api/v3/component/'
-            } else {
-                url = 'api/v3/variable/'
-            }
+            const atomVersion = atomClassify === 'component' ? version : 'legacy'
+            const params = { project_id } // 业务下需要带 project_id，公共流程、插件开发等不需要传
+            const url = atomClassify === 'component' ? `api/v3/component/${atomFile}/` : `api/v3/variable/${atomFile}/`
 
             // 变量暂时没有版本系统
-            if (classify === 'variable') {
-                url = isMeta ? `${url}${atomFile}/?meta=1` : `${url}${atomFile}/`
-            } else {
-                url = isMeta
-                    ? `${url}${atomFile}/?meta=1&version=${atomVersion}`
-                    : `${url}${atomFile}/?version=${atomVersion}`
+            if (atomClassify === 'component') {
+                params.version = atomVersion
             }
+            params.meta = isMeta ? 1 : undefined
 
-            await axios.get(url).then(async response => {
+            await axios.get(url, { params }).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
                 commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })

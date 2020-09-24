@@ -1,0 +1,2 @@
+feature:
+    - "mako 渲染上下文支持使用 datetime, re, hashlib random 模块"

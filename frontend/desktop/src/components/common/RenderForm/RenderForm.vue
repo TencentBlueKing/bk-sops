@@ -19,6 +19,7 @@
             :option="option"
             :value="getFormValue(atom)"
             :hook="hooked[atom.tag_code]"
+            :constants="constants"
             @change="updateForm"
             @onHook="updateHook">
         </component>
@@ -79,6 +80,12 @@
                 }
             },
             hooked: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            constants: {
                 type: Object,
                 default () {
                     return {}
@@ -193,6 +200,9 @@
                             break
                         case 'select':
                             val = scheme.attrs.multiple ? [] : ''
+                            break
+                        case 'time':
+                            val = scheme.attrs.isRange ? ['00:00:00', '23:59:59'] : ''
                             break
                         case 'int':
                             val = 0

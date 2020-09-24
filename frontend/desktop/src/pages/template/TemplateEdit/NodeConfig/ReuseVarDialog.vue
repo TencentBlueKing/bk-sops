@@ -47,7 +47,7 @@
                     <bk-form-item :label="$t('新建变量')" property="isReuse">
                         <bk-switcher
                             :value="!formData.isReuse"
-                            size="min"
+                            size="small"
                             theme="primary"
                             @change="toggleReuse">
                         </bk-switcher>

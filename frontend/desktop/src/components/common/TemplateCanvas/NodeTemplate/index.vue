@@ -425,6 +425,23 @@
                 }
             }
         }
+        .node-phase-icon {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            width: 14px;
+            height: 14px;
+            line-height: 14px;
+            i {
+                font-size: 12px;
+                &.phase-warn {
+                    color: $yellowDark;
+                }
+                &.phase-error {
+                    color: $redDark;
+                }
+            }
+        }
     }
     .task-node-tooltip.el-tooltip__popper {
         z-index: 4 !important;

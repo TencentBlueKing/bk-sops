@@ -49,7 +49,7 @@
             <div class="cloud-area-form">
                 <label :class="[editable ? '' : 'disabled']">{{ i18n.showCloudArea }}</label>
                 <bk-switcher
-                    size="min"
+                    size="small"
                     theme="primary"
                     :disabled="!editable"
                     v-model="with_cloud_id"
@@ -186,6 +186,7 @@
                     this.topo = topo.slice(0)
                     this.filters = filters.slice(0)
                     this.excludes = excludes.slice(0)
+                    this.conditions = this.getConditions(filters, excludes)
                 },
                 deep: true
             }

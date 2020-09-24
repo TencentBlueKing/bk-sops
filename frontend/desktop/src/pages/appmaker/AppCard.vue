@@ -176,7 +176,7 @@
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: data.template_id, create_method: 'app_maker', create_info: data.id }
+                    query: { template_id: data.template_id, create_method: 'app_maker', create_info: data.id, template_source: 'project' }
                 }
             },
             // 添加/取消收藏模板

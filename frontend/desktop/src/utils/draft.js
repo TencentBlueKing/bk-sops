@@ -15,7 +15,7 @@ const draft = {
     // 添加本地缓存
     addDraft (username, projectId, templateId, templateData, message = i18n.t('自动保存')) {
         // 防止无法进行存储本地缓存 大约96KB左右的多余空间
-        const minDraftLength = 100000
+        const minDraftLength = 1
         // 本地缓存剩余大小
         let remainingLocalStorageSize = 1024 * 1024 * 5 - unescape(encodeURIComponent(JSON.stringify(localStorage))).length
         let index = 0
@@ -129,25 +129,6 @@ const draft = {
                 localStorage[newKey] = draftData
             }
         }
-    },
-    // 获取最近的一个本地缓存
-    getLastDraft (username, projectId, templateId) {
-        const localStorageLength = localStorage.length
-        // 动态生成正则表达式
-        const regex = this.getKeyRegex(username, projectId, templateId)
-        let lastTime = 0
-        let lastKey = ''
-        for (let index = localStorageLength - 1; index >= 0; index--) {
-            const key = localStorage.key(index)
-            if (regex.test(key)) {
-                const time = new Date(JSON.parse(localStorage[key]).description.time).getTime()
-                if (time > lastTime) {
-                    lastTime = time
-                    lastKey = key
-                }
-            }
-        }
-        return localStorage[lastKey]
     },
     // 获得正则表达式
     getKeyRegex (username, projectId, templateId) {

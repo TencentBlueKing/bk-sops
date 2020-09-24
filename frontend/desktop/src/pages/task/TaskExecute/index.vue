@@ -124,6 +124,7 @@
             },
             async getTaskData () {
                 try {
+                    this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
                     if (instanceData.flow_type === 'common_func') {
                         this.appendFunctionalization()
@@ -161,5 +162,10 @@
     }
     .task-function-container {
         background-color: #ffffff;
+    }
+    /deep/ .task-management-page {
+        .canvas-flow-wrap {
+            padding-left: 60px;
+        }
     }
 </style>

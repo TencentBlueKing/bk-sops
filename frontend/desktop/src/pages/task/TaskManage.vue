@@ -12,9 +12,10 @@
 <template>
     <div class="task-manage">
         <base-title
-            type="router"
             :title="$t('任务管理')"
-            :tab-list="titleTabList">
+            :self-reload="true"
+            :tab-list="titleTabList"
+            @tabChange="onTabChange">
         </base-title>
         <router-view></router-view>
     </div>
@@ -25,6 +26,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskManage',
+        inject: ['reload'],
         components: {
             BaseTitle
         },
@@ -37,6 +39,21 @@
                     { name: i18n.t('任务记录'), routerName: 'taskList', params: { project_id: this.project_id } },
                     { name: i18n.t('周期任务'), routerName: 'periodicTemplate', params: { project_id: this.project_id } }
                 ]
+            }
+        },
+        methods: {
+            onTabChange (router) {
+                if (this.$route.name === router.routerName) {
+                    if (Object.keys(this.$route.query).length === 0) {
+                        this.reload()
+                    } else { // 如果路由中有 query 参数，则清除 query 参数再刷新
+                        this.$router.push({ name: router.routerName, params: router.params }).then(() => {
+                            this.reload()
+                        })
+                    }
+                } else {
+                    this.$router.push({ name: router.routerName, params: router.params })
+                }
             }
         }
     }
