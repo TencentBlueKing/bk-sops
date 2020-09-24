@@ -176,7 +176,6 @@
                 },
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
-                varGroup: '', // 变量类型分组，general、meta
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 // 变量名称校验规则
@@ -194,7 +193,8 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
-                'constants': state => state.template.constants
+                'constants': state => state.template.constants,
+                'outputs': state => state.template.outputs
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id
@@ -238,8 +238,8 @@
             variableKeyRule () {
                 const rule = {
                     required: true,
-                    max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
                     regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                    keyLength: true,
                     keyRepeat: true
                 }
                 // 勾选的变量不做长度校验
@@ -251,11 +251,14 @@
         },
         async created () {
             this.extendFormValidate()
+        },
+        async mounted () {
+            const { is_meta, custom_type, source_tag } = this.theEditingData
+
             if (this.isHookedVar) {
                 this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
             } else {
                 await this.getVarTypeList()
-                const { is_meta, custom_type } = this.theEditingData
                 // 若当前编辑变量为元变量，则取meta_tag
                 if (is_meta) {
                     this.varTypeList[1].children.some(item => {
@@ -266,16 +269,16 @@
                     })
                 }
             }
-        },
-        async mounted () {
             // 非输出参数勾选变量和系统内置变量(目前有自定义变量和输入参数勾选变量)需要加载标准插件配置项
             if (!['component_outputs', 'system'].includes(this.theEditingData.source_type)) {
-                await this.getAtomConfig()
                 if (this.theEditingData.hasOwnProperty('value')) {
+                    const sourceTag = is_meta ? this.metaTag : source_tag
+                    const tagCode = sourceTag.split('.')[1]
                     this.renderData = {
-                        [this.renderConfig[0].tag_code]: this.theEditingData.value
+                        [tagCode]: this.theEditingData.value
                     }
                 }
+                this.getAtomConfig()
             }
         },
         methods: {
@@ -287,7 +290,8 @@
             ]),
             ...mapMutations('template/', [
                 'addVariable',
-                'editVariable'
+                'editVariable',
+                'setOutputs'
             ]),
             // 获取变量类型
             async getVarTypeList () {
@@ -327,7 +331,6 @@
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 const atom = tagStr.split('.')[0] || custom_type
-                const isMeta = this.varGroup === 'meta' ? 1 : 0
                 let classify = ''
                 this.atomConfigLoading = true
                 this.atomTypeKey = atom
@@ -347,7 +350,6 @@
                 try {
                     await this.loadAtomConfig({
                         classify,
-                        isMeta: isMeta,
                         name: this.atomType,
                         project_id: this.common ? undefined : this.project_id,
                         version,
@@ -369,7 +371,6 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-
                 const atomConfig = this.atomFormConfig[atom][version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {
@@ -388,7 +389,7 @@
             // 注册表单校验规则
             extendFormValidate () {
                 this.validator = new Validator({})
-                // 注册变量 key 校验规则
+                // 注册变量 key 是否重复校验规则
                 this.validator.extend('keyRepeat', (value) => {
                     value = /^\$\{\w+\}$/.test(value) ? value : '${' + value + '}'
                     if (this.variableData.key === value) {
@@ -398,6 +399,11 @@
                         return false
                     }
                     return true
+                })
+                // 注册变量 key 长度规则
+                this.validator.extend('keyLength', (value) => {
+                    const reqLenth = /^\$\{\w+\}$/.test(value) ? (STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + 3) : STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH
+                    return value.length <= reqLenth
                 })
                 // 注册正则表达式校验规则
                 this.validator.extend('validReg', (value) => {
@@ -466,7 +472,6 @@
                 this.theEditingData.source_tag = data.tag
                 this.theEditingData.is_meta = data.type === 'meta'
                 this.metaTag = data.meta_tag
-                this.varGroup = data.type
 
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
@@ -546,6 +551,10 @@
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })
+                        // 如果全局变量有被勾选为输出，修改变量 key 后需要更新 outputs 字段
+                        if (this.variableData.key !== this.theEditingData.key && this.outputs.includes(this.variableData.key)) {
+                            this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
+                        }
                     }
                     this.$emit('closeEditingPanel')
                     return true

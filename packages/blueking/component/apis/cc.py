@@ -654,3 +654,15 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/list_set_template/",
             description="查询集群模板",
         )
+        self.find_module_batch = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/find_module_batch/",
+            description="批量获取模块详情",
+        )
+        self.find_module_with_relation = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/find_module_with_relation/",
+            description="批量获取模块详情",
+        )

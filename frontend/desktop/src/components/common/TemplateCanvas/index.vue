@@ -117,7 +117,8 @@
 </template>
 <script>
     // import html2canvas from 'html2canvas'
-    import domtoimage from 'dom-to-image'
+    // import domtoimage from 'dom-to-image'
+    import domtoimage from '@/utils/domToImage.js'
     // import htmltoimage from 'html-to-image'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
@@ -1292,7 +1293,7 @@
                 const cavasMargin = 80 // 80 画布margin值
                 const headerWidth = 60 // 60 header的宽度
                 const tabWidth = 50 // 50 tab栏的宽度
-                const moreOffsetTop = 10 // 画布多向上偏移10px  露出点空白
+                const moreOffsetTop = 30 // 画布多向上偏移10px  露出点空白
                 const moreOffsetLeft = 30 // 画布多向左偏移30px  露出点空白
                 const selectBox = document.querySelector('.select-box')
                 const targetX = e.clientX - this.isMouseEnterX - cavasMargin

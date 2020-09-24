@@ -36,11 +36,11 @@ def task_path_value_hook(value):
 
 class TaskResourceProvider(ResourceProvider):
     def pre_list_instance(self, filter, page, **options):
-        if page.limit == 0 or page.limit > 50:
+        if page.limit == 0 or page.limit > 1000:
             raise InvalidPageException("limit in page too large")
 
     def pre_list_instance_by_policy(self, filter, page, **options):
-        if page.limit == 0 or page.limit > 50:
+        if page.limit == 0 or page.limit > 1000:
             raise InvalidPageException("limit in page too large")
 
     def list_attr(self, **options):
