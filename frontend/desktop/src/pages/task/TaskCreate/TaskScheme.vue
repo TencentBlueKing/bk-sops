@@ -38,13 +38,13 @@
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div :class="['scheme-content', { 'disable-schem-list': isPreviewMode }]">
+            <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
                         class="scheme-item"
                         :key="item.id">
-                        <bk-checkbox @change="onCheckChange($event, item.id, item.name)"></bk-checkbox>
+                        <bk-checkbox @change="onCheckChange($event, item.id)"></bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
                     </li>
@@ -141,9 +141,8 @@
                 'deleteTaskScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
-            onCheckChange (e, id, name) {
-                const planId = e ? id : undefined
-                this.$emit('selectScheme', planId, name)
+            onCheckChange (e, id) {
+                this.$emit('selectScheme', id, e)
             },
             // 获取方案列表
             async loadSchemeList () {
@@ -399,7 +398,7 @@
                 border-top: 1px solid $commonBorderColor;
             }
         }
-        .disable-schem-list {
+        .disable-scheme-list {
             &:after {
                 content: '';
                 position: absolute;
