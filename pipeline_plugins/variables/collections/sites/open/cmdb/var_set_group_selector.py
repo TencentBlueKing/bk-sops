@@ -39,7 +39,7 @@ def get_set_property(operator):
     return obj_property
 
 
-def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id):
+def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field):
     """
     通过集群ID和模块ID查询对应的名字
     :param operator: 操作者
@@ -49,7 +49,6 @@ def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id):
     """
     client = get_client_by_user(operator)
     set_data_dir = {}
-    set_field = get_set_property(operator)
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "id": bk_group_id,
@@ -94,6 +93,7 @@ class VarSetGroupSelector(LazyVariable):
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_group_id = self.value
-        set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id)
         set_field = get_set_property(operator)
+        set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field)
+
         return SetGroupInfo(set_module_info, set_field)
