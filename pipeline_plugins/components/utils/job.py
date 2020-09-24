@@ -29,7 +29,7 @@ JOB_WAIT_TIME_OUT = 60
 def get_job_content(remote_files, operator, biz_cc_id):
     """
     根据ip、文件路径获取远程服务器的以base64编码的文件内容
-    @param remote_files: 文件集合 [{"file_path":"", "ip":"", "job_account":""}]
+    @param remote_files: 文件集合 [{"file_path":"", "ip":"只支持单个ip", "job_account":""}]
     @param operator: 操作人员
     @param biz_cc_id: 业务id
     @return: {
@@ -56,11 +56,19 @@ def get_job_content(remote_files, operator, biz_cc_id):
 
         for ip_list in ip_list_result:
             if remote_file["ip"] != ip_list["ip"]:
+                job_execute_fail_records.append(
+                    {
+                        "file_name": file_name,
+                        "ip": remote_file["ip"],
+                        "message": _("ip 信息 在 cmdb 不存在"),
+                        "ip_list": ip_list,
+                    }
+                )
                 continue
             job_kwargs = {
                 "bk_biz_id": biz_cc_id,
                 "account": job_account,
-                "ip_list": ip_list,
+                "ip_list": [ip_list],
                 "script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8"),
                 "script_type": SCRIPT_TYPE,
                 "script_content": base64.b64encode(SCRIPT_CONTENT.encode("utf-8")).decode("utf-8"),
