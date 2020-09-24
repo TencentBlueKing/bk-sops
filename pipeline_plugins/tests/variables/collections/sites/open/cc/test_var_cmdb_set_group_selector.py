@@ -30,6 +30,10 @@ class MockClient(object):
         self.cc.search_object_attribute = MagicMock(side_effect=search_object_attribute_return)
 
 
+set_field = ['bk_set_id', 'bk_set_name', 'bk_set_desc', 'bk_set_env',
+             'bk_service_status', 'description', 'bk_capacity', 'aaa']
+
+
 def search_object_attribute(*args, **kwargs):
     result = {
         'code': 0,
@@ -131,23 +135,23 @@ class VarSetGroupSelectorTestCase(TestCase):
         }
         self.input_output_success_return = SetGroupInfo(
             {
-                "bk_set_id": ["123"],
-                "bk_set_name": ["set123"],
-                "bk_set_env": ["3"],
-                "bk_set_desc": ["测试"],
-                "bk_service_status": ["1"],
-                "bk_capacity": ["1"],
-                "description": ["测试group"],
-                "aaa": ["321"],
-                "flat__bk_set_id": "123",
-                "flat__bk_set_name": "set123",
-                "flat__bk_set_env": "3",
-                "flat__bk_set_desc": "测试",
-                "flat__bk_service_status": "1",
-                "flat__bk_capacity": "1",
-                "flat__description": "测试group",
-                "flat__aaa": "321"
-            }, "admin"
+                'bk_set_id': ['123'],
+                'bk_set_name': ['set123'],
+                'bk_set_desc': ['测试'],
+                'bk_set_env': ['3'],
+                'bk_service_status': ['1'],
+                'description': ['测试group'],
+                'bk_capacity': ['1'],
+                'aaa': ['321'],
+                'flat__bk_set_id': '123',
+                'flat__bk_set_name': 'set123',
+                'flat__bk_set_desc': '测试',
+                'flat__bk_set_env': '3',
+                'flat__bk_service_status': '1',
+                'flat__description': '测试group',
+                'flat__bk_capacity': '1',
+                'flat__aaa': '321'
+            }, set_field
         )
         self.multi_output_success_return = SetGroupInfo(
             {
@@ -167,7 +171,7 @@ class VarSetGroupSelectorTestCase(TestCase):
                 "flat__bk_capacity": "1,1",
                 "flat__description": "测试group,测试group2",
                 "flat__aaa": "321,333"
-            }, "admin"
+            }, set_field
         )
         self.input_output_fail_return = SetGroupInfo(
             {
@@ -187,7 +191,7 @@ class VarSetGroupSelectorTestCase(TestCase):
                 "flat__bk_capacity": "",
                 "flat__description": "",
                 "flat__aaa": ""
-            }, "admin"
+            }, set_field
         )
 
     @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)

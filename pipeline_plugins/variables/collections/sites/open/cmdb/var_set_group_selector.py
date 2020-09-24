@@ -73,8 +73,7 @@ class SetGroupInfo(object):
     设置集群和模块的信息
     """
 
-    def __init__(self, data, operator):
-        set_field = get_set_property(operator)
+    def __init__(self, data, set_field):
         for _field in set_field:
             flat_field_name = "flat__{}".format(_field)
             setattr(self, _field, data[_field])
@@ -93,12 +92,10 @@ class VarSetGroupSelector(LazyVariable):
         获取该变量中对应属性值
         """
         operator = self.pipeline_data.get("executor", "")
-        print(operator)
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
-        print(bk_biz_id)
         bk_group_id = self.value
         print(bk_group_id)
         set_module_info = cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id)
         print(set_module_info)
-
-        return SetGroupInfo(set_module_info, operator)
+        set_field = get_set_property(operator)
+        return SetGroupInfo(set_module_info, set_field)
