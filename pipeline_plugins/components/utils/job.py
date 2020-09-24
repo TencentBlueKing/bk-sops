@@ -100,7 +100,7 @@ def get_job_content(remote_files, operator, biz_cc_id):
         if polling_job_result["result"]:
             result_success.append(
                 {
-                    "filename": polling_job_result["key"]["file_name"],
+                    "file_name": polling_job_result["key"]["file_name"],
                     "content": polling_job_result["log_content"],
                     "ip": polling_job_result["key"]["ip"],
                 }
