@@ -24,18 +24,8 @@ const taskList = {
         }
     },
     actions: {
-        loadTaskList ({ commit }, data) {
-            const { common, template_id } = data
-            const querystring = Object.assign({}, data)
-            if (template_id) {
-                querystring['template_source'] = 'project'
-            }
-            if (common) {
-                querystring['template_source'] = 'common'
-            }
-            return axios.get('api/v3/taskflow/', {
-                params: querystring
-            }).then(response => response.data)
+        loadTaskList ({ commit }, params) {
+            return axios.get('api/v3/taskflow/', { params }).then(response => response.data)
         },
         deleteTask ({ commit }, task_id) {
             return axios.delete(`api/v3/taskflow/${task_id}/`).then(response => response.data.objects)

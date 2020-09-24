@@ -1332,9 +1332,9 @@
                 selectBox.style.left = left + 'px'
                 selectBox.style.top = top + 'px'
                 // 计算画布的Top和Left
-                const canvasFlow = document.querySelector('#canvas-flow')
-                canvasFlow.style.left = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft + 'px'
-                canvasFlow.style.top = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop + 'px'
+                const canvasPositionX = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft + 'px'
+                const canvasPositionY = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop + 'px'
+                this.setCanvasPosition(canvasPositionX, canvasPositionY)
             }
         }
     }
@@ -1361,9 +1361,6 @@
             z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
-        }
-        .canvas-flow-wrap {
-            margin-left: 60px;
         }
         .jtk-endpoint {
             z-index: 3;

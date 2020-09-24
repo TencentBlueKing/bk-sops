@@ -78,7 +78,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `get_form_instance`：获取表单实例，FormItem
 - `get_parent`：获取 combine 实例或根元素实例
 - `get_child`：获取表单实例，参数为子表单的 tag_code，支持 RenderForm 或 RenderGroup 组件调用
-- `_get_value`：获取表单值
+- `_get_value`：获取表单值，其中支持配置传入一个布尔值参数，默认为 false，如果传入参数值为 true，则 tag 表单勾选为全局变量时，可获取对应全局变量的 value 值
 - `_set_value`：设置表单值
 
 ## 官方 Tag 组件说明
@@ -227,6 +227,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `min`：最小值，默认为 -Infinity
   - `max`：最大值，默认为 Infinity
   - `disabled`：设置是否禁用组件
+  - `showPassword`：是否以密码模式显示
   - `value`：文本框值
 
 **方法**

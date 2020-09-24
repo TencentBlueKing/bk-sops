@@ -13,7 +13,6 @@
     <div class="page-manage">
         <base-title
             class="title"
-            type="router"
             :tab-list="routers"
             :title="title">
         </base-title>

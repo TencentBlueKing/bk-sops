@@ -634,7 +634,7 @@
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id }
+                    query: { template_id: id, template_source: 'common' }
                 }
             },
             // 获得子流程展示内容
