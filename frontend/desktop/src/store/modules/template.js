@@ -32,21 +32,21 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 20,
-            y: 150,
+            y: 160,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 240,
+            x: 200,
             y: 145,
             name: '',
-            stage_name: i18n.t('步骤1'),
+            stage_name: '',
             type: 'tasknode'
         },
         {
             id: 'node' + uuid(),
             x: 540,
-            y: 150,
+            y: 160,
             type: 'endpoint'
         }
     ]
@@ -67,7 +67,7 @@ function generateInitActivities (location, line) {
             name: '',
             optional: false,
             outgoing: line[1].id,
-            stage_name: i18n.t('步骤1'),
+            stage_name: '',
             type: 'ServiceActivity',
             retryable: true,
             skippable: true
@@ -586,7 +586,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: i18n.t('步骤1'),
+                            stage_name: '',
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true
@@ -601,7 +601,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: i18n.t('步骤1'),
+                            stage_name: '',
                             template_id: location.atomId,
                             version: location.atomVersion,
                             type: 'SubProcess'

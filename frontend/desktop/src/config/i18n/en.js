@@ -276,7 +276,7 @@ const en = {
     '节点名称不能包含': 'Node name cannot contain ',
     '节点名称长度不能超过': 'Length cannot be larger than ',
     '步骤名称不能包含': 'Stage name cannot contain ',
-    '步骤名称不能超过': 'Length cannot be larger than ',
+    '步骤名称长度不能超过': 'Length cannot be larger than ',
     '变量名称不能为空': 'Variable name cannot be empty',
     '变量名称不能包含': 'Variable name cannot contain ',
     '变量名称长度不能超过': 'Length cannot be larger than ',

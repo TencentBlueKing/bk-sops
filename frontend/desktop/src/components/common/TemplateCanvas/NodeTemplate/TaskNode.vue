@@ -22,6 +22,7 @@
             <div class="node-status-block">
                 <img v-if="node.icon" class="node-icon" :src="node.icon" />
                 <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
+                <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
             </div>
             <!-- 节点名称 -->
             <div class="node-name">

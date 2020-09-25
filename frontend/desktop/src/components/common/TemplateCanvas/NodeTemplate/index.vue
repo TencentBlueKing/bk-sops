@@ -312,8 +312,8 @@
         }
         .task-node {
             position: relative;
-            width: 150px;
-            height: 54px;
+            width: 200px;
+            height: 74px;
             text-align: center;
             background: #ffffff;
             border-radius: 4px;
@@ -338,30 +338,36 @@
                 @include taskNodeStyle ($greenDark)
             }
             .node-status-block {
-                float: left;
                 display: flex;
-                justify-content: center;
                 align-items: center;
-                width: 32px;
-                height: 100%;
-                background: #52699d;
+                padding: 0 6px;
+                height: 20px;
+                background: #738abe;
+                text-align: left;
                 border-top-left-radius: 4px;
-                border-bottom-left-radius: 4px;
+                border-top-right-radius: 4px;
                 .node-icon {
                     width: 16px;
                 }
                 .node-icon-font {
-                    font-size: 18px;
+                    font-size: 16px;
                     color: #ffffff;
+                }
+                .stage-name {
+                    padding: 0 6px;
+                    width: 170px;
+                    font-size: 12px;
+                    color: #ffffff;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
                 }
             }
             .node-name {
                 display: flex;
                 align-items: center;
-                margin-left: 32px;
                 padding: 0 10px;
-                width: 118px;
-                height: 100%;
+                height: calc(100% - 20px);
                 .name-text {
                     display: -webkit-box;
                     width: 100%;
