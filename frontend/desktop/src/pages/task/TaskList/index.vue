@@ -100,7 +100,7 @@
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
                                 <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-if="!hasPermission([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row.auth_actions)"
+                                    v-else-if="!hasPermission([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
                                     @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
