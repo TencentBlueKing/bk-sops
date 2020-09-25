@@ -100,7 +100,7 @@
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
                                 <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-else-if="!hasPermission([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row.auth_actions)"
+                                    v-else-if="!hasCreateTaskPerm(props.row)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
                                     @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
@@ -313,6 +313,7 @@
                 taskList: state => state.taskList.taskListData
             }),
             ...mapState('project', {
+                'authActions': state => state.authActions,
                 'timeZone': state => state.timezone
             }),
             searchForm () {
@@ -436,6 +437,11 @@
                 this.pagination.current = 1
                 this.getTaskList()
             },
+            hasCreateTaskPerm (task) {
+                const authActions = [...task.auth_actions, ...this.authActions]
+                const reqPerm = task.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                return this.hasPermission([reqPerm], authActions)
+            },
             getCreateTaskUrl (task) {
                 const url = {
                     name: 'taskStep',
@@ -468,7 +474,7 @@
                     id: task.template_id,
                     name: task.template_name
                 }]
-                this.applyForPermission(required, task.auth_actions, resourceData)
+                this.applyForPermission(required, [...task.auth_actions, ...this.authActions], resourceData)
             },
             onDeleteTask (task) {
                 if (!this.hasPermission(['task_delete'], task.auth_actions)) {
