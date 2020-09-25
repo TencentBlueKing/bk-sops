@@ -23,6 +23,7 @@
             ]">
             <div class="node-status-block">
                 <i class="node-icon-font common-icon-subflow-mark"></i>
+                <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
             </div>
             <div class="node-name" :title="node.name">
                 <div class="name-text">{{ node.name }}</div>

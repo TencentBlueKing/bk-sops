@@ -102,7 +102,7 @@
                 if (this.node.type === 'startpoint') {
                     return '52px'
                 }
-                return '64px'
+                return '84px'
             }
         },
         methods: {
@@ -229,7 +229,7 @@
 .shortcut-panel {
     position: absolute;
     left: 50%;
-    top: 56px;
+    top: 76px;
     width: 120px;
     background: rgba(255, 255, 255, .9);
     transform: translateX(-50%);
