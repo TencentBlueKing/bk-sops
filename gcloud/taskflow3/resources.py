@@ -21,7 +21,7 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
-from iam import Subject, Action
+from iam import Subject, Action, Request
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
@@ -143,9 +143,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
             request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], templates_id
         )
         common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
-            request.user.username,
-            [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_ACTION],
-            common_templates_id,
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], common_templates_id,
         )
 
         template_info = TaskTemplate.objects.filter(id__in=templates_id).values(
@@ -175,6 +173,20 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 for act, allowed in common_templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
                     if allowed:
                         bundle.data["auth_actions"].append(act)
+                action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
+                action_request = Request(
+                    system=IAMMeta.SYSTEM_ID,
+                    subject=Subject("user", request.user.username),
+                    action=Action(action),
+                    resources=[
+                        res_factory.resources_for_project(bundle.obj.project.id)[0],
+                        res_factory.resources_for_common_flow(bundle.obj.template_id)[0],
+                    ],
+                    environment=None,
+                )
+                allowed = iam.is_allowed(action_request)
+                if allowed:
+                    bundle.data["auth_actions"].append(action)
 
         return data
 
