@@ -10,20 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.utils.translation import ugettext_lazy as _
+
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
-
 from gcloud.core.models import Project
 from gcloud.taskflow3.models import TaskFlowInstance
 
-attr_names = {"en": {"type": "Task type"}, "zh-cn": {"type": "任务类型"}}
+attr_names = {
+    "en": {"type": "Task type", "iam_resource_owner": "Resource owner"},
+    "zh-cn": {"type": _("任务类型"), "iam_resource_owner": _("资源创建者")},
+}
 
 attr_value_names = {
     "en": {"common": "Normal task", "common_func": "Functional task"},
-    "zh-cn": {"common": "普通任务", "common_func": "职能化任务"},
+    "zh-cn": {"common": _("普通任务"), "common_func": _("职能化任务")},
 }
 
 attr_value_nameset = {"Normal task"}
@@ -47,7 +51,13 @@ class TaskResourceProvider(ResourceProvider):
         """
         task 包含 type 属性
         """
-        return ListResult(results=[{"id": "type", "display_name": attr_names[options["language"]]["type"]}], count=1)
+        return ListResult(
+            results=[
+                {"id": "type", "display_name": attr_names[options["language"]]["type"]},
+                {"id": "iam_resource_owner", "display_name": attr_names[options["language"]]["iam_resource_owner"]},
+            ],
+            count=2,
+        )
 
     def list_attr_value(self, filter, page, **options):
         """
@@ -58,6 +68,10 @@ class TaskResourceProvider(ResourceProvider):
                 {"id": "common", "display_name": attr_value_names[options["language"]]["common"]},
                 {"id": "common_func", "display_name": attr_value_names[options["language"]]["common_func"]},
             ]
+        elif filter.attr == "iam_resource_owner":
+            user_model = get_user_model()
+            users = user_model.objects.all().values_list("username", flat=True)
+            results = [{"id": username, "display_name": username} for username in users]
         else:
             results = []
 
