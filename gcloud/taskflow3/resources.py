@@ -21,7 +21,7 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
-from iam import Subject, Action
+from iam import Subject, Action, Request
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
@@ -43,7 +43,7 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -128,12 +128,16 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
     def alter_list_data_to_serialize(self, request, data):
         data = super().alter_list_data_to_serialize(request, data)
-        templates_id = {bundle.obj.template_id for bundle in data["objects"] if bundle.obj.template_id}
 
+        # 项目流程任务
+        templates_id = {
+            bundle.obj.template_id
+            for bundle in data["objects"]
+            if bundle.obj.template_id and bundle.obj.template_source == "project"
+        }
         templates_allowed_actions = get_flow_allowed_actions_for_user(
             request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], templates_id
         )
-
         template_info = TaskTemplate.objects.filter(id__in=templates_id).values(
             "id", "pipeline_template__name", "is_deleted"
         )
@@ -141,12 +145,54 @@ class TaskFlowInstanceResource(GCloudModelResource):
             str(t["id"]): {"name": t["pipeline_template__name"], "is_deleted": t["is_deleted"]} for t in template_info
         }
 
+        # 公共流程任务
+        common_templates_id = {
+            bundle.obj.template_id
+            for bundle in data["objects"]
+            if bundle.obj.template_id and bundle.obj.template_source == "common"
+        }
+        common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], common_templates_id,
+        )
+        common_template_info = CommonTemplate.objects.filter(id__in=common_templates_id).values(
+            "id", "pipeline_template__name", "is_deleted"
+        )
+        common_template_info_map = {
+            str(t["id"]): {"name": t["pipeline_template__name"], "is_deleted": t["is_deleted"]}
+            for t in common_template_info
+        }
+
         for bundle in data["objects"]:
-            bundle.data["template_name"] = template_info_map.get(bundle.obj.template_id, {}).get("name")
-            bundle.data["template_deleted"] = template_info_map.get(bundle.obj.template_id, {}).get("is_deleted", True)
-            for act, allowed in templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
+            if bundle.obj.template_source == "project":
+                bundle.data["template_name"] = template_info_map.get(bundle.obj.template_id, {}).get("name")
+                bundle.data["template_deleted"] = template_info_map.get(bundle.obj.template_id, {}).get(
+                    "is_deleted", True
+                )
+                for act, allowed in templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
+                    if allowed:
+                        bundle.data["auth_actions"].append(act)
+            elif bundle.obj.template_source == "common":
+                bundle.data["template_name"] = common_template_info_map.get(bundle.obj.template_id, {}).get("name")
+                bundle.data["template_deleted"] = common_template_info_map.get(bundle.obj.template_id, {}).get(
+                    "is_deleted", True
+                )
+                for act, allowed in common_templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
+                    if allowed:
+                        bundle.data["auth_actions"].append(act)
+                action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
+                action_request = Request(
+                    system=IAMMeta.SYSTEM_ID,
+                    subject=Subject("user", request.user.username),
+                    action=Action(action),
+                    resources=[
+                        res_factory.resources_for_project_obj(bundle.obj.project)[0],
+                        res_factory.resources_for_common_flow(bundle.obj.template_id)[0],
+                    ],
+                    environment=None,
+                )
+                allowed = iam.is_allowed(action_request)
                 if allowed:
-                    bundle.data["auth_actions"].append(act)
+                    bundle.data["auth_actions"].append(action)
 
         return data
 
