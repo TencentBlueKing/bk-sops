@@ -99,47 +99,19 @@
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
                                 <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
-                                <template v-else>
-                                    <template v-if="props.row.template_source === 'project'">
-                                        <a
-                                            v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
-                                            v-cursor
-                                            class="text-permission-disable task-operation-btn"
-                                            @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
-                                            {{$t('再创建')}}
-                                        </a>
-                                        <router-link
-                                            v-else
-                                            class="task-operation-btn"
-                                            :to="{
-                                                name: 'taskStep',
-                                                query: { template_id: props.row.template_id },
-                                                params: { project_id: project_id, step: 'selectnode' }
-                                            }">
-                                            {{$t('再创建')}}
-                                        </router-link>
-                                    </template>
-                                    <template v-else>
-                                        <a v-if="commonTplCreateTaskPerm[props.row.id] === 'undefined'" class="task-operation-btn disabled">{{$t('再创建')}}</a>
-                                        <a
-                                            v-else-if="commonTplCreateTaskPerm[props.row.id] === false"
-                                            v-cursor
-                                            class="text-permission-disable task-operation-btn"
-                                            @click="onTaskPermissonCheck(['common_flow_create_task'], props.row)">
-                                            {{$t('再创建')}}
-                                        </a>
-                                        <router-link
-                                            v-else
-                                            class="task-operation-btn"
-                                            :to="{
-                                                name: 'taskStep',
-                                                query: { template_id: props.row.template_id, common: 1 },
-                                                params: { project_id: project_id, step: 'selectnode' }
-                                            }">
-                                            {{$t('再创建')}}
-                                        </router-link>
-                                    </template>
-                                </template>
+                                <a
+                                    v-if="!hasPermission([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable task-operation-btn"
+                                    @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
+                                    {{$t('再创建')}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-operation-btn"
+                                    :to="getCreateTaskUrl(props.row)">
+                                    {{$t('再创建')}}
+                                </router-link>
                                 <a
                                     v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
                                     :class="['task-operation-btn', {
@@ -319,7 +291,6 @@
                 createMethod: this.create_method || '',
                 createInfo: this.create_info || '',
                 templateSource: this.template_source || '',
-                commonTplCreateTaskPerm: {},
                 requestData: {
                     executeTime: [],
                     category: '',
@@ -339,8 +310,7 @@
         },
         computed: {
             ...mapState({
-                taskList: state => state.taskList.taskListData,
-                permissionMeta: state => state.permissionMeta
+                taskList: state => state.taskList.taskListData
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
@@ -362,9 +332,6 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
-            ...mapActions([
-                'queryUserPermission'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
@@ -447,7 +414,6 @@
                     }
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
-                    this.queryCommonTplCreateTaskPerm(list)
                     this.setTaskListData(list)
                 } catch (e) {
                     errorHandler(e, this)
@@ -465,37 +431,21 @@
                     errorHandler(e, this)
                 }
             },
-            queryCommonTplCreateTaskPerm (list) {
-                this.commonTplCreateTaskPerm = {}
-                list.forEach(async item => {
-                    if (item.template_source === 'common') {
-                        const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
-                        const data = {
-                            action: 'common_flow_create_task',
-                            resources: [
-                                {
-                                    system: bkSops.id,
-                                    type: 'project',
-                                    id: this.project_id,
-                                    attributes: {}
-                                },
-                                {
-                                    system: bkSops.id,
-                                    type: 'common_flow',
-                                    id: item.template_id,
-                                    attributes: {}
-                                }
-                            ]
-                        }
-                        const resp = await this.queryUserPermission(data)
-                        this.$set(this.commonTplCreateTaskPerm, item.id, resp.data.is_allow)
-                    }
-                })
-            },
             searchInputhandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
                 this.getTaskList()
+            },
+            getCreateTaskUrl (task) {
+                const url = {
+                    name: 'taskStep',
+                    query: { template_id: task.template_id },
+                    params: { project_id: this.project_id, step: 'selectnode' }
+                }
+                if (task.template_source === 'common') {
+                    url.query.common = 1
+                }
+                return url
             },
             /**
              * 单个任务操作项点击时校验
