@@ -45,7 +45,7 @@ function generateInitLocation () {
         },
         {
             id: 'node' + uuid(),
-            x: 540,
+            x: 680,
             y: 160,
             type: 'endpoint'
         }
