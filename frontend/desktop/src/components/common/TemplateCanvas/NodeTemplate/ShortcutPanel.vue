@@ -115,7 +115,7 @@
              */
             onAppendNode (type, isFillParam = false) {
                 const { x, y, id, type: currType } = this.currentLocation
-                const endX = x + 200
+                const endX = x + 230
                 const newNodeId = 'node' + uuid()
                 let location = {}
                 if (isFillParam) {
@@ -153,13 +153,13 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (currType === 'startpoint') {
-                    location.y += isGatewayAppendNode ? 5 : -5
+                    location.y += isGatewayAppendNode ? 5 : -15
                 } else {
                     if (isGatewayCurrNode && !isGatewayAppendNode) {
-                        location.y -= 10
+                        location.y -= 20
                     }
                     if (!isGatewayCurrNode && isGatewayAppendNode) {
-                        location.y += 10
+                        location.y += 20
                     }
                 }
                 
