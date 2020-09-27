@@ -73,6 +73,9 @@
                     :admin-view="adminView"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
+                    @onRetryClick="onRetryClick"
+                    @onSkipClick="onSkipClick"
+                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -347,7 +350,8 @@
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
                 'pauseNodeResume',
-                'getNodeActInfo'
+                'getNodeActInfo',
+                'onForcedFail'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -636,7 +640,7 @@
                         node_id: id,
                         task_id: Number(this.instance_id)
                     }
-                    const res = await this.taskflowNodeForceFail(params)
+                    const res = await this.onForcedFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制失败执行成功'),
@@ -764,6 +768,8 @@
                     node_id: id
                 }
                 this.nodeTaskSkip(data)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             },
             onModifyTimeClick (id) {
                 this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
@@ -790,6 +796,8 @@
                     data: { callback: 'resume' }
                 }
                 this.nodeResume(data)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             },
             onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
@@ -1047,7 +1055,9 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
-
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
@@ -1063,7 +1073,6 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-
                     this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
                         await this.switchCanvasView(nodeActivities)
@@ -1095,6 +1104,7 @@
                 if (nodeType !== 'subflow') {
                     this.setNodeDetailConfig(selectNodeId)
                 }
+                this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {
@@ -1210,6 +1220,7 @@
             },
             onHiddenSideslider () {
                 this.nodeInfoType = ''
+                this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             }
         }
     }
