@@ -224,6 +224,26 @@
                     </bk-table-column>
                 </bk-table>
             </section>
+            <div v-if="executeInfo.state && !['FINISHED', 'CREATED', 'READY'].includes(executeInfo.state)" class="action-wrapper">
+                <bk-button
+                    v-if="executeInfo.state === 'FAILED'"
+                    theme="primary"
+                    @click="onRetryClick">
+                    {{ $t('重试') }}
+                </bk-button>
+                <bk-button
+                    v-if="['SUSPENDED', 'RUNNING'].includes(executeInfo.state)"
+                    theme="primary"
+                    @click="onResumeClick">
+                    {{ $t('启动') }}
+                </bk-button>
+                <bk-button
+                    v-if="['SUSPENDED', 'RUNNING', 'FAILED'].includes(executeInfo.state)"
+                    theme="default"
+                    @click="onSkipClick">
+                    {{ $t('跳过') }}
+                </bk-button>
+            </div>
         </div>
     </div>
 </template>
@@ -485,6 +505,8 @@
                 } else if (this.executeInfo.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
                 } else if (this.executeInfo.state === 'CREATED') {
+                    state = 'common-icon-dark-circle-shape'
+                } else if (this.executeInfo.state === 'READY') {
                     state = 'common-icon-dark-circle-shape'
                 }
                 return state
@@ -755,6 +777,15 @@
                 } else {
                     this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
                 }
+            },
+            onRetryClick () {
+                this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
+            },
+            onSkipClick () {
+                this.$emit('onSkipClick', this.nodeDetailConfig.node_id)
+            },
+            onResumeClick () {
+                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)
             }
         }
     }
@@ -772,6 +803,7 @@
 .execute-info {
     flex: 1;
     padding: 30px 20px;
+    padding-bottom: 0;
     height: 100%;
     color: #313238;
     overflow-y: auto;
@@ -931,6 +963,11 @@
     }
     /deep/ .code-editor {
         height: 300px;
+    }
+    .action-wrapper {
+        height: 60px;
+        line-height: 60px;
+        border-top: 1px solid $commonBorderColor;
     }
 }
 </style>

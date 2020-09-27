@@ -1,4 +1,5 @@
 const en = {
+    '继续执行': 'Continue to perform',
     '节点参数': 'Node parameter',
     '缩略视图': 'Thumbnail view',
     '': '',
