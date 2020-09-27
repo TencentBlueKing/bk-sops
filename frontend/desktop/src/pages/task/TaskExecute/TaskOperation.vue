@@ -54,7 +54,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -66,7 +66,7 @@
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
-                    v-if="nodeInfoType === 'executeInfo'"
+                    v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
@@ -91,6 +91,11 @@
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
                 </TaskInfo>
+                <TemplateData
+                    v-if="nodeInfoType === 'templateData'"
+                    :template-data="templateData"
+                    @onshutDown="onshutDown">
+                </TemplateData>
             </div>
         </bk-sideslider>
         <gatewaySelectDialog
@@ -108,7 +113,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapGetters } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -123,6 +128,7 @@
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
+    import TemplateData from './TemplateData'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -167,7 +173,8 @@
             TaskInfo,
             gatewaySelectDialog,
             revokeDialog,
-            TaskOperationHeader
+            TaskOperationHeader,
+            TemplateData
         },
         mixins: [permission],
         props: {
@@ -191,6 +198,7 @@
             })
 
             return {
+                templateData: '', // 模板数据
                 defaultActiveId: '',
                 locations: [],
                 setNodeDetail: true,
@@ -346,6 +354,9 @@
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeForceFail'
+            ]),
+            ...mapGetters('template/', [
+                'getLocalTemplateData'
             ]),
             async loadTaskStatus () {
                 try {
@@ -743,7 +754,7 @@
                 }
             },
             onRetryClick (id) {
-                this.onTaskParamsClick('retryNode', true, i18n.t('重试'))
+                this.onSidesliderConfig('retryNode', i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -755,7 +766,7 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
-                this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
+                this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -866,28 +877,21 @@
             },
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
-                let nodeData = tools.deepClone(this.nodeData)
-                let firstNodeId = null
-                let firstNodeData = null
-                const rootNode = []
-                while (nodeData[0]) {
-                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-                        firstNodeId = nodeData[0].id
-                        firstNodeData = nodeData[0]
-                        nodeData[0] = false
-                    } else {
-                        rootNode.push(nodeData[0])
-                        nodeData = nodeData[0].children
+                if (type === 'viewNodeDetails') {
+                    let nodeData = tools.deepClone(this.nodeData)
+                    let firstNodeId = null
+                    let firstNodeData = null
+                    const rootNode = []
+                    while (nodeData[0]) {
+                        if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                            firstNodeId = nodeData[0].id
+                            firstNodeData = nodeData[0]
+                            nodeData[0] = false
+                        } else {
+                            rootNode.push(nodeData[0])
+                            nodeData = nodeData[0].children
+                        }
                     }
-                }
-                this.sideSliderTitle = name
-                this.isNodeInfoPanelShow = isNodeInfoPanelShow
-                this.nodeInfoType = type
-                this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    this.quickClose = false
-                }
-                if (name === i18n.t('节点详情')) {
                     this.defaultActiveId = firstNodeId
                     let subprocessStack = []
                     if (rootNode.length > 1) {
@@ -900,6 +904,23 @@
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
+                }
+                if (type === 'templateData') {
+                    this.transPipelineTreeStr()
+                }
+                if (type === 'templateData') {
+                    this.transPipelineTreeStr()
+                }
+                this.onSidesliderConfig(type, name)
+            },
+            // 侧滑面板配置
+            onSidesliderConfig (type, name) {
+                this.sideSliderTitle = name
+                this.isNodeInfoPanelShow = true
+                this.nodeInfoType = type
+                this.quickClose = true
+                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
+                    this.quickClose = false
                 }
             },
             
@@ -962,7 +983,7 @@
                         isPanelShow = nodeState.state === 'FAILED'
                     }
                 }
-                this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                 if (isPanelShow) {
                     let subprocessStack = []
                     if (this.selectedFlowPath.length > 1) {
@@ -1148,7 +1169,6 @@
             },
             onRetryCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onModifyTimeSuccess (id) {
@@ -1158,7 +1178,6 @@
             },
             onModifyTimeCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onConfirmGatewaySelect (selected) {
@@ -1187,6 +1206,16 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
+            },
+            async transPipelineTreeStr () {
+                const templateData = await this.getLocalTemplateData()
+                this.templateData = JSON.stringify(templateData, null, 4)
+            },
+            onshutDown () {
+                this.isNodeInfoPanelShow = false
+                this.templateData = ''
+            },
+            onHiddenSideslider () {
                 this.nodeInfoType = ''
             }
         }
