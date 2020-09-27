@@ -775,7 +775,6 @@ const en = {
     '导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）': 'Flows imported inherit the ID in file, and the flow with the same ID in current project will be overwritten(If the flow with the same ID is not in current project, you cannot overwrite).',
     '导入的流程会使用新的流程ID，不会对现有的流程造成影响': 'Flows imported use new ID, without affecting flows existed',
     '模板文件上传为空': 'The file is empty',
-    '模板上传内容不合法，请重新选择文件': 'The content of file is illegal, please select the file again',
     '该文件后缀不为.dat': 'The file suffix is not .dat',
     '其中': 'And ',
     '覆盖ID相同的流程': 'Overwrite same ID',
