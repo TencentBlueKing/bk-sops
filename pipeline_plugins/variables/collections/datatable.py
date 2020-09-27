@@ -33,7 +33,7 @@ class DataTableValue(object):
             setattr(self, attr, attr_val)
             flat_val = "\n".join(map(str, attr_val))
             setattr(self, "flat__{}".format(attr), flat_val)
-        self.default_value = "DataTable with {} Fields".format(",".join(item_values.keys()))
+        self._pipeline_var_str_value = "DataTable with {} Fields".format(",".join(item_values.keys()))
 
 
 class DataTable(LazyVariable):

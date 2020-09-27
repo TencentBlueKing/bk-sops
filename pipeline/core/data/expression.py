@@ -123,8 +123,8 @@ class ConstantTemplate(object):
 
         if len(templates) == 1 and templates[0] == string and deformat_constant_key(string) in value_maps:
             value_obj = value_maps[deformat_constant_key(string)]
-            if hasattr(value_obj, "default_value"):
-                return value_obj.default_value
+            if hasattr(value_obj, "_pipeline_var_str_value"):
+                return value_obj._pipeline_var_str_value
             return value_obj
 
         for tpl in templates:
