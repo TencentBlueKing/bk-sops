@@ -881,12 +881,14 @@
                     let nodeData = tools.deepClone(this.nodeData)
                     let firstNodeId = null
                     let firstNodeData = null
+                    const rootNode = []
                     while (nodeData[0]) {
                         if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
                             firstNodeId = nodeData[0].id
                             firstNodeData = nodeData[0]
                             nodeData[0] = false
                         } else {
+                            rootNode.push(nodeData[0])
                             nodeData = nodeData[0].children
                         }
                     }
