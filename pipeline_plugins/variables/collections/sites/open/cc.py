@@ -118,7 +118,7 @@ class VarCmdbIpSelector(LazyVariable):
 class SetDetailData(object):
     def __init__(self, data):
         self._value = data
-        self.open_zone_count = len(self._value)
+        self.set_count = len(self._value)
         item_values = {}
         modules = []
         total_ip_set = set()
@@ -136,6 +136,9 @@ class SetDetailData(object):
             setattr(self, "flat__{}".format(attr), flat_val)
         setattr(self, "_module", modules)
         setattr(self, "flat__ip_list", ",".join(list(total_ip_set)))
+        self._pipeline_var_str_value = "Allocate {} sets with names: {}".format(
+            self.set_count, ",".join(item_values["bk_set_name"])
+        )
 
 
 class VarCmdbSetAllocation(LazyVariable):
