@@ -1228,8 +1228,6 @@
             },
             onHiddenSideslider () {
                 this.nodeInfoType = ''
-            },
-            onHiddenSideslider () {
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             }
         }
