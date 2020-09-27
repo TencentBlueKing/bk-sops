@@ -737,7 +737,7 @@ const template = {
                     return item !== key
                 })
             } else {
-                const index = state.outputs.find(item => item === key)
+                const index = state.outputs.findIndex(item => item === key)
                 state.outputs.splice(index, 1, newKey)
             }
         },
