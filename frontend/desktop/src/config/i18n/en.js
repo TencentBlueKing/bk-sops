@@ -505,6 +505,9 @@ const en = {
     '未找到对应组件': 'Component not found',
     '插件配置': 'Plugin config',
     '预览': 'Preview',
+    '关闭预览': 'Close the preview',
+    '节点预览': 'Nodes in the preview',
+    '新增方案': 'The new plan',
     '下载': 'Download',
     '导入文件': 'Import file',
     '离开页面': 'Leave',
@@ -776,7 +779,6 @@ const en = {
     '导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）': 'Flows imported inherit the ID in file, and the flow with the same ID in current project will be overwritten(If the flow with the same ID is not in current project, you cannot overwrite).',
     '导入的流程会使用新的流程ID，不会对现有的流程造成影响': 'Flows imported use new ID, without affecting flows existed',
     '模板文件上传为空': 'The file is empty',
-    '模板上传内容不合法，请重新选择文件': 'The content of file is illegal, please select the file again',
     '该文件后缀不为.dat': 'The file suffix is not .dat',
     '其中': 'And ',
     '覆盖ID相同的流程': 'Overwrite same ID',
@@ -1008,7 +1010,8 @@ const en = {
     '即将下线': 'coming offline',
     '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
-    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version'
+    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
+    '复制/粘贴': 'Copy/Paste'
 }
 
 export default en

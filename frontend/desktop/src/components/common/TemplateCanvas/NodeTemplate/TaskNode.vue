@@ -64,7 +64,7 @@
         </div>
         <!-- tooltip提示 -->
         <div class="state-icon">
-            <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('重试')">
+            <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
                 <span
                     class="common-icon-retry"
                     @click.stop="onRetryClick">

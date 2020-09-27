@@ -31,8 +31,7 @@
 
 
 ## 安装 python 和包
-在本地安装 python2.7 和 pip，目前暂不支持 py3，后续版本会兼容 py2 和 py3。
-通过 git 拉取源代码到工程目录后，并进入目录下运行 pip 命令安装 python 包。
+在本地安装 python3.6.7 和 pip，通过 git 拉取源代码到工程目录后，并进入目录下运行 pip 命令安装 python 包。
 ```bash
 pip install -r requirements.txt
 ```

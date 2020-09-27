@@ -13,10 +13,6 @@ import Vue from 'vue'
 import axios from 'axios'
 import store from '@/store/index.js'
 
-const META_FORM_TYPE = {
-    'select': 'select_meta'
-}
-
 const atomForm = {
     namespaced: true,
     state: {
@@ -26,7 +22,7 @@ const atomForm = {
     },
     mutations: {
         setAtomForm (state, payload) {
-            const atomType = payload.isMeta ? META_FORM_TYPE[payload.atomType] : payload.atomType
+            const atomType = payload.atomType
             const action = {}
             action[payload.version] = payload.data
             if (state.form[atomType]) {
@@ -97,7 +93,7 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify = 'component', isMeta, version = 'legacy', project_id } = payload
+            const { name, atom, classify = 'component', version = 'legacy', project_id } = payload
             const atomClassify = classify
             const atomFile = name || atom
             const atomVersion = atomClassify === 'component' ? version : 'legacy'
@@ -108,11 +104,10 @@ const atomForm = {
             if (atomClassify === 'component') {
                 params.version = atomVersion
             }
-            params.meta = isMeta ? 1 : undefined
             await axios.get(url, { params }).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
-                commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })
+                commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
                 commit('setAtomOutput', { atomType: atom, outputData, version: atomVersion })
 
                 // 标准插件配置项内嵌到 form 字段
