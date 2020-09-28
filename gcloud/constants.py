@@ -11,7 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-PROJECT = 'project'
-BUSINESS = 'business'
-COMMON = 'common'
-ONETIME = 'onetime'
+PROJECT = "project"
+BUSINESS = "business"
+COMMON = "common"
+ONETIME = "onetime"
+
+TEMPLATE_EXPORTER_SOURCE_PROJECT = "project"
+TEMPLATE_EXPORTER_SOURCE_COMMON = "common"
+TEMPLATE_EXPORTER_VERSION = 1
