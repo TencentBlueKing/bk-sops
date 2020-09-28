@@ -12,12 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_actions
+from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
 
 
 @receiver(post_save, sender=TaskFlowInstance)
 def task_resource_creator_action_handler(sender, instance, created, **kwargs):
-    register_grant_resource_creator_actions(instance, IAMMeta.TASK_RESOURCE, with_ancestors=True)
+    register_grant_resource_creator_action_attributes(
+        IAMMeta.TASK_RESOURCE, instance.creator, attributes=[{"id": "iam_resource_owner", "name": _("资源创建者")}]
+    )

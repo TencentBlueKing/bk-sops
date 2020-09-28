@@ -43,6 +43,7 @@
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
     import bus from '@/utils/bus.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
 
@@ -75,7 +76,8 @@
             return {
                 hasViewPerm: false,
                 routers: ROUTERS,
-                dateRange: defaultDateRange.slice(0)
+                dateRange: defaultDateRange.slice(0),
+                projectList: []
             }
         },
         computed: {
@@ -83,9 +85,6 @@
                 hasStatisticsPerm: state => state.hasStatisticsPerm,
                 permissionMeta: state => state.permissionMeta,
                 categorys: state => state.categorys
-            }),
-            ...mapState('project', {
-                projectList: state => state.projectList
             }),
             categoryList () {
                 return this.categorys.map(item => {
@@ -111,12 +110,13 @@
                 }
             }
         },
-        async created () {
+        created () {
             if (this.hasStatisticsPerm !== null) {
                 if (this.hasStatisticsPerm === false) {
                     this.showPermissionApplyPage()
                 } else {
                     this.hasViewPerm = true
+                    this.getProjectList()
                     this.getCategorys()
                 }
             }
@@ -124,6 +124,9 @@
         methods: {
             ...mapActions([
                 'getCategorys'
+            ]),
+            ...mapActions('project', [
+                'loadProjectList'
             ]),
             /**
              * 切换到权限申请页
@@ -144,6 +147,18 @@
                 }
 
                 bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
+            },
+            async getProjectList () {
+                this.loading = true
+
+                try {
+                    const res = await this.loadProjectList({ limit: 0 })
+                    this.projectList = res.objects
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.loading = false
+                }
             },
             onChangeDateRange (dateRange) {
                 this.dateRange = dateRange

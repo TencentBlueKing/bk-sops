@@ -70,6 +70,13 @@ class NodesActionInpterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 
 
+class NodeActionV2Inpterceptor(TaskSingleActionPostInterceptor):
+    action = IAMMeta.TASK_OPERATE_ACTION
+
+    def get_task_id(self, request, *args, **kwargs):
+        return kwargs["task_id"]
+
+
 class SpecNodesTimerResetInpterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 

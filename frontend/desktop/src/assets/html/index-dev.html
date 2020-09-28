@@ -7,8 +7,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>标准运维</title>
     <script>
-        var BIZ_CC_ID = 2;
+        var DEFAULT_PROJECT_ID = '2';
         var SITE_URL = '/';
+        var BK_STATIC_URL = ''
         var USERNAME = 'admin';
         // 用户身份： 管理员
         var IS_SUPERUSER = 1;
@@ -30,6 +31,7 @@
         var IMPORT_V1_FLAG = Number('0');
         var RSA_PUB_KEY = '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCr5dIZVAp6ia+tLVlDKPUZP4RD\n7sH+Rbc9eHIy46OoBQeLgRhp93MEarByPlSdO0BveWi/o7PzAxTX3aev2PobfuDk\nCG0xQNpyXtq7NMU9GP4lo9MDeEw0+GNvzKjxl4sn9ajCvAFMRcAt61/JqIQnxE+/\niymoAVK67gfTOTvckQIDAQAB\n-----END PUBLIC KEY-----';
         var APP_CODE = 'bk_sops';
+        var FILE_UPLOAD_ENTRY = '/package/upload/'
         function getCookie(name) {
             var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
             return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;

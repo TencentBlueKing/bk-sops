@@ -54,6 +54,7 @@ def mysetting(request):
     default_project = get_default_project_for_user(request.user.username)
     project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
+    frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL)
     ctx = {
         "MEDIA_URL": settings.MEDIA_URL,  # MEDIA_URL
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
@@ -97,6 +98,7 @@ def mysetting(request):
         "DEFAULT_PROJECT_ID": default_project.id if default_project else "",
         "FILE_UPLOAD_ENTRY": os.getenv("BKAPP_FILE_UPLOAD_ENTRY", ""),
         "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
+        "BK_STATIC_URL": frontend_entry_url,
     }
 
     return ctx

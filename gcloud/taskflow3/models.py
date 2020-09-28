@@ -75,6 +75,7 @@ NODE_ACTIONS = {
     "resume": pipeline_api.resume_node_appointment,
     "pause_subproc": pipeline_api.pause_pipeline,
     "resume_subproc": pipeline_api.resume_node_appointment,
+    "forced_fail": pipeline_api.forced_fail,
 }
 
 
@@ -841,6 +842,8 @@ class TaskFlowInstance(models.Model):
                 action_result = NODE_ACTIONS[action](node_id, kwargs["flow_id"])
             elif action == "retry":
                 action_result = NODE_ACTIONS[action](node_id, kwargs["inputs"])
+            elif action == "forced_fail":
+                action_result = NODE_ACTIONS[action](node_id, ex_data="forced fail by {}".format(username))
             else:
                 action_result = NODE_ACTIONS[action](node_id)
         except Exception as e:
