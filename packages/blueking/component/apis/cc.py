@@ -682,7 +682,7 @@ class CollectionsCC(object):
             client=self.client,
             method="POST",
             path="/api/c/compapi{bk_api_ver}/cc/find_module_with_relation/",
-            description="批量获取模块详情",
+            description="根据条件查询业务下的模块",
         )
         self.find_set_batch = ComponentAPI(
             client=self.client,
