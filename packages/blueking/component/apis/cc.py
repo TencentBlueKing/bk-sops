@@ -684,3 +684,9 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/find_module_with_relation/",
             description="批量获取模块详情",
         )
+        self.find_set_batch = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/find_set_batch/",
+            description="批量获取集群详情",
+        )
