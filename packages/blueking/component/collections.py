@@ -21,6 +21,7 @@ from .apis.sops import CollectionsSOPS
 from .apis.esb import CollectionsEsb
 from .apis.usermanage import CollectionsUserManage
 from .apis.nodeman import CollectionsNodeMan
+from .apis.monitor import CollectionsMonitor
 
 
 # Available components
@@ -35,4 +36,5 @@ AVAILABLE_COLLECTIONS = {
     'esb': CollectionsEsb,
     'usermanage': CollectionsUserManage,
     'nodeman': CollectionsNodeMan,
+    'monior': CollectionsMonitor
 }
