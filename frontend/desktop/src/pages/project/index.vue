@@ -260,7 +260,8 @@
                 'queryUserPermission'
             ]),
             ...mapActions('project', [
-                'loadProjectList',
+                'loadUserProjectList',
+                'loadUserProjectList',
                 'createProject',
                 'loadProjectDetail',
                 'updateProject',
@@ -292,7 +293,7 @@
                         data.q = this.searchStr
                     }
                     
-                    const projectList = await this.loadProjectList(data)
+                    const projectList = await this.loadUserProjectList(data)
                     this.projectList = projectList.objects || []
                     this.projectList = this.projectList.map(item => {
                         if (!item.from_cmdb) {
@@ -339,7 +340,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
-                    this.loadProjectList({ limit: 0 })
+                    this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
