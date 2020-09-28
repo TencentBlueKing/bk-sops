@@ -22,19 +22,21 @@ from .apis.esb import CollectionsEsb
 from .apis.usermanage import CollectionsUserManage
 from .apis.nodeman import CollectionsNodeMan
 from .apis.monitor import CollectionsMonitor
+from .apis.itsm import CollectionsItsm
 
 
 # Available components
 AVAILABLE_COLLECTIONS = {
-    'bk_login': CollectionsBkLogin,
-    'bk_paas': CollectionsBkPaas,
-    'cc': CollectionsCC,
-    'cmsi': CollectionsCMSI,
-    'gse': CollectionsGSE,
-    'job': CollectionsJOB,
-    'sops': CollectionsSOPS,
-    'esb': CollectionsEsb,
-    'usermanage': CollectionsUserManage,
-    'nodeman': CollectionsNodeMan,
+    "bk_login": CollectionsBkLogin,
+    "bk_paas": CollectionsBkPaas,
+    "cc": CollectionsCC,
+    "cmsi": CollectionsCMSI,
+    "gse": CollectionsGSE,
+    "job": CollectionsJOB,
+    "sops": CollectionsSOPS,
+    "esb": CollectionsEsb,
+    "usermanage": CollectionsUserManage,
+    "nodeman": CollectionsNodeMan,
+    "itsm": CollectionsItsm,
     'monior': CollectionsMonitor
 }

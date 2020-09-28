@@ -56,22 +56,20 @@
                     :class="[
                         'params-btn',
                         'solid-eye',
-                        'common-icon',
                         'common-icon-solid-eye',
                         {
-                            actived: nodeInfoType === 'executeInfo'
+                            actived: nodeInfoType === 'viewNodeDetails'
                         }
                     ]"
                     v-bk-tooltips="{
                         content: $t('查看节点详情'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('executeInfo', $t('节点详情'))">
+                    @click="onTaskParamsClick('viewNodeDetails', $t('节点详情'))">
                 </i>
                 <i
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-edit',
                         {
                             actived: nodeInfoType === 'modifyParams'
@@ -94,10 +92,23 @@
                     :to="getTplURL()">
                 </router-link>
                 <i
+                    :class="[
+                        'params-btn',
+                        'common-icon-flow-data',
+                        {
+                            actived: nodeInfoType === 'templateData'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('流程模板数据'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('templateData', $t('流程模板数据'))">
+                </i>
+                <i
                     v-if="adminView"
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-paper',
                         {
                             actived: nodeInfoType === 'taskExecuteInfo'
@@ -174,7 +185,7 @@
                 this.$emit('onOperationClick', action)
             },
             onTaskParamsClick (type, name) {
-                this.$emit('onTaskParamsClick', type, true, name)
+                this.$emit('onTaskParamsClick', type, name)
             },
             onBack () {
                 if (this.view_mode === 'appmaker') {
