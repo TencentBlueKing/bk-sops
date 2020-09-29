@@ -21,6 +21,7 @@ from gcloud.apigw.views.get_common_template_list import get_common_template_list
 from gcloud.apigw.views.get_periodic_task_info import get_periodic_task_info
 from gcloud.apigw.views.get_periodic_task_list import get_periodic_task_list
 from gcloud.apigw.views.get_plugin_list import get_plugin_list
+from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_detail import get_task_detail
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
@@ -31,12 +32,9 @@ from gcloud.apigw.views.get_template_schemes import get_template_schemes
 from gcloud.apigw.views.get_user_project_detail import get_user_project_detail
 from gcloud.apigw.views.get_user_project_list import get_user_project_list
 from gcloud.apigw.views.import_common_template import import_common_template
-from gcloud.apigw.views.modify_constants_for_periodic_task import (
-    modify_constants_for_periodic_task,
-)
-from gcloud.apigw.views.modify_cron_for_periodic_task import (
-    modify_cron_for_periodic_task,
-)
+from gcloud.apigw.views.modify_constants_for_periodic_task import modify_constants_for_periodic_task
+from gcloud.apigw.views.modify_constants_for_task import modify_constants_for_task
+from gcloud.apigw.views.modify_cron_for_periodic_task import modify_cron_for_periodic_task
 from gcloud.apigw.views.node_callback import node_callback
 from gcloud.apigw.views.operate_node import operate_node
 from gcloud.apigw.views.operate_task import operate_task
@@ -51,10 +49,7 @@ from gcloud.apigw.views.import_project_template import import_project_template
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
     url(r"^get_template_list/(?P<project_id>\d+)/$", get_template_list),
-    url(
-        r"^get_template_info/(?P<template_id>\d+)/(?P<project_id>\d+)/$",
-        get_template_info,
-    ),
+    url(r"^get_template_info/(?P<template_id>\d+)/(?P<project_id>\d+)/$", get_template_info,),
     url(r"^get_common_template_list/$", get_common_template_list),
     url(r"^get_common_template_info/(?P<template_id>\d+)/$", get_common_template_info),
     url(r"^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_task),
@@ -64,48 +59,26 @@ urlpatterns = [
     url(r"^get_task_status/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_status),
     url(r"^query_task_count/(?P<project_id>\d+)/$", query_task_count),
     url(r"^get_periodic_task_list/(?P<project_id>\d+)/$", get_periodic_task_list),
-    url(
-        r"^get_periodic_task_info/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
-        get_periodic_task_info,
-    ),
-    url(
-        r"^create_periodic_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$",
-        create_periodic_task,
-    ),
-    url(
-        r"^set_periodic_task_enabled/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
-        set_periodic_task_enabled,
-    ),
-    url(
-        r"^modify_cron_for_periodic_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
-        modify_cron_for_periodic_task,
-    ),
+    url(r"^get_periodic_task_info/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_periodic_task_info,),
+    url(r"^create_periodic_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_periodic_task,),
+    url(r"^set_periodic_task_enabled/(?P<task_id>\d+)/(?P<project_id>\d+)/$", set_periodic_task_enabled,),
+    url(r"^modify_cron_for_periodic_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", modify_cron_for_periodic_task,),
+    url(r"^modify_constants_for_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", modify_constants_for_task),
     url(
         r"^modify_constants_for_periodic_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         modify_constants_for_periodic_task,
     ),
+    url(r"^get_task_list/(?P<project_id>\d+)/$", get_task_list),
     url(r"^get_task_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_detail),
-    url(
-        r"^get_task_node_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
-        get_task_node_detail,
-    ),
+    url(r"^get_task_node_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_node_detail,),
     url(r"^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$", node_callback),
     url(r"^import_common_template/$", import_common_template),
     url(r"^get_plugin_list/(?P<project_id>\d+)/$", get_plugin_list),
     url(r"^get_user_project_list/$", get_user_project_list),
     url(r"^get_user_project_detail/(?P<project_id>\d+)/$", get_user_project_detail),
-    url(
-        r"^get_template_schemes/(?P<project_id>\d+)/(?P<template_id>\d+)/$",
-        get_template_schemes,
-    ),
-    url(
-        r"^preview_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$",
-        preview_task_tree,
-    ),
-    url(
-        r"^get_task_node_data/(?P<project_id>\d+)/(?P<task_id>\d+)/$",
-        get_task_node_data,
-    ),
+    url(r"^get_template_schemes/(?P<project_id>\d+)/(?P<template_id>\d+)/$", get_template_schemes,),
+    url(r"^preview_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_task_tree,),
+    url(r"^get_task_node_data/(?P<project_id>\d+)/(?P<task_id>\d+)/$", get_task_node_data,),
     url(r"^operate_node/(?P<project_id>\d+)/(?P<task_id>\d+)/$", operate_node),
     url(r"^get_tasks_status/(?P<project_id>\d+)/$", get_tasks_status),
     url(r"^import_project_template/(?P<project_id>\d+)/$", import_project_template),
