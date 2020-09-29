@@ -42,9 +42,10 @@
                             {{$t('模板文件上传为空')}}
                         </span>
                         <span
+                            v-bk-tooltips.top="commonErrorMsg"
                             v-show="templateFileError"
-                            class="common-error-tip error-msg">
-                            {{$t('模板上传内容不合法，请重新选择文件')}}
+                            class="common-error-tip error-msg multi-character-limit">
+                            {{ commonErrorMsg }}
                         </span>
                         <span
                             v-show="templateFileErrorExt"
@@ -107,8 +108,14 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-                <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+                <bk-button theme="primary" @click="CoverSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button
+                    theme="default"
+                    @click="importSubmit(false)"
+                    v-cursor="{ active: common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }"
+                    :class="{ 'btn-permission-disable': common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }">
+                    {{overrideConflict}}
+                </bk-button>
                 <bk-button theme="default" @click="onCancel"> {{ $t('取消') }} </bk-button>
             </div>
         </div>
@@ -120,15 +127,18 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ImportTemplateDialog',
         components: {
             NoData
         },
-        props: ['isImportDialogShow', 'common'],
+        mixins: [permission],
+        props: ['isImportDialogShow', 'common', 'authActions', 'hasCreateCommonTplPerm'],
         data () {
             return {
+                active: true,
                 file: null,
                 filename: '',
                 exportList: [],
@@ -143,7 +153,8 @@
                 templateFileEmpty: false,
                 templateFileError: false,
                 templateFileErrorExt: false,
-                dataConflict: false
+                dataConflict: false,
+                commonErrorMsg: ''
             }
         },
         computed: {
@@ -151,13 +162,14 @@
                 'site_url': state => state.site_url
             }),
             ...mapState('project', {
-                'project_id': state => state.project_id
+                'project_id': state => state.project_id,
+                'projectName': state => state.projectName
             }),
             exportConflict () {
-                return this.overrideList.length ? i18n.t('覆盖冲突项, 并提交') : i18n.t('流程ID不变提交')
+                return this.overrideList.length ? i18n.t('覆盖冲突项, 并提交') : i18n.t('覆盖ID相同的流程')
             },
             overrideConflict () {
-                return this.overrideList.length ? i18n.t('保留两者, 并提交') : i18n.t('流程ID自增提交')
+                return this.overrideList.length ? i18n.t('保留两者, 并提交') : i18n.t('创建新流程')
             },
             isEmpty () {
                 return !this.exportList.length || (this.isChecked && !this.overrideList.length)
@@ -191,6 +203,7 @@
                         this.overrideList = checkResult.override_template
                         this.templateFileError = false
                     } else {
+                        this.commonErrorMsg = resp.message
                         this.templateFileError = true
                         this.pending.upload = false
                         this.dataConflict = false
@@ -273,8 +286,21 @@
                 this.templateFileErrorExt = false
                 this.templateFileError = false
             },
-            exportSubmit (isOverride) {
+            CoverSubmit (isOverride) {
                 this.onConfirm(isOverride)
+            },
+            importSubmit (isOverride) {
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
+                } else {
+                    this.onConfirm(isOverride)
+                }
             },
             resetData () {
                 this.file = null
@@ -313,6 +339,13 @@
             margin-right: 20px;
             .bk-button.bk-primary {
                 width: 120px;
+            }
+            .multi-character-limit {
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow:ellipsis;
+                white-space: nowrap;
+                cursor: default;
             }
         }
     }

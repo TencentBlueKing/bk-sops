@@ -21,33 +21,37 @@
                     <table>
                         <tbody>
                             <tr>
-                                <td>Ctrl + (+):</td>
-                                <td>{{ $t('放大') }}</td>
+                                <td>{{ $t('放大') }}:</td>
+                                <td>Ctrl + (+)</td>
                             </tr>
                             <tr>
-                                <td>Ctrl + (-):</td>
-                                <td>{{ $t('缩小') }}</td>
+                                <td>{{ $t('缩小') }}:</td>
+                                <td>Ctrl + (-)</td>
                             </tr>
                             <tr>
+                                <td>{{ $t('还原') }}:</td>
                                 <td>Ctrl + 0:</td>
-                                <td>{{ $t('还原') }}</td>
                             </tr>
                             <tr>
-                                <td>Ctrl + {{ $t('鼠标滚动') }}:</td>
-                                <td>{{ $t('缩放') }}</td>
+                                <td>{{ $t('缩放') }}:</td>
+                                <td>Ctrl + {{ $t('鼠标滚动') }}</td>
                             </tr>
                             <template v-if="editable">
                                 <tr>
-                                    <td>{{ commonCtrl }} + {{ $t('鼠标左键单击') }}:</td>
-                                    <td>{{ $t('连续选中（或取消）节点') }}</td>
+                                    <td>{{ $t('连续选中（或取消）节点') }}:</td>
+                                    <td>{{ commonCtrl }} + {{ $t('鼠标左键单击') }}</td>
                                 </tr>
                                 <tr>
-                                    <td>[{{ $t('选中后') }}]{{ $t('箭头（上下左右）') }}:</td>
-                                    <td>{{ $t('移动流程元素') }}</td>
+                                    <td>{{ $t('移动流程元素') }}:</td>
+                                    <td>[{{ $t('选中后') }}]{{ $t('箭头（上下左右）') }}</td>
                                 </tr>
                                 <tr>
-                                    <td>[{{ $t('选中后') }}] Delete:</td>
-                                    <td>{{ $t('删除节点') }}</td>
+                                    <td>{{ $t('删除节点') }}:</td>
+                                    <td>[{{ $t('选中后') }}] Delete</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ $t('复制/粘贴') }}:</td>
+                                    <td>[{{ $t('选中后') }}] Ctrl + C / Ctrl + V</td>
                                 </tr>
                             </template>
                         </tbody>

@@ -265,6 +265,18 @@ const task = {
             }).then(response => response.data)
         },
         /**
+         * 节点强制失败
+         * @param {Object} data 任务实例数据
+         */
+        onForcedFail ({ commit }, data) {
+            const { project_id } = store.state.project
+            const { node_id, task_id } = data
+            const action = 'forced_fail'
+            return axios.post(`taskflow/api/v4/node_action/${project_id}/${task_id}/${node_id}/`, { action }, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
+        },
+        /**
          * 重试任务节点
          * @param {Object} data 任务实例数据
          */

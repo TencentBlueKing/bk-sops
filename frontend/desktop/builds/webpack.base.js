@@ -11,51 +11,16 @@
 */
 const path = require('path')
 const webpack = require('webpack')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
-
-/**
- * 生产环境分版本打包命令
- * npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod" --VERSION="V3.5.3"
- */
-let SITE_URL = ''
-let STATIC_ENV = ''
-let VERSION = ''
-
-process.argv.forEach(val => {
-    if (/--SITE_URL=/.test(val)) {
-        SITE_URL = val.replace(/--SITE_URL=/, '')
-    }
-    if (/--STATIC_ENV=/.test(val)) {
-        STATIC_ENV = val.replace(/--STATIC_ENV=/, '')
-    }
-    if (/--VERSION=/.test(val)) {
-        VERSION = val.replace(/--VERSION=/, '')
-    }
-})
-
-process.env.STATIC_ENV = STATIC_ENV
-process.env.VERSION = VERSION ? '?v=' + VERSION : ''
-
-const publicPath = path.posix.join(SITE_URL, '/static/')
-
-console.log('build mode:', process.env.NODE_ENV)
-console.log('SITE_URL:', SITE_URL)
-console.log('publicPath:', publicPath)
-console.log('version:', VERSION)
 
 module.exports = {
     entry: {
         main: './src/main.js'
     },
     output: {
-        path: path.join(__dirname, '../static'),
-        publicPath: publicPath,
-        pathinfo: true,
-        filename: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name].js' + process.env.VERSION)
+        path: path.join(__dirname, '../static')
     },
     module: {
         rules: [
@@ -80,18 +45,6 @@ module.exports = {
                 options: {
                     formatter: require('eslint-friendly-formatter')
                 }
-            },
-            {
-                test: /\.s?[ac]ss$/,
-                use: [
-                    process.env.NODE_ENV === 'development'
-                        ? 'style-loader'
-                        : MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    'postcss-loader',
-                    'sass-loader'
-                ]
-
             },
             {
                 test: /\.vue$/,
@@ -120,7 +73,7 @@ module.exports = {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: path.posix.join('images/[name].[ext]')
+                    name: path.posix.join('images/[name].[contenthash:10].[ext]')
                 }
             },
             {
@@ -128,7 +81,7 @@ module.exports = {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/videos/[name].[ext]' + process.env.VERSION)
+                    name: path.posix.join('videos/[name].[contenthash:10].[ext]')
                 }
             },
             {
@@ -140,7 +93,7 @@ module.exports = {
                 ],
                 options: {
                     limit: 10000,
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/fonts/[name].[ext]' + process.env.VERSION)
+                    name: path.posix.join('fonts/[name].[contenthash:10].[ext]')
                 }
             }
         ]
@@ -148,21 +101,13 @@ module.exports = {
     plugins: [
         new CaseSensitivePathsPlugin(),
         new VueLoaderPlugin(),
-        new HtmlWebpackPlugin({
-            template: './src/assets/html/template.html',
-            filename: path.posix.join(process.env.STATIC_ENV, 'dist/index.html')
-        }),
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',
             'window.jQuery': 'jquery'
         }),
-        new webpack.DefinePlugin({
-            'process.env.PUBLIC_STATIC': path.posix.join(publicPath, process.env.STATIC_ENV),
-            'process.env.VERSION': process.env.VERSION
-        }),
         new MonacoWebpackPlugin({
-            output: path.posix.join(process.env.STATIC_ENV, 'dist/js/'),
+            output: path.posix.join('js/'),
             languages: ['javascript', 'typescript', 'json', 'python', 'shell']
         })
     ],
@@ -201,9 +146,7 @@ module.exports = {
                 }
             }
         },
-        runtimeChunk: {
-
-        }
+        runtimeChunk: {}
     },
     resolve: {
         alias: {

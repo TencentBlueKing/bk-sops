@@ -65,6 +65,29 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
 
 
 @supplier_account_inject
+def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account):
+    """
+    @summary: 获取对象全部属性
+    @param request:
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
+    cc_result = client.cc.search_object_attribute(kwargs)
+    if not cc_result["result"]:
+        message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    obj_property = []
+    for item in cc_result["data"]:
+        obj_property.append({"value": item["bk_property_id"], "text": item["bk_property_name"]})
+
+    return JsonResponse({"result": True, "data": obj_property})
+
+
+@supplier_account_inject
 def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
@@ -313,6 +336,7 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
 
 cc_urlpatterns = [
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
+    url(r"^cc_search_object_attribute_all/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute_all,),
     url(r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_create_object_attribute,),
     url(r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_topo,),
     url(r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$", cc_list_service_category,),

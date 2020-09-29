@@ -147,7 +147,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.14"
+STATIC_VERSION = "3.6.15"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -346,6 +346,9 @@ PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
+
+# CELERY与RabbitMQ增加60秒心跳设置项
+BROKER_HEARTBEAT = 60
 
 SYSTEM_USE_API_ACCOUNT = "admin"
 

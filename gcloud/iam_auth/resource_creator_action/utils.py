@@ -20,20 +20,17 @@ iam = get_iam_client()
 
 
 def resource_creator_action_params(instance, resource_type, with_ancestors=False):
-    params = {"system": IAMMeta.SYSTEM_ID,
-              "type": resource_type,
-              "id": instance.id,
-              "name": instance.name,
-              "creator": instance.creator,
-              }
+    params = {
+        "system": IAMMeta.SYSTEM_ID,
+        "type": resource_type,
+        "id": instance.id,
+        "name": instance.name,
+        "creator": instance.creator,
+    }
     if with_ancestors:
-        params.update({
-            "ancestors": [{
-                "system": IAMMeta.SYSTEM_ID,
-                "type": IAMMeta.PROJECT_RESOURCE,
-                "id": instance.project_id
-            }]
-        })
+        params.update(
+            {"ancestors": [{"system": IAMMeta.SYSTEM_ID, "type": IAMMeta.PROJECT_RESOURCE, "id": instance.project_id}]}
+        )
     return params
 
 
@@ -44,14 +41,35 @@ def batch_resource_creator_action_params(instance: list, resource_type, creator,
         "creator": creator,
     }
     if with_ancestors:
-        params.update({
-            "instances": [{"id": ins.id, "name": ins.name, "ancestors": [{
-                "system": IAMMeta.SYSTEM_ID,
-                "type": IAMMeta.PROJECT_RESOURCE,
-                "id": ins.project_id
-            }]} for ins in instance]})
+        params.update(
+            {
+                "instances": [
+                    {
+                        "id": ins.id,
+                        "name": ins.name,
+                        "ancestors": [
+                            {"system": IAMMeta.SYSTEM_ID, "type": IAMMeta.PROJECT_RESOURCE, "id": ins.project_id}
+                        ],
+                    }
+                    for ins in instance
+                ]
+            }
+        )
     else:
         params.update({"instances": [{"id": ins.id, "name": ins.name} for ins in instance]})
+    return params
+
+
+def resource_creator_action_attribute_params(resource_type, creator, attributes):
+    params = {
+        "system": IAMMeta.SYSTEM_ID,
+        "type": resource_type,
+        "creator": creator,
+        "attributes": [
+            {"id": attribute["id"], "name": attribute["name"], "values": [{"id": creator, "name": creator}]}
+            for attribute in attributes
+        ],
+    }
     return params
 
 
@@ -61,12 +79,17 @@ def register_grant_resource_creator_actions(instance, resource_type, with_ancest
 
         ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
         if not ok:
-            logging.error("[{resource_type}({resource_id}) created grant] {api} failed".format(
-                resource_type=resource_type, resource_id=instance.id, api="grant_resource_creator_actions"))
+            logging.error(
+                "[{resource_type}({resource_id}) created grant] {api} failed".format(
+                    resource_type=resource_type, resource_id=instance.id, api="grant_resource_creator_actions"
+                )
+            )
     except Exception:
-        logging.exception("[{resource_type}({resource_id}) created grant] {api} failed".format(
-            resource_type=resource_type, resource_id=instance.id, api="grant_resource_creator_actions"
-        ))
+        logging.exception(
+            "[{resource_type}({resource_id}) created grant] {api} failed".format(
+                resource_type=resource_type, resource_id=instance.id, api="grant_resource_creator_actions"
+            )
+        )
 
 
 def register_batch_grant_resource_creator_actions(instance: list, response_type, creator, with_ancestors=False):
@@ -75,11 +98,37 @@ def register_batch_grant_resource_creator_actions(instance: list, response_type,
 
         ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=creator)
         if not ok:
-            logging.error("[{resource_type}({resource_id}) batch created grant] {api} failed".format(
-                resource_type=response_type, resource_id=[ins.id for ins in instance],
-                api="grant_batch_resource_creator_actions"))
+            logging.error(
+                "[{resource_type}({resource_id}) batch created grant] {api} failed".format(
+                    resource_type=response_type,
+                    resource_id=[ins.id for ins in instance],
+                    api="grant_batch_resource_creator_actions",
+                )
+            )
     except Exception:
-        logging.exception("[{resource_type}({resource_id}) batch created grant] {api} failed".format(
-            resource_type=response_type, resource_id=[ins.id for ins in instance],
-            api="grant_batch_resource_creator_actions"
-        ))
+        logging.exception(
+            "[{resource_type}({resource_id}) batch created grant] {api} failed".format(
+                resource_type=response_type,
+                resource_id=[ins.id for ins in instance],
+                api="grant_batch_resource_creator_actions",
+            )
+        )
+
+
+def register_grant_resource_creator_action_attributes(resource_type, creator, attributes):
+    try:
+        application = resource_creator_action_attribute_params(resource_type, creator, attributes)
+
+        ok, message = iam.grant_resource_creator_action_attributes(application, bk_username=creator)
+        if not ok:
+            logging.error(
+                "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
+                    resource_type=resource_type, creator=creator, api="grant_resource_creator_action_attributes"
+                )
+            )
+    except Exception:
+        logging.error(
+            "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
+                resource_type=resource_type, creator=creator, api="grant_resource_creator_action_attributes"
+            )
+        )

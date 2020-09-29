@@ -415,8 +415,20 @@ class IAM(object):
         if not (bk_token or bk_username):
             raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
 
-        # bool, message, url
+        # bool, message
         return self._client.grant_resource_creator_actions(bk_token, bk_username, data)
+
+    def grant_resource_creator_action_attributes(self, application, bk_token=None, bk_username=None):
+        if isinstance(application, dict):
+            data = application
+        else:
+            raise AuthInvalidRequest("application should be instance of dict")
+
+        if not (bk_token or bk_username):
+            raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
+
+        # bool, message
+        return self._client.grant_resource_creator_action_attributes(bk_token, bk_username, data)
 
     def grant_batch_resource_creator_actions(self, application, bk_token=None, bk_username=None):
         if isinstance(application, dict):
@@ -427,7 +439,7 @@ class IAM(object):
         if not (bk_token or bk_username):
             raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
 
-        # bool, message, url
+        # bool, message
         return self._client.grant_batch_resource_creator_actions(bk_token, bk_username, data)
 
     def grant_or_revoke_instance_permission(self, request, bk_token=None, bk_username=None):

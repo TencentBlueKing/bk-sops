@@ -247,7 +247,7 @@
                 'loadProjectBaseInfo'
             ]),
             ...mapActions('project/', [
-                'loadProjectList'
+                'loadUserProjectList'
             ]),
             async loadAuditTask () {
                 this.listLoading = true
@@ -319,7 +319,7 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadProjectList({ limit: 0 })
+                    const businessData = await this.loadUserProjectList({ limit: 0 })
                     this.business.list = businessData.objects
                 } catch (e) {
                     errorHandler(e, this)

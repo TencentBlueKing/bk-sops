@@ -13,8 +13,9 @@
         <div class="schema-list-panel" v-if="showPanel">
             <div class="scheme-title">
                 <span> {{$t('执行方案列表')}}</span>
+                <bk-button size="small" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
-            <div class="scheme-header">
+            <div :class="['scheme-header', { 'disabled-btn': !hasPermission(['flow_edit'], tplActions) }]">
                 <div class="scheme-form" v-if="nameEditing">
                     <bk-input
                         v-model="schemaName"
@@ -23,45 +24,31 @@
                         name="schemaName"
                         class="bk-input-inline"
                         :clearable="true"
+                        @keyup.enter.native="onAddScheme"
+                        @blur="onAddScheme"
                         :placeholder="$t('方案名称')">
                     </bk-input>
-                    <bk-button theme="primary" @click="onAddScheme">{{$t('保存')}}</bk-button>
-                    <bk-button @click="onCancel">{{$t('取消')}}</bk-button>
                     <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
                 </div>
-                <bk-button
+                <div
                     v-else
-                    theme="primary"
-                    :class="['save-scheme-btn', {
-                        'disabled-btn': isPreviewMode,
-                        'btn-permission-disable': !hasPermission(['flow_edit'], tplActions)
-                    }]"
-                    :loading="submiting"
-                    v-cursor="{ active: !hasPermission(['flow_edit'], tplActions) }"
+                    class="add-plan"
                     @click="onCreateScheme">
-                    {{ $t('新建') }}
-                </bk-button>
+                    <span class="common-icon-add"></span>
+                    {{ $t('新增方案') }}
+                </div>
             </div>
-            <div class="scheme-content">
+            <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
-                        :class="['scheme-item', { 'selected': item.id === selectedScheme }]"
-                        :key="item.id"
-                        @click="onSelectScheme(item.id)">
+                        class="scheme-item"
+                        :key="item.id">
+                        <bk-checkbox @change="onCheckChange($event, item.id)"></bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
                     </li>
                 </ul>
-            </div>
-            <div class="scheme-preview-mode" v-if="isSchemeEditable">
-                <div class="scheme-header-division-line scheme-header-division-line-last"></div>
-                <div class="preview-mode-switcher">
-                    <span>
-                        {{$t('预览模式：')}}
-                    </span>
-                    <bk-switcher size="small" theme="primary" :value="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
-                </div>
             </div>
         </div>
     </div>
@@ -129,9 +116,8 @@
                     regex: NAME_REG
                 },
                 schemaList: [],
-                selectedScheme: undefined,
-                submiting: false,
-                deleting: false
+                deleting: false,
+                isPreview: false
             }
         },
         computed: {
@@ -139,6 +125,11 @@
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
             })
+        },
+        watch: {
+            isPreviewMode (val) {
+                this.isPreview = val
+            }
         },
         created () {
             this.loadSchemeList()
@@ -149,6 +140,11 @@
                 'createTaskScheme',
                 'deleteTaskScheme'
             ]),
+            // 选择方案并进行切换更新选择的节点
+            onCheckChange (e, id) {
+                this.$emit('selectScheme', id, e)
+            },
+            // 获取方案列表
             async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
@@ -179,16 +175,15 @@
              * 添加方案
              */
             onAddScheme () {
-                if (this.submiting) return
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
                     errorHandler({ message: i18n.t('方案名称已存在') }, this)
                     return
                 }
-                this.submiting = true
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) {
-                        this.submiting = false
+                        this.schemaName = ''
+                        this.nameEditing = false
                         return
                     }
                     this.schemaName = this.schemaName.trim()
@@ -201,10 +196,7 @@
                         isCommon: this.isCommonProcess
                     }
                     try {
-                        const newScheme = await this.createTaskScheme(scheme)
-                        this.selectedScheme = newScheme.id
-                        this.schemaName = ''
-                        this.nameEditing = false
+                        await this.createTaskScheme(scheme)
                         this.loadSchemeList()
                         this.$bkMessage({
                             message: i18n.t('方案添加成功'),
@@ -213,20 +205,10 @@
                     } catch (e) {
                         errorHandler(e, this)
                     } finally {
-                        this.submiting = false
+                        this.schemaName = ''
+                        this.nameEditing = false
                     }
                 })
-            },
-            /**
-             * 选择方案并进行切换更新选择的节点
-             */
-            async onSelectScheme (id) {
-                let selectedScheme
-                if (this.selectedScheme !== id) {
-                    selectedScheme = id
-                }
-                this.selectedScheme = selectedScheme
-                this.$emit('selectScheme', selectedScheme)
             },
             /**
              * 删除方案
@@ -279,8 +261,9 @@
              * 预览模式的点击事件
              * @params {Boolean} isPreview  是否是预览模式
              */
-            onChangePreviewNode (isPreview) {
-                this.$emit('togglePreviewMode', isPreview)
+            onChangePreviewNode () {
+                this.isPreview = !this.isPreview
+                this.$emit('togglePreviewMode', this.isPreview)
             }
         }
     }
@@ -308,38 +291,41 @@
         z-index: 4;
         transition: right 0.5s ease-in-out;
         .scheme-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             height: 35px;
-            margin: 20px;
+            margin: 20px 20px 0;
+            padding-bottom: 10px;
             border-bottom: 1px solid #cacecb;
         }
         .scheme-header {
-            margin: 20px;
+            position: relative;
+            font-size: 14px;
+            margin: 0px 20px;
+            padding-top: 3px;
+            border-bottom: 1px solid #ebebeb;
             .scheme-form {
+                margin-bottom: 4px;
                 position: relative;
-                display: inline-block;
-                input {
+                display: flex;
+                align-items: center;
+                .bk-input-inline {
+                    margin-right: 10px;
+                }
+                .bk-form-input {
                     width: 200px;
                 }
-                .error-msg {
-                    position: absolute;
-                    left: 0px;
-                    bottom: -16px;
+            }
+            .add-plan {
+                margin: 7px 0 10px 0;
+                width: 100%;
+                cursor: pointer;
+                .common-icon-add {
+                    font-size: 18px;
+                    color: #3a84ff;
+                    margin-right: 3px;
                 }
-            }
-            .save-scheme-btn {
-                width: 90px;
-                height: 32px;
-                line-height: 32px;
-                background-color: #ffffff;
-                border: 1px solid #c4c6cc;
-                border-radius: 2px;
-                color: #313238;
-                font-size: 14px;
-                font-weight: 400;
-            }
-            .disabled-btn {
-                opacity: 0.3;
-                cursor: not-allowed;
             }
             .base-input {
                 height: 32px;
@@ -347,16 +333,30 @@
                 padding-bottom: 2px;
             }
         }
+        .disabled-btn {
+            &:after {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0px;
+                width: 100%;
+                height: 100%;
+                opacity: 0.4;
+                background-color: #e1e4e8;
+            }
+        }
         .scheme-content {
-            height: calc(100% - 127px- 63px);
+            height: calc(100% - 127px);
             overflow: hidden;
             overflow-y: auto;
             @include scrollbar;
             .scheme-item {
+                position: relative;
                 margin: 0 20px;
                 height: 42px;
                 font-weight: 400;
-                line-height: 42px;
+                display: flex;
+                align-items: center;
                 font-size: 14px;
                 cursor: pointer;
                 border-bottom: 1px solid #ebebeb;
@@ -366,35 +366,22 @@
                     background-color: #d9e8f8;
                     .icon-close-circle-shape {
                         opacity: 1;
-                    }
-                }
-                &.selected {
-                    margin: -1px 0 0 0;
-                    padding: 0 20px;
-                    background-color: #3a84ff;
-                    .scheme-name {
-                        color: #ffffff;
-                    }
-                    .scheme-division-line {
-                        background-color: #3a84ff;
-                    }
-                    .icon-close-circle-shape {
-                        color: #ffffff;
-                        opacity: 1;
+                        right: 25px;
                     }
                 }
                 .scheme-name {
                     display: inline-block;
                     width: 240px;
+                    margin-left: 10px;
                     overflow: hidden;
                     white-space: nowrap;
                     text-overflow: ellipsis;
                     color: #313238;
                 }
                 .icon-close-circle-shape {
-                    float: right;
-                    margin-top: 15px;
-                    margin-right: 5px;
+                    position: absolute;
+                    top: 15px;
+                    right: 5px;
                     width: 12px;
                     height: 12px;
                     text-align: center;
@@ -409,6 +396,18 @@
             }
             li:first-child {
                 border-top: 1px solid $commonBorderColor;
+            }
+        }
+        .disable-scheme-list {
+            &:after {
+                content: '';
+                position: absolute;
+                top: 55px;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0.3;
+                background-color: #e1e4e8;
             }
         }
         .scheme-preview-mode {
