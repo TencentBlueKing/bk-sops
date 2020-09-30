@@ -197,3 +197,19 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
         result = provider.list_instance_by_policy(filter_obj, page_obj, **options)
 
         return success_response(result.to_list(), request_id)
+
+    def _dispatch_search_instance(self, request, data, request_id):
+        options = self._get_options(request)
+
+        filter_obj = get_filter_obj(data.get("filter"), ["parent", "keyword"])
+        page_obj = get_page_obj(data.get("page"))
+
+        provider = self._provider[data["type"]]
+
+        pre_process = getattr(provider, "pre_search_instance", None)
+        if pre_process and callable(pre_process):
+            pre_process(filter_obj, page_obj, **options)
+
+        result = provider.search_instance(filter_obj, page_obj, **options)
+
+        return success_response(result.to_dict(), request_id)
