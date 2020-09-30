@@ -12,12 +12,29 @@ specific language governing permissions and limitations under the License.
 """
 
 from iam import DjangoQuerySetConverter
+from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.core.models import Project
 
 
 class ProjectResourceProvider(ResourceProvider):
+    def pre_search_instance(self, filter, page, **options):
+        if page.limit == 0 or page.limit > 1000:
+            raise InvalidPageException("limit in page too large")
+
+    def search_instance(self, filter, page, **options):
+        """
+        project 没有上层资源，不需要处理 filter 的 parent
+        """
+        keyword = filter.keyword
+        queryset = Project.objects.filter(name__icontains=keyword, is_deleted=False)
+        results = [
+            {"id": str(project.id), "display_name": project.name}
+            for project in queryset[page.slice_from : page.slice_to]
+        ]
+        return ListResult(results=results, count=len(results))
+
     def list_attr(self, **options):
         """
         project 资源没有属性，返回空
