@@ -27,7 +27,7 @@ from iam.resource.provider import ResourceProvider
 from iam.resource.utils import get_page_obj, get_filter_obj
 from iam.exceptions import AuthInvalidOperation
 
-from iam.contrib.django.dispatcher.exceptions import InvalidPageException
+from iam.contrib.django.dispatcher.exceptions import InvalidPageException, KeywordTooShortException
 
 logger = logging.getLogger("iam")
 
@@ -115,6 +115,8 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
             return processor(request, data, request_id)
         except InvalidPageException as e:
             return fail_response(422, str(e), request_id)
+        except KeywordTooShortException as e:
+            return fail_response(406, str(e), request_id)
         except Exception as e:
             logger.exception("resource request({}) failed with exception: {}".format(request_id, e))
             return fail_response(500, str(e), request_id)
@@ -202,6 +204,10 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
         options = self._get_options(request)
 
         filter_obj = get_filter_obj(data.get("filter"), ["parent", "keyword"])
+
+        if filter_obj.keyword is None or len(filter_obj.keyword) < 2:
+            raise KeywordTooShortException("the length of keyword should be greater than or equals to 2")
+
         page_obj = get_page_obj(data.get("page"))
 
         provider = self._provider[data["type"]]
