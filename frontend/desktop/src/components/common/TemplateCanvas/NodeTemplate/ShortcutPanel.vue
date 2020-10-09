@@ -102,7 +102,7 @@
                 if (this.node.type === 'startpoint') {
                     return '52px'
                 }
-                return '84px'
+                return '64px'
             }
         },
         methods: {
@@ -115,7 +115,7 @@
              */
             onAppendNode (type, isFillParam = false) {
                 const { x, y, id, type: currType } = this.currentLocation
-                const endX = x + 230
+                const endX = x + 200
                 const newNodeId = 'node' + uuid()
                 let location = {}
                 if (isFillParam) {
@@ -153,13 +153,13 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (currType === 'startpoint') {
-                    location.y += isGatewayAppendNode ? 5 : -15
+                    location.y += isGatewayAppendNode ? 5 : -5
                 } else {
                     if (isGatewayCurrNode && !isGatewayAppendNode) {
-                        location.y -= 20
+                        location.y -= 10
                     }
                     if (!isGatewayCurrNode && isGatewayAppendNode) {
-                        location.y += 20
+                        location.y += 10
                     }
                 }
                 
@@ -229,7 +229,7 @@
 .shortcut-panel {
     position: absolute;
     left: 50%;
-    top: 76px;
+    top: 56px;
     width: 120px;
     background: rgba(255, 255, 255, .9);
     transform: translateX(-50%);
@@ -257,6 +257,10 @@
             }
             &:hover {
                 color: #3a84ff;
+            }
+            &.common-icon-node-tasknode-shortcut,
+            &.common-icon-node-subflow-shortcut {
+                font-size: 18px;
             }
         }
     }
