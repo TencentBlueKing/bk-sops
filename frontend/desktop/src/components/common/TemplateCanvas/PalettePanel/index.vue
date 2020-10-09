@@ -319,6 +319,10 @@
         .node-type-icon {
             font-size: 28px;
             color: #546a9e;
+            &.common-icon-node-tasknode,
+            &.common-icon-node-subflow {
+                font-size: 20px;
+            }
         }
     }
 </style>
