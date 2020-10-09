@@ -98,8 +98,8 @@
             &::before {
                 content: '';
                 position: absolute;
-                bottom: 0;
-                right: 0;
+                bottom: -1px;
+                right: -1px;
                 background: linear-gradient(to left top,
                     #a2a5ad, #9fa3aa 40%, #82848a 50%, #ffffff 60%, #ffffff) 100% 0 no-repeat;
                 width: 11px;

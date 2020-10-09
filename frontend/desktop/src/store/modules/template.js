@@ -32,12 +32,12 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 20,
-            y: 160,
+            y: 150,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 200,
+            x: 240,
             y: 145,
             name: '',
             stage_name: '',
@@ -45,8 +45,8 @@ function generateInitLocation () {
         },
         {
             id: 'node' + uuid(),
-            x: 680,
-            y: 160,
+            x: 540,
+            y: 150,
             type: 'endpoint'
         }
     ]

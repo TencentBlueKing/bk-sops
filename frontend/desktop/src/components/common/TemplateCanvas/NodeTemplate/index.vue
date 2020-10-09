@@ -176,7 +176,7 @@
 <style lang="scss">
     @import '@/scss/mixins/multiLineEllipsis.scss';
 
-    $blueDark: #52699D;
+    $blueDark: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;
@@ -199,6 +199,9 @@
     }
 
     @mixin taskNodeStyle ($color) {
+        &:hover .node-name {
+            border-color: $color;
+        }
         .node-status-block {
             background-color: $color;
         }
@@ -312,8 +315,8 @@
         }
         .task-node {
             position: relative;
-            width: 200px;
-            height: 74px;
+            width: 150px;
+            height: 54px;
             text-align: center;
             background: #ffffff;
             border-radius: 4px;
@@ -324,6 +327,9 @@
             }
             &:hover {
                 box-shadow: 0px 0px 20px 0px $activeShadow;
+                .node-name {
+                    border-color: $blueDark;
+                }
             }
             &.failed {
                 @include taskNodeStyle ($redDark)
@@ -342,7 +348,7 @@
                 align-items: center;
                 padding: 0 6px;
                 height: 20px;
-                background: #738abe;
+                background: $blueDark;
                 text-align: left;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
@@ -368,6 +374,10 @@
                 align-items: center;
                 padding: 0 10px;
                 height: calc(100% - 20px);
+                border: 1px solid #ffffff;
+                border-top: none;
+                border-bottom-left-radius: 4px;
+                border-bottom-right-radius: 4px;
                 .name-text {
                     display: -webkit-box;
                     width: 100%;
