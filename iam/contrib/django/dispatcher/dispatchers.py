@@ -216,6 +216,10 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
         if pre_process and callable(pre_process):
             pre_process(filter_obj, page_obj, **options)
 
+        search_function = getattr(provider, "search_instance", None)
+        if not (search_function and callable(search_function)):
+            return fail_response(404, "resource type: {} not support search instance".format(data["type"]), request_id)
+
         result = provider.search_instance(filter_obj, page_obj, **options)
 
         return success_response(result.to_dict(), request_id)
