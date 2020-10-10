@@ -346,7 +346,7 @@
             .node-status-block {
                 display: flex;
                 align-items: center;
-                padding: 0 6px;
+                padding: 0 8px;
                 height: 20px;
                 background: $blueDark;
                 text-align: left;
@@ -360,7 +360,7 @@
                     color: #ffffff;
                 }
                 .stage-name {
-                    padding: 0 6px;
+                    padding: 0 4px;
                     width: 170px;
                     font-size: 12px;
                     color: #ffffff;
@@ -372,8 +372,9 @@
             .node-name {
                 display: flex;
                 align-items: center;
-                padding: 0 10px;
+                padding: 0 8px;
                 height: calc(100% - 20px);
+                line-height: 14px;
                 border: 1px solid #ffffff;
                 border-top: none;
                 border-bottom-left-radius: 4px;
@@ -383,7 +384,7 @@
                     width: 100%;
                     font-size: 12px;
                     color: #63656e;
-                    text-align: center;
+                    text-align: left;
                     overflow : hidden;
                     text-overflow: ellipsis;
                     word-break: break-all;
