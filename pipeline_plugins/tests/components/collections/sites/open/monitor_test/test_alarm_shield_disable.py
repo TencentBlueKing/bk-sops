@@ -26,7 +26,7 @@ from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_dis
     MonitorAlarmShieldDisableComponent
 
 
-class AlarmShieldDisableComponentTest(TestCase, ComponentTestMixin):
+class MonitorAlarmShieldDisableComponentTest(TestCase, ComponentTestMixin):
 
     def cases(self):
         return [
