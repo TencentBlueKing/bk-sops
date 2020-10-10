@@ -214,7 +214,7 @@ class MonitorAlarmShieldService(Service):
 
 
 class MonitorAlarmShieldComponent(Component):
-    name = _("蓝鲸监控告警屏蔽")
+    name = _("蓝鲸监控告警屏蔽(按范围)")
     code = "monitor_alarm_shield"
     bound_service = MonitorAlarmShieldService
     form = '{static_url}components/atoms/monitor/alarm_shield/v1_0.js'.format(static_url=settings.STATIC_URL)
