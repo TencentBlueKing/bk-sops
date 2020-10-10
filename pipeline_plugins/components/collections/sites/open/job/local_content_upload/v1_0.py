@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
