@@ -1,2 +1,2 @@
-mintor:
-  - 修改 cc_search_object_attribute_all 函数
+bugfix:
+  - 修复测试提的问题 search_object_attribute 接口传bk_biz_id时需要转为int
