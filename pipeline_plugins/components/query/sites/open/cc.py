@@ -72,7 +72,7 @@ def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account)
     @return:
     """
     client = get_client_by_user(request.user.username)
-    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
+    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
