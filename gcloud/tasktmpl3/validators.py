@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
+from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.utils.validate import RequestValidator
 from gcloud.utils.strings import check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
@@ -60,6 +61,11 @@ class ImportValidator(RequestValidator):
         r = read_template_data_file(f)
         if not r["result"]:
             return False, r["message"]
+
+        if "template_source" in r["data"]["template_data"]:
+            if r["data"]["template_data"]["template_source"] != TEMPLATE_EXPORTER_SOURCE_PROJECT:
+                return False, "can not import common template"
+
         f.seek(0)
 
         return True, ""
@@ -76,6 +82,11 @@ class CheckBeforeImportValidator(RequestValidator):
         r = read_template_data_file(f)
         if not r["result"]:
             return False, r["message"]
+
+        if "template_source" in r["data"]["template_data"]:
+            if r["data"]["template_data"]["template_source"] != TEMPLATE_EXPORTER_SOURCE_PROJECT:
+                return False, "can not import common template"
+
         f.seek(0)
 
         return True, ""

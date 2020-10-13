@@ -54,7 +54,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -66,13 +66,16 @@
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
-                    v-if="nodeInfoType === 'executeInfo'"
+                    v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
+                    @onRetryClick="onRetryClick"
+                    @onSkipClick="onSkipClick"
+                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -91,6 +94,11 @@
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
                 </TaskInfo>
+                <TemplateData
+                    v-if="nodeInfoType === 'templateData'"
+                    :template-data="templateData"
+                    @onshutDown="onshutDown">
+                </TemplateData>
             </div>
         </bk-sideslider>
         <gatewaySelectDialog
@@ -108,7 +116,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapGetters } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -123,6 +131,7 @@
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
+    import TemplateData from './TemplateData'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -167,7 +176,8 @@
             TaskInfo,
             gatewaySelectDialog,
             revokeDialog,
-            TaskOperationHeader
+            TaskOperationHeader,
+            TemplateData
         },
         mixins: [permission],
         props: {
@@ -191,6 +201,7 @@
             })
 
             return {
+                templateData: '', // 模板数据
                 defaultActiveId: '',
                 locations: [],
                 setNodeDetail: true,
@@ -339,13 +350,17 @@
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
                 'pauseNodeResume',
-                'getNodeActInfo'
+                'getNodeActInfo',
+                'onForcedFail'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeForceFail'
+            ]),
+            ...mapGetters('template/', [
+                'getLocalTemplateData'
             ]),
             async loadTaskStatus () {
                 try {
@@ -625,7 +640,7 @@
                         node_id: id,
                         task_id: Number(this.instance_id)
                     }
-                    const res = await this.taskflowNodeForceFail(params)
+                    const res = await this.onForcedFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制失败执行成功'),
@@ -743,7 +758,7 @@
                 }
             },
             onRetryClick (id) {
-                this.onTaskParamsClick('retryNode', true, i18n.t('重试'))
+                this.onSidesliderConfig('retryNode', i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -753,9 +768,11 @@
                     node_id: id
                 }
                 this.nodeTaskSkip(data)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             },
             onModifyTimeClick (id) {
-                this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
+                this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -779,6 +796,8 @@
                     data: { callback: 'resume' }
                 }
                 this.nodeResume(data)
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             },
             onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
@@ -788,7 +807,9 @@
             setCanvasData () {
                 this.$nextTick(() => {
                     this.nodeSwitching = false
-                    this.markNodesPhase()
+                    this.$nextTick(() => {
+                        this.markNodesPhase()
+                    })
                 })
             },
             getOptBtnIsClickable (action) {
@@ -864,28 +885,50 @@
             },
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
-                let nodeData = tools.deepClone(this.nodeData)
-                let firstNodeId = null
-                let firstNodeData = null
-                while (nodeData[0]) {
-                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-                        firstNodeId = nodeData[0].id
-                        firstNodeData = nodeData[0]
-                        nodeData[0] = false
-                    } else {
-                        nodeData = nodeData[0].children
+                if (type === 'viewNodeDetails') {
+                    let nodeData = tools.deepClone(this.nodeData)
+                    let firstNodeId = null
+                    let firstNodeData = null
+                    const rootNode = []
+                    while (nodeData[0]) {
+                        if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                            firstNodeId = nodeData[0].id
+                            firstNodeData = nodeData[0]
+                            nodeData[0] = false
+                        } else {
+                            rootNode.push(nodeData[0])
+                            nodeData = nodeData[0].children
+                        }
+                    }
+                    this.defaultActiveId = firstNodeId
+                    let subprocessStack = []
+                    if (rootNode.length > 1) {
+                        subprocessStack = rootNode.map(item => item.id).slice(1)
+                    }
+                    this.nodeDetailConfig = {
+                        component_code: firstNodeData.component.code,
+                        version: firstNodeData.component.version || 'legacy',
+                        node_id: firstNodeData.id,
+                        instance_id: this.instance_id,
+                        subprocess_stack: JSON.stringify(subprocessStack)
                     }
                 }
+                if (type === 'templateData') {
+                    this.transPipelineTreeStr()
+                }
+                if (type === 'templateData') {
+                    this.transPipelineTreeStr()
+                }
+                this.onSidesliderConfig(type, name)
+            },
+            // 侧滑面板配置
+            onSidesliderConfig (type, name) {
                 this.sideSliderTitle = name
-                this.isNodeInfoPanelShow = isNodeInfoPanelShow
+                this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
                 this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
+                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
                     this.quickClose = false
-                }
-                if (name === i18n.t('节点详情')) {
-                    this.defaultActiveId = firstNodeId
-                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
             },
             
@@ -934,40 +977,33 @@
                 }
             },
             handleSingleNodeClick (id, type) {
+                // 节点执行状态
                 const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
-                const nodeActivities = this.pipelineData.activities[id]
-                const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
-                const version = type === 'singleAtom' ? (nodeActivities.component.version || 'legacy') : undefined
-                let isPanelShow = false
-                if (nodeState) {
-                    if (type === 'singleAtom') {
-                        // 标准插件节点执行中、完成、失败状态，点击展开详情
-                        isPanelShow = ['RUNNING', 'FINISHED', 'FAILED'].indexOf(nodeState.state) > -1
-                    } else {
-                        // 控制节点失败时点击展开详情
-                        isPanelShow = nodeState.state === 'FAILED'
-                    }
-                }
-                this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
-                if (isPanelShow) {
-                    let subprocessStack = []
-                    if (this.selectedFlowPath.length > 1) {
-                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                    }
-                    
+                // 任务节点
+                if (type === 'singleAtom') {
+                    // updateNodeActived 设置节点选中态
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
-                    this.nodeDetailConfig = {
-                        component_code: componentCode,
-                        version,
-                        node_id: id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
+                    this.setNodeDetailConfig(id)
+                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
                 } else {
-                    this.setNodeDetailConfig(id)
+                    // 分支网关节点失败时展开侧滑面板
+                    if (nodeState && nodeState.state === 'FAILED') {
+                        let subprocessStack = []
+                        if (this.selectedFlowPath.length > 1) {
+                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
+                        }
+                        this.nodeDetailConfig = {
+                            component_code: '',
+                            version: undefined,
+                            node_id: id,
+                            instance_id: this.instance_id,
+                            subprocess_stack: JSON.stringify(subprocessStack)
+                        }
+                        this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                    }
                 }
             },
             handleSubflowAtomClick (id) {
@@ -980,6 +1016,7 @@
                     nodeId: nodeActivities.id,
                     type: 'SubProcess'
                 })
+                
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },
@@ -1018,7 +1055,9 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
-               
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
@@ -1034,7 +1073,6 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-                    
                     this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
                         await this.switchCanvasView(nodeActivities)
@@ -1066,6 +1104,7 @@
                 if (nodeType !== 'subflow') {
                     this.setNodeDetailConfig(selectNodeId)
                 }
+                this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {
@@ -1133,7 +1172,6 @@
             },
             onRetryCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onModifyTimeSuccess (id) {
@@ -1143,7 +1181,6 @@
             },
             onModifyTimeCancel (id) {
                 this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
                 this.updateNodeActived(id, false)
             },
             onConfirmGatewaySelect (selected) {
@@ -1172,7 +1209,18 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
+            },
+            async transPipelineTreeStr () {
+                const templateData = await this.getLocalTemplateData()
+                this.templateData = JSON.stringify(templateData, null, 4)
+            },
+            onshutDown () {
+                this.isNodeInfoPanelShow = false
+                this.templateData = ''
+            },
+            onHiddenSideslider () {
                 this.nodeInfoType = ''
+                this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             }
         }
     }

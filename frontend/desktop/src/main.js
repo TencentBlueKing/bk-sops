@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import './public-path.js'
 import Vue from 'vue'
 import VeeValidate, { Validator } from 'vee-validate'
 import router from './routers/index.js'
@@ -110,7 +111,7 @@ Validator.localize({
             variableKey: {
                 required: i18n.t('变量KEY值不能为空'),
                 regex: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
-                max: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
+                keyLength: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
                 keyRepeat: i18n.t('变量KEY值已存在')
             },
             defaultValue: {

@@ -177,9 +177,19 @@
                     return
                 }
 
-                const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
-                if (typeof value === 'string' && /^\$\{(.|\s)+\}$/.test(value) && value.includes(keyStr)) {
-                    nodes.push(id)
+                if (typeof value === 'string') {
+                    const keyStr = this.variableData.key.replace(/[\$\{\}]/g, '')
+                    const reg = /\$\{[\S\s]*?\}/gm
+                    const matchResult = value.match(reg)
+
+                    if (matchResult && matchResult.length) {
+                        matchResult.some(result => {
+                            if (result.includes(keyStr)) {
+                                nodes.push(id)
+                                return true
+                            }
+                        })
+                    }
                 } else if (typeof value === 'object') {
                     if (Array.isArray(value)) {
                         value.forEach(item => {

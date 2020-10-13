@@ -17,12 +17,16 @@ const project = {
         project_id: window.DEFAULT_PROJECT_ID,
         projectName: '',
         projectList: [],
+        userProjectList: [], // 用户有权限的项目列表
         timeZone: window.TIMEZONE,
         authActions: []
     },
     mutations: {
         setProjectList (state, data) {
             state.projectList = data
+        },
+        setUserProjectList (state, data) {
+            state.userProjectList = data
         },
         setProjectId (state, id) {
             if (typeof id !== 'number') {
@@ -42,8 +46,8 @@ const project = {
     },
     actions: {
         // 更改用户的默认项目
-        changeDefaultProject ({ state }) {
-            return axios.post(`core/api/change_default_project/${state.project_id}/`).then(response => response.data)
+        changeDefaultProject ({ state }, id) {
+            return axios.post(`core/api/change_default_project/${id}/`).then(response => response.data)
         },
         loadProjectList ({ commit }, data) {
             const { limit, offset, is_disable = false, q } = data
@@ -55,10 +59,14 @@ const project = {
                     q
                 }
             }).then(response => {
-                if (data && data.limit === 0) {
-                    commit('setProjectList', response.data.objects)
-                }
-
+                return response.data
+            })
+        },
+        // 加载用户有权限的项目列表
+        loadUserProjectList ({ commit }, params) {
+            return axios.get(`api/v3/user_project/`, { params }).then(response => {
+                commit('setUserProjectList', response.data.objects)
+                commit('setProjectPerm', response.data.meta)
                 return response.data
             })
         },
@@ -89,13 +97,6 @@ const project = {
                 desc,
                 is_disable
             }).then(response => response.data)
-        }
-    },
-    getters: {
-        userCanViewProjects (state) {
-            return state.projectList.filter(item => {
-                return item.auth_actions.indexOf('project_view') > -1
-            })
         }
     }
 }

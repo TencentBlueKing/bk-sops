@@ -71,7 +71,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
                             this.remoteMethod();
@@ -159,7 +159,7 @@
                             return;
                         }
                         this.set_loading(true);
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         $.ajax({
                             url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
                             type: 'GET',
@@ -193,7 +193,7 @@
                             return;
                         }
                         this.set_loading(true);
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         $.ajax({
                             url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + job_id + '/',
                             type: 'GET',

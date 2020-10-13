@@ -171,6 +171,7 @@
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
             common="1"
+            :has-create-common-tpl-perm="hasCreateCommonTplPerm"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
@@ -610,7 +611,7 @@
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id }
+                    query: { template_id: id, template_source: 'common' }
                 }
             },
             // 获得子流程展示内容

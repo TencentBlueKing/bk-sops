@@ -38,7 +38,9 @@ Start a task
 ```
 {
     "result": true,
-    "data": {}
+    "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
+    "message": "success",
+    "code": 3545100
 }
 ```
 
@@ -49,3 +51,4 @@ Start a task
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  data     |    dict    |      data returned when result is true            |
 |  message  |    string  |      error message returned when result is false  |
+|  task_url |    string  |      url of the task  |

@@ -10,7 +10,7 @@
                 <bk-button
                     theme="primary"
                     :loading="loading"
-                    @click="applyBtnClick">
+                    @click="goToAuthCenter">
                     {{$t('去申请')}}
                 </bk-button>
             </div>
@@ -19,7 +19,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapMutations, mapActions, mapState, mapGetters } from 'vuex'
+    import { mapMutations, mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import openOtherApp from '@/utils/openOtherApp.js'
@@ -50,12 +50,6 @@
             ...mapState({
                 'viewMode': state => state.view_mode
             }),
-            ...mapState('project', {
-                'projectList': state => state.projectList
-            }),
-            ...mapGetters('project', [
-                'userCanViewProjects'
-            ]),
             permissionTitle () {
                 return this.permissionData.type === 'project' ? i18n.t('无权限访问项目') : i18n.t('无权限访问')
             }
@@ -87,22 +81,14 @@
                 'setProjectActions'
             ]),
             applyBtnClick () {
-                if (this.permissionData.type === 'project') {
-                    if (this.url) {
-                        this.goToAuthCenter()
-                    } else {
-                        this.$router.push({ name: 'projectHome' })
-                    }
-                } else {
-                    this.goToAuthCenter()
-                }
-            },
-            goToAuthCenter () {
-                if (this.loading || !this.url) {
+                if (this.loading) {
                     return
                 }
-                
-                openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                let url = this.url
+                if (this.permissionData.type === 'project' & !this.url) {
+                    url = window.BK_IAM_SAAS_HOST
+                }
+                openOtherApp(window.BK_IAM_APP_CODE, url)
             },
             goToApply () {
                 this.applyForPermission(['project_create'])

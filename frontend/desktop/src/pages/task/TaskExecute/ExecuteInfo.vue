@@ -224,6 +224,26 @@
                     </bk-table-column>
                 </bk-table>
             </section>
+            <div v-if="executeInfo.state && !['FINISHED', 'CREATED', 'READY'].includes(executeInfo.state)" class="action-wrapper">
+                <bk-button
+                    v-if="executeInfo.state === 'FAILED'"
+                    theme="primary"
+                    @click="onRetryClick">
+                    {{ $t('重试') }}
+                </bk-button>
+                <bk-button
+                    v-if="['SUSPENDED', 'RUNNING'].includes(executeInfo.state)"
+                    theme="primary"
+                    @click="onResumeClick">
+                    {{ $t('启动') }}
+                </bk-button>
+                <bk-button
+                    v-if="['SUSPENDED', 'RUNNING', 'FAILED'].includes(executeInfo.state)"
+                    theme="default"
+                    @click="onSkipClick">
+                    {{ $t('跳过') }}
+                </bk-button>
+            </div>
         </div>
     </div>
 </template>
@@ -433,7 +453,7 @@
         },
         data () {
             return {
-                isLogLoading: true,
+                isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
                 readOnly: true,
@@ -485,6 +505,8 @@
                 } else if (this.executeInfo.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
                 } else if (this.executeInfo.state === 'CREATED') {
+                    state = 'common-icon-dark-circle-shape'
+                } else if (this.executeInfo.state === 'READY') {
                     state = 'common-icon-dark-circle-shape'
                 }
                 return state
@@ -566,6 +588,10 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
+                        if (this.executeInfo.state && !['READY', 'CREATED'].includes(this.executeInfo.state)) {
+                            const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                            this.getPerformLog(query)
+                        }
                         
                         // 兼容 JOB 执行作业输出参数
                         // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
@@ -587,6 +613,7 @@
                             this.theExecuteTime = respData.loop
                         }
                     }
+                    
                     this.executeInfo.plugin_version = version
                     if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
@@ -617,13 +644,11 @@
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
-                    
+
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
-                    } else {
-                        this.getPerformLog(query)
                     }
                     const res = await getData(query)
                     if (res.result) {
@@ -752,6 +777,15 @@
                 } else {
                     this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
                 }
+            },
+            onRetryClick () {
+                this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
+            },
+            onSkipClick () {
+                this.$emit('onSkipClick', this.nodeDetailConfig.node_id)
+            },
+            onResumeClick () {
+                this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)
             }
         }
     }
@@ -769,6 +803,7 @@
 .execute-info {
     flex: 1;
     padding: 30px 20px;
+    padding-bottom: 0;
     height: 100%;
     color: #313238;
     overflow-y: auto;
@@ -928,6 +963,11 @@
     }
     /deep/ .code-editor {
         height: 300px;
+    }
+    .action-wrapper {
+        height: 60px;
+        line-height: 60px;
+        border-top: 1px solid $commonBorderColor;
     }
 }
 </style>

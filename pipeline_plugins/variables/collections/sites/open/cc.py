@@ -73,7 +73,9 @@ class VarIpPickerVariable(LazyVariable):
                     logger.warning("ip_picker module ip transit failed: {origin}".format(origin=custom_id))
 
             # query cc to get module's ip list and filter tree_ip_list
-            host_list = cc_get_inner_ip_by_module_id(username, bk_biz_id, module_inst_id_list, bk_supplier_account)
+            host_list = cc_get_inner_ip_by_module_id(
+                username, bk_biz_id, module_inst_id_list, bk_supplier_account, ["host_id", "bk_host_innerip"]
+            )
             cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ",".join(tree_ip_list))["ip_result"]
             select_ip = set()
 
@@ -116,7 +118,7 @@ class VarCmdbIpSelector(LazyVariable):
 class SetDetailData(object):
     def __init__(self, data):
         self._value = data
-        self.open_zone_count = len(self._value)
+        self.set_count = len(self._value)
         item_values = {}
         modules = []
         total_ip_set = set()
@@ -134,6 +136,9 @@ class SetDetailData(object):
             setattr(self, "flat__{}".format(attr), flat_val)
         setattr(self, "_module", modules)
         setattr(self, "flat__ip_list", ",".join(list(total_ip_set)))
+        self._pipeline_var_str_value = "Allocate {} sets with names: {}".format(
+            self.set_count, ",".join(item_values["bk_set_name"])
+        )
 
 
 class VarCmdbSetAllocation(LazyVariable):

@@ -97,6 +97,22 @@ class Select(LazyVariable):
             return self.value
 
 
+class FormatSupportCurrentTime(LazyVariable):
+    code = "format_support_current_time"
+    name = _("系统当前时间(支持格式自定义)")
+    type = "general"
+    tag = "format_support_current_time.format_support_current_time"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_("系统当前时间变量(支持格式自定义)"))
+
+    def get_value(self):
+        time_format = self.value.get("time_format", "%y-%m-%d %H:%M:%S").strip()
+        time_zone = self.value.get("time_zone", "Asia/Shanghai")
+        now = datetime.datetime.now(timezone.pytz.timezone(time_zone))
+        current_time = now.strftime(time_format)
+        return current_time
+
+
 class CurrentTime(LazyVariable):
     code = "current_time"
     name = _("系统当前时间")

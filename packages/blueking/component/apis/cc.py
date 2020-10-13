@@ -663,3 +663,39 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/delete_host_lock/",
             description="删除主机锁",
         )
+        self.search_dynamic_group = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/search_dynamic_group/",
+            description="搜索动态分组",
+        )
+        self.execute_dynamic_group = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/execute_dynamic_group/",
+            description="执行动态分组",
+        )
+        self.create_dynamic_group = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/create_dynamic_group/",
+            description="新建动态分组",
+        )
+        self.find_module_batch = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/find_module_batch/",
+            description="批量获取模块详情",
+        )
+        self.find_module_with_relation = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/find_module_with_relation/",
+            description="批量获取模块详情",
+        )
+        self.find_set_batch = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/find_set_batch/",
+            description="批量获取集群详情",
+        )
