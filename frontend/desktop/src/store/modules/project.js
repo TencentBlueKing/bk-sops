@@ -66,7 +66,6 @@ const project = {
         loadUserProjectList ({ commit }, params) {
             return axios.get(`api/v3/user_project/`, { params }).then(response => {
                 commit('setUserProjectList', response.data.objects)
-                commit('setProjectPerm', response.data.meta)
                 return response.data
             })
         },
