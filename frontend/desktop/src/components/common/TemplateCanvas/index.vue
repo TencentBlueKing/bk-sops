@@ -203,6 +203,10 @@
             isCanvasImg: {
                 type: Boolean,
                 default: false
+            },
+            taskCreat: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -1290,14 +1294,21 @@
                 this.$refs.selectBox.removeEventListener('mousemove', this.selectBoxMoveHandler, false)
             },
             selectBoxMoveHandler (e) {
-                const cavasMargin = 80 // 80 画布margin值
+                const smallMapPosition = 80 // 80 小地图top left值
                 const headerWidth = 60 // 60 header的宽度
                 const tabWidth = 50 // 50 tab栏的宽度
-                const moreOffsetTop = 30 // 画布多向上偏移10px  露出点空白
+                const progressBarWidth = 72 // 新建任务进程栏宽度
+                const moreOffsetTop = 30 // 画布多向上偏移30px  露出点空白
                 const moreOffsetLeft = 30 // 画布多向左偏移30px  露出点空白
                 const selectBox = document.querySelector('.select-box')
-                const targetX = e.clientX - this.isMouseEnterX - cavasMargin
-                const targetY = e.clientY - this.isMouseEnterY - cavasMargin - headerWidth - tabWidth
+                const targetX = e.clientX - this.isMouseEnterX - smallMapPosition
+                let targetY = 0
+                // 判断是否为新建任务页面
+                if (this.taskCreat) {
+                    targetY = e.clientY - this.isMouseEnterY - smallMapPosition - headerWidth - tabWidth - progressBarWidth
+                } else {
+                    targetY = e.clientY - this.isMouseEnterY - smallMapPosition - headerWidth - tabWidth
+                }
                 // // 计算选择框宽高
                 const selectWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
                 const selectHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight

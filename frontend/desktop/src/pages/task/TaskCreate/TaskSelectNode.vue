@@ -18,6 +18,7 @@
                 :preview-data-loading="previewDataLoading"
                 :show-palette="false"
                 :editable="false"
+                :task-creat="true"
                 :is-node-check-open="isSchemeShow"
                 :is-all-selected="isAllSelected"
                 :is-show-select-all-tool="isSelectAllShow"
