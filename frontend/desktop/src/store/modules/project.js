@@ -96,6 +96,38 @@ const project = {
                 desc,
                 is_disable
             }).then(response => response.data)
+        },
+        getProjectConfig ({ commit }, id) {
+            return axios.get(`api/v3/project_config/${id}/`).then(
+                response => response.data
+            )
+        },
+        updateProjectConfig ({ commit }, params) {
+            const { id, executor_proxy, executor_proxy_exempts } = params
+            return axios.patch(`api/v3/project_config/${id}/`, { executor_proxy, executor_proxy_exempts }).then(
+                response => response.data
+            )
+        },
+        getProjectStaffGroupList ({ commit }, params) {
+            return axios.get(`api/v3/staff_group/`, { params }).then(
+                response => response.data
+            )
+        },
+        createProjectStaffGroup ({ commit }, params) {
+            return axios.post(`api/v3/staff_group/`, params.data).then(
+                response => response.data
+            )
+        },
+        updateProjectStaffGroup ({ commit }, params) {
+            const { id, data } = params
+            return axios.put(`api/v3/staff_group/${id}/`, data).then(
+                response => response.data
+            )
+        },
+        delProjectStaffGroup ({ commit }, id) {
+            return axios.delete(`api/v3/staff_group/${id}/`).then(
+                response => response.data
+            )
         }
     }
 }

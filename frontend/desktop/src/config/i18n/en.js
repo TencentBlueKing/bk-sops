@@ -1,5 +1,9 @@
 const en = {
     '继续执行': 'Continue to perform',
+    '保存筛选方案': 'Save the filter scheme',
+    '修改名称会新建方案记录': 'Changing the name creates a new schema record',
+    '筛选方案': 'Screening scheme',
+    '筛选条件和排除条件': 'Screening criteria and exclusion criteria',
     '节点参数': 'Node parameter',
     '缩略视图': 'Thumbnail view',
     '': '',
@@ -1011,7 +1015,16 @@ const en = {
     '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
-    '复制/粘贴': 'Copy/Paste'
+    '复制/粘贴': 'Copy/Paste',
+    '项目配置': 'Configure',
+    '成员设置': 'Membership Settings',
+    '执行代理人设置': 'Executive Agent Settings',
+    '执行代理人': 'Executive Agent',
+    '白名单用户': 'Whitelist Users',
+    '人员分组设置': 'Staffing Group Settings',
+    '增加分组': 'add group',
+    '分组名称': 'Group Name',
+    '成员': 'Members'
 }
 
 export default en
