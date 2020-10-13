@@ -47,6 +47,7 @@
                         :loading="loadingStatus.project"
                         :popover-width="260"
                         :clearable="false"
+                        :searchable="true"
                         :placeholder="$t('请选择项目')"
                         @change="checkPermission">
                         <bk-option
