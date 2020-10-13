@@ -42,4 +42,4 @@ def start_task(request, task_id, project_id):
     project = request.project
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
     ctx = task.task_action("start", username)
-    return JsonResponse(ctx)
+    return JsonResponse({"task_url": task.url, **ctx})
