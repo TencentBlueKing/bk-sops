@@ -146,7 +146,7 @@ class CollectionsJOB(object):
             description='获取作业实例全局变量的值'
         )
         self.push_config_file = ComponentAPI(
-            client=self.client, method='GET',
+            client=self.client, method='POST',
             path='/api/c/compapi{bk_api_ver}/job/push_config_file/',
             description='分发配置文件，此接口用于分发配置文件等小的纯文本文件'
         )
