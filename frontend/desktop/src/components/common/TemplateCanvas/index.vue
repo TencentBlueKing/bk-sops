@@ -109,8 +109,7 @@
             <div
                 ref="selectBox"
                 class="select-box"
-                @mousedown.prevent="onMouseDownSelect"
-                @mouseup.prevent="onMouseUpSelect">
+                @mousedown.prevent="onMouseDownSelect">
             </div>
         </div>
     </div>
@@ -1285,9 +1284,11 @@
                 this.isMouseEnterX = e.offsetX
                 this.isMouseEnterY = e.offsetY
                 this.$refs.selectBox.addEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.addEventListener('mouseup', this.onMouseUpListener, false)
             },
-            onMouseUpSelect () {
+            onMouseUpListener () {
                 this.$refs.selectBox.removeEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.removeEventListener('mouseup', this.onMouseUpListener, false)
             },
             selectBoxMoveHandler (e) {
                 const moreOffsetTop = 30 // 画布多向上偏移30px  露出点空白
