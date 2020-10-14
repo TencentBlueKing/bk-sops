@@ -91,8 +91,7 @@
                 templateLoading: true,
                 previewDataLoading: true,
                 tplActions: [],
-                planDataObj: {}, // 包含所有方案的对象
-                selectNodeArr: []
+                planDataObj: {} // 包含所有方案的对象
             }
         },
         computed: {
@@ -338,7 +337,7 @@
              */
             async selectScheme (scheme, e) {
                 let allNodeId = []
-                let selectNodeArr = this.selectNodeArr
+                let selectNodeArr = []
                 // 取消已选择方案
                 if (e === false) {
                     selectNodeArr = []
@@ -357,10 +356,13 @@
                     try {
                         const data = await this.getSchemeDetail({ id: scheme, isCommon: this.isCommonProcess })
                         allNodeId = JSON.parse(data.data)
-                        selectNodeArr.push(...allNodeId)
                         this.planDataObj[scheme] = allNodeId
-                        const nodeIdArr = Array.from(new Set(selectNodeArr))
-                        this.selectedNodes = nodeIdArr
+                        for (const key in this.planDataObj) {
+                            const planNodeId = this.planDataObj[key]
+                            selectNodeArr.push(...planNodeId)
+                            const nodeIdArr = Array.from(new Set(selectNodeArr))
+                            this.selectedNodes = nodeIdArr
+                        }
                     } catch (e) {
                         errorHandler(e, this)
                     }
