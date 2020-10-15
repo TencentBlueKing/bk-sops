@@ -59,7 +59,12 @@
                         hookable: true,
                         attrs: {
                             name: gettext("IP"),
-                            placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的")
+                            placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         },
                         events: [
                             {
@@ -111,7 +116,12 @@
                                                 show_msg(resp.message, 'error');
                                             }
                                             return resp.data;
-                                        }
+                                        },
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
                                     },
                                 },
                                 {
@@ -129,7 +139,12 @@
                                                 show_msg(resp.message, 'error');
                                             }
                                             return resp.data;
-                                        }
+                                        },
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
                                     },
                                 },
                                 {
@@ -138,7 +153,7 @@
                                     hookable: true,
                                     attrs: {
                                         name: gettext("使用模块属性名"),
-                                        placeholder: gettext("请输入使用模块属性，英文逗号分隔")
+                                        placeholder: gettext("请输入需要使用的模块属性，多个用英文逗号分隔，不填默认为ip属性")
                                     },
                                 }
                             ]
@@ -182,7 +197,12 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("输入集群"),
-                                        placeholder: gettext("请输入集群")
+                                        placeholder: gettext("请输入集群，多个使用英文逗号分隔，可输入all选择所有集群"),
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
                                     },
                                 },
                                 {
@@ -190,7 +210,12 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("输入服务模板"),
-                                        placeholder: gettext("请输入服务模板")
+                                        placeholder: gettext("请输入服务模板，多个使用英文逗号分隔，可输入all选择所有服务模板"),
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
                                     },
                                 },
                                 {
@@ -199,7 +224,7 @@
                                     hookable: true,
                                     attrs: {
                                         name: gettext("使用模块属性名"),
-                                        placeholder: gettext("请输入使用模块属性，英文逗号分隔")
+                                        placeholder: gettext("请输入需要使用的模块属性，多个用英文逗号分隔，不填默认为ip属性")
                                     },
                                 }
                             ]
@@ -237,7 +262,7 @@
                         hookable: true,
                         attrs: {
                             name: gettext("筛选集群"),
-                            placeholder: gettext("请输入筛选集群名称，英文逗号分隔")
+                            placeholder: gettext("请输入需要筛选的集群名称，多个使用英文逗号分隔，为空则不做筛选")
                         },
                     },
                     {
@@ -246,7 +271,7 @@
                         hookable: true,
                         attrs: {
                             name: gettext("筛选服务模板"),
-                            placeholder: gettext("请输入筛选服务模板名称，英文逗号分隔")
+                            placeholder: gettext("请输入需要筛选的服务模板名称，多个使用英文逗号分隔，为空则不做筛选")
                         },
                     },
                 ]
