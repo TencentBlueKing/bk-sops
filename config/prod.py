@@ -29,7 +29,7 @@ BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 
 LOGGING["loggers"]["iam"] = {
     "handlers": ["component"],
-    "level": "INFO",
+    "level": "DEBUG",
     "propagate": True,
 }
 
