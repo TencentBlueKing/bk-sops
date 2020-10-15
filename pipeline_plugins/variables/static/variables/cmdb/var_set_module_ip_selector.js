@@ -62,7 +62,26 @@
                             placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
                             validation: [
                                 {
-                                    type: "required"
+                                    type: "custom",
+                                    args: function (value) {
+                                        var self = this
+                                        var result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('var_ip_method')) {
+                                            if (self.get_parent().get_child('var_ip_method').value === "custom" && !value) {
+                                                result.result = false;
+                                                result.error_message = gettext("请输入IP");
+                                            }
+                                        } else if (!value) {
+                                            result.result = false;
+                                            result.error_message = gettext("请输入IP");
+                                        }
+                                        return result
+                                    }
                                 }
                             ]
                         },
@@ -119,7 +138,26 @@
                                         },
                                         validation: [
                                             {
-                                                type: "required"
+                                                type: "custom",
+                                                args: function (value) {
+                                                    var self = this
+                                                    var result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
+                                                        return result
+                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
+                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "select" && !value) {
+                                                            result.result = false;
+                                                            result.error_message = gettext("请选择集群");
+                                                        }
+                                                    } else if (!value) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请选择集群");
+                                                    }
+                                                    return result
+                                                }
                                             }
                                         ]
                                     },
@@ -142,7 +180,26 @@
                                         },
                                         validation: [
                                             {
-                                                type: "required"
+                                                type: "custom",
+                                                args: function (value) {
+                                                    var self = this
+                                                    var result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
+                                                        return result
+                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
+                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "select" && !value.length) {
+                                                            result.result = false;
+                                                            result.error_message = gettext("请选择服务模板");
+                                                        }
+                                                    } else if (!value.length) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请选择服务模板");
+                                                    }
+                                                    return result
+                                                }
                                             }
                                         ]
                                     },
@@ -196,11 +253,30 @@
                                     tag_code: "var_manual_set",
                                     type: "textarea",
                                     attrs: {
-                                        name: gettext("输入集群"),
+                                        name: gettext("请输入集群"),
                                         placeholder: gettext("请输入集群，多个使用英文逗号分隔，可输入all选择所有集群"),
                                         validation: [
                                             {
-                                                type: "required"
+                                                type: "custom",
+                                                args: function (value) {
+                                                    var self = this
+                                                    var result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
+                                                        return result
+                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
+                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "manual" && !value) {
+                                                            result.result = false;
+                                                            result.error_message = gettext("请输入集群");
+                                                        }
+                                                    } else if (!value) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请输入集群");
+                                                    }
+                                                    return result
+                                                }
                                             }
                                         ]
                                     },
@@ -209,11 +285,30 @@
                                     tag_code: "var_manual_module",
                                     type: "textarea",
                                     attrs: {
-                                        name: gettext("输入服务模板"),
+                                        name: gettext("请输入服务模板"),
                                         placeholder: gettext("请输入服务模板，多个使用英文逗号分隔，可输入all选择所有服务模板"),
                                         validation: [
                                             {
-                                                type: "required"
+                                                type: "custom",
+                                                args: function (value) {
+                                                    var self = this
+                                                    var result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
+                                                        return result
+                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
+                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "manual" && !value) {
+                                                            result.result = false;
+                                                            result.error_message = gettext("请输入服务模板");
+                                                        }
+                                                    } else if (!value) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请输入服务模板");
+                                                    }
+                                                    return result
+                                                }
                                             }
                                         ]
                                     },
