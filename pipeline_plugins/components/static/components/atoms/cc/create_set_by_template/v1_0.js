@@ -206,7 +206,7 @@
             type: "input",
             attrs: {
                 name: gettext("集群名称"),
-                placeholder: gettext("请输入集群名称"),
+                placeholder: gettext("请输入集群名称，多个以,分隔"),
                 hookable: true,
                 validation: [
                     {
@@ -236,6 +236,51 @@
                 validation: [
                     {
                         type: "required"
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "cc_set_attr_combine",
+            type: "combine",
+            attrs: {
+                name: gettext("集群属性"),
+                children: [
+                    {
+                        tag_code: "set_attr",
+                        type: "datatable",
+                        attrs: {
+                            name: gettext("集群属性"),
+                            delete_btn: true,
+                            add_btn: true,
+                            columns: [
+                                {
+                                    tag_code: "attr_id",
+                                    type: "input",
+                                    attrs: {
+                                        name: gettext("属性唯一标识"),
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    tag_code: "attr_value",
+                                    type: "input",
+                                    attrs: {
+                                        name: gettext("属性值"),
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
+                                    }
+                                },
+                            ],
+                            hookable: true
+                        }
                     }
                 ]
             }
