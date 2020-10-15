@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import itertools
 import ujson as json
 
 from django.utils.translation import ugettext_lazy as _
@@ -48,20 +49,21 @@ HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip"]
 
 
 def get_host_id_by_inner_ip(client, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
+    """
+    根据inner_ip获取bk_host_id 对应关系dict
+    """
     kwargs = {
         "bk_biz_id": [bk_biz_id],
         "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
     result = client.nodeman.search_host_plugin(kwargs)
 
-    bk_host_id = []
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
         logger.error(error)
-        return bk_host_id
+        return {}
 
-    bk_host_id = [host["bk_host_id"] for host in result["data"]["list"]]
-    return bk_host_id
+    return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
 class NodemanCreateTaskService(Service):
@@ -88,45 +90,56 @@ class NodemanCreateTaskService(Service):
         # 拼接任务类型
         job_name = "_".join([op_type, node_type])
 
-        # 获取bk_host_id
-        ip_list = get_ip_by_regex(ip_str)
-        bk_host_id = get_host_id_by_inner_ip(client, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+        if job_name in itertools.chain.from_iterable([OPERATE_JOB, REMOVE_JOB]):
 
-        # 操作类任务（升级、卸载等）
-        if job_name in OPERATE_JOB:
-            kwargs = {
-                "job_type": job_name,
-                "bk_biz_id": [bk_biz_id],
-                "bk_host_id": bk_host_id,
-                "action": "job_operate",
-            }
+            # 获取bk_host_id
+            ip_list = get_ip_by_regex(ip_str)
+            bk_host_id_dict = get_host_id_by_inner_ip(client, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+            bk_host_ids = [bk_host_id for bk_host_id in bk_host_id_dict.values()]
+            # 操作类任务（升级、卸载等）
+            if job_name in OPERATE_JOB:
+                kwargs = {
+                    "job_type": job_name,
+                    "bk_biz_id": [bk_biz_id],
+                    "bk_host_id": bk_host_ids,
+                    "action": "job_operate",
+                }
 
-        # 移除主机
-        elif job_name in REMOVE_JOB:
-            kwargs = {
-                "bk_host_id": bk_host_id,
-                "bk_biz_id": [bk_biz_id],
-                "is_proxy": True if "PROXY" in job_name else False,  # 是否移除PROXY
-                "action": "remove_host",
-            }
+            # 移除主机
+            elif job_name in REMOVE_JOB:
+                kwargs = {
+                    "bk_biz_id": [bk_biz_id],
+                    "bk_host_id": bk_host_ids,
+                    "is_proxy": True if "PROXY" in job_name else False,  # 是否移除PROXY
+                    "action": "remove_host",
+                }
+            else:
+                return False
 
         # 安装类任务
         elif job_name in INSTALL_JOB:
 
             # 安装主机信息
-            hosts = []
+            all_hosts, row_host_params_list = [], []
             for host in nodeman_hosts:
                 auth_type = host["auth_type"]
                 auth_key = host["auth_key"]
-                inner_ip = get_ip_by_regex(host.get("inner_ip"))
-                if not inner_ip:
+                inner_ip_list = get_ip_by_regex(host.get("inner_ip"))
+                if not inner_ip_list:
                     data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))
                     return False
 
-                one = {
+                # 处理表格中每行的key/psw
+                try:
+                    auth_key = rsa_decrypt_password(auth_key, settings.RSA_PRIV_KEY)
+                except Exception:
+                    # password is not encrypted
+                    pass
+
+                # 表格每行基础参数
+                base_params = {
                     "bk_biz_id": bk_biz_id,
                     "bk_cloud_id": bk_cloud_id,
-                    "inner_ip": inner_ip[0],
                     "os_type": host["os_type"],
                     "port": host["port"],
                     "account": host["account"],
@@ -136,38 +149,42 @@ class NodemanCreateTaskService(Service):
                     "peer_exchange_switch_for_agent": 0,  # 不加速
                 }
 
-                # 处理key/psw
-                try:
-                    auth_key = rsa_decrypt_password(auth_key, settings.RSA_PRIV_KEY)
-                except Exception:
-                    # password is not encrypted
-                    pass
-
-                if auth_type == "PASSWORD":
-                    one["password"] = auth_key
-                else:
-                    one["key"] = auth_key
-
-                # 组装其它可选参数
-                for ip_type in HOST_EXTRA_PARAMS:
-                    ip = get_ip_by_regex(host.get(ip_type, ""))
-                    if ip:
-                        one[ip_type] = ip[0]
-
-                # 重装必须要bk_host_id
-                if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
-                    bk_host_id = get_host_id_by_inner_ip(client, self.logger, bk_cloud_id, bk_biz_id, inner_ip)
-                    if bk_host_id:
-                        one["bk_host_id"] = bk_host_id[0]
+                # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
+                for index, inner_ip in enumerate(inner_ip_list):
+                    one = {"inner_ip": inner_ip}
+                    if auth_type == "PASSWORD":
+                        one["password"] = auth_key
                     else:
-                        data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(inner_ip)))
-                        return False
+                        one["key"] = auth_key
 
-                hosts.append(one)
+                    # 重装必须要bk_host_id
+                    if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
+                        bk_host_id_dict = get_host_id_by_inner_ip(
+                            client, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                        )
+                        try:
+                            one["bk_host_id"] = bk_host_id_dict[inner_ip]
+                        except KeyError:
+                            data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(inner_ip)))
+                            return False
+
+                    # 组装其它可选参数, ip数量需要与inner_ip一一对应
+                    for ip_type in HOST_EXTRA_PARAMS:
+                        others_ip_list = get_ip_by_regex(host.get(ip_type, ""))
+                        if len(others_ip_list) == len(inner_ip_list):
+                            one[ip_type] = others_ip_list[index]
+                        else:
+                            data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
+                            return False
+                    one.update(base_params)
+
+                    row_host_params_list.append(one)
+
+            all_hosts.extend(row_host_params_list)
 
             kwargs = {
                 "job_type": job_name,
-                "hosts": hosts,
+                "hosts": all_hosts,
                 "action": "job_install",
             }
         else:
@@ -275,20 +292,32 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"),
+                key="job_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"),
+                key="success_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"),
+                key="fail_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),
