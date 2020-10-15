@@ -44,12 +44,9 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self,
-                 install_return=None,
-                 operate_return=None,
-                 remove_host=None,
-                 details_return=None,
-                 get_job_log_return=None):
+    def __init__(
+        self, install_return=None, operate_return=None, remove_host=None, details_return=None, get_job_log_return=None
+    ):
         self.name = "name"
         self.nodeman = MagicMock()
         self.nodeman.job_install = MagicMock(return_value=install_return)
@@ -61,13 +58,12 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_client_by_user"
-)
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_client_by_user"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.handle_api_error"
-GET_HOST_ID_BY_INNER_IP = \
+GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_host_id_by_inner_ip"
+)
 
 # mock clients
 CASE_FAIL_CLIENT = MockClient(
@@ -118,11 +114,10 @@ INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
                 "running_count": 0,
                 "total_count": 1,
                 "pending_count": 0,
-                "success_count": 1
+                "success_count": 1,
             },
             "list": [],
         },
-
     },
 )
 
@@ -131,7 +126,7 @@ GET_JOB_LOG_FAIL_DATA = {
     "finish_time": "2020-06-04 06:34:49",
     "step": "安装",
     "start_time": "2020-06-04 06:34:22",
-    "log": "install failed"
+    "log": "install failed",
 }
 
 DETAILS_FAIL_CLIENT = MockClient(
@@ -153,16 +148,10 @@ DETAILS_FAIL_CLIENT = MockClient(
                 "running_count": 0,
                 "total_count": 1,
                 "pending_count": 0,
-                "success_count": 0
+                "success_count": 0,
             },
-            "list": [
-                {
-                    "status": "FAILED",
-                    "instance_id": "host|instance|host|1.1.1.1-0-0",
-                    "inner_ip": "1.1.1.1"
-                }],
+            "list": [{"status": "FAILED", "instance_id": "host|instance|host|1.1.1.1-0-0", "inner_ip": "1.1.1.1"}],
         },
-
     },
     get_job_log_return={
         "message": "",
@@ -173,11 +162,11 @@ DETAILS_FAIL_CLIENT = MockClient(
                 "finish_time": "2020-06-04 06:34:49",
                 "step": "安装",
                 "start_time": "2020-06-04 06:34:22",
-                "log": "install failed"
+                "log": "install failed",
             }
         ],
         "result": True,
-    }
+    },
 )
 
 INSTALL_SUCCESS_CASE = ComponentTestCase(
@@ -207,7 +196,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
                     "data_ip": "1.1.1.1",
                 }
             ],
-        }
+        },
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
@@ -256,18 +245,13 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
     ],
-
 )
 
 REINSTALL_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 reinstall task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_bk_cloud_id": "1",
-            "nodeman_node_type": "AGENT",
-            "nodeman_ap_id": "1"
-        },
+        "nodeman_op_target": {"nodeman_bk_cloud_id": "1", "nodeman_node_type": "AGENT", "nodeman_ap_id": "1"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "REINSTALL",
@@ -285,8 +269,22 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                     "outer_ip": "1.1.1.1",
                     "login_ip": "1.1.1.1",
                     "data_ip": "1.1.1.1",
-                }
-            ], }
+                },
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "2.2.2.2,3.3.3.3",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "4.4.4.4,5.5.5.5",
+                    "login_ip": "6.6.6.6,7.7.7.7",
+                    "data_ip": "8.8.8.8,9.9.9.9",
+                },
+            ],
+        },
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
@@ -320,7 +318,41 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
                                 "bk_host_id": 1,
-                            }
+                            },
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "2.2.2.2",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "outer_ip": "4.4.4.4",
+                                "login_ip": "6.6.6.6",
+                                "data_ip": "8.8.8.8",
+                                "bk_host_id": 2,
+                            },
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "3.3.3.3",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "outer_ip": "5.5.5.5",
+                                "login_ip": "7.7.7.7",
+                                "data_ip": "9.9.9.9",
+                                "bk_host_id": 3,
+                            },
                         ],
                     }
                 )
@@ -335,9 +367,8 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value=[1]),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
     ],
-
 )
 
 INSTALL_FAIL_CASE = ComponentTestCase(
@@ -368,10 +399,9 @@ INSTALL_FAIL_CASE = ComponentTestCase(
                 }
             ],
         },
-
     },
     parent_data={"executor": "tester"},
-    execute_assertion=ExecuteAssertion(success=True, outputs={'job_id': "1"}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.nodeman.job_install,
@@ -412,7 +442,8 @@ INSTALL_FAIL_CASE = ComponentTestCase(
             "success_num": 0,
             "fail_num": 1,
             "ex_data": "<br>日志信息为：</br><br><b>主机：{fail_host}</b></br><br>日志：</br>{log_info}".format(
-                fail_host="1.1.1.1", log_info=json.dumps(GET_JOB_LOG_FAIL_DATA, ensure_ascii=False))
+                fail_host="1.1.1.1", log_info=json.dumps(GET_JOB_LOG_FAIL_DATA, ensure_ascii=False)
+            ),
         },
     ),
     schedule_call_assertion=[
@@ -422,18 +453,21 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         ),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.nodeman.get_job_log,
-            calls=[Call({
-                "job_id": "1",
-                "instance_id": "host|instance|host|1.1.1.1-0-0",
-            })],
+            calls=[
+                Call(
+                    {
+                        "job_id": "1",
+                        "instance_id": "host|instance|host|1.1.1.1-0-0",
+                    }
+                )
+            ],
         ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value=[1]),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
-
 )
 
 OPERATE_SUCCESS_CASE = ComponentTestCase(
@@ -448,9 +482,8 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_ap_id": "1",
             "nodeman_op_type": "UPGRADE",
             "nodeman_ip_str": "1.1.1.1",
-            "nodeman_hosts": []
+            "nodeman_hosts": [],
         },
-
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
@@ -482,9 +515,8 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value=[1]),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
     ],
-
 )
 
 OPERATE_FAIL_CASE = ComponentTestCase(
@@ -499,12 +531,11 @@ OPERATE_FAIL_CASE = ComponentTestCase(
             "nodeman_ap_id": "1",
             "nodeman_op_type": "UPGRADE",
             "nodeman_ip_str": "1.1.1.1",
-            "nodeman_hosts": []
+            "nodeman_hosts": [],
         },
-
     },
     parent_data={"executor": "tester"},
-    execute_assertion=ExecuteAssertion(success=False, outputs={'job_id': '', "ex_data": "failed"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"job_id": "", "ex_data": "failed"}),
     schedule_assertion=[],
     execute_call_assertion=[
         CallAssertion(
@@ -522,10 +553,9 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value=[1]),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
-
 )
 REMOVE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 remove host task success case",
@@ -539,9 +569,8 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_ap_id": "1",
             "nodeman_op_type": "REMOVE",
             "nodeman_ip_str": "1.1.1.1",
-            "nodeman_hosts": []
+            "nodeman_hosts": [],
         },
-
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": None}),
@@ -554,21 +583,12 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.remove_host,
-            calls=[
-                Call(
-                    {
-                        "bk_biz_id": ["1"],
-                        "bk_host_id": [1],
-                        "is_proxy": False
-                    }
-                )
-            ],
+            calls=[Call({"bk_biz_id": ["1"], "bk_host_id": [1], "is_proxy": False})],
         ),
     ],
     schedule_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value=[1]),
+        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
     ],
-
 )
