@@ -55,11 +55,13 @@
                 <bk-search-select
                     primary-key="code"
                     :clearable="true"
+                    :popover-zindex="2300"
                     :data="labelList"
                     :show-condition="false"
                     :show-popover-tag-change="false"
                     :values="filterLabelTree(formData.nodeLabel)"
-                    @change="onLabelChange">
+                    @change="onLabelChange"
+                    @clear="onLabelClear">
                 </bk-search-select>
             </bk-form-item>
             <bk-form-item :label="$t('失败处理')" class="error-handle">
@@ -348,6 +350,10 @@
                     }
                 })
                 this.formData.nodeLabel = val
+                this.updateData()
+            },
+            onLabelClear () {
+                this.formData.nodeLabel = []
                 this.updateData()
             },
             onErrorHandlerChange (val, type) {
