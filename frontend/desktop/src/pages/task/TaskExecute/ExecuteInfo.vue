@@ -49,9 +49,9 @@
                 </div>
             </div>
             <div class="scroll-area">
-                <section class="info-section" v-if="adminView">
+                <section class="info-section">
                     <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                    <table class="operation-table" v-if="executeCols">
+                    <table class="operation-table" v-if="executeCols && onNodeState">
                         <tr v-for="col in executeCols" :key="col.id">
                             <th>{{ col.title }}</th>
                             <td>
@@ -565,7 +565,8 @@
                     this.isShowInputOrigin = false
                     this.isShowOutputOrigin = false
                     const respData = await this.getTaskNodeDetail()
-                    const { execution_info, outputs, inputs, log, history, state } = respData
+                    const { execution_info, outputs, inputs, log, history } = respData
+                    const state = this.adminView ? execution_info.state : respData.state
                     this.onNodeState = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code
@@ -808,7 +809,6 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 30px 20px;
     padding-bottom: 0;
     height: 100%;
     color: #313238;
@@ -828,7 +828,7 @@
         font-size: 12px;
     }
     .excute-time {
-        margin-bottom: 40px;
+        padding: 20px 20px 0;
         display: flex;
         justify-content: flex-start;
         align-items: center;
@@ -845,12 +845,13 @@
         display: flex;
         align-items: center;
         font-size: 14px;
-        padding-bottom: 7px;
+        padding: 20px 20px 7px;
         border-bottom: 1px solid #cacedb;
     }
     .scroll-area {
         flex: 1;
         overflow-y: auto;
+        padding: 0 20px;
         @include scrollbar;
     }
     .panel-title {
@@ -900,7 +901,6 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-right: 5px;
         margin-bottom: 22px;
         .input-title,
         .output-title {
@@ -975,6 +975,7 @@
         height: 300px;
     }
     .action-wrapper {
+        padding-left: 20px;
         height: 60px;
         line-height: 60px;
         border-top: 1px solid $commonBorderColor;
