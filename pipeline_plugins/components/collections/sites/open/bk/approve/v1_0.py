@@ -85,18 +85,9 @@ class ApproveService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
         try:
-            approve_data = callback_data["data"]
-        except ValueError as e:
-            err_msg = "invalid callback_data: {}, err: {}"
-            self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
-            data.outputs.ex_data = err_msg.format(callback_data, e)
-            return False
-
-        try:
-            approve_result = approve_data["approve_result"]
+            approve_result = callback_data["approve_result"]
             data.outputs.approve_result = _("通过") if approve_result else _("拒绝")
             return approve_result
-
         except Exception as e:
             err_msg = "get approve_result failed: {}, err: {}"
             self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
