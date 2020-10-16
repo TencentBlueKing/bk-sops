@@ -1,21 +1,9 @@
 default_stages: [commit]
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v1.21.0
-    hooks:
-      - id: pyupgrade
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.1.0
     hooks:
     - id: check-merge-conflict
-  - repo: https://github.com/asottile/seed-isort-config
-    rev: v1.9.2
-    hooks:
-      - id: seed-isort-config
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.17
-    hooks:
-    - id: isort
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
@@ -37,7 +25,7 @@ repos:
         entry: python scripts/check_commit_message.py
         language: system
         stages: [commit-msg]
-      - id: check-sensitive-info # 内部版开发环境请删除该步骤的配置
+      - id: check-sensitive-info 
         name: Check Sensitive Info
         entry: sh scripts/check_sensitive_info.sh
         language: system
