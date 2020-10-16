@@ -17,11 +17,12 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.base.utils.inject import supplier_account_inject
-from pipeline_plugins.variables.query.sites.open import select
 from pipeline_plugins.variables.utils import get_service_template_list, get_set_list
 
 from gcloud.conf import settings
 from gcloud.utils.cmdb import batch_request
+from gcloud.core.models import StaffGroupSet
+from pipeline_plugins.variables.query.sites.open import select
 
 logger = logging.getLogger("root")
 
@@ -64,6 +65,17 @@ def cc_get_module(request, biz_cc_id, biz_set_id):
     ]
 
     return JsonResponse({"result": True, "data": result})
+
+
+def get_staff_groups(request, project_id):
+    """
+    获取业务对应的人员分组
+    """
+
+    staff_groups = StaffGroupSet.objects.filter(project_id=project_id, is_deleted=False).values("id", "name")
+    staff_groups = [{"text": group["name"], "value": group["id"]} for group in staff_groups]
+
+    return JsonResponse({"result": True, "data": staff_groups})
 
 
 @supplier_account_inject
@@ -125,19 +137,11 @@ def cc_get_set_group(request, biz_cc_id):
     :return:
     """
     client = get_client_by_user(request.user.username)
-    kwargs = {
-        "bk_biz_id": int(biz_cc_id),
-        "condition": {
-            "bk_obj_id": "set"
-        }
-    }
+    kwargs = {"bk_biz_id": int(biz_cc_id), "condition": {"bk_obj_id": "set"}}
     group_info = batch_request(client.cc.search_dynamic_group, kwargs, limit=200)
     group_data = []
     for group in group_info:
-        group_data.append({
-            "text": group["name"],
-            "value": group["id"]
-        })
+        group_data.append({"text": group["name"], "value": group["id"]})
     return JsonResponse({"result": True, "data": group_data})
 
 
@@ -146,5 +150,6 @@ urlpatterns += [
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
     url(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
-    url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group)
+    url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
+    url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
 ]

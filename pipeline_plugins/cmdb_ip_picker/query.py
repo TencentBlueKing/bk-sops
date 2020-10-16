@@ -60,7 +60,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 set、module、cloud、agent等信息
     @return:
     """
-    fields = json.loads(request.GET.get("fields", "[]"))
+    default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
+    fields = set(default_host_fields + json.loads(request.GET.get("fields", "[]")))
     client = get_client_by_user(request.user.username)
 
     topo_modules_id = set()
@@ -83,17 +84,13 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
             topo_modules += get_modules_of_bk_obj(obj)
         topo_modules_id = set(get_modules_id(topo_modules))
 
-    default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
-
     cloud_area_result = client.cc.search_cloud_area({})
     if not cloud_area_result["result"]:
         message = handle_api_error(_("配置平台(CMDB)"), "cc.search_cloud_area", {}, cloud_area_result)
         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
         return JsonResponse(result)
 
-    raw_host_info_list = cmdb.get_business_host_topo(
-        request.user.username, bk_biz_id, bk_supplier_account, default_host_fields
-    )
+    raw_host_info_list = cmdb.get_business_host_topo(request.user.username, bk_biz_id, bk_supplier_account, fields)
 
     # map cloud_area_id to cloud_area
     cloud_area_dict = {}
@@ -113,7 +110,6 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     data = []
 
     if host_info_list:
-        fields = set(default_host_fields + fields)
         for host in host_info_list:
             host_detail = {field: host["host"][field] for field in fields if field in host["host"]}
             host_detail["bk_host_innerip"] = format_sundry_ip(host_detail["bk_host_innerip"])

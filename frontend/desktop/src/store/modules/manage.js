@@ -40,12 +40,7 @@ const manage = {
          * @param {Object} data 插件包源配置
          */
         updatePackageSource ({ commit }, data) {
-            return axios.post('api/v3/package_source/', data, {
-                headers: {
-                    'content-type': 'application/json',
-                    'X-HTTP-Method-Override': 'PATCH'
-                }
-            }).then(response => response.data)
+            return axios.patch('api/v3/package_source/', data).then(response => response.data)
         },
         /**
          * 加载远程包源同步任务列表

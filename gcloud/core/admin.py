@@ -79,8 +79,8 @@ class ProjectConfigAdmin(admin.ModelAdmin):
 
 @admin.register(models.StaffGroupSet)
 class StaffGroupSetAdmin(admin.ModelAdmin):
-    list_display = ["name", "members"]
-    search_fields = ["name", "members"]
+    list_display = ["id", "name", "members", "project_id"]
+    search_fields = ["name", "members", "project_id"]
 
 
 @admin.register(models.ResourceConfig)
