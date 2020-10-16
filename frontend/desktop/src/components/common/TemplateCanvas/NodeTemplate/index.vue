@@ -199,8 +199,13 @@
     }
 
     @mixin taskNodeStyle ($color) {
-        &:hover .node-name {
-            border-color: $color;
+        &:hover {
+            .node-name {
+                border-color: $color;
+            }
+            .state-icon {
+                display: block;
+            }
         }
         .node-status-block {
             background-color: $color;
@@ -209,31 +214,10 @@
             background: $color;
         }
     }
-    @mixin taskNodeNameStyle ($color) {
-        .node-name {
-            border: 1px solid $color;
-            border-left: 0;
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-        }
-        .state-icon {
-            display: block;
-        }
-    }
-
     @mixin nodeClick ($color) {
         .node-name {
-            border: 1px solid $color;
-            border-left: 0;
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-            background-color: rgba($color: $color, $alpha: 0.3);
-            .name-text {
-                color: #fff;
-            }
-        }
-        .state-icon {
-            display: block;
+            border-color: $color;
+            background-color: rgba($color, 0.3);
         }
     }
 
@@ -350,6 +334,11 @@
             border-radius: 4px;
             box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             cursor: pointer;
+            &:hover {
+                .node-name {
+                    border-color: $blueDark;
+                }
+            }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
@@ -358,17 +347,11 @@
                 &.actived {
                      @include nodeClick ($blueDark);
                 }
-                &:hover {
-                    @include taskNodeNameStyle ($blueDark);
-                }
             }
             &.failed {
                 @include taskNodeStyle ($redDark);
                 &.actived {
                     @include nodeClick ($redDark);
-                }
-                &:hover {
-                    @include taskNodeNameStyle ($redDark);
                 }
             }
             &.suspended {
@@ -376,26 +359,17 @@
                 &.actived {
                     @include nodeClick ($yellowDark);
                 }
-                &:hover {
-                    @include taskNodeNameStyle ($yellowDark);
-                }
             }
             &.running {
                 @include taskNodeStyle ($yellowDark);
                 &.actived {
                     @include nodeClick ($yellowDark);
                 }
-                &:hover {
-                    @include taskNodeNameStyle ($yellowDark);
-                }
             }
             &.finished {
                 @include taskNodeStyle ($greenDark);
                 &.actived {
                      @include nodeClick ($greenDark);
-                }
-                &:hover {
-                    @include taskNodeNameStyle ($greenDark);
                 }
             }
 

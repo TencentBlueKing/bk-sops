@@ -31,7 +31,7 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 20,
+            x: 40,
             y: 150,
             type: 'startpoint'
         },
