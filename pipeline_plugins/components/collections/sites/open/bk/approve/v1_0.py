@@ -89,7 +89,7 @@ class ApproveService(Service):
             data.outputs.approve_result = _("通过") if approve_result else _("拒绝")
             return approve_result
         except Exception as e:
-            err_msg = "get approve_result failed: {}, err: {}"
+            err_msg = "get Approve Component result failed: {}, err: {}"
             self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
             data.outputs.ex_data = err_msg.format(callback_data, e)
             return False
