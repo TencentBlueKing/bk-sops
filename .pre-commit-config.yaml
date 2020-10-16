@@ -25,7 +25,7 @@ repos:
         entry: python scripts/check_commit_message.py
         language: system
         stages: [commit-msg]
-      - id: check-sensitive-info 
+      - id: check-sensitive-info
         name: Check Sensitive Info
         entry: sh scripts/check_sensitive_info.sh
         language: system
