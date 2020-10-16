@@ -24,7 +24,7 @@
                 'admin-view': adminView
             }]"
             v-bkloading="{ isLoading: loading, opacity: 1 }">
-            <div class="excute-time" v-if="!adminView && onNodeState">
+            <div class="excute-time" v-if="!adminView && isReadyStatus">
                 <span>{{$t('第')}}</span>
                 <bk-select
                     :clearable="false"
@@ -51,7 +51,7 @@
             <div class="scroll-area">
                 <section class="info-section">
                     <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                    <table class="operation-table" v-if="executeCols && onNodeState">
+                    <table class="operation-table" v-if="executeCols && isReadyStatus">
                         <tr v-for="col in executeCols" :key="col.id">
                             <th>{{ col.title }}</th>
                             <td>
@@ -479,7 +479,7 @@
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
-                onNodeState: true
+                isReadyStatus: true
             }
         },
         computed: {
@@ -567,7 +567,7 @@
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history } = respData
                     const state = this.adminView ? execution_info.state : respData.state
-                    this.onNodeState = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
+                    this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code
                     // 任务节点需要加载标准插件
