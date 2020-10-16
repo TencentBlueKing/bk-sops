@@ -120,15 +120,6 @@ def register_grant_resource_creator_action_attributes(resource_type, creator, at
         application = resource_creator_action_attribute_params(resource_type, creator, attributes)
 
         ok, message = iam.grant_resource_creator_action_attributes(application, bk_username=creator)
-        logging.debug(
-            "[{resource_type} resource attributes of {creator} created grant] {api} {ok}: {message}".format(
-                resource_type=resource_type,
-                creator=creator,
-                api="grant_resource_creator_action_attributes",
-                ok=ok,
-                message=message,
-            )
-        )
         if not ok:
             logging.error(
                 "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
