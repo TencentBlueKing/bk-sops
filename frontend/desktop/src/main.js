@@ -101,7 +101,7 @@ Validator.localize({
             },
             stageName: {
                 regex: i18n.t('步骤名称不能包含') + InvalidNameChar + i18n.t('非法字符'),
-                max: i18n.t('步骤名称不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符')
+                max: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符')
             },
             variableName: {
                 required: i18n.t('变量名称不能为空'),

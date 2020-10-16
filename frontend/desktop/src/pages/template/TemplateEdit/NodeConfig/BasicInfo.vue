@@ -51,6 +51,9 @@
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('步骤名称')" property="stageName">
+                <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
+            </bk-form-item>
             <bk-form-item :label="$t('节点标签')" property="label">
                 <bk-search-select
                     primary-key="code"
@@ -141,6 +144,9 @@
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('步骤名称')" property="stageName">
+                <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
+            </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
@@ -204,6 +210,13 @@
                             message: i18n.t('节点名称长度不能超过') + STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         }
+                    ],
+                    stageName: [
+                        {
+                            max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
+                            message: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        }
                     ]
                 },
                 subflowRules: {
@@ -228,6 +241,18 @@
                         {
                             max: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH,
                             message: i18n.t('节点名称长度不能超过') + STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    stageName: [
+                        {
+                            regex: NAME_REG,
+                            message: i18n.t('步骤名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
+                            message: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         }
                     ]
@@ -369,12 +394,12 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, nodeLabel, ignorable, skippable, retryable, selectable } = this.formData
+                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, nodeLabel, selectable }
+                    data = { nodeName, stageName, nodeLabel, selectable }
                 } else {
-                    data = { version, nodeName, nodeLabel, ignorable, skippable, retryable, selectable }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
                 }
                 this.$emit('update', data)
             },
