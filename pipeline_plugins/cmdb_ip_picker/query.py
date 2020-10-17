@@ -181,33 +181,47 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
     return JsonResponse(result)
 
 
-def cmdb_search_dynamic_group(request, page, bk_biz_id, bk_supplier_account=""):
+def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
     """
     @summary: 查询动态分组列表
     @param request:
-    @param page: {start: 0, limit: 100}
     @param bk_biz_id:
     @param bk_supplier_account:
     @return:
     """
 
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account, "page": page}
-    client = get_client_by_user(request.user.username)
-    cc_result = client.cc.search_dynamic_group(kwargs)
+    dynamic_groups = []
+    page_start = 0
+    page_limit = 200
+    loop_flag = True
+    while loop_flag:
+        kwargs = {
+            "bk_biz_id": bk_biz_id,
+            "bk_supplier_account": bk_supplier_account,
+            "page": {"start": page_start, "limit": page_limit},
+        }
+        client = get_client_by_user(request.user.username)
+        cc_result = client.cc.search_dynamic_group(kwargs)
 
-    if not cc_result["result"]:
-        message = handle_api_error(_("配置平台(CMDB)"), "cc.search_dynamic_group", kwargs, cc_result)
-        if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=cc_result.get("permission", []))
-        return JsonResponse({"result": cc_result["result"], "code": cc_result["code"], "message": message})
+        if not cc_result["result"]:
+            message = handle_api_error(_("配置平台(CMDB)"), "cc.search_dynamic_group", kwargs, cc_result)
+            if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+                logger.error(message)
+                raise RawAuthFailedException(permissions=cc_result.get("permission", []))
+            return JsonResponse({"result": cc_result["result"], "code": cc_result["code"], "message": message})
 
-    data_result = []
-    for dynamic_group in cc_result["data"]["info"]:
-        if dynamic_group["bk_obj_id"] == "host":
-            data_result.append(
-                {"id": dynamic_group["id"], "name": dynamic_group["name"], "create_user": dynamic_group["create_user"]}
-            )
+        for dynamic_group in cc_result["data"]["info"]:
+            if dynamic_group["bk_obj_id"] == "host":
+                dynamic_groups.append(
+                    {
+                        "id": dynamic_group["id"],
+                        "name": dynamic_group["name"],
+                        "create_user": dynamic_group["create_user"],
+                    }
+                )
 
-    result = {"result": cc_result["result"], "code": cc_result["code"], "data": data_result}
-    return JsonResponse(result)
+        page_start += page_limit
+        if page_start >= int(cc_result["data"]["count"]):
+            break
+
+    return JsonResponse({"result": True, "code": 0, "data": dynamic_groups})

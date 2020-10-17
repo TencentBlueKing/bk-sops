@@ -316,11 +316,7 @@ def cc_get_business(request):
 
 @supplier_account_inject
 def cc_search_dynamic_group(request, biz_cc_id, supplier_account):
-    page = {
-        "start": request.GET.get("start", 0),
-        "limit": request.GET.get("limit", 100),
-    }
-    return cmdb_search_dynamic_group(request, page, biz_cc_id, supplier_account)
+    return cmdb_search_dynamic_group(request, biz_cc_id, supplier_account)
 
 
 @supplier_account_inject

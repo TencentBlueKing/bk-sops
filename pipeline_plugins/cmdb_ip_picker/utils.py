@@ -80,7 +80,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
         if (
             selector == "topo"
-            or selector == "dynamic"
+            or selector == "group"
             or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
             in ip_list
         ):
@@ -119,7 +119,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         )
 
     # 动态分组得到的主机ip
-    if selector == "dynamic":
+    if selector == "group":
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in kwargs["dynamic"]]
         data = []
         for dynamic_group_id in dynamic_group_ids:
@@ -172,10 +172,11 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
 
 def get_dynamic_group_ip_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
-    """获取动态分组中对应主机列表"""
+    """获取动态分组中对应主机列表，最多返回10000条ip数据"""
     ip_list = []
     page_start = 0
     page_limit = 200
+    ip_max_count = 10000
     loop_flag = True
     while loop_flag:
         kwargs = {
@@ -190,17 +191,17 @@ def get_dynamic_group_ip_list(username, bk_biz_id, bk_supplier_account, dynamic_
         if not cc_result["result"]:
             message = handle_api_error(_("配置平台(CMDB)"), "cc.execute_dynamic_group", kwargs, cc_result)
             if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-                logger.warning(message)
+                logger.error(message)
                 raise RawAuthFailedException(permissions=cc_result.get("permission", []))
-            return False, {"code": cc_result["code"], "message": message}
+            return False, {"code": cc_result["code"], "message": message, "data": []}
         cc_data = cc_result["data"]
         ip_list += [
             {host["bk_cloud_id"]: host["bk_host_innerip"]} for host in cc_data["info"] if host["bk_obj_id"] == "host"
         ]
         page_start += page_limit
-        if page_start >= cc_data["count"]:
+        if page_start >= int(cc_data["count"]) or page_start >= ip_max_count:
             break
-    return True, {"data": ip_list}
+    return True, {"code": 0, "message": "success", "data": ip_list}
 
 
 def filter_hosts(filters, biz_topo_tree, hosts, comp_key):
