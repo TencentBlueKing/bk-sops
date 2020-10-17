@@ -18,3 +18,7 @@ class DispatchBaseException(Exception):
 
 class InvalidPageException(DispatchBaseException):
     pass
+
+
+class KeywordTooShortException(DispatchBaseException):
+    pass
