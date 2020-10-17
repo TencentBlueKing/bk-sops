@@ -52,20 +52,40 @@
                 :dynamic-ips="dynamicIps"
                 @change="onDynamicIpChange">
             </dynamic-ip>
+            <dynamic-group
+                v-show="activeSelector === 'group'"
+                ref="group"
+                :editable="editable"
+                :dynamic-group-list="dynamicGroupList"
+                :dynamic-groups="dynamicGroups"
+                @change="onDynamicGroupChange">
+            </dynamic-group>
         </div>
     </div>
 </template>
 <script>
     import StaticIp from './StaticIp.vue'
     import DynamicIp from './DynamicIp.vue'
+    import DynamicGroup from './DynamicGroup.vue'
 
     export default {
         name: 'MultipleIpSelector',
         components: {
             StaticIp,
-            DynamicIp
+            DynamicIp,
+            DynamicGroup
         },
-        props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'dynamicIps', 'staticIps'],
+        props: {
+            editable: Boolean,
+            selectorTabs: Array,
+            selectors: Array,
+            staticIpList: Array,
+            dynamicIpList: Array,
+            dynamicGroupList: Array,
+            staticIps: Array,
+            dynamicIps: Array,
+            dynamicGroups: Array
+        },
         data () {
             return {
                 activeSelector: this.selectors[0]
@@ -106,6 +126,9 @@
             },
             onDynamicIpChange (val) {
                 this.$emit('change', 'topo', val)
+            },
+            onDynamicGroupChange (val) {
+                this.$emit('change', 'group', val)
             },
             validate () {
                 let isValidate = true
