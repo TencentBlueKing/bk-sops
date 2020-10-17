@@ -138,10 +138,10 @@ class CCHostCustomPropertyChangeService(Service):
             set_id_list = []
             for host_data in ip_list["ip_result"]:
                 id_list = [_set["bk_set_id"] for _set in host_data["Sets"]]
-                set_id_list.append(id_list)
+                set_id_list.extend(id_list)
             set_rule_list.append("bk_set_id")
             # 查询集群的属性值
-            set_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": set_id_list, "fields": set_rule_list}
+            set_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": list(set(set_id_list)), "fields": set_rule_list}
             set_result = client.cc.find_set_batch(set_kwargs)
             if not set_result.get("result"):
                 error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_set_batch", set_kwargs, set_result)
@@ -157,11 +157,11 @@ class CCHostCustomPropertyChangeService(Service):
         if module_rule_list:
             module_id_list = []
             for host_data in ip_list["ip_result"]:
-                id_list = [_module["bk_set_id"] for _module in host_data["Modules"]]
-                module_id_list.append(id_list)
+                id_list = [_module["bk_module_id"] for _module in host_data["Modules"]]
+                module_id_list.extend(id_list)
             module_rule_list.append("bk_module_id")
             # 查询模块的属性值
-            module_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": module_id_list, "fields": module_rule_list}
+            module_kwargs = {"bk_biz_id": biz_cc_id, "bk_ids": list(set(module_id_list)), "fields": module_rule_list}
             module_result = client.cc.find_module_batch(module_kwargs)
             if not module_result.get("result"):
                 error_message = handle_api_error("蓝鲸配置平台(CC)", "cc.find_module_batch", module_kwargs, module_result)
