@@ -49,7 +49,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         3： 云区域ID:IP，云区域ID:IP  这种格式可以唯一定位到一个IP，主要是兼容Job组件
             传参需要和获取Job作业模板步骤参数
     @return: {'result': True or False, 'data': [{'InnerIP': ,'HostID': ,
-        'Source': , 'SetID': , 'SetName': , 'ModuleID': , 'ModuleName': },{}]}
+        'Source': , 'SetID': , 'SetName': , 'ModuleID': , 'ModuleName': , 'Sets': , 'Module': },{}]}
     """
 
     ip_input_list = get_ip_by_regex(ip_str)
@@ -94,6 +94,8 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                                 "SetName": parent_set["bk_set_name"],
                                 "ModuleID": parent_module["bk_module_id"],
                                 "ModuleName": parent_module["bk_module_name"],
+                                "Sets": ip_info["set"],
+                                "Modules": ip_info["module"]
                             }
                         )
 
@@ -113,6 +115,8 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                         "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                         "HostID": ip_info["host"]["bk_host_id"],
                         "Source": ip_info["host"].get("bk_cloud_id", -1),
+                        "Sets": ip_info["set"],
+                        "Modules": ip_info["module"]
                     }
                 )
 
@@ -130,6 +134,8 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                         "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                         "HostID": ip_info["host"]["bk_host_id"],
                         "Source": ip_info["host"].get("bk_cloud_id", -1),
+                        "Sets": ip_info["set"],
+                        "Modules": ip_info["module"]
                     }
                 )
                 host_id_list.append(ip_info["host"]["bk_host_id"])
