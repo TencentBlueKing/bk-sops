@@ -127,6 +127,7 @@
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import tplSnapshoot from '@/utils/tplSnapshoot.js'
+    import tplTabCount from '@/utils/tplTabCount.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -176,6 +177,7 @@
                 tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
+                tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -292,10 +294,32 @@
             this.getProjectBaseInfo()
             this.openSnapshootTimer()
             window.onbeforeunload = function () {
+                if (this.type === 'edit') {
+                    console.log('delete')
+                    const data = this.getTplTabData()
+                    tplTabCount.setTab(data, 'del')
+                }
+                console.log('before unload')
                 return i18n.t('系统不会保存您所做的更改，确认离开？')
+            }
+            window.onunload = function () {
+                debugger
+                if (this.type === 'edit') {
+                    console.log('delete')
+                    const data = this.getTplTabData()
+                    tplTabCount.setTab(data, 'del')
+                }
+            }
+            if (this.type === 'edit') {
+                const data = this.getTplTabData()
+                tplTabCount.setTab(data, 'add')
             }
         },
         beforeDestroy () {
+            if (this.type === 'edit') {
+                const data = this.getTplTabData()
+                tplTabCount.setTab(data, 'del')
+            }
             window.onbeforeunload = null
             this.resetTemplateData()
             this.hideGuideTips()
@@ -917,13 +941,17 @@
                 })
             },
             // 点击保存模板按钮回调
-            onSaveTemplate (saveAndCreate, pid) {
+            async onSaveTemplate (saveAndCreate, pid) {
                 if (this.templateSaving || this.createTaskSaving) {
                     return
                 }
-                this.saveAndCreate = saveAndCreate
-                this.pid = pid
-                this.checkBasicProperty() // 基础属性是否合法
+                if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 0) {
+                    debugger
+                } else {
+                    this.saveAndCreate = saveAndCreate
+                    this.pid = pid
+                    this.checkBasicProperty() // 基础属性是否合法
+                }
             },
             // 校验基础属性
             checkBasicProperty () {
@@ -1144,10 +1172,19 @@
             saveTempSnapshoot (templateId) {
                 const id = this.common ? 'common' : this.project_id
                 tplSnapshoot.replaceSnapshootTplKey(this.username, id, this.tplUUID, templateId)
+            },
+            getTplTabData () {
+                return {
+                    user: this.username,
+                    id: this.common ? 'common' : this.project_id,
+                    tpl: this.template_id
+                }
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
+            console.log('reload')
             if (this.allowLeave || !this.isTemplateDataChanged) {
+                debugger
                 this.clearAtomForm()
                 // 清除快照定时器
                 this.snapshootTimer && clearTimeout(this.snapshootTimer)
