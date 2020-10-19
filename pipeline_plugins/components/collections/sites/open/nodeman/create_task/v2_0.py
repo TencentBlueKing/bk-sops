@@ -170,12 +170,13 @@ class NodemanCreateTaskService(Service):
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
                     for ip_type in HOST_EXTRA_PARAMS:
-                        others_ip_list = get_ip_by_regex(host.get(ip_type, ""))
-                        if len(others_ip_list) == len(inner_ip_list):
-                            one[ip_type] = others_ip_list[index]
-                        else:
-                            data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
-                            return False
+                        if host.get(ip_type, False):
+                            others_ip_list = get_ip_by_regex(host[ip_type])
+                            if len(others_ip_list) == len(inner_ip_list):
+                                one[ip_type] = others_ip_list[index]
+                            else:
+                                data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
+                                return False
                     one.update(base_params)
 
                     row_host_params_list.append(one)
