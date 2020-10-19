@@ -705,7 +705,7 @@
                     const { tag_code, type, attrs } = item
                     const value = formData[tag_code]
                     if (type === 'combine') {
-                        if (!this.checkAtomData(attrs.children, value)) {
+                        if (typeof value === 'object' && !this.checkAtomData(attrs.children, value)) { // 勾选为全局变量的 combine 不校验 value
                             isValid = false
                         }
                     } else {
