@@ -76,7 +76,7 @@ CREAT_TICKET_CALL = {
         {"key": "APPROVAL_CONTENT", "value": "test content"},
     ],
     "fast_approval": True,
-    "callback_url": "callback_url",
+    "meta": {"callback_url": "callback_url"},
 }
 INPUTS = {
     "bk_verifier": "tester, tester1",
