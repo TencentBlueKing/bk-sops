@@ -37,6 +37,7 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
             OPERATE_SUCCESS_CASE,
             OPERATE_FAIL_CASE,
             REMOVE_SUCCESS_CASE,
+            CHOOSABLE_PARAMS_CASE,
         ]
 
     def component_cls(self):
@@ -590,5 +591,153 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+    ],
+)
+
+CHOOSABLE_PARAMS_CASE = ComponentTestCase(
+    name="nodeman v2.0 choosable params case",
+    inputs={
+        "bk_biz_id": "1",
+        "nodeman_op_target": {
+            "nodeman_node_type": "AGENT",
+            "nodeman_bk_cloud_id": "1",
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "REINSTALL",
+            "nodeman_ip_str": "",
+            "nodeman_hosts": [
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "1.1.1.1,2.2.2.2",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "3.3.3.3,4.4.4.4",
+                    "login_ip": "5.5.5.5,6.6.6.6",
+                    "data_ip": "7.7.7.7,8.8.8.8",
+                },
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "10.10.10.10",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "3.3.3.3",
+                    "login_ip": "5.5.5.5",
+                    "data_ip": "7.7.7.7",
+                },
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "11.11.11.11",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "",
+                    "login_ip": "",
+                    "data_ip": "7.7.7.7",
+                },
+            ],
+        },
+    },
+    parent_data={"executor": "tester"},
+    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
+    execute_call_assertion=[
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_install,
+            calls=[
+                Call(
+                    {
+                        "job_type": "REINSTALL_AGENT",
+                        "hosts": [
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "1.1.1.1",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "outer_ip": "3.3.3.3",
+                                "login_ip": "5.5.5.5",
+                                "data_ip": "7.7.7.7",
+                                "bk_host_id": 1,
+                            },
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "2.2.2.2",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "outer_ip": "4.4.4.4",
+                                "login_ip": "6.6.6.6",
+                                "data_ip": "8.8.8.8",
+                                "bk_host_id": 1,
+                            },
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "10.10.10.10",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "outer_ip": "3.3.3.3",
+                                "login_ip": "5.5.5.5",
+                                "data_ip": "7.7.7.7",
+                                "bk_host_id": 1,
+                            },
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "11.11.11.11",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "data_ip": "7.7.7.7",
+                                "bk_host_id": 1,
+                            },
+                        ],
+                    }
+                )
+            ],
+        ),
+    ],
+    schedule_assertion=[],
+    schedule_call_assertion=[],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(
+            target=GET_HOST_ID_BY_INNER_IP,
+            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "10.10.10.10": 1, "11.11.11.11": 1},
+        ),
     ],
 )
