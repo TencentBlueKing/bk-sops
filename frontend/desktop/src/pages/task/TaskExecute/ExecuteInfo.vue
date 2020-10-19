@@ -565,6 +565,15 @@
                     this.isShowInputOrigin = false
                     this.isShowOutputOrigin = false
                     const respData = await this.getTaskNodeDetail()
+                    if (!respData) {
+                        this.isReadyStatus = false
+                        this.executeInfo = {}
+                        this.outputsInfo = []
+                        this.inputsInfo = {}
+                        this.logInfo = ''
+                        this.getReadyNodeName(this.nodeData[0].children)
+                        return
+                    }
                     const { execution_info, outputs, inputs, log, history } = respData
                     const state = this.adminView ? execution_info.state : respData.state
                     this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
@@ -640,6 +649,16 @@
                     this.loading = false
                 }
             },
+            // 获取未执行节点name
+            getReadyNodeName (data) {
+                data.forEach(item => {
+                    if (item.id === this.nodeDetailConfig.node_id) {
+                        this.executeInfo.name = item.name
+                    } else if (item.children && item.children.length) {
+                        this.getReadyNodeName(item.children)
+                    }
+                })
+            },
             async getTaskNodeDetail () {
                 try {
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
@@ -658,8 +677,6 @@
                     const res = await getData(query)
                     if (res.result) {
                         return res.data
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
