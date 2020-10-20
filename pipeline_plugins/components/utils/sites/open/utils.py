@@ -18,6 +18,7 @@ import logging
 from cryptography.fernet import Fernet
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.variables.utils import find_module_with_relation
 
 from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
@@ -156,3 +157,21 @@ def get_node_callback_url(node_id):
         os.getenv("BKAPP_INNER_CALLBACK_HOST", settings.BK_PAAS_INNER_HOST + settings.SITE_URL),
         f.encrypt(bytes(node_id, encoding="utf8")).decode(),
     )
+
+
+def get_module_id_list_by_name(
+    bk_biz_id, username, set_list, service_template_list
+):
+    """
+    @summary 根据集群、服务模板名称筛选出符合条件的模块id
+    @param username: 执行用户名
+    @param bk_biz_id: 业务id
+    @param set_list: 集群list
+    @param service_template_list: 服务模板list
+    @return:
+    """
+    set_ids = [set_item["bk_set_id"] for set_item in set_list]
+    service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
+    # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
+    module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
+    return module_id_list
