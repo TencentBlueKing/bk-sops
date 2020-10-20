@@ -241,48 +241,39 @@
             }
         },
         {
-            tag_code: "cc_set_attr_combine",
-            type: "combine",
+            tag_code: "cc_set_attr",
+            type: "datatable",
             attrs: {
                 name: gettext("集群属性"),
-                children: [
+                delete_btn: true,
+                add_btn: true,
+                columns: [
                     {
-                        tag_code: "set_attr",
-                        type: "datatable",
+                        tag_code: "attr_id",
+                        type: "input",
                         attrs: {
-                            name: gettext("集群属性"),
-                            delete_btn: true,
-                            add_btn: true,
-                            columns: [
+                            name: gettext("属性唯一标识"),
+                            validation: [
                                 {
-                                    tag_code: "attr_id",
-                                    type: "input",
-                                    attrs: {
-                                        name: gettext("属性唯一标识"),
-                                        validation: [
-                                            {
-                                                type: "required"
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    tag_code: "attr_value",
-                                    type: "input",
-                                    attrs: {
-                                        name: gettext("属性值"),
-                                        validation: [
-                                            {
-                                                type: "required"
-                                            }
-                                        ]
-                                    }
-                                },
-                            ],
-                            hookable: true
+                                    type: "required"
+                                }
+                            ]
                         }
-                    }
-                ]
+                    },
+                    {
+                        tag_code: "attr_value",
+                        type: "input",
+                        attrs: {
+                            name: gettext("属性值"),
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
+                        }
+                    },
+                ],
+                hookable: true
             }
         }
     ]

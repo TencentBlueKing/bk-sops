@@ -119,7 +119,7 @@ class CCCreateSetBySetTemplateService(Service):
             }
             for cc_set_name in cc_set_names.split(","):
                 try:
-                    attr_data_list = data.get_one_of_inputs("cc_set_attr_combine")["set_attr"]
+                    attr_data_list = data.get_one_of_inputs("cc_set_attr")
                 except Exception:
                     attr_data_list = []
 
