@@ -981,15 +981,17 @@
                         const mutedHostAttrs = this.getModuleMutedHostAttrs(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
                         moduleHosts[md.name] = []
 
-                        item.list.some(h => {
-                            if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
-                                moduleHosts[md.name].push(h.bk_host_innerip)
-                                usedHosts.push(h.bk_host_innerip)
-                            }
-                            if (moduleHosts[md.name].length === md.count) {
-                                return true
-                            }
-                        })
+                        if (md.count > 0) {
+                            item.list.some(h => {
+                                if (moduleHosts[md.name].length === md.count) {
+                                    return true
+                                }
+                                if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
+                                    moduleHosts[md.name].push(h.bk_host_innerip)
+                                    usedHosts.push(h.bk_host_innerip)
+                                }
+                            })
+                        }
                     })
                     reuseOthers.forEach(md => { // 复用其他模块主机数据，主机数量取本模块设置的值
                         let citedModule = this.formData.modules.find(item => item.id === md.reuse)
