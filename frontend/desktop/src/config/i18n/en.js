@@ -1,4 +1,5 @@
 const en = {
+    '任务数据': 'Task data',
     '继续执行': 'Continue to perform',
     '保存筛选方案': 'Save the filter scheme',
     '修改名称会新建方案记录': 'Changing the name creates a new schema record',
