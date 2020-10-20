@@ -76,6 +76,8 @@
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onModifyTimeClick="onModifyTimeClick"
+                    @onForceFail="onForceFail"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -646,6 +648,8 @@
                             message: i18n.t('强制失败执行成功'),
                             theme: 'success'
                         })
+                        this.isNodeInfoPanelShow = false
+                        this.nodeInfoType = ''
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)

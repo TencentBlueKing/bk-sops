@@ -226,21 +226,31 @@
                     </bk-table>
                 </section>
             </div>
-            <div v-if="executeInfo.state && !['FINISHED', 'CREATED', 'READY'].includes(executeInfo.state)" class="action-wrapper">
+            <div v-if="executeInfo.state && ['SUSPENDED', 'RUNNING'].includes(executeInfo.state)" class="action-wrapper">
                 <bk-button
-                    v-if="executeInfo.state === 'FAILED'"
+                    v-if="nodeDetailConfig.component_code === 'pause_node'"
+                    theme="primary"
+                    @click="onResumeClick">
+                    {{ $t('继续执行') }}
+                </bk-button>
+                <bk-button
+                    v-if="nodeDetailConfig.component_code === 'sleep_timer'"
+                    theme="primary"
+                    @click="onModifyTimeClick">
+                    {{ $t('修改时间') }}
+                </bk-button>
+                <bk-button
+                    @click="mandatoryFailure">
+                    {{ $t('强制失败') }}
+                </bk-button>
+            </div>
+            <div class="action-wrapper" v-if="executeInfo.state && executeInfo.state === 'FAILED'">
+                <bk-button
                     theme="primary"
                     @click="onRetryClick">
                     {{ $t('重试') }}
                 </bk-button>
                 <bk-button
-                    v-if="['SUSPENDED', 'RUNNING'].includes(executeInfo.state)"
-                    theme="primary"
-                    @click="onResumeClick">
-                    {{ $t('启动') }}
-                </bk-button>
-                <bk-button
-                    v-if="['SUSPENDED', 'RUNNING', 'FAILED'].includes(executeInfo.state)"
                     theme="default"
                     @click="onSkipClick">
                     {{ $t('跳过') }}
@@ -808,6 +818,12 @@
             },
             onResumeClick () {
                 this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)
+            },
+            onModifyTimeClick () {
+                this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id)
+            },
+            mandatoryFailure () {
+                this.$emit('onForceFail', this.nodeDetailConfig.node_id)
             }
         }
     }
@@ -996,6 +1012,9 @@
         height: 60px;
         line-height: 60px;
         border-top: 1px solid $commonBorderColor;
+        .bk-button {
+            margin-right: 5px;
+        }
     }
 }
 </style>
