@@ -20,8 +20,12 @@ class UtilsTestCase(TestCase):
     def test_chunk_table_data(self):
         success_column_input = {"gamedb": "1,2,3", "gamedr": "4", "logdb": "4,5,6"}
         has_int_success_column_input = {"gamedb": "1,2,3", "gamedr": 4, "logdb": "4,5,6"}
+        has_list_success_column_input = {"gamedb": "1,2,3", "gamedr": "[1,2,3]", "logdb": "4,5,6"}
+        has_dict_success_column_input = {"gamedb": "1,2,3", "gamedr": '{"k1":2}', "logdb": "4,5,6"}
+        has_two_list_success_column_input = {"gamedb": "1;2;3", "gamedr": "[1,2];[2,3];[3,4]", "logdb": "4;5;6"}
         failed_column_input = {"gamedb": "1,2", "gamedr": "4", "logdb": "4,5,6"}
         break_line = ","
+        another_break_line = ";"
         expect_column = [
             {"gamedb": "1", "gamedr": "4", "logdb": "4"},
             {"gamedb": "2", "gamedr": "4", "logdb": "5"},
@@ -32,10 +36,32 @@ class UtilsTestCase(TestCase):
             {"gamedb": "2", "gamedr": 4, "logdb": "5"},
             {"gamedb": "3", "gamedr": 4, "logdb": "6"},
         ]
+        has_list_expect_column = [
+            {"gamedb": "1", "gamedr": "[1,2,3]", "logdb": "4"},
+            {"gamedb": "2", "gamedr": "[1,2,3]", "logdb": "5"},
+            {"gamedb": "3", "gamedr": "[1,2,3]", "logdb": "6"},
+        ]
+        has_dict_expect_column = [
+            {"gamedb": "1", "gamedr": '{"k1":2}', "logdb": "4"},
+            {"gamedb": "2", "gamedr": '{"k1":2}', "logdb": "5"},
+            {"gamedb": "3", "gamedr": '{"k1":2}', "logdb": "6"},
+        ]
+        has_two_list_expect_column = [
+            {"gamedb": "1", "gamedr": "[1,2]", "logdb": "4"},
+            {"gamedb": "2", "gamedr": "[2,3]", "logdb": "5"},
+            {"gamedb": "3", "gamedr": "[3,4]", "logdb": "6"},
+        ]
         success_actual_column = chunk_table_data(success_column_input, break_line)
         has_int_success_actual_column = chunk_table_data(has_int_success_column_input, break_line)
+        has_list_actual_column = chunk_table_data(has_list_success_column_input, break_line)
+        has_dict_actual_column = chunk_table_data(has_dict_success_column_input, break_line)
+        has_two_list_actual_column = chunk_table_data(has_two_list_success_column_input, another_break_line)
         failed_actual_column = chunk_table_data(failed_column_input, break_line)
+
         self.assertEqual(expect_column, success_actual_column["data"])
         self.assertEqual(has_int_expect_column, has_int_success_actual_column["data"])
+        self.assertEqual(has_list_expect_column, has_list_actual_column["data"])
+        self.assertEqual(has_dict_expect_column, has_dict_actual_column["data"])
+        self.assertEqual(has_two_list_expect_column, has_two_list_actual_column["data"])
         self.assertEqual([], failed_actual_column["data"])
         self.assertFalse(failed_actual_column["result"])
