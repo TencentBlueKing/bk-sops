@@ -253,3 +253,16 @@ class CCHostCustomPropertyChangeComponent(Component):
     form = '{static_url}components/atoms/cc/host_custom_property_change/{ver}.js'.format(static_url=settings.STATIC_URL,
                                                                                          ver=VERSION.replace('.', '_'))
     version = VERSION
+    desc = _("1.规则示例：\n"
+             "  IP: 192.168.0.1\n"
+             "  自定义属性：主要维护人\n"
+             "  规则定义(主机属性)：\n"
+             "     主机属性      | 主要维护人 | 1 \n"
+             "     set属性      | 集群名    | 3 \n"
+             "  规则定义(自定义属性)：\n"
+             "     自定义字符(串) | hello    | 2 \n"
+             "     ip(.需替换成) | *        | 4 \n"
+             "  修改成功后的期望值为：\n"
+             "     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
+             "     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
+             "2.次序是用来给规则排序的")

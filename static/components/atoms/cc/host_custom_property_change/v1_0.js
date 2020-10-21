@@ -111,13 +111,24 @@
                     },
                     {
                         tag_code: "field_order",
-                        type: "input",
+                        type: "int",
                         attrs: {
-                            placeholder: "请填写大于等于一的数字",
+                            placeholder: "请填写大于等于1的整数",
                             editable: true,
                             validation: [
                                 {
-                                    type: "required"
+                                    type: "custom",
+                                    args: function (value) {
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        };
+                                        if (value < 0) {
+                                            result.result = false;
+                                            result.error_message = gettext("必须为大于等于1的整数");
+                                        }
+                                        return result;
+                                    }
                                 }
                             ],
                             name: gettext("次序"),
@@ -168,13 +179,24 @@
                     },
                     {
                         tag_code: "field_order",
-                        type: "input",
+                        type: "int",
                         attrs: {
-                            placeholder: "请填写大于等于一的整数",
+                            placeholder: "请填写大于等于1的整数",
                             editable: true,
                             validation: [
                                 {
-                                    type: "required"
+                                    type: "custom",
+                                    args: function (value) {
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        };
+                                        if (value < 0) {
+                                            result.result = false;
+                                            result.error_message = gettext("必须为大于等于1的整数");
+                                        }
+                                        return result;
+                                    }
                                 }
                             ],
                             name: gettext("次序"),
