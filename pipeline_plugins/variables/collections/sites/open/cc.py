@@ -122,10 +122,19 @@ class SetDetailData(object):
         item_values = {}
         modules = []
         total_ip_set = set()
+        # verbose_ip_list 和 ip_module_list 元素一一对应
+        verbose_ip_list = []
+        ip_module_list = []
         for item in data:
+            set_name = item["bk_set_name"]
             for key, val in item.items():
                 if key == "__module":
-                    total_ip_set.update(flatten([mod["value"] for mod in val]))
+                    module_ips = flatten([mod["value"] for mod in val])
+                    total_ip_set.update(module_ips)
+                    verbose_ip_list += module_ips
+                    ip_module_list += flatten(
+                        [["{}>{}".format(set_name, mod["key"])] * len(mod["value"]) for mod in val]
+                    )
                     item_module = {mod["key"]: ",".join(mod["value"]) for mod in val}
                     modules.append(item_module)
                 else:
@@ -136,6 +145,8 @@ class SetDetailData(object):
             setattr(self, "flat__{}".format(attr), flat_val)
         setattr(self, "_module", modules)
         setattr(self, "flat__ip_list", ",".join(list(total_ip_set)))
+        setattr(self, "flat__verbose_ip_list", ",".join(verbose_ip_list))
+        setattr(self, "flat__ip_module_list", ",".join(ip_module_list))
         self._pipeline_var_str_value = "Allocate {} sets with names: {}".format(
             self.set_count, ",".join(item_values["bk_set_name"])
         )
