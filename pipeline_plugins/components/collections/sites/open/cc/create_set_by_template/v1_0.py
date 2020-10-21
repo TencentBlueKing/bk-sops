@@ -71,13 +71,6 @@ class CCCreateSetBySetTemplateService(Service):
             ),
         ]
 
-    def outputs_format(self):
-        return [
-            self.OutputItem(
-                name=_("创建结果"), key="result", type="string", schema=StringItemSchema(description=_("创建结果")),
-            )
-        ]
-
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
 
@@ -138,8 +131,8 @@ class CCCreateSetBySetTemplateService(Service):
                     result["fail"].append(message)
                 else:
                     result["success"].append(cc_result["data"])
-        data.set_outputs("result", result)
         if result["fail"]:
+            data.set_outputs("ex_data", result["fail"])
             return False
         return True
 

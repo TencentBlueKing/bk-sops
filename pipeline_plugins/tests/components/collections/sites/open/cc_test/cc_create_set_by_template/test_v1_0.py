@@ -185,7 +185,7 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     inputs=SELECT_BY_TEXT_SUCCESS_INPUTS,
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(
-        success=True, outputs={"result": {"fail": [], "success": [{"bk_set_id": 1}, {"bk_set_id": 1}]}}
+        success=True, outputs={}
     ),
     schedule_assertion=[],
     patchers=[
@@ -271,7 +271,7 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     name="success case: select parent set by topo",
     inputs=SELECT_BY_TOPO_SUCCESS_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=True, outputs={"result": {"fail": [], "success": [{"bk_set_id": 1}]}}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
