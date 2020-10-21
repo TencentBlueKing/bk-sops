@@ -226,7 +226,7 @@
                     </bk-table>
                 </section>
             </div>
-            <div v-if="executeInfo.state && ['SUSPENDED', 'RUNNING'].includes(executeInfo.state)" class="action-wrapper">
+            <div v-if="executeInfo.state === 'RUNNING'" class="action-wrapper">
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'pause_node'"
                     theme="primary"
@@ -244,7 +244,7 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state && executeInfo.state === 'FAILED'">
+            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED'">
                 <bk-button
                     theme="primary"
                     @click="onRetryClick">

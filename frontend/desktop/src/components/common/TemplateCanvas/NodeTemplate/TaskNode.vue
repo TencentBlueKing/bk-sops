@@ -90,17 +90,17 @@
                 </el-tooltip>
                 <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
                     <span
-                        class="common-icon-resume"
+                        class="common-icon-next-triangle-shape"
                         @click.stop="onResumeClick">
                     </span>
                 </el-tooltip>
+                <el-tooltip placement="bottom" :content="$t('强制失败')">
+                    <span
+                        class="common-icon-mandatory-failure"
+                        @click.stop="mandatoryFailure">
+                    </span>
+                </el-tooltip>
             </template>
-            <el-tooltip v-if="['RUNNING', 'SUSPENDED'].includes(node.status)" placement="bottom" :content="$t('强制失败')">
-                <span
-                    class="common-icon-mandatory-failure"
-                    @click.stop="mandatoryFailure">
-                </span>
-            </el-tooltip>
         </div>
     </div>
 </template>
