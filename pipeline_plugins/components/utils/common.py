@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import json
 import logging
 import re
 from copy import deepcopy
@@ -48,12 +48,19 @@ def chunk_table_data(column, break_line):
     chunk_data = []
     multiple_keys = []
     for key, value in column.items():
-        if not isinstance(value, str):
-            # 如果列类型为int，则跳过处理
-            if isinstance(value, int):
-                continue
-            else:
-                return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
+        # 如果字符串里是list,dict等数据类型可以序列化成功成功，说明这一列是单个数据，不需要扩展，跳过此次循环
+        # 例如：‘123’ ‘[1,2,3]’ '{"k1":1}'
+        try:
+            json.loads(value)
+            continue
+        # 触发异常说明传入的类型是int类型，，说明这一列是单个数据，不需要扩展，跳过此次循环
+        # 例如： 123
+        except TypeError:
+            continue
+        # 普通字符串触发json.JSONDecodeError
+        # 例如：'1,2,3'  '[1,2],[2,3]'  '{"k1":1},{"k2":2}'
+        except json.JSONDecodeError:
+            pass
         value = value.strip()
         if break_line in value:
             multiple_keys.append(key)
