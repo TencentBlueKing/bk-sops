@@ -100,7 +100,6 @@
                     theme="primary"
                     size="small"
                     :value="formData.selectable"
-                    :disabled="formData.selectableDisable"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
@@ -144,7 +143,6 @@
                     theme="primary"
                     size="small"
                     :value="formData.selectable"
-                    :disabled="formData.selectableDisable"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
