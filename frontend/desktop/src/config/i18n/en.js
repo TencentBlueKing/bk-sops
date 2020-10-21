@@ -89,6 +89,7 @@ const en = {
     '编辑': 'Edit',
     '删除': 'Delete',
     '保存': 'Save',
+    '不保存': `Don't Save`,
     '格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件': 'Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv',
     '模块：': 'Module:',
     '资源不足': 'Lack of resources',
@@ -1011,7 +1012,8 @@ const en = {
     '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
-    '复制/粘贴': 'Copy/Paste'
+    '复制/粘贴': 'Copy/Paste',
+    '保存已修改的节点信息吗？': 'Save the modified node information?'
 }
 
 export default en
