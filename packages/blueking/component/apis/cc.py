@@ -690,3 +690,15 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/find_set_batch/",
             description="批量获取集群详情",
         )
+        self.add_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/",
+            description="主机锁管理，增加主机锁",
+        )
+        self.delete_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/delete_host_lock/",
+            description="主机锁管理，删除主机锁",
+        )
