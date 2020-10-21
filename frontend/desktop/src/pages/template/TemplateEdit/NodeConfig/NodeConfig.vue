@@ -134,7 +134,7 @@
                             </section>
                         </div>
                         <div class="btn-footer">
-                            <bk-button theme="primary" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                            <bk-button theme="primary" :disabled="inputLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
                             <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
             <div class="node-config-confirm-dialog-content">
                 <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
                 <div class="action-wrapper">
-                    <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
                     <bk-button theme="default" @click="isConfirmDialogShow = false">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
