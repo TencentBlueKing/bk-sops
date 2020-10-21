@@ -56,7 +56,7 @@ def claim_functionalization_task(request, task_id, project_id):
 
     try:
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=request.project.id)
-        data = task.task_claim(request.user.username, constants, name)
+        result = task.task_claim(request.user.username, constants, name)
     except Exception as e:
         logger.exception("[API] claim_functionalization_task fail: {}".format(e))
         return JsonResponse(
@@ -67,4 +67,6 @@ def claim_functionalization_task(request, task_id, project_id):
             }
         )
 
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    if result["result"] is False:
+        return JsonResponse({"result": False, "message": result["message"], "code": err_code.UNKNOWN_ERROR.code})
+    return JsonResponse({"result": True, "data": result["message"], "code": err_code.SUCCESS.code})
