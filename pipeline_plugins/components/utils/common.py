@@ -36,6 +36,7 @@ def loose_strip(data):
     except Exception:
         return data
 
+
 def chunk_table_data(column, break_line):
     """
     @summary: 表格参数值支持以break_line为分隔符分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
