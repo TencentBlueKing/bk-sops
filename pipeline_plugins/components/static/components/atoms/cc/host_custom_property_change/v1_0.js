@@ -124,7 +124,7 @@
                                             result: true,
                                             error_message: ""
                                         };
-                                        if (value <= 0 && !isNaN(value)) {
+                                        if (value <= 0 || isNaN(value)) {
                                             result.result = false;
                                             result.error_message = gettext("必须为大于等于1的整数");
                                         }
@@ -193,7 +193,7 @@
                                             result: true,
                                             error_message: ""
                                         };
-                                        if (value <= 0 && !isNaN(value)) {
+                                        if (value <= 0 || isNaN(value)) {
                                             result.result = false;
                                             result.error_message = gettext("必须为大于等于1的整数");
                                         }
