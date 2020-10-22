@@ -41,7 +41,7 @@ def chunk_table_data(column, break_line):
     """
     @summary: 表格参数值支持以break_line为分隔符分隔的多条数据，对一行数据,当有一列有多条数据时（包含换行符）,其他列要么也有相等个数的
         数据 （换行符个数相等），要么只有一条数据（不包含换行符，此时表示多条数据此列参数值都相同）
-    @param column: 表格单行数据，字典格式
+    @param column:  表格单行数据，字典格式
     @param break_line: 分隔符
     @return:
     """
