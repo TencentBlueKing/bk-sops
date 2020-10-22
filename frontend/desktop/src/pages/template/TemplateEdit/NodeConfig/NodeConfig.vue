@@ -157,7 +157,8 @@
             :theme="'primary'"
             :mask-close="false"
             :show-footer="false"
-            :value="isConfirmDialogShow">
+            :value="isConfirmDialogShow"
+            @cancel="isConfirmDialogShow = false">
             <div class="node-config-confirm-dialog-content">
                 <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
                 <div class="action-wrapper">
