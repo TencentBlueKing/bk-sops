@@ -334,6 +334,39 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": template_list})
 
 
+def cc_input_host_property(request, biz_cc_id):
+    """
+    获取凯丽中指定业务对应的栏位信息
+    """
+    client = get_client_by_user(request.user.username)
+
+    kwargs = {"bk_obj_id": "host", "bk_biz_id": int(biz_cc_id)}
+
+    cc_result = client.cc.search_object_attribute(kwargs)
+
+    if not cc_result["result"]:
+        return JsonResponse({"result": False, "message": cc_result["message"]})
+
+    obj_property = [
+        {
+            "tag_code": "bk_host_innerip",
+            "attrs": {
+                "name": "内网IP",
+                "editable": "true"
+            }
+        }
+    ]
+    for item in cc_result["data"]:
+        if item["editable"]:
+            prop_dict = {
+                "tag_code": item["bk_property_id"],
+                "attrs": {"name": item["bk_property_name"], "editable": "true"},
+            }
+            obj_property.append(prop_dict)
+
+    return JsonResponse({"result": True, "data": obj_property})
+
+
 cc_urlpatterns = [
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
     url(r"^cc_search_object_attribute_all/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute_all,),
@@ -349,4 +382,6 @@ cc_urlpatterns = [
     url(r"^cc_get_business_list/$", cc_get_business),
     # 查询集群模板
     url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
+    # 主机自定义属性表格
+    url(r"^cc_input_host_property/(?P<biz_cc_id>\d+)/$", cc_input_host_property),
 ]
