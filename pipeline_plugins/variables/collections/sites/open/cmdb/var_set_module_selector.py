@@ -79,6 +79,9 @@ class SetModuleInfo(object):
         self.flat__module_name = data.get("flat__module_name", "")
         self._pipeline_var_str_value = "set: {}, modules: {}".format(self.set_name, ",".join(self.module_name))
 
+    def __repr__(self):
+        return self._pipeline_var_str_value
+
 
 class VarSetModuleSelector(LazyVariable):
     code = "set_module_selector"

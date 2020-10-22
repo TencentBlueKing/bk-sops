@@ -1,0 +1,2 @@
+bugfix:
+  - "修改CMDB插件-安装规则修改主机自定义属性无法使用问题 search_object_attribute 接口传bk_biz_id时需要转为int"

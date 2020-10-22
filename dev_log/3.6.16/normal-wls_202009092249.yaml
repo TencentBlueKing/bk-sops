@@ -1,0 +1,2 @@
+bugfix:
+    - "修复后台cmdb_search_host结果不包含筛选条件对应字段的问题"

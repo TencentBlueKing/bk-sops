@@ -100,20 +100,16 @@
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
                                 <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-else-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
+                                    v-else-if="!hasCreateTaskPerm(props.row)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
-                                    @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
+                                    @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
                                     {{$t('再创建')}}
                                 </a>
                                 <router-link
                                     v-else
                                     class="task-operation-btn"
-                                    :to="{
-                                        name: 'taskStep',
-                                        query: { template_id: props.row.template_id },
-                                        params: { project_id: project_id, step: 'selectnode' }
-                                    }">
+                                    :to="getCreateTaskUrl(props.row)">
                                     {{$t('再创建')}}
                                 </router-link>
                                 <a
@@ -317,6 +313,7 @@
                 taskList: state => state.taskList.taskListData
             }),
             ...mapState('project', {
+                'authActions': state => state.authActions,
                 'timeZone': state => state.timezone
             }),
             searchForm () {
@@ -440,6 +437,22 @@
                 this.pagination.current = 1
                 this.getTaskList()
             },
+            hasCreateTaskPerm (task) {
+                const authActions = [...task.auth_actions, ...this.authActions]
+                const reqPerm = task.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                return this.hasPermission([reqPerm], authActions)
+            },
+            getCreateTaskUrl (task) {
+                const url = {
+                    name: 'taskStep',
+                    query: { template_id: task.template_id },
+                    params: { project_id: this.project_id, step: 'selectnode' }
+                }
+                if (task.template_source === 'common') {
+                    url.query.common = 1
+                }
+                return url
+            },
             /**
              * 单个任务操作项点击时校验
              * @params {Array} required 需要的权限
@@ -451,16 +464,17 @@
                         id: task.id,
                         name: task.name
                     }],
-                    flow: [{
-                        id: task.template_id,
-                        name: task.template_name
-                    }],
                     project: [{
                         id: task.project.id,
                         name: task.project.name
                     }]
                 }
-                this.applyForPermission(required, task.auth_actions, resourceData)
+                const flowKey = task.template_source === 'project' ? 'flow' : 'common_flow'
+                resourceData[flowKey] = [{
+                    id: task.template_id,
+                    name: task.template_name
+                }]
+                this.applyForPermission(required, [...task.auth_actions, ...this.authActions], resourceData)
             },
             onDeleteTask (task) {
                 if (!this.hasPermission(['task_delete'], task.auth_actions)) {

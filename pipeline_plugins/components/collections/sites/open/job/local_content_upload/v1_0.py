@@ -15,10 +15,10 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
+from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
-from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -29,8 +29,9 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobLocalContentUploadService(JobService):
+class JobLocalContentUploadService(Service):
     __need_schedule__ = True
+    interval = StaticIntervalGenerator(5)
 
     reload_outputs = False
 
@@ -75,6 +76,18 @@ class JobLocalContentUploadService(JobService):
                     },
                 ),
             ),
+            self.OutputItem(
+                name=_("JOB任务ID"),
+                key="job_inst_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务在 JOB 平台的实例 ID")),
+            ),
+            self.OutputItem(
+                name=_("JOB任务链接"),
+                key="job_inst_url",
+                type="string",
+                schema=StringItemSchema(description=_("提交的任务在 JOB 平台的 URL")),
+            ),
         ]
 
     def execute(self, data, parent_data):
@@ -100,8 +113,7 @@ class JobLocalContentUploadService(JobService):
                     ),
                 }
             ],
-            "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.id),
+            "ip_list": ip_list
         }
 
         job_result = client.job.push_config_file(job_kwargs)
@@ -112,7 +124,6 @@ class JobLocalContentUploadService(JobService):
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result["data"]["job_instance_name"]
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
-            data.outputs.client = client
             return True
         else:
             message = job_handle_api_error("job.push_config_file", job_kwargs, job_result)
@@ -121,7 +132,33 @@ class JobLocalContentUploadService(JobService):
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobLocalContentUploadService, self).schedule(data, parent_data, callback_data)
+        client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
+        get_job_instance_log_kwargs = {
+            "job_instance_id": data.outputs.job_inst_id,
+            "bk_biz_id": parent_data.get_one_of_inputs("biz_cc_id")
+        }
+        get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
+        if not get_job_instance_log_return["result"]:
+            err_message = handle_api_error(
+                "JOB", "job.get_job_instance_log",
+                get_job_instance_log_kwargs,
+                get_job_instance_log_return
+            )
+            data.set_outputs("ex_data", err_message)
+            return False
+        else:
+            job_status = get_job_instance_log_return["data"][0]["status"]
+            if job_status == 3:
+                self.finish_schedule()
+                return True
+            elif job_status > 3:
+                err_message = handle_api_error(
+                    "JOB", "job.get_job_instance_log",
+                    get_job_instance_log_kwargs,
+                    get_job_instance_log_return
+                )
+                data.set_outputs("ex_data", err_message)
+                return False
 
 
 class JobLocalContentUploadComponent(Component):

@@ -10,7 +10,7 @@
                 <bk-button
                     theme="primary"
                     :loading="loading"
-                    @click="goToAuthCenter">
+                    @click="applyBtnClick">
                     {{$t('去申请')}}
                 </bk-button>
             </div>
@@ -89,9 +89,6 @@
                     url = window.BK_IAM_SAAS_HOST
                 }
                 openOtherApp(window.BK_IAM_APP_CODE, url)
-            },
-            goToApply () {
-                this.applyForPermission(['project_create'])
             },
             async queryProjectCreatePerm () {
                 try {

@@ -1,5 +1,10 @@
 const en = {
+    '任务数据': 'Task data',
     '继续执行': 'Continue to perform',
+    '保存筛选方案': 'Save the filter scheme',
+    '修改名称会新建方案记录': 'Changing the name creates a new schema record',
+    '筛选方案': 'Screening scheme',
+    '筛选条件和排除条件': 'Screening criteria and exclusion criteria',
     '节点参数': 'Node parameter',
     '缩略视图': 'Thumbnail view',
     '': '',
@@ -277,7 +282,7 @@ const en = {
     '节点名称不能包含': 'Node name cannot contain ',
     '节点名称长度不能超过': 'Length cannot be larger than ',
     '步骤名称不能包含': 'Stage name cannot contain ',
-    '步骤名称不能超过': 'Length cannot be larger than ',
+    '步骤名称长度不能超过': 'Length cannot be larger than ',
     '变量名称不能为空': 'Variable name cannot be empty',
     '变量名称不能包含': 'Variable name cannot contain ',
     '变量名称长度不能超过': 'Length cannot be larger than ',
@@ -676,7 +681,7 @@ const en = {
     '分支条件': 'Condition',
     '分支名称': 'Name',
     '表达式': 'Expression:',
-    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == "Test"`': 'Supports binary operators such as "==,! =,>,> =, <, <=, in, notin " and keyword syntax such as "and,or,True/true,False/false".Also supports global variable reference via "${key}". e.g.: `${key1} >= 3 and ${key2} == "Test"`',
+    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：${key1} >= 3 and "${key2}" == "Test"': 'Supports binary operators such as "==,! =,>,> =, <, <=, in, notin " and keyword syntax such as "and,or,True/true,False/false".Also supports global variable reference via "${key}". e.g.: ${key1} >= 3 and "${key2}" == "Test"',
     '请选择插件': 'Please select plugin',
     '请选择插件版本': 'Please select plugin version',
     '请选择流程模板': 'Please select a flow',
@@ -1011,7 +1016,16 @@ const en = {
     '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
-    '复制/粘贴': 'Copy/Paste'
+    '复制/粘贴': 'Copy/Paste',
+    '项目配置': 'Configure',
+    '成员设置': 'Membership Settings',
+    '执行代理人设置': 'Executive Agent Settings',
+    '执行代理人': 'Executive Agent',
+    '白名单用户': 'Whitelist Users',
+    '人员分组设置': 'Staffing Group Settings',
+    '增加分组': 'add group',
+    '分组名称': 'Group Name',
+    '成员': 'Members'
 }
 
 export default en
