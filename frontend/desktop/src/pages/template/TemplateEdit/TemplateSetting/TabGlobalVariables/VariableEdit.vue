@@ -141,7 +141,7 @@
                 <div class="leave-tips">{{ $t('保存已修改的变量信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" :disabled="atomConfigLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="isSaveConfirmDialogShow = false">{{ $t('不保存') }}</bk-button>
+                    <bk-button theme="default" @click="$emit('closeEditingPanel')">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
         </bk-dialog>
