@@ -10,92 +10,99 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <el-tooltip placement="bottom" popper-class="task-node-tooltip" :disabled="!isOpenTooltip">
-        <div
-            :class="[
-                'task-node',
-                'process-node',
-                node.status ? node.status.toLowerCase() : '',
-                { 'actived': node.isActived }
-            ]">
-            <!-- 节点左侧的色块区域 -->
-            <div class="node-status-block">
-                <img v-if="node.icon" class="node-icon" :src="node.icon" />
-                <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
-                <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
-            </div>
-            <!-- 节点名称 -->
-            <div class="node-name">
-                <div class="name-text">{{ node.name }}</div>
-            </div>
-            <!-- 节点顶部左侧区域 icon，是否可选、跳过等 -->
-            <div class="node-options-icon">
-                <template v-if="node.optional">
-                    <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
-                    <bk-checkbox
-                        v-else-if="node.mode === 'select'"
-                        :value="node.checked"
-                        :disabled="node.checkDisable"
-                        @change="onNodeCheckClick">
-                    </bk-checkbox>
-                </template>
-                <span v-if="node.error_ignorable && node.mode === 'edit'" class="dark-circle common-icon-dark-circle-i"></span>
-                <span v-if="node.isSkipped || node.skippable" class="dark-circle common-icon-dark-circle-s"></span>
-                <span v-if="node.can_retry || node.retryable" class="dark-circle common-icon-dark-circle-r"></span>
-            </div>
-            <!-- 节点执行顶部右侧 icon， 定时、暂停、执行中-->
-            <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon">
-                <i v-if="node.status === 'RUNNING' && node.code === 'sleep_timer'" class="common-icon-clock"></i>
-                <template v-else>
-                    <i v-if="node.status === 'SUSPENDED' || node.code === 'pause_node'" class="common-icon-double-vertical-line"></i>
-                    <i v-else-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
-                </template>
-            </div>
-            <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
-                <i
-                    :class="['bk-icon', 'icon-exclamation-circle', {
-                        'phase-warn': node.phase === 1,
-                        'phase-error': node.phase === 2
-                    }]"
-                    v-bk-tooltips="{
-                        content: phaseStr[node.phase],
-                        width: 210
-                    }">
-                </i>
-            </div>
+    <div
+        :class="[
+            node.mode === 'execute' ? 'default' : '',
+            'task-node',
+            'process-node',
+            node.status ? node.status.toLowerCase() : '',
+            { 'actived': node.isActived }
+        ]">
+        <!-- 节点左侧的色块区域 -->
+        <div class="node-status-block">
+            <img v-if="node.icon" class="node-icon" :src="node.icon" />
+            <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
+            <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
         </div>
-        <div class="node-tooltip-content" slot="content">
-            <bk-button
-                v-if="isShowRetryBtn"
-                @click.stop="onRetryClick">
-                {{ $t('重试') }}
-            </bk-button>
-            <bk-button
-                v-if="isShowSkipBtn"
-                @click.stop="onSkipClick">
-                {{ $t('跳过') }}
-            </bk-button>
-            <span v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn">{{ $t('流程模板中该标准插件节点未配置失败处理方式，不可操作') }}</span>
+        <!-- 节点名称 -->
+        <div class="node-name">
+            <div class="name-text">{{ node.name }}</div>
+        </div>
+        <!-- 节点顶部左侧区域 icon，是否可选、跳过等 -->
+        <div class="node-options-icon">
+            <template v-if="node.optional">
+                <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
+                <bk-checkbox
+                    v-else-if="node.mode === 'select'"
+                    :value="node.checked"
+                    :disabled="node.checkDisable"
+                    @change="onNodeCheckClick">
+                </bk-checkbox>
+            </template>
+            <span v-if="node.error_ignorable && node.mode === 'edit'" class="dark-circle common-icon-dark-circle-i"></span>
+            <span v-if="node.isSkipped || node.skippable" class="dark-circle common-icon-dark-circle-s"></span>
+            <span v-if="node.can_retry || node.retryable" class="dark-circle common-icon-dark-circle-r"></span>
+        </div>
+        <!-- 节点执行顶部右侧 icon， 定时、暂停、执行中-->
+        <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon">
+            <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
+        </div>
+        <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
+            <i
+                :class="['bk-icon', 'icon-exclamation-circle', {
+                    'phase-warn': node.phase === 1,
+                    'phase-error': node.phase === 2
+                }]"
+                v-bk-tooltips="{
+                    content: phaseStr[node.phase],
+                    width: 210
+                }">
+            </i>
+        </div>
+        <!-- tooltip提示 -->
+        <div class="state-icon">
+            <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
+                <span
+                    class="common-icon-retry"
+                    @click.stop="onRetryClick">
+                </span>
+            </el-tooltip>
+            <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
+                <span
+                    class="common-icon-skip"
+                    @click.stop="onSkipClick">
+                </span>
+            </el-tooltip>
+            <el-tooltip
+                v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn"
+                placement="bottom"
+                :content="$t('流程模板中该标准插件节点未配置失败处理方式，不可操作')">
+                <span
+                    class="common-icon-mandatory-failure">
+                </span>
+            </el-tooltip>
             <template v-if="node.status === 'RUNNING'">
-                <bk-button
-                    v-if="node.code === 'sleep_timer'"
-                    @click.stop="onModifyTimeClick">
-                    {{ $t('修改时间') }}
-                </bk-button>
-                <bk-button
-                    v-if="node.code === 'pause_node'"
-                    @click.stop="onResumeClick">
-                    {{ $t('继续') }}
-                </bk-button>
-                <bk-button
-                    v-if="hasAdminPerm"
-                    @click.stop="$emit('onForceFail', node.id)">
-                    {{ $t('强制失败') }}
-                </bk-button>
+                <el-tooltip v-if="node.code === 'sleep_timer'" placement="bottom" :content="$t('修改时间')">
+                    <span
+                        class="common-icon-clock"
+                        @click.stop="onModifyTimeClick">
+                    </span>
+                </el-tooltip>
+                <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
+                    <span
+                        class="common-icon-next-triangle-shape"
+                        @click.stop="onResumeClick">
+                    </span>
+                </el-tooltip>
+                <el-tooltip placement="bottom" :content="$t('强制失败')">
+                    <span
+                        class="common-icon-mandatory-failure"
+                        @click.stop="mandatoryFailure">
+                    </span>
+                </el-tooltip>
             </template>
         </div>
-    </el-tooltip>
-
+    </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
@@ -184,6 +191,9 @@
                     return
                 }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
+            },
+            mandatoryFailure () {
+                this.$emit('onForceFail', this.node.id)
             }
         }
     }

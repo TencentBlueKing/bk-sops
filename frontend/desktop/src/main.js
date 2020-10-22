@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import './public-path.js'
 import Vue from 'vue'
 import VeeValidate, { Validator } from 'vee-validate'
 import router from './routers/index.js'
@@ -23,7 +24,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, InputNumber, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
-    Container, Row, Col, Pagination, Tooltip, Cascader } from 'element-ui'
+    Container, Row, Col, Pagination, Tooltip, Cascader, autocomplete } from 'element-ui'
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
@@ -58,6 +59,7 @@ Vue.use(Col)
 Vue.use(Pagination)
 Vue.use(Tooltip)
 Vue.use(Cascader)
+Vue.use(autocomplete)
 
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)

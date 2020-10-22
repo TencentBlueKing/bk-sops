@@ -41,7 +41,7 @@
                                 v-if="group.children.length"
                                 :key="group.id"
                                 class="template-group">
-                                <h5 class="group-name">
+                                <h5 class="group-name" v-if="group.name">
                                     {{group.name}}
                                     (<span class="list-count">{{group.children.length}}</span>)
                                 </h5>
@@ -109,7 +109,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapGetters, mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
@@ -190,8 +190,8 @@
             }
         },
         computed: {
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
+            ...mapState('project', {
+                projectList: state => state.userProjectList
             }),
             searchOptionalList: {
                 get () {
@@ -323,7 +323,7 @@
                     } else {
                         categorys.push(m.category)
                         group.push({
-                            name: m.category,
+                            name: m.category_name || m.category,
                             children: [m]
                         })
                     }
@@ -525,13 +525,13 @@
             @include scrollbar;
         }
         .template-group {
-            margin-bottom: 30px;
+            margin: 30px 0;
         }
         .search-list {
             padding-top: 40px;
         }
         .group-name {
-            margin-bottom: 8px;
+            margin: 0 0 8px;
             font-size: 12px;
         }
     }

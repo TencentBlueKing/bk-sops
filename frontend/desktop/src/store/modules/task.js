@@ -85,6 +85,26 @@ const task = {
             return axios.post(`taskflow/api/preview_task_tree/${project_id}/`, dataJson).then(response => response.data)
         },
         /**
+         * 资源筛选配置方案全量列表
+         * @param {String} payload 资源类型
+         */
+        configProgramList ({ commit }, payload) {
+            const { project_id } = store.state.project
+            return axios.get(`api/v3/resource_config/?project_id=${project_id}&config_type=${payload}`).then(response => response.data)
+        },
+        /**
+         * 保存筛选方案
+         * @param {String} params 项目信息数据
+         */
+        saveResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.patch(url, data).then(response => response.data)
+        },
+        createResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.post(url, data).then(response => response.data)
+        },
+        /**
          * 创建任务
          * @param {Object} data 模板数据
          */
@@ -262,6 +282,18 @@ const task = {
                     component_code,
                     subprocess_stack
                 }
+            }).then(response => response.data)
+        },
+        /**
+         * 节点强制失败
+         * @param {Object} data 任务实例数据
+         */
+        onForcedFail ({ commit }, data) {
+            const { project_id } = store.state.project
+            const { node_id, task_id } = data
+            const action = 'forced_fail'
+            return axios.post(`taskflow/api/v4/node_action/${project_id}/${task_id}/${node_id}/`, { action }, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
         /**

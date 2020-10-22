@@ -121,6 +121,43 @@ class NodesActionValidator(ObjectJsonBodyValidator):
         return True, ""
 
 
+class NodeActionV2Validator(ObjectJsonBodyValidator):
+    NODE_ACTIONS = {
+        "revoke",
+        "retry",
+        "skip",
+        "callback",
+        "skip_exg",
+        "pause",
+        "resume",
+        "pause_subproc",
+        "resume_subproc",
+        "forced_fail",
+    }
+
+    def validate(self, request, *args, **kwargs):
+
+        valid, err = super().validate(request, *args, **kwargs)
+
+        if not valid:
+            return valid, err
+
+        action = self.data.get("action")
+        if action not in self.NODE_ACTIONS:
+            return False, "invalid action type: {}".format(action)
+
+        if not isinstance(self.data.get("data", {}), dict):
+            return False, "data must be a object"
+
+        if not isinstance(self.data.get("inputs", {}), dict):
+            return False, "inputs must be a object"
+
+        if not isinstance(self.data.get("flow_id", ""), str):
+            return False, "flow_id must be a string"
+
+        return True, ""
+
+
 class SpecNodesTimerResetValidator(ObjectJsonBodyValidator):
     def validate(self, request, *args, **kwargs):
 

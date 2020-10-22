@@ -17,12 +17,16 @@ const project = {
         project_id: window.DEFAULT_PROJECT_ID,
         projectName: '',
         projectList: [],
+        userProjectList: [], // 用户有权限的项目列表
         timeZone: window.TIMEZONE,
         authActions: []
     },
     mutations: {
         setProjectList (state, data) {
             state.projectList = data
+        },
+        setUserProjectList (state, data) {
+            state.userProjectList = data
         },
         setProjectId (state, id) {
             if (typeof id !== 'number') {
@@ -55,10 +59,13 @@ const project = {
                     q
                 }
             }).then(response => {
-                if (data && data.limit === 0) {
-                    commit('setProjectList', response.data.objects)
-                }
-
+                return response.data
+            })
+        },
+        // 加载用户有权限的项目列表
+        loadUserProjectList ({ commit }, params) {
+            return axios.get(`api/v3/user_project/`, { params }).then(response => {
+                commit('setUserProjectList', response.data.objects)
                 return response.data
             })
         },
@@ -89,13 +96,38 @@ const project = {
                 desc,
                 is_disable
             }).then(response => response.data)
-        }
-    },
-    getters: {
-        userCanViewProjects (state) {
-            return state.projectList.filter(item => {
-                return item.auth_actions.indexOf('project_view') > -1
-            })
+        },
+        getProjectConfig ({ commit }, id) {
+            return axios.get(`api/v3/project_config/${id}/`).then(
+                response => response.data
+            )
+        },
+        updateProjectConfig ({ commit }, params) {
+            const { id, executor_proxy, executor_proxy_exempts } = params
+            return axios.patch(`api/v3/project_config/${id}/`, { executor_proxy, executor_proxy_exempts }).then(
+                response => response.data
+            )
+        },
+        getProjectStaffGroupList ({ commit }, params) {
+            return axios.get(`api/v3/staff_group/`, { params }).then(
+                response => response.data
+            )
+        },
+        createProjectStaffGroup ({ commit }, params) {
+            return axios.post(`api/v3/staff_group/`, params.data).then(
+                response => response.data
+            )
+        },
+        updateProjectStaffGroup ({ commit }, params) {
+            const { id, data } = params
+            return axios.put(`api/v3/staff_group/${id}/`, data).then(
+                response => response.data
+            )
+        },
+        delProjectStaffGroup ({ commit }, id) {
+            return axios.delete(`api/v3/staff_group/${id}/`).then(
+                response => response.data
+            )
         }
     }
 }

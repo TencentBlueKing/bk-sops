@@ -147,7 +147,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.14"
+STATIC_VERSION = "3.6.18"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -305,6 +305,11 @@ TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processor
 
 STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 
+# drf 配置
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+}
+
 # pipeline settings
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
@@ -346,6 +351,9 @@ PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
+
+# CELERY与RabbitMQ增加60秒心跳设置项
+BROKER_HEARTBEAT = 60
 
 SYSTEM_USE_API_ACCOUNT = "admin"
 

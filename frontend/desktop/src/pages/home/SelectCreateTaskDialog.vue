@@ -47,6 +47,7 @@
                         :loading="loadingStatus.project"
                         :popover-width="260"
                         :clearable="false"
+                        :searchable="true"
                         :placeholder="$t('请选择项目')"
                         @change="checkPermission">
                         <bk-option
@@ -76,7 +77,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
-    import { mapGetters, mapState, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     export default {
         name: 'SelectCreateTaskDialog',
@@ -121,11 +122,11 @@
             }
         },
         computed: {
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
-            }),
             ...mapState({
                 'permissionMeta': state => state.permissionMeta
+            }),
+            ...mapState('project', {
+                projectList: state => state.userProjectList
             }),
             createTaskPerm () {
                 return this.formData.taskType === 'taskflow' ? ['common_flow_create_task'] : ['common_flow_create_periodic_task']

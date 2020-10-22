@@ -11,7 +11,7 @@
 */
 <template>
     <div class="project-container">
-        <div class="list-wrapper">
+        <div class="list-wrapper" v-if="!isMandateView">
             <base-title :title="$t('项目管理')"></base-title>
             <div class="list-header">
                 <!-- <bk-button
@@ -80,6 +80,7 @@
                 </bk-table>
             </div>
         </div>
+        <Mandate v-else :id="mandateId" @go-back="isMandateView = false"></Mandate>
         <CopyrightFooter></CopyrightFooter>
         <bk-dialog
             width="600"
@@ -164,6 +165,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import Mandate from './mandate.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
@@ -173,6 +175,11 @@
             power: 'project_view',
             text: i18n.t('查看'),
             enter: i18n.t('进入')
+        },
+        {
+            name: 'mandate',
+            power: 'project_edit',
+            text: i18n.t('项目配置')
         },
         {
             name: 'edit',
@@ -195,7 +202,8 @@
         components: {
             NoData,
             BaseTitle,
-            CopyrightFooter
+            CopyrightFooter,
+            Mandate
         },
         mixins: [permission],
         data () {
@@ -213,6 +221,8 @@
                 projectDetailLoading: false,
                 addPengding: false,
                 updatePending: false,
+                mandateId: '',
+                isMandateView: false,
                 projectDetail: {
                     name: '',
                     timeZone: 'Asia/Shanghai',
@@ -260,7 +270,8 @@
                 'queryUserPermission'
             ]),
             ...mapActions('project', [
-                'loadProjectList',
+                'loadUserProjectList',
+                'loadUserProjectList',
                 'createProject',
                 'loadProjectDetail',
                 'updateProject',
@@ -292,7 +303,7 @@
                         data.q = this.searchStr
                     }
                     
-                    const projectList = await this.loadProjectList(data)
+                    const projectList = await this.loadUserProjectList(data)
                     this.projectList = projectList.objects || []
                     this.projectList = this.projectList.map(item => {
                         if (!item.from_cmdb) {
@@ -339,7 +350,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
-                    this.loadProjectList({ limit: 0 })
+                    this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
@@ -494,7 +505,7 @@
                 if (isDisable) {
                     return name === 'start'
                 } else {
-                    return ['view', 'edit', 'stop'].includes(name)
+                    return ['view', 'edit', 'stop', 'mandate'].includes(name)
                 }
             },
             /**
@@ -503,16 +514,19 @@
              * @param {String} name
              */
             onClickOptBtn (item, name) {
-                const _this = this
                 switch (name) {
                     case 'view':
-                        _this.onViewProject(item)
+                        this.onViewProject(item)
                         break
                     case 'edit':
-                        _this.onEditProject(item)
+                        this.onEditProject(item)
+                        break
+                    case 'mandate':
+                        this.mandateId = item.id
+                        this.isMandateView = true
                         break
                     default:
-                        _this.onChangeProjectStatus(item, name)
+                        this.onChangeProjectStatus(item, name)
                 }
             },
             handlePageLimitChange (val) {

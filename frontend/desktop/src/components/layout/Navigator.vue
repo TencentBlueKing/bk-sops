@@ -103,7 +103,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapGetters, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
@@ -214,13 +214,11 @@
                 hasStatisticsPerm: state => state.hasStatisticsPerm,
                 permissionMeta: state => state.permissionMeta
             }),
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
-            }),
             ...mapState('appmaker', {
                 appmakerTemplateId: state => state.appmakerTemplateId
             }),
             ...mapState('project', {
+                projectList: state => state.userProjectList,
                 project_id: state => state.project_id,
                 authResource: state => state.authResource
             }),
@@ -253,7 +251,7 @@
         },
         methods: {
             ...mapActions('project', [
-                'loadProjectList'
+                'loadUserProjectList'
             ]),
             ...mapActions([
                 'getVersionList',
@@ -271,7 +269,7 @@
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
-                    await this.loadProjectList({ limit: 0 })
+                    await this.loadUserProjectList({ limit: 0 })
                 }
             },
             // 获取导航的链接，供右键点击跳转

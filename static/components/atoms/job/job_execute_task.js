@@ -46,7 +46,7 @@
             tag_code: "job_task_id",
             type: "select",
             attrs: {
-                name: gettext("作业模板"),
+                name: gettext("执行方案"),
                 hookable: false,
                 remote: true,
                 remote_url: function () {

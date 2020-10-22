@@ -199,8 +199,13 @@
     }
 
     @mixin taskNodeStyle ($color) {
-        &:hover .node-name {
-            border-color: $color;
+        &:hover {
+            .node-name {
+                border-color: $color;
+            }
+            .state-icon {
+                display: block;
+            }
         }
         .node-status-block {
             background-color: $color;
@@ -209,6 +214,13 @@
             background: $color;
         }
     }
+    @mixin nodeClick ($color) {
+        .node-name {
+            border-color: $color;
+            background-color: rgba($color, 0.3);
+        }
+    }
+
     @mixin gatewayStyle ($color) {
         .node-type-icon {
             color: $color;
@@ -322,27 +334,45 @@
             border-radius: 4px;
             box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             cursor: pointer;
-            &.actived {
-                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
-            }
             &:hover {
-                box-shadow: 0px 0px 20px 0px $activeShadow;
                 .node-name {
                     border-color: $blueDark;
                 }
             }
+            &.actived {
+                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
+            }
+            &.default {
+                @include taskNodeStyle ($blueDark);
+                &.actived {
+                     @include nodeClick ($blueDark);
+                }
+            }
             &.failed {
-                @include taskNodeStyle ($redDark)
+                @include taskNodeStyle ($redDark);
+                &.actived {
+                    @include nodeClick ($redDark);
+                }
             }
             &.suspended {
-                @include taskNodeStyle ($yellowDark)
+                @include taskNodeStyle ($yellowDark);
+                &.actived {
+                    @include nodeClick ($yellowDark);
+                }
             }
             &.running {
-                @include taskNodeStyle ($yellowDark)
+                @include taskNodeStyle ($yellowDark);
+                &.actived {
+                    @include nodeClick ($yellowDark);
+                }
             }
             &.finished {
-                @include taskNodeStyle ($greenDark)
+                @include taskNodeStyle ($greenDark);
+                &.actived {
+                     @include nodeClick ($greenDark);
+                }
             }
+
             .node-status-block {
                 display: flex;
                 align-items: center;
@@ -406,6 +436,20 @@
                     margin-right: 2px;
                     font-size: 12px;
                     color: #979ba5;
+                }
+            }
+            .state-icon {
+                position: absolute;
+                right: 5px;
+                bottom: -20px;
+                display: none;
+                .el-tooltip {
+                   font-size: 14px;
+                   margin-left: 5px;
+                   color: #52699D;
+                    &:hover {
+                        color: #4b85f7;
+                    }
                 }
             }
         }

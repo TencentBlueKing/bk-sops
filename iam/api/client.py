@@ -161,6 +161,16 @@ class Client(object):
 
         return True, "success"
 
+    # return resource instance creator action attribute to iam, esb needed.
+    def grant_resource_creator_action_attributes(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/resource_creator_action_attribute/"
+
+        ok, message, data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message
+
+        return True, "success"
+
     # return resource instance creator to iam, esb needed.
     def grant_batch_resource_creator_actions(self, bk_token, bk_username, data):
         path = "/api/c/compapi/v2/iam/authorization/batch_resource_creator_action/"

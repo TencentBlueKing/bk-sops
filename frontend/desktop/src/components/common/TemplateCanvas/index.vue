@@ -104,20 +104,20 @@
                 <i class="bk-icon icon-download"></i>
             </div>
         </div>
-        <div class="small-map" v-if="showSmallMap">
+        <div class="small-map" ref="smallMap" v-if="showSmallMap">
             <img :src="smallMapImg" alt="">
             <div
                 ref="selectBox"
                 class="select-box"
-                @mousedown.prevent="onMouseDownSelect"
-                @mouseup.prevent="onMouseUpSelect">
+                @mousedown.prevent="onMouseDownSelect">
             </div>
         </div>
     </div>
 </template>
 <script>
     // import html2canvas from 'html2canvas'
-    import domtoimage from 'dom-to-image'
+    // import domtoimage from 'dom-to-image'
+    import domtoimage from '@/utils/domToImage.js'
     // import htmltoimage from 'html-to-image'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
@@ -1284,19 +1284,20 @@
                 this.isMouseEnterX = e.offsetX
                 this.isMouseEnterY = e.offsetY
                 this.$refs.selectBox.addEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.addEventListener('mouseup', this.onMouseUpListener, false)
             },
-            onMouseUpSelect () {
+            onMouseUpListener () {
                 this.$refs.selectBox.removeEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.removeEventListener('mouseup', this.onMouseUpListener, false)
             },
             selectBoxMoveHandler (e) {
-                const cavasMargin = 80 // 80 画布margin值
-                const headerWidth = 60 // 60 header的宽度
-                const tabWidth = 50 // 50 tab栏的宽度
-                const moreOffsetTop = 10 // 画布多向上偏移10px  露出点空白
+                const moreOffsetTop = 30 // 画布多向上偏移30px  露出点空白
                 const moreOffsetLeft = 30 // 画布多向左偏移30px  露出点空白
                 const selectBox = document.querySelector('.select-box')
-                const targetX = e.clientX - this.isMouseEnterX - cavasMargin
-                const targetY = e.clientY - this.isMouseEnterY - cavasMargin - headerWidth - tabWidth
+                const smallMapDistanceTop = this.$refs.smallMap.getBoundingClientRect().top // 小地图到顶部的距离
+                const samllmapDistanceLeft = this.$refs.smallMap.getBoundingClientRect().left // 小地图到左侧的距离
+                const targetX = e.clientX - this.isMouseEnterX - samllmapDistanceLeft
+                const targetY = e.clientY - this.isMouseEnterY - smallMapDistanceTop
                 // // 计算选择框宽高
                 const selectWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
                 const selectHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight
