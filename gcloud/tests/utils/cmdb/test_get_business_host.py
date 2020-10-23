@@ -30,7 +30,7 @@ class GetBusinessHostTestCase(TestCase):
         self.username = "username_token"
         self.bk_biz_id = "bk_biz_id_token"
         self.supplier_account = "supplier_account_token"
-        self.host_fields = "host_fileds_token"
+        self.host_fields = ["host_fileds_token"]
         self.ip_list = "ip_list_token"
         self.list_biz_hosts_return = "list_biz_hosts_token"
 
