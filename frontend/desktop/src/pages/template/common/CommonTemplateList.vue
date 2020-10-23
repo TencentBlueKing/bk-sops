@@ -409,8 +409,8 @@
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         common: '1',
-                        pipeline_template__name__contains: flowName || undefined,
-                        pipeline_template__creator__icontains: creator || undefined,
+                        pipeline_template__name__icontains: flowName || undefined,
+                        pipeline_template__creator__contains: creator || undefined,
                         category: category || undefined,
                         subprocess_has_update,
                         has_subprocess
