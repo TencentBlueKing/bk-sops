@@ -54,6 +54,7 @@ def get_host_id_by_inner_ip(client, logger, bk_cloud_id: int, bk_biz_id: int, ip
     """
     kwargs = {
         "bk_biz_id": [bk_biz_id],
+        "pagesize": -1,
         "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
     result = client.nodeman.search_host_plugin(kwargs)
