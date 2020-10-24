@@ -16,6 +16,7 @@
             ext-cls="node-config-panel"
             :width="800"
             :is-show="isShow"
+            :quick-close="true"
             :before-close="beforeClose">
             <div class="config-header" slot="header">
                 <span
@@ -133,7 +134,7 @@
                             </section>
                         </div>
                         <div class="btn-footer">
-                            <bk-button theme="primary" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                            <bk-button theme="primary" :disabled="inputLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
                             <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
                         </div>
                     </div>
@@ -150,6 +151,22 @@
                 </selector-panel>
             </template>
         </bk-sideslider>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isConfirmDialogShow"
+            @cancel="isConfirmDialogShow = false">
+            <div class="node-config-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -193,6 +210,7 @@
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
+                isConfirmDialogShow: false, // 确认是否保存编辑数据
                 nodeConfig, // 任务节点的完整 activity 配置参数
                 basicInfo, // 基础信息模块
                 versionList, // 标准插件版本
@@ -846,10 +864,7 @@
                     }
                 })
             },
-            /**
-             * 同步节点配置面板数据到 store.activities
-             */
-            syncActivity () {
+            getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
                     const { nodeName, nodeLabel, selectable, version, tpl } = this.basicInfo
@@ -901,6 +916,13 @@
                     delete config.can_retry
                     delete config.isSkipped
                 }
+                return config
+            },
+            /**
+             * 同步节点配置面板数据到 store.activities
+             */
+            syncActivity () {
+                const config = this.getNodeFullConfig()
                 this.nodeConfig = config
                 this.setActivities({ type: 'edit', location: config })
             },
@@ -943,8 +965,21 @@
                 return phase
             },
             beforeClose () {
-                this.$emit('update:isShow', false)
-                return true
+                if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
+                    if (!(this.isSubflow ? this.basicInfo.tpl : this.basicInfo.plugin)) {
+                        this.$emit('update:isShow', false)
+                        return true
+                    }
+                }
+                const config = this.getNodeFullConfig()
+                if (tools.isDataEqual(config, this.nodeConfig)) {
+                    this.$emit('update:isShow', false)
+                    return true
+                } else {
+                    this.isConfirmDialogShow = true
+                    this.isSelectorPanelShow = false
+                    return false
+                }
             },
             onSaveConfig () {
                 this.validate().then(result => {
@@ -962,6 +997,10 @@
                         this.$emit('close')
                     }
                 })
+            },
+            onConfirmClick () {
+                this.isConfirmDialogShow = false
+                this.onSaveConfig()
             }
         }
     }
@@ -1063,6 +1102,17 @@
             &:hover {
                 color: #3a84ff;
             }
+        }
+    }
+    .node-config-confirm-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        .leave-tips {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
         }
     }
 </style>

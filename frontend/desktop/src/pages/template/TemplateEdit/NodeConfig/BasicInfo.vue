@@ -27,13 +27,7 @@
                         </div>
                     </template>
                 </bk-input>
-                <i class="common-icon-info form-item-tips"
-                    v-if="formData.desc"
-                    v-bk-tooltips="{
-                        content: formData.desc,
-                        width: '400',
-                        placements: ['bottom-end'] }">
-                </i>
+                <p v-if="formData.desc" class="plugin-info-desc">{{ formData.desc }}</p>
             </bk-form-item>
             <bk-form-item :label="$t('插件版本')" :required="true" property="version">
                 <bk-select
@@ -463,6 +457,12 @@
             .bk-form-input[readonly] {
                 border-color: #c4c6cc !important;
             }
+        }
+        .plugin-info-desc {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #ff9c01;
+            line-height: 1.2;
         }
         .update-tooltip {
             position: absolute;
