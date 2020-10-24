@@ -38,5 +38,5 @@ AVAILABLE_COLLECTIONS = {
     "usermanage": CollectionsUserManage,
     "nodeman": CollectionsNodeMan,
     "itsm": CollectionsItsm,
-    "monior": CollectionsMonitor
+    "monitor": CollectionsMonitor
 }

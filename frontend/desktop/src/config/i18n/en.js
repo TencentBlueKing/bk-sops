@@ -1014,7 +1014,8 @@ const en = {
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
     '复制/粘贴': 'Copy/Paste',
     '保存已修改的节点信息吗？': 'Save the modified node information?',
-    '保存已修改的变量信息吗？': 'Save the modified variable information?'
+    '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '全部项目': 'All Projects'
 }
 
 export default en

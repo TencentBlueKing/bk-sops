@@ -70,6 +70,7 @@
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
                     <bk-table-column :label="$t('任务类型')" prop="category_name" width="100"></bk-table-column>
                     <bk-table-column :label="$t('创建人')" prop="creator_name" width="120">
                         <template slot-scope="props">
