@@ -190,6 +190,11 @@
             width: 200
         },
         {
+            label: i18n.t('创建时间'),
+            prop: 'create_time',
+            width: 200
+        },
+        {
             label: i18n.t('是否已删除'),
             prop: 'is_deleted',
             width: 100
@@ -223,6 +228,11 @@
         {
             label: i18n.t('执行结束'),
             prop: 'finish_time',
+            width: 200
+        },
+        {
+            label: i18n.t('创建时间'),
+            prop: 'create_time',
             width: 200
         },
         {
