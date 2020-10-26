@@ -388,7 +388,7 @@
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
-                        pipeline_instance__name__contains: flowName || undefined,
+                        pipeline_instance__name__icontains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
