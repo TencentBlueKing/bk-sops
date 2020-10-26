@@ -293,7 +293,7 @@
                 const data = await this.loadTemplateList({
                     common: common || undefined,
                     project__id: projectId || undefined,
-                    pipeline_template__name__contains: searchStr || undefined
+                    pipeline_template__name__icontains: searchStr || undefined
                 })
                 return data.objects || []
             },
@@ -307,7 +307,7 @@
             async getPeriodicList (projectId, searchStr) {
                 const data = await this.loadPeriodicList({
                     project__id: projectId,
-                    task__name__contains: searchStr || undefined
+                    task__name__icontains: searchStr || undefined
                 })
                 return data.objects || []
             },

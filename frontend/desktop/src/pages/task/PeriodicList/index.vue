@@ -328,7 +328,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__celery_task__enabled: enabled || undefined,
                         task__creator__contains: creator || undefined,
-                        task__name__contains: flowName || undefined
+                        task__name__icontains: flowName || undefined
                     }
 
                     if (!this.admin) {

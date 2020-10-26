@@ -11,15 +11,24 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .create_periodic_task import CreatePeriodicTaskInterceptor  # noqa
-from .create_task import CreateTaskInterceptor  # noqa
-from .fast_create_task import FastCreateTaskInterceptor  # noqa
-from .get_common_template_info import GetCommonTemplateInfoInterceptor  # noqa
-from .get_periodic_task_info import GetPeriodicTaskInfoInterceptor  # noqa
-from .project_view import ProjectViewInterceptor  # noqa
-from .task_view import TaskViewInterceptor  # noqa
-from .task_edit import TaskEditInterceptor  # noqa
-from .task_operate import TaskOperateInterceptor  # noqa
-from .get_template_info import GetTemplateInfoInterceptor  # noqa
-from .flow_view import FlowViewInterceptor  # noqa
-from .periodic_task_edit import PeriodicTaskEditInterceptor  # noqa
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
+
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import res_factory
+from gcloud.iam_auth.intercept import ViewInterceptor
+
+iam = get_iam_client()
+
+
+class TaskEditInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        if request.is_trust:
+            return
+
+        task_id = kwargs["task_id"]
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.TASK_EDIT_ACTION)
+        resources = res_factory.resources_for_task(task_id)
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

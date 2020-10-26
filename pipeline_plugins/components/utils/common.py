@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import json
 import logging
 import re
 from copy import deepcopy
@@ -37,31 +36,25 @@ def loose_strip(data):
         return data
 
 
-def chunk_table_data(column, break_line):
+def chunk_table_data(column_dict, break_line):
     """
     @summary: 表格参数值支持以break_line为分隔符分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
         数据（换行符个数相等），要么只有一条数据（不包含换行符，此时表示多条数据此列参数值都相同）
-    @param column: 表格单行数据，字典格式
+    @param column_dict: 表格单行数据，字典格式
     @param break_line: 分隔符
     @return:
     """
     count = 1
     chunk_data = []
     multiple_keys = []
+    column = deepcopy(column_dict)
     for key, value in column.items():
-        # 如果字符串里是list,dict等数据类型可以序列化成功成功，说明这一列是单个数据，不需要扩展，跳过此次循环
-        # 例如：‘123’ ‘[1,2,3]’ '{"k1":1}'
-        try:
-            json.loads(value)
-            continue
-        # 触发异常说明传入的类型是int类型，，说明这一列是单个数据，不需要扩展，跳过此次循环
-        # 例如： 123
-        except TypeError:
-            continue
-        # 普通字符串触发json.JSONDecodeError
-        # 例如：'1,2,3'  '[1,2],[2,3]'  '{"k1":1},{"k2":2}'
-        except json.JSONDecodeError:
-            pass
+        if not isinstance(value, str):
+            # 如果列类型为int，则跳过处理
+            if isinstance(value, int):
+                continue
+            else:
+                return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
         value = value.strip()
         if break_line in value:
             multiple_keys.append(key)

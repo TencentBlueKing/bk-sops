@@ -12,6 +12,7 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ $t('常用项目') }}</h3>
+        <router-link :to="{ name: 'projectHome' }" class="link-btn">{{ $t('全部项目') }}</router-link>
         <div ref="cardView" v-if="commonUsedList.length" class="card-view">
             <ul ref="cardList" class="card-list scroll-body">
                 <li
@@ -177,6 +178,13 @@
         color: #313238;
         font-size: 16px;
         font-weight: 600;
+    }
+    .link-btn {
+        position: absolute;
+        right: 24px;
+        top: 24px;
+        font-size: 12px;
+        color: #3a84ff;
     }
     .card-view {
         width: 100%;

@@ -18,6 +18,7 @@
                 :view-value="!formMode"
                 :urls="urls"
                 :config="setValue.config"
+                :separetor="setValue.separetor"
                 :value="setValue.data"
                 @update="update">
             </set-allocation>
