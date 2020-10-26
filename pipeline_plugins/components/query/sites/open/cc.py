@@ -336,7 +336,7 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
 
 def cc_input_host_property(request, biz_cc_id):
     """
-    获取凯丽中指定业务对应的栏位信息
+    获取CMDB主机对应的属性名称和code
     """
     client = get_client_by_user(request.user.username)
 
@@ -347,20 +347,12 @@ def cc_input_host_property(request, biz_cc_id):
     if not cc_result["result"]:
         return JsonResponse({"result": False, "message": cc_result["message"]})
 
-    obj_property = [
-        {
-            "tag_code": "bk_host_innerip",
-            "attrs": {
-                "name": "内网IP",
-                "editable": "true"
-            }
-        }
-    ]
+    obj_property = []
     for item in cc_result["data"]:
         if item["editable"]:
             prop_dict = {
-                "tag_code": item["bk_property_id"],
-                "attrs": {"name": item["bk_property_name"], "editable": "true"},
+                "bk_property_id": item["bk_property_id"],
+                "bk_property_name": item["bk_property_name"]
             }
             obj_property.append(prop_dict)
 

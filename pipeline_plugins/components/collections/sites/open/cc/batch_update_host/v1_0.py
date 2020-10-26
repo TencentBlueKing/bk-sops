@@ -30,7 +30,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-VERSION = "v1.0"
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -115,8 +115,11 @@ class CCBatchUpdateHostService(Service):
             host_property_data = []
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
-                if column_result["result"]:
-                    host_property_data.extend(column_result["data"])
+                if not column_result["result"]:
+                    message = _("单行扩展失败，请检查输入参数格式是否合法, error={}".format(column_result["message"]))
+                    data.outputs.ex_data = message
+                    self.logger.error(message)
+                host_property_data.extend(column_result["data"])
             host_property_custom = host_property_data
 
         bk_host_innerip_list = []
@@ -142,14 +145,12 @@ class CCBatchUpdateHostService(Service):
 
         update_host_message = []
         for host_property_dir in host_property_custom:
-            try:
-                host_id = ip_dir[host_property_dir["bk_host_innerip"]]
-            except Exception as e:
-                message = _("innerip【{}】找不到对应的host_id, error={}".format(
-                    host_property_dir["bk_host_innerip"], e))
+            if host_property_dir["bk_host_innerip"] not in ip_dir:
+                message = _("innerip【{}】找不到对应的host_id".format(host_property_dir["bk_host_innerip"]))
                 data.outputs.ex_data = message
                 self.logger.error(message)
                 return False
+            host_id = ip_dir[host_property_dir["bk_host_innerip"]]
             host_update = {
                 "bk_host_id": host_id
             }
@@ -195,7 +196,7 @@ class CCBatchUpdateHostComponent(Component):
     code = "cc_batch_update_host"
     bound_service = CCBatchUpdateHostService
     form = '{static_url}components/atoms/cc/batch_update_host/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                               ver=VERSION.replace('.', '_'))
+                                                                               ver="v1_0")
     version = VERSION
     desc = _("1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
              "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
