@@ -16,7 +16,7 @@
             tag_code: "set_select_method",
             type: "radio",
             attrs: {
-                name: gettext("填参方式"),
+                name: gettext("传参形式"),
                 hookable: false,
                 items: [
                     {value: "name", name: gettext("Set名称")},
