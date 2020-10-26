@@ -21,9 +21,11 @@
             :cols="tbCols"
             :config="localConfig"
             :urls="urls"
+            :separetor="localSeparetor"
             :value="localValue"
             @importData="importData"
-            @update="updateValue">
+            @update="updateValue"
+            @update:separetor="updateSeparetor">
         </resource-list>
         <resource-filter
             v-else
@@ -68,6 +70,10 @@
                 type: Boolean,
                 default: false
             },
+            separetor: {
+                type: String,
+                default: ','
+            },
             value: {
                 type: Array,
                 default () {
@@ -86,6 +92,7 @@
                 showFilter: false,
                 localConfig: tools.deepClone(this.config),
                 localValue: this.tranformPropsModuleData(this.value),
+                localSeparetor: this.separetor,
                 colsLoading: false,
                 originalCols: [], // 表格列原始配置项
                 tbCols: [] // 增加模块列后的表格配置项
@@ -103,6 +110,9 @@
                     this.localValue = this.tranformPropsModuleData(val)
                 },
                 deep: true
+            },
+            separetor (val) {
+                this.localSeparetor = val
             }
         },
         mounted () {
@@ -302,11 +312,16 @@
                 this.localValue = val
                 this.updatePropsData()
             },
+            updateSeparetor (val) {
+                this.localSeparetor = val
+                this.updatePropsData()
+            },
             // 同步本地组件数据到父组件
             updatePropsData () {
                 const propsData = {
                     config: tools.deepClone(this.localConfig),
-                    data: this.transformLocalModuleData(this.localValue)
+                    data: this.transformLocalModuleData(this.localValue),
+                    separetor: this.localSeparetor
                 }
                 this.$emit('update', propsData)
             },

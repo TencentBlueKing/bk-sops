@@ -94,3 +94,36 @@ def format_template_list_data(templates, project=None):
         data.append(item)
 
     return data
+
+
+def format_task_list_data(tasks, project=None):
+    data = []
+    for task in tasks:
+        item = {
+            "id": task.id,
+            "name": task.pipeline_instance.name,
+            "category": task.category_name,
+            "create_method": task.create_method,
+            "creator": task.pipeline_instance.creator,
+            "executor": task.pipeline_instance.executor,
+            "start_time": task.pipeline_instance.start_time,
+            "finish_time": task.pipeline_instance.finish_time,
+            "is_started": task.pipeline_instance.is_started,
+            "is_finished": task.pipeline_instance.is_finished,
+            "template_source": task.template_source,
+            "template_id": task.template_id,
+        }
+
+        if project:
+            item.update(
+                {
+                    "project_id": project.id,
+                    "project_name": project.name,
+                    "bk_biz_id": project.bk_biz_id,
+                    "bk_biz_name": project.name if project.from_cmdb else None,
+                }
+            )
+
+        data.append(item)
+
+    return data

@@ -12,6 +12,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import store from '@/store/index.js'
+import transAtom from '@/utils/transAtom.js'
 
 const atomForm = {
     namespaced: true,
@@ -105,23 +106,32 @@ const atomForm = {
                 params.version = atomVersion
             }
             await axios.get(url, { params }).then(async response => {
-                const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+                const { output: outputData, form: formResource, form_is_embedded: embedded, base } = response.data
 
                 commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
                 commit('setAtomOutput', { atomType: atom, outputData, version: atomVersion })
+
+                // 加载标准插件 base 文件
+                if (base) {
+                    await $.getScript(base)
+                }
 
                 // 标准插件配置项内嵌到 form 字段
                 if (embedded) {
                     /*eslint-disable */
                     eval(formResource)
                     /*eslint-disable */
-                    commit('setAtomConfig', { atomType: atom, configData: $.atoms[atom], version: atomVersion })
-                    return Promise.resolve({ data: $.atoms[atom] })
+                    const configData = transAtom($.atoms, atom)
+                    $.atoms[atom] = configData
+                    commit('setAtomConfig', { atomType: atom, version: atomVersion, configData })
+                    return Promise.resolve({ data: config })
                 }
 
                 return await new Promise ((resolve, reject) => {
                     $.getScript(formResource, function(response) {
-                        commit('setAtomConfig', {atomType: atom, configData: $.atoms[atom], version: atomVersion })
+                        const configData = transAtom($.atoms, atom)
+                        $.atoms[atom] = configData
+                        commit('setAtomConfig', { atomType: atom, version: atomVersion, configData })
                         resolve(response)
                     })
                 })

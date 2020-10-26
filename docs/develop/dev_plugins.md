@@ -266,6 +266,109 @@ TestCustomComponent 类详解：
 - `tag_code`：参数 code，请保持全局唯一，命名规范为"系统名_参数名"。
 - `type`：前端表单类型，可选 input、textarea、radio、checkbox、select、datetime、datatable、upload、combine等。
 - `attrs`：对应type的属性设置，如 name、validation等。
+
+另外，标准插件前端配置支持继承其他标准插件的表单配置项，需要定义以下属性：
+
+- `extend`：继承其他标准插件表单项，格式 `Base.TagA.TagB...`, `Base` 为其他标准插件名称，`Tag` 为插件表单项 `tag_code` 属性值，如果只定义 `Base` 值则继承该标准插件的所有表单项。
+- `config`: 覆盖所继承的标准插件表单项配置，非必需属性，数据类型需要和所继承的配置项数据类型保持一致。如果所继承配置为对象类型，config 对象的 tag_code 需要设置为继承对象的 tag_code 值，两者对象属性取并集，存在相同属性时，config 对象属性值会覆盖继承对象属性值；所继承配置为数组类型，比如只定义 `Base` 的场景，config 需要为数组类型，数组内的表单配置项元素会与继承配置合并，tag_code 相同的配置项覆盖规则和对象类型保持一致。
+
+标准插件前端继承的例子：
+
+```js
+// base.js
+(function () {
+    $.atoms.base_custom = [
+        {
+            tag_code: "test_input",
+            type: "input",
+            attrs: {
+                name: gettext("参数1"),
+                placeholder: gettext("请输入字符串"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+    ]
+})()
+
+// test_custom.js
+(function () {
+    $.atoms.test_custom = [
+        {
+            extend: "base.test_input",
+            config: {
+                tag_code: "test_input",
+                type: "textarea"
+            }
+        },
+        {
+            tag_code: "test_radio",
+            type: "radio",
+            attrs: {
+                name: gettext("参数3"),
+                items: [
+                    {value: "1", name: gettext("选项1")},
+                    {value: "2", name: gettext("选项2")},
+                    {value: "3", name: gettext("选项3")}
+                ],
+                default: "1",
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+    ]
+})()
+
+// 继承生效后的 test_custom.js
+(function () {
+    $.atoms.test_custom = [
+        {
+            tag_code: "test_input",
+            type: "text", // type 属性被覆盖
+            attrs: {
+                name: gettext("参数1"),
+                placeholder: gettext("请输入字符串"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+        {
+            tag_code: "test_radio",
+            type: "radio",
+            attrs: {
+                name: gettext("参数3"),
+                items: [
+                    {value: "1", name: gettext("选项1")},
+                    {value: "2", name: gettext("选项2")},
+                    {value: "3", name: gettext("选项3")}
+                ],
+                default: "1",
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+    ]
+})()
+
+```
+
+
 详细字段说明可参考：[Tag 使用和开发说明](./tag_usage_dev.md)。
 
 ### 6. 标准插件远程加载

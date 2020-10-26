@@ -225,7 +225,8 @@
                                     host_resources: [],
                                     module_detail: []
                                 },
-                                data: []
+                                data: [],
+                                separetor: ','
                             }
                             break
                         case 'host_allocation':

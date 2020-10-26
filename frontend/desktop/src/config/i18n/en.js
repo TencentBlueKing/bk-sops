@@ -94,6 +94,7 @@ const en = {
     '编辑': 'Edit',
     '删除': 'Delete',
     '保存': 'Save',
+    '不保存': `Don't Save`,
     '格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件': 'Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv',
     '模块：': 'Module:',
     '资源不足': 'Lack of resources',
@@ -1025,7 +1026,10 @@ const en = {
     '人员分组设置': 'Staffing Group Settings',
     '增加分组': 'add group',
     '分组名称': 'Group Name',
-    '成员': 'Members'
+    '成员': 'Members',
+    '保存已修改的节点信息吗？': 'Save the modified node information?',
+    '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '全部项目': 'All Projects'
 }
 
 export default en
