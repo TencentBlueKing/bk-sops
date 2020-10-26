@@ -20,7 +20,7 @@ class UtilsTestCase(TestCase):
     def test_chunk_table_data(self):
         success_column_input = {"gamedb": "1,2,3", "gamedr": "4", "logdb": "4,5,6"}
         has_int_success_column_input = {"gamedb": "1,2,3", "gamedr": 4, "logdb": "4,5,6"}
-        has_list_success_column_input = {"gamedb": "1,2,3", "gamedr": "[1,2,3]", "logdb": "4,5,6"}
+        has_list_success_column_input = {"gamedb": "1;2;3", "gamedr": "[1,2,3]", "logdb": "4;5;6"}
         has_dict_success_column_input = {"gamedb": "1,2,3", "gamedr": '{"k1":2}', "logdb": "4,5,6"}
         has_two_list_success_column_input = {"gamedb": "1;2;3", "gamedr": "[1,2];[2,3];[3,4]", "logdb": "4;5;6"}
         failed_column_input = {"gamedb": "1,2", "gamedr": "4", "logdb": "4,5,6"}
@@ -53,7 +53,7 @@ class UtilsTestCase(TestCase):
         ]
         success_actual_column = chunk_table_data(success_column_input, break_line)
         has_int_success_actual_column = chunk_table_data(has_int_success_column_input, break_line)
-        has_list_actual_column = chunk_table_data(has_list_success_column_input, break_line)
+        has_list_actual_column = chunk_table_data(has_list_success_column_input, another_break_line)
         has_dict_actual_column = chunk_table_data(has_dict_success_column_input, break_line)
         has_two_list_actual_column = chunk_table_data(has_two_list_success_column_input, another_break_line)
         failed_actual_column = chunk_table_data(failed_column_input, break_line)
