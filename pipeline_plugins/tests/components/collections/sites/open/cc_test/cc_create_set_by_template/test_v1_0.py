@@ -16,13 +16,12 @@ from mock import MagicMock
 from pipeline.component_framework.test import (
     ComponentTestMixin,
     ComponentTestCase,
-    CallAssertion,
     ExecuteAssertion,
-    Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0 import \
-    CCCreateSetBySetTemplateComponent
+from pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0 import (
+    CCCreateSetBySetTemplateComponent,
+)
 
 
 class CCCreateSetByTemplateComponentTest(TestCase, ComponentTestMixin):
@@ -47,10 +46,10 @@ class MockClient(object):
         self.cc.create_set = MagicMock(return_value=create_set_return)
 
 
-GET_CLIENT_BY_USER = \
+GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0.get_client_by_user"
-CC_GET_CLIENT_BY_USER = \
-    'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
+)
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
 
 # 通用client
 COMMON_CLIENT = MockClient(
@@ -159,11 +158,7 @@ COMMON_CLIENT = MockClient(
 COMMON_CREAT_SET_API_KWARGS = {
     "bk_supplier_account": 0,
     "bk_biz_id": 2,
-    "data": {
-        "bk_parent_id": 3,
-        "bk_set_name": "1",
-        "set_template_id": 1
-    },
+    "data": {"bk_parent_id": 3, "bk_set_name": "1", "set_template_id": 1},
 }
 
 # parent_data
@@ -174,22 +169,28 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
     "cc_select_set_parent_method": "text",
     "cc_set_parent_select_topo": [],
     "cc_set_parent_select_text": u"蓝鲸>Tun\n\n   ",
-    "cc_set_name": "1",
+    "cc_set_name": "1,2",
     "cc_set_template": 1,
+    "cc_set_attr_combine": {
+        "set_attr": [
+            {"attr_id": "4", "attr_value": "4"},
+            {"attr_id": "description", "attr_value": "111111"},
+            {"attr_id": "bk_set_desc", "attr_value": "bk_set_desc"},
+        ]
+    },
 }
 
 SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     name="success case: select parent set by text(include newline/space)",
     inputs=SELECT_BY_TEXT_SUCCESS_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    execute_assertion=ExecuteAssertion(
+        success=True, outputs={}
+    ),
     schedule_assertion=[],
-    execute_call_assertion=[
-        CallAssertion(func=COMMON_CLIENT.cc.create_set, calls=[Call(COMMON_CREAT_SET_API_KWARGS)]),
-    ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
     ],
 )
 
@@ -198,8 +199,15 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     "cc_select_set_parent_method": "text",
     "cc_set_parent_select_topo": [],
     "cc_set_parent_select_text": u"蓝鲸>blue>Tun\n\n   ",
-    "cc_set_name": "1",
-    "cc_set_template": 1
+    "cc_set_name": "1,2",
+    "cc_set_template": 1,
+    "cc_set_attr_combine": {
+        "set_attr": [
+            {"attr_id": "4", "attr_value": "4"},
+            {"attr_id": "description", "attr_value": "111111"},
+            {"attr_id": "bk_set_desc", "attr_value": "bk_set_desc"},
+        ]
+    },
 }
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
@@ -211,7 +219,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
     ],
 )
 
@@ -220,8 +228,15 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
     "cc_select_set_parent_method": "text",
     "cc_set_parent_select_topo": [],
     "cc_set_parent_select_text": u"蓝鲸 > blue",
-    "cc_set_name": "1",
-    "cc_set_template": 1
+    "cc_set_name": "1,2",
+    "cc_set_template": 1,
+    "cc_set_attr_combine": {
+        "set_attr": [
+            {"attr_id": "4", "attr_value": "4"},
+            {"attr_id": "description", "attr_value": "111111"},
+            {"attr_id": "bk_set_desc", "attr_value": "bk_set_desc"},
+        ]
+    },
 }
 SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     name="fail case: select parent bt text with error path",
@@ -232,7 +247,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
     ],
 )
 
@@ -242,7 +257,14 @@ SELECT_BY_TOPO_SUCCESS_INPUTS = {
     "cc_set_parent_select_topo": ["Tun_3"],
     "cc_set_parent_select_text": "",
     "cc_set_name": "1",
-    "cc_set_template": 1
+    "cc_set_template": 1,
+    "cc_set_attr_combine": {
+        "set_attr": [
+            {"attr_id": "4", "attr_value": "4"},
+            {"attr_id": "description", "attr_value": "111111"},
+            {"attr_id": "bk_set_desc", "attr_value": "bk_set_desc"},
+        ]
+    },
 }
 
 SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
@@ -251,11 +273,8 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[],
-    execute_call_assertion=[
-        CallAssertion(func=COMMON_CLIENT.cc.create_set, calls=[Call(COMMON_CREAT_SET_API_KWARGS)]),
-    ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
     ],
 )
