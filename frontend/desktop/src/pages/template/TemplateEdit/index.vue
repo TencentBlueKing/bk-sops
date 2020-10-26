@@ -107,6 +107,23 @@
                 @cancel="onLeaveCancel">
                 <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
             </bk-dialog>
+            <bk-dialog
+                width="400"
+                ext-cls="common-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :show-footer="false"
+                :value="multipleTabDialogShow"
+                @cancel="multipleTabDialogShow = false">
+                <div class="multiple-tab-dialog-content">
+                    <h3>{{ $t('确定保存修改的内容？') }}</h3>
+                    <p><i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i></p>
+                    <div class="action-wrapper">
+                        <bk-button theme="primary" @click="onMutilpleTabConfirm">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" @click="multipleTabDialogShow = false">{{ $t('取消') }}</bk-button>
+                    </div>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -177,6 +194,7 @@
                 tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
+                multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
                 nodeGuideConfig: {
                     el: '',
@@ -293,23 +311,8 @@
         mounted () {
             this.getProjectBaseInfo()
             this.openSnapshootTimer()
-            window.onbeforeunload = function () {
-                if (this.type === 'edit') {
-                    console.log('delete')
-                    const data = this.getTplTabData()
-                    tplTabCount.setTab(data, 'del')
-                }
-                console.log('before unload')
-                return i18n.t('系统不会保存您所做的更改，确认离开？')
-            }
-            window.onunload = function () {
-                debugger
-                if (this.type === 'edit') {
-                    console.log('delete')
-                    const data = this.getTplTabData()
-                    tplTabCount.setTab(data, 'del')
-                }
-            }
+            window.addEventListener('beforeunload', this.handleBeforeUnload, false)
+            window.addEventListener('unload', this.handleUnload.bind(this), false)
             if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
@@ -320,7 +323,8 @@
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
-            window.onbeforeunload = null
+            window.removeEventListener('beforeunload', this.handleBeforeUnload, false)
+            window.removeEventListener('unload', this.handleUnload, false)
             this.resetTemplateData()
             this.hideGuideTips()
         },
@@ -563,6 +567,14 @@
                             url.name = 'commonTemplatePanel'
                         }
                         this.$router.push(url)
+
+                        // 新创建的流程模板需要增加本地浏览器计数信息
+                        const tabQuerydata = {
+                            user: this.username,
+                            id: this.common ? 'common' : this.project_id,
+                            tpl: data.template_id
+                        }
+                        tplTabCount.setTab(tabQuerydata, 'add')
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -941,15 +953,15 @@
                 })
             },
             // 点击保存模板按钮回调
-            async onSaveTemplate (saveAndCreate, pid) {
+            onSaveTemplate (saveAndCreate, pid) {
                 if (this.templateSaving || this.createTaskSaving) {
                     return
                 }
-                if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 0) {
-                    debugger
+                this.saveAndCreate = saveAndCreate
+                this.pid = pid
+                if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
+                    this.multipleTabDialogShow = true
                 } else {
-                    this.saveAndCreate = saveAndCreate
-                    this.pid = pid
                     this.checkBasicProperty() // 基础属性是否合法
                 }
             },
@@ -1173,6 +1185,21 @@
                 const id = this.common ? 'common' : this.project_id
                 tplSnapshoot.replaceSnapshootTplKey(this.username, id, this.tplUUID, templateId)
             },
+            handleBeforeUnload (e) {
+                e.returnValue = i18n.t('系统不会保存您所做的更改，确认离开？')
+                return i18n.t('系统不会保存您所做的更改，确认离开？')
+            },
+            handleUnload (queryData, type) {
+                if (this.type === 'edit') {
+                    const data = this.getTplTabData()
+                    tplTabCount.setTab(data, 'del')
+                }
+            },
+            // 多 tab 打开同一流程模板
+            onMutilpleTabConfirm () {
+                this.multipleTabDialogShow = false
+                this.checkBasicProperty()
+            },
             getTplTabData () {
                 return {
                     user: this.username,
@@ -1182,9 +1209,7 @@
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
-            console.log('reload')
             if (this.allowLeave || !this.isTemplateDataChanged) {
-                debugger
                 this.clearAtomForm()
                 // 清除快照定时器
                 this.snapshootTimer && clearTimeout(this.snapshootTimer)
@@ -1231,5 +1256,22 @@
     }
     .leave-tips {
         padding: 30px;
+    }
+    /deep/ .multiple-tab-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: normal;
+        }
+        p {
+            margin: 6px 0 20px;
+            font-size: 14px;
+            color: #ff9c01;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
+        }
     }
 </style>

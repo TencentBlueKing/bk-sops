@@ -38,9 +38,13 @@ const tplTabCount = {
             }
             tabDict[user][id][tpl] += 1
         } else if (type === 'del') {
-            tabDict[user][id][tpl] -= 1
-            if (tabDict[user][id][tpl] === 0) {
-                delete tabDict[user][id][tpl]
+            if (tabDict[user] && tabDict[user][id]) {
+                if (tabDict[user][id][tpl] > 0) {
+                    tabDict[user][id][tpl] -= 1
+                }
+                if (tabDict[user][id][tpl] === 0) {
+                    delete tabDict[user][id][tpl]
+                }
             }
         }
         this.setStorage(tabDict)
@@ -48,11 +52,7 @@ const tplTabCount = {
     getCount (query) {
         const { user, id, tpl } = query
         const tabDict = this.getStorage()
-        if (
-            tabDict[user]
-            && tabDict[user]
-            && tabDict[user][id] > 0
-        ) {
+        if (tabDict[user] && tabDict[user][id]) {
             return tabDict[user][id][tpl]
         }
         return 0
