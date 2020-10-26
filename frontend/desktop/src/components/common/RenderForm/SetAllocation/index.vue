@@ -179,7 +179,14 @@
                         url: this.urls['cc_search_create_object_attribute_set']
                     })
                     if (resp.result) {
-                        this.originalCols = resp.data
+                        const index = resp.data.findIndex(item => item.tag_code === 'bk_set_name')
+                        if (index > 0) { // 处理接口返回的列数据，集群名固定在第一列
+                            const cols = resp.data.slice(0)
+                            const firstCol = cols.splice(index, 1)
+                            this.originalCols = firstCol.concat(cols)
+                        } else {
+                            this.originalCols = resp.data
+                        }
                         this.joinCols(this.localConfig.module_detail)
                     } else {
                         errorHandler(resp, this)
