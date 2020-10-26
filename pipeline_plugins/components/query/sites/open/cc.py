@@ -14,26 +14,17 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from django.http import JsonResponse
 from django.conf.urls import url
-
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
-
-from pipeline_plugins.base.utils.inject import (
-    supplier_account_inject,
-    supplier_id_inject,
-)
-from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
-    cmdb_get_mainline_object_topo,
-)
+from django.http import JsonResponse
 
 from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
-from gcloud.exceptions import APIError
 from gcloud.core.utils import get_user_business_list
+from gcloud.exceptions import APIError
+from gcloud.utils.handlers import handle_api_error
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import RawAuthFailedException
+from pipeline_plugins.base.utils.inject import supplier_account_inject, supplier_id_inject
+from pipeline_plugins.cmdb_ip_picker.query import cmdb_get_mainline_object_topo, cmdb_search_host, cmdb_search_topo_tree
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -232,7 +223,7 @@ def cc_format_topo_data(data, obj_id, category):
     tree_data = []
     for item in data:
         tree_item = {
-            "id": "%s_%s" % (item["bk_obj_id"], item["bk_inst_id"]),
+            "id": "{}_{}".format(item["bk_obj_id"], item["bk_inst_id"]),
             "label": item["bk_inst_name"],
         }
         if category == "prev":
@@ -321,17 +312,35 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
     set_template_result = client.cc.list_set_template(kwargs)
 
     if not set_template_result["result"]:
-        message = handle_api_error(
-            "cc", "cc.list_set_template", kwargs, set_template_result
-        )
+        message = handle_api_error("cc", "cc.list_set_template", kwargs, set_template_result)
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
     template_list = []
-    for template_info in set_template_result['data']['info']:
-        template_list.append({"value": template_info.get('id'), "text": template_info.get('name')})
+    for template_info in set_template_result["data"]["info"]:
+        template_list.append({"value": template_info.get("id"), "text": template_info.get("name")})
     return JsonResponse({"result": True, "data": template_list})
+
+
+def cc_search_status_options(request, biz_cc_id):
+    client = get_client_by_user(request.user.username)
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "set",
+    }
+    result = client.cc.search_object_attribute(kwargs)
+    options = []
+    for data in result["data"]:
+        if data["bk_property_id"] == "bk_service_status":
+            for option in data["option"]:
+                options.append({"text": option["name"], "value": option["id"]})
+    if not options:
+        message = handle_api_error("cc", "cc.search_object_attribute", kwargs, result)
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+    return JsonResponse({"result": True, "data": options})
 
 
 cc_urlpatterns = [
@@ -349,4 +358,6 @@ cc_urlpatterns = [
     url(r"^cc_get_business_list/$", cc_get_business),
     # 查询集群模板
     url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
+    # 查询Set服务状态
+    url(r"^cc_search_status_options/(?P<biz_cc_id>\d+)/$", cc_search_status_options),
 ]
