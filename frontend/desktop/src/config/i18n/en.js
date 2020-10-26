@@ -89,6 +89,7 @@ const en = {
     '编辑': 'Edit',
     '删除': 'Delete',
     '保存': 'Save',
+    '不保存': `Don't Save`,
     '格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件': 'Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv',
     '模块：': 'Module:',
     '资源不足': 'Lack of resources',
@@ -1013,7 +1014,10 @@ const en = {
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
     '复制/粘贴': 'Copy/Paste',
     '确定保存修改的内容？': 'Sure to save the changes?',
-    '当前流程模板在浏览器多个标签页打开': 'Current template opens in multiple browser tabs'
+    '当前流程模板在浏览器多个标签页打开': 'Current template opens in multiple browser tabs',
+    '保存已修改的节点信息吗？': 'Save the modified node information?',
+    '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '全部项目': 'All Projects'
 }
 
 export default en
