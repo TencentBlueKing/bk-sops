@@ -15,6 +15,7 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.utils.cmdb import batch_request
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
@@ -27,7 +28,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-VERSION = "v1.0"
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -64,11 +65,7 @@ class CCBatchUpdateSetService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         cc_set_update_data = data.get_one_of_inputs("cc_set_update_data")
-        cc_set_template_break_line = (
-            data.get_one_of_inputs("cc_set_template_break_line")
-            if data.get_one_of_inputs("cc_set_template_break_line")
-            else ","
-        )
+        cc_set_template_break_line = data.get_one_of_inputs("cc_set_template_break_line") or ","
 
         attr_list = []
         # 如果用户选择了单行扩展
@@ -105,7 +102,7 @@ class CCBatchUpdateSetService(Service):
                 "fields": ["bk_set_id", "bk_set_name"],
                 "condition": {"bk_set_name": bk_set_name},
             }
-            search_result = client.cc.search_set(kwargs)
+            search_result = batch_request(client.cc.search_set, kwargs)
             bk_set_id = 0
             for search_set in search_result["data"]["info"]:
                 if search_set["bk_set_name"] == bk_set_name:
@@ -130,7 +127,7 @@ class CCBatchUpdateSetService(Service):
         # 如果没有更新失败的行
         if not failed_update:
             return True
-
+        data.set_outputs("ex_data", failed_update)
         return False
 
 
