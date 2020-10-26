@@ -92,7 +92,6 @@
                     return data;
                 },
                 add_btn: true,
-
                 hookable: true,
                 validation: [
                     {

@@ -57,6 +57,19 @@ class CCBatchUpdateSetService(Service):
         ]
 
     def outputs_format(self):
+        self.OutputItem(
+            name=_("更新成功的集群"),
+            key="set_update_success",
+            type="object",
+            schema=ObjectItemSchema(description=_("更新成功的集群"), property_schemas={}),
+        ),
+        self.OutputItem(
+            name=_("更新失败的集群"),
+            key="set_update_failed",
+            type="object",
+            schema=ObjectItemSchema(description=_("更新失败的集群"), property_schemas={}),
+        ),
+
         return []
 
     def execute(self, data, parent_data):
