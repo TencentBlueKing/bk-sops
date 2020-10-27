@@ -244,18 +244,6 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED'">
-                <bk-button
-                    theme="primary"
-                    @click="onRetryClick">
-                    {{ $t('重试') }}
-                </bk-button>
-                <bk-button
-                    theme="default"
-                    @click="onSkipClick">
-                    {{ $t('跳过') }}
-                </bk-button>
-            </div>
         </div>
     </div>
 </template>
@@ -809,12 +797,6 @@
                 } else {
                     this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
                 }
-            },
-            onRetryClick () {
-                this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
-            },
-            onSkipClick () {
-                this.$emit('onSkipClick', this.nodeDetailConfig.node_id)
             },
             onResumeClick () {
                 this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)

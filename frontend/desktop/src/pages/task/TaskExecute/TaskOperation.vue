@@ -73,8 +73,6 @@
                     :admin-view="adminView"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
-                    @onRetryClick="onRetryClick"
-                    @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onForceFail="onForceFail"
