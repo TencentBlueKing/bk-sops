@@ -1,0 +1,2 @@
+feature:
+  - 增加 get_tasks_manual_intervention_state 接口

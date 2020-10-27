@@ -289,3 +289,13 @@
   comp_codename: generic.v2.sops.sops_component
   dest_path: /o/bk_sops/apigw/preview_task_tree/{bk_biz_id}/{template_id}/
   dest_http_method: POST
+
+- path: /v2/sops/get_tasks_manual_intervention_state/
+  name: get_tasks_manual_intervention_state
+  label: 获取一批任务的是否需要人工干预的判断状态
+  label_en: Get tasks manual intervention state
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_tasks_manual_intervention_state/{bk_biz_id}/
+  dest_http_method: POST

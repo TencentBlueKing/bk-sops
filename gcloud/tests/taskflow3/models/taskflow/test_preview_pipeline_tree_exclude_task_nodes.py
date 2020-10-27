@@ -21,7 +21,7 @@ from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
 
-class TaskFlowInstancePreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
+class PreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
     def test__remove_has_outputs_nodes(self):
         tree = {
             "name": "new20200803092536",
