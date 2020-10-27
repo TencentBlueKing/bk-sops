@@ -888,18 +888,18 @@
              * host 值需要同时满足筛选条件和排除条件
              * 非复用模块间主机不能重复，先分别计算所有满足模块条件的主机，再计算模块所需主机数与满足条件主机的比值，值大的模块优先在主机里取值
              * 模块复用时，取其复用的模块主机数据
-             * 每个模块的 host 数量不能超过 moudule.count 设置
+             * 每个模块的 host 数量不能超过 module.count 设置
              *
              * @param {Array} data 全量的 host 数据
              *
              * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [xx.xx.x.x, x.x.x.xxx], ...}
              */
             filterModuleHost (data) {
-                let fullMdHosts = [] // 所有满足各模块的主机数据
                 const hosts = [] // 模块实际的主机数据，去重、按照实际数量配置截取
                 const reuseOthers = []
                 const usedHosts = []
                 for (let i = 0; i < this.formData.clusterCount; i++) {
+                    let fullMdHosts = [] // 所有满足各模块的主机数据
                     const moduleHosts = {}
                     this.formData.modules.forEach(md => {
                         const { id, selectMethod, customIpList, muteMethod, muteModules, hostFilterList } = md
@@ -983,7 +983,7 @@
 
                         if (md.count > 0) {
                             item.list.some(h => {
-                                if (moduleHosts[md.name].length === md.count) {
+                                if (moduleHosts[md.name].length === Number(md.count)) {
                                     return true
                                 }
                                 if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
@@ -1007,7 +1007,6 @@
                     })
                     hosts.push(moduleHosts)
                 }
-
                 return hosts
             },
             /**
