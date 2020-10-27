@@ -134,3 +134,8 @@ def get_msg_types(request):
     client = get_client_by_user(request.user.username)
     result = client.cmsi.get_msg_type()
     return JsonResponse(result)
+
+
+@require_GET
+def healthz(request):
+    return JsonResponse({"result": True, "data": None, "message": "OK"})
