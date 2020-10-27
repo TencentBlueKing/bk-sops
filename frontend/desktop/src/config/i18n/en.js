@@ -709,7 +709,7 @@ const en = {
     '新建变量': 'New',
     '变量名称': 'Variable Name',
     '变量KEY': 'Variable KEY',
-    '已存在相同Key且版本不同的变量，请新建变量': 'There is a variable from different version plugin with same key, create a new variable please',
+    '已存在相同Key的变量，请新建变量': 'Variables that already have the same key, create a new variable please',
     '创建新变量': 'Create new variable',
     '是否复用变量': 'Whether To Reuse Variable',
     '已选': ' Selected',
