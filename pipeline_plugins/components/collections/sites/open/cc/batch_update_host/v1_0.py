@@ -119,6 +119,7 @@ class CCBatchUpdateHostService(Service):
                     message = _("单行扩展失败，请检查输入参数格式是否合法, error={}".format(column_result["message"]))
                     data.outputs.ex_data = message
                     self.logger.error(message)
+                    return False
                 host_property_data.extend(column_result["data"])
             host_property_custom = host_property_data
 
