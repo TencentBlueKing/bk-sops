@@ -136,7 +136,18 @@ class UserProjectResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = Project.objects.all().order_by("-id")
         resource_name = "user_project"
-        authorization = ReadOnlyAuthorization()
+        filtering = {"is_disable": ALL}
+        q_fields = ["id", "name", "desc", "creator"]
+        authorization = ProjectAuthorization(
+            iam=iam,
+            helper=ProjectIAMAuthorizationHelper(
+                system=IAMMeta.SYSTEM_ID,
+                create_action=None,
+                read_action=IAMMeta.PROJECT_VIEW_ACTION,
+                update_action=IAMMeta.PROJECT_EDIT_ACTION,
+                delete_action=None,
+            ),
+        )
         iam_resource_helper = SimpleResourceHelper(
             type=IAMMeta.PROJECT_RESOURCE,
             id_field="id",
@@ -151,7 +162,6 @@ class UserProjectResource(GCloudModelResource):
                 IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
             ],
         )
-        filtering = {"is_disable": ALL}
 
     def obj_get(self, bundle, **kwargs):
         raise BadRequest("invalid operation")
