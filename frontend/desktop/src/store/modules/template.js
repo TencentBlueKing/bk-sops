@@ -31,7 +31,7 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 20,
+            x: 40,
             y: 150,
             type: 'startpoint'
         },
@@ -40,7 +40,7 @@ function generateInitLocation () {
             x: 240,
             y: 145,
             name: '',
-            stage_name: i18n.t('步骤1'),
+            stage_name: '',
             type: 'tasknode'
         },
         {
@@ -67,7 +67,7 @@ function generateInitActivities (location, line) {
             name: '',
             optional: false,
             outgoing: line[1].id,
-            stage_name: i18n.t('步骤1'),
+            stage_name: '',
             type: 'ServiceActivity',
             retryable: true,
             skippable: true
@@ -586,7 +586,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: i18n.t('步骤1'),
+                            stage_name: '',
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true
@@ -601,7 +601,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: i18n.t('步骤1'),
+                            stage_name: '',
                             template_id: location.atomId,
                             version: location.atomVersion,
                             type: 'SubProcess'
@@ -737,7 +737,7 @@ const template = {
                     return item !== key
                 })
             } else {
-                const index = state.outputs.find(item => item === key)
+                const index = state.outputs.findIndex(item => item === key)
                 state.outputs.splice(index, 1, newKey)
             }
         },

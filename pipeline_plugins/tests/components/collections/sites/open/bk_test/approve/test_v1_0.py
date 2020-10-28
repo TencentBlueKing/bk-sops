@@ -56,18 +56,13 @@ CREAT_TICKET_SUCCESS_RETURN = {"message": "success", "code": 0, "data": {"sn": "
 CALLBACK_URL_FAIL_RETURN = {"result": False, "message": "approve reject"}
 
 CALLBACK_URL_SUCCESS_RETURN = {
-    "result": True,
-    "code": 0,
-    "message": "success",
-    "data": {
-        "sn": "REQ20200831000005",
-        "title": "this is a test",
-        "ticket_url": "https://xxx.xx.com",
-        "current_status": "FINISHED",
-        "updated_by": "admin,hongsong",
-        "update_at": "2020-08-31 20:57:22",
-        "approve_result": True,
-    },
+    "sn": "REQ20200831000005",
+    "title": "this is a test",
+    "ticket_url": "https://xxx.xx.com",
+    "current_status": "FINISHED",
+    "updated_by": "admin,hongsong",
+    "update_at": "2020-08-31 20:57:22",
+    "approve_result": True,
 }
 
 CREAT_TICKET_SUCCESS_CLIENT = MockClient(create_ticket=CREAT_TICKET_SUCCESS_RETURN)
@@ -81,7 +76,7 @@ CREAT_TICKET_CALL = {
         {"key": "APPROVAL_CONTENT", "value": "test content"},
     ],
     "fast_approval": True,
-    "callback_url": "callback_url",
+    "meta": {"callback_url": "callback_url"},
 }
 INPUTS = {
     "bk_verifier": "tester, tester1",
@@ -96,10 +91,7 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "create ticket fail"}),
     execute_call_assertion=[
-        CallAssertion(
-            func=CREAT_TICKET_FAIL_RETURN_CLIENT.itsm.create_ticket,
-            calls=[Call(CREAT_TICKET_CALL)],
-        )
+        CallAssertion(func=CREAT_TICKET_FAIL_RETURN_CLIENT.itsm.create_ticket, calls=[Call(CREAT_TICKET_CALL)],)
     ],
     schedule_assertion=None,
     patchers=[
@@ -115,10 +107,7 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
     execute_call_assertion=[
-        CallAssertion(
-            func=CREAT_TICKET_SUCCESS_CLIENT.itsm.create_ticket,
-            calls=[Call(CREAT_TICKET_CALL)],
-        )
+        CallAssertion(func=CREAT_TICKET_SUCCESS_CLIENT.itsm.create_ticket, calls=[Call(CREAT_TICKET_CALL)],)
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,

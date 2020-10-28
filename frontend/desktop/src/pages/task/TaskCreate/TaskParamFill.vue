@@ -106,8 +106,8 @@
                     'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
-                :loading="common ? commonTplCreateTaskPermLoading : paramsLoading && isSubmit"
-                :disabled="paramsLoading || nextBtnDisable"
+                :loading="isSubmit"
+                :disabled="paramsLoading || commonTplCreateTaskPermLoading || nextBtnDisable"
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 @click="onCreateTask">
                 {{$t('下一步')}}

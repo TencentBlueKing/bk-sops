@@ -11,13 +11,37 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import DjangoQuerySetConverter
-from iam.resource.provider import ListResult, ResourceProvider
+from django.core.cache import cache
 
+from iam import DjangoQuerySetConverter
+from iam.contrib.django.dispatcher import InvalidPageException
+from iam.resource.provider import ListResult, ResourceProvider
 from gcloud.core.models import Project
+
+CACHE_TIME_FOR_PROJECT = 60 * 10
 
 
 class ProjectResourceProvider(ResourceProvider):
+    def pre_search_instance(self, filter, page, **options):
+        if page.limit == 0 or page.limit > 1000:
+            raise InvalidPageException("limit in page too large")
+
+    def search_instance(self, filter, page, **options):
+        """
+        project 没有上层资源，不需要处理 filter 的 parent
+        """
+        keyword = filter.keyword
+
+        results = cache.get(keyword)
+        if results is None:
+            queryset = Project.objects.filter(name__icontains=keyword, is_disable=False)
+            results = [
+                {"id": str(project.id), "display_name": project.name}
+                for project in queryset[page.slice_from : page.slice_to]
+            ]
+            cache.set(keyword, results, CACHE_TIME_FOR_PROJECT)
+        return ListResult(results=results, count=len(results))
+
     def list_attr(self, **options):
         """
         project 资源没有属性，返回空

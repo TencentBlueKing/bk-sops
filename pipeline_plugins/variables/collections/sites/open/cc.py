@@ -140,6 +140,9 @@ class SetDetailData(object):
             self.set_count, ",".join(item_values["bk_set_name"])
         )
 
+    def __repr__(self):
+        return self._pipeline_var_str_value
+
 
 class VarCmdbSetAllocation(LazyVariable):
     code = "set_allocation"

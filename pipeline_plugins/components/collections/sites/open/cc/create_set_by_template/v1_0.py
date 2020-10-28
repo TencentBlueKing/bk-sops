@@ -23,7 +23,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
     BkObjType,
-    SelectMethod
+    SelectMethod,
 )
 
 from gcloud.conf import settings
@@ -71,9 +71,6 @@ class CCCreateSetBySetTemplateService(Service):
             ),
         ]
 
-    def outputs_format(self):
-        return []
-
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
 
@@ -102,8 +99,10 @@ class CCCreateSetBySetTemplateService(Service):
             data.set_outputs("ex_data", _("请选择填参方式"))
             return False
 
-        cc_set_name = data.get_one_of_inputs("cc_set_name")
+        cc_set_names = data.get_one_of_inputs("cc_set_name")
         cc_set_template = data.get_one_of_inputs("cc_set_template")
+
+        result = {"fail": [], "success": []}
 
         for parent_id in cc_set_parent_select:
             cc_kwargs = {
@@ -111,17 +110,30 @@ class CCCreateSetBySetTemplateService(Service):
                 "bk_supplier_account": supplier_account,
                 "data": {"bk_parent_id": parent_id},
             }
-            cc_kwargs["data"].update(
-                {"bk_parent_id": parent_id, "bk_set_name": cc_set_name, "set_template_id": cc_set_template}
-            )
+            for cc_set_name in cc_set_names.split(","):
+                try:
+                    attr_data_list = data.get_one_of_inputs("cc_set_attr")
+                except Exception:
+                    attr_data_list = []
 
-            cc_result = client.cc.create_set(cc_kwargs)
-            if not cc_result["result"]:
-                message = cc_handle_api_error("cc.create_set", cc_kwargs, cc_result)
-                self.logger.error(message)
-                data.set_outputs("ex_data", message)
-                return False
+                cc_kwargs["data"].update(
+                    {"bk_parent_id": parent_id, "bk_set_name": cc_set_name, "set_template_id": cc_set_template}
+                )
 
+                if attr_data_list:
+                    for attr_data in attr_data_list:
+                        cc_kwargs["data"].update({attr_data["attr_id"]: attr_data["attr_value"]})
+
+                cc_result = client.cc.create_set(cc_kwargs)
+                if not cc_result["result"]:
+                    message = cc_handle_api_error("cc.create_set", cc_kwargs, cc_result)
+                    self.logger.error(message)
+                    result["fail"].append(message)
+                else:
+                    result["success"].append(cc_result["data"])
+        if result["fail"]:
+            data.set_outputs("ex_data", result["fail"])
+            return False
         return True
 
 

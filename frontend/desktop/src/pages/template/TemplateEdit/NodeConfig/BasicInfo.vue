@@ -27,13 +27,7 @@
                         </div>
                     </template>
                 </bk-input>
-                <i class="common-icon-info form-item-tips"
-                    v-if="formData.desc"
-                    v-bk-tooltips="{
-                        content: formData.desc,
-                        width: '400',
-                        placements: ['bottom-end'] }">
-                </i>
+                <p v-if="formData.desc" class="plugin-info-desc">{{ formData.desc }}</p>
             </bk-form-item>
             <bk-form-item :label="$t('插件版本')" :required="true" property="version">
                 <bk-select
@@ -51,15 +45,20 @@
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('步骤名称')" property="stageName">
+                <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
+            </bk-form-item>
             <bk-form-item :label="$t('节点标签')" property="label">
                 <bk-search-select
                     primary-key="code"
                     :clearable="true"
+                    :popover-zindex="2300"
                     :data="labelList"
                     :show-condition="false"
                     :show-popover-tag-change="false"
                     :values="filterLabelTree(formData.nodeLabel)"
-                    @change="onLabelChange">
+                    @change="onLabelChange"
+                    @clear="onLabelClear">
                 </bk-search-select>
             </bk-form-item>
             <bk-form-item :label="$t('失败处理')" class="error-handle">
@@ -100,7 +99,6 @@
                     theme="primary"
                     size="small"
                     :value="formData.selectable"
-                    :disabled="formData.selectableDisable"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
@@ -139,12 +137,14 @@
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('步骤名称')" property="stageName">
+                <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
+            </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
                     size="small"
                     :value="formData.selectable"
-                    :disabled="formData.selectableDisable"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
@@ -202,6 +202,13 @@
                             message: i18n.t('节点名称长度不能超过') + STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         }
+                    ],
+                    stageName: [
+                        {
+                            max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
+                            message: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        }
                     ]
                 },
                 subflowRules: {
@@ -226,6 +233,18 @@
                         {
                             max: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH,
                             message: i18n.t('节点名称长度不能超过') + STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    stageName: [
+                        {
+                            regex: NAME_REG,
+                            message: i18n.t('步骤名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
+                            message: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         }
                     ]
@@ -350,6 +369,10 @@
                 this.formData.nodeLabel = val
                 this.updateData()
             },
+            onLabelClear () {
+                this.formData.nodeLabel = []
+                this.updateData()
+            },
             onErrorHandlerChange (val, type) {
                 this.formData[type] = val
                 if (type === 'ignorable' && val) {
@@ -363,12 +386,12 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, nodeLabel, ignorable, skippable, retryable, selectable } = this.formData
+                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, nodeLabel, selectable }
+                    data = { nodeName, stageName, nodeLabel, selectable }
                 } else {
-                    data = { version, nodeName, nodeLabel, ignorable, skippable, retryable, selectable }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
                 }
                 this.$emit('update', data)
             },
@@ -465,6 +488,12 @@
             .bk-form-input[readonly] {
                 border-color: #c4c6cc !important;
             }
+        }
+        .plugin-info-desc {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #ff9c01;
+            line-height: 1.2;
         }
         .update-tooltip {
             position: absolute;

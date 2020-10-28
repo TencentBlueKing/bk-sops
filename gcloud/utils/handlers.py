@@ -70,3 +70,10 @@ def handle_api_error(system, api_name, params, result):
     logger.error(message)
 
     return message
+
+
+def handle_plain_log(plain_log):
+    if plain_log:
+        for key_word in settings.LOG_SHIELDING_KEYWORDS:
+            plain_log = plain_log.replace(key_word, "******")
+    return plain_log

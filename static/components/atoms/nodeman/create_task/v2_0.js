@@ -206,8 +206,27 @@
                         type: "datatable",
                         attrs: {
                             name: gettext("主机"),
-                            editable: true,
-                            add_btn: true,
+                            table_buttons: [
+                                {
+                                    type: "add_row",
+                                    text: gettext("添加"),
+                                    callback: function () {
+                                        this.add_row()
+                                    }
+                                },
+                                {
+                                    type: "import",
+                                    text: gettext("导入")
+                                },
+                                {
+                                    type: "export",
+                                    text: gettext("导出"),
+                                    callback: function () {
+                                        this.export2Excel()
+                                    }
+                                },
+
+                            ],
                             columns: [
                                 {
                                     tag_code: "inner_ip",
@@ -229,7 +248,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("外网IP"),
-                                        placeholder: gettext("可选"),
+                                        placeholder: gettext("可选,如填写需与内网ip一一对应"),
                                         width: "100px",
                                         editable: true,
                                         validation: []
@@ -240,7 +259,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("登录IP"),
-                                        placeholder: gettext("可为空，适配复杂网络时填写"),
+                                        placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写"),
                                         width: "100px",
                                         editable: true
                                     }
@@ -250,7 +269,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("数据IP"),
-                                        placeholder: gettext("可为空，适配复杂网络时填写"),
+                                        placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写"),
                                         width: "100px",
                                         editable: true,
 

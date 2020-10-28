@@ -18,6 +18,7 @@ from .get_common_template_info import GetCommonTemplateInfoInterceptor  # noqa
 from .get_periodic_task_info import GetPeriodicTaskInfoInterceptor  # noqa
 from .project_view import ProjectViewInterceptor  # noqa
 from .task_view import TaskViewInterceptor  # noqa
+from .task_edit import TaskEditInterceptor  # noqa
 from .task_operate import TaskOperateInterceptor  # noqa
 from .get_template_info import GetTemplateInfoInterceptor  # noqa
 from .flow_view import FlowViewInterceptor  # noqa
