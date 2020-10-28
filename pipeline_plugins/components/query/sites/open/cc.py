@@ -48,6 +48,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     @return:
     """
     client = get_client_by_user(request.user.username)
+    include_not_editable = request.GET.get("all", False)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result["result"]:
@@ -58,7 +59,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
 
     obj_property = []
     for item in cc_result["data"]:
-        if item["editable"]:
+        if include_not_editable or item["editable"]:
             obj_property.append({"value": item["bk_property_id"], "text": item["bk_property_name"]})
 
     return JsonResponse({"result": True, "data": obj_property})
@@ -72,7 +73,7 @@ def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account)
     @return:
     """
     client = get_client_by_user(request.user.username)
-    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
+    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
@@ -321,17 +322,40 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
     set_template_result = client.cc.list_set_template(kwargs)
 
     if not set_template_result["result"]:
-        message = handle_api_error(
-            "cc", "cc.list_set_template", kwargs, set_template_result
-        )
+        message = handle_api_error("cc", "cc.list_set_template", kwargs, set_template_result)
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
     template_list = []
-    for template_info in set_template_result['data']['info']:
-        template_list.append({"value": template_info.get('id'), "text": template_info.get('name')})
+    for template_info in set_template_result["data"]["info"]:
+        template_list.append({"value": template_info.get("id"), "text": template_info.get("name")})
     return JsonResponse({"result": True, "data": template_list})
+
+
+def cc_input_host_property(request, biz_cc_id):
+    """
+    获取CMDB主机对应的属性名称和code
+    """
+    client = get_client_by_user(request.user.username)
+
+    kwargs = {"bk_obj_id": "host", "bk_biz_id": int(biz_cc_id)}
+
+    cc_result = client.cc.search_object_attribute(kwargs)
+
+    if not cc_result["result"]:
+        return JsonResponse({"result": False, "message": cc_result["message"]})
+
+    obj_property = []
+    for item in cc_result["data"]:
+        if item["editable"]:
+            prop_dict = {
+                "bk_property_id": item["bk_property_id"],
+                "bk_property_name": item["bk_property_name"]
+            }
+            obj_property.append(prop_dict)
+
+    return JsonResponse({"result": True, "data": obj_property})
 
 
 cc_urlpatterns = [
@@ -349,4 +373,6 @@ cc_urlpatterns = [
     url(r"^cc_get_business_list/$", cc_get_business),
     # 查询集群模板
     url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
+    # 主机自定义属性表格
+    url(r"^cc_input_host_property/(?P<biz_cc_id>\d+)/$", cc_input_host_property),
 ]

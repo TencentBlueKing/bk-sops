@@ -100,10 +100,10 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: $t('流程模板数据'),
+                        content: $t('任务数据'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('templateData', $t('流程模板数据'))">
+                    @click="onTaskParamsClick('templateData', $t('任务数据'))">
                 </i>
                 <i
                     v-if="adminView"

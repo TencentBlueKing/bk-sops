@@ -221,8 +221,12 @@ CC_GET_IPS_INFO_BY_STR_VALUE = {
     "result": True,
     "ip_count": 2,
     "ip_result": [
-        {"ModuleID": 1111, "HostID": 1212, "InnerIP": "1.1.1.1", "SetID": 111},
-        {"ModuleID": 2222, "HostID": 3434, "InnerIP": "2.2.2.2", "SetID": 222},
+        {"ModuleID": 1111, "HostID": 1212, "InnerIP": "1.1.1.1", "SetID": 111,
+         "Sets": [{"bk_set_id": 111}],
+         "Modules": [{"bk_module_id": 1111}]},
+        {"ModuleID": 2222, "HostID": 3434, "InnerIP": "2.2.2.2", "SetID": 222,
+         "Sets": [{"bk_set_id": 222}],
+         "Modules": [{"bk_module_id": 2222}]},
     ],
     "invalid_ip": []
 }
@@ -246,10 +250,9 @@ FIND_SET_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": "调用蓝鲸配置平台(CC)接口cc.find_set_batch返回失败, "
-            'params={"bk_biz_id":1,"bk_ids":[111,222],"fields":["bk_set_name","bk_set_id"]}, '
-            "error=find set batch fail"
-        },
+            'ex_data': '调用蓝鲸配置平台(CC)接口cc.find_set_batch返回失败,'
+                       ' params={"bk_biz_id":1,"bk_ids":[222,111],"fields":["bk_set_name","bk_set_id"]},'
+                       ' error=find set batch fail'},
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -258,7 +261,7 @@ FIND_SET_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         ),
         CallAssertion(
             func=FIND_SET_BATCH_FAIL_CLIENT.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [111, 222], "fields": ["bk_set_name", "bk_set_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
         ),
     ],
     schedule_assertion=None,
@@ -277,7 +280,7 @@ FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = C
         success=False,
         outputs={
             "ex_data": "调用蓝鲸配置平台(CC)接口cc.find_module_batch返回失败, "
-            'params={"bk_biz_id":1,"bk_ids":[1111,2222],'
+            'params={"bk_biz_id":1,"bk_ids":[2222,1111],'
             '"fields":["bk_module_name","bk_module_id"]}, error=find module batch fail'
         },
     ),
@@ -288,11 +291,11 @@ FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = C
         ),
         CallAssertion(
             func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [111, 222], "fields": ["bk_set_name", "bk_set_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
         ),
         CallAssertion(
             func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.cc.find_module_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [1111, 2222], "fields": ["bk_module_name", "bk_module_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]})],
         ),
     ],
     schedule_assertion=None,
@@ -321,11 +324,11 @@ GET_HOST_BASE_INFO_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         ),
         CallAssertion(
             func=GET_HOST_BASE_INFO_CLIENT_FAIL.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [111, 222], "fields": ["bk_set_name", "bk_set_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
         ),
         CallAssertion(
             func=GET_HOST_BASE_INFO_CLIENT_FAIL.cc.find_module_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [1111, 2222], "fields": ["bk_module_name", "bk_module_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]})],
         ),
     ],
     schedule_assertion=None,
@@ -411,11 +414,11 @@ CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         ),
         CallAssertion(
             func=EXECUTE_TASK_FAIL_CLIENT.cc.find_set_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [111, 222], "fields": ["bk_set_name", "bk_set_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
         ),
         CallAssertion(
             func=EXECUTE_TASK_FAIL_CLIENT.cc.find_module_batch,
-            calls=[Call({"bk_biz_id": 1, "bk_ids": [1111, 2222], "fields": ["bk_module_name", "bk_module_id"]})],
+            calls=[Call({"bk_biz_id": 1, "bk_ids": [2222, 1111], "fields": ["bk_module_name", "bk_module_id"]})],
         ),
     ],
     schedule_assertion=None,

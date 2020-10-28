@@ -13,7 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import include, url
 from tastypie.api import Api
+from rest_framework.routers import DefaultRouter
 
+from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
 from gcloud.core.resources import (
     BusinessResource,
     ProjectResource,
@@ -57,7 +59,10 @@ v3_api.register(SyncTaskResource())
 v3_api.register(LabelGroupModelResource())
 v3_api.register(LabelModelResource())
 
+drf_router = DefaultRouter()
+drf_router.register(r"project_config", ProjectConfigViewSet)
+drf_router.register(r"resource_config", ResourceConfigViewSet)
+drf_router.register(r"staff_group", StaffGroupSetViewSet)
+
 # Standard bits...
-urlpatterns = [
-    url(r"^api/", include(v3_api.urls)),
-]
+urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]

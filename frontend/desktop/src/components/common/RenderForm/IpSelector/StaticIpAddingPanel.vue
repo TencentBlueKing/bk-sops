@@ -126,7 +126,7 @@
         noData: gettext('无数据'),
         normal: gettext('正常'),
         cancel: gettext('取消'),
-        manualPlaceholder: gettext('请输入IP，多个以逗号隔开'),
+        manualPlaceholder: gettext('请输入IP，多个以逗号或者换行符隔开'),
         ipInvalid: gettext('IP地址不合法，'),
         ipNotExist: gettext('IP地址不存在，'),
         viewDetail: gettext('查看详情')
