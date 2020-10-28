@@ -258,6 +258,10 @@
             &:hover {
                 color: #3a84ff;
             }
+            &.common-icon-node-tasknode-shortcut,
+            &.common-icon-node-subflow-shortcut {
+                font-size: 18px;
+            }
         }
     }
     .operate-btns {

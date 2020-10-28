@@ -43,10 +43,10 @@ class JobLocalContentUploadComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(
-        self,
-        push_config_file_return=None,
-        get_job_instance_global_var_value_return=None,
-        get_job_instance_log_return=None,
+            self,
+            push_config_file_return=None,
+            get_job_instance_global_var_value_return=None,
+            get_job_instance_log_return=None,
     ):
         self.job = MagicMock()
         self.job.push_config_file = MagicMock(return_value=push_config_file_return)
@@ -116,7 +116,7 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                         {
                             "ip": "1.1.1.1",
                             "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
+                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
                         },
                     ],
                     "ip_status": 9,
@@ -145,9 +145,6 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT = MockClient(
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
 )
 
-# mock GET_NODE_CALLBACK_URL
-GET_NODE_CALLBACK_URL_MOCK = MagicMock(return_value="callback_url")
-
 # parent_data
 PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
 
@@ -169,7 +166,6 @@ KWARGS = {
     "file_target_path": "/tmp/bk_sops_test/",
     "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
     "ip_list": [],
-    "bk_callback_url": "callback_url",
 }
 
 # 手动输入脚本失败样例输出
@@ -186,7 +182,6 @@ SUCCESS_OUTPUTS = {
     "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
-    "client": LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT,
 }
 
 # 异步回调函数参数错误返回
@@ -201,16 +196,15 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=False,
-        outputs=dict(list(SUCCESS_OUTPUTS.items()) + list(SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS.items())),
-        callback_data={},
+        success=True,
+        schedule_finished=True,
+        outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}, ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -225,6 +219,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
         success=True,
+        schedule_finished=True,
         outputs=dict(list(SUCCESS_OUTPUTS.items())),
         callback_data={"job_instance_id": 10000, "status": 3},
     ),
@@ -232,7 +227,6 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -251,8 +245,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}, ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
