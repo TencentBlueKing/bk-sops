@@ -142,7 +142,7 @@ class ServiceActivity(Activity):
 
     def execute_pre_process(self, parent_data):
         # return True if the plugin does not complete execute_pre_process function
-        if not hasattr(self.service, "execute_pre_process"):
+        if not (hasattr(self.service, "execute_pre_process") and callable(self.service.execute_pre_process)):
             return True
 
         result = self.service.execute_pre_process(self.data, parent_data)
