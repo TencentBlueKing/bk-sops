@@ -234,7 +234,7 @@ class NodemanCreateTaskService(Service):
             return True
 
         # 失败任务信息
-        if result_data["status"] == "FAILED":
+        if result_data["status"] in ["FAILED", "PART_FAILED"]:
             fail_infos = [
                 {"inner_ip": host["inner_ip"], "instance_id": host["instance_id"]}
                 for host in host_list
