@@ -15,10 +15,8 @@ import logging
 
 import six
 from rest_framework import permissions
-from tastypie.exceptions import ImmediateHttpResponse
 
 from iam import Action, Request
-from iam.contrib.django.response import IAMAuthFailedResponse
 from iam.exceptions import AuthFailedException
 
 logger = logging.getLogger("iam")
@@ -122,7 +120,7 @@ class IAMPermission(permissions.BasePermission):
         )
 
         if not allowed:
-            raise ImmediateHttpResponse(IAMAuthFailedResponse(AuthFailedException(system, subject, action, resources)))
+            raise AuthFailedException(system, subject, action, resources)
 
         return allowed
 
@@ -140,7 +138,7 @@ class IAMPermission(permissions.BasePermission):
         )
 
         if not allowed:
-            raise ImmediateHttpResponse(IAMAuthFailedResponse(AuthFailedException(system, subject, action, resources)))
+            raise AuthFailedException(system, subject, action, resources)
 
         return allowed
 
@@ -158,7 +156,7 @@ class IAMPermission(permissions.BasePermission):
         )
 
         if not allowed:
-            raise ImmediateHttpResponse(IAMAuthFailedResponse(AuthFailedException(system, subject, action, resources)))
+            raise AuthFailedException(system, subject, action, resources)
 
         return allowed
 
@@ -176,6 +174,6 @@ class IAMPermission(permissions.BasePermission):
         )
 
         if not allowed:
-            raise ImmediateHttpResponse(IAMAuthFailedResponse(AuthFailedException(system, subject, action, resources)))
+            raise AuthFailedException(system, subject, action, resources)
 
         return allowed
