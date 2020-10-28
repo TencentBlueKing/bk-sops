@@ -333,6 +333,24 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
     return JsonResponse({"result": True, "data": template_list})
 
 
+def cc_get_editable_module_attribute(request, biz_cc_id):
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "module",
+    }
+    client = get_client_by_user(request.user.username)
+    result = client.cc.search_object_attribute(kwargs)
+    if not result["result"]:
+        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+    data = result["data"]
+    module_attribute = []
+    for module_item in data:
+        if module_item["editable"]:
+            module_attribute.append(module_item)
+
+    return JsonResponse({"result": True, "data": module_attribute})
+
+
 def cc_input_host_property(request, biz_cc_id):
     """
     获取CMDB主机对应的属性名称和code
@@ -349,16 +367,14 @@ def cc_input_host_property(request, biz_cc_id):
     obj_property = []
     for item in cc_result["data"]:
         if item["editable"]:
-            prop_dict = {
-                "bk_property_id": item["bk_property_id"],
-                "bk_property_name": item["bk_property_name"]
-            }
+            prop_dict = {"bk_property_id": item["bk_property_id"], "bk_property_name": item["bk_property_name"]}
             obj_property.append(prop_dict)
 
     return JsonResponse({"result": True, "data": obj_property})
 
 
 cc_urlpatterns = [
+    url(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
     url(r"^cc_search_object_attribute_all/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute_all,),
     url(r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_create_object_attribute,),
