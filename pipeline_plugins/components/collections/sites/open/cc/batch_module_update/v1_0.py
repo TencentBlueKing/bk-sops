@@ -166,7 +166,7 @@ class CCBatchModuleUpdateService(Service):
 
 
 class CCBatchModuleUpdateComponent(Component):
-    name = _("批量更新集群属性")
+    name = _("批量更新模块属性")
     version = VERSION
     code = "cc_batch_module_update"
     bound_service = CCBatchModuleUpdateService
