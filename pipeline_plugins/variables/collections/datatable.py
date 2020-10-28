@@ -35,6 +35,9 @@ class DataTableValue(object):
             setattr(self, "flat__{}".format(attr), flat_val)
         self._pipeline_var_str_value = "DataTable with {} Fields".format(",".join(item_values.keys()))
 
+    def __repr__(self):
+        return self._pipeline_var_str_value
+
 
 class DataTable(LazyVariable):
     code = "datatable"

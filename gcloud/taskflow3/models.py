@@ -19,6 +19,7 @@ import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.utils.handlers import handle_plain_log
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
@@ -923,7 +924,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "data": None, "message": message}
 
-        plain_log = LogEntry.objects.plain_log_for_node(node_id, history_id)
+        plain_log = handle_plain_log(LogEntry.objects.plain_log_for_node(node_id, history_id))
         return {
             "result": True if plain_log else False,
             "data": plain_log,

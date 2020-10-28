@@ -24,7 +24,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, InputNumber, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
-    Container, Row, Col, Pagination, Tooltip, Cascader } from 'element-ui'
+    Container, Row, Col, Pagination, Tooltip, Cascader, autocomplete } from 'element-ui'
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
@@ -59,6 +59,7 @@ Vue.use(Col)
 Vue.use(Pagination)
 Vue.use(Tooltip)
 Vue.use(Cascader)
+Vue.use(autocomplete)
 
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)
@@ -101,7 +102,7 @@ Validator.localize({
             },
             stageName: {
                 regex: i18n.t('步骤名称不能包含') + InvalidNameChar + i18n.t('非法字符'),
-                max: i18n.t('步骤名称不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符')
+                max: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符')
             },
             variableName: {
                 required: i18n.t('变量名称不能为空'),

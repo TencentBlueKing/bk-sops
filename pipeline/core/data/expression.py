@@ -121,11 +121,9 @@ class ConstantTemplate(object):
             return string
         templates = ConstantTemplate.get_string_templates(string)
 
+        # TODO keep render return object, here only process simple situation
         if len(templates) == 1 and templates[0] == string and deformat_constant_key(string) in value_maps:
-            value_obj = value_maps[deformat_constant_key(string)]
-            if hasattr(value_obj, "_pipeline_var_str_value"):
-                return value_obj._pipeline_var_str_value
-            return value_obj
+            return value_maps[deformat_constant_key(string)]
 
         for tpl in templates:
             resolved = ConstantTemplate.resolve_template(tpl, value_maps)

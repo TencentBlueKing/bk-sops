@@ -225,6 +225,18 @@
                                     host_resources: [],
                                     module_detail: []
                                 },
+                                data: [],
+                                separetor: ','
+                            }
+                            break
+                        case 'host_allocation':
+                            val = {
+                                config: {
+                                    host_count: 0,
+                                    host_screen_value: '',
+                                    host_resources: [],
+                                    host_filter_detail: []
+                                },
                                 data: []
                             }
                             break

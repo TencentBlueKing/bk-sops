@@ -110,7 +110,7 @@ def migrate_app_maker(request):
             "name": app_maker["name"],
             "desc": app_maker["desc"],
             "username": app_maker["username"],
-            "link_prefix": settings.APP_HOST,
+            "link_prefix": "{}appmaker/".format(settings.APP_HOST),
             "template_id": template_id,
             "template_scheme_id": template_scheme_id,
             "logo_content": None,

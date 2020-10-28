@@ -38,7 +38,9 @@
 ```
 {
     "result": true,
-    "data": {}
+    "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
+    "message": "success",
+    "code": 3545100
 }
 ```
 
@@ -49,3 +51,4 @@
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict  |      result=true 时返回数据      |
 |  message     |    string  |      result=false 时错误信息     |
+|  task_url    |    string  |      任务对应的url  |

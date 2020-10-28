@@ -654,6 +654,15 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/list_set_template/",
             description="查询集群模板",
         )
+        self.add_host_lock = ComponentAPI(
+            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/", description="新加主机锁",
+        )
+        self.delete_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/delete_host_lock/",
+            description="删除主机锁",
+        )
         self.search_dynamic_group = ComponentAPI(
             client=self.client,
             method="POST",
@@ -682,11 +691,23 @@ class CollectionsCC(object):
             client=self.client,
             method="POST",
             path="/api/c/compapi{bk_api_ver}/cc/find_module_with_relation/",
-            description="批量获取模块详情",
+            description="根据条件查询业务下的模块",
         )
         self.find_set_batch = ComponentAPI(
             client=self.client,
             method="POST",
             path="/api/c/compapi{bk_api_ver}/cc/find_set_batch/",
             description="批量获取集群详情",
+        )
+        self.add_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/",
+            description="主机锁管理，增加主机锁",
+        )
+        self.delete_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/delete_host_lock/",
+            description="主机锁管理，删除主机锁",
         )
