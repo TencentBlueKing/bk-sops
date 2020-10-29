@@ -61,11 +61,16 @@
                     return url
                 },
                 remote_data_init: function (resp) {
-                    console.log(resp)
                     if (resp.result === false) {
                         show_msg(resp.message, 'error');
                     }
                     const data = resp.data;
+                    data.forEach(function (column) {
+                        column.type = 'input'
+                        column.tag_code = column.bk_property_id
+                        column.attrs = []
+                        column.attrs["name"] = column.bk_property_name
+                    });
                     data.unshift(
                         {
                             "tag_code": "bk_new_set_name",
@@ -86,10 +91,6 @@
                             }
                         }
                     );
-                    data.forEach(function (column) {
-                        column.type = 'input'
-
-                    });
                     return data;
                 },
                 add_btn: true,
