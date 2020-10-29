@@ -28,7 +28,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-VERSION = "v1.0"
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -40,7 +40,7 @@ class CCUpdateWorldStatusService(Service):
                 name=_("填参方式"),
                 key="cc_set_select_method",
                 type="string",
-                schema=StringItemSchema(description=_("集群填入方式，Set名称(name)，大区ID(id)"), enum=["name", "id"]),
+                schema=StringItemSchema(description=_("集群填入方式，Set名称(name)，Set ID(id)"), enum=["name", "id"]),
             ),
             self.InputItem(name=_("大区范围"), key="set_list", type="string",),
         ]
@@ -65,7 +65,6 @@ class CCUpdateWorldStatusService(Service):
                     "bk_biz_id": int(bk_biz_id),
                     "fields": ["bk_set_id", "bk_set_name"],
                     "condition": {"bk_set_name": set_name},
-                    # "page": {"start": 0, "limit": 100, "sort": "bk_set_name"},
                 }
                 cc_search_set_result = batch_request(client.cc.search_set, cc_search_set_kwargs)
                 if not cc_search_set_result:
@@ -95,13 +94,13 @@ class CCUpdateWorldStatusService(Service):
 
 class CCUpdateWorldStatusComponent(Component):
     """
-    @version log（v1.0）:支持手动输入拓扑路径选择集群，并提供相应输入容错： 冗余回车/换行
+    @version log（v1.0）:修改服务状态
     """
 
-    name = _("服务状态修改")
+    name = _("修改服务状态")
     code = "cc_update_world_status"
     bound_service = CCUpdateWorldStatusService
-    form = "{static_url}components/atoms/cc/update_world_status/{ver}.js".format(
+    form = "{static_url}components/atoms/cc/update_world_status/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION

@@ -21,7 +21,9 @@ from pipeline.component_framework.test import (
     ExecuteAssertion,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.cc.update_world_status.v1_0 import CCUpdateWorldStatusComponent
+from pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1 import (
+    CCUpdateWorldStatusComponent,
+)
 
 
 class CCUpdateWorldStatusComponentTest(TestCase, ComponentTestMixin):
@@ -43,7 +45,9 @@ class MockClient(object):
         self.cc.update_set = MagicMock(return_value=update_set_return)
 
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.update_world_status.v1_0.get_client_by_user"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1.get_client_by_user"
+)
 CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
 
 COMMON_PARENT = {"executor": "admin", "bk_biz_id": 2, "biz_supplier_account": 0}

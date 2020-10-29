@@ -44,7 +44,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("大区范围"),
-                placeholder: gettext("输入..."),
+                placeholder: gettext("多个集群使用英文','分割"),
                 hookable: true,
                 validation: [
                     {
