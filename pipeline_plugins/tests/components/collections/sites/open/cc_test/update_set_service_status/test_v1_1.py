@@ -22,13 +22,13 @@ from pipeline.component_framework.test import (
     Patcher,
 )
 from pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1 import (
-    CCUpdateWorldStatusComponent,
+    CCUpdateSetServiceStatusComponent,
 )
 
 
 class CCUpdateWorldStatusComponentTest(TestCase, ComponentTestMixin):
     def component_cls(self):
-        return CCUpdateWorldStatusComponent
+        return CCUpdateSetServiceStatusComponent
 
     def cases(self):
         return [

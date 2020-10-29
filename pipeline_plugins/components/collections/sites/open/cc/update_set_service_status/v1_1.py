@@ -33,7 +33,7 @@ VERSION = "1.1"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCUpdateWorldStatusService(Service):
+class CCUpdateSetServiceStatusService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -92,14 +92,14 @@ class CCUpdateWorldStatusService(Service):
         return True
 
 
-class CCUpdateWorldStatusComponent(Component):
+class CCUpdateSetServiceStatusComponent(Component):
     """
     @version log （v1.0）:修改服务状态
     """
 
-    name = _("修改服务状态")
-    code = "cc_update_world_status"
-    bound_service = CCUpdateWorldStatusService
+    name = _("修改集群服务状态")
+    code = "cc_update_set_service_status"
+    bound_service = CCUpdateSetServiceStatusService
     form = "{static_url}components/atoms/cc/update_world_status/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
