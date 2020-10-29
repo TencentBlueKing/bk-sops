@@ -141,7 +141,7 @@ class SetDetailData(object):
                     item_values.setdefault(key, []).append(val)
         for attr, attr_val in item_values.items():
             setattr(self, attr, attr_val)
-            flat_val = ",".join(map(str, attr_val))
+            flat_val = separator.join(map(str, attr_val))
             setattr(self, "flat__{}".format(attr), flat_val)
         setattr(self, "_module", modules)
         setattr(self, "flat__ip_list", separator.join(list(total_ip_set)))
