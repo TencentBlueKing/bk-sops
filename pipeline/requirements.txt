@@ -21,7 +21,7 @@ djangorestframework==3.3.3
 django-nose==1.4.5
 coverage==4.5.1
 python-magic==0.4.15
-cryptography==2.3.1
+cryptography==3.2
 
 # pipeline
 ujson==1.35
