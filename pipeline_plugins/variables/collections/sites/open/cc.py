@@ -116,17 +116,26 @@ class VarCmdbIpSelector(LazyVariable):
 
 
 class SetDetailData(object):
-    def __init__(self, data):
+    def __init__(self, data, separator=","):
         self._value = data
         self.set_count = len(self._value)
         item_values = {}
         modules = []
         total_ip_set = set()
+        # verbose_ip_list 和 ip_module_list 元素一一对应
+        verbose_ip_list = []
+        verbose_ip_module_list = []
         for item in data:
+            set_name = item["bk_set_name"]
             for key, val in item.items():
                 if key == "__module":
-                    total_ip_set.update(flatten([mod["value"] for mod in val]))
-                    item_module = {mod["key"]: ",".join(mod["value"]) for mod in val}
+                    module_ips = flatten([mod["value"] for mod in val])
+                    total_ip_set.update(module_ips)
+                    verbose_ip_list += module_ips
+                    verbose_ip_module_list += flatten(
+                        [["{}>{}".format(set_name, mod["key"])] * len(mod["value"]) for mod in val]
+                    )
+                    item_module = {mod["key"]: separator.join(mod["value"]) for mod in val}
                     modules.append(item_module)
                 else:
                     item_values.setdefault(key, []).append(val)
@@ -135,9 +144,11 @@ class SetDetailData(object):
             flat_val = ",".join(map(str, attr_val))
             setattr(self, "flat__{}".format(attr), flat_val)
         setattr(self, "_module", modules)
-        setattr(self, "flat__ip_list", ",".join(list(total_ip_set)))
+        setattr(self, "flat__ip_list", separator.join(list(total_ip_set)))
+        setattr(self, "flat__verbose_ip_list", separator.join(verbose_ip_list))
+        setattr(self, "flat__verbose_ip_module_list", separator.join(verbose_ip_module_list))
         self._pipeline_var_str_value = "Allocate {} sets with names: {}".format(
-            self.set_count, ",".join(item_values["bk_set_name"])
+            self.set_count, separator.join(item_values["bk_set_name"])
         )
 
     def __repr__(self):
@@ -159,7 +170,8 @@ class VarCmdbSetAllocation(LazyVariable):
         @note: 引用集群资源变量的模块分配的 IP ${value._module[0]["gamesvr"]} -> "127.0.0.1,127.0.0.2"
         @return:
         """
-        return SetDetailData(self.value["data"])
+        separator = self.value.get("separator", ",")
+        return SetDetailData(self.value["data"], separator)
 
 
 class VarCmdbAttributeQuery(LazyVariable):
