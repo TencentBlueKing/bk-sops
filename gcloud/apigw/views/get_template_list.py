@@ -42,17 +42,20 @@ except ImportError:
 def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
     id_in = request.GET.get("id_in", None)
+    name_keyword = request.GET.get("name_keyword", None)
 
     if id_in:
         try:
             id_in = id_in.split(",")
         except Exception:
             id_in = None
-            logger.warning("[API] id_in[{}] relove fail, ignore.".format(id_in))
+            logger.error("[API] id_in[{}] resolve fail, ignore.".format(id_in))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:
         filter_kwargs["id__in"] = id_in
+    if name_keyword and name_keyword != "":
+        filter_kwargs["pipeline_template__name__icontains"] = name_keyword
 
     project = request.project
     if template_source in NON_COMMON_TEMPLATE_TYPES:

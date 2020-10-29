@@ -242,8 +242,8 @@
                 } else {
                     // 项目上下文页面
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
-                        this.permissinApplyShow = false
                         if (this.project_id !== preProjectId) {
+                            this.permissinApplyShow = false
                             this.getProjectDetail()
                         }
                     } else { // 需要项目id页面，id为空时，显示无权限页面

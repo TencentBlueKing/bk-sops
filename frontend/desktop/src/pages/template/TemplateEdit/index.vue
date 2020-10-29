@@ -107,6 +107,23 @@
                 @cancel="onLeaveCancel">
                 <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
             </bk-dialog>
+            <bk-dialog
+                width="400"
+                ext-cls="common-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :show-footer="false"
+                :value="multipleTabDialogShow"
+                @cancel="multipleTabDialogShow = false">
+                <div class="multiple-tab-dialog-content">
+                    <h3>{{ $t('确定保存修改的内容？') }}</h3>
+                    <p><i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i></p>
+                    <div class="action-wrapper">
+                        <bk-button theme="primary" @click="onMutilpleTabConfirm">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" @click="multipleTabDialogShow = false">{{ $t('取消') }}</bk-button>
+                    </div>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -127,6 +144,7 @@
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import tplSnapshoot from '@/utils/tplSnapshoot.js'
+    import tplTabCount from '@/utils/tplTabCount.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -176,6 +194,8 @@
                 tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
+                multipleTabDialogShow: false,
+                tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -291,12 +311,20 @@
         mounted () {
             this.getProjectBaseInfo()
             this.openSnapshootTimer()
-            window.onbeforeunload = function () {
-                return i18n.t('系统不会保存您所做的更改，确认离开？')
+            window.addEventListener('beforeunload', this.handleBeforeUnload, false)
+            window.addEventListener('unload', this.handleUnload.bind(this), false)
+            if (this.type === 'edit') {
+                const data = this.getTplTabData()
+                tplTabCount.setTab(data, 'add')
             }
         },
         beforeDestroy () {
-            window.onbeforeunload = null
+            if (this.type === 'edit') {
+                const data = this.getTplTabData()
+                tplTabCount.setTab(data, 'del')
+            }
+            window.removeEventListener('beforeunload', this.handleBeforeUnload, false)
+            window.removeEventListener('unload', this.handleUnload, false)
             this.resetTemplateData()
             this.hideGuideTips()
         },
@@ -539,6 +567,14 @@
                             url.name = 'commonTemplatePanel'
                         }
                         this.$router.push(url)
+
+                        // 新创建的流程模板需要增加本地浏览器计数信息
+                        const tabQuerydata = {
+                            user: this.username,
+                            id: this.common ? 'common' : this.project_id,
+                            tpl: data.template_id
+                        }
+                        tplTabCount.setTab(tabQuerydata, 'add')
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -705,7 +741,7 @@
                     const { tag_code, type, attrs } = item
                     const value = formData[tag_code]
                     if (type === 'combine') {
-                        if (!this.checkAtomData(attrs.children, value)) {
+                        if (typeof value === 'object' && !this.checkAtomData(attrs.children, value)) { // 勾选为全局变量的 combine 不校验 value
                             isValid = false
                         }
                     } else {
@@ -923,7 +959,11 @@
                 }
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
-                this.checkBasicProperty() // 基础属性是否合法
+                if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
+                    this.multipleTabDialogShow = true
+                } else {
+                    this.checkBasicProperty() // 基础属性是否合法
+                }
             },
             // 校验基础属性
             checkBasicProperty () {
@@ -1144,6 +1184,28 @@
             saveTempSnapshoot (templateId) {
                 const id = this.common ? 'common' : this.project_id
                 tplSnapshoot.replaceSnapshootTplKey(this.username, id, this.tplUUID, templateId)
+            },
+            handleBeforeUnload (e) {
+                e.returnValue = i18n.t('系统不会保存您所做的更改，确认离开？')
+                return i18n.t('系统不会保存您所做的更改，确认离开？')
+            },
+            handleUnload (queryData, type) {
+                if (this.type === 'edit') {
+                    const data = this.getTplTabData()
+                    tplTabCount.setTab(data, 'del')
+                }
+            },
+            // 多 tab 打开同一流程模板
+            onMutilpleTabConfirm () {
+                this.multipleTabDialogShow = false
+                this.checkBasicProperty()
+            },
+            getTplTabData () {
+                return {
+                    user: this.username,
+                    id: this.common ? 'common' : this.project_id,
+                    tpl: this.template_id
+                }
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1170,7 +1232,7 @@
     .update-tips {
         position: absolute;
         top: 76px;
-        left: 500px;
+        left: 450px;
         min-height: 40px;
         overflow: hidden;
         z-index: 4;
@@ -1194,5 +1256,22 @@
     }
     .leave-tips {
         padding: 30px;
+    }
+    /deep/ .multiple-tab-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: normal;
+        }
+        p {
+            margin: 6px 0 20px;
+            font-size: 14px;
+            color: #ff9c01;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
+        }
     }
 </style>

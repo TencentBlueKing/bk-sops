@@ -16,6 +16,7 @@ import ujson as json
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import JsonResponse
 
+from gcloud.utils.handlers import handle_plain_log
 from pipeline.engine.models import PipelineModel, PipelineProcess, Status, ScheduleService
 from pipeline.core.pipeline import PipelineShell
 from pipeline.engine.utils import calculate_elapsed_time
@@ -234,7 +235,7 @@ def get_taskflow_node_detail(request):
     data["history"] = task_service.get_activity_histories(node_id)
 
     # collect log
-    data["log"] = task_service.get_plain_log_for_node(node_id)
+    data["log"] = handle_plain_log(task_service.get_plain_log_for_node(node_id))
 
     # set ex_data
     data["ex_data"] = task_service.get_outputs(node_id)["ex_data"]
@@ -248,7 +249,7 @@ def get_node_history_log(request):
     node_id = request.GET.get("node_id")
     history_id = request.GET.get("history_id")
 
-    data = {"log": task_service.get_plain_log_for_node(node_id, history_id)}
+    data = {"log": handle_plain_log(task_service.get_plain_log_for_node(node_id, history_id))}
 
     return JsonResponse({"result": True, "data": data})
 

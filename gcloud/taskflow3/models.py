@@ -19,6 +19,7 @@ import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.utils.handlers import handle_plain_log
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
@@ -52,7 +53,6 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.signals import taskflow_started
-from gcloud.taskflow3 import exceptions as taskflow_exceptions
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
@@ -357,19 +357,6 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
     def preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
-
-        # 检测是否移除了勾选了输出变量的节点
-        nodes_have_ouputs = set()
-        for constant_data in pipeline_tree.get("constants", {}).values():
-            if constant_data["source_type"] == "component_outputs":
-                for output_node in constant_data["source_info"]:
-                    nodes_have_ouputs.add(output_node)
-
-        can_not_rm_nodes = nodes_have_ouputs.intersection(set(exclude_task_nodes_id))
-        if can_not_rm_nodes:
-            raise taskflow_exceptions.InvalidOperationException(
-                "can not remove nodes({}) that make outputs".format(can_not_rm_nodes)
-            )
 
         locations = {item["id"]: item for item in pipeline_tree.get("location", [])}
         lines = {item["id"]: item for item in pipeline_tree.get("line", [])}
@@ -989,7 +976,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "data": None, "message": message}
 
-        plain_log = LogEntry.objects.plain_log_for_node(node_id, history_id)
+        plain_log = handle_plain_log(LogEntry.objects.plain_log_for_node(node_id, history_id))
         return {
             "result": True if plain_log else False,
             "data": plain_log,

@@ -108,10 +108,10 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" @click="CoverSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button theme="primary" @click="onConfirm(true)">{{exportConflict}}</bk-button>
                 <bk-button
                     theme="default"
-                    @click="importSubmit(false)"
+                    @click="onConfirm(false)"
                     v-cursor="{ active: common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }"
                     :class="{ 'btn-permission-disable': common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }">
                     {{overrideConflict}}
@@ -269,6 +269,23 @@
                     this.templateFileErrorExt = false
                     return
                 }
+                if (!isOverride) {
+                    const hasCreatePerm = this.common ? this.hasCreateCommonTplPerm : this.hasPermission(['flow_create'], this.authActions)
+                    if (!hasCreatePerm) {
+                        if (this.common) {
+                            this.applyForPermission(['common_flow_create'])
+                        } else {
+                            const resourceData = {
+                                project: [{
+                                    id: this.project_id,
+                                    name: this.projectName
+                                }]
+                            }
+                            this.applyForPermission(['flow_create'], this.authActions, resourceData)
+                        }
+                        return
+                    }
+                }
                 if (!this.templateFileErrorExt && !this.templateFileEmpty) {
                     this.importTemplate(isOverride)
                 }
@@ -285,22 +302,6 @@
                 this.templateFileEmpty = false
                 this.templateFileErrorExt = false
                 this.templateFileError = false
-            },
-            CoverSubmit (isOverride) {
-                this.onConfirm(isOverride)
-            },
-            importSubmit (isOverride) {
-                if (!this.hasPermission(['flow_create'], this.authActions)) {
-                    const resourceData = {
-                        project: [{
-                            id: this.project_id,
-                            name: this.projectName
-                        }]
-                    }
-                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
-                } else {
-                    this.onConfirm(isOverride)
-                }
             },
             resetData () {
                 this.file = null

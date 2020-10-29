@@ -41,7 +41,7 @@
                                 v-if="group.children.length"
                                 :key="group.id"
                                 class="template-group">
-                                <h5 class="group-name">
+                                <h5 class="group-name" v-if="group.name">
                                     {{group.name}}
                                     (<span class="list-count">{{group.children.length}}</span>)
                                 </h5>
@@ -323,7 +323,7 @@
                     } else {
                         categorys.push(m.category)
                         group.push({
-                            name: m.category,
+                            name: m.category_name || m.category,
                             children: [m]
                         })
                     }
@@ -525,13 +525,13 @@
             @include scrollbar;
         }
         .template-group {
-            margin-bottom: 30px;
+            margin: 30px 0;
         }
         .search-list {
             padding-top: 40px;
         }
         .group-name {
-            margin-bottom: 8px;
+            margin: 0 0 8px;
             font-size: 12px;
         }
     }
