@@ -349,13 +349,30 @@ def cc_input_host_property(request, biz_cc_id):
     obj_property = []
     for item in cc_result["data"]:
         if item["editable"]:
-            prop_dict = {
-                "bk_property_id": item["bk_property_id"],
-                "bk_property_name": item["bk_property_name"]
-            }
+            prop_dict = {"bk_property_id": item["bk_property_id"], "bk_property_name": item["bk_property_name"]}
             obj_property.append(prop_dict)
 
     return JsonResponse({"result": True, "data": obj_property})
+
+
+def cc_search_status_options(request, biz_cc_id):
+    client = get_client_by_user(request.user.username)
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "set",
+    }
+    result = client.cc.search_object_attribute(kwargs)
+    options = []
+    for data in result["data"]:
+        if data["bk_property_id"] == "bk_service_status":
+            for option in data["option"]:
+                options.append({"text": option["name"], "value": option["id"]})
+    if not options:
+        message = handle_api_error("cc", "cc.search_object_attribute", kwargs, result)
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+    return JsonResponse({"result": True, "data": options})
 
 
 cc_urlpatterns = [
@@ -375,4 +392,6 @@ cc_urlpatterns = [
     url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
     # 主机自定义属性表格
     url(r"^cc_input_host_property/(?P<biz_cc_id>\d+)/$", cc_input_host_property),
+    # 查询Set服务状态
+    url(r"^cc_search_status_options/(?P<biz_cc_id>\d+)/$", cc_search_status_options),
 ]
