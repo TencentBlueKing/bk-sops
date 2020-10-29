@@ -96,7 +96,7 @@ class CCBatchUpdateSetService(Service):
         failed_update = []
 
         for update_item in attr_list:
-            # 过滤, 去除用户没有填的字段
+            # 过滤,去除用户没有填的字段
             update_params = {key: value for key, value in update_item.items() if value}
             bk_set_name = update_params["bk_set_name"]
             if "bk_new_set_name" in update_params:
