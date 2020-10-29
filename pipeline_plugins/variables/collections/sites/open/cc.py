@@ -146,7 +146,7 @@ class SetDetailData(object):
         setattr(self, "_module", modules)
         setattr(self, "flat__ip_list", separator.join(list(total_ip_set)))
         setattr(self, "flat__verbose_ip_list", separator.join(verbose_ip_list))
-        setattr(self, "flat__ip_module_list", separator.join(ip_module_list))
+        setattr(self, "flat__verbose_ip_module_list", separator.join(ip_module_list))
         self._pipeline_var_str_value = "Allocate {} sets with names: {}".format(
             self.set_count, separator.join(item_values["bk_set_name"])
         )
