@@ -94,7 +94,7 @@ class CCUpdateSetServiceStatusService(Service):
 
 class CCUpdateSetServiceStatusComponent(Component):
     """
-    @version log （v1.0）:修改服务状态
+    @version log （v1.1）:修改服务状态
     """
 
     name = _("修改集群服务状态")
