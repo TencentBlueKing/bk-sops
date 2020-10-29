@@ -28,7 +28,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-VERSION = "1.0"
+VERSION = "1.1"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -94,7 +94,7 @@ class CCUpdateWorldStatusService(Service):
 
 class CCUpdateWorldStatusComponent(Component):
     """
-    @version log（v1.0）:修改服务状态
+    @version log （v1.0）:修改服务状态
     """
 
     name = _("修改服务状态")
