@@ -373,6 +373,25 @@ def cc_input_host_property(request, biz_cc_id):
     return JsonResponse({"result": True, "data": obj_property})
 
 
+def cc_get_editable_set_attribute(request, biz_cc_id):
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "set",
+    }
+    client = get_client_by_user(request.user.username)
+    result = client.cc.search_object_attribute(kwargs)
+    if not result["result"]:
+        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+    data = result["data"]
+    set_attribute = []
+    for set_item in data:
+        if set_item["editable"] and set_item["bk_property_id"] != "bk_set_name":
+            prop_dict = {"bk_property_id": set_item["bk_property_id"], "bk_property_name": set_item["bk_property_name"]}
+            set_attribute.append(prop_dict)
+
+    return JsonResponse({"result": True, "data": set_attribute})
+
+
 cc_urlpatterns = [
     url(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
@@ -391,4 +410,6 @@ cc_urlpatterns = [
     url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
     # 主机自定义属性表格
     url(r"^cc_input_host_property/(?P<biz_cc_id>\d+)/$", cc_input_host_property),
+    # 获取可更改的set属性
+    url(r"^cc_get_set_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_set_attribute),
 ]
