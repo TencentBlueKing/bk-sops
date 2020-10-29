@@ -27,7 +27,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-VERSION = "v1.0"
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -56,7 +56,20 @@ class CCBatchUpdateSetService(Service):
         ]
 
     def outputs_format(self):
-        return []
+        return [
+            self.OutputItem(
+                name=_("更新成功的set"),
+                key="set_update_success",
+                type="object",
+                schema=ObjectItemSchema(description=_("更新成功的set"), property_schemas={}),
+            ),
+            self.OutputItem(
+                name=_("更新失败的set"),
+                key="set_update_failed",
+                type="object",
+                schema=ObjectItemSchema(description=_("更新失败的set"), property_schemas={}),
+            ),
+        ]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -64,11 +77,7 @@ class CCBatchUpdateSetService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         cc_set_update_data = data.get_one_of_inputs("cc_set_update_data")
-        cc_set_template_break_line = (
-            data.get_one_of_inputs("cc_set_template_break_line")
-            if data.get_one_of_inputs("cc_set_template_break_line")
-            else ","
-        )
+        cc_set_template_break_line = data.get_one_of_inputs("cc_set_template_break_line") or ","
 
         attr_list = []
         # 如果用户选择了单行扩展
@@ -142,7 +151,7 @@ class CCBatchUpdateSetComponent(Component):
     name = _("批量更新集群属性")
     code = "cc_batch_update_set"
     bound_service = CCBatchUpdateSetService
-    form = "{static_url}components/atoms/cc/batch_update_set/{ver}.js".format(
+    form = "{static_url}components/atoms/cc/batch_update_set/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION

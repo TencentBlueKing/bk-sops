@@ -368,13 +368,8 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     set_attribute = []
     for set_item in data:
         if set_item["editable"] and set_item["bk_property_id"] != "bk_set_name":
-            set_attribute.append(
-                {
-                    "tag_code": set_item["bk_property_id"],
-                    "type": "input",
-                    "attrs": {"name": set_item["bk_property_name"], "editable": True},
-                }
-            )
+            prop_dict = {"bk_property_id": set_item["bk_property_id"], "bk_property_name": set_item["bk_property_name"]}
+            set_attribute.append(prop_dict)
 
     return JsonResponse({"result": True, "data": set_attribute})
 
