@@ -76,6 +76,13 @@ NODE_ACTIONS = {
     "resume_subproc": pipeline_api.resume_node_appointment,
     "forced_fail": pipeline_api.forced_fail,
 }
+STATE_NODE_SUSPENDED = "NODE_SUSPENDED"
+
+MANUAL_INTERVENTION_EXEMPT_STATES = frozenset([states.CREATED, states.FINISHED, states.REVOKED])
+
+MANUAL_INTERVENTION_REQUIRED_STATES = frozenset([states.FAILED, states.SUSPENDED])
+
+MANUAL_INTERVENTION_COMP_CODES = frozenset(["pause_node"])
 
 
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
@@ -518,6 +525,65 @@ class TaskFlowInstance(models.Model):
 
         return state
 
+    @property
+    def is_manual_intervention_required(self):
+        """判断当前任务是否需要人工干预
+
+        :return: 是否需要人工干预
+        :rtype: boolean
+        """
+        if not self.is_started:
+            return False
+
+        status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
+
+        if not status_tree:
+            return False
+
+        # judge root status
+        if status_tree["state"] in MANUAL_INTERVENTION_EXEMPT_STATES:
+            return False
+
+        # collect children status
+        state_nodes_map = {}
+        state_nodes_map[status_tree["state"]] = {status_tree["id"]}
+
+        def _collect_child_states(children_states):
+            if not children_states:
+                return
+
+            for child in children_states.values():
+                state_nodes_map.setdefault(child["state"], set()).add(child["id"])
+                _collect_child_states(child.get("children"))
+
+        _collect_child_states(status_tree["children"])
+
+        # first check, found obvious manual intervention required states
+        if MANUAL_INTERVENTION_REQUIRED_STATES.intersection(state_nodes_map.keys()):
+            return True
+
+        # without running nodes
+        if states.RUNNING not in state_nodes_map:
+            return False
+
+        # check running nodes
+        manual_intervention_nodes = set()
+
+        def _collect_manual_intervention_nodes(pipeline_tree):
+            for act in pipeline_tree["activities"].values():
+                if act["type"] == "SubProcess":
+                    _collect_manual_intervention_nodes(act["pipeline"])
+                elif act["component"]["code"] in MANUAL_INTERVENTION_COMP_CODES:
+                    manual_intervention_nodes.add(act["id"])
+
+        _collect_manual_intervention_nodes(self.pipeline_instance.execution_data)
+
+        # has running manual intervention nodes
+        if manual_intervention_nodes.intersection(state_nodes_map[states.RUNNING]):
+            return True
+
+        return False
+
     @staticmethod
     def format_pipeline_status(status_tree):
         """
@@ -539,8 +605,8 @@ class TaskFlowInstance(models.Model):
                 status_tree["state"] = states.RUNNING
             elif states.FAILED in child_status:
                 status_tree["state"] = states.FAILED
-            elif states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
-                status_tree["state"] = "NODE_SUSPENDED"
+            elif states.SUSPENDED in child_status or STATE_NODE_SUSPENDED in child_status:
+                status_tree["state"] = STATE_NODE_SUSPENDED
             # 子流程 BLOCKED 状态表示子节点失败
             elif not child_status:
                 status_tree["state"] = states.FAILED
