@@ -21,6 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from mako.template import Template
 
+from blueapps.account.decorators import login_exempt
 from gcloud.core import roles
 from gcloud.conf import settings
 from gcloud.core.footer import FOOTER
@@ -137,5 +138,6 @@ def get_msg_types(request):
 
 
 @require_GET
+@login_exempt
 def healthz(request):
     return JsonResponse({"result": True, "data": None, "message": "OK"})
