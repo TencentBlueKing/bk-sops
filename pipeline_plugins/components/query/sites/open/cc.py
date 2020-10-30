@@ -390,8 +390,8 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
             set_attribute.append(prop_dict)
 
     return JsonResponse({"result": True, "data": set_attribute})
-  
-  
+
+
 def cc_search_status_options(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     kwargs = {
