@@ -208,7 +208,7 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
             if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
                 logger.error(message)
                 raise RawAuthFailedException(permissions=cc_result.get("permission", []))
-            return JsonResponse({"result": cc_result["result"], "code": cc_result["code"], "message": message})
+            return JsonResponse({"result": cc_result["result"], "message": message})
 
         for dynamic_group in cc_result["data"]["info"]:
             if dynamic_group["bk_obj_id"] == "host":
@@ -224,4 +224,4 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
         if page_start >= int(cc_result["data"]["count"]):
             break
 
-    return JsonResponse({"result": True, "code": 0, "data": dynamic_groups})
+    return JsonResponse({"result": True, "data": dynamic_groups})
