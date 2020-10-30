@@ -70,7 +70,8 @@
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="100"></bk-table-column>
                     <bk-table-column :label="$t('创建人')" prop="creator_name" width="120">
                         <template slot-scope="props">
                             <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
@@ -384,7 +385,7 @@
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
-                        pipeline_instance__name__contains: flowName || undefined,
+                        pipeline_instance__name__icontains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,

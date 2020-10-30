@@ -13,7 +13,7 @@
     <bk-sideslider
         :is-show="true"
         :width="800"
-        :quick-close="!variableData"
+        :quick-close="true"
         :before-close="closeTab">
         <div class="setting-header" slot="header">
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
@@ -107,6 +107,7 @@
             </template>
             <variable-edit
                 v-else
+                ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
                 @closeEditingPanel="closeEditingPanel">
@@ -285,7 +286,15 @@
             },
             // 关闭全局变量侧滑
             closeTab () {
-                this.$emit('closeTab')
+                if (!this.variableData) {
+                    this.$emit('closeTab')
+                } else {
+                    if (this.variableData.source_type === 'system') {
+                        this.closeEditingPanel()
+                        return
+                    }
+                    this.$refs.variableEdit.handleMaskClick()
+                }
             }
         }
     }

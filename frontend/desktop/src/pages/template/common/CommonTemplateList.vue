@@ -78,6 +78,7 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
                     <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
                     <bk-table-column width="120" :label="$t('子流程更新')">
                         <template slot-scope="props">
@@ -409,7 +410,7 @@
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         common: '1',
-                        pipeline_template__name__contains: flowName || undefined,
+                        pipeline_template__name__icontains: flowName || undefined,
                         pipeline_template__creator__contains: creator || undefined,
                         category: category || undefined,
                         subprocess_has_update,
