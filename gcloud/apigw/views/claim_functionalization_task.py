@@ -21,7 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.iam_auth.view_interceptors.taskflow import TaskFuncClaimInterceptor
+from gcloud.iam_auth.view_interceptors.apigw.claim_functionalization_task import FunctionalizationTaskInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
@@ -38,7 +38,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@iam_intercept(TaskFuncClaimInterceptor())
+@iam_intercept(FunctionalizationTaskInterceptor())
 def claim_functionalization_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)

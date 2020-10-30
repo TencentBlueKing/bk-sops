@@ -18,22 +18,21 @@ from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
 
-class TaskflowTestCase(TestCase):
-
-    def test_callback(self):
+class CallbackTestCase(TestCase):
+    def test_normal(self):
         instance = TaskFlowInstance()
 
-        objects_callback_return = {'result': True, 'message': 'success'}
+        objects_callback_return = {"result": True, "message": "success"}
 
         with mock.patch(TASKINSTANCE_OBJECTS_CALLBACK, MagicMock(return_value=objects_callback_return)):
             with mock.patch(TASKINSTANCE_HAS_NODE, MagicMock(return_value=False)):
-                result = instance.callback('act_id', 'data')
-                self.assertFalse(result['result'])
-                self.assertTrue('message' in result)
+                result = instance.callback("act_id", "data")
+                self.assertFalse(result["result"])
+                self.assertTrue("message" in result)
                 TaskFlowInstance.objects.callback.assert_not_called()
 
             with mock.patch(TASKINSTANCE_HAS_NODE, MagicMock(return_value=True)):
-                result = instance.callback('act_id', 'data')
-                self.assertTrue(result['result'])
-                self.assertTrue('message' in result)
-                TaskFlowInstance.objects.callback.assert_called_once_with('act_id', 'data')
+                result = instance.callback("act_id", "data")
+                self.assertTrue(result["result"])
+                self.assertTrue("message" in result)
+                TaskFlowInstance.objects.callback.assert_called_once_with("act_id", "data")

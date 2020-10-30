@@ -104,3 +104,8 @@ webpack_cache
 static/dev
 static/images
 frontend/desktop/static
+gcloud/core/templates/core/base_vue.html
+static/bk_sops
+scripts/check_commit_message.py
+scripts/check_migrate/
+scripts/check_sensitive_info.sh

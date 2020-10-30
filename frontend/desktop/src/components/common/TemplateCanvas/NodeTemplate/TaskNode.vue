@@ -90,7 +90,7 @@
                 </el-tooltip>
                 <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
                     <span
-                        class="common-icon-next-triangle-shape"
+                        class="common-icon-play"
                         @click.stop="onResumeClick">
                     </span>
                 </el-tooltip>
