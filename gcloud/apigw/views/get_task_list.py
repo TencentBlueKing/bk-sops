@@ -47,10 +47,10 @@ def get_task_list(request, project_id):
     filter_kwargs = dict(is_deleted=False, project_id=project.id)
     if keyword:
         filter_kwargs["pipeline_instance__name__contains"] = keyword
-    if is_started:
-        filter_kwargs["pipeline_instance__is_started"] = False if is_started == "false" else True
-    if is_finished:
-        filter_kwargs["pipeline_instance__is_finished"] = False if is_finished == "false" else True
+    if is_started is not None:
+        filter_kwargs["pipeline_instance__is_started"] = is_started
+    if is_finished is not None:
+        filter_kwargs["pipeline_instance__is_finished"] = is_finished
 
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 

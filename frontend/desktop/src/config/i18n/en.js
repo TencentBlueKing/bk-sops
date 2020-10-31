@@ -1018,6 +1018,8 @@ const en = {
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
     '复制/粘贴': 'Copy/Paste',
+    '确定保存修改的内容？': 'Sure to save the changes?',
+    '当前流程模板在浏览器多个标签页打开': 'Current template opens in multiple browser tabs',
     '项目配置': 'Configure',
     '成员设置': 'Membership Settings',
     '执行代理人设置': 'Executive Agent Settings',
