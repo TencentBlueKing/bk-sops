@@ -746,8 +746,8 @@ msgid "蓝鲸官网"
 msgstr "蓝鲸官网"
 
 #: gcloud/core/footer/sites/open/footer.py:31
-msgid "蓝鲸智云 版权所有"
-msgstr "蓝鲸智云 版权所有"
+msgid "蓝鲸智云桌面"
+msgstr "蓝鲸智云桌面"
 
 #: gcloud/external_plugins/models/base.py:79
 msgid "包源类型"
