@@ -33,6 +33,7 @@ class CCUpdateWorldStatusComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         return [
             SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE,
+            SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE_WITH_ATTR,
             SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE,
             SEARCH_SET_FAIL_CASE,
         ]
@@ -102,6 +103,12 @@ UPDATE_SET_FAIL_RESULT = {
 }
 
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_INPUT = {"set_list": "test1,2,3", "set_select_method": "name", "set_status": "1"}
+SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_INPUT_WITH_ATTR = {
+    "set_list": "test1",
+    "set_select_method": "custom",
+    "set_status": "1",
+    "set_attr_id": "bk_set_name",
+}
 
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT = MockClient(
     search_set_return=SEARCH_SET_SUCCESS_RESULT, update_set_return=UPDATE_SET_SUCCESS_RESULT,
@@ -110,6 +117,26 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT = MockClient(
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE = ComponentTestCase(
     name="success case: all success",
     inputs=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_INPUT,
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    schedule_assertion=[
+        CallAssertion(
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.cc.search_set, calls=[Call(CC_SEARCH_SET_KWARGS)]
+        ),
+        CallAssertion(
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.cc.update_set, calls=[Call(CC_UPDATE_SET_KWARGS)]
+        ),
+    ],
+    execute_call_assertion=[],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT),
+    ],
+)
+
+SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE_WITH_ATTR = ComponentTestCase(
+    name="success case: all success",
+    inputs=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_INPUT_WITH_ATTR,
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[
