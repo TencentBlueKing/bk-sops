@@ -509,6 +509,12 @@ class TaskFlowInstance(models.Model):
             return CommonTemplate.objects.get(pk=self.template_id)
 
     @property
+    def executor_proxy(self):
+        if self.template_source not in NON_COMMON_TEMPLATE_TYPES:
+            return None
+        return TaskTemplate.objects.filter(id=self.template_id).values_list("executor_proxy", flat=True).first()
+
+    @property
     def url(self):
         return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, self.project.id, self.id)
 

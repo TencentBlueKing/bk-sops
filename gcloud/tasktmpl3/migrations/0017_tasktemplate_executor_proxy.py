@@ -11,20 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
+from __future__ import unicode_literals
 
-from gcloud.tasktmpl3 import models
+from django.db import migrations, models
 
 
-@admin.register(models.TaskTemplate)
-class TaskTemplateAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "project", "category", "pipeline_template", "is_deleted", "executor_proxy"]
-    list_filter = ["project", "category", "is_deleted"]
-    search_fields = ["id", "pipeline_template__name"]
-    raw_id_fields = ["pipeline_template"]
-    actions = ["fake_delete"]
+class Migration(migrations.Migration):
 
-    def fake_delete(self, request, queryset):
-        queryset.update(is_deleted=True)
+    dependencies = [
+        ("tasktmpl3", "0016_auto_20200325_1458"),
+    ]
 
-    fake_delete.short_description = "Fake delete"
+    operations = [
+        migrations.AddField(
+            model_name="tasktemplate",
+            name="executor_proxy",
+            field=models.CharField(blank=True, default="", max_length=255, verbose_name="任务执行人代理"),
+        ),
+    ]
