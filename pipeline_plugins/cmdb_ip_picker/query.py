@@ -224,4 +224,4 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
         if page_start >= int(cc_result["data"]["count"]):
             break
 
-    return JsonResponse({"result": True, "data": dynamic_groups})
+    return JsonResponse({"result": True, "data": {"count": len(dynamic_groups), "info": dynamic_groups}})
