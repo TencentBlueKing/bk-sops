@@ -97,6 +97,7 @@ def mysetting(request):
         "DEFAULT_PROJECT_ID": default_project.id if default_project else "",
         "FILE_UPLOAD_ENTRY": os.getenv("BKAPP_FILE_UPLOAD_ENTRY", ""),
         "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
+        "BK_DOC_URL": settings.BK_DOC_URL,
     }
 
     return ctx
