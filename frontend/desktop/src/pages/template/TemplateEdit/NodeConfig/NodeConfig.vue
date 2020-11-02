@@ -637,14 +637,7 @@
                     version: list[list.length - 1].version,
                     name: `${group_name}-${name}`,
                     nodeName: name,
-                    stageName: '',
-                    nodeLabel: [],
-                    desc: desc,
-                    ignorable: false,
-                    skippable: true,
-                    retryable: true,
-                    selectable: false,
-                    selectableDisable: false
+                    desc: desc
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
@@ -674,11 +667,7 @@
                     name,
                     version,
                     tpl: id,
-                    nodeName: name,
-                    stageName: '',
-                    nodeLabel: [],
-                    selectable: false,
-                    selectableDisable: false
+                    nodeName: name
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)
