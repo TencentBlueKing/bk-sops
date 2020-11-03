@@ -104,13 +104,12 @@
                 <i class="bk-icon icon-download"></i>
             </div>
         </div>
-        <div class="small-map" v-if="showSmallMap">
+        <div class="small-map" ref="smallMap" v-if="showSmallMap">
             <img :src="smallMapImg" alt="">
             <div
                 ref="selectBox"
                 class="select-box"
-                @mousedown.prevent="onMouseDownSelect"
-                @mouseup.prevent="onMouseUpSelect">
+                @mousedown.prevent="onMouseDownSelect">
             </div>
         </div>
     </div>
@@ -476,13 +475,8 @@
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
                 const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
-                // 先去除选中样式
-                document.querySelectorAll('.branch-condition.editing').forEach(dom => {
-                    dom.classList.remove('editing')
-                })
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
-                    $branchEl.classList.add('editing')
                     this.$emit('onConditionClick', {
                         id: lineId,
                         nodeId,
@@ -1285,19 +1279,20 @@
                 this.isMouseEnterX = e.offsetX
                 this.isMouseEnterY = e.offsetY
                 this.$refs.selectBox.addEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.addEventListener('mouseup', this.onMouseUpListener, false)
             },
-            onMouseUpSelect () {
+            onMouseUpListener () {
                 this.$refs.selectBox.removeEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.removeEventListener('mouseup', this.onMouseUpListener, false)
             },
             selectBoxMoveHandler (e) {
-                const cavasMargin = 80 // 80 画布margin值
-                const headerWidth = 60 // 60 header的宽度
-                const tabWidth = 50 // 50 tab栏的宽度
-                const moreOffsetTop = 30 // 画布多向上偏移10px  露出点空白
+                const moreOffsetTop = 30 // 画布多向上偏移30px  露出点空白
                 const moreOffsetLeft = 30 // 画布多向左偏移30px  露出点空白
                 const selectBox = document.querySelector('.select-box')
-                const targetX = e.clientX - this.isMouseEnterX - cavasMargin
-                const targetY = e.clientY - this.isMouseEnterY - cavasMargin - headerWidth - tabWidth
+                const smallMapDistanceTop = this.$refs.smallMap.getBoundingClientRect().top // 小地图到顶部的距离
+                const samllmapDistanceLeft = this.$refs.smallMap.getBoundingClientRect().left // 小地图到左侧的距离
+                const targetX = e.clientX - this.isMouseEnterX - samllmapDistanceLeft
+                const targetY = e.clientY - this.isMouseEnterY - smallMapDistanceTop
                 // // 计算选择框宽高
                 const selectWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
                 const selectHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight
@@ -1391,7 +1386,7 @@
             .branch-condition {
                 padding: 4px 6px;
                 min-width: 60px;
-                max-width: 86px;
+                max-width: 112px;
                 min-height: 20px;
                 font-size: 12px;
                 text-align: center;
@@ -1408,14 +1403,6 @@
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
-                &.editing {
-                    background: #b1ac84;
-                    color: #ffffff;
-                }
-                &.failed {
-                    color: #ffffff;
-                    background: #ea3636;
-                }
             }
         }
         &.editable {

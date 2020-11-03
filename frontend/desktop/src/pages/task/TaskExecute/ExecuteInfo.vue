@@ -24,7 +24,7 @@
                 'admin-view': adminView
             }]"
             v-bkloading="{ isLoading: loading, opacity: 1 }">
-            <div class="excute-time" v-if="!adminView && onNodeState">
+            <div class="excute-time" v-if="!adminView && isReadyStatus">
                 <span>{{$t('第')}}</span>
                 <bk-select
                     :clearable="false"
@@ -48,198 +48,212 @@
                     </div>
                 </div>
             </div>
-            <section class="info-section">
-                <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                <table class="operation-table" v-if="executeCols && onNodeState">
-                    <tr v-for="col in executeCols" :key="col.id">
-                        <th>{{ col.title }}</th>
-                        <td>
-                            <template v-if="typeof executeInfo[col.id] === 'boolean'">
-                                {{executeInfo[col.id] ? $t('是') : $t('否')}}
-                            </template>
-                            <template v-else-if="col.id === 'elapsed_time'">
-                                {{getLastTime(executeInfo.elapsed_time)}}
-                            </template>
-                            <template v-else-if="col.id === 'callback_data'">
-                                <div class="code-block-wrap">
-                                    <VueJsonPretty :data="executeInfo.callback_data"></VueJsonPretty>
-                                </div>
-                            </template>
-                            <template v-else>
-                                {{ executeInfo[col.id] }}
-                            </template>
-                        </td>
-                    </tr>
-                </table>
-                <NoData v-else></NoData>
-            </section>
-            <section class="info-section">
-                <div class="common-section-title input-parameter">
-                    <div class="input-title">{{ $t('输入参数') }}</div>
-                    <div class="origin-value" v-if="!adminView">
-                        <bk-switcher @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-                        {{ $t('原始值') }}
+            <div class="scroll-area">
+                <section class="info-section">
+                    <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
+                    <table class="operation-table" v-if="executeCols && isReadyStatus">
+                        <tr v-for="col in executeCols" :key="col.id">
+                            <th>{{ col.title }}</th>
+                            <td>
+                                <template v-if="typeof executeInfo[col.id] === 'boolean'">
+                                    {{executeInfo[col.id] ? $t('是') : $t('否')}}
+                                </template>
+                                <template v-else-if="col.id === 'elapsed_time'">
+                                    {{getLastTime(executeInfo.elapsed_time)}}
+                                </template>
+                                <template v-else-if="col.id === 'callback_data'">
+                                    <div class="code-block-wrap">
+                                        <VueJsonPretty :data="executeInfo.callback_data"></VueJsonPretty>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    {{ executeInfo[col.id] }}
+                                </template>
+                            </td>
+                        </tr>
+                    </table>
+                    <NoData v-else></NoData>
+                </section>
+                <section class="info-section">
+                    <div class="common-section-title input-parameter">
+                        <div class="input-title">{{ $t('输入参数') }}</div>
+                        <div class="origin-value" v-if="!adminView">
+                            <bk-switcher @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
+                            {{ $t('原始值') }}
+                        </div>
                     </div>
-                </div>
-                <div v-if="!adminView">
-                    <div v-if="!isShowInputOrigin">
-                        <RenderForm
-                            v-if="!isEmptyParams && !loading"
-                            :scheme="renderConfig"
-                            :form-option="renderOption"
-                            v-model="renderData">
-                        </RenderForm>
+                    <div v-if="!adminView">
+                        <div v-if="!isShowInputOrigin">
+                            <RenderForm
+                                v-if="!isEmptyParams && !loading"
+                                :scheme="renderConfig"
+                                :form-option="renderOption"
+                                v-model="renderData">
+                            </RenderForm>
+                            <NoData v-else></NoData>
+                        </div>
+                        <code-editor
+                            v-else
+                            :value="inputsInfo"
+                            :options="{ readOnly: readOnly, language: 'json' }">
+                        </code-editor>
+                    </div>
+                    <div class="code-block-wrap" v-else>
+                        <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
+                    </div>
+                </section>
+                
+                <section class="info-section">
+                    <div class="common-section-title output-parameter">
+                        <div class="output-title">{{ $t('输出参数') }}</div>
+                        <div class="origin-value" v-if="!adminView">
+                            <bk-switcher @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
+                            {{ $t('原始值') }}
+                        </div>
+                    </div>
+                    <div v-if="!adminView">
+                        <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
+                            <thead>
+                                <tr>
+                                    <th class="output-name">{{ $t('参数名') }}</th>
+                                    <th class="output-value">{{ $t('参数值') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="output in outputsInfo" :key="output.name">
+                                    <td class="output-name">{{getOutputName(output)}}</td>
+                                    <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
+                                    <td v-else class="output-value">{{ getOutputValue(output) }}</td>
+                                </tr>
+                                <tr v-if="Object.keys(outputsInfo).length === 0">
+                                    <td colspan="2"><no-data></no-data></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <code-editor
+                            v-else
+                            :value="outputsInfo"
+                            :options="{ readOnly: readOnly, language: 'json' }">
+                        </code-editor>
+                    </div>
+                    
+                    <div class="code-block-wrap" v-else>
+                        <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
                         <NoData v-else></NoData>
                     </div>
-                    <code-editor
-                        v-else
-                        :value="inputsInfo"
-                        :options="{ readOnly: readOnly, language: 'json' }">
-                    </code-editor>
-                </div>
-                <div class="code-block-wrap" v-else>
-                    <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
-                </div>
-            </section>
-            
-            <section class="info-section">
-                <div class="common-section-title output-parameter">
-                    <div class="output-title">{{ $t('输出参数') }}</div>
-                    <div class="origin-value" v-if="!adminView">
-                        <bk-switcher @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-                        {{ $t('原始值') }}
+                </section>
+                <section class="info-section" v-if="executeInfo.ex_data">
+                    <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
+                    <div v-html="failInfo"></div>
+                    <IpLogContent
+                        v-if="executeInfo.ex_data.show_ip_log"
+                        :project-id="renderData.biz_cc_id"
+                        :node-info="executeInfo">
+                    </IpLogContent>
+                </section>
+                <section class="info-section">
+                    <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
+                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
+                        <code-editor
+                            v-if="logInfo"
+                            :value="logInfo"
+                            :options="{ readOnly: readOnly, language: 'javascript' }">
+                        </code-editor>
+                        <NoData v-else></NoData>
                     </div>
-                </div>
-                <div v-if="!adminView">
-                    <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
-                        <thead>
-                            <tr>
-                                <th class="output-name">{{ $t('参数名') }}</th>
-                                <th class="output-value">{{ $t('参数值') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="output in outputsInfo" :key="output.name">
-                                <td class="output-name">{{getOutputName(output)}}</td>
-                                <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
-                                <td v-else class="output-value">{{ getOutputValue(output) }}</td>
-                            </tr>
-                            <tr v-if="Object.keys(outputsInfo).length === 0">
-                                <td colspan="2"><no-data></no-data></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <code-editor
-                        v-else
-                        :value="outputsInfo"
-                        :options="{ readOnly: readOnly, language: 'json' }">
-                    </code-editor>
-                </div>
-                
-                <div class="code-block-wrap" v-else>
-                    <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
-                    <NoData v-else></NoData>
-                </div>
-            </section>
-            <section class="info-section" v-if="executeInfo.ex_data">
-                <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
-                <div v-html="failInfo"></div>
-                <IpLogContent
-                    v-if="executeInfo.ex_data.show_ip_log"
-                    :project-id="renderData.biz_cc_id"
-                    :node-info="executeInfo">
-                </IpLogContent>
-            </section>
-            <section class="info-section">
-                <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
-                    <code-editor
-                        v-if="logInfo"
-                        :value="logInfo"
-                        :options="{ readOnly: readOnly, language: 'javascript' }">
-                    </code-editor>
-                    <NoData v-else></NoData>
-                </div>
-            </section>
-            <section class="info-section" v-if="historyInfo && historyInfo.length">
-                <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
-                <bk-table
-                    class="retry-table"
-                    :data="historyInfo"
-                    @expand-change="onHistoyExpand">
-                    <bk-table-column type="expand" :width="60">
-                        <template slot-scope="props">
-                            <div class="common-form-item">
-                                <label>{{ $t('输入参数') }}</label>
-                                <div class="common-form-content">
-                                    <div class="code-block-wrap">
-                                        <VueJsonPretty :data="props.row.inputs"></VueJsonPretty>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="common-form-item">
-                                <label>{{ $t('输出参数') }}</label>
-                                <div class="common-form-content">
-                                    <div class="code-block-wrap">
-                                        <VueJsonPretty :data="props.row.outputs"></VueJsonPretty>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="common-form-item" v-if="props.row.ex_data">
-                                <label>{{ $t('异常信息') }}</label>
-                                <div class="common-form-content">
-                                    <div v-html="props.row.ex_data"></div>
-                                </div>
-                            </div>
-                            <div class="common-form-item">
-                                <label>{{ $t('日志') }}</label>
-                                <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
-                                    <div class="common-form-content" v-if="historyLog[props.row.history_id]">
-                                        <div class="code-block-wrap" v-if="adminView">
-                                            <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
+                </section>
+                <section class="info-section" v-if="historyInfo && historyInfo.length">
+                    <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
+                    <bk-table
+                        class="retry-table"
+                        :data="historyInfo"
+                        @expand-change="onHistoyExpand">
+                        <bk-table-column type="expand" :width="60">
+                            <template slot-scope="props">
+                                <div class="common-form-item">
+                                    <label>{{ $t('输入参数') }}</label>
+                                    <div class="common-form-content">
+                                        <div class="code-block-wrap">
+                                            <VueJsonPretty :data="props.row.inputs"></VueJsonPretty>
                                         </div>
-                                        <code-editor
-                                            v-else
-                                            :value="historyLog[props.row.history_id]"
-                                            :options="{ readOnly: readOnly, language: 'javascript' }">
-                                        </code-editor>
                                     </div>
-                                    <NoData v-else></NoData>
                                 </div>
-                               
-                            </div>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('序号')" :width="70">
-                        <template slot-scope="props">
-                            {{props.$index + 1}}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行次数')" :width="100" prop="loop"></bk-table-column>
-                    <bk-table-column
-                        v-for="col in historyCols"
-                        :key="col.id"
-                        :label="col.title"
-                        :prop="col.id">
-                    </bk-table-column>
-                </bk-table>
-            </section>
-            <div v-if="executeInfo.state && !['FINISHED', 'CREATED', 'READY'].includes(executeInfo.state)" class="action-wrapper">
+                                <div class="common-form-item">
+                                    <label>{{ $t('输出参数') }}</label>
+                                    <div class="common-form-content">
+                                        <div class="code-block-wrap">
+                                            <VueJsonPretty :data="props.row.outputs"></VueJsonPretty>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="common-form-item" v-if="props.row.ex_data">
+                                    <label>{{ $t('异常信息') }}</label>
+                                    <div class="common-form-content">
+                                        <div v-html="props.row.ex_data"></div>
+                                    </div>
+                                </div>
+                                <div class="common-form-item">
+                                    <label>{{ $t('日志') }}</label>
+                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                        <div class="common-form-content" v-if="historyLog[props.row.history_id]">
+                                            <div class="code-block-wrap" v-if="adminView">
+                                                <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
+                                            </div>
+                                            <code-editor
+                                                v-else
+                                                :value="historyLog[props.row.history_id]"
+                                                :options="{ readOnly: readOnly, language: 'javascript' }">
+                                            </code-editor>
+                                        </div>
+                                        <NoData v-else></NoData>
+                                    </div>
+                                
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('序号')" :width="70">
+                            <template slot-scope="props">
+                                {{props.$index + 1}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('执行次数')" :width="100" prop="loop"></bk-table-column>
+                        <bk-table-column
+                            v-for="col in historyCols"
+                            :key="col.id"
+                            :label="col.title"
+                            :prop="col.id">
+                        </bk-table-column>
+                    </bk-table>
+                </section>
+            </div>
+            <div v-if="executeInfo.state === 'RUNNING'" class="action-wrapper">
                 <bk-button
-                    v-if="executeInfo.state === 'FAILED'"
+                    v-if="nodeDetailConfig.component_code === 'pause_node'"
                     theme="primary"
+                    @click="onResumeClick">
+                    {{ $t('继续执行') }}
+                </bk-button>
+                <bk-button
+                    v-if="nodeDetailConfig.component_code === 'sleep_timer'"
+                    theme="primary"
+                    @click="onModifyTimeClick">
+                    {{ $t('修改时间') }}
+                </bk-button>
+                <bk-button
+                    @click="mandatoryFailure">
+                    {{ $t('强制失败') }}
+                </bk-button>
+            </div>
+            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && nodeInfo && nodeInfo.type === 'ServiceActivity'">
+                <bk-button
+                    theme="primary"
+                    v-if="isShowRetryBtn"
                     @click="onRetryClick">
                     {{ $t('重试') }}
                 </bk-button>
                 <bk-button
-                    v-if="['SUSPENDED', 'RUNNING'].includes(executeInfo.state)"
-                    theme="primary"
-                    @click="onResumeClick">
-                    {{ $t('启动') }}
-                </bk-button>
-                <bk-button
-                    v-if="['SUSPENDED', 'RUNNING', 'FAILED'].includes(executeInfo.state)"
                     theme="default"
+                    v-if="isShowSkipBtn"
                     @click="onSkipClick">
                     {{ $t('跳过') }}
                 </bk-button>
@@ -440,15 +454,15 @@
                     return []
                 }
             },
-            treeNodeConfig: {
+            defaultActiveId: {
+                type: String,
+                default: ''
+            },
+            pipelineData: {
                 type: Object,
                 default () {
                     return {}
                 }
-            },
-            defaultActiveId: {
-                type: String,
-                default: ''
             }
         },
         data () {
@@ -477,7 +491,9 @@
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
-                onNodeState: true
+                isReadyStatus: true,
+                isShowSkipBtn: false,
+                isShowRetryBtn: false
             }
         },
         computed: {
@@ -530,6 +546,9 @@
             },
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
+            },
+            nodeInfo () {
+                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
         },
         watch: {
@@ -560,9 +579,22 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
+                    this.isShowInputOrigin = false
+                    this.isShowOutputOrigin = false
                     const respData = await this.getTaskNodeDetail()
-                    const { execution_info, outputs, inputs, log, history, state } = respData
-                    this.onNodeState = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
+                    if (!respData) {
+                        this.isReadyStatus = false
+                        this.executeInfo = {}
+                        this.outputsInfo = []
+                        this.inputsInfo = {}
+                        this.logInfo = ''
+                        if (!this.nodeInfo) return
+                        this.executeInfo.name = this.nodeInfo.name
+                        return
+                    }
+                    const { execution_info, outputs, inputs, log, history } = respData
+                    const state = this.adminView ? execution_info.state : respData.state
+                    this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code
                     // 任务节点需要加载标准插件
@@ -629,6 +661,12 @@
                     } else {
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
+                    // 获取执行失败节点是否允许跳过，重试状态
+                    const data = this.nodeInfo
+                    if (data && data.type === 'ServiceActivity' && this.executeInfo.state === 'FAILED') {
+                        this.isShowSkipBtn = data.skippable
+                        this.isShowRetryBtn = data.retryable
+                    }
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -653,8 +691,6 @@
                     const res = await getData(query)
                     if (res.result) {
                         return res.data
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
@@ -786,6 +822,12 @@
             },
             onResumeClick () {
                 this.$emit('onTaskNodeResumeClick', this.nodeDetailConfig.node_id)
+            },
+            onModifyTimeClick () {
+                this.$emit('onModifyTimeClick', this.nodeDetailConfig.node_id)
+            },
+            mandatoryFailure () {
+                this.$emit('onForceFail', this.nodeDetailConfig.node_id)
             }
         }
     }
@@ -802,12 +844,11 @@
 }
 .execute-info {
     flex: 1;
-    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
     padding-bottom: 0;
     height: 100%;
     color: #313238;
-    overflow-y: auto;
-    @include scrollbar;
     &.loading {
         overflow: hidden;
     }
@@ -824,7 +865,7 @@
         font-size: 12px;
     }
     .excute-time {
-        margin-bottom: 40px;
+        padding: 20px 20px 0;
         display: flex;
         justify-content: flex-start;
         align-items: center;
@@ -841,8 +882,14 @@
         display: flex;
         align-items: center;
         font-size: 14px;
-        padding-bottom: 7px;
+        padding: 20px 20px 7px;
         border-bottom: 1px solid #cacedb;
+    }
+    .scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 20px;
+        @include scrollbar;
     }
     .panel-title {
         margin: 0;
@@ -965,9 +1012,13 @@
         height: 300px;
     }
     .action-wrapper {
+        padding-left: 20px;
         height: 60px;
         line-height: 60px;
         border-top: 1px solid $commonBorderColor;
+        .bk-button {
+            margin-right: 5px;
+        }
     }
 }
 </style>

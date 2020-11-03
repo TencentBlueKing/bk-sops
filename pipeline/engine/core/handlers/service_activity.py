@@ -34,6 +34,7 @@ class ServiceActivityHandler(FlowElementHandler):
         return ServiceActivity
 
     def handle(self, process, element, status):
+        pre_execute_success = False
         success = False
         exception_occurred = False
         monitoring = False
@@ -73,12 +74,15 @@ class ServiceActivityHandler(FlowElementHandler):
             id=element.id, root_pipeline_id=root_pipeline.id,
         )
 
-        # execute service
+        # pre_process inputs and execute service
         try:
-            success = element.execute(root_pipeline.data)
+            pre_execute_success = element.execute_pre_process(root_pipeline.data)
+            if pre_execute_success:
+                success = element.execute(root_pipeline.data)
         except Exception:
             if element.error_ignorable:
                 # ignore exception
+                pre_execute_success = True
                 success = True
                 exception_occurred = True
                 element.ignore_error()
@@ -87,7 +91,7 @@ class ServiceActivityHandler(FlowElementHandler):
             logger.error(ex_data)
 
         # process result
-        if success is False:
+        if pre_execute_success is False or success is False:
             ex_data = element.data.get_one_of_outputs("ex_data")
             Status.objects.fail(element, ex_data)
             try:

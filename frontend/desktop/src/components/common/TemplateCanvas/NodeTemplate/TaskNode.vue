@@ -22,6 +22,7 @@
         <div class="node-status-block">
             <img v-if="node.icon" class="node-icon" :src="node.icon" />
             <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
+            <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
         </div>
         <!-- 节点名称 -->
         <div class="node-name">
@@ -44,11 +45,7 @@
         </div>
         <!-- 节点执行顶部右侧 icon， 定时、暂停、执行中-->
         <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon">
-            <i v-if="node.status === 'RUNNING' && node.code === 'sleep_timer'" class="common-icon-clock"></i>
-            <template v-else>
-                <i v-if="node.status === 'SUSPENDED' || node.code === 'pause_node'" class="common-icon-double-vertical-line"></i>
-                <i v-else-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
-            </template>
+            <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
         </div>
         <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
             <i
@@ -93,17 +90,17 @@
                 </el-tooltip>
                 <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
                     <span
-                        class="common-icon-resume"
+                        class="common-icon-play"
                         @click.stop="onResumeClick">
                     </span>
                 </el-tooltip>
+                <el-tooltip placement="bottom" :content="$t('强制失败')">
+                    <span
+                        class="common-icon-mandatory-failure"
+                        @click.stop="mandatoryFailure">
+                    </span>
+                </el-tooltip>
             </template>
-            <el-tooltip v-if="['RUNNING', 'SUSPENDED'].includes(node.status)" placement="bottom" :content="$t('强制失败')">
-                <span
-                    class="common-icon-mandatory-failure"
-                    @click.stop="mandatoryFailure">
-                </span>
-            </el-tooltip>
         </div>
     </div>
 </template>

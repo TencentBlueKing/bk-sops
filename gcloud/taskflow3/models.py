@@ -19,6 +19,7 @@ import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.utils.handlers import handle_plain_log
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
@@ -52,7 +53,6 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.signals import taskflow_started
-from gcloud.taskflow3 import exceptions as taskflow_exceptions
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
@@ -76,6 +76,13 @@ NODE_ACTIONS = {
     "resume_subproc": pipeline_api.resume_node_appointment,
     "forced_fail": pipeline_api.forced_fail,
 }
+STATE_NODE_SUSPENDED = "NODE_SUSPENDED"
+
+MANUAL_INTERVENTION_EXEMPT_STATES = frozenset([states.CREATED, states.FINISHED, states.REVOKED])
+
+MANUAL_INTERVENTION_REQUIRED_STATES = frozenset([states.FAILED, states.SUSPENDED])
+
+MANUAL_INTERVENTION_COMP_CODES = frozenset(["pause_node"])
 
 
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
@@ -351,19 +358,6 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
 
-        # 检测是否移除了勾选了输出变量的节点
-        nodes_have_ouputs = set()
-        for constant_data in pipeline_tree.get("constants", {}).values():
-            if constant_data["source_type"] == "component_outputs":
-                for output_node in constant_data["source_info"]:
-                    nodes_have_ouputs.add(output_node)
-
-        can_not_rm_nodes = nodes_have_ouputs.intersection(set(exclude_task_nodes_id))
-        if can_not_rm_nodes:
-            raise taskflow_exceptions.InvalidOperationException(
-                "can not remove nodes({}) that make outputs".format(can_not_rm_nodes)
-            )
-
         locations = {item["id"]: item for item in pipeline_tree.get("location", [])}
         lines = {item["id"]: item for item in pipeline_tree.get("line", [])}
 
@@ -531,6 +525,65 @@ class TaskFlowInstance(models.Model):
 
         return state
 
+    @property
+    def is_manual_intervention_required(self):
+        """判断当前任务是否需要人工干预
+
+        :return: 是否需要人工干预
+        :rtype: boolean
+        """
+        if not self.is_started:
+            return False
+
+        status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
+
+        if not status_tree:
+            return False
+
+        # judge root status
+        if status_tree["state"] in MANUAL_INTERVENTION_EXEMPT_STATES:
+            return False
+
+        # collect children status
+        state_nodes_map = {}
+        state_nodes_map[status_tree["state"]] = {status_tree["id"]}
+
+        def _collect_child_states(children_states):
+            if not children_states:
+                return
+
+            for child in children_states.values():
+                state_nodes_map.setdefault(child["state"], set()).add(child["id"])
+                _collect_child_states(child.get("children"))
+
+        _collect_child_states(status_tree["children"])
+
+        # first check, found obvious manual intervention required states
+        if MANUAL_INTERVENTION_REQUIRED_STATES.intersection(state_nodes_map.keys()):
+            return True
+
+        # without running nodes
+        if states.RUNNING not in state_nodes_map:
+            return False
+
+        # check running nodes
+        manual_intervention_nodes = set()
+
+        def _collect_manual_intervention_nodes(pipeline_tree):
+            for act in pipeline_tree["activities"].values():
+                if act["type"] == "SubProcess":
+                    _collect_manual_intervention_nodes(act["pipeline"])
+                elif act["component"]["code"] in MANUAL_INTERVENTION_COMP_CODES:
+                    manual_intervention_nodes.add(act["id"])
+
+        _collect_manual_intervention_nodes(self.pipeline_instance.execution_data)
+
+        # has running manual intervention nodes
+        if manual_intervention_nodes.intersection(state_nodes_map[states.RUNNING]):
+            return True
+
+        return False
+
     @staticmethod
     def format_pipeline_status(status_tree):
         """
@@ -552,8 +605,8 @@ class TaskFlowInstance(models.Model):
                 status_tree["state"] = states.RUNNING
             elif states.FAILED in child_status:
                 status_tree["state"] = states.FAILED
-            elif states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
-                status_tree["state"] = "NODE_SUSPENDED"
+            elif states.SUSPENDED in child_status or STATE_NODE_SUSPENDED in child_status:
+                status_tree["state"] = STATE_NODE_SUSPENDED
             # 子流程 BLOCKED 状态表示子节点失败
             elif not child_status:
                 status_tree["state"] = states.FAILED
@@ -923,7 +976,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "data": None, "message": message}
 
-        plain_log = LogEntry.objects.plain_log_for_node(node_id, history_id)
+        plain_log = handle_plain_log(LogEntry.objects.plain_log_for_node(node_id, history_id))
         return {
             "result": True if plain_log else False,
             "data": plain_log,

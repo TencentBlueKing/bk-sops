@@ -13,6 +13,7 @@ import i18n from '@/config/i18n/index.js'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import isEqual from 'lodash/isEqual'
 import escape from 'lodash/escape'
+import assign from 'lodash/assign'
 import { checkDataType } from './checkDataType.js'
 import moment from 'moment'
 
@@ -83,6 +84,14 @@ const tools = {
      */
     escapeStr (str = '') {
         return escape(str)
+    },
+    /**
+     * 将源对象的属性分配到目标对象
+     * @param {Object} target 目标对象
+     * @param {Object} source 源对象
+     */
+    assign (target = {}, source = {}) {
+        return assign(target, source)
     },
     /**
      * 判断传入值是否为空

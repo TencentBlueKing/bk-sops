@@ -69,13 +69,15 @@
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
-                    :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
+                    :pipeline-data="pipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onModifyTimeClick="onModifyTimeClick"
+                    @onForceFail="onForceFail"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -116,7 +118,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions, mapState, mapGetters } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -358,9 +360,6 @@
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeForceFail'
-            ]),
-            ...mapGetters('template/', [
-                'getLocalTemplateData'
             ]),
             async loadTaskStatus () {
                 try {
@@ -646,6 +645,8 @@
                             message: i18n.t('强制失败执行成功'),
                             theme: 'success'
                         })
+                        this.isNodeInfoPanelShow = false
+                        this.nodeInfoType = ''
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -884,7 +885,7 @@
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
-            onTaskParamsClick (type, isNodeInfoPanelShow, name) {
+            onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
                     let nodeData = tools.deepClone(this.nodeData)
                     let firstNodeId = null
@@ -914,10 +915,7 @@
                     }
                 }
                 if (type === 'templateData') {
-                    this.transPipelineTreeStr()
-                }
-                if (type === 'templateData') {
-                    this.transPipelineTreeStr()
+                    this.templateData = JSON.stringify(this.pipelineData, null, 4)
                 }
                 this.onSidesliderConfig(type, name)
             },
@@ -986,7 +984,7 @@
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
                     this.setNodeDetailConfig(id)
-                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                    this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
                 } else {
                     // 分支网关节点失败时展开侧滑面板
@@ -1002,7 +1000,7 @@
                             instance_id: this.instance_id,
                             subprocess_stack: JSON.stringify(subprocessStack)
                         }
-                        this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                        this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     }
                 }
             },
@@ -1209,10 +1207,6 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
-            },
-            async transPipelineTreeStr () {
-                const templateData = await this.getLocalTemplateData()
-                this.templateData = JSON.stringify(templateData, null, 4)
             },
             onshutDown () {
                 this.isNodeInfoPanelShow = false

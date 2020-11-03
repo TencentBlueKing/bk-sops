@@ -176,7 +176,7 @@
 <style lang="scss">
     @import '@/scss/mixins/multiLineEllipsis.scss';
 
-    $blueDark: #52699D;
+    $blueDark: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;
@@ -199,6 +199,14 @@
     }
 
     @mixin taskNodeStyle ($color) {
+        &:hover {
+            .node-name {
+                border-color: $color;
+            }
+            .state-icon {
+                display: block;
+            }
+        }
         .node-status-block {
             background-color: $color;
         }
@@ -206,31 +214,10 @@
             background: $color;
         }
     }
-    @mixin taskNodeNameStyle ($color) {
-        .node-name {
-            border: 1px solid $color;
-            border-left: 0;
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-        }
-        .state-icon {
-            display: block;
-        }
-    }
-
     @mixin nodeClick ($color) {
         .node-name {
-            border: 1px solid $color;
-            border-left: 0;
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-            background-color: rgba($color: $color, $alpha: 0.3);
-            .name-text {
-                color: #fff;
-            }
-        }
-        .state-icon {
-            display: block;
+            border-color: $color;
+            background-color: rgba($color, 0.3);
         }
     }
 
@@ -347,6 +334,11 @@
             border-radius: 4px;
             box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
             cursor: pointer;
+            &:hover {
+                .node-name {
+                    border-color: $blueDark;
+                }
+            }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
@@ -355,17 +347,11 @@
                 &.actived {
                      @include nodeClick ($blueDark);
                 }
-                &:hover {
-                    @include taskNodeNameStyle ($blueDark);
-                }
             }
             &.failed {
                 @include taskNodeStyle ($redDark);
                 &.actived {
                     @include nodeClick ($redDark);
-                }
-                &:hover {
-                    @include taskNodeNameStyle ($redDark);
                 }
             }
             &.suspended {
@@ -373,17 +359,11 @@
                 &.actived {
                     @include nodeClick ($yellowDark);
                 }
-                &:hover {
-                    @include taskNodeNameStyle ($yellowDark);
-                }
             }
             &.running {
                 @include taskNodeStyle ($yellowDark);
                 &.actived {
                     @include nodeClick ($yellowDark);
-                }
-                &:hover {
-                    @include taskNodeNameStyle ($yellowDark);
                 }
             }
             &.finished {
@@ -391,42 +371,50 @@
                 &.actived {
                      @include nodeClick ($greenDark);
                 }
-                &:hover {
-                    @include taskNodeNameStyle ($greenDark);
-                }
             }
-            
+
             .node-status-block {
-                float: left;
                 display: flex;
-                justify-content: center;
                 align-items: center;
-                width: 32px;
-                height: 100%;
-                background: #52699d;
+                padding: 0 8px;
+                height: 20px;
+                background: $blueDark;
+                text-align: left;
                 border-top-left-radius: 4px;
-                border-bottom-left-radius: 4px;
+                border-top-right-radius: 4px;
                 .node-icon {
                     width: 16px;
                 }
                 .node-icon-font {
-                    font-size: 18px;
+                    font-size: 16px;
                     color: #ffffff;
+                }
+                .stage-name {
+                    padding: 0 4px;
+                    width: 170px;
+                    font-size: 12px;
+                    color: #ffffff;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
                 }
             }
             .node-name {
                 display: flex;
                 align-items: center;
-                margin-left: 32px;
-                padding: 0 10px;
-                width: 118px;
-                height: 100%;
+                padding: 0 8px;
+                height: calc(100% - 20px);
+                line-height: 14px;
+                border: 1px solid #ffffff;
+                border-top: none;
+                border-bottom-left-radius: 4px;
+                border-bottom-right-radius: 4px;
                 .name-text {
                     display: -webkit-box;
                     width: 100%;
                     font-size: 12px;
                     color: #63656e;
-                    text-align: center;
+                    text-align: left;
                     overflow : hidden;
                     text-overflow: ellipsis;
                     word-break: break-all;
@@ -459,8 +447,12 @@
                    font-size: 14px;
                    margin-left: 5px;
                    color: #52699D;
+                   vertical-align: middle;
                     &:hover {
                         color: #4b85f7;
+                    }
+                    &.common-icon-play {
+                        font-size: 18px;
                     }
                 }
             }

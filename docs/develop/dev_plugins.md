@@ -101,6 +101,14 @@ __group_name__ = _(u"自定义插件(CUSTOM)")
 class TestCustomService(Service):
     __need_schedule__ = False
 
+    def execute_pre_process(self, data, parent_data):
+        test_input = data.inputs.test_input
+        if not test_input.startswith("test_"):
+            message = "test_input should start with 'test_'"
+            data.set_outputs('ex_data', message)
+            return False
+        return True
+        
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         biz_cc_id = parent_data.inputs.biz_cc_id
@@ -152,10 +160,21 @@ TestCustomService 类详解：
 
 - `__need_schedule__`：是否是异步标准插件（包括异步轮询和异步回调），默认为 False。
 - `interval`：异步标准插件的轮询策略。
+- `def execute_pre_process`：标准插件执行前预处理逻辑，可进行插件输入数据预处理和校验，返回True/False，代表预处理结果，为False则不会调用execute函数。
 - `def execute`：标准插件执行逻辑，包含前端参数获取、API 参数组装、结果解析、结果输出。
 - `def schedule`：异步标准插件的轮询或者回调逻辑，同步标准插件不需要定义该方法。
 - `def outputs_format`：输出参数定义。
 - `def inputs_format`：输入参数定义。
+
+execute_pre_process 函数详解：
+
+- 可以是任何 python 代码，对插件数据进行校验和预处理，返回预处理结果。可以不实现，默认返回True。
+- data 是标准插件输入输出参数数据对象，输入参数对应于前端的表单，可以用 `data.inputs.xxx` 或者 `data.get_one_of_inputs('xxx')` 获取
+某一个参数；执行完成可以使用 `data.set_outputs` 写入输出参数，异常信息请赋值给 `ex_data`。
+- `parent_data` 是任务的公共参数，包括 executor（执行者），operator（操作员），biz_cc_id（所属业务 ID）等。详细信息请查看
+`gcloud/taskflow3/utils.py`。
+- 返回 `False` 表示预处理或校验失败，会直接返回插件运行失败结果和异常信息，不会执行 `execute` 及 `schedule` 函数；
+返回 `True` 表示预处理或校验成功，会正常执行 `execute` 函数。
 
 execute 函数详解：
 
@@ -266,6 +285,109 @@ TestCustomComponent 类详解：
 - `tag_code`：参数 code，请保持全局唯一，命名规范为"系统名_参数名"。
 - `type`：前端表单类型，可选 input、textarea、radio、checkbox、select、datetime、datatable、upload、combine等。
 - `attrs`：对应type的属性设置，如 name、validation等。
+
+另外，标准插件前端配置支持继承其他标准插件的表单配置项，需要定义以下属性：
+
+- `extend`：继承其他标准插件表单项，格式 `Base.TagA.TagB...`, `Base` 为其他标准插件名称，`Tag` 为插件表单项 `tag_code` 属性值，如果只定义 `Base` 值则继承该标准插件的所有表单项。
+- `config`: 覆盖所继承的标准插件表单项配置，非必需属性，数据类型需要和所继承的配置项数据类型保持一致。如果所继承配置为对象类型，config 对象的 tag_code 需要设置为继承对象的 tag_code 值，两者对象属性取并集，存在相同属性时，config 对象属性值会覆盖继承对象属性值；所继承配置为数组类型，比如只定义 `Base` 的场景，config 需要为数组类型，数组内的表单配置项元素会与继承配置合并，tag_code 相同的配置项覆盖规则和对象类型保持一致。
+
+标准插件前端继承的例子：
+
+```js
+// base.js
+(function () {
+    $.atoms.base_custom = [
+        {
+            tag_code: "test_input",
+            type: "input",
+            attrs: {
+                name: gettext("参数1"),
+                placeholder: gettext("请输入字符串"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+    ]
+})()
+
+// test_custom.js
+(function () {
+    $.atoms.test_custom = [
+        {
+            extend: "base.test_input",
+            config: {
+                tag_code: "test_input",
+                type: "textarea"
+            }
+        },
+        {
+            tag_code: "test_radio",
+            type: "radio",
+            attrs: {
+                name: gettext("参数3"),
+                items: [
+                    {value: "1", name: gettext("选项1")},
+                    {value: "2", name: gettext("选项2")},
+                    {value: "3", name: gettext("选项3")}
+                ],
+                default: "1",
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+    ]
+})()
+
+// 继承生效后的 test_custom.js
+(function () {
+    $.atoms.test_custom = [
+        {
+            tag_code: "test_input",
+            type: "text", // type 属性被覆盖
+            attrs: {
+                name: gettext("参数1"),
+                placeholder: gettext("请输入字符串"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+        {
+            tag_code: "test_radio",
+            type: "radio",
+            attrs: {
+                name: gettext("参数3"),
+                items: [
+                    {value: "1", name: gettext("选项1")},
+                    {value: "2", name: gettext("选项2")},
+                    {value: "3", name: gettext("选项3")}
+                ],
+                default: "1",
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }
+    ]
+})()
+
+```
+
+
 详细字段说明可参考：[Tag 使用和开发说明](./tag_usage_dev.md)。
 
 ### 6. 标准插件远程加载

@@ -150,15 +150,14 @@ class UserProjectResource(GCloudModelResource):
                 IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
             ],
         )
-        filtering = {}
-        q_fields = []
+        filtering = {"is_disable": ALL}
 
     def obj_get(self, bundle, **kwargs):
         raise BadRequest("invalid operation")
 
     def get_object_list(self, request):
         projects = get_user_projects(request.user.username)
-        return projects.filter(is_disable=False)
+        return projects
 
 
 class ComponentModelResource(GCloudModelResource):
