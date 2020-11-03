@@ -1031,7 +1031,19 @@ const en = {
     '成员': 'Members',
     '保存已修改的节点信息吗？': 'Save the modified node information?',
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
-    '全部项目': 'All Projects'
+    '全部项目': 'All Projects',
+    '导入临时方案': 'Import Temporaty Scheme',
+    '方案内容': 'Scheme Text',
+    '变更节点对比': 'Node Selected List',
+    '选中状态': 'Status',
+    '参考格式：步骤：节点名 标识位(0：不选择；1：选择；2：非可选节点)，并以换行符分隔。': 'reference format：Stage：Node Status(0:deselect; 1:select; 2:non-selectable node), separated by a new line.',
+    '方案中的（': 'The node (',
+    '）节点选择标记与模板中不一致，请确认导出方案后模板中节点可选配置是否有过修改': ') optional field doesn\'t match the template, Please make sure that the template hasn\'t been modified after exporting the scheme',
+    '）节点在模板中未找到，请确认导出方案后模板是否有过修改': ') not found in the template, Please make sure that the template hasn\'t been modified after exporting the scheme',
+    '方案节点个数（': 'Number of nodes ( ',
+    '）与实际节点个数（': ' ) vs. actual number of nodes ( ',
+    '）不一致，请确认导出方案后模板是否有过修改': ' ) inconsistent, Please make sure that the template hasn\'t been modified after exporting the scheme',
+    '导出当前方案': 'Export Current Scheme'
 }
 
 export default en
