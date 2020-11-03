@@ -57,14 +57,15 @@ class CCUpdateSetServiceStatusService(Service):
         cc_set_select = set_list.split(",")
         set_select_method = data.get_one_of_inputs("set_select_method")
         set_status = data.get_one_of_inputs("set_status")
+        set_attr_id = data.get_one_of_inputs("set_attr_id") or "bk_set_name"
 
         bk_set_ids = []
-        if set_select_method == "name":
+        if set_select_method in ("name", "custom"):
             for set_name in cc_set_select:
                 cc_search_set_kwargs = {
                     "bk_biz_id": int(bk_biz_id),
-                    "fields": ["bk_set_id", "bk_set_name"],
-                    "condition": {"bk_set_name": set_name},
+                    "fields": ["bk_set_id", set_attr_id],
+                    "condition": {set_attr_id: set_name},
                 }
                 cc_search_set_result = batch_request(client.cc.search_set, cc_search_set_kwargs)
                 if not cc_search_set_result:
@@ -72,10 +73,11 @@ class CCUpdateSetServiceStatusService(Service):
                     data.set_outputs("ex_data", "batch_request client.cc.search_set error")
                     return False
                 for bk_set in cc_search_set_result:
-                    if bk_set["bk_set_name"] == set_name:
+                    if bk_set[set_attr_id] == set_name:
                         bk_set_ids.append(bk_set["bk_set_id"])
-        else:
+        elif set_select_method == "id":
             bk_set_ids = cc_set_select
+
         for set_id in bk_set_ids:
             cc_kwargs = {
                 "bk_biz_id": bk_biz_id,
@@ -100,7 +102,7 @@ class CCUpdateSetServiceStatusComponent(Component):
     name = _("修改集群服务状态")
     code = "cc_update_set_service_status"
     bound_service = CCUpdateSetServiceStatusService
-    form = "{static_url}components/atoms/cc/update_world_status/v{ver}.js".format(
+    form = "{static_url}components/atoms/cc/update_set_service_status/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION

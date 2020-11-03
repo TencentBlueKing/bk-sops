@@ -11,7 +11,7 @@
  */
 
 (function () {
-    $.atoms.cc_update_world_status = [
+    $.atoms.cc_update_set_service_status = [
         {
             tag_code: "set_select_method",
             type: "radio",
@@ -21,6 +21,7 @@
                 items: [
                     {value: "name", name: gettext("Set名称")},
                     {value: "id", name: gettext("Set ID")},
+                    {value: "custom", name: gettext("自定义")},
                 ],
                 default: "name",
                 validation: [
@@ -40,10 +41,54 @@
             ]
         },
         {
+            tag_code: "set_attr_id",
+            type: "input",
+            attrs: {
+                name: gettext("集群属性ID"),
+                placeholder: gettext("用英文','分割，集群范围中填写的值会在此处填写的属性 ID 的值上进行过滤"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            var result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            var self = this;
+                            if (!self.get_parent) {
+                                return result
+                            } else if (self.get_parent().get_child('set_select_method').value === "custom" && value.length===0 ) {
+                                result.result = false;
+                                result.error_message = gettext("传参形式为自定义时必填");
+                            }
+
+                            return result;
+                        }
+                    }
+                ]
+            },
+            events: [
+                {
+                    source: "set_select_method",
+                    type: "change",
+                    action: function (value) {
+                        var self = this;
+                        if (value === "custom") {
+                            self.show();
+                        } else {
+                            self._set_value('');
+                            self.hide();
+                        }
+                    }
+                }
+            ],
+        },
+        {
             tag_code: "set_list",
             type: "textarea",
             attrs: {
-                name: gettext("大区范围"),
+                name: gettext("集群范围"),
                 placeholder: gettext("多个集群使用英文','分割"),
                 hookable: true,
                 validation: [
