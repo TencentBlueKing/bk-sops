@@ -10,9 +10,9 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="separetor-select">
+    <div class="separator-select">
         <bk-form>
-            <bk-form-item :label="i18n.separetor" :label-width="70">
+            <bk-form-item :label="i18n.separator" :label-width="70">
                 <bk-radio-group :value="value" @change="onChange">
                     <bk-radio
                         v-for="option in options"
@@ -28,7 +28,7 @@
 </template>
 <script>
     const i18n = {
-        separetor: gettext('分隔符：'),
+        separator: gettext('分隔符：'),
         comma: gettext('逗号'),
         semicolon: gettext('分号'),
         verticalbar: gettext('竖线'),
@@ -36,7 +36,7 @@
     }
 
     export default {
-        name: 'SeparetorSelect',
+        name: 'SeparatorSelect',
         model: {
             prop: 'value',
             event: 'change'
@@ -75,7 +75,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    .separetor-select {
+    .separator-select {
         margin: 20px 0;
     }
     /deep/ .bk-form-item {
