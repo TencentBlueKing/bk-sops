@@ -1,0 +1,2 @@
+feature:
+    - "新增 标准运维插件 execute_pre_process 数据预处理和校验函数钩子"

@@ -32,7 +32,7 @@
                         @click="onSelectGroup(group.type)">
                         <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
                         <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
-                        <span>{{ group.group_name }}</span>
+                        <span v-html="group.group_name"></span>
                         <span>{{ `(${group.list.length})` }}</span>
                     </div>
                 </div>
@@ -153,8 +153,16 @@
                 } else {
                     const reg = new RegExp(this.searchStr, 'i')
                     this.listData.forEach(group => {
+                        const { group_icon, group_name, type } = group
                         const list = []
-                        if (group.list.length > 0) {
+
+                        if (reg.test(group_name)) { // 分组名称匹配
+                            const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                            result.push({
+                                ...group,
+                                group_name: hglGroupName
+                            })
+                        } else if (group.list.length > 0) { // 单个插件或者子流程名称匹配
                             group.list.forEach(item => {
                                 if (reg.test(item.name)) {
                                     const node = { ...item }
@@ -163,7 +171,6 @@
                                 }
                             })
                             if (list.length > 0) {
-                                const { group_icon, group_name, type } = group
                                 result.push({
                                     group_icon,
                                     group_name,

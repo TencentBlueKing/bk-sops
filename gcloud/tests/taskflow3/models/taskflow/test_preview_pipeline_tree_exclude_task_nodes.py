@@ -15,13 +15,12 @@ import copy
 
 from django.test import TestCase
 
-from gcloud.taskflow3.exceptions import InvalidOperationException
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
 
-class TaskFlowInstancePreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
+class PreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
     def test__remove_has_outputs_nodes(self):
         tree = {
             "name": "new20200803092536",
@@ -40,7 +39,7 @@ class TaskFlowInstancePreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
                     "incoming": ["line20166c8d6d4763d092758e4dd316", "line5a00f8629afc662d5455f773eac4"],
                     "loop": None,
                     "name": "定时",
-                    "optional": False,
+                    "optional": True,
                     "outgoing": "line8cd7035287bde6be2271ad4e786f",
                     "stage_name": "步骤1",
                     "type": "ServiceActivity",
@@ -55,7 +54,7 @@ class TaskFlowInstancePreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
                     "incoming": ["line8cd7035287bde6be2271ad4e786f"],
                     "loop": None,
                     "name": "暂停",
-                    "optional": False,
+                    "optional": True,
                     "outgoing": "line8b8d169ee8c33e1565ffd6d8b8b7",
                     "stage_name": "步骤1",
                     "type": "ServiceActivity",
@@ -246,10 +245,3 @@ class TaskFlowInstancePreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
 
         # preview success
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(copy.deepcopy(tree), [])
-
-        self.assertRaises(
-            InvalidOperationException,
-            TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes,
-            copy.deepcopy(tree),
-            ["node975d86544088e3a511985240d97b"],
-        )
