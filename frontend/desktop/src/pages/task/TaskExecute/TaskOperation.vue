@@ -1014,7 +1014,6 @@
                     nodeId: nodeActivities.id,
                     type: 'SubProcess'
                 })
-
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },
