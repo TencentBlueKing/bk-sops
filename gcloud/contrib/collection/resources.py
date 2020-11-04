@@ -49,7 +49,8 @@ class CollectionResources(ModelResource):
         return query.filter(username=request.user.username)
 
     def obj_create(self, bundle, **kwargs):
-
+        extra_info = bundle.data["extra_info"]
+        bundle.data["instance_id"] = extra_info.get("id")
         return super(CollectionResources, self).obj_create(bundle, username=bundle.request.user.username)
 
     def obj_delete_list_for_update(self, bundle, **kwargs):

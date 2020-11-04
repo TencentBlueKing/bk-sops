@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
 from gcloud.commons.template.models import CommonTemplate
+from gcloud.periodictask.signals import periodic_task_delete
 from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
@@ -180,6 +181,7 @@ class PeriodicTask(models.Model):
 
     def delete(self, using=None):
         self.task.delete()
+        periodic_task_delete.send(sender=self)
         super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
