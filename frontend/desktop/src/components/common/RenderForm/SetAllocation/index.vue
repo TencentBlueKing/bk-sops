@@ -21,11 +21,11 @@
             :cols="tbCols"
             :config="localConfig"
             :urls="urls"
-            :separetor="localSeparetor"
+            :separator="localSeparator"
             :value="localValue"
             @importData="importData"
             @update="updateValue"
-            @update:separetor="updateSeparetor">
+            @update:separator="updateSeparator">
         </resource-list>
         <resource-filter
             v-else
@@ -70,7 +70,7 @@
                 type: Boolean,
                 default: false
             },
-            separetor: {
+            separator: {
                 type: String,
                 default: ','
             },
@@ -92,7 +92,7 @@
                 showFilter: false,
                 localConfig: tools.deepClone(this.config),
                 localValue: this.tranformPropsModuleData(this.value),
-                localSeparetor: this.separetor,
+                localSeparator: this.separator,
                 colsLoading: false,
                 originalCols: [], // 表格列原始配置项
                 tbCols: [] // 增加模块列后的表格配置项
@@ -111,8 +111,8 @@
                 },
                 deep: true
             },
-            separetor (val) {
-                this.localSeparetor = val
+            separator (val) {
+                this.localSeparator = val
             }
         },
         mounted () {
@@ -319,8 +319,8 @@
                 this.localValue = val
                 this.updatePropsData()
             },
-            updateSeparetor (val) {
-                this.localSeparetor = val
+            updateSeparator (val) {
+                this.localSeparator = val
                 this.updatePropsData()
             },
             // 同步本地组件数据到父组件
@@ -328,7 +328,7 @@
                 const propsData = {
                     config: tools.deepClone(this.localConfig),
                     data: this.transformLocalModuleData(this.localValue),
-                    separetor: this.localSeparetor
+                    separator: this.localSeparator
                 }
                 this.$emit('update', propsData)
             },
