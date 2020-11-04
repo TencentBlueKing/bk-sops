@@ -530,7 +530,8 @@
                 if (!this.variableData.key) {
                     this.isSaveConfirmDialogShow = true
                 } else {
-                    const editingVariable = Object.assign({}, this.theEditingData)
+                    const tagCode = this.renderConfig[0].tag_code
+                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
