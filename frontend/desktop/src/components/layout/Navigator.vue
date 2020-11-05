@@ -57,7 +57,7 @@
             <li class="right-icon help-doc">
                 <a
                     class="common-icon-help"
-                    href="https://bk.tencent.com/docs/document/5.1/3/22"
+                    :href="bkDocUrl"
                     target="_blank"
                     v-bk-tooltips="{
                         content: $t('帮助文档'),
@@ -197,6 +197,7 @@
         data () {
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
+                bkDocUrl: window.BK_DOC_URL,
                 logList: [],
                 logDetail: '',
                 logListLoading: false,

@@ -1,3 +1,4 @@
+
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +11,6 @@
 		/* 全局变量 */
         var RUN_VER = '{{RUN_VER}}';
         var SITE_URL = '{{SITE_URL}}';
-        var BK_STATIC_URL = '{{BK_STATIC_URL}}';
         var USERNAME = '{{USERNAME}}';
         var BK_PAAS_HOST = '{{BK_PAAS_HOST}}';
         var BK_CC_HOST = '{{BK_CC_HOST}}';
@@ -47,13 +47,33 @@
         }
     </script>
 	<link href="{{STATIC_URL}}core/images/bk_sops.png" rel="shortcut icon" type="image/x-icon">
-<link href="{{BK_STATIC_URL}}/css/vendors.53d4e2fddc.css" rel="stylesheet"><link href="{{BK_STATIC_URL}}/css/main.7fcf989a74.css" rel="stylesheet"></head>
+    {% if STATIC_VER == 'dev' %}
+        <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/vendors.css?v={{STATIC_VERSION}}" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/main.css?v={{STATIC_VERSION}}" rel="stylesheet">
+    {% else %}
+        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/vendors.css?v={{STATIC_VERSION}}" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/main.css?v={{STATIC_VERSION}}" rel="stylesheet">
+    {% endif %}
+</head>
 
 <body>
 	<div id="root"></div>
 	<script type="text/javascript" src="{{REMOTE_API_URL}}"></script>
 	<script type="text/javascript" src="{{SITE_URL}}jsi18n/gcloud/"></script>
+    {% if STATIC_VER == 'dev' %}
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/runtime~main.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/vendors.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/jquery.js?v={{STATIC_VERSION}}"></script>
+    {% else %}
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/runtime~main.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/vendors.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/jquery.js?v={{STATIC_VERSION}}"></script>
+    {% endif %}
+
+
 	<script type="text/javascript" src="{{STATIC_URL}}core/js/paas_api.js?v={{STATIC_VERSION}}"></script>
-<script type="text/javascript" src="{{BK_STATIC_URL}}/js/runtime~main.dfa35fba3b.js"></script><script type="text/javascript" src="{{BK_STATIC_URL}}/js/vendors.2d954d178e.js"></script><script type="text/javascript" src="{{BK_STATIC_URL}}/js/jquery.e29e06829c.js"></script><script type="text/javascript" src="{{BK_STATIC_URL}}/js/main.aadc9266aa.js"></script></body>
+</body>
 
 </html>
