@@ -16,9 +16,12 @@ import os
 from django.conf import settings
 
 from iam import IAM
+from gcloud.iam_auth.dummy_iam import DummyIAM
 
 
 def get_iam_client():
     app_code = os.getenv("BKAPP_SOPS_IAM_APP_CODE", settings.APP_CODE)
     app_secret = os.getenv("BKAPP_SOPS_IAM_APP_SECRET_KEY", settings.SECRET_KEY)
+    if settings.BK_IAM_SKIP:
+        return DummyIAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
     return IAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
