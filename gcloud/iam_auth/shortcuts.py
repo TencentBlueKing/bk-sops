@@ -16,7 +16,7 @@ import os
 from django.conf import settings
 
 from iam import IAM
-from gcloud.iam_auth.dummy_iam import DummyIAM
+from iam import DummyIAM
 
 
 def get_iam_client():
