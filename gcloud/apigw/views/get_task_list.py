@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, paginate_list_data
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import format_task_list_data
@@ -36,13 +36,12 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())
+@paginate_list_data
 def get_task_list(request, project_id):
     project = request.project
     keyword = request.GET.get("keyword")
     is_started = request.GET.get("is_started")
     is_finished = request.GET.get("is_finished")
-    limit = int(request.GET.get("limit", 15))
-    offset = int(request.GET.get("offset", 0))
 
     filter_kwargs = dict(is_deleted=False, project_id=project.id)
     if keyword:
@@ -58,10 +57,6 @@ def get_task_list(request, project_id):
         response = JsonResponse({"result": True, "data": [], "code": err_code.SUCCESS.code})
     else:
         response = JsonResponse(
-            {
-                "result": True,
-                "data": format_task_list_data(tasks[max(0, offset) : min(len(tasks), offset + limit)], project),
-                "code": err_code.SUCCESS.code,
-            }
+            {"result": True, "data": format_task_list_data(tasks, project), "code": err_code.SUCCESS.code}
         )
     return response
