@@ -72,7 +72,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("目标模块"),
-                            placeholder: gettext("必填项"),
+                            placeholder: gettext("网络A>集群B>模块C"),
                             width: '120px',
                             editable: true
                         }
