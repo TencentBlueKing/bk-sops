@@ -32,7 +32,7 @@
                         v-for="item in options"
                         v-loading="loading"
                         :key="item.value"
-                        :label="item.text || item.label"
+                        :label="item.text"
                         :value="item.value">
                     </el-option>
                 </template>
@@ -40,12 +40,12 @@
                     <el-option-group
                         v-for="group in options"
                         :key="group.value"
-                        :label="group.text || item.label">
+                        :label="group.text">
                         <el-option
                             v-for="item in group.options"
                             v-loading="loading"
                             :key="item.value"
-                            :label="item.text || item.label"
+                            :label="item.text"
                             :value="item.value">
                         </el-option>
                     </el-option-group>
@@ -86,7 +86,7 @@
                     }
                 ]
             },
-            desc: "array like [{label: '', value: ''}, {label: '', value: ''}]"
+            desc: "array like [{text: '', value: ''}, {text: '', value: ''}]"
         },
         multiple: {
             type: Boolean,
@@ -213,7 +213,7 @@
                 let label = val
                 this.items.some(item => {
                     if (item.value === val) {
-                        label = item.text || item.label
+                        label = item.text
                         return true
                     }
                 })
@@ -227,7 +227,7 @@
                 }
 
                 const inputVal = val.split(',')
-                this.options = this.items.filter(option => inputVal.some(i => (option.text || option.label).includes(i)))
+                this.options = this.items.filter(option => inputVal.some(i => option.text.includes(i)))
             },
             set_loading (loading) {
                 this.loading = loading
