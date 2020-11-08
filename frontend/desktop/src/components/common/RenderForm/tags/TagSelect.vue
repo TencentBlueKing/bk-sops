@@ -25,6 +25,9 @@
                 :multiple="multiple"
                 :no-data-text="empty_text"
                 :placeholder="placeholder">
+                <template v-if="showRightBtn" slot="prefix">
+                    <i class="right-btn" :class="rightBtnIcon" @click="onRightBtnClick"></i>
+                </template>
                 <template v-if="!hasGroup">
                     <el-option
                         v-for="item in items"
@@ -69,20 +72,7 @@
             type: Array,
             required: false,
             default () {
-                return [
-                    {
-                        text: gettext('选项1'),
-                        value: 'value1'
-                    },
-                    {
-                        text: gettext('选项2'),
-                        value: 'value2'
-                    },
-                    {
-                        text: gettext('选项3'),
-                        value: 'value3'
-                    }
-                ]
+                return []
             },
             desc: "array like [{text: '', value: ''}, {text: '', value: ''}]"
         },
@@ -147,6 +137,24 @@
             required: false,
             default: '',
             desc: 'placeholder'
+        },
+        showRightBtn: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'whether to display the button on the right of the selection box'
+        },
+        rightBtnIcon: {
+            type: String,
+            required: false,
+            default: 'bk-icon icon-chain',
+            desc: 'button icon to the right of the selection box'
+        },
+        rightBtnCb: {
+            type: Function,
+            required: false,
+            default: null,
+            desc: 'Button to the right of the selection box to click on the event callback function'
         },
         empty_text: {
             type: String,
@@ -235,18 +243,37 @@
                         self.loading = false
                     }
                 })
+            },
+            onRightBtnClick () {
+                typeof this.rightBtnCb === 'function' && this.rightBtnCb()
             }
         }
     }
 </script>
 <style lang="scss" scoped>
     .el-select {
+        position: relative;
         width: 100%;
         /deep/ .el-input__inner {
             padding-left: 10px;
+            padding-right: 60px;
             height: 32px;
             line-height: 32px;
             font-size: 12px;
+        }
+        /deep/.el-input__prefix {
+            left: auto;
+            right: 34px;
+        }
+        .right-btn {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
     }
 </style>
