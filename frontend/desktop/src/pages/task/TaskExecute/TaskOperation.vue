@@ -114,6 +114,19 @@
             @onConfirmRevokeTask="onConfirmRevokeTask"
             @onCancelRevokeTask="onCancelRevokeTask">
         </revokeDialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            header-position="left"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('跳过节点')"
+            :loading="pending.skip"
+            :value="isSkipDialogShow"
+            @confirm="nodeTaskSkip(skipNodeId)"
+            @cancel="onSkipCancel">
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -238,6 +251,8 @@
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
                 isRevokeDialogShow: false,
+                isSkipDialogShow: false,
+                skipNodeId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -608,11 +623,23 @@
                     this.pending.task = false
                 }
             },
-            async nodeTaskSkip (data) {
+            async nodeTaskSkip (id) {
+                if (this.pending.skip) {
+                    return
+                }
+
                 this.pending.skip = true
                 try {
+                    const data = {
+                        instance_id: this.instance_id,
+                        node_id: id
+                    }
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
+                        this.isNodeInfoPanelShow = false
+                        this.isSkipDialogShow = false
+                        this.nodeInfoType = ''
+                        this.skipNodeId = undefined
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
                             theme: 'success'
@@ -759,14 +786,12 @@
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
-                if (this.pending.skip) return
-                const data = {
-                    instance_id: this.instance_id,
-                    node_id: id
-                }
-                this.nodeTaskSkip(data)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
+                this.isSkipDialogShow = true
+                this.skipNodeId = id
+            },
+            onSkipCancel () {
+                this.isSkipDialogShow = false
+                this.skipNodeId = undefined
             },
             onModifyTimeClick (id) {
                 this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
