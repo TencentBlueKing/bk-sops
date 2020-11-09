@@ -45,7 +45,7 @@
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
-                    @onForceFail="onForceFail"
+                    @onForceFail="onForceFailClick"
                     @onSkipClick="onSkipClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
@@ -77,7 +77,7 @@
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onModifyTimeClick="onModifyTimeClick"
-                    @onForceFail="onForceFail"
+                    @onForceFail="onForceFailClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -126,6 +126,19 @@
             @confirm="nodeTaskSkip(skipNodeId)"
             @cancel="onSkipCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
+        </bk-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            header-position="left"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('强制失败')"
+            :loading="pending.forceFail"
+            :value="isForceFailDialogShow"
+            @confirm="nodeForceFail(forceFailId)"
+            @cancel="onForceFailCancel">
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
         </bk-dialog>
     </div>
 </template>
@@ -253,6 +266,8 @@
                 isRevokeDialogShow: false,
                 isSkipDialogShow: false,
                 skipNodeId: undefined,
+                isForceFailDialogShow: false,
+                forceFailId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -368,7 +383,7 @@
                 'skipExclusiveGateway',
                 'pauseNodeResume',
                 'getNodeActInfo',
-                'onForcedFail'
+                'forceFail'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -656,7 +671,7 @@
                     this.pending.skip = false
                 }
             },
-            async onForceFail (id) {
+            async nodeForceFail (id) {
                 if (this.pending.forceFail) {
                     return
                 }
@@ -666,14 +681,16 @@
                         node_id: id,
                         task_id: Number(this.instance_id)
                     }
-                    const res = await this.onForcedFail(params)
+                    const res = await this.forceFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制失败执行成功'),
                             theme: 'success'
                         })
+                        this.isForceFailDialogShow = false
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
+                        this.forceFailId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -792,6 +809,14 @@
             onSkipCancel () {
                 this.isSkipDialogShow = false
                 this.skipNodeId = undefined
+            },
+            onForceFailClick (id) {
+                this.forceFailId = id
+                this.isForceFailDialogShow = true
+            },
+            onForceFailCancel () {
+                this.isForceFailDialogShow = false
+                this.forceFailId = undefined
             },
             onModifyTimeClick (id) {
                 this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
