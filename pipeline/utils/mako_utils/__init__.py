@@ -10,12 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import base64
-import rsa
-
-
-def rsa_decrypt_password(encrypted_password, private_key):
-    return rsa.decrypt(
-        base64.decodestring(encrypted_password.encode("utf-8")), rsa.PrivateKey.load_pkcs1(private_key)
-    ).decode("utf-8")

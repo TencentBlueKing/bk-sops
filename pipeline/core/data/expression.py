@@ -20,7 +20,11 @@ from mako import lexer, codegen
 from mako.exceptions import MakoException
 
 from pipeline import exceptions
+from pipeline.conf.default_settings import MAKO_SAFETY_CHECK
 from pipeline.core.data.sandbox import SANDBOX
+from pipeline.core.data import mako_safety
+from pipeline.utils.mako_utils.checker import check_mako_template_safety
+from pipeline.utils.mako_utils.exceptions import ForbiddenMakoTemplateException
 
 
 logger = logging.getLogger("root")
@@ -126,6 +130,17 @@ class ConstantTemplate(object):
             return value_maps[deformat_constant_key(string)]
 
         for tpl in templates:
+            if MAKO_SAFETY_CHECK:
+                try:
+                    check_mako_template_safety(
+                        tpl, mako_safety.SingleLineNodeVisitor(), mako_safety.SingleLinCodeExtractor()
+                    )
+                except ForbiddenMakoTemplateException as e:
+                    logger.warning("forbidden template: {}, exception: {}".format(tpl, e))
+                    continue
+                except Exception:
+                    logger.exception("{} safety check error.".format(tpl))
+                    continue
             resolved = ConstantTemplate.resolve_template(tpl, value_maps)
             string = string.replace(tpl, resolved)
         return string
