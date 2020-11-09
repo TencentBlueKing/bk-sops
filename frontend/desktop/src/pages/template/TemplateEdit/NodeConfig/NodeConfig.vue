@@ -602,7 +602,7 @@
                     this.isSelectorPanelShow = false
                 }
             },
-            
+
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
@@ -628,13 +628,7 @@
                     version: list[list.length - 1].version,
                     name: `${group_name}-${name}`,
                     nodeName: name,
-                    stageName: '',
-                    nodeLabel: [],
-                    desc: desc,
-                    ignorable: false,
-                    skippable: true,
-                    retryable: true,
-                    selectable: false
+                    desc: desc
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
@@ -663,10 +657,7 @@
                     name,
                     version,
                     tpl: id,
-                    nodeName: name,
-                    stageName: '',
-                    nodeLabel: [],
-                    selectable: false
+                    nodeName: name
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)

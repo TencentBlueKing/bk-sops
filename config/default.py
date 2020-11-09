@@ -333,7 +333,47 @@ PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 # pipeline mako render settings
-MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+MAKO_SANDBOX_SHIELD_WORDS = [
+    "ascii",
+    "bytearray",
+    "bytes",
+    "callable",
+    "chr",
+    "classmethod",
+    "compile",
+    "delattr",
+    "dir",
+    "divmod",
+    "exec",
+    "eval",
+    "filter",
+    "frozenset",
+    "getattr",
+    "globals",
+    "hasattr",
+    "hash",
+    "help",
+    "id",
+    "input",
+    "isinstance",
+    "issubclass",
+    "iter",
+    "locals",
+    "map",
+    "memoryview",
+    "next",
+    "object",
+    "open",
+    "print",
+    "property",
+    "repr",
+    "setattr",
+    "staticmethod",
+    "super",
+    "type",
+    "vars",
+    "__import__",
+]
 
 MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
 
