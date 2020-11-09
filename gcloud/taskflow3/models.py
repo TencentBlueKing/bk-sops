@@ -18,6 +18,7 @@ from copy import deepcopy
 import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import ObjectDoesNotExist
 
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
@@ -566,6 +567,7 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": message, "data": {}}
 
         act_started = True
+        act_executed = True
         result = True
         inputs = {}
         outputs = {}
@@ -573,11 +575,16 @@ class TaskFlowInstance(models.Model):
             detail = pipeline_api.get_status_tree(node_id)
         except engine_exceptions.InvalidOperationException:
             act_started = False
-        else:
+
+        if act_started is True:
             # 最新 loop 执行记录，直接通过接口获取
             if loop is None or int(loop) >= detail["loop"]:
-                inputs = pipeline_api.get_inputs(node_id)
-                outputs = pipeline_api.get_outputs(node_id)
+                try:
+                    inputs = pipeline_api.get_inputs(node_id)
+                    outputs = pipeline_api.get_outputs(node_id)
+                except ObjectDoesNotExist as e:
+                    logger.exception("pipeline_api get inputs or outputs error: %s, activity may be execution" % e)
+                    act_executed = False
             # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
             else:
                 his_data = detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
@@ -585,7 +592,7 @@ class TaskFlowInstance(models.Model):
                 outputs = {"outputs": his_data[-1]["outputs"], "ex_data": his_data[-1]["ex_data"]}
 
         instance_data = self.pipeline_instance.execution_data
-        if not act_started:
+        if act_started is False or act_executed is False:
             try:
                 inputs = WebPipelineAdapter(instance_data).get_act_inputs(
                     act_id=node_id,
