@@ -722,21 +722,17 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    let code, canSkipped, canRetry
-                    let isSkipped = false
+                    let code, skippable, retryable
+                    const currentNode = nodes[id]
                     const nodeActivities = this.pipelineData.activities[id]
-
-                    if (nodes[id].state === 'FINISHED') {
-                        isSkipped = nodes[id].skip || nodes[id].error_ignorable
-                    }
 
                     if (nodeActivities) {
                         code = nodeActivities.component ? nodeActivities.component.code : ''
-                        canSkipped = nodeActivities.isSkipped || nodeActivities.skippable
-                        canRetry = nodeActivities.can_retry || nodeActivities.retryable
+                        skippable = nodeActivities.isSkipped || nodeActivities.skippable
+                        retryable = nodeActivities.can_retry || nodeActivities.retryable
                     }
 
-                    const data = { status: nodes[id].state, isSkipped, code, canSkipped, canRetry }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry }
 
                     this.setTaskNodeStatus(id, data)
                 }
