@@ -20,6 +20,7 @@ from pipeline.engine.models import Status
 from .base import EndEventHandler
 
 logger = logging.getLogger("celery")
+node_logger = logging.getLogger("pipeline.logging")
 
 
 class ExecutableEndEventHandler(EndEventHandler):
@@ -38,6 +39,7 @@ class ExecutableEndEventHandler(EndEventHandler):
             ex_data = traceback.format_exc()
             element.data.outputs.ex_data = ex_data
             logger.error(ex_data)
+            node_logger.error(ex_data, extra={"_id": element.id})
 
             Status.objects.fail(element, ex_data)
             return self.HandleResult(next_node=None, should_return=False, should_sleep=True)
