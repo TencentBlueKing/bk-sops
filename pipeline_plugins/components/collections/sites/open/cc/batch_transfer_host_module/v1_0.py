@@ -154,7 +154,7 @@ class CCBatchTransferHostModuleComponent(Component):
     @version log（v1.0）:支持 单行扩展输入配置方式
     """
 
-    name = _("刚刚批量更新主机所属业务模块")
+    name = _("批量更新主机所属业务模块")
     code = "cc_batch_transfer_host_module"
     bound_service = CCBatchTransferHostModule
     form = "{static_url}components/atoms/cc/batch_transfer_host_module/v{ver}.js".format(
