@@ -193,8 +193,7 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
     dynamic_groups = []
     page_start = 0
     page_limit = 200
-    loop_flag = True
-    while loop_flag:
+    while True:
         kwargs = {
             "bk_biz_id": bk_biz_id,
             "bk_supplier_account": bk_supplier_account,

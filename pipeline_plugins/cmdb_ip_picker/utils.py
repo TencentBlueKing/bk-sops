@@ -19,8 +19,6 @@ from gcloud.conf import settings
 from gcloud.utils import cmdb
 from gcloud.utils.ip import format_sundry_ip
 from gcloud.utils.handlers import handle_api_error
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
 
 from .constants import NO_ERROR, ERROR_CODES
 
@@ -123,7 +121,9 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in kwargs["group"]]
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
-            success, result = get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id)
+            success, result = cmdb.get_dynamic_group_host_list(
+                username, bk_biz_id, bk_supplier_account, dynamic_group_id
+            )
             if not success:
                 return {
                     "result": False,
@@ -168,37 +168,6 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
     result = {"result": True, "code": NO_ERROR, "data": data, "message": ""}
     return result
-
-
-def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
-    """获取动态分组中对应主机列表，最多返回10000条ip数据"""
-    host_list = []
-    page_start = 0
-    page_limit = 200
-    ip_max_count = 10000
-    loop_flag = True
-    while loop_flag:
-        kwargs = {
-            "bk_biz_id": bk_biz_id,
-            "bk_supplier_account": bk_supplier_account,
-            "id": dynamic_group_id,
-            "fields": ["bk_host_innerip", "bk_cloud_id"],
-            "page": {"start": page_start, "limit": page_limit},
-        }
-        client = get_client_by_user(username)
-        cc_result = client.cc.execute_dynamic_group(kwargs)
-        if not cc_result["result"]:
-            message = handle_api_error(_("配置平台(CMDB)"), "cc.execute_dynamic_group", kwargs, cc_result)
-            if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-                logger.error(message)
-                raise RawAuthFailedException(permissions=cc_result.get("permission", []))
-            return False, {"code": cc_result["code"], "message": message, "data": []}
-        cc_data = cc_result["data"]
-        host_list += cc_data["info"]
-        page_start += page_limit
-        if page_start >= int(cc_data["count"]) or page_start >= ip_max_count:
-            break
-    return True, {"code": 0, "message": "success", "data": host_list}
 
 
 def filter_hosts(filters, biz_topo_tree, hosts, comp_key):
