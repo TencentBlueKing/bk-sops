@@ -100,16 +100,16 @@ class StrictNodeVisitor(ast.NodeVisitor):
             return
 
         if node.attr in self.black_list_methods or node.attr.startswith("_"):
-            raise ForbiddenMakoTemplateException("兄弟，干啥呢？")
+            raise ForbiddenMakoTemplateException("Mako template forbidden.")
 
     def visit_Name(self, node):
         if node.id in self.black_list_methods or node.id.startswith("_"):
-            raise ForbiddenMakoTemplateException("别搞了，逃逸不了的~")
+            raise ForbiddenMakoTemplateException("Mako template forbidden.")
 
     def visit_Import(self, node):
         for name in node.names:
             if name.name not in self.white_list_modules:
-                raise ForbiddenMakoTemplateException("再搞我报警了！")
+                raise ForbiddenMakoTemplateException("Mako template forbidden.")
 
     def visit_ImportFrom(self, node):
         self.visit_Import(node)
