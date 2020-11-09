@@ -41,7 +41,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
+                    @page-limit-change="onPageLimitChange">
                     <bk-table-column :label="$t('所属项目')" width="160">
                         <template slot-scope="props">
                             <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
@@ -423,6 +423,12 @@
                 // 重置自动刷新时间
                 this.onOpenAutoRedraw()
             },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.onOpenAutoRedraw() // 重置自动刷新时间
+                this.loadFunctionTask()
+            },
             searchInputhandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
@@ -699,12 +705,6 @@
                 clearTimeout(this.autoRedrawTimer)
                 this.autoRedrawTimer = null
                 this.isAutoRedraw = false
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
-                this.onOpenAutoRedraw() // 重置自动刷新时间
-                this.loadFunctionTask()
             }
         }
     }

@@ -28,7 +28,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
+                    @page-limit-change="onPageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="$t('所属项目')" width="120">
                         <template slot-scope="props">
@@ -311,6 +311,11 @@
                 this.pagination.current = page
                 this.loadAuditTask()
             },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.loadAuditTask()
+            },
             searchInputhandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
@@ -361,11 +366,6 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
-                this.pagination.current = 1
-                this.loadAuditTask()
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
                 this.pagination.current = 1
                 this.loadAuditTask()
             }

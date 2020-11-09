@@ -57,7 +57,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
+                    @page-limit-change="onPageLimitChange">
                     <bk-table-column label="ID" prop="id" width="100"></bk-table-column>
                     <bk-table-column :label="$t('流程名称')">
                         <template slot-scope="props">
@@ -282,7 +282,8 @@
         mixins: [permission],
         props: {
             project_id: [String, Number],
-            page: [String, Number]
+            page: [String, Number],
+            limit: [String, Number]
         },
         data () {
             return {
@@ -317,7 +318,7 @@
                 pagination: {
                     current: Number(this.page) || 1,
                     count: 0,
-                    limit: 15,
+                    limit: Number(this.limit) || 15,
                     'limit-list': [15, 20, 30]
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
@@ -534,7 +535,13 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
-                this.$router.push({ name: 'process', query: { page: page } })
+                this.$router.push({ name: 'process', query: { page, limit: this.pagination.limit } })
+                this.getTemplateList()
+            },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.$router.push({ name: 'process', query: { page: 1, limit: val } })
                 this.getTemplateList()
             },
             /**
@@ -609,11 +616,6 @@
                     return '--'
                 }
                 return item.subprocess_has_update ? i18n.t('待更新') : i18n.t('否')
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
-                this.getTemplateList()
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {
