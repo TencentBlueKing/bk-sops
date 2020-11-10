@@ -11,7 +11,7 @@
  */
 
 (function () {
-    $.atoms.cc_update_world_status = [
+    $.atoms.cc_update_set_service_status = [
         {
             tag_code: "set_select_method",
             type: "radio",
@@ -52,15 +52,6 @@
                     }
                 ]
             },
-            events: [
-                {
-                    source: "set_select_method",
-                    type: "change",
-                    action: function () {
-                        this.value = '';
-                    }
-                },
-            ]
         },
         {
             tag_code: "set_status",

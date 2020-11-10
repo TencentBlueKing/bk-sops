@@ -100,7 +100,7 @@ class CCUpdateSetServiceStatusComponent(Component):
     name = _("修改集群服务状态")
     code = "cc_update_set_service_status"
     bound_service = CCUpdateSetServiceStatusService
-    form = "{static_url}components/atoms/cc/update_world_status/v{ver}.js".format(
+    form = "{static_url}components/atoms/cc/update_set_service_status/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION
