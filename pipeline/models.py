@@ -565,7 +565,15 @@ class InstanceManager(models.Manager):
         @param executor: 执行者
         @return:
         """
-        self.filter(instance_id=instance_id).update(start_time=timezone.now(), is_started=True, executor=executor)
+        with transaction.atomic():
+            instance = self.select_for_update().get(instance_id=instance_id)
+            if instance.is_started:
+                return False
+            instance.start_time = timezone.now()
+            instance.is_started = True
+            instance.executor = executor
+            instance.save()
+        return True
 
     def set_finished(self, instance_id):
         """
@@ -573,7 +581,15 @@ class InstanceManager(models.Manager):
         @param instance_id: 实例 ID
         @return:
         """
-        self.filter(instance_id=instance_id).update(finish_time=timezone.now(), is_finished=True)
+        with transaction.atomic():
+            try:
+                instance = self.select_for_update().get(instance_id=instance_id)
+            except PipelineInstance.DoesNotExist:
+                return None
+            instance.finish_time = timezone.now()
+            instance.is_finished = True
+            instance.save()
+        return instance
 
     def set_revoked(self, instance_id):
         """
@@ -581,7 +597,15 @@ class InstanceManager(models.Manager):
         @param instance_id: 实例 ID
         @return:
         """
-        self.filter(instance_id=instance_id).update(finish_time=timezone.now(), is_revoked=True)
+        with transaction.atomic():
+            try:
+                instance = self.select_for_update().get(instance_id=instance_id)
+            except PipelineInstance.DoesNotExist:
+                return None
+            instance.finish_time = timezone.now()
+            instance.is_revoked = True
+            instance.save()
+        return instance
 
 
 class PipelineInstance(models.Model):
