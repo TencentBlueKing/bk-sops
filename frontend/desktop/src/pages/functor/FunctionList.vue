@@ -338,7 +338,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 },
                 permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
                 tplAction: [],

@@ -319,7 +319,7 @@
                     current: Number(this.page) || 1,
                     count: 0,
                     limit: Number(this.limit) || 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
