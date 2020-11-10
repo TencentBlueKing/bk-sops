@@ -11,7 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
+from pipeline.core.constants import PE
 
-post_pipeline_finish = Signal(providing_args=["instance_id"])
-post_pipeline_revoke = Signal(providing_args=["instance_id"])
+
+def count_pipeline_tree_nodes(pipeline_tree):
+    gateways_total = len(pipeline_tree["gateways"])
+    activities = pipeline_tree["activities"]
+    atom_total = len([act for act in activities.values() if act["type"] == PE.ServiceActivity])
+    subprocess_total = len([act for act in activities.values() if act["type"] == PE.SubProcess])
+    return atom_total, subprocess_total, gateways_total
