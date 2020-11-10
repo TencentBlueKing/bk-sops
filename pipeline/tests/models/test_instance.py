@@ -165,7 +165,7 @@ class TestPipelineInstance(TestCase):
         Status.objects.create(id=self.instance.instance_id, state=states.REVOKED)
 
         post_pipeline_revoke = MagicMock()
-        with patch(PIPELINE_MODELS_POST_PIPELINE_REVOKE, post_pipeline_finish):
+        with patch(PIPELINE_MODELS_POST_PIPELINE_REVOKE, post_pipeline_revoke):
             PipelineInstance.objects.set_revoked(self.instance.instance_id)
 
         self.instance.refresh_from_db()
