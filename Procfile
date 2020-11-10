@@ -7,5 +7,5 @@ api-pworker: celery worker -A blueapps.core.celery -P gevent -Q api_task_queue_p
 api-sworker: celery worker -A blueapps.core.celery -P gevent -Q api_task_queue_service_schedule_priority -n api_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
 peri-pworker: python manage.py celery worker -Q periodic_task_queue_pipeline_priority -n periodic_task_pipeline_worker@%h -c 10 -l info --maxtasksperchild=50
 peri-sworker: celery worker -A blueapps.core.celery -P gevent -Q periodic_task_queue_service_schedule_priority -n periodic_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
-statistic-worker: celery worker -A blueapps.core.celery -P gevent -Q pipeline_statistics_priority -n default@%h -c 100 -l info --maxtasksperchild=50
+stats-worker: celery worker -A blueapps.core.celery -P gevent -Q pipeline_statistics_priority -n default@%h -c 100 -l info --maxtasksperchild=50
 beat: python manage.py celery beat -l info
