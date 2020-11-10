@@ -65,8 +65,9 @@
                         </div>
                     </template>
                     <div class="operate-container" slot="dropdown-content">
-                        <div class="operate-item" @click="goToHelpDoc">{{ $t('帮助文档') }}</div>
+                        <div class="operate-item" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
                         <div class="operate-item" @click="onOpenVersion">{{ $t('版本日志') }}</div>
+                        <div class="operate-item" @click="goToFeedback">{{ $t('问题反馈') }}</div>
                     </div>
                 </bk-dropdown-menu>
             </li>
@@ -189,6 +190,7 @@
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
                 bkDocUrl: window.BK_DOC_URL,
+                bkFeedbackUrl: window.FEEDBACK_URL,
                 logList: [],
                 logDetail: '',
                 isMoreOperateActive: false,
@@ -318,6 +320,9 @@
             },
             goToHelpDoc () {
                 window.open(this.bkDocUrl, '_blank')
+            },
+            goToFeedback () {
+                window.open(this.bkFeedbackUrl, '_blank')
             },
             /* 打开版本日志 */
             async onOpenVersion () {
