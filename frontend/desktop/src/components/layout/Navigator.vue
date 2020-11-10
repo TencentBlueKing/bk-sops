@@ -214,7 +214,6 @@
                 appmakerTemplateId: state => state.appmakerTemplateId
             }),
             ...mapState('project', {
-                projectList: state => state.userProjectList,
                 project_id: state => state.project_id,
                 authResource: state => state.authResource
             }),
