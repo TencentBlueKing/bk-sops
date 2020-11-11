@@ -53,10 +53,7 @@ def get_task_list(request, project_id):
 
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
-    if len(tasks) == 0:
-        response = JsonResponse({"result": True, "data": [], "code": err_code.SUCCESS.code})
-    else:
-        response = JsonResponse(
-            {"result": True, "data": format_task_list_data(tasks, project), "code": err_code.SUCCESS.code}
-        )
+    response = JsonResponse(
+        {"result": True, "data": format_task_list_data(tasks, project), "code": err_code.SUCCESS.code}
+    )
     return response
