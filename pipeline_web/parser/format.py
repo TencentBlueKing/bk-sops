@@ -35,6 +35,7 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     # 解析隐藏全局变量互引用
     pool_obj = ConstantPool(classification["constant_pool"])
     pre_resolved_constants = pool_obj.pool
+    # 将解析完的变量添加到 pipeline inputs 中
     classification["data_inputs"] = calculate_constants_type(pre_resolved_constants, classification["data_inputs"])
     classification["data_inputs"] = calculate_constants_type(classification["params"], classification["data_inputs"])
     pipeline_tree["data"] = {
@@ -104,6 +105,7 @@ def classify_constants(constants, is_subprocess):
         if info["source_type"] == "component_outputs":
             source_key = list(info["source_info"].values())[0][0]
             source_step = list(info["source_info"].keys())[0]
+            # 生成 pipeline 层需要的 pipeline input
             data_inputs[key] = {
                 "type": "splice",
                 "source_act": source_step,
@@ -111,6 +113,7 @@ def classify_constants(constants, is_subprocess):
                 "value": info["value"],
                 "is_param": info["is_param"],
             }
+            # 生成 pipeline 层需要的 acts_output
             acts_outputs.setdefault(source_step, {}).update({source_key: key})
         # 自定义的Lazy类型变量
         elif info["custom_type"] and var_cls and issubclass(var_cls, var.LazyVariable):
