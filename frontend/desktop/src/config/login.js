@@ -35,9 +35,15 @@ function openLoginDialog (src, width = 460, height = 490, method = 'get') {
     const isWraperExit = topDocument.querySelector('#bk-gloabal-login-iframe')
     if (isWraperExit) return
     window.needReloadPage = method === 'get' // 是否需要刷新界面
-    const closeIcon = topDocument.createElement('span')
-    closeIcon.style.cssText = 'outline: 10px solid;outline-offset: -22px;transform: rotate(45deg);position: absolute;right: 0;cursor: pointer;color: #979ba5;width: 26px;height: 26px;border-radius: 50%;'
+    const closeIcon = topDocument.createElement('div')
+    closeIcon.style.cssText = 'transform: rotate(45deg);position: absolute;right: 0;cursor: pointer;color: #979ba5;width: 26px;height: 26px;'
+    const closeIconTop = topDocument.createElement('span')
+    closeIconTop.style.cssText = 'width:20px;display:inline-block;border:1px solid #979ba5;position:absolute;top: 50%;'
+    const closeIconBottom = topDocument.createElement('span')
+    closeIconBottom.style.cssText = 'width:20px;display:inline-block;border:1px solid #979ba5;transform: rotate(90deg);position: absolute;top: 13px;'
     closeIcon.id = 'bk-gloabal-login-close'
+    closeIcon.appendChild(closeIconTop)
+    closeIcon.appendChild(closeIconBottom)
     topDocument.addEventListener('click', topWindow.BLUEKING.corefunc.close_login_dialog)
 
     const frame = topDocument.createElement('iframe')
