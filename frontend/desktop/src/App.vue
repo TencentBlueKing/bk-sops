@@ -122,7 +122,7 @@
             window.show_msg = (message, type) => {
                 this.$bkMessage({
                     message,
-                    isSingleLine: false,
+                    ellipsisLine: 2,
                     theme: type
                 })
             }
