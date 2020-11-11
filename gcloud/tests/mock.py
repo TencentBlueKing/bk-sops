@@ -109,6 +109,9 @@ class MockTaskFlowInstance(object):
         self.create_time = now()
         self.start_time = now()
         self.finish_time = now()
+        self.flow_type = kwargs.get("flow_type", "flow_type")
+        self.current_flow = kwargs.get("current_flow", "current_flow")
+        self.is_deleted = True
 
 
 class MockPeriodicTask(object):
