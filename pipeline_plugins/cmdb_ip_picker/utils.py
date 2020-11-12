@@ -78,6 +78,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
         if (
             selector == "topo"
+            or selector == "group"
             or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
             in ip_list
         ):
@@ -111,6 +112,30 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
         logger.info(
             "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data topo filter: {data}".format(
+                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
+            )
+        )
+
+    # 动态分组得到的主机ip
+    if selector == "group":
+        dynamic_group_ids = [dynamic_group["id"] for dynamic_group in kwargs["group"]]
+        dynamic_groups_host = {}
+        for dynamic_group_id in dynamic_group_ids:
+            success, result = cmdb.get_dynamic_group_host_list(
+                username, bk_biz_id, bk_supplier_account, dynamic_group_id
+            )
+            if not success:
+                return {
+                    "result": False,
+                    "code": result["code"],
+                    "data": [],
+                    "message": result["message"],
+                }
+            dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
+        data = dynamic_groups_host.values()
+
+        logger.info(
+            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data from dynamic group: {data}".format(
                 bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
             )
         )
