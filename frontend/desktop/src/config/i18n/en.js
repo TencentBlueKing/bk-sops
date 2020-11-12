@@ -1043,7 +1043,9 @@ const en = {
     '方案节点个数（': 'Number of nodes ( ',
     '）与实际节点个数（': ' ) vs. actual number of nodes ( ',
     '）不一致，请确认导出方案后模板是否有过修改': ' ) inconsistent, Please make sure that the template hasn\'t been modified after exporting the scheme',
-    '导出当前方案': 'Export Current Scheme'
+    '导出当前方案': 'Export Current Scheme',
+    '跳过节点': 'Skip',
+    '是否跳过该任务节点？': 'Do you skip this task node?'
 }
 
 export default en

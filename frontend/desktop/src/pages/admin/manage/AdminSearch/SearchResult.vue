@@ -294,13 +294,13 @@
                 tplPagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15, 20, 30],
+                    'limit-list': [15, 30, 50, 100],
                     limit: 15
                 },
                 taskPagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15, 20, 30],
+                    'limit-list': [15, 30, 50, 100],
                     limit: 15
                 }
             }
