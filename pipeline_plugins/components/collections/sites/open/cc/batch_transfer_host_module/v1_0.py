@@ -49,7 +49,7 @@ class CCBatchTransferHostModule(Service):
             ),
             self.InputItem(
                 name=_("更新主机所属业务模块详情"),
-                key="cc_transfer_host",
+                key="cc_transfer_host_detail",
                 type="array",
                 schema=ArrayItemSchema(
                     description=_("更新主机所属业务模块详情"),
