@@ -45,7 +45,7 @@
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
-                    @onForceFail="onForceFail"
+                    @onForceFail="onForceFailClick"
                     @onSkipClick="onSkipClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
@@ -77,7 +77,7 @@
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onModifyTimeClick="onModifyTimeClick"
-                    @onForceFail="onForceFail"
+                    @onForceFail="onForceFailClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -114,6 +114,32 @@
             @onConfirmRevokeTask="onConfirmRevokeTask"
             @onCancelRevokeTask="onCancelRevokeTask">
         </revokeDialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            header-position="left"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('跳过节点')"
+            :loading="pending.skip"
+            :value="isSkipDialogShow"
+            @confirm="nodeTaskSkip(skipNodeId)"
+            @cancel="onSkipCancel">
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
+        </bk-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            header-position="left"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('强制失败')"
+            :loading="pending.forceFail"
+            :value="isForceFailDialogShow"
+            @confirm="nodeForceFail(forceFailId)"
+            @cancel="onForceFailCancel">
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -238,6 +264,10 @@
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
                 isRevokeDialogShow: false,
+                isSkipDialogShow: false,
+                skipNodeId: undefined,
+                isForceFailDialogShow: false,
+                forceFailId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -353,7 +383,7 @@
                 'skipExclusiveGateway',
                 'pauseNodeResume',
                 'getNodeActInfo',
-                'onForcedFail'
+                'forceFail'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -608,11 +638,23 @@
                     this.pending.task = false
                 }
             },
-            async nodeTaskSkip (data) {
+            async nodeTaskSkip (id) {
+                if (this.pending.skip) {
+                    return
+                }
+
                 this.pending.skip = true
                 try {
+                    const data = {
+                        instance_id: this.instance_id,
+                        node_id: id
+                    }
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
+                        this.isNodeInfoPanelShow = false
+                        this.isSkipDialogShow = false
+                        this.nodeInfoType = ''
+                        this.skipNodeId = undefined
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
                             theme: 'success'
@@ -629,7 +671,7 @@
                     this.pending.skip = false
                 }
             },
-            async onForceFail (id) {
+            async nodeForceFail (id) {
                 if (this.pending.forceFail) {
                     return
                 }
@@ -639,14 +681,16 @@
                         node_id: id,
                         task_id: Number(this.instance_id)
                     }
-                    const res = await this.onForcedFail(params)
+                    const res = await this.forceFail(params)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('强制失败执行成功'),
                             theme: 'success'
                         })
+                        this.isForceFailDialogShow = false
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
+                        this.forceFailId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -722,21 +766,17 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    let code, canSkipped, canRetry
-                    let isSkipped = false
+                    let code, skippable, retryable
+                    const currentNode = nodes[id]
                     const nodeActivities = this.pipelineData.activities[id]
-
-                    if (nodes[id].state === 'FINISHED') {
-                        isSkipped = nodes[id].skip || nodes[id].error_ignorable
-                    }
 
                     if (nodeActivities) {
                         code = nodeActivities.component ? nodeActivities.component.code : ''
-                        canSkipped = nodeActivities.isSkipped || nodeActivities.skippable
-                        canRetry = nodeActivities.can_retry || nodeActivities.retryable
+                        skippable = nodeActivities.isSkipped || nodeActivities.skippable
+                        retryable = nodeActivities.can_retry || nodeActivities.retryable
                     }
 
-                    const data = { status: nodes[id].state, isSkipped, code, canSkipped, canRetry }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -763,14 +803,20 @@
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
-                if (this.pending.skip) return
-                const data = {
-                    instance_id: this.instance_id,
-                    node_id: id
-                }
-                this.nodeTaskSkip(data)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
+                this.isSkipDialogShow = true
+                this.skipNodeId = id
+            },
+            onSkipCancel () {
+                this.isSkipDialogShow = false
+                this.skipNodeId = undefined
+            },
+            onForceFailClick (id) {
+                this.forceFailId = id
+                this.isForceFailDialogShow = true
+            },
+            onForceFailCancel () {
+                this.isForceFailDialogShow = false
+                this.forceFailId = undefined
             },
             onModifyTimeClick (id) {
                 this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))

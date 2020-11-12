@@ -13,13 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.contrib.external_plugins.models import (
-    GIT,
-    S3,
-    FILE_SYSTEM,
-    S3Source,
-    FileSystemSource
-)
+from pipeline.contrib.external_plugins.models import GIT, S3, FILE_SYSTEM, S3Source, FileSystemSource
 
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
@@ -29,39 +23,26 @@ from gcloud.external_plugins.models.cache import CachePackageSource
 
 class TestCachePackageSource(TestCase):
     def setUp(self):
-        self.CACHE_SOURCE_NAME = 'CACHE_S3_SOURCE'
-        self.UPDATE_CACHE_SOURCE_NAME = 'CACHE_FILE_SYSTEM_SOURCE'
+        self.CACHE_SOURCE_NAME = "CACHE_S3_SOURCE"
+        self.UPDATE_CACHE_SOURCE_NAME = "CACHE_FILE_SYSTEM_SOURCE"
         self.SOURCE_TYPE = S3
         self.UPDATE_SOURCE_TYPE = FILE_SYSTEM
         self.SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
-            'root_package_2': {
-                'version': '',
-                'modules': ['test3', 'test4']
-            },
-            'root_package_3': {
-                'version': '',
-                'modules': ['test5', 'test6']
-            }
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
+            "root_package_2": {"version": "", "modules": ["test3", "test4"]},
+            "root_package_3": {"version": "", "modules": ["test5", "test6"]},
         }
         self.UPDATED_SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
         }
         self.SOURCE_KWARGS = {
-            'service_address': 'service_address',
-            'bucket': 'bucket',
-            'access_key': 'access_key',
-            'secret_key': 'secret_key',
+            "service_address": "service_address",
+            "bucket": "bucket",
+            "access_key": "access_key",
+            "secret_key": "secret_key",
+            "source_dir": "",
         }
-        self.UPDATED_SOURCE_KWARGS = {
-            'path': '/tmp'
-        }
+        self.UPDATED_SOURCE_KWARGS = {"path": "/tmp"}
         self.cache_source = CachePackageSource.objects.add_cache_source(
             name=self.CACHE_SOURCE_NAME,
             source_type=self.SOURCE_TYPE,
@@ -83,20 +64,22 @@ class TestCachePackageSource(TestCase):
         self.assertEqual(CachePackageSource.objects.get_base_source(), self.cache_source.base_source)
 
     def test_add_cache_source__exception(self):
-        self.assertRaises(exceptions.CacheSourceTypeError,
-                          CachePackageSource.objects.add_cache_source,
-                          name=self.CACHE_SOURCE_NAME,
-                          source_type=GIT,
-                          packages=self.SOURCE_PACKAGES,
-                          **self.SOURCE_KWARGS
-                          )
-        self.assertRaises(exceptions.MultipleCacheSourceError,
-                          CachePackageSource.objects.add_cache_source,
-                          name=self.CACHE_SOURCE_NAME,
-                          source_type=self.SOURCE_TYPE,
-                          packages=self.SOURCE_PACKAGES,
-                          **self.SOURCE_KWARGS
-                          )
+        self.assertRaises(
+            exceptions.CacheSourceTypeError,
+            CachePackageSource.objects.add_cache_source,
+            name=self.CACHE_SOURCE_NAME,
+            source_type=GIT,
+            packages=self.SOURCE_PACKAGES,
+            **self.SOURCE_KWARGS
+        )
+        self.assertRaises(
+            exceptions.MultipleCacheSourceError,
+            CachePackageSource.objects.add_cache_source,
+            name=self.CACHE_SOURCE_NAME,
+            source_type=self.SOURCE_TYPE,
+            packages=self.SOURCE_PACKAGES,
+            **self.SOURCE_KWARGS
+        )
 
     def test_name(self):
         self.assertEqual(self.cache_source.name, self.CACHE_SOURCE_NAME)
@@ -108,7 +91,7 @@ class TestCachePackageSource(TestCase):
         self.assertEqual(self.cache_source.details, self.SOURCE_KWARGS)
 
     def test_write__type_error(self):
-        self.cache_source.type = 'error_type'
+        self.cache_source.type = "error_type"
         self.assertRaises(exceptions.CacheSourceTypeError, self.cache_source.write)
 
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_WRITER_CLS_FACTORY, MockClsFactory())

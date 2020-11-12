@@ -40,7 +40,11 @@ TASKINSTANCE_PREVIEW_TREE = "gcloud.taskflow3.models.TaskFlowInstance.objects.pr
 TASKINSTANCE_OBJECTS_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.objects.callback"
 TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"
 TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
-TASKINSTANCE_PIPELINE_API_GET_STATES_TREE = "gcloud.taskflow3.models.pipeline_api.get_status_tree"
+
+TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE = "gcloud.taskflow3.models.pipeline_api.get_status_tree"
+TASKFLOW_MODEL_TASK_TEMPLATE = "gcloud.taskflow3.models.TaskTemplate"
+
+TASKFLOW_CONTEXT_PROJECT_CONFIG = "gcloud.taskflow3.context.ProjectConfig"
 
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
