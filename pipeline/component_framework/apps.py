@@ -18,6 +18,7 @@ from django.apps import AppConfig
 from django.db.utils import InternalError, OperationalError, ProgrammingError
 
 from pipeline.conf import settings
+from pipeline.component_framework import context
 from pipeline.utils.register import autodiscover_collections
 
 logger = logging.getLogger("root")
@@ -43,21 +44,26 @@ class ComponentFrameworkConfig(AppConfig):
                 return
             else:
                 if command in INIT_PASS_TRIGGER:
-                    logger.info("ignore components init for command: {}".format(sys.argv))
+                    print("ignore components init for command: {}".format(sys.argv))
                     return
 
         for path in settings.COMPONENT_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)
 
+        if context.skip_update_comp_models():
+            return
+
         from pipeline.component_framework.models import ComponentModel
         from pipeline.component_framework.library import ComponentLibrary
 
         try:
+            print("update component models")
             ComponentModel.objects.all().update(status=False)
             for code in ComponentLibrary.codes():
                 ComponentModel.objects.filter(code=code, version__in=ComponentLibrary.versions(code)).update(
                     status=True
                 )
+            print("update component models finish")
         except InternalError as e:
             # version field migration
             logger.exception(e)
