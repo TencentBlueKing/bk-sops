@@ -147,7 +147,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.21"
+STATIC_VERSION = "3.6.22"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -412,3 +412,6 @@ MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48
 # keywords to shield in node log
 LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + os.getenv("BKAPP_LOG_SHIELDING_KEYWORDS", "")
 LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if LOG_SHIELDING_KEYWORDS else []
+
+AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
+AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"

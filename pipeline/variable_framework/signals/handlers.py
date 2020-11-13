@@ -17,11 +17,16 @@ from django.dispatch import receiver
 from pipeline.core.data.var import LazyVariable
 from pipeline.core.signals import pre_variable_register
 from pipeline.variable_framework.models import VariableModel
+from pipeline.variable_framework import context
 
 
 @receiver(pre_variable_register, sender=LazyVariable)
 def pre_variable_register_handler(sender, variable_cls, **kwargs):
+    if context.skip_update_var_models():
+        return
+
     try:
+        print("update {} variable model".format(variable_cls.code))
         obj, created = VariableModel.objects.get_or_create(code=variable_cls.code, defaults={"status": __debug__})
         if not created and not obj.status:
             obj.status = True
