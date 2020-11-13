@@ -27,7 +27,6 @@ from djcelery.app import app
 from djcelery.management.base import CeleryCommand
 
 from config import BASE_DIR
-from scripts import auto_reload_tools
 from scripts.auto_reload_tools.common import get_files_list
 
 USE_AUTO_RELOAD = os.environ.get("USE_AUTO_PATCH")
@@ -110,6 +109,4 @@ class Command(CeleryCommand):
 def patch_worker_autoreload():
     # 只有本地配置了环境变量的情况下才会打补丁
     if USE_AUTO_RELOAD == "True":
-        # 修改djcelery的__init__ 模块，打补丁
-        djcelery.management.__init__ = auto_reload_tools.__init__
         djcelery.management.commands.celery.Command = Command
