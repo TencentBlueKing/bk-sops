@@ -26,6 +26,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.conf import settings
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.core.constants import PE
+from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from pipeline.engine.utils import ActionResult, calculate_elapsed_time
 from pipeline.exceptions import SubprocessRefError
 from pipeline.parser.context import get_pipeline_context
@@ -574,6 +575,7 @@ class InstanceManager(models.Manager):
         @return:
         """
         self.filter(instance_id=instance_id).update(finish_time=timezone.now(), is_finished=True)
+        post_pipeline_finish.send(sender=PipelineInstance, instance_id=instance_id)
 
     def set_revoked(self, instance_id):
         """
@@ -582,6 +584,7 @@ class InstanceManager(models.Manager):
         @return:
         """
         self.filter(instance_id=instance_id).update(finish_time=timezone.now(), is_revoked=True)
+        post_pipeline_revoke.send(sender=PipelineInstance, instance_id=instance_id)
 
 
 class PipelineInstance(models.Model):
