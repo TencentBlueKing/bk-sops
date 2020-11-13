@@ -76,6 +76,10 @@ class SetGroupInfo(object):
             flat_field_name = "flat__{}".format(_field)
             setattr(self, _field, data[_field])
             setattr(self, "flat__{}".format(_field), data[flat_field_name])
+        self._pipeline_var_str_value = "set_field_data: {}".format(data)
+
+    def __repr__(self):
+        return self._pipeline_var_str_value
 
 
 class VarSetGroupSelector(LazyVariable):

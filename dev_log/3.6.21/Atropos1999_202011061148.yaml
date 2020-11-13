@@ -1,0 +1,2 @@
+bugfix:
+    - "集群分组选择器添加变量 _pipeline_var_str_value"

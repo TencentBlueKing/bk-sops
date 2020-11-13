@@ -188,6 +188,7 @@
         data () {
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
+                bkDocUrl: window.BK_DOC_URL,
                 logList: [],
                 logDetail: '',
                 isMoreOperateActive: false,
@@ -314,7 +315,7 @@
                 }
             },
             goToHelpDoc () {
-                window.open('https://bk.tencent.com/docs/document/5.1/3/22', '_blank')
+                window.open(this.bkDocUrl, '_blank')
             },
             /* 打开版本日志 */
             async onOpenVersion () {

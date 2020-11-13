@@ -170,7 +170,9 @@
                     return this.value
                 },
                 set (val) {
-                    this.updateForm(val)
+                    if (!this.hook) {
+                        this.updateForm(val)
+                    }
                 }
             },
             viewValue () {
