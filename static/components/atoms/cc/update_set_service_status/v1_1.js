@@ -97,15 +97,6 @@
                     }
                 ]
             },
-            events: [
-                {
-                    source: "set_select_method",
-                    type: "change",
-                    action: function () {
-                        this.value = '';
-                    }
-                },
-            ]
         },
         {
             tag_code: "set_status",
