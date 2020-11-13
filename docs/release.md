@@ -1,5 +1,17 @@
 # Release
 
+## 3.6.22
+
+- improvement
+  - 全局导航右侧快速入口优化
+  - 导航右侧增加问题反馈入口
+  - 标准插件异步请求错误提示默认展示两行
+  - get_tasks_status api 接口新增 任务类型/状态/删除信息 & 文档同步
+
+- bugfix
+  - 修改集群服务状态 表单保存字段消失bug修复 
+  - cmdb batch transfer host module bug修复
+
 ## 3.6.21
 
 - feature
