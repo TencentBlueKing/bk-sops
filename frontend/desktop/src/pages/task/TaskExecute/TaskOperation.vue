@@ -140,6 +140,19 @@
             @cancel="onForceFailCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
         </bk-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            header-position="left"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('继续执行')"
+            :loading="pending.parseNodeResume"
+            :value="isNodeResumeDialogShow"
+            @confirm="nodeResume(nodeResumeId)"
+            @cancel="onTaskNodeResumeCancel">
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -268,6 +281,8 @@
                 skipNodeId: undefined,
                 isForceFailDialogShow: false,
                 forceFailId: undefined,
+                isNodeResumeDialogShow: false,
+                nodeResumeId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -724,15 +739,27 @@
                     this.pending.selectGateway = false
                 }
             },
-            async nodeResume (data) {
+            async nodeResume (id) {
+                if (this.pending.parseNodeResume) {
+                    return
+                }
                 this.pending.parseNodeResume = true
                 try {
+                    const data = {
+                        instance_id: this.instance_id,
+                        node_id: id,
+                        data: { callback: 'resume' }
+                    }
                     const res = await this.pauseNodeResume(data)
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('继续成功'),
                             theme: 'success'
                         })
+                        this.isNodeResumeDialogShow = false
+                        this.isNodeInfoPanelShow = false
+                        this.nodeInfoType = ''
+                        this.nodeResumeId = undefined
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -836,15 +863,12 @@
                 this.isGatewaySelectDialogShow = true
             },
             onTaskNodeResumeClick (id) {
-                if (this.pending.parseNodeResume) return
-                const data = {
-                    instance_id: this.instance_id,
-                    node_id: id,
-                    data: { callback: 'resume' }
-                }
-                this.nodeResume(data)
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
+                this.nodeResumeId = id
+                this.isNodeResumeDialogShow = true
+            },
+            onTaskNodeResumeCancel () {
+                this.isNodeResumeDialogShow = false
+                this.nodeResumeId = undefined
             },
             onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
