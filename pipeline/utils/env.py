@@ -11,7 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
+import sys
+import traceback
 
-post_pipeline_finish = Signal(providing_args=["instance_id"])
-post_pipeline_revoke = Signal(providing_args=["instance_id"])
+DJANGO_MANAGE_CMD = "manage.py"
+
+
+def get_django_command():
+    if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
+        try:
+            return sys.argv[1]
+        except Exception:
+            print(
+                "get django start up command error with argv: {argv}, traceback: {traceback}".format(
+                    argv=sys.argv, traceback=traceback.format_exc()
+                )
+            )
+
+            return None
+
+    return None

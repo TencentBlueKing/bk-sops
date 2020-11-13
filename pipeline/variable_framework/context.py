@@ -11,7 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
+from pipeline.conf import settings
+from pipeline.utils import env
 
-post_pipeline_finish = Signal(providing_args=["instance_id"])
-post_pipeline_revoke = Signal(providing_args=["instance_id"])
+UPDATE_TRIGGER = "update_variable_models"
+
+
+def skip_update_var_models():
+    if settings.AUTO_UPDATE_VARIABLE_MODELS:
+        return False
+
+    django_command = env.get_django_command()
+    if django_command is None:
+        return True
+
+    return django_command != UPDATE_TRIGGER

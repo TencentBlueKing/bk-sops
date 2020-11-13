@@ -11,7 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
+from django.core.management import BaseCommand
 
-post_pipeline_finish = Signal(providing_args=["instance_id"])
-post_pipeline_revoke = Signal(providing_args=["instance_id"])
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        # do not need to do anything, the app ready will handle model update work
+        print("variable models update finished.")
