@@ -66,6 +66,7 @@ export function setJqueryAjaxConfig () {
                 const message = xhr.responseText
                 const info = {
                     theme: 'error',
+                    lines: 2,
                     message
                 }
                 bus.$emit('showMessage', info)
