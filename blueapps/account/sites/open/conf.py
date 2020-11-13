@@ -25,7 +25,7 @@ class ConfFixture(object):
     LOGIN_PLAIN_URL = settings.BK_PAAS_HOST + "/login/plain/"
     VERIFY_URL = settings.BK_PAAS_INNER_HOST + "/login/accounts/is_login/"
     USER_INFO_URL = settings.BK_PAAS_INNER_HOST + "/login/accounts/get_user/"
-    HAS_PLAIN = True
+    HAS_PLAIN = False
     ADD_CROSS_PREFIX = False
     ADD_APP_CODE = True
 
