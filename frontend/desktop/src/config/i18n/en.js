@@ -1,6 +1,6 @@
 const en = {
     '任务数据': 'Task data',
-    '继续执行': 'Continue to perform',
+    '继续执行': 'Continue Execution',
     '保存筛选方案': 'Save the filter scheme',
     '修改名称会新建方案记录': 'Changing the name creates a new schema record',
     '筛选方案': 'Screening scheme',
@@ -1045,7 +1045,9 @@ const en = {
     '）不一致，请确认导出方案后模板是否有过修改': ' ) inconsistent, Please make sure that the template hasn\'t been modified after exporting the scheme',
     '导出当前方案': 'Export Current Scheme',
     '跳过节点': 'Skip',
-    '是否跳过该任务节点？': 'Do you skip this task node?'
+    '是否跳过该任务节点？': 'Is the execution of this task node skipped?',
+    '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
+    '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?'
 }
 
 export default en
