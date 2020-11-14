@@ -17,8 +17,7 @@ from iam import DjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 from gcloud.core.models import Project
-
-CACHE_TIME_FOR_PROJECT = 60 * 10
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 
 
 class ProjectResourceProvider(ResourceProvider):
@@ -31,15 +30,16 @@ class ProjectResourceProvider(ResourceProvider):
         project 没有上层资源，不需要处理 filter 的 parent
         """
         keyword = filter.keyword
+        cache_keyword = "iam_search_instance_project_{}".format(keyword)
 
-        results = cache.get(keyword)
+        results = cache.get(cache_keyword)
         if results is None:
             queryset = Project.objects.filter(name__icontains=keyword, is_disable=False)
             results = [
                 {"id": str(project.id), "display_name": project.name}
                 for project in queryset[page.slice_from : page.slice_to]
             ]
-            cache.set(keyword, results, CACHE_TIME_FOR_PROJECT)
+            cache.set(cache_keyword, results, SEARCH_INSTANCE_CACHE_TIME)
         return ListResult(results=results, count=len(results))
 
     def list_attr(self, **options):
