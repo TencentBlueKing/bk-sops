@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -24,7 +25,7 @@ from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
-
+from gcloud.utils.throttle import check_task_operation_throttle
 
 try:
     from bkoauth.decorators import apigw_required
@@ -49,6 +50,16 @@ def operate_task(request, task_id, project_id):
     action = params.get("action")
     username = request.user.username
     project = request.project
+
+    if settings.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, action):
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "project id: {} reach the limit of starting tasks".format(project.id),
+                "code": err_code.INVALID_OPERATION.code,
+            }
+        )
+
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)

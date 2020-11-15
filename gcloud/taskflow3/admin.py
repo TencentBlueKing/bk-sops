@@ -18,14 +18,29 @@ from gcloud.taskflow3 import models
 
 @admin.register(models.TaskFlowInstance)
 class TaskFlowInstanceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'project', 'category', 'create_method', 'flow_type',
-                    'current_flow', 'pipeline_instance', 'is_deleted']
-    list_filter = ['project', 'category', 'create_method', 'flow_type', 'is_deleted']
-    search_fields = ['id', 'pipeline_instance__name', 'create_info']
-    raw_id_fields = ['pipeline_instance']
-    actions = ['fake_delete']
+    list_display = [
+        "id",
+        "name",
+        "project",
+        "category",
+        "create_method",
+        "flow_type",
+        "current_flow",
+        "pipeline_instance",
+        "is_deleted",
+    ]
+    list_filter = ["project", "category", "create_method", "flow_type", "is_deleted"]
+    search_fields = ["id", "pipeline_instance__name", "create_info"]
+    raw_id_fields = ["pipeline_instance"]
+    actions = ["fake_delete"]
 
     def fake_delete(self, request, queryset):
         queryset.update(is_deleted=True)
 
-    fake_delete.short_description = 'Fake delete'
+    fake_delete.short_description = "Fake delete"
+
+
+@admin.register(models.TaskOperationTimesConfig)
+class TaskOperationTimesConfigAdmin(admin.ModelAdmin):
+    list_display = ["project_id", "operation", "times", "time_unit"]
+    list_filter = ["project_id", "operation", "times", "time_unit"]
