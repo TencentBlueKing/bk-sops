@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.collection.models import Collection
-from gcloud.periodictask.signals import periodic_task_delete
+from gcloud.periodictask.models import PeriodicTask
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -39,6 +39,6 @@ def app_maker_collection_delete_handler(sender, instance, created, **kwargs):
         Collection.objects.cascade_delete(category="mini_app", instance_id=instance.id)
 
 
-@receiver(periodic_task_delete)
-def periodic_task_collection_delete_handler(sender, **kwargs):
-    Collection.objects.cascade_delete(category="periodic_task", instance_id=sender.id)
+@receiver(post_delete, sender=PeriodicTask)
+def periodic_task_collection_delete_handler(sender, instance, **kwargs):
+    Collection.objects.cascade_delete(category="periodic_task", instance_id=instance.id)
