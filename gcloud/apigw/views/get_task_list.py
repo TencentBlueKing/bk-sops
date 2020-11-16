@@ -17,10 +17,10 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, paginate_list_data
+from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.apigw.views.utils import format_task_list_data
+from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 
@@ -36,7 +36,6 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())
-@paginate_list_data
 def get_task_list(request, project_id):
     project = request.project
     keyword = request.GET.get("keyword")
@@ -53,7 +52,8 @@ def get_task_list(request, project_id):
 
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
+    tasks, count = paginate_list_data(request, tasks)
     response = JsonResponse(
-        {"result": True, "data": format_task_list_data(tasks, project), "code": err_code.SUCCESS.code}
+        {"result": True, "data": format_task_list_data(tasks, project), "count": count, "code": err_code.SUCCESS.code}
     )
     return response

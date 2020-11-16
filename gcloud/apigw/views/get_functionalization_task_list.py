@@ -17,9 +17,9 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, paginate_list_data
+from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.apigw.views.utils import logger, format_function_task_list_data
+from gcloud.apigw.views.utils import logger, format_function_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FunctionViewInterceptor
 
@@ -34,7 +34,6 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @iam_intercept(FunctionViewInterceptor())
-@paginate_list_data
 def get_functionalization_task_list(request):
     id_in = request.GET.get("id_in")
     task_id_in = request.GET.get("task_id_in")
@@ -63,7 +62,8 @@ def get_functionalization_task_list(request):
         filter_kwargs["task__id__in"] = task_id_in
 
     function_tasks = FunctionTask.objects.select_related("task").filter(**filter_kwargs)
+    function_tasks, count = paginate_list_data(request, function_tasks)
     data = format_function_task_list_data(function_tasks)
 
-    response = JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    response = JsonResponse({"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code})
     return response

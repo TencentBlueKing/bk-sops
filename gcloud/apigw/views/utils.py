@@ -151,3 +151,32 @@ def format_function_task_list_data(function_tasks, project=None):
         item["task"] = task_item
         data.append(item)
     return data
+
+
+def paginate_list_data(request, queryset):
+    """
+    @summary: 读取request中的offset和limit参数，对筛选出的queryset进行分页
+    @return: 分页结果列表, 分页前数据总数
+    """
+    try:
+        offset = int(request.GET.get("offset", 0))
+        limit = int(request.GET.get("limit", 100))
+        list_data = list(queryset)
+        count = len(list_data)
+
+        if offset < 0 or limit < 0:
+            raise Exception("offset and limit must be greater or equal to 0.")
+        # 全量拉取情况
+        if limit == 0 and offset == 0:
+            results = list_data
+        else:
+            results = list_data[offset : offset + limit]
+        return results, count
+    except ValueError as e:
+        logger.error("[API] pagination value error: {}, request: {}".format(e, request))
+        return [], 0
+    except Exception as e:
+        logger.error(
+            "[API] pagination parameter error: {}, request: {}, offset: {}, limit: {}".format(e, request, offset, limit)
+        )
+        return [], 0
