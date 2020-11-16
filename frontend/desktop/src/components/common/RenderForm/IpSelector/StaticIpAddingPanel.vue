@@ -65,7 +65,7 @@
                             </tr>
                         </template>
                         <tr v-else>
-                            <td class="static-ip-empty" colspan="4">{{i18n.noData}}</td>
+                            <td class="static-ip-empty" colspan="4"><no-data></no-data></td>
                         </tr>
                     </tbody>
                 </table>
@@ -115,6 +115,7 @@
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import IpSearchInput from './IpSearchInput.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     const i18n = {
         add: gettext('添加'),
@@ -135,7 +136,8 @@
     export default {
         name: 'StaticIpAddingPanel',
         components: {
-            IpSearchInput
+            IpSearchInput,
+            NoData
         },
         props: {
             staticIpList: Array,

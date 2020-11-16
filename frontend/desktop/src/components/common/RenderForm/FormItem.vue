@@ -327,6 +327,7 @@
                                 selectors: [],
                                 ip: [],
                                 topo: [],
+                                group: [],
                                 filters: [],
                                 excludes: []
                             }

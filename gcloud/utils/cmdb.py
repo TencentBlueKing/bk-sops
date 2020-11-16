@@ -17,6 +17,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import RawAuthFailedException
 
 from .thread import ThreadPool
 
@@ -194,30 +196,17 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     """
     more_receivers = [name.strip() for name in more_receiver.split(",")]
     if not receiver_group:
-        result = {
-            "result": True,
-            "message": "success",
-            "data": ",".join(more_receivers)
-        }
+        result = {"result": True, "message": "success", "data": ",".join(more_receivers)}
         return result
 
     if logger is None:
         logger = logger_celery
-    kwargs = {
-        "bk_supplier_account": supplier_account,
-        "condition": {
-            "bk_biz_id": int(biz_cc_id)
-        }
-    }
+    kwargs = {"bk_supplier_account": supplier_account, "condition": {"bk_biz_id": int(biz_cc_id)}}
     cc_result = client.cc.search_business(kwargs)
     if not cc_result["result"]:
         message = handle_api_error("CMDB", "cc.search_business", kwargs, cc_result)
         logger.error(message)
-        result = {
-            "result": False,
-            "message": message,
-            "data": None
-        }
+        result = {"result": False, "message": message, "data": None}
         return result
 
     biz_count = cc_result["data"]["count"]
@@ -226,7 +215,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         result = {
             "result": False,
             "message": _("从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)),
-            "data": None
+            "data": None,
         }
         return result
 
@@ -242,9 +231,34 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     if more_receiver:
         receivers.extend(more_receivers)
 
-    result = {
-        "result": True,
-        "message": "success",
-        "data": ",".join(sorted(set(receivers)))
-    }
+    result = {"result": True, "message": "success", "data": ",".join(sorted(set(receivers)))}
     return result
+
+
+def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
+    """获取动态分组中对应主机列表"""
+    host_list = []
+    page_start = 0
+    page_limit = 200
+    while True:
+        kwargs = {
+            "bk_biz_id": bk_biz_id,
+            "bk_supplier_account": bk_supplier_account,
+            "id": dynamic_group_id,
+            "fields": ["bk_host_innerip", "bk_cloud_id"],
+            "page": {"start": page_start, "limit": page_limit},
+        }
+        client = get_client_by_user(username)
+        cc_result = client.cc.execute_dynamic_group(kwargs)
+        if not cc_result["result"]:
+            message = handle_api_error(_("配置平台(CMDB)"), "cc.execute_dynamic_group", kwargs, cc_result)
+            if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+                logger.error(message)
+                raise RawAuthFailedException(permissions=cc_result.get("permission", []))
+            return False, {"code": cc_result["code"], "message": message, "data": []}
+        cc_data = cc_result["data"]
+        host_list += cc_data["info"]
+        page_start += page_limit
+        if page_start >= int(cc_data["count"]):
+            break
+    return True, {"code": 0, "message": "success", "data": host_list}

@@ -136,6 +136,10 @@ const store = new Vuex.Store({
         getTopoModelInCC ({ commit }, data) {
             return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
+        // 查询业务在 CMDB 的动态分组
+        getDynamicGroup ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/', start: data.start, limit: 200 }).then(response => response.data)
+        },
         // <--- ip 选择器接口 end
         // 开区资源选择器接口 start --->
         getResourceConfig ({ commit }, data) {

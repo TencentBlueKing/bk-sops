@@ -28,6 +28,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_search_host,
     cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo,
+    cmdb_search_dynamic_group,
 )
 
 from gcloud.conf import settings
@@ -315,6 +316,11 @@ def cc_get_business(request):
 
 
 @supplier_account_inject
+def cc_search_dynamic_group(request, biz_cc_id, supplier_account):
+    return cmdb_search_dynamic_group(request, biz_cc_id, supplier_account)
+
+
+@supplier_account_inject
 def cc_list_set_template(request, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
@@ -426,6 +432,7 @@ cc_urlpatterns = [
     url(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
     url(r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$", cc_get_mainline_object_topo,),
     url(r"^cc_get_business_list/$", cc_get_business),
+    url(r"^cc_search_dynamic_group/(?P<biz_cc_id>\d+)/$", cc_search_dynamic_group),
     # 查询集群模板
     url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
     # 主机自定义属性表格

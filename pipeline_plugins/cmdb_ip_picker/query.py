@@ -175,3 +175,48 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
             bk_obj["bk_obj_name"] = "IP"
     result = {"result": cc_result["result"], "code": cc_result["code"], "data": cc_result["data"]}
     return JsonResponse(result)
+
+
+def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
+    """
+    @summary: 查询动态分组列表
+    @param request:
+    @param bk_biz_id:
+    @param bk_supplier_account:
+    @return:
+    """
+
+    dynamic_groups = []
+    page_start = 0
+    page_limit = 200
+    while True:
+        kwargs = {
+            "bk_biz_id": bk_biz_id,
+            "bk_supplier_account": bk_supplier_account,
+            "page": {"start": page_start, "limit": page_limit},
+        }
+        client = get_client_by_user(request.user.username)
+        cc_result = client.cc.search_dynamic_group(kwargs)
+
+        if not cc_result["result"]:
+            message = handle_api_error(_("配置平台(CMDB)"), "cc.search_dynamic_group", kwargs, cc_result)
+            if cc_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+                logger.error(message)
+                raise RawAuthFailedException(permissions=cc_result.get("permission", []))
+            return JsonResponse({"result": cc_result["result"], "message": message})
+
+        for dynamic_group in cc_result["data"]["info"]:
+            if dynamic_group["bk_obj_id"] == "host":
+                dynamic_groups.append(
+                    {
+                        "id": dynamic_group["id"],
+                        "name": dynamic_group["name"],
+                        "create_user": dynamic_group["create_user"],
+                    }
+                )
+
+        page_start += page_limit
+        if page_start >= int(cc_result["data"]["count"]):
+            break
+
+    return JsonResponse({"result": True, "data": {"count": len(dynamic_groups), "info": dynamic_groups}})

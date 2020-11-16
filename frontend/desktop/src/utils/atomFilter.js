@@ -78,6 +78,7 @@ const atomFilter = {
                                 selectors: [],
                                 ip: [],
                                 topo: [],
+                                group: [],
                                 filters: [],
                                 excludes: [],
                                 with_cloud_id: false

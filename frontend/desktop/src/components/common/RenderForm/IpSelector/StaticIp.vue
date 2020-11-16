@@ -386,7 +386,7 @@
     position: absolute;
     top: -56px;
     right: 0;
-    width: 50%;
+    width: 42%;
 }
 .ip-table {
     width: 100%;
