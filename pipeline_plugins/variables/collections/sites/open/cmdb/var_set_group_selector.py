@@ -59,8 +59,7 @@ def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field):
         set_data_dir[_field] = []
     for set_data in group_info:
         for _field in set_field:
-            if set_data.get(_field) is not None:
-                set_data_dir[_field].append(str(set_data[_field]))
+            set_data_dir[_field].append(str(set_data.get(_field, "")))
     for _field in set_field:
         flat_field_name = "flat__{}".format(_field)
         set_data_dir[flat_field_name] = ",".join(set_data_dir[_field])
@@ -77,6 +76,10 @@ class SetGroupInfo(object):
             flat_field_name = "flat__{}".format(_field)
             setattr(self, _field, data[_field])
             setattr(self, "flat__{}".format(_field), data[flat_field_name])
+        self._pipeline_var_str_value = "set_field_data: {}".format(data)
+
+    def __repr__(self):
+        return self._pipeline_var_str_value
 
 
 class VarSetGroupSelector(LazyVariable):

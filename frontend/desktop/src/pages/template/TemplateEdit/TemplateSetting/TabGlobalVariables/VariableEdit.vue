@@ -129,6 +129,22 @@
             </template>
             <bk-button v-else theme="primary" @click="$emit('closeEditingPanel')">{{ $t('返回') }}</bk-button>
         </div>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isSaveConfirmDialogShow"
+            @cancel="isSaveConfirmDialogShow = false">
+            <div class="variable-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的变量信息吗？') }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" :disabled="atomConfigLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="$emit('closeEditingPanel')">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -178,6 +194,7 @@
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
                 atomConfigLoading: false,
                 atomTypeKey: '',
+                isSaveConfirmDialogShow: false,
                 // 变量名称校验规则
                 variableNameRule: {
                     required: true,
@@ -509,6 +526,24 @@
                     })
                 }
             },
+            handleMaskClick () {
+                if (!this.variableData.key) {
+                    this.isSaveConfirmDialogShow = true
+                } else {
+                    const tagCode = this.renderConfig[0].tag_code
+                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
+                    editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
+                    if (tools.isDataEqual(editingVariable, this.variableData)) {
+                        this.$emit('closeEditingPanel')
+                    } else {
+                        this.isSaveConfirmDialogShow = true
+                    }
+                }
+            },
+            onConfirmClick () {
+                this.isSaveConfirmDialogShow = false
+                this.onSaveVariable()
+            },
             // 保存变量数据
             onSaveVariable () {
                 return this.$validator.validateAll().then(result => {
@@ -640,5 +675,16 @@
     .btn-wrap {
         padding: 8px 20px;
         border-top: 1px solid #cacedb;
+    }
+    /deep/ .variable-confirm-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        .leave-tips {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
+        }
     }
 </style>

@@ -80,6 +80,7 @@
                 </template>
             </bk-table>
         </div>
+        <separator-select :editable="editable" :value="separator" @change="$emit('update:separator', $event)"></separator-select>
     </div>
 </template>
 <script >
@@ -88,12 +89,14 @@
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import RenderForm from '../RenderForm.vue'
+    import SeparatorSelect from '../SeparatorSelect.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ResourceList',
         components: {
             RenderForm,
+            SeparatorSelect,
             NoData
         },
         props: {
@@ -120,7 +123,8 @@
                 default () {
                     return []
                 }
-            }
+            },
+            separator: String
         },
         data () {
             return {

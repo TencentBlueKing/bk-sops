@@ -54,30 +54,22 @@
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="right-icon help-doc">
-                <a
-                    class="common-icon-help"
-                    :href="bkDocUrl"
-                    target="_blank"
-                    v-bk-tooltips="{
-                        content: $t('帮助文档'),
-                        placement: 'bottom-end',
-                        theme: 'light',
-                        zIndex: 1001
-                    }">
-                </a>
-            </li>
-            <li class="right-icon version-log">
-                <i
-                    class="bk-icon  icon-info-circle-shape"
-                    v-bk-tooltips="{
-                        content: $t('版本日志'),
-                        placement: 'bottom-end',
-                        theme: 'light',
-                        zIndex: 1001
-                    }"
-                    @click="onOpenVersion">
-                </i>
+            <li
+                class="right-icon help-doc"
+                @mouseenter="isMoreOperateActive = true"
+                @mouseleave="isMoreOperateActive = false">
+                <bk-dropdown-menu align="right">
+                    <template slot="dropdown-trigger">
+                        <div :class="['more-operate-btn', { active: isMoreOperateActive }]">
+                            <i class="common-icon-help"></i>
+                        </div>
+                    </template>
+                    <div class="operate-container" slot="dropdown-content">
+                        <div class="operate-item" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
+                        <div class="operate-item" @click="onOpenVersion">{{ $t('版本日志') }}</div>
+                        <div class="operate-item" @click="goToFeedback">{{ $t('问题反馈') }}</div>
+                    </div>
+                </bk-dropdown-menu>
             </li>
             <li class="right-icon user-avatar">
                 <span
@@ -198,8 +190,10 @@
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
                 bkDocUrl: window.BK_DOC_URL,
+                bkFeedbackUrl: window.FEEDBACK_URL,
                 logList: [],
                 logDetail: '',
+                isMoreOperateActive: false,
                 logListLoading: false,
                 logDetailLoading: false
             }
@@ -321,6 +315,12 @@
                 if (config.name) {
                     this.$router.push(config)
                 }
+            },
+            goToHelpDoc () {
+                window.open(this.bkDocUrl, '_blank')
+            },
+            goToFeedback () {
+                window.open(this.bkFeedbackUrl, '_blank')
             },
             /* 打开版本日志 */
             async onOpenVersion () {
@@ -472,31 +472,50 @@ header {
         }
         .right-icon {
             float: left;
+            display: flex;
+            align-items: center;
             height: 50px;
-            & > [class^='common-icon'] {
-                margin-top: 17px;
+            & [class^='common-icon'] {
                 font-size: 16px;
                 display: inline-block;
                 color: #63656e;
-                cursor: pointer;
-                &:hover {
-                    color: #616d7d;
-                }
             }
         }
         .help-doc {
             margin-left: 18px;
+            /deep/ .bk-dropdown-content {
+                z-index: 2001;
+            }
         }
-        .version-log {
-            margin-left: 10px;
-            & > .bk-icon{
-                margin-top: 16px;
-                font-size: 18px;
-                display: inline-block;
+        .more-operate-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: brackground .2s;
+            &.active {
+                background: #252f43;
+                i {
+                    color: #3a84ff;
+                }
+            }
+        }
+        .operate-container {
+            .operate-item {
+                display: block;
+                height: 32px;
+                line-height: 33px;
+                padding: 0 16px;
                 color: #63656e;
+                font-size: 12px;
+                text-decoration: none;
+                white-space: nowrap;
                 cursor: pointer;
                 &:hover {
-                    color: #616d7d;
+                    background-color: #eaf3ff;
+                    color: #3a84ff;
                 }
             }
         }

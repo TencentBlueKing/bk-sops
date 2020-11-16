@@ -94,6 +94,7 @@ const en = {
     '编辑': 'Edit',
     '删除': 'Delete',
     '保存': 'Save',
+    '不保存': `Don't Save`,
     '格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件': 'Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv',
     '模块：': 'Module:',
     '资源不足': 'Lack of resources',
@@ -230,8 +231,9 @@ const en = {
     '运营数据': 'Analysis',
     '插件开发': 'Plugin Dev',
     '任务记录': 'Tasks',
-    '帮助文档': 'Help',
+    '产品文档': 'Product Doc',
     '版本日志': 'Version log',
+    '问题反馈': 'Feedback',
     '标准运维': 'Standard OPS',
     '职能化中心': 'Functional',
     '查看': 'View',
@@ -1017,6 +1019,8 @@ const en = {
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
     '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
     '复制/粘贴': 'Copy/Paste',
+    '确定保存修改的内容？': 'Sure to save the changes?',
+    '当前流程模板在浏览器多个标签页打开': 'Current template opens in multiple browser tabs',
     '项目配置': 'Configure',
     '成员设置': 'Membership Settings',
     '执行代理人设置': 'Executive Agent Settings',
@@ -1025,7 +1029,10 @@ const en = {
     '人员分组设置': 'Staffing Group Settings',
     '增加分组': 'add group',
     '分组名称': 'Group Name',
-    '成员': 'Members'
+    '成员': 'Members',
+    '保存已修改的节点信息吗？': 'Save the modified node information?',
+    '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '全部项目': 'All Projects'
 }
 
 export default en

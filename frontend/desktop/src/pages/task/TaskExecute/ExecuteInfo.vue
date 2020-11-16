@@ -244,14 +244,16 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED'">
+            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && nodeInfo && nodeInfo.type === 'ServiceActivity'">
                 <bk-button
                     theme="primary"
+                    v-if="isShowRetryBtn"
                     @click="onRetryClick">
                     {{ $t('重试') }}
                 </bk-button>
                 <bk-button
                     theme="default"
+                    v-if="isShowSkipBtn"
                     @click="onSkipClick">
                     {{ $t('跳过') }}
                 </bk-button>
@@ -452,15 +454,15 @@
                     return []
                 }
             },
-            treeNodeConfig: {
+            defaultActiveId: {
+                type: String,
+                default: ''
+            },
+            pipelineData: {
                 type: Object,
                 default () {
                     return {}
                 }
-            },
-            defaultActiveId: {
-                type: String,
-                default: ''
             }
         },
         data () {
@@ -489,7 +491,9 @@
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
-                isReadyStatus: true
+                isReadyStatus: true,
+                isShowSkipBtn: false,
+                isShowRetryBtn: false
             }
         },
         computed: {
@@ -542,6 +546,9 @@
             },
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
+            },
+            nodeInfo () {
+                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
         },
         watch: {
@@ -581,7 +588,8 @@
                         this.outputsInfo = []
                         this.inputsInfo = {}
                         this.logInfo = ''
-                        this.getReadyNodeName(this.nodeData[0].children)
+                        if (!this.nodeInfo) return
+                        this.executeInfo.name = this.nodeInfo.name
                         return
                     }
                     const { execution_info, outputs, inputs, log, history } = respData
@@ -653,21 +661,17 @@
                     } else {
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
+                    // 获取执行失败节点是否允许跳过，重试状态
+                    const data = this.nodeInfo
+                    if (data && data.type === 'ServiceActivity' && this.executeInfo.state === 'FAILED') {
+                        this.isShowSkipBtn = data.skippable
+                        this.isShowRetryBtn = data.retryable
+                    }
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.loading = false
                 }
-            },
-            // 获取未执行节点name
-            getReadyNodeName (data) {
-                data.forEach(item => {
-                    if (item.id === this.nodeDetailConfig.node_id) {
-                        this.executeInfo.name = item.name
-                    } else if (item.children && item.children.length) {
-                        this.getReadyNodeName(item.children)
-                    }
-                })
             },
             async getTaskNodeDetail () {
                 try {

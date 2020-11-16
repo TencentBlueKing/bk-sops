@@ -276,7 +276,7 @@ class PipelineTemplate(models.Model):
     """
 
     template_id = models.CharField(_("模板ID"), max_length=32, unique=True)
-    name = models.CharField(_("模板名称"), max_length=MAX_LEN_OF_NAME, default="default_template")
+    name = models.CharField(_("模板名称"), max_length=MAX_LEN_OF_NAME, default="default_template", db_index=True)
     create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
     creator = models.CharField(_("创建者"), max_length=32)
     description = models.TextField(_("描述"), null=True, blank=True)

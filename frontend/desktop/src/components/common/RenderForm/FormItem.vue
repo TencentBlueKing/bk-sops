@@ -342,7 +342,8 @@
                                     host_resources: [],
                                     module_detail: []
                                 },
-                                data: []
+                                data: [],
+                                separator: ','
                             }
                         }
                         break
@@ -356,7 +357,8 @@
                                     host_resources: [],
                                     host_filter_detail: []
                                 },
-                                data: []
+                                data: [],
+                                separator: ','
                             }
                         }
                         break

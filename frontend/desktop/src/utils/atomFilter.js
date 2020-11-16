@@ -91,7 +91,20 @@ const atomFilter = {
                                     host_resources: [],
                                     module_detail: []
                                 },
-                                data: []
+                                data: [],
+                                separator: ','
+                            }
+                            break
+                        case 'host_allocation':
+                            val = {
+                                config: {
+                                    host_count: 0,
+                                    host_screen_value: '',
+                                    host_resources: [],
+                                    host_filter_detail: []
+                                },
+                                data: [],
+                                separator: ','
                             }
                             break
                         default:

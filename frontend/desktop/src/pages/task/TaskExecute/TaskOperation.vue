@@ -69,8 +69,8 @@
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
-                    :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
+                    :pipeline-data="pipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onRetryClick="onRetryClick"
@@ -365,7 +365,7 @@
                 try {
                     this.$emit('taskStatusLoadChange', true)
                     let instanceStatus = {}
-                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus) { // 总任务：完成/撤销时,取实例缓存数据
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
                     } else if (
                         this.instanceStatus.state
@@ -1014,7 +1014,6 @@
                     nodeId: nodeActivities.id,
                     type: 'SubProcess'
                 })
-                
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },
