@@ -22,7 +22,7 @@ from gcloud.iam_auth.intercept import ViewInterceptor
 iam = get_iam_client()
 
 
-class GetCommonTemplateInfoInterceptor(ViewInterceptor):
+class CommonFlowViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         if request.is_trust:
             return
