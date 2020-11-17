@@ -821,7 +821,7 @@ class TaskFlowInstance(models.Model):
                 queue = self._get_task_celery_queue()
                 action_result = self.pipeline_instance.start(executor=username, queue=queue)
                 if action_result.result:
-                    taskflow_started.send(sender=self, username=username)
+                    taskflow_started.send(self, task_id=self.id)
                 return {
                     "result": action_result.result,
                     "message": action_result.message,
