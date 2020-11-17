@@ -961,6 +961,23 @@
                 })
                 return phase
             },
+            isOutputsChanged () {
+                const localOutputs = []
+                const outputs = []
+                Object.keys(this.localConstants).forEach(key => {
+                    const item = this.localConstants[key]
+                    if (item.source_type === 'component_outputs') {
+                        localOutputs.push(item)
+                    }
+                })
+                Object.keys(this.constants).forEach(key => {
+                    const item = this.constants[key]
+                    if (item.source_type === 'component_outputs') {
+                        outputs.push(item)
+                    }
+                })
+                return !tools.isDataEqual(localOutputs, outputs)
+            },
             beforeClose () {
                 if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
                     if (!(this.isSubflow ? this.basicInfo.tpl : this.basicInfo.plugin)) {
@@ -969,7 +986,7 @@
                     }
                 }
                 const config = this.getNodeFullConfig()
-                if (tools.isDataEqual(config, this.nodeConfig)) {
+                if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
                     this.$emit('update:isShow', false)
                     return true
                 } else {
