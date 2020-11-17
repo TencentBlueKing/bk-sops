@@ -16,6 +16,7 @@
         :placeholder="placeholder"
         :disabled="disabled"
         :search-limit="maxResult"
+        :multiple="multiple"
         :tag-clearable="hasDeleteIcon"
         :fixed-height="fixedHeight"
         @change="change"
@@ -37,15 +38,16 @@
                 type: Array,
                 default: () => ([])
             },
-            placeholder: {
-                type: String,
-                default: ''
-            },
+            placeholder: String,
             disabled: {
                 type: Boolean,
                 default: false
             },
             hasDeleteIcon: {
+                type: Boolean,
+                default: true
+            },
+            multiple: {
                 type: Boolean,
                 default: true
             },
