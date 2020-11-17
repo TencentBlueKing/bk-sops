@@ -173,6 +173,9 @@ if IS_USE_CELERY:
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
+TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
+OLD_COMMUNITY_TEMPLATE_DATA_SALT = "e5483c1ccde63392bd439775bba6a7ae"
+
 LOGGING["loggers"]["pipeline"] = {
     "handlers": ["root"],
     "level": LOG_LEVEL,
