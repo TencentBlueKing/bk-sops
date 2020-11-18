@@ -171,7 +171,7 @@ class NonstandardModuleImporter(object, metaclass=ABCMeta):
 
 
 class AutoInstallRequirementsImporter(NonstandardModuleImporter, metaclass=ABCMeta):
-    def post_load_module_hook(self, fullname, module):
+    def pre_load_module_hook(self, fullname, module):
         requirements = getattr(module, "__requirements__", [])
         if not isinstance(requirements, list) or not requirements:
             return
