@@ -89,7 +89,7 @@
                 this.topoList = this.transPrimaryToTree(val)
                 this.setSelectedIpsPath()
                 this.$nextTick(() => {
-                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled 属性不生效，需手动设置组件修复
+                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                 })
             },
             dynamicIps (val) {
@@ -114,7 +114,7 @@
                         bk_inst_id: d.bk_inst_id,
                         uniqueId: `${d.bk_inst_id}_${d.bk_obj_id}`,
                         bk_obj_id: d.bk_obj_id,
-                        disabled: isParentChecked // tips：tree 组件配置节点 disabled 属性不生效，需手动设置组件修复
+                        disabled: isParentChecked // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                     }
                     if (Array.isArray(d.child)) {
                         item.children = this.transPrimaryToTree(d.child, checked)
@@ -183,7 +183,7 @@
                 const checkedList = selectedNodes.slice(0)
                 const isChecked = selectedNodes.includes(node.id)
                 if (node.children && node.children.length) {
-                    this.unCheckChildrenNode(node, checkedList, isChecked)
+                    this.changeChildrenNodeState(node, checkedList, isChecked)
                 }
 
                 const selectedList = checkedList.map(uniqueId => {
@@ -194,7 +194,7 @@
                 this.$emit('change', selectedList)
                 this.validate()
             },
-            unCheckChildrenNode (node, checkedList, isChecked) {
+            changeChildrenNodeState (node, checkedList, isChecked) {
                 node.children.forEach(item => {
                     if (isChecked) {
                         const index = checkedList.findIndex(id => id === item.id)
@@ -205,7 +205,7 @@
                     }
                     this.$refs.topoTree.setDisabled(item.id, { disabled: isChecked })
                     if (item.children && item.children.length) {
-                        this.unCheckChildrenNode(item, checkedList, isChecked)
+                        this.changeChildrenNodeState(item, checkedList, isChecked)
                     }
                 })
             },
