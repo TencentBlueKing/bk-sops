@@ -708,6 +708,9 @@
             color: #ffb400;
         }
     }
+    /deep/ .bk-big-tree-node .node-content {
+        font-size: 12px;
+    }
 </style>
 <style lang="scss">
     .common-bk-select-hide-option {
