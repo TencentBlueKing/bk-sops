@@ -1048,7 +1048,6 @@ const en = {
     '是否跳过该任务节点？': 'Is the execution of this task node skipped?',
     '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
     '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?',
-    '代理执行人': 'Executor Proxy',
     '备注': 'Description',
     '请输入流程模板备注信息': 'please enter process template description'
 }

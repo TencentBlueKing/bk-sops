@@ -54,7 +54,7 @@
                         </bk-checkbox>
                     </bk-checkbox-group>
                 </bk-form-item>
-                <bk-form-item :label="$t('代理执行人')">
+                <bk-form-item :label="$t('执行代理人')">
                     <member-select
                         :multiple="false"
                         :value="formData.executorProxy"
