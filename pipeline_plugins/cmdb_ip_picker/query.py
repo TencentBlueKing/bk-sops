@@ -128,7 +128,11 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
             agent_kwargs = {
                 "bk_biz_id": bk_biz_id,
                 "bk_supplier_id": bk_supplier_id,
-                "hosts": [{"bk_cloud_id": host["bk_cloud_id"], "ip": host["bk_host_innerip"]} for host in data],
+                "hosts": [
+                    {"bk_cloud_id": host["bk_cloud_id"], "ip": host["bk_host_innerip"]}
+                    for host in data
+                    if host["bk_host_innerip"] != ""
+                ],
             }
             agent_result = client.gse.get_agent_status(agent_kwargs)
             if not agent_result["result"]:
