@@ -76,6 +76,9 @@ class JobFastPushFileService(JobService):
                 type="string",
                 schema=StringItemSchema(description=_("文件分发目标路径")),
             ),
+            self.InputItem(
+                name=_("超时时间"), key="job_timeout", type="string", schema=StringItemSchema(description=_("超时时间"))
+            ),
         ]
 
     def execute(self, data, parent_data):
@@ -104,6 +107,7 @@ class JobFastPushFileService(JobService):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+        job_timeout = data.get_one_of_inputs("job_timeout")
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -113,6 +117,8 @@ class JobFastPushFileService(JobService):
             "file_target_path": data.get_one_of_inputs("job_target_path"),
             "bk_callback_url": get_node_callback_url(self.id),
         }
+        if job_timeout:
+            job_kwargs["timeout"] = int(job_timeout)
 
         job_result = client.job.fast_push_file(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
