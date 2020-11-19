@@ -69,6 +69,9 @@ APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS = (
 APIGW_GET_USER_PROJECT_LIST_GET_USER_BUSINESS_LIST = "gcloud.apigw.views.get_user_project_list.get_user_business_list"
 APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL = "gcloud.apigw.views.get_user_project_detail.get_business_detail"
 APIGW_PREVIEW_TASK_TREE_PREVIEW_TEMPLATE_TREE = "gcloud.apigw.views.preview_task_tree.preview_template_tree"
+APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE = (
+    "gcloud.apigw.views.preview_common_task_tree.preview_template_tree"
+)
 APIGW_DECORATOR_CHECK_WHITE_LIST = "gcloud.apigw.decorators.check_white_apps"
 APIGW_DECORATOR_GET_USER_MODEL = "gcloud.apigw.decorators.get_user_model"
 APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
