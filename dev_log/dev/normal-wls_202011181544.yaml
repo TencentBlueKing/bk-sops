@@ -1,0 +1,2 @@
+bugfix:
+  - "cmdb_search_host处理agent参数时过滤ip为空的主机"
