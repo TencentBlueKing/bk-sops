@@ -11,4 +11,24 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = "gcloud.contrib.collection.apps.CollectionConfig"
+from __future__ import unicode_literals
+
+from django.db import migrations
+import json
+
+
+def load_instance_id(apps, schema_editor):
+    collection_model = apps.get_model("collection", "Collection")
+    for row in collection_model.objects.all():
+        extra_info = json.loads(row.extra_info)
+        row.instance_id = extra_info.get("id")
+        row.save(update_fields=["instance_id"])
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("collection", "0003_auto_20201103_2229"),
+    ]
+
+    operations = [migrations.RunPython(load_instance_id, reverse_code=migrations.RunPython.noop)]
