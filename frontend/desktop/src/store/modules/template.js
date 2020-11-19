@@ -180,6 +180,8 @@ const template = {
         notify_type: [],
         time_out: '',
         category: '',
+        description: '',
+        executor_proxy: '',
         subprocess_info: {
             details: [],
             subproc_has_update: false
@@ -201,6 +203,14 @@ const template = {
         },
         setCategory (state, data) {
             state.category = data
+        },
+        setTplConfig (state, data) {
+            const { category, notify_type, receiver_group, description, executor_proxy } = data
+            state.category = category
+            state.notify_type = notify_type
+            state.notify_receivers.receiver_group = receiver_group
+            state.description = description
+            state.executor_proxy = executor_proxy
         },
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
@@ -268,7 +278,7 @@ const template = {
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const { name, template_id, pipeline_tree, notify_receivers,
-                notify_type, time_out, category, subprocess_info
+                notify_type, description, executor_proxy, time_out, category, subprocess_info
             } = data
             
             const pipelineData = JSON.parse(pipeline_tree)
@@ -277,6 +287,8 @@ const template = {
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
             state.notify_type = notify_type ? JSON.parse(notify_type) : []
+            state.description = description
+            state.executor_proxy = executor_proxy
             state.time_out = time_out
             state.category = category
             state.subprocess_info = subprocess_info
@@ -306,6 +318,13 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = ''
+            state.notify_type = []
+            state.notify_receivers = {
+                receiver_group: [],
+                more_receiver: ''
+            }
+            state.description = ''
+            state.executor_proxy = ''
         },
         // 重置模板数据
         resetTemplateData (state) {
@@ -320,11 +339,14 @@ const template = {
             state.start_event = {}
             state.template_id = ''
             state.constants = {}
+            state.category = ''
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
             }
+            state.description = ''
+            state.executor_proxy = ''
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -784,7 +806,8 @@ const template = {
          */
         saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
-                location, outputs, start_event, notify_receivers, notify_type, time_out, category
+                location, outputs, start_event, notify_receivers, notify_type,
+                time_out, category, description, executor_proxy
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => {
@@ -846,6 +869,8 @@ const template = {
                 project,
                 category,
                 timeout,
+                description,
+                executor_proxy,
                 pipeline_tree: pipelineTree,
                 notify_receivers: notifyReceivers,
                 notify_type: notifyType
