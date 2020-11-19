@@ -348,6 +348,9 @@
                 border: 1px solid #c4c6cc;
             }
         }
+        /deep/.bk-button .bk-icon {
+            font-size: 14px;
+        }
     }
 }
 </style>
