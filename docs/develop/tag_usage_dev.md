@@ -331,6 +331,9 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `hasGroup`：选项是否分组
   - `clearable`：是否显示右侧清除表单值icon
   - `allowCreate`：是否支持输入框创建选项
+  - `showRightBtn`：是否显示选择框右侧按钮，默认 false
+  - `rightBtnIcon`：选择框右侧按钮icon，默认 'bk-icon icon-chain'
+  - `rightBtnCb`：选择框右侧按钮点击回调函数，默认为空
   - `disabled`：设置是否禁用组件
   - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 
