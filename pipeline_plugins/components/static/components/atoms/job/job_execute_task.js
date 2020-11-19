@@ -236,7 +236,7 @@
                     {value: true, name: gettext("是")},
                     {value: false, name: gettext("否")},
                 ],
-                default: false,
+                default: true,
                 validation: [
                     {
                         type: "required"
