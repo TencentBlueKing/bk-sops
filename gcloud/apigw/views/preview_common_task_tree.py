@@ -21,11 +21,11 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.constants import PROJECT
+from gcloud.constants import COMMON
 from gcloud.taskflow3.utils import preview_template_tree
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
+from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -39,8 +39,8 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@iam_intercept(FlowViewInterceptor())
-def preview_task_tree(request, project_id, template_id):
+@iam_intercept(CommonFlowViewInterceptor())
+def preview_common_task_tree(request, project_id, template_id):
     try:
         req_data = json.loads(request.body)
     except Exception:
@@ -61,11 +61,15 @@ def preview_task_tree(request, project_id, template_id):
         )
 
     try:
-        data = preview_template_tree(request.project.id, PROJECT, template_id, version, exclude_task_nodes_id)
+        data = preview_template_tree(request.project.id, COMMON, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        logger.exception("[API] preview_task_tree fail: {}".format(e))
+        logger.exception("[API] preview_common_task_tree fail: {}".format(e))
         return JsonResponse(
-            {"result": False, "message": "preview_task_tree fail: {}".format(e), "code": err_code.UNKNOWN_ERROR.code}
+            {
+                "result": False,
+                "message": "preview_common_task_tree fail: {}".format(e),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
         )
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

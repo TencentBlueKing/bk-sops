@@ -21,7 +21,7 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_data
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.apigw import GetCommonTemplateInfoInterceptor
+from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -33,7 +33,7 @@ except ImportError:
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
-@iam_intercept(GetCommonTemplateInfoInterceptor())
+@iam_intercept(CommonFlowViewInterceptor())
 def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
