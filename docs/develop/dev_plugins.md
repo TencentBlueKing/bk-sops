@@ -79,6 +79,25 @@ ComponentClient.setup_components(collections.AVAILABLE_COLLECTIONS)
 
 ### 4. 标准插件后台开发
 
+#### 生成标准插件基本文件及目录
+在项目根目录下运行命令
+```shell script
+python -m scripts.create_new_plugin {group_code} {plugin_code} {version} {plugin_env}
+```
+
+其中
+
+- **group_code**为插件所属的系列（如：cc,tgw,gcs)
+- **plugin_code**为插件的code（如：create_set)
+- **version**为插件的版本（如：v1.0)
+- **plugin_env**为插件的类型（如：open，ieod)
+
+eg.
+```shell script
+python -m scripts.create_new_plugin cc create_set v1.0 open
+```
+即创建CC系列插件create_set，版本号为v1.0，属于开源版插件
+
 在 `plugin.py` 文件中编写插件后台逻辑，主要包括标准插件定义和后台执行逻辑，下面是示例代码
 
 ```python
