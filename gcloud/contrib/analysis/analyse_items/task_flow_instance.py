@@ -91,7 +91,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         filters = {}
     orm_filters = produce_filter(filters)
     try:
-        taskflow = TaskFlowInstance.objects.filter(**orm_filters)
+        taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
     except Exception as e:
         message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(
             filters=filters, error=e
