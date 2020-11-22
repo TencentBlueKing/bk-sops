@@ -23,8 +23,7 @@ from pipeline.engine.models import Data, ScheduleService, Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger("celery")
-node_logger = logging.getLogger("pipeline.logging")
+logger = logging.getLogger("celery_and_engine_component")
 
 __all__ = ["ServiceActivityHandler"]
 
@@ -62,10 +61,6 @@ class ServiceActivityHandler(FlowElementHandler):
 
         if element.timeout:
             logger.info("node {} {} start timeout monitor, timeout: {}".format(element.id, version, element.timeout))
-            node_logger.info(
-                "node {} {} start timeout monitor, timeout: {}".format(element.id, version, element.timeout),
-                extra={"_id": element.id},
-            )
             signals.service_activity_timeout_monitor_start.send(
                 sender=element.__class__,
                 node_id=element.id,
@@ -94,7 +89,6 @@ class ServiceActivityHandler(FlowElementHandler):
             ex_data = traceback.format_exc()
             element.data.outputs.ex_data = ex_data
             logger.error(ex_data)
-            node_logger.error(ex_data, extra={"_id": element.id})
 
         # process result
         if pre_execute_success is False or success is False:
@@ -110,9 +104,6 @@ class ServiceActivityHandler(FlowElementHandler):
                     sender=element.__class__, node_id=element.id, version=version
                 )
                 logger.info("node {} {} timeout monitor revoke".format(element.id, version))
-                node_logger.info(
-                    "node {} {} timeout monitor revoke".format(element.id, version), extra={"_id": element.id}
-                )
 
             # send activity error signal
             valve.send(
@@ -148,9 +139,6 @@ class ServiceActivityHandler(FlowElementHandler):
                     sender=element.__class__, node_id=element.id, version=version
                 )
                 logger.info("node {} {} timeout monitor revoke".format(element.id, version))
-                node_logger.info(
-                    "node {} {} timeout monitor revoke".format(element.id, version), extra={"_id": element.id}
-                )
 
             if not Status.objects.finish(element, error_ignorable):
                 # has been forced failed
