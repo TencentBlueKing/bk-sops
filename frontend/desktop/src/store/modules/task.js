@@ -288,7 +288,7 @@ const task = {
          * 节点强制失败
          * @param {Object} data 任务实例数据
          */
-        onForcedFail ({ commit }, data) {
+        forceFail ({ commit }, data) {
             const { project_id } = store.state.project
             const { node_id, task_id } = data
             const action = 'forced_fail'

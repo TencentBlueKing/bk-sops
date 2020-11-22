@@ -58,6 +58,11 @@
             prop: 'formData',
             event: 'change'
         },
+        provide () {
+            return {
+                getFormData: () => this.formData
+            }
+        },
         props: {
             scheme: {
                 type: Array,
@@ -212,6 +217,7 @@
                                 selectors: [],
                                 ip: [],
                                 topo: [],
+                                group: [],
                                 filters: [],
                                 excludes: [],
                                 with_cloud_id: false

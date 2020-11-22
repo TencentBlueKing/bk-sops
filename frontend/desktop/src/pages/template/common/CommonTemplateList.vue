@@ -57,7 +57,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
+                    @page-limit-change="onPageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="$t('流程名称')" min-width="200">
                         <template slot-scope="props">
@@ -314,7 +314,7 @@
                     current: Number(this.page) || 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 hasCreateCommonTplPerm: false, // 创建公共流程权限
@@ -544,6 +544,11 @@
                 this.$router.push({ name: 'commonProcessList', query: { page: page } })
                 this.getTemplateList()
             },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getTemplateList()
+            },
             /**
              * 单个模板操作项点击时校验
              * @params {Array} required 需要的权限
@@ -621,11 +626,6 @@
                     return '--'
                 }
                 return item.subprocess_has_update ? i18n.t('是') : i18n.t('否')
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
-                this.getTemplateList()
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {

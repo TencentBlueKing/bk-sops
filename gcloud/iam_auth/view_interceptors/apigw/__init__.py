@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from .create_periodic_task import CreatePeriodicTaskInterceptor  # noqa
 from .create_task import CreateTaskInterceptor  # noqa
 from .fast_create_task import FastCreateTaskInterceptor  # noqa
-from .get_common_template_info import GetCommonTemplateInfoInterceptor  # noqa
+from .common_flow_view import CommonFlowViewInterceptor  # noqa
 from .get_periodic_task_info import GetPeriodicTaskInfoInterceptor  # noqa
 from .project_view import ProjectViewInterceptor  # noqa
 from .task_view import TaskViewInterceptor  # noqa

@@ -41,6 +41,7 @@ from gcloud.apigw.views.node_callback import node_callback
 from gcloud.apigw.views.operate_node import operate_node
 from gcloud.apigw.views.operate_task import operate_task
 from gcloud.apigw.views.plugin_proxy import dispatch_plugin_query
+from gcloud.apigw.views.preview_common_task_tree import preview_common_task_tree
 from gcloud.apigw.views.preview_task_tree import preview_task_tree
 from gcloud.apigw.views.query_task_count import query_task_count
 from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabled
@@ -88,4 +89,5 @@ urlpatterns = [
     url(r"^import_project_template/(?P<project_id>\d+)/$", import_project_template),
     url(r"^claim_functionalization_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", claim_functionalization_task),
     url(r"^get_functionalization_task_list/$", get_functionalization_task_list),
+    url(r"^preview_common_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_common_task_tree),
 ]

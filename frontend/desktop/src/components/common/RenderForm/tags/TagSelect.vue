@@ -24,25 +24,30 @@
                 :multiple-limit="multiple_limit"
                 :multiple="multiple"
                 :no-data-text="empty_text"
-                :placeholder="placeholder">
+                :filter-method="filterMethod"
+                :placeholder="placeholder"
+                @visible-change="onVisibleChange">
+                <template v-if="showRightBtn" slot="prefix">
+                    <i class="right-btn" :class="rightBtnIcon" @click="onRightBtnClick"></i>
+                </template>
                 <template v-if="!hasGroup">
                     <el-option
-                        v-for="item in items"
+                        v-for="item in options"
                         v-loading="loading"
-                        :key="item.text"
+                        :key="item.value"
                         :label="item.text"
                         :value="item.value">
                     </el-option>
                 </template>
                 <template v-else>
                     <el-option-group
-                        v-for="group in items"
-                        :key="group.text"
+                        v-for="group in options"
+                        :key="group.value"
                         :label="group.text">
                         <el-option
                             v-for="item in group.options"
                             v-loading="loading"
-                            :key="item.text"
+                            :key="item.value"
                             :label="item.text"
                             :value="item.value">
                         </el-option>
@@ -69,20 +74,7 @@
             type: Array,
             required: false,
             default () {
-                return [
-                    {
-                        text: gettext('选项1'),
-                        value: 'value1'
-                    },
-                    {
-                        text: gettext('选项2'),
-                        value: 'value2'
-                    },
-                    {
-                        text: gettext('选项3'),
-                        value: 'value3'
-                    }
-                ]
+                return []
             },
             desc: "array like [{text: '', value: ''}, {text: '', value: ''}]"
         },
@@ -148,6 +140,24 @@
             default: '',
             desc: 'placeholder'
         },
+        showRightBtn: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'whether to display the button on the right of the selection box'
+        },
+        rightBtnIcon: {
+            type: String,
+            required: false,
+            default: 'bk-icon icon-chain',
+            desc: 'button icon to the right of the selection box'
+        },
+        rightBtnCb: {
+            type: Function,
+            required: false,
+            default: null,
+            desc: 'Button to the right of the selection box to click on the event callback function'
+        },
         empty_text: {
             type: String,
             required: false,
@@ -160,6 +170,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                options: this.$attrs.items ? this.$attrs.items.slice(0) : [],
                 loading: false,
                 loading_text: gettext('加载中')
             }
@@ -197,6 +208,11 @@
                 }
             }
         },
+        watch: {
+            items (val) {
+                this.options = val.slice(0)
+            }
+        },
         mounted () {
             this.remoteMethod()
         },
@@ -210,6 +226,16 @@
                     }
                 })
                 return label
+            },
+            // 自定义搜索，支持以','符号分隔的多条数据搜索
+            filterMethod (val) {
+                if (!val) {
+                    this.options = this.items.slice(0)
+                    return
+                }
+
+                const inputVal = val.split(',')
+                this.options = this.items.filter(option => inputVal.some(i => option.text.includes(i)))
             },
             set_loading (loading) {
                 this.loading = loading
@@ -235,18 +261,42 @@
                         self.loading = false
                     }
                 })
+            },
+            onRightBtnClick () {
+                typeof this.rightBtnCb === 'function' && this.rightBtnCb()
+            },
+            onVisibleChange (val) {
+                if (!val) { // 下拉框隐藏后，还原搜索过滤掉的选项
+                    this.options = this.items.slice(0)
+                }
             }
         }
     }
 </script>
 <style lang="scss" scoped>
     .el-select {
+        position: relative;
         width: 100%;
         /deep/ .el-input__inner {
             padding-left: 10px;
+            padding-right: 60px;
             height: 32px;
             line-height: 32px;
             font-size: 12px;
+        }
+        /deep/.el-input__prefix {
+            left: auto;
+            right: 34px;
+        }
+        .right-btn {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
     }
 </style>

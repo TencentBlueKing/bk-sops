@@ -31,7 +31,7 @@ from gcloud.external_plugins.models.cache import CachePackageSource
 from gcloud.external_plugins.protocol.readers import reader_cls_factory
 
 source_cls_factory = {}
-ORIGIN = 'origin'
+ORIGIN = "origin"
 
 
 def original_source(cls):
@@ -42,26 +42,21 @@ def original_source(cls):
 class OriginalPackageSourceManager(PackageSourceManager):
     @transaction.atomic()
     def add_original_source(self, name, source_type, packages, original_kwargs=None, **base_kwargs):
-        full_kwargs = {
-            'type': source_type,
-            'name': name,
-            'packages': packages
-        }
+        full_kwargs = {"type": source_type, "name": name, "packages": packages}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
         # 未开启缓存机制，需要创建 base source
         if not CachePackageSource.objects.get_base_source():
-            base_source = super(OriginalPackageSourceManager, self).add_base_source(name,
-                                                                                    source_type,
-                                                                                    packages,
-                                                                                    **base_kwargs)
-            full_kwargs['base_source_id'] = base_source.id
+            base_source = super(OriginalPackageSourceManager, self).add_base_source(
+                name, source_type, packages, **base_kwargs
+            )
+            full_kwargs["base_source_id"] = base_source.id
         original_source_cls = source_cls_factory[source_type]
         return original_source_cls.objects.create(**full_kwargs)
 
     def update_original_source(self, package_source_id, packages, original_kwargs=None, **base_kwargs):
-        full_kwargs = {'packages': packages}
+        full_kwargs = {"packages": packages}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
@@ -72,21 +67,18 @@ class OriginalPackageSourceManager(PackageSourceManager):
         if not CachePackageSource.objects.get_base_source():
             # 新增时也未开启缓存，直接更新 base source
             if package_obj.base_source_id:
-                super(OriginalPackageSourceManager, self).update_base_source(package_source_id,
-                                                                             package_obj.type,
-                                                                             packages,
-                                                                             **base_kwargs)
+                super(OriginalPackageSourceManager, self).update_base_source(
+                    package_source_id, package_obj.type, packages, **base_kwargs
+                )
             # 新增时开启了缓存，需要初始化 base source
             else:
-                base_source = super(OriginalPackageSourceManager, self).add_base_source(package_obj.name,
-                                                                                        package_obj.type,
-                                                                                        packages,
-                                                                                        **base_kwargs)
-                full_kwargs['base_source_id'] = base_source.id
+                base_source = super(OriginalPackageSourceManager, self).add_base_source(
+                    package_obj.name, package_obj.type, packages, **base_kwargs
+                )
+                full_kwargs["base_source_id"] = base_source.id
         else:
-            super(OriginalPackageSourceManager, self).delete_base_source(package_source_id,
-                                                                         package_obj.type)
-            full_kwargs['base_source_id'] = None
+            super(OriginalPackageSourceManager, self).delete_base_source(package_source_id, package_obj.type)
+            full_kwargs["base_source_id"] = None
         package_objs.update(**full_kwargs)
 
 
@@ -123,7 +115,7 @@ class OriginalPackageSource(PackageSource):
 
     def update_base_source(self, source_type, packages, **kwargs):
         if source_type != self.type:
-            raise exceptions.OriginalSourceTypeError('Original source type cannot be updated')
+            raise exceptions.OriginalSourceTypeError("Original source type cannot be updated")
         super(OriginalPackageSource, self).update_base_source(source_type, packages, **kwargs)
 
     def read(self):
@@ -141,7 +133,7 @@ class GitRepoOriginalSource(OriginalPackageSource):
     class Meta:
         verbose_name = _("GIT远程包源 GitRepoOriginalSource")
         verbose_name_plural = _("GIT远程包源 GitRepoOriginalSource")
-        ordering = ['-id']
+        ordering = ["-id"]
 
     @staticmethod
     def original_type():
@@ -149,24 +141,21 @@ class GitRepoOriginalSource(OriginalPackageSource):
 
     @property
     def details(self):
-        return {
-            'repo_address': self.repo_address,
-            'repo_raw_address': self.repo_raw_address,
-            'branch': self.branch
-        }
+        return {"repo_address": self.repo_address, "repo_raw_address": self.repo_raw_address, "branch": self.branch}
 
 
 @original_source
 class S3OriginalSource(OriginalPackageSource):
     service_address = models.TextField(_("对象存储服务地址"))
     bucket = models.TextField(_("bucket 名"))
+    source_dir = models.TextField(_("源目录名"), default="")
     access_key = models.TextField(_("access key"))
     secret_key = models.TextField(_("secret key"))
 
     class Meta:
         verbose_name = _("S3远程包源 S3OriginalSource")
         verbose_name_plural = _("S3远程包源 S3OriginalSource")
-        ordering = ['-id']
+        ordering = ["-id"]
 
     @staticmethod
     def original_type():
@@ -175,10 +164,11 @@ class S3OriginalSource(OriginalPackageSource):
     @property
     def details(self):
         return {
-            'service_address': self.service_address,
-            'bucket': self.bucket,
-            'access_key': self.access_key,
-            'secret_key': self.secret_key,
+            "service_address": self.service_address,
+            "bucket": self.bucket,
+            "source_dir": self.source_dir,
+            "access_key": self.access_key,
+            "secret_key": self.secret_key,
         }
 
 
@@ -189,7 +179,7 @@ class FileSystemOriginalSource(OriginalPackageSource):
     class Meta:
         verbose_name = _("FS远程包源 FileSystemOriginalSource")
         verbose_name_plural = _("FS远程包源 FileSystemOriginalSource")
-        ordering = ['-id']
+        ordering = ["-id"]
 
     @staticmethod
     def original_type():
@@ -197,9 +187,7 @@ class FileSystemOriginalSource(OriginalPackageSource):
 
     @property
     def details(self):
-        return {
-            'path': self.path
-        }
+        return {"path": self.path}
 
     def read(self):
-        raise exceptions.OriginalSourceTypeError('FileSystem original source does not support to be cached')
+        raise exceptions.OriginalSourceTypeError("FileSystem original source does not support to be cached")
