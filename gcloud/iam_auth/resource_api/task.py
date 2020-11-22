@@ -63,8 +63,10 @@ class TaskResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = TaskFlowInstance.objects.select_related("pipeline_instance").filter(
-                pipeline_instance__name__icontains=keyword, is_deleted=False
+            queryset = (
+                TaskFlowInstance.objects.select_related("pipeline_instance")
+                .filter(pipeline_instance__name__icontains=keyword, is_deleted=False)
+                .only("pipeline_instance__name")
             )
             if project_id:
                 queryset = queryset.filter(project__id=project_id)

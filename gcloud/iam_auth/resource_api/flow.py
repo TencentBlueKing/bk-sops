@@ -42,8 +42,10 @@ class FlowResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = TaskTemplate.objects.select_related("pipeline_template").filter(
-                pipeline_template__name__icontains=keyword, is_deleted=False
+            queryset = (
+                TaskTemplate.objects.select_related("pipeline_template")
+                .filter(pipeline_template__name__icontains=keyword, is_deleted=False)
+                .only("pipeline_template__name")
             )
             if project_id:
                 queryset = queryset.filter(project__id=project_id)

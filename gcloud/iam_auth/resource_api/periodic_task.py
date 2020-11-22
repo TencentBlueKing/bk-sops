@@ -42,7 +42,9 @@ class PeriodicTaskResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = PeriodicTask.objects.select_related("task").filter(task__name__icontains=keyword)
+            queryset = (
+                PeriodicTask.objects.select_related("task").filter(task__name__icontains=keyword).only("task__name")
+            )
             if project_id:
                 queryset = queryset.filter(project__id=project_id)
             results = [

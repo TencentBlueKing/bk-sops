@@ -35,8 +35,10 @@ class CommonFlowResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = CommonTemplate.objects.select_related("pipeline_template").filter(
-                pipeline_template__name__icontains=keyword, is_deleted=False
+            queryset = (
+                CommonTemplate.objects.select_related("pipeline_template")
+                .filter(pipeline_template__name__icontains=keyword, is_deleted=False)
+                .only("pipeline_template__name")
             )
             results = [
                 {"id": str(common_flow.id), "display_name": common_flow.name}

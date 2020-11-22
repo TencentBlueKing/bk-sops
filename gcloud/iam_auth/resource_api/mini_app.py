@@ -42,7 +42,7 @@ class MiniAppResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = AppMaker.objects.filter(name__icontains=keyword, is_deleted=False)
+            queryset = AppMaker.objects.filter(name__icontains=keyword, is_deleted=False).only("name")
             if project_id:
                 queryset = queryset.filter(project__id=project_id)
             results = [

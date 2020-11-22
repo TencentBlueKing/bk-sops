@@ -34,7 +34,7 @@ class ProjectResourceProvider(ResourceProvider):
 
         results = cache.get(cache_keyword)
         if results is None:
-            queryset = Project.objects.filter(name__icontains=keyword, is_disable=False)
+            queryset = Project.objects.filter(name__icontains=keyword, is_disable=False).only("name")
             results = [
                 {"id": str(project.id), "display_name": project.name}
                 for project in queryset[page.slice_from : page.slice_to]
