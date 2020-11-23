@@ -124,7 +124,7 @@ const atomForm = {
                     const configData = transAtom($.atoms, atom)
                     $.atoms[atom] = configData
                     commit('setAtomConfig', { atomType: atom, version: atomVersion, configData })
-                    return Promise.resolve({ data: config })
+                    return Promise.resolve({ data: configData })
                 }
 
                 return await new Promise ((resolve, reject) => {
