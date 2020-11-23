@@ -435,8 +435,8 @@ class TemplateRelationship(models.Model):
     """
 
     ancestor_template_id = models.CharField(_("根模板ID"), max_length=32, db_index=True)
-    descendant_template_id = models.CharField(_("子流程模板ID"), max_length=32, null=False)
-    subprocess_node_id = models.CharField(_("子流程节点 ID"), max_length=32, null=False)
+    descendant_template_id = models.CharField(_("子流程模板ID"), max_length=32, null=False, db_index=True)
+    subprocess_node_id = models.CharField(_("子流程节点 ID"), max_length=32, null=False, db_index=True)
     version = models.CharField(_("快照字符串的md5"), max_length=32, null=False)
 
     objects = TemplateRelationShipManager()
@@ -613,7 +613,7 @@ class PipelineInstance(models.Model):
     流程实例对象
     """
 
-    instance_id = models.CharField(_("实例ID"), max_length=32, unique=True)
+    instance_id = models.CharField(_("实例ID"), max_length=32, unique=True, db_index=True)
     template = models.ForeignKey(
         PipelineTemplate, verbose_name=_("Pipeline模板"), null=True, blank=True, on_delete=models.SET_NULL
     )
