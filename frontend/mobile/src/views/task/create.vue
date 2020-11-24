@@ -254,8 +254,8 @@
                     try {
                         const params = {
                             template_id: this.templateId,
-                            exclude_task_nodes_id: JSON.stringify(this.excludeTaskNodes),
-                            template_source: 'business'
+                            exclude_task_nodes_id: this.excludeTaskNodes,
+                            template_source: 'project'
                         }
                         const pipelineTree = await this.getPreviewTaskTree(params)
                         Object.keys(this.templateConstants).forEach(k => {
@@ -264,7 +264,7 @@
                         const data = {
                             'name': this.taskName,
                             'description': '',
-                            'exec_data': JSON.stringify(pipelineTree)
+                            'exec_data': pipelineTree
                         }
                         const response = await this.createTask(data)
                         if (response) {

@@ -61,8 +61,7 @@ export default {
             const url = `${global.getMobileUrlPrefix(rootState.bizId).instancePreview}`
             return http.post(
                 url,
-                qs.stringify(params),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                params
             ).then(response => {
                 return response.data.pipeline_tree
             })
@@ -71,7 +70,7 @@ export default {
         createTask ({ rootState, state }, data) {
             const url = `${global.getMobileUrlPrefix().instance}`
             const requestData = {
-                'business': `api/v3/business/${rootState.bizId}/`,
+                'project': `api/v3/project/${rootState.bizId}/`,
                 'template_id': state.id,
                 'creator': rootState.user.username,
                 'name': data.name,

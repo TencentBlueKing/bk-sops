@@ -19,7 +19,7 @@
                     v-for="item in businessList"
                     :key="item.cc_id"
                     :title="item.cc_name"
-                    @click="onClickBusiness(item.cc_id)">
+                    @click="onClickBusiness(item.id)">
                     <template slot="title">
                         <van-tag color="false" :class="item.tagColor">{{ item.tag }}</van-tag>
                         <span class="title">{{ item.cc_name }}</span>
