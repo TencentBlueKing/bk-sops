@@ -35,7 +35,7 @@
         </section>
         <!-- 模板列表 -->
         <section class="bk-block">
-            <h2 class="bk-block-title" v-if="templateList.length > 0">{{ business.cc_name }}</h2>
+            <h2 class="bk-block-title" v-if="templateList.length > 0">{{ project.cc_name }}</h2>
             <van-list
                 v-model="loading"
                 :finished="finished"
@@ -71,7 +71,7 @@
                 templateList: [],
                 originalCollectTemplateList: [],
                 originalTemplateList: [],
-                business: {
+                project: {
                     cc_name: ''
                 },
                 i18n: {
@@ -109,7 +109,7 @@
                     this.templateList = [...this.templateList, ...response.objects]
                     this.originalTemplateList = this.templateList
                     if (this.templateList.length > 0) {
-                        this.business = this.templateList[0]['business']
+                        this.project = this.templateList[0]['project']
                     }
                     this.getCollectedTemplateList()
                 } catch (e) {
