@@ -14,13 +14,14 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import unicode_literals
 import datetime
+import traceback
 
 from django.db import connection
 from django.apps import AppConfig
 
 
 class DataMigrationConfig(AppConfig):
-    name = 'data_migration'
+    name = "data_migration"
 
     def ready(self):
         try:
@@ -29,29 +30,33 @@ class DataMigrationConfig(AppConfig):
             return
 
         # djcelery upgrate compatible
-        if int(djcelery.__version__.split('.')[1]) >= 2:
+        if int(djcelery.__version__.split(".")[1]) >= 2:
             with connection.cursor() as cursor:
-                cursor.execute('show tables;')
+                try:
+                    cursor.execute("show tables;")
+                except Exception:
+                    print("data_migration show tables error:", traceback.format_exc())
+                    return
                 tables = {item[0] for item in cursor.fetchall()}
-                is_first_migrate = 'django_migrations' not in tables
+                is_first_migrate = "django_migrations" not in tables
                 if is_first_migrate:
                     return
 
-                using_djcelery = 'djcelery_taskstate' in tables
+                using_djcelery = "djcelery_taskstate" in tables
                 if not using_djcelery:
                     return
 
                 # insert djcelery migration record
-                cursor.execute(
-                    'select * from `django_migrations` where app=\'djcelery\' and name=\'0001_initial\';')
+                cursor.execute("select * from `django_migrations` where app='djcelery' and name='0001_initial';")
                 row = cursor.fetchall()
                 if not row:
                     cursor.execute(
-                        'insert into `django_migrations` (app, name, applied) '
-                        'values (\'djcelery\', \'0001_initial\', \'%s\');' %
-                        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        "insert into `django_migrations` (app, name, applied) "
+                        "values ('djcelery', '0001_initial', '%s');"
+                        % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     )
 
         # account model patch
         from data_migration.account.patch import patch as user_patch
+
         user_patch()
