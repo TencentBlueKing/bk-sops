@@ -113,8 +113,17 @@
              */
             hookForm (form) {
                 const reuseList = []
-                const variableKey = this.isSubflow ? form : `\${${form}}`
-                const formCode = this.isSubflow ? form.match(varKeyReg)[1] : form
+                let variableKey, formCode
+
+                if (this.isSubflow) {
+                    const variable = this.subflowForms[form]
+                    variableKey = form
+                    formCode = variable.source_tag.split('.')[1]
+                } else {
+                    variableKey = `\${${form}}`
+                    formCode = form
+                }
+
                 let isKeyInVariables = false
                 this.hookingVarForm = form
                 this.hooked[form] = true
