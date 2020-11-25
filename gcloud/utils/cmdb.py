@@ -19,6 +19,7 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 from .thread import ThreadPool
+from ..core.models import StaffGroupSet
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -218,13 +219,23 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         return result
 
     biz_data = cc_result["data"]["info"][0]
+    staff_groups = []
     receivers = []
 
     if isinstance(receiver_group, str):
         receiver_group = receiver_group.split(",")
 
     for group in receiver_group:
-        receivers.extend(biz_data[group].split(","))
+        # 原通知分组
+        if group in biz_data:
+            if biz_data[group]:
+                receivers.extend(biz_data[group].split(","))
+        # 自定义人员分组
+        else:
+            staff_groups.append(group)
+    staff_groups = StaffGroupSet.objects.filter(is_deleted=False, id__in=staff_groups).values_list("members", flat=True)
+    for group in staff_groups:
+        receivers.extend(group.split(","))
 
     if more_receiver:
         receivers.extend(more_receivers)
