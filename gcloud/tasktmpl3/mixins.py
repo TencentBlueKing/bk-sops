@@ -221,8 +221,7 @@ class TaskTmplStatisticsMixin(ClassificationCountMixin):
         )
 
         pipeline_dict = {}
-        pipeline_data = template_pipeline_data.filter(template_id__in=template_id_list)
-        for pipeline in pipeline_data:
+        for pipeline in template_pipeline_data:
             pipeline_dict[pipeline.template_id] = {
                 "atom_total": pipeline.atom_total,
                 "subprocess_total": pipeline.subprocess_total,

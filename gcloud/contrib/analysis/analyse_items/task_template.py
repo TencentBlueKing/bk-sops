@@ -79,7 +79,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         filters = {}
     orm_filters = produce_filter(filters)
     try:
-        tasktmpl = TaskTemplate.objects.filter(**orm_filters)
+        tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
     except Exception as e:
         message = "query template params conditions[{filters}] have invalid key or value: {error}".format(
             filters=filters, error=e
