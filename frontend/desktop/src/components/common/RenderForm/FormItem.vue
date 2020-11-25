@@ -271,6 +271,7 @@
                     case 'datetime':
                     case 'password':
                     case 'memberSelector':
+                    case 'logDisplay':
                     case 'code_editor':
                     case 'section':
                         valueFormat = {
