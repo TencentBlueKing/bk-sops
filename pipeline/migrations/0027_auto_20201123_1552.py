@@ -17,14 +17,4 @@ class Migration(migrations.Migration):
             name="instance_id",
             field=models.CharField(db_index=True, max_length=32, unique=True, verbose_name="实例ID"),
         ),
-        migrations.AlterField(
-            model_name="templaterelationship",
-            name="descendant_template_id",
-            field=models.CharField(db_index=True, max_length=32, verbose_name="子流程模板ID"),
-        ),
-        migrations.AlterField(
-            model_name="templaterelationship",
-            name="subprocess_node_id",
-            field=models.CharField(db_index=True, max_length=32, verbose_name="子流程节点 ID"),
-        ),
     ]

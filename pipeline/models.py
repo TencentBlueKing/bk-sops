@@ -435,8 +435,8 @@ class TemplateRelationship(models.Model):
     """
 
     ancestor_template_id = models.CharField(_("根模板ID"), max_length=32, db_index=True)
-    descendant_template_id = models.CharField(_("子流程模板ID"), max_length=32, null=False, db_index=True)
-    subprocess_node_id = models.CharField(_("子流程节点 ID"), max_length=32, null=False, db_index=True)
+    descendant_template_id = models.CharField(_("子流程模板ID"), max_length=32, null=False)
+    subprocess_node_id = models.CharField(_("子流程节点 ID"), max_length=32, null=False)
     version = models.CharField(_("快照字符串的md5"), max_length=32, null=False)
 
     objects = TemplateRelationShipManager()
