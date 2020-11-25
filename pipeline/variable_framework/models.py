@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,6 +21,7 @@ class VariableModel(models.Model):
     """
     注册的变量
     """
+
     code = models.CharField(_("变量编码"), max_length=255, unique=True)
     status = models.BooleanField(_("变量是否可用"), default=True)
 
@@ -52,4 +53,4 @@ class VariableModel(models.Model):
 
     @property
     def meta_tag(self):
-        return getattr(self.get_class(), 'meta_tag')
+        return getattr(self.get_class(), "meta_tag")

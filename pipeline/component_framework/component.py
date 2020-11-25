@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from pipeline.component_framework.base import ComponentMeta
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.converter import get_variable
 from pipeline.exceptions import ComponentDataLackException
-from pipeline.component_framework.base import ComponentMeta
 
 
 class Component(object, metaclass=ComponentMeta):
@@ -44,15 +44,15 @@ class Component(object, metaclass=ComponentMeta):
 
     @classmethod
     def get_output_schema(cls, key):
-        return cls._get_item_schema(type='outputs', key=key).schema
+        return cls._get_item_schema(type="outputs", key=key).schema
 
     @classmethod
     def get_input_schema(cls, key):
-        return cls._get_item_schema(type='inputs', key=key).schema
+        return cls._get_item_schema(type="inputs", key=key).schema
 
     @classmethod
     def form_is_embedded(cls):
-        return getattr(cls, 'embedded_form', False)
+        return getattr(cls, "embedded_form", False)
 
     def clean_execute_data(self, context):
         """
@@ -68,7 +68,7 @@ class Component(object, metaclass=ComponentMeta):
 
         for key, tag_info in list(data_dict.items()):
             if tag_info is None:
-                raise ComponentDataLackException('Lack of inputs: %s' % key)
+                raise ComponentDataLackException("Lack of inputs: %s" % key)
 
             inputs[key] = get_variable(key, tag_info, context, pipeline_data)
 

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -45,7 +45,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import StartPoint from './StartPoint.vue'
     import EndPoint from './EndPoint.vue'
     import TaskNode from './TaskNode.vue'
@@ -177,7 +176,7 @@
 <style lang="scss">
     @import '@/scss/mixins/multiLineEllipsis.scss';
 
-    $blueDark: #52699D;
+    $blueDark: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;
@@ -200,21 +199,45 @@
     }
 
     @mixin taskNodeStyle ($color) {
+        &:hover {
+            .node-name {
+                border-color: $color;
+            }
+            .state-icon {
+                display: block;
+            }
+        }
         .node-status-block {
             background-color: $color;
         }
         .task-status-icon {
             background: $color;
         }
-       .sub-body {
-            .t-left .triangle, .blue-bar{
-                background-color: $color;
-            }
+    }
+    @mixin nodeClick ($color) {
+        .node-name {
+            border-color: $color;
+            background-color: rgba($color, 0.3);
         }
     }
+
     @mixin gatewayStyle ($color) {
         .node-type-icon {
             color: $color;
+        }
+    }
+    @keyframes shake {
+        25% {
+            transform: rotate(-2deg);
+        }
+        50% {
+            transform: rotate(0);
+        }
+        75% {
+            transform: rotate(2deg);
+        }
+        100% {
+            transform: rotate(0);
         }
     }
     .jsflow-node.selected {
@@ -234,6 +257,9 @@
         &>.subflow-node + .close-icon{
             right: 14px;
         }
+        &.node-shake {
+            animation: shake .2s ease-in-out 2;
+        }
         .close-icon {
             display: none;
             position: absolute;
@@ -241,6 +267,7 @@
             right: -8px;
             font-size: 16px;
             color: #63656e;
+            background: #ffffff;
             border-radius: 50%;
             z-index: 2;
             cursor: pointer;
@@ -249,8 +276,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             background: #96a1b9;
             border-radius: 50%;
             &.finished {
@@ -269,8 +296,8 @@
         }
         .gateway-node {
             position: relative;
-            height: 32px;
-            width: 32px;
+            height: 34px;
+            width: 34px;
             text-align: center;
             &.failed {
                 @include gatewayStyle($redDark);
@@ -281,8 +308,8 @@
             &:before {
                 content: '';
                 position: absolute;
-                top: 1px;
-                left: 2px;
+                top: 2px;
+                left: 3px;
                 width: 28px;
                 height: 28px;
                 background: #ffffff;
@@ -299,66 +326,136 @@
             text-align: center;
         }
         .task-node {
+            position: relative;
+            width: 150px;
+            height: 54px;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
             &:hover {
-                box-shadow: 0px 0px 20px 0px $activeShadow;
+                .node-name {
+                    border-color: $blueDark;
+                }
+            }
+            &.actived {
+                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
+            }
+            &.default {
+                @include taskNodeStyle ($blueDark);
+                &.actived {
+                     @include nodeClick ($blueDark);
+                }
             }
             &.failed {
-                @include taskNodeStyle ($redDark)
+                @include taskNodeStyle ($redDark);
+                &.actived {
+                    @include nodeClick ($redDark);
+                }
             }
             &.suspended {
-                @include taskNodeStyle ($yellowDark)
+                @include taskNodeStyle ($yellowDark);
+                &.actived {
+                    @include nodeClick ($yellowDark);
+                }
             }
             &.running {
-                @include taskNodeStyle ($yellowDark)
+                @include taskNodeStyle ($yellowDark);
+                &.actived {
+                    @include nodeClick ($yellowDark);
+                }
             }
             &.finished {
-                @include taskNodeStyle ($greenDark)
+                @include taskNodeStyle ($greenDark);
+                &.actived {
+                     @include nodeClick ($greenDark);
+                }
             }
-            
-        }
-        .subflow-node {
-            &:hover > .ui-node-shadow {
-                box-shadow: 0px 0px 20px 0px $activeShadow;
+
+            .node-status-block {
+                display: flex;
+                align-items: center;
+                padding: 0 8px;
+                height: 20px;
+                background: $blueDark;
+                text-align: left;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                .node-icon {
+                    width: 16px;
+                }
+                .node-icon-font {
+                    font-size: 16px;
+                    color: #ffffff;
+                }
+                .stage-name {
+                    padding: 0 4px;
+                    width: 170px;
+                    font-size: 12px;
+                    color: #ffffff;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
             }
-            &.failed {
-                @include taskNodeStyle ($redDark)
-            }
-            &.suspended {
-                @include taskNodeStyle ($yellowDark)
-            }
-            &.running {
-                @include taskNodeStyle ($yellowDark)
-            }
-            &.finished {
-                @include taskNodeStyle ($greenDark)
-            }
-        }
-        .task-node,
-        .subflow-node {
             .node-name {
                 display: flex;
-                justify-content: center;
                 align-items: center;
-                padding: 5px 2px;
-                height: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                text-align: center;
-                color: #63656e;
+                padding: 0 8px;
+                height: calc(100% - 20px);
+                line-height: 14px;
+                border: 1px solid #ffffff;
+                border-top: none;
+                border-bottom-left-radius: 4px;
+                border-bottom-right-radius: 4px;
+                .name-text {
+                    display: -webkit-box;
+                    width: 100%;
+                    font-size: 12px;
+                    color: #63656e;
+                    text-align: left;
+                    overflow : hidden;
+                    text-overflow: ellipsis;
+                    word-break: break-all;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                }
             }
-        }
-        .subflow-node-icon {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 17px;
-            height: 8px;
-            background: $blueDark;
-            border-top-left-radius: 4px;
-            border-bottom-right-radius: 4px;
+            .node-options-icon {
+                display: flex;
+                align-items: flex-end;
+                position: absolute;
+                top: -20px;
+                left: 0;
+                height: 18px;
+                overflow: hidden;
+                .bk-form-checkbox,
+                .dark-circle {
+                    float: left;
+                    margin-right: 2px;
+                    font-size: 12px;
+                    color: #979ba5;
+                }
+            }
+            .state-icon {
+                position: absolute;
+                right: 5px;
+                bottom: -20px;
+                display: none;
+                .el-tooltip {
+                   font-size: 14px;
+                   margin-left: 5px;
+                   color: #52699D;
+                   vertical-align: middle;
+                    &:hover {
+                        color: #4b85f7;
+                    }
+                    &.common-icon-play {
+                        font-size: 18px;
+                    }
+                }
+            }
         }
         .task-status-icon {
             position: absolute;
@@ -372,6 +469,7 @@
             background: #f8b53f;
             color: #ffffff;
             text-align: center;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
             .common-icon-double-vertical-line {
                 display: inline-block;
                 font-size: 12px;
@@ -384,6 +482,12 @@
                 display: inline-block;
                 animation: loading 1.4s infinite linear;
             }
+            .icon-arrows-right-shape {
+                font-size: 12px;
+            }
+            .retry-times {
+                font-size: 12px;
+            }
             @keyframes loading {
                 from {
                     transform: rotate(0);
@@ -392,19 +496,38 @@
                     transform: rotate(360deg);
                 }
             }
-            &.subflow-status {
-                right: 12px;
-                top: -14px;
-                z-index: 1;
+        }
+        .node-phase-icon {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            width: 14px;
+            height: 14px;
+            line-height: 14px;
+            i {
+                font-size: 12px;
+                &.phase-warn {
+                    color: $yellowDark;
+                }
+                &.phase-error {
+                    color: $redDark;
+                }
             }
         }
     }
     .task-node-tooltip.el-tooltip__popper {
         z-index: 4 !important;
     }
-    #node-tooltip-content {
+</style>
+<style lang="scss">
+    .node-tooltip-content {
+        padding: 10px;
+        background: #303133;
+        border-radius: 2px;
+        overflow: hidden;
         .bk-button {
-            padding: 0;
+            float: left;
+            padding: 0 10px;
             min-width: auto;
             height: 16px;
             line-height: 16px;
@@ -414,6 +537,15 @@
             border: none;
             &:hover {
                 color: #3a84ff;
+            }
+            &:first-child {
+                padding-left: 0;
+            }
+            &:last-child {
+                padding-right: 0;
+            }
+            &:not(:last-child) {
+                border-right: 1px solid #63656e;
             }
         }
     }

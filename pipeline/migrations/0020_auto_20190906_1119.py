@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -20,13 +19,19 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0019_delete_variablemodel'),
+        ("pipeline", "0019_delete_variablemodel"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='template',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='pipeline.PipelineTemplate', verbose_name='Pipeline\u6a21\u677f'),
+            model_name="pipelineinstance",
+            name="template",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="pipeline.PipelineTemplate",
+                verbose_name="Pipeline\u6a21\u677f",
+            ),
         ),
     ]

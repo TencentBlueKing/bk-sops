@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,10 +12,12 @@
 <template>
     <div class="appmaker-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.taskRecord"></base-title>
+            <base-title :title="$t('任务记录')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    id="appmakerHome"
                     :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>
@@ -28,14 +30,14 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(props.row, $event)">
+                                @click="onTaskPermissonCheck(props.row)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -51,24 +53,24 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.startedTime" width="200">
+                    <bk-table-column :label="$t('执行开始')" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finishedTime" width="200">
+                    <bk-table-column :label="$t('执行结束')" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.category" prop="category_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.operator" width="100">
+                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('执行人')" width="140">
                         <template slot-scope="props">
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="$t('状态')" width="100">
                         <template slot-scope="props">
                             <div class="ui-task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -84,7 +86,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
@@ -99,43 +101,45 @@
         {
             type: 'dateRange',
             key: 'queryTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('执行开始'),
-            value: []
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('执行开始'),
+            value: ['', '']
         },
         {
             type: 'select',
-            label: gettext('任务分类'),
+            label: i18n.t('任务分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
-            list: []
+            placeholder: i18n.t('请选择分类'),
+            list: [],
+            value: ''
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         },
         {
             type: 'input',
             key: 'executor',
-            label: gettext('执行人'),
-            placeholder: gettext('请输入执行人'),
+            label: i18n.t('执行人'),
+            placeholder: i18n.t('请输入执行人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'statusSync',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'nonExecution', 'name': gettext('未执行') },
-                { 'value': 'runing', 'name': gettext('未完成') },
-                { 'value': 'finished', 'name': gettext('完成') }
-            ]
+                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'finished', 'name': i18n.t('完成') }
+            ],
+            value: ''
         }
     ]
     export default {
@@ -150,25 +154,6 @@
         props: ['project_id', 'app_id'],
         data () {
             return {
-                i18n: {
-                    placeholder: gettext('请输入ID或流程名称'),
-                    startedTime: gettext('执行开始'),
-                    finishedTime: gettext('执行结束'),
-                    name: gettext('任务名称'),
-                    category: gettext('任务类型'),
-                    creator: gettext('创建人'),
-                    operator: gettext('执行人'),
-                    status: gettext('状态'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    taskRecord: gettext('任务记录'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    statusPlaceholder: gettext('请选择状态')
-                },
                 listLoading: true,
                 isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
@@ -184,15 +169,14 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 },
                 statusList: [
-                    { 'value': 'nonExecution', 'name': gettext('未执行') },
-                    { 'value': 'runing', 'name': gettext('未完成') },
-                    { 'value': 'finished', 'name': gettext('完成') }
+                    { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                    { 'value': 'running', 'name': i18n.t('未完成') },
+                    { 'value': 'revoked', 'name': i18n.t('撤销') },
+                    { 'value': 'finished', 'name': i18n.t('完成') }
                 ],
-                taskOperations: [],
-                taskResource: {},
                 requestData: {
                     queryTime: [],
                     category: '',
@@ -238,10 +222,24 @@
                     const { queryTime, category, creator, executor, statusSync, flowName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
-                    if (statusSync) {
-                        pipeline_instance__is_started = statusSync !== 'nonExecution'
-                        pipeline_instance__is_finished = statusSync === 'finished'
+                    let pipeline_instance__is_revoked
+                    switch (statusSync) {
+                        case 'nonExecution':
+                            pipeline_instance__is_started = false
+                            break
+                        case 'running':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
+                            break
+                        case 'revoked':
+                            pipeline_instance__is_revoked = true
+                            break
+                        case 'finished':
+                            pipeline_instance__is_finished = true
+                            break
                     }
+
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -253,6 +251,7 @@
                         pipeline_instance__executor__contains: executor || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
+                        pipeline_instance__is_revoked,
                         project__id: this.project_id
                     }
                     
@@ -264,8 +263,6 @@
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
-                    this.taskOperations = appmakerListData.meta.auth_operations
-                    this.taskResource = appmakerListData.meta.auth_resource
                     this.pagination.count = appmakerListData.meta.total_count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
@@ -277,9 +274,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ value: m.value, name: m.name }))
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories.map(m => ({ value: m.value, name: m.name }))
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -294,12 +291,22 @@
                 this.pagination.current = 1
                 this.getAppmakerList()
             },
-            onTaskPermissonCheck (task, event) {
-                this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            onTaskPermissonCheck (task) {
+                const resourceData = {
+                    task: [{
+                        id: task.id,
+                        name: task.name
+                    }],
+                    project: [{
+                        id: task.project.id,
+                        name: task.project.name
+                    }]
+                }
+                this.applyForPermission(['task_view'], task.auth_actions, resourceData)
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getAppmakerList()
             },
             handlePageLimitChange (val) {

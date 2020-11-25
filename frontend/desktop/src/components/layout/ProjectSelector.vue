@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,10 +10,19 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="project-wrapper">
+    <div
+        :class="[
+            'project-wrapper',
+            { 'disabled': disabled },
+            { 'read-only': readOnly }
+        ]">
+        <div v-if="readOnly" :title="projectName" class="project-name">
+            {{ projectName }}
+        </div>
         <bk-select
-            v-show="!disabled"
+            v-else
             class="project-select"
+            ext-popover-cls="project-select-comp-list"
             v-model="currentProject"
             :disabled="disabled || isLoading"
             :clearable="false"
@@ -22,10 +31,12 @@
                 v-for="(group, index) in projects"
                 :name="group.name"
                 :key="index">
-                <bk-option v-for="(option, i) in group.children"
+                <bk-option
+                    class="project-item"
+                    v-for="(option, i) in group.children"
                     :key="i"
                     :id="option.id"
-                    :name="option.name">
+                    :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
                 </bk-option>
             </bk-option-group>
         </bk-select>
@@ -35,13 +46,17 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
+    import i18n from '@/config/i18n/index.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'ProjectSelector',
         props: {
+            readOnly: {
+                type: Boolean,
+                default: false
+            },
             disabled: {
                 type: Boolean,
                 default: false
@@ -56,35 +71,31 @@
             return {
                 showList: false,
                 isLoading: false,
-                searchStr: '',
-                i18n: {
-                    biz: gettext('业务'),
-                    proj: gettext('项目'),
-                    placeholder: gettext('请选择')
-                }
+                searchStr: ''
             }
         },
         computed: {
             ...mapState({
-                site_url: state => state.site_url
+                site_url: state => state.site_url,
+                viewMode: state => state.view_mode
+                
             }),
             ...mapState('project', {
-                project_id: state => state.project_id
-            }),
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
+                projectList: state => state.userProjectList,
+                project_id: state => state.project_id,
+                projectName: state => state.projectName
             }),
             projects () {
                 const projects = []
                 const projectsGroup = [
                     {
-                        name: this.i18n.biz,
+                        name: i18n.t('业务'),
                         id: 1,
                         children: []
                     },
                     {
                         id: 2,
-                        name: this.i18n.proj,
+                        name: i18n.t('项目'),
                         children: []
                     }
                 ]
@@ -106,7 +117,8 @@
             },
             currentProject: {
                 get () {
-                    return Number(this.project_id) || ''
+                    const num = Number(this.project_id)
+                    return isNaN(num) ? '' : num
                 },
                 set (id) {
                     this.onProjectChange(id)
@@ -174,6 +186,8 @@
                         } else {
                             this.$router.push(redirectMap[key])
                         }
+                    } else { // 默认跳转到项目流程页面
+                        this.$router.push(redirectMap['/template'])
                     }
                     this.isLoading = false
                     this.$emit('loading', false)
@@ -193,6 +207,24 @@
         width: 200px;
         color: #979ba5;
         font-size: 14px;
+        &.disabled {
+            background: #252f43;
+        }
+        &.read-only {
+            margin-top: 0;
+            width: auto;
+            height: 50px;
+            line-height: 50px;
+            .project-name {
+                width: 200px;
+                color: #979ba5;
+                font-size: 14px;
+                text-align: center;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+        }
     }
     .project-select {
         border-color: #445060;
@@ -218,6 +250,24 @@
         }
         to {
             transform: rotate(360deg);
+        }
+    }
+</style>
+<style lang="scss">
+    .project-select-comp-list {
+        .project-item.bk-option {
+            .bk-option-content {
+                padding: 0;
+                .bk-option-content-default {
+                    padding: 0;
+                    .bk-option-name {
+                        width: 100%;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                }
+            }
         }
     }
 </style>

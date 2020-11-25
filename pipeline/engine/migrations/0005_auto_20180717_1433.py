@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,20 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0004_auto_20180717_1411'),
+        ("engine", "0004_auto_20180717_1411"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='functionswitch',
-            name='name',
-            field=models.CharField(unique=True, max_length=32, verbose_name='\u529f\u80fd\u540d\u79f0'),
+            model_name="functionswitch",
+            name="name",
+            field=models.CharField(unique=True, max_length=32, verbose_name="\u529f\u80fd\u540d\u79f0"),
         ),
     ]

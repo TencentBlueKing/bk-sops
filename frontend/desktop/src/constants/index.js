@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -9,30 +9,33 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import '@/utils/i18n.js'
+import i18n from '@/config/i18n/index.js'
 const TASK_STATE_DICT = {
-    'CREATED': gettext('未执行'),
-    'RUNNING': gettext('执行中'),
-    'SUSPENDED': gettext('暂停'),
-    'NODE_SUSPENDED': gettext('节点暂停'),
-    'FAILED': gettext('失败'),
-    'FINISHED': gettext('完成'),
-    'REVOKED': gettext('撤销')
+    'CREATED': i18n.t('未执行'),
+    'RUNNING': i18n.t('执行中'),
+    'READY': i18n.t('排队中'),
+    'SUSPENDED': i18n.t('暂停'),
+    'NODE_SUSPENDED': i18n.t('节点暂停'),
+    'FAILED': i18n.t('失败'),
+    'FINISHED': i18n.t('完成'),
+    'REVOKED': i18n.t('撤销')
 }
 
 const NODE_DICT = {
-    'startpoint': gettext('开始节点'),
-    'endpoint': gettext('结束节点'),
-    // 'startPoint': gettext('开始节点'),
-    // 'endPoint': gettext('结束节点'),
-    'parallelgateway': gettext('并行网关'),
-    'branchgateway': gettext('分支网关'),
-    'convergegateway': gettext('汇聚网关'),
-    'tasknode': gettext('标准插件节点'),
-    'subflow': gettext('子流程节点')
+    'startpoint': i18n.t('开始节点'),
+    'endpoint': i18n.t('结束节点'),
+    // 'startPoint': i18n.t('开始节点'),
+    // 'endPoint': i18n.t('结束节点'),
+    'parallelgateway': i18n.t('并行网关'),
+    'branchgateway': i18n.t('分支网关'),
+    'convergegateway': i18n.t('汇聚网关'),
+    'tasknode': i18n.t('标准插件节点'),
+    'subflow': i18n.t('子流程节点')
 }
 
-const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman']
+const INVALID_NAME_CHAR = '\'‘"”$&<>'
+
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM']
 const BK_PLUGIN_ICON = {
     'bk_http_request': 'common-icon-bk-plugin-http',
     'bk_notify': 'common-icon-bk-plugin-notify',
@@ -44,7 +47,7 @@ const BK_PLUGIN_ICON = {
 const TEMPLATE_NAME_MAX_LENGTH = 50
 const TEMPLATE_NODE_NAME_MAX_LENGTH = 50
 const TASK_NAME_MAX_LENGTH = 100
-const STAGE_NAME_MAX_LENGTH = 50
+const STAGE_NAME_MAX_LENGTH = 15
 const DRAFT_NAME_MAX_LENGTH = 20
 const PROJECT_NAME_MAX_LENGTH = 50
 const PROJECT_DESC_LENGTH = 512
@@ -52,7 +55,7 @@ const SCHEME_NAME_MAX_LENGTH = 30
 const APP_NAME_MAX_LENGTH = 20
 const APP_DESCRIPTION_MAX_LENGTH = 30
 const VARIABLE_NAME_MAX_LENGTH = 20
-const VARIABLE_KEY_MAX_LENGTH = 20
+const VARIABLE_KEY_MAX_LENGTH = 50
 const SOURCE_NAME_MAX_LENGTH = 50
 
 const STRING_LENGTH = {
@@ -81,4 +84,7 @@ const PERIODIC_REG = /^((\*\/)?(([0-5]?\d[,-/])*([0-5]?\d))|\*)[ ]((\*\/)?(([0]?
 const URL_REG= new RegExp('^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]$')
 /* eslint-enable */
 
-export { TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, BK_PLUGIN_ICON, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }
+export {
+    TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, BK_PLUGIN_ICON, NAME_REG,
+    INVALID_NAME_CHAR, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH
+}

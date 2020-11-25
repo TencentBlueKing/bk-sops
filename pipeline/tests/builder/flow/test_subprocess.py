@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,25 +13,22 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
 from pipeline.builder.flow import SubProcess
+from pipeline.core.constants import PE
 
 
 class SubProcessTestCase(TestCase):
     def test_init(self):
-        subproc = SubProcess('template_id')
-        self.assertEqual(subproc.start, 'template_id')
+        subproc = SubProcess("template_id")
+        self.assertEqual(subproc.start, "template_id")
         self.assertEqual(subproc.params, {})
         self.assertIsNone(subproc.data)
 
-        subproc = SubProcess(
-            start='template_id',
-            data={'data_key': 'data_val'},
-            params={'1': '2'})
-        self.assertEqual(subproc.start, 'template_id')
-        self.assertEqual(subproc.data, {'data_key': 'data_val'})
-        self.assertEqual(subproc.params, {'1': '2'})
+        subproc = SubProcess(start="template_id", data={"data_key": "data_val"}, params={"1": "2"})
+        self.assertEqual(subproc.start, "template_id")
+        self.assertEqual(subproc.data, {"data_key": "data_val"})
+        self.assertEqual(subproc.params, {"1": "2"})
 
     def test_type(self):
-        subproc = SubProcess('template_id')
+        subproc = SubProcess("template_id")
         self.assertEqual(subproc.type(), PE.SubProcess)

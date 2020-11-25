@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,7 +13,6 @@
     <section class="code-editor"></section>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import * as monaco from 'monaco-editor'
 
     const DEFAULT_OPTIONS = {
@@ -22,7 +21,9 @@
         automaticLayout: true,
         minimap: {
             enabled: false
-        }
+        },
+        wordWrap: 'on',
+        wrappingIndent: 'same'
     }
     export default {
         name: 'CodeEditor',
@@ -72,9 +73,15 @@
             initIntance () {
                 this.monacoInstance = monaco.editor.create(this.$el, this.editorOptions)
                 const model = this.monacoInstance.getModel()
+                model.setEOL(0) // 设置编辑器在各系统平台下 EOL 统一为 \n
+                if (this.value.indexOf('\r\n') > -1) { // 转换已保存的旧数据
+                    const textareaEl = document.createElement('textarea')
+                    textareaEl.value = this.value
+                    this.$emit('input', textareaEl.value)
+                }
                 model.onDidChangeContent(event => {
                     const value = this.monacoInstance.getValue()
-                    this.$emit('changeContent', value)
+                    this.$emit('input', value)
                 })
                 this.monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
                     const value = this.monacoInstance.getValue()

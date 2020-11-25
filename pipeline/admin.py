@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,16 +18,15 @@ from pipeline import models
 
 @admin.register(models.PipelineTemplate)
 class PipelineTemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'template_id', 'name', 'create_time', 'edit_time']
-    list_filter = ['is_deleted']
-    search_fields = ['name']
-    raw_id_fields = ['snapshot']
+    list_display = ["id", "template_id", "name", "create_time", "edit_time"]
+    list_filter = ["is_deleted"]
+    search_fields = ["name"]
+    raw_id_fields = ["snapshot"]
 
 
 @admin.register(models.PipelineInstance)
 class PipelineInstanceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'template', 'name', 'instance_id', 'create_time', 'start_time', 'finish_time',
-                    'is_deleted']
-    list_filter = ['is_started', 'is_finished', 'is_revoked', 'is_deleted']
-    search_fields = ['name']
-    raw_id_fields = ['template', 'snapshot', 'execution_snapshot']
+    list_display = ["id", "template", "name", "instance_id", "create_time", "start_time", "finish_time", "is_deleted"]
+    list_filter = ["is_started", "is_finished", "is_revoked", "is_deleted"]
+    search_fields = ["name"]
+    raw_id_fields = ["template", "snapshot", "execution_snapshot"]

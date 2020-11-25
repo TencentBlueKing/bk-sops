@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -15,7 +15,7 @@
             <div
                 v-for="(selector) in selectorTabs"
                 :key="selector.type"
-                :class="['ip-tab-radio', { 'disabled': !editable }, { 'ip-tab-select': activeSelector === selector.id }]"
+                :class="['ip-tab-radio', { 'disabled': !editable }]"
                 @click="onChooseSelector(selector.id)">
                 <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>
@@ -38,20 +38,40 @@
                 :dynamic-ips="dynamicIps"
                 @change="onDynamicIpChange">
             </dynamic-ip>
+            <dynamic-group
+                v-show="activeSelector === 'group'"
+                ref="group"
+                :editable="editable"
+                :dynamic-group-list="dynamicGroupList"
+                :dynamic-groups="dynamicGroups"
+                @change="onDynamicGroupChange">
+            </dynamic-group>
         </div>
     </div>
 </template>
 <script>
     import StaticIp from './StaticIp.vue'
     import DynamicIp from './DynamicIp.vue'
+    import DynamicGroup from './DynamicGroup.vue'
 
     export default {
         name: 'SingleIpSelector',
         components: {
             StaticIp,
-            DynamicIp
+            DynamicIp,
+            DynamicGroup
         },
-        props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'staticIps', 'dynamicIps'],
+        props: {
+            editable: Boolean,
+            selectorTabs: Array,
+            selectors: Array,
+            staticIpList: Array,
+            dynamicIpList: Array,
+            dynamicGroupList: Array,
+            staticIps: Array,
+            dynamicIps: Array,
+            dynamicGroups: Array
+        },
         data () {
             return {
                 activeSelector: this.selectors[0]
@@ -77,6 +97,9 @@
             onDynamicIpChange (val) {
                 this.$emit('change', 'topo', val)
             },
+            onDynamicGroupChange (val) {
+                this.$emit('change', 'group', val)
+            },
             validate () {
                 return this.$refs[this.activeSelector].validate()
             }
@@ -84,24 +107,11 @@
     }
 </script>
 <style lang="scss" scoped>
-.selector-choose-wrap {
-    display: flex;
-    justify-content: space-between;
-    border-right: 1px solid #dcdee5;
-    &.disabled {
-        .ip-tab-radio {
-            background: #f0f1f5;
-        }
-    }
-}
 .ip-tab-radio {
     display: inline-block;
     font-size: 14px;
     height: 42px;
-    width: 100%;
-    background: #f7f7f7;
-    border: 1px solid #dcdee5;
-    border-right: 0;
+    width: 120px;
     cursor: pointer;
     .radio-box {
         display: flex;
@@ -111,19 +121,22 @@
         position: relative;
         width: 16px;
         height: 16px;
-        margin: 12px 5px 12px 20px;
+        margin: 12px 0;
         border: 1px solid #c4c6cc;
         border-radius: 50%;
         vertical-align: middle;
-        &.checked:before {
-            content: '';
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            width: 8px;
-            height: 8px;
-            background: #3a84ff;
-            border-radius: 50%;
+        &.checked {
+            border-color: #3a84ff;
+            &:before {
+                content: '';
+                position: absolute;
+                top: 3px;
+                right: 3px;
+                width: 8px;
+                height: 8px;
+                background: #3a84ff;
+                border-radius: 50%;
+            }
         }
     }
     &.disabled {
@@ -137,9 +150,5 @@
             }
         }
     }
-}
-.ip-tab-select {
-    background: #fff;
-    border-bottom: 0;
 }
 </style>

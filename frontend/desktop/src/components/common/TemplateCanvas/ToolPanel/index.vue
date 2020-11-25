@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,10 +13,22 @@
     <transition name="wrapperLeft">
         <div class="tool-position">
             <div
+                :class="['tool-icon', {
+                    'actived': showSmallMap
+                }]"
+                v-bk-tooltips="{
+                    content: $t('缩略视图'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
+                @click="onShowMap">
+                <i class="common-icon-small-map"></i>
+            </div>
+            <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.zoomIn,
-                    delay: 1000,
+                    content: $t('放大'),
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onZoomIn">
@@ -25,8 +37,8 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.zoomOut,
-                    delay: 1000,
+                    content: $t('缩小'),
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onZoomOut">
@@ -35,8 +47,8 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.resetZoom,
-                    delay: 1000,
+                    content: $t('复位'),
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onResetPosition">
@@ -48,8 +60,8 @@
                 }]"
                 v-if="editable"
                 v-bk-tooltips="{
-                    content: i18n.nodeSelection,
-                    delay: 1000,
+                    content: $t('节点框选'),
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onOpenFrameSelect">
@@ -59,8 +71,8 @@
                 class="tool-icon"
                 v-if="editable"
                 v-bk-tooltips="{
-                    content: i18n.formatPosition,
-                    delay: 1000,
+                    content: $t('排版'),
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onFormatPosition">
@@ -71,7 +83,7 @@
                 v-if="isShowSelectAllTool"
                 v-bk-tooltips="{
                     content: selectNodeName,
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onToggleAllNode">
@@ -83,8 +95,8 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.hotKey,
-                    delay: 1000,
+                    content: $t('快捷键'),
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onToggleHotKeyInfo">
@@ -94,7 +106,7 @@
     </transition>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
 
     export default {
         name: 'ToolPanel',
@@ -118,29 +130,26 @@
             isSelectionOpen: {
                 type: Boolean,
                 default: false
+            },
+            showSmallMap: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
             return {
-                i18n: {
-                    resetZoom: gettext('复位'),
-                    zoomIn: gettext('放大'),
-                    zoomOut: gettext('缩小'),
-                    nodeSelection: gettext('节点框选'),
-                    formatPosition: gettext('排版'),
-                    choiceAll: gettext('全选'),
-                    cancelChoiceAll: gettext('反选'),
-                    hotKey: gettext('快捷键')
-                },
                 isShowHotKey: false
             }
         },
         computed: {
             selectNodeName () {
-                return this.isAllSelected ? this.i18n.choiceAll : this.i18n.cancelChoiceAll
+                return this.isAllSelected ? i18n.t('全选') : i18n.t('反选')
             }
         },
         methods: {
+            onShowMap () {
+                this.$emit('onShowMap')
+            },
             onZoomIn () {
                 this.$emit('onZoomIn')
             },

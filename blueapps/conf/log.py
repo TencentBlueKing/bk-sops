@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,6 +16,8 @@ import string
 import random
 
 from blueapps.conf.default_settings import BASE_DIR, APP_CODE
+
+APP_CODE = os.environ.get('APP_ID', APP_CODE)
 
 
 def get_logging_config_dict(settings_module):
@@ -32,11 +34,10 @@ def get_logging_config_dict(settings_module):
             'datefmt': '%Y-%m-%d %H:%M:%S'
         }
     else:
-        log_dir = '/app/logs/'
-        log_name_prefix = os.getenv('BKPAAS_LOG_NAME_PREFIX')
+        log_dir = '/app/v3logs/'
         rand_str = ''.join(
             random.sample(string.ascii_letters + string.digits, 4))
-        log_name_prefix = '%s-%s' % (log_name_prefix, rand_str)
+        log_name_prefix = '%s-%s' % (os.getenv('BKPAAS_PROCESS_TYPE'), rand_str)
 
         logging_format = {
             '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
@@ -138,7 +139,7 @@ def get_logging_config_dict(settings_module):
             # 组件调用日志
             'component': {
                 'handlers': ['component'],
-                'level': 'WARNING',
+                'level': log_level,
                 'propagate': True,
             },
             'celery': {

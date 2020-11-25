@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -10,97 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import logging
 import re
-import os
+from copy import deepcopy
 
-from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
-from gcloud.core.models import Business, Project
+logger = logging.getLogger("root")
 
-logger = logging.getLogger('root')
-
-ip_re = r'((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)'
+ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
 ip_pattern = re.compile(ip_re)
-
-
-def supplier_account_for_project(project_id):
-    try:
-        proj = Project.objects.get(id=project_id)
-    except Project.DoesNotExist:
-        return 0
-
-    if not proj.from_cmdb:
-        return 0
-
-    return supplier_account_for_business(proj.bk_biz_id)
-
-
-def supplier_account_for_business(biz_cc_id):
-    try:
-        supplier_account = Business.objects.supplier_account_for_business(biz_cc_id)
-    except Business.DoesNotExist:
-        supplier_account = 0
-
-    return supplier_account
-
-
-def supplier_account_inject(func):
-    def wrapper(*args, **kwargs):
-        if 'project_id' in kwargs:
-            kwargs['supplier_account'] = supplier_account_for_project(kwargs['project_id'])
-        elif 'biz_cc_id' in kwargs:
-            kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def supplier_id_inject(func):
-    def wrapper(*args, **kwargs):
-        if 'project_id' in kwargs:
-            kwargs['supplier_id'] = supplier_account_for_project(kwargs['project_id'])
-        elif 'biz_cc_id' in kwargs:
-            kwargs['supplier_id'] = supplier_account_for_business(kwargs['biz_cc_id'])
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def get_ip_by_regex(ip_str):
-    ret = []
-    for match in ip_pattern.finditer(ip_str):
-        ret.append(match.group())
-    return ret
-
-
-def get_s3_file_path_of_time(biz_cc_id, time_str):
-    """
-    @summary: 根据业务、时间戳生成实际 S3 中的文件路径
-    @param biz_cc_id：
-    @param time_str：上传时间
-    @return:
-    """
-    return os.path.join(settings.APP_CODE,
-                        settings.RUN_MODE,
-                        'bkupload',
-                        str(biz_cc_id),
-                        time_str)
-
-
-def format_sundry_ip(ip):
-    """
-    @summary: IP 格式化，如果是多 IP 的主机，只取第一个 IP 作为代表
-    @param ip:
-    @return:
-    """
-    if ',' in ip:
-        logger.info('HOST[%s] has multiple ip' % ip)
-        return ip.split(',')[0]
-    return ip
 
 
 def loose_strip(data):
@@ -115,3 +34,42 @@ def loose_strip(data):
         return str(data).strip()
     except Exception:
         return data
+
+
+def chunk_table_data(column_dict, break_line):
+    """
+    @summary: 表格参数值支持以break_line为分隔符分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
+        数据（换行符个数相等），要么只有一条数据（不包含换行符，此时表示多条数据此列参数值都相同）
+    @param column_dict: 表格单行数据，字典格式
+    @param break_line: 分隔符
+    @return:
+    """
+    count = 1
+    chunk_data = []
+    multiple_keys = []
+    column = deepcopy(column_dict)
+    for key, value in column.items():
+        if not isinstance(value, str):
+            # 如果列类型为int，则跳过处理
+            if isinstance(value, int):
+                continue
+            else:
+                return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
+        value = value.strip()
+        if break_line in value:
+            multiple_keys.append(key)
+            value = value.split(break_line)
+            if len(value) != count and count != 1:
+                return {"result": False, "message": _("单行数据[%s]的各列换行符个数不一致，请改为一致或者去掉换行符") % value, "data": []}
+            count = len(value)
+        column[key] = value
+
+    if count == 1:
+        return {"result": True, "data": [column], "message": ""}
+
+    for i in range(count):
+        item = deepcopy(column)
+        for key in multiple_keys:
+            item[key] = column[key][i]
+        chunk_data.append(item)
+    return {"result": True, "data": chunk_data, "message": ""}

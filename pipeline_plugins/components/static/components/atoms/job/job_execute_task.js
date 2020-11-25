@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -16,10 +16,14 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
+                allowCreate: true,
                 hookable: true,
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 disabled: !$.context.canSelectBiz(),
@@ -42,7 +46,7 @@
             tag_code: "job_task_id",
             type: "select",
             attrs: {
-                name: gettext("作业模板"),
+                name: gettext("执行方案"),
                 hookable: false,
                 remote: true,
                 remote_url: function () {
@@ -67,7 +71,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
                             this.remoteMethod();
@@ -97,8 +101,7 @@
                 hookable: false,
                 type: "primary",
                 title: '刷新',
-                plain: true,
-                size: "small",
+                size: "normal",
                 cols: 1,
                 formViewHidden: true
             }
@@ -109,6 +112,7 @@
             attrs: {
                 name: gettext("全局变量"),
                 hookable: true,
+                deleteable: false,
                 empty_text: gettext("没选中作业模板或当前作业模板全局变量为空"),
                 columns: [
                     {
@@ -120,7 +124,7 @@
                     },
                     {
                         tag_code: "type",
-                        type: "text",
+                        type: "category",
                         attrs: {
                             name: gettext("参数类型"),
                             hidden: true,
@@ -155,7 +159,7 @@
                             return;
                         }
                         this.set_loading(true);
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         $.ajax({
                             url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
                             type: 'GET',
@@ -166,7 +170,7 @@
                                 } else {
                                     $this._set_value(resp.data.global_var)
                                 }
-                                
+
                                 $this.set_loading(false);
                             },
                             error: function () {
@@ -189,7 +193,7 @@
                             return;
                         }
                         this.set_loading(true);
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         $.ajax({
                             url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + job_id + '/',
                             type: 'GET',
@@ -222,6 +226,23 @@
                     }
                 }
             ]
+        },
+        {
+            tag_code: "ip_is_exist",
+            type: "radio",
+            attrs: {
+                name: gettext("IP 存在性校验"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();

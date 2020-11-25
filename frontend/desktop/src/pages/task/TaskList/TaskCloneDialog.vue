@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,13 +16,13 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="$t('任务克隆')"
         :value="isTaskCloneDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1 }">
             <div class="common-form-item">
-                <label>{{ i18n.template }}</label>
+                <label>{{ $t('任务名称') }}</label>
                 <div class="common-form-content">
                     <bk-input
                         name="taskName"
@@ -36,7 +36,6 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
@@ -49,10 +48,6 @@
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
                     regex: NAME_REG
-                },
-                i18n: {
-                    title: gettext('任务克隆'),
-                    template: gettext('任务名称')
                 }
             }
         },

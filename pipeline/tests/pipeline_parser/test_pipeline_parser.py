@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,17 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import unittest
 
-from pipeline.parser.pipeline_parser import PipelineParser
 from pipeline.core.pipeline import Pipeline
-from .data import (
-    PIPELINE_DATA,
-    PIPELINE_WITH_SUB_PROCESS,
-    CONDITIONAL_PARALLEL,
-)
+from pipeline.parser.pipeline_parser import PipelineParser
+
+from .data import CONDITIONAL_PARALLEL, PIPELINE_DATA, PIPELINE_WITH_SUB_PROCESS
 
 
 class TestPipelineParser(unittest.TestCase):
-
     def setUp(self):
         from pipeline.component_framework.component import Component
         from pipeline.core.flow.activity import Service
@@ -36,10 +32,10 @@ class TestPipelineParser(unittest.TestCase):
                 return []
 
         class TestComponent(Component):
-            name = 'test'
-            code = 'test'
+            name = "test"
+            code = "test"
             bound_service = TestService
-            form = 'test.js'
+            form = "test.js"
 
     def test_pipeline_parser(self):
         parser_obj = PipelineParser(PIPELINE_DATA)

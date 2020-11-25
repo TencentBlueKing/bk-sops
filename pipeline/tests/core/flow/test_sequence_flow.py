@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,16 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.core.data.base import DataObject
-from pipeline.core.flow.base import SequenceFlow, FlowElement
 from pipeline.core.flow.activity import ServiceActivity
+from pipeline.core.flow.base import FlowElement, SequenceFlow
 
 
 class TestSequenceFlow(TestCase):
     def test_sequence_flow(self):
-        flow_id = '1'
-        source = ServiceActivity(id='1', service=None, data=DataObject({}))
-        target = ServiceActivity(id='2', service=None, data=DataObject({}))
+        flow_id = "1"
+        source = ServiceActivity(id="1", service=None, data=DataObject({}))
+        target = ServiceActivity(id="2", service=None, data=DataObject({}))
         flow = SequenceFlow(flow_id, source, target)
         self.assertTrue(isinstance(flow, FlowElement))
         self.assertEqual(flow_id, flow.id)

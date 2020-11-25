@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -31,8 +31,8 @@ def validate_pipeline_tree(pipeline_tree, cycle_tolerate=False):
     # do not tolerate circle in flow
     if not cycle_tolerate:
         no_cycle = validate_graph_without_circle(pipeline_tree)
-        if not no_cycle['result']:
-            raise exceptions.ParserException(no_cycle['message'])
+        if not no_cycle["result"]:
+            raise exceptions.ParserException(no_cycle["message"])
 
     # 2. gateway validation
     validate_gateways(pipeline_tree)

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@
         <div class="card-basic">
             <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
-                    <i class="common-icon-blueking"></i>
+                    <img class="default-icon" :src="require(`@/assets/images/appmaker-default-icon-1.png`)" alt="default-icon-1">
                 </div>
                 <div v-else>
                     <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
@@ -31,77 +31,108 @@
             <div class="card-operation">
                 <span
                     :class="['common-icon-box-pen', 'operate-btn', {
-                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
+                        'permission-disable': !hasPermission(['mini_app_edit'], appData.auth_actions)
                     }]"
-                    :title="i18n.modifier"
-                    v-cursor="{ active: !hasPermission(['edit'], appData.auth_actions, appOperations) }"
+                    :title="$t('修改轻应用')"
+                    v-cursor="{ active: !hasPermission(['mini_app_edit'], appData.auth_actions) }"
                     @click.stop="onCardEdit">
                 </span>
                 <router-link
                     class="common-icon-clock-reload operate-btn"
-                    :title="i18n.executive"
-                    :to="getExecuteHistoryUrl(appData.template_id)">
+                    :title="$t('执行历史')"
+                    :to="getExecuteHistoryUrl(appData)">
                 </router-link>
-                <span
-                    :class="['common-icon-ashcan-delete', 'operate-btn', {
-                        'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
-                    }]"
-                    :title="i18n.delete"
-                    v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
-                    @click="onCardDelete">
-                </span>
+                <bk-popover
+                    theme="light"
+                    placement="bottom-start"
+                    ext-cls="common-dropdown-btn-popver"
+                    :z-index="2000"
+                    :distance="0"
+                    :arrow="false"
+                    :tippy-options="{ boundary: 'window', duration: [0, 0], appendTo: 'parent' }">
+                    <span class="common-icon-circle-ellipsis operate-btn"></span>
+                    <ul class="operate-list" slot="content">
+                        <li
+                            v-cursor="{ active: !hasPermission(['mini_app_view'], appData.auth_actions) }"
+                            href="javascript:void(0);"
+                            :class="{
+                                'opt-btn': true,
+                                'disable': collectingId === appData.id || collectedLoading,
+                                'text-permission-disable': !hasPermission(['mini_app_view'], appData.auth_actions)
+                            }"
+                            @click="onCollectAppMaker(appData, $event)">
+                            {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
+                        </li>
+                        <li
+                            :class="{
+                                'opt-btn': true,
+                                'text-permission-disable': !hasPermission(['mini_app_delete'], appData.auth_actions)
+                            }"
+                            v-cursor="{ active: !hasPermission(['mini_app_delete'], appData.auth_actions) }"
+                            @click="onCardDelete">
+                            {{$t('删除')}}
+                        </li>
+                    </ul>
+                </bk-popover>
             </div>
         </div>
         <div class="card-particular">
             <div class="app-detail">
-                <div class="app-template">{{i18n.template}}
+                <div class="app-template">{{$t('流程模板')}}
                     <p>{{appData.template_name}}</p>
                 </div>
-                <div class="editor-name">{{i18n.editor}}
+                <div class="editor-name">{{$t('更新人')}}
                     <p>{{appData.editor_name}}</p>
                 </div>
-                <div class="edit-time">{{i18n.editTime}}
+                <div class="edit-time">{{$t('更新时间')}}
                     <p>{{appData.edit_time}}</p>
                 </div>
             </div>
-            <div class="app-synopsis">{{i18n.appDesc}}
+            <div class="app-synopsis">{{$t('应用简介')}}
                 <p class="synopsis-content">{{appData.desc || '--'}}</p>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
+    import { mapState, mapActions } from 'vuex'
+    import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
         name: 'AppCard',
         mixins: [permission],
-        props: ['appData', 'project_id', 'appResource', 'appOperations'],
+        props: {
+            appData: Object,
+            project_id: [Number, String],
+            collectedLoading: Boolean,
+            collectedList: Array
+        },
         data () {
             return {
                 isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
-                i18n: {
-                    edit: gettext('编辑'),
-                    delete: gettext('删除'),
-                    template: gettext('流程模板'),
-                    appDesc: gettext('应用简介'),
-                    editor: gettext('更新人'),
-                    editTime: gettext('更新时间'),
-                    executive: gettext('执行历史'),
-                    modifier: gettext('修改轻应用'),
-                    jurisdiction: gettext('使用权限')
-                }
+                collectingId: '', // 正在被收藏/取消收藏的轻应用id
+                collectionList: []
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             isShowDefaultLogo () {
                 return this.isLogoLoadingError || !this.appData.logo_url
             }
         },
         methods: {
+            ...mapActions([
+                'addToCollectList',
+                'deleteCollect'
+            ]),
             useDefaultLogo () {
                 this.isLogoLoadingError = true
             },
@@ -109,11 +140,19 @@
              * 单个轻应用操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} app 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onAppMakerPermissonCheck (required, app, event) {
-                this.applyForPermission(required, app, this.appOperations, this.appResource)
-                event.preventDefault()
+            onAppMakerPermissonCheck (required) {
+                const resourceData = {
+                    mini_app: [{
+                        id: this.appData.id,
+                        name: this.appData.name
+                    }],
+                    project: [{
+                        id: this.projectId,
+                        name: this.projectName
+                    }]
+                }
+                this.applyForPermission(required, this.appData.auth_actions, resourceData)
             },
             onShowOperation () {
                 this.isShowEdit = true
@@ -122,47 +161,80 @@
                 this.isShowEdit = false
             },
             onCardEdit () {
-                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['edit'], this.appData, event)
+                if (!this.hasPermission(['mini_app_edit'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_edit'])
                     return
                 }
                 this.$emit('onCardEdit', this.appData)
             },
-            onOpenPermissions (id) {
-                this.$emit('onOpenPermissions', this.appData)
-            },
             onCardDelete () {
-                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['delete'], this.appData, event)
+                if (!this.hasPermission(['mini_app_delete'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_delete'])
                     return
                 }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
-                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+                if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_view'])
                     return
                 }
-                if (self === top) {
-                    window.open(this.appData.link, '_blank')
-                } else {
-                    window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
-                }
+                openOtherApp(this.appData.code, this.appData.link)
             },
             // 查询执行记录
-            getExecuteHistoryUrl (id) {
+            getExecuteHistoryUrl (data) {
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id, create_method: 'app_maker' }
+                    query: { template_id: data.template_id, create_method: 'app_maker', create_info: data.id, template_source: 'project' }
                 }
+            },
+            // 添加/取消收藏模板
+            async onCollectAppMaker (data) {
+                if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_view'])
+                    return
+                }
+                if (typeof this.collectingId === 'number') {
+                    return
+                }
+                try {
+                    this.collectingId = data.id
+                    if (!this.isCollected(data.id)) { // add
+                        const res = await this.addToCollectList([{
+                            extra_info: {
+                                app_id: data.id,
+                                project_id: data.project.id,
+                                template_id: data.template_id,
+                                name: data.name,
+                                id: data.id
+                            },
+                            category: 'mini_app'
+                        }])
+                        if (res.objects.length) {
+                            this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
+                        }
+                    } else { // cancel
+                        const delId = this.collectedList.find(m => m.extra_info.id === data.id && m.category === 'mini_app').id
+                        await this.deleteCollect(delId)
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                    }
+                    this.$emit('getCollectList')
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
+                }
+            },
+            // 判断是否已在收藏列表
+            isCollected (id) {
+                return !!this.collectedList.find(m => m.extra_info.id === id && m.category === 'mini_app')
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
     min-width: 345px;
@@ -172,32 +244,22 @@
     border: 1px solid $commonBorderColor;
     border-radius: 2px;
 }
-.card-operation {
-    position: relative;
-    font-size: 24px;
-    color: #979ba5;
-    text-align: center;
-    transform: translateY(120%);
-    transition-duration: 0.25s;
-    .operate-btn {
-        padding: 5px;
-        font-size: 14px;
-        color: #ffffff;
-        background: #d8dadc;
-        border-radius: 2px;
-        cursor: pointer;
-        &:not(.permission-disable):hover {
-            background: #979ba5;
-        }
-    }
-}
 .card-basic {
     float: left;
+    position: relative;
     width: 40%;
     height: 100%;
     padding: 20px 15px;
-    overflow: hidden;
     border-right: 1px solid $commonBorderColor;
+    &:hover {
+        background: #f0f1f5;
+        .card-operation {
+            bottom: 10px;
+            z-index: 1;
+            opacity: 1;
+            visibility: visible;
+        }
+    }
     .logo {
         width: 60px;
         height: 60px;
@@ -213,13 +275,10 @@
         width: 100%;
         height: 100%;
         text-align: center;
-        border: 1px dashed #1b7cef;
         border-radius: 6px;
-        .common-icon-blueking {
-            display: inline-block;
+        .default-icon {
             margin-top: 10px;
-            color: #1b7cef;
-            font-size: 40px;
+            max-height: 55px;
         }
     }
     .app-name-wrap {
@@ -227,23 +286,62 @@
         height: 40px;
         .app-name {
             display: block;
+            display: -webkit-box;
             font-size: 14px;
             font-weight: bold;
             color: #63656e;
             word-break: break-all;
             cursor: pointer;
-            @include multiLineEllipsis(1.2em, 2);
             text-align: center;
+            overflow : hidden;
+            text-overflow: ellipsis;
+            word-break: break-all;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             &:hover {
                 color: $blueDefault;
             }
         }
     }
-    &:hover {
-        .card-operation {
-            transform: translateY(-10%);
-            transition-duration: 0.25s;
-            z-index: 1;
+}
+.card-operation {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    font-size: 24px;
+    color: #979ba5;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    .operate-btn {
+        padding: 5px;
+        font-size: 14px;
+        color: #ffffff;
+        background: #d8dadc;
+        border-radius: 2px;
+        cursor: pointer;
+        &:not(.permission-disable):hover {
+            background: #979ba5;
+        }
+    }
+    .operate-list {
+        font-size: 12px;
+        li {
+            padding: 0 12px;
+            min-width: 80px;
+            height: 32px;
+            line-height: 32px;
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+                background: #ebf4ff;
+            }
+            &.disable {
+                color: #dcdee5;
+            }
         }
     }
 }

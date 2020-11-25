@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -43,32 +43,33 @@
                 :is-preview-mode="isPreviewMode"
                 :is-common-process="isCommonProcess"
                 :selected-nodes="selectedNodes"
+                :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
-                :tpl-operations="tplOperations"
-                :tpl-resource="tplResource"
                 @selectScheme="selectScheme"
+                @importTextScheme="importTextScheme"
                 @togglePreviewMode="togglePreviewMode">
             </task-scheme>
         </div>
         <div class="action-wrapper" slot="action-wrapper">
             <bk-button
+                theme="primary"
                 class="next-button"
                 @click="onGotoParamFill">
-                {{ i18n.next }}
+                {{ $t('下一步') }}
             </bk-button>
+            <bk-button v-if="isSchemeShow" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
+    import XLSX from 'xlsx'
     import { errorHandler } from '@/utils/errorHandler.js'
     import TaskScheme from './TaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
 
     export default {
-        name: 'TaskSelectNode',
         components: {
             TaskScheme,
             TemplateCanvas,
@@ -77,11 +78,6 @@
         props: ['project_id', 'template_id', 'common', 'excludeNode', 'entrance'],
         data () {
             return {
-                i18n: {
-                    all: gettext('全选'),
-                    cancel: gettext('取消全选'),
-                    next: gettext('下一步')
-                },
                 selectedNodes: [], // 已选中节点
                 allSelectableNodes: [], // 所有可选节点
                 isAllSelected: true,
@@ -95,12 +91,12 @@
                     gateways: {},
                     constants: []
                 },
+                orderedNodeData: [],
                 templateName: '',
                 templateLoading: true,
                 previewDataLoading: true,
                 tplActions: [],
-                tplOperations: [],
-                tplResource: {}
+                planDataObj: {} // 包含所有方案的对象
             }
         },
         computed: {
@@ -142,8 +138,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData',
-                'getLayoutedPipeline'
+                'loadTemplateData'
             ]),
             ...mapActions('task/', [
                 'getSchemeDetail',
@@ -168,10 +163,9 @@
                     const selectedNodes = []
                     const templateData = await this.loadTemplateData(data)
                     this.tplActions = templateData.auth_actions
-                    this.tplOperations = templateData.auth_operations
-                    this.tplResource = templateData.auth_resource
                     this.version = templateData.version
                     this.templateName = templateData.name
+                    this.orderedNodeData = this.getOrderedNodeData(templateData)
 
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
@@ -197,6 +191,9 @@
                         }
                     })
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.templateLoading = false
@@ -211,22 +208,14 @@
                 const excludeNodes = this.getExcludeNode()
                 const params = {
                     templateId: templateId,
-                    excludeTaskNodesId: JSON.stringify(excludeNodes),
+                    excludeTaskNodesId: excludeNodes,
                     common: this.common,
                     version: this.version
                 }
                 try {
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
-                        const previewNodeData = resp.data.pipeline_tree
-                        // 如果画布有未选中节点，启用自动编排
-                        if (this.excludeNode.length > 0) {
-                            const layoutedData = await this.getLayoutedPosition(previewNodeData)
-                            previewNodeData.line = layoutedData.line
-                            previewNodeData.location = layoutedData.location
-                        }
-
-                        this.previewData = previewNodeData
+                        this.previewData = resp.data.pipeline_tree
                     } else {
                         errorHandler(resp, this)
                     }
@@ -237,24 +226,6 @@
                 }
             },
             /**
-             * 从接口获取编排后的画布数据
-             * @params {Object} data pipeline_tree 数据
-             */
-            async getLayoutedPosition (data) {
-                try {
-                    const canvasEl = document.querySelector('.canvas-content')
-                    const width = canvasEl.offsetWidth - 90
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
-                    if (res.result) {
-                        return res.data.pipeline_tree
-                    } else {
-                        errorHandler(res, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
-                }
-            },
-            /**
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
@@ -262,6 +233,9 @@
                     name: 'taskStep',
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
+                }
+                if (this.entrance === 'function') {
+                    url.name = 'functionTemplateStep'
                 }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
@@ -289,6 +263,52 @@
                         return { ...item, mode, code }
                     }),
                     branchConditions
+                }
+            },
+            getOrderedNodeData (data) {
+                const pipelineTree = JSON.parse(data.pipeline_tree)
+                const fstLine = pipelineTree.start_event.outgoing
+                const orderedData = []
+                const passedNodes = []
+                this.retrieveLines(pipelineTree, fstLine, orderedData, passedNodes)
+                orderedData.sort((a, b) => a.level - b.level)
+                return orderedData
+            },
+            /**
+             * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
+             * @param {Object} data 画布数据
+             * @param {Array} lineId 连线ID
+             * @param {Array} ordered 排序后的节点数据
+             * @param {Array} passedNodes 遍历过的节点
+             * @param {Number} level 任务节点与开始节点的距离
+             *
+             */
+            retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
+                const { activities, gateways, flows } = data
+                const currentNode = flows[lineId].target
+                const activity = activities[currentNode]
+                const gateway = gateways[currentNode]
+                const node = activity || gateway
+
+                if (node && !passedNodes.includes(node.id)) {
+                    passedNodes.push(node.id)
+
+                    if (activity) {
+                        const isExistInList = ordered.find(item => item.id === activity.id)
+                        if (!isExistInList) {
+                            activity.level = level
+                            ordered.push(activity)
+                        }
+                    }
+
+                    const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
+                    // 分支网关
+                    if (gateway) {
+                        level += 1
+                    }
+                    outgoing.forEach((line, index, arr) => {
+                        this.retrieveLines(data, line, ordered, passedNodes, level)
+                    })
                 }
             },
             onToggleAllNode (val) {
@@ -367,19 +387,38 @@
             /**
              * 选择执行方案
              */
-            async selectScheme (scheme) {
+            async selectScheme (scheme, e) {
+                let allNodeId = []
+                let selectNodeArr = []
                 // 取消已选择方案
-                if (scheme === undefined) {
-                    this.selectedNodes = this.allSelectableNodes.map(item => item.id)
+                if (e === false) {
+                    selectNodeArr = []
+                    this.$delete(this.planDataObj, scheme)
+                    if (Object.keys(this.planDataObj).length) {
+                        for (const key in this.planDataObj) {
+                            allNodeId = this.planDataObj[key]
+                            selectNodeArr.push(...allNodeId)
+                            const nodeIdArr = Array.from(new Set(selectNodeArr))
+                            this.selectedNodes = nodeIdArr
+                        }
+                    } else {
+                        this.selectedNodes = []
+                    }
                 } else {
                     try {
                         const data = await this.getSchemeDetail({ id: scheme, isCommon: this.isCommonProcess })
-                        this.selectedNodes = JSON.parse(data.data)
+                        allNodeId = JSON.parse(data.data)
+                        this.planDataObj[scheme] = allNodeId
+                        for (const key in this.planDataObj) {
+                            const planNodeId = this.planDataObj[key]
+                            selectNodeArr.push(...planNodeId)
+                            const nodeIdArr = Array.from(new Set(selectNodeArr))
+                            this.selectedNodes = nodeIdArr
+                        }
                     } catch (e) {
                         errorHandler(e, this)
                     }
                 }
-
                 this.updateExcludeNodes()
                 this.canvasData.locations.forEach(item => {
                     if (this.isSelectableNode(item.id)) {
@@ -390,6 +429,34 @@
                 if (this.isPreviewMode) {
                     this.getPreviewNodeData(this.template_id)
                 }
+            },
+            // 导入临时方案
+            importTextScheme (selectedNodes) {
+                this.selectedNodes = selectedNodes.slice(0)
+                this.updateExcludeNodes()
+                this.canvasData.locations.forEach(item => {
+                    if (this.isSelectableNode(item.id)) {
+                        const checked = this.selectedNodes.indexOf(item.id) > -1
+                        this.$set(item, 'checked', checked)
+                    }
+                })
+                if (this.isPreviewMode) {
+                    this.getPreviewNodeData(this.template_id)
+                }
+            },
+            // 导出当前方案
+            onExportScheme () {
+                const text = []
+                this.orderedNodeData.forEach(item => {
+                    const { stage_name, name, optional } = item
+                    const status = optional ? (this.excludeNode.includes(item.id) ? 0 : 1) : 2
+                    text.push([`${stage_name === '' ? '' : stage_name + '：'}${name} ${status}`])
+                })
+                const wsName = 'task_scheme'
+                const wb = XLSX.utils.book_new()
+                const ws = XLSX.utils.aoa_to_sheet(text)
+                XLSX.utils.book_append_sheet(wb, ws, wsName)
+                XLSX.writeFile(wb, `bk_sops_tpl_task_scheme_${+new Date()}.xlsx`)
             },
             togglePreviewMode (isPreview) {
                 this.isPreviewMode = isPreview
@@ -418,9 +485,8 @@
 }
 .canvas-content {
     position: relative;
-    height: calc(100% -72px);
+    height: calc(100% - 72px);
     min-height: 500px;
-    border-bottom: 1px solid $commonBorderColor;
     overflow: hidden;
     /deep/ .jsflow .tool-panel-wrap {
         left: 40px;
@@ -431,21 +497,11 @@
 }
 .next-button {
     width:140px;
-    height:32px;
-    line-height: 32px;
-    margin-left: 40px;
-    background-color: #2dcb56;
-    border-radius:2px;
-    border-color: #2dcb56;
-    vertical-align: middle;
-    /deep/ span {
-        color: #ffffff;
-        font-size: 14px;
-    }
 }
 .action-wrapper {
+    padding-left: 40px;
     border-top: 1px solid #cacedb;
-    background-color: #e1e4e8;
+    background-color: #ffffff;
 }
 /deep/ .pipeline-canvas {
     .tool-wrapper {

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,9 +19,11 @@
                 :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
+                :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
                 :static-ips="ip"
                 :dynamic-ips="topo"
+                :dynamic-groups="group"
                 @change="updateValue">
             </multiple-ip-selector>
             <single-ip-selector
@@ -31,29 +33,33 @@
                 :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
+                :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
                 :static-ips="ip"
                 :dynamic-ips="topo"
+                :dynamic-groups="group"
                 @change="updateValue">
             </single-ip-selector>
         </div>
         <div class="condition-area">
             <select-condition
-                ref="filterConditions"
-                :label="i18n.filter"
+                ref="conditions"
+                :label="i18n.filterTitle"
                 :editable="editable"
-                :condition-fields="topoModelList"
-                :conditions="filters"
-                @change="updateValue('filters', $event)">
+                :condition-fields="conditionFields"
+                :conditions="conditions"
+                @change="updateValue('conditions', $event)">
             </select-condition>
-            <select-condition
-                ref="excludeConditions"
-                :label="i18n.exclude"
-                :editable="editable"
-                :condition-fields="topoModelList"
-                :conditions="excludes"
-                @change="updateValue('excludes', $event)">
-            </select-condition>
+            <div class="cloud-area-form">
+                <label :class="[editable ? '' : 'disabled']">{{ i18n.showCloudArea }}</label>
+                <bk-switcher
+                    size="small"
+                    theme="primary"
+                    :disabled="!editable"
+                    v-model="with_cloud_id"
+                    @change="updateValue('with_cloud_id', $event)">
+                </bk-switcher>
+            </div>
         </div>
     </div>
 </template>
@@ -64,10 +70,11 @@
     import SelectCondition from './SelectCondition.vue'
 
     const i18n = {
-        staticIp: gettext('静态IP'),
-        dynamicIp: gettext('动态IP'),
-        filter: gettext('筛选条件'),
-        exclude: gettext('排除条件')
+        staticIp: gettext('静态 IP'),
+        dynamicIp: gettext('动态 IP'),
+        dynamicGroup: gettext('动态分组'),
+        filterTitle: gettext('筛选条件和排除条件'),
+        showCloudArea: gettext('变量值是否带云区域：')
     }
 
     // ip选择器兼容标准运维国际化
@@ -96,8 +103,10 @@
                         selectors: [],
                         ip: [],
                         topo: [],
+                        group: [],
                         filters: [],
-                        excludes: []
+                        excludes: [],
+                        with_cloud_id: false
                     }
                 }
             },
@@ -114,6 +123,11 @@
                             type: 'dynamicIp',
                             id: 'topo',
                             name: i18n.dynamicIp
+                        },
+                        {
+                            type: 'dynamicGroup',
+                            id: 'group',
+                            name: i18n.dynamicGroup
                         }
                     ]
                 }
@@ -150,43 +164,95 @@
                 default () {
                     return []
                 }
+            },
+            // 动态分组可选列表(首页数据)
+            dynamicGroupList: {
+                type: Array,
+                default () {
+                    return []
+                }
             }
         },
         data () {
-            const { selectors, ip, topo, filters, excludes } = this.value
+            const { selectors, ip, topo, group, filters, excludes, with_cloud_id } = this.value
+            const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
                 ip: ip.slice(0),
                 topo: topo.slice(0),
-                filters: filters.slice(0),
-                excludes: excludes.slice(0),
+                group: (group || []).slice(0), // 后增加字段，兼容旧数据
+                with_cloud_id,
+                conditions,
                 i18n
+            }
+        },
+        computed: {
+            conditionFields () {
+                return this.topoModelList.map(item => {
+                    return {
+                        id: item.bk_obj_id,
+                        name: item.bk_obj_name
+                    }
+                })
             }
         },
         watch: {
             value: {
                 handler (val) {
-                    const { selectors, ip, topo, filters, excludes } = this.value
+                    const { selectors, ip, topo, group, filters, excludes } = this.value
                     this.selectors = selectors.slice(0)
                     this.ip = ip.slice(0)
                     this.topo = topo.slice(0)
+                    this.group = (group || []).slice(0)
                     this.filters = filters.slice(0)
                     this.excludes = excludes.slice(0)
+                    this.conditions = this.getConditions(filters, excludes)
                 },
                 deep: true
             }
         },
         methods: {
+            getConditions (filters, excludes) {
+                const filtersArr = filters.map(item => {
+                    return {
+                        ...item,
+                        type: 'filter'
+                    }
+                })
+                const excludesArr = excludes.map(item => {
+                    return {
+                        ...item,
+                        type: 'exclude'
+                    }
+                })
+                return [...filtersArr, ...excludesArr]
+            },
             updateValue (key, val) {
                 if (!key) {
                     return
                 }
-                if (Array.isArray(key) && Array.isArray(val)) {
-                    key.forEach((k, i) => {
-                        this.value[k] = val[i]
+                if (key === 'conditions') {
+                    const filters = []
+                    const excludes = []
+                    val.forEach(item => {
+                        const { field, value } = item
+                        if (item.type === 'filter') {
+                            filters.push({ field, value })
+                        } else {
+                            excludes.push({ field, value })
+                        }
                     })
+                    this.value.filters = filters
+                    this.value.excludes = excludes
+                    this.conditions = val.slice(0)
                 } else {
-                    this.value[key] = val
+                    if (Array.isArray(key) && Array.isArray(val)) {
+                        key.forEach((k, i) => {
+                            this.value[k] = val[i]
+                        })
+                    } else {
+                        this.value[key] = val
+                    }
                 }
 
                 this.$emit('change', this.value)
@@ -197,10 +263,9 @@
                 if (!this.allowEmpty) {
                     selectorValidate = selector.validate()
                 }
-                const filterValidate = this.$refs.filterConditions.validate()
-                const excludeValidate = this.$refs.excludeConditions.validate()
+                const conditionValidate = this.$refs.conditions.validate()
             
-                return selectorValidate && filterValidate && excludeValidate
+                return selectorValidate && conditionValidate
             }
         }
     }
@@ -211,5 +276,16 @@
 }
 .condition-area {
     border-top: 1px dotted #c4c6cc;
+}
+.cloud-area-form {
+    margin: 20px 0 ;
+    &>label {
+        font-size: 12px;
+        color: #313238;
+        line-height: 20px;
+        &.disabled {
+            color: #cccccc;
+        }
+    }
 }
 </style>

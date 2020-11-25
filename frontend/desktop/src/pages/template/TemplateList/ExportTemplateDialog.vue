@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         :ext-cls="'common-dialog'"
-        :title="i18n.title"
+        :title="$t('导出流程')"
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
@@ -41,9 +41,9 @@
                     <div class="template-search">
                         <bk-input
                             class="search-input"
-                            v-model="filterCondition.keywords"
+                            v-model.trim="filterCondition.keywords"
                             :clearable="true"
-                            :placeholder="i18n.placeholder"
+                            :placeholder="$t('请输入流程名称')"
                             :right-icon="'icon-search'"
                             @input="onSearchInput">
                         </bk-input>
@@ -66,7 +66,7 @@
                                         :key="i"
                                         :data="template"
                                         :selected="getTplIndexInSelected(template) > -1"
-                                        :is-apply-permission="!hasPermission(['export'], template.auth_actions, tplOperations)"
+                                        :is-apply-permission="!hasPermission(reqPerm, template.auth_actions)"
                                         @onCardClick="onSelectTemplate(template)">
                                     </base-card>
                                 </ul>
@@ -78,9 +78,9 @@
             </div>
             <div class="selected-wrapper">
                 <div class="selected-area-title">
-                    {{i18n.selected}}
+                    {{$t('已选择')}}
                     <span class="select-count">{{selectedTemplates.length}}</span>
-                    {{i18n.num}}
+                    {{$t('项')}}
                 </div>
                 <ul class="selected-list">
                     <base-card
@@ -93,15 +93,15 @@
                     </base-card>
                 </ul>
             </div>
-            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ i18n.selectAll }}</bk-checkbox>
+            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ $t('全选') }}</bk-checkbox>
             <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{i18n.errorInfo}}</span>
+                <span class="error-info">{{$t('请选择流程模版')}}</span>
             </div>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -115,7 +115,14 @@
             BaseCard
         },
         mixins: [permission],
-        props: ['isExportDialogShow', 'businessInfoLoading', 'projectInfoLoading', 'common', 'pending'],
+        props: {
+            isExportDialogShow: Boolean,
+            businessInfoLoading: Boolean,
+            projectInfoLoading: Boolean,
+            common: String,
+            pending: Boolean,
+            project_id: [Number, String]
+        },
         data () {
             return {
                 exportPending: false,
@@ -126,22 +133,6 @@
                 searchList: [],
                 selectedTemplates: [],
                 selectError: false,
-                tplOperations: [],
-                tplResource: {},
-                i18n: {
-                    title: gettext('导出流程'),
-                    choose: gettext('选择流程'),
-                    noSearchResult: gettext('搜索结果为空'),
-                    templateEmpty: gettext('请选择需要导出的流程'),
-                    placeholder: gettext('请输入流程名称'),
-                    selected: gettext('已选择'),
-                    num: gettext('项'),
-                    selectAll: gettext('全选'),
-                    delete: gettext('删除'),
-                    allCategories: gettext('全部分类'),
-                    errorInfo: gettext('请选择流程模版'),
-                    applyPermission: gettext('申请权限')
-                },
                 templateEmpty: false,
                 selectedTaskCategory: '',
                 category: '',
@@ -153,10 +144,10 @@
                     {
                         type: 'primary',
                         loading: false,
-                        btnText: gettext('确认'),
+                        btnText: i18n.t('确认'),
                         click: 'onConfirm'
                     }, {
-                        btnText: gettext('取消'),
+                        btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
                 ]
@@ -168,8 +159,11 @@
             }),
             taskCategories () {
                 const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
-                list.unshift({ value: 'all', name: gettext('全部分类') })
+                list.unshift({ value: 'all', name: i18n.t('全部分类') })
                 return list
+            },
+            reqPerm () {
+                return this.common ? ['common_flow_view'] : ['flow_view']
             }
         },
         watch: {
@@ -200,13 +194,14 @@
                 this.exportPending = true
                 this.isCheckedDisabled = true
                 try {
-                    const data = {
-                        common: this.common || undefined
+                    const data = {}
+                    if (this.common) {
+                        data.common = 1
+                    } else {
+                        data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects
-                    this.tplOperations = respData.meta.auth_operations
-                    this.tplResource = respData.meta.auth_resource
                     this.templateList = this.getGroupedList(list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
@@ -287,7 +282,7 @@
                 })
             },
             onSelectTemplate (template) {
-                if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
+                if (this.hasPermission(this.reqPerm, template.auth_actions)) {
                     this.selectError = false
                     const tplIndex = this.getTplIndexInSelected(template)
                     if (tplIndex > -1) {
@@ -298,7 +293,27 @@
                         this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                     }
                 } else {
-                    this.applyForPermission(['export'], template, this.tplOperations, this.tplResource)
+                    let permissionData
+                    if (this.common) {
+                        permissionData = {
+                            common_flow: [{
+                                id: template.id,
+                                name: template.name
+                            }]
+                        }
+                    } else {
+                        permissionData = {
+                            flow: [{
+                                id: template.id,
+                                name: template.name
+                            }],
+                            project: [{
+                                id: template.project.id,
+                                name: template.project.name
+                            }]
+                        }
+                    }
+                    this.applyForPermission(this.reqPerm, template.auth_actions, permissionData)
                 }
             },
             deleteTemplate (template) {
@@ -313,7 +328,7 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
+                        if (this.hasPermission(this.reqPerm, template.auth_actions)) {
                             const tplIndex = this.getTplIndexInSelected(template)
                             if (this.isTplInPanelAllSelected) {
                                 if (tplIndex > -1) {
@@ -393,7 +408,7 @@
         height: 100%;
         .template-list {
             padding: 0 14px 0 20px;
-            height: 268px;
+            height: 284px;
             overflow-y: auto;
             @include scrollbar;
         }
@@ -415,6 +430,7 @@
             float: left;
             width: calc(( 100% - 16px) / 2);
             margin-right: 0;
+            border-radius: 2px;
             &:not(:nth-child(2n)) {
                 margin-right: 16px;
             }
@@ -453,7 +469,7 @@
     .template-checkbox {
         position: absolute;
         left: 20px;
-        bottom: -42px;
+        bottom: -38px;
     }
     .task-footer {
         position: absolute;

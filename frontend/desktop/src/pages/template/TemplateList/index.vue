@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,33 +12,40 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.projectFlow"></base-title>
+            <list-page-tips-title
+                :title="$t('项目流程')"
+                :num="expiredSubflowTplList.length"
+                @viewClick="handleSubflowFilter">
+            </list-page-tips-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    ref="advanceSearch"
+                    id="templateList"
                     :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
                         <bk-button
-                            v-cursor="{ active: !hasPermission(createTplRequired, authActions, authOperations) }"
+                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                             theme="primary"
                             :class="['create-template', {
-                                'btn-permission-disable': !hasPermission(createTplRequired, authActions, authOperations)
+                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
                             }]"
                             @click="checkCreatePermission">
-                            {{i18n.new}}
+                            {{$t('新建')}}
                         </bk-button>
                         <bk-button
                             theme="default"
                             class="template-btn"
                             @click="onExportTemplate">
-                            {{i18n.export}}
+                            {{$t('导出')}}
                         </bk-button>
                         <bk-button
                             theme="default"
                             class="template-btn"
                             @click="onImportTemplate">
-                            {{ i18n.import }}
+                            {{ $t('导入') }}
                         </bk-button>
                     </template>
                 </advance-search-form>
@@ -50,16 +57,16 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    @page-limit-change="onPageLimitChange">
+                    <bk-table-column label="ID" prop="id" width="100"></bk-table-column>
+                    <bk-table-column :label="$t('流程名称')">
                         <template slot-scope="props">
                             <template>
                                 <a
-                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                    v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    @click="onTemplatePermissonCheck(['view'], props.row, $event)">
+                                    @click="onTemplatePermissonCheck(['flow_view'], props.row)">
                                     {{props.row.name}}
                                 </a>
                                 <router-link
@@ -72,92 +79,116 @@
                             </template>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.updateTime" prop="edit_time"></bk-table-column>
+                    <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
                     <bk-table-column
-                        width="120"
-                        :label="i18n.subflowUpdate">
+                        width="160"
+                        :label="$t('子流程更新')">
                         <template slot-scope="props">
                             <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
                                 {{getSubflowContent(props.row)}}
+                                <span v-if="!isFlowVisited(props.row.id) " class="red-dot"></span>
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="180" class="operation-cell">
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <!-- 项目流程按钮 -->
                                     <a
-                                        v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
-                                        {{i18n.newTemplate}}
+                                        @click="onTemplatePermissonCheck(['flow_create_task'], props.row)">
+                                        {{$t('新建任务')}}
                                     </a>
                                     <router-link
                                         v-else
                                         class="template-operate-btn"
                                         :to="getJumpUrl('newTask', props.row.id)">
-                                        {{i18n.newTemplate}}
+                                        {{$t('新建任务')}}
                                     </router-link>
                                     <a
-                                        v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
-                                        {{i18n.edit}}
+                                        @click="onTemplatePermissonCheck(['flow_view'], props.row)">
+                                        {{$t('克隆')}}
                                     </a>
                                     <router-link
                                         v-else
                                         class="template-operate-btn"
-                                        :to="getJumpUrl('edit', props.row.id)">
-                                        {{i18n.edit}}
+                                        :to="getJumpUrl('clone', props.row.id)">
+                                        {{$t('克隆')}}
                                     </router-link>
-                                    <bk-dropdown-menu>
-                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
+                                    <router-link
+                                        class="template-operate-btn"
+                                        :to="getExecuteHistoryUrl(props.row.id)">
+                                        {{ $t('执行历史')}}
+                                    </router-link>
+                                    <bk-popover
+                                        theme="light"
+                                        placement="bottom-start"
+                                        ext-cls="common-dropdown-btn-popver"
+                                        :z-index="2000"
+                                        :distance="0"
+                                        :arrow="false"
+                                        :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                        <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul slot="content">
+                                            <li class="opt-btn">
                                                 <a
-                                                    v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                                    v-cursor="{ active: !hasPermission(['flow_view'], props.row.auth_actions) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'disable': collectingId === props.row.id || collectListLoading,
+                                                        'text-permission-disable': !hasPermission(['flow_view'], props.row.auth_actions)
+                                                    }"
+                                                    @click="onCollectTemplate(props.row, $event)">
+                                                    {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
+                                                </a>
+                                            </li>
+                                            <li class="opt-btn">
+                                                <a
+                                                    v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
                                                     v-cursor
                                                     class="text-permission-disable"
-                                                    @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
-                                                    {{i18n.clone}}
+                                                    @click="onTemplatePermissonCheck(['flow_edit'], props.row)">
+                                                    {{$t('编辑')}}
                                                 </a>
                                                 <router-link
                                                     v-else
-                                                    :to="getJumpUrl('clone', props.row.id)">
-                                                    {{i18n.clone}}
+                                                    tag="a"
+                                                    :to="getJumpUrl('edit', props.row.id)">
+                                                    {{$t('编辑')}}
                                                 </router-link>
                                             </li>
-                                            <li>
-                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
-                                            </li>
-                                            <li>
+                                            <li class="opt-btn">
                                                 <a
-                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                                    v-cursor="{ active: !hasPermission(['flow_delete'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
                                                     :class="{
-                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                                        'text-permission-disable': !hasPermission(['flow_delete'], props.row.auth_actions)
                                                     }"
                                                     @click="onDeleteTemplate(props.row, $event)">
-                                                    {{ i18n.delete }}
+                                                    {{ $t('删除') }}
                                                 </a>
                                             </li>
                                         </ul>
-                                    </bk-dropdown-menu>
+                                    </bk-popover>
                                 </template>
                             </div>
                         </template>
                     </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
+            :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
@@ -166,70 +197,75 @@
             :is-export-dialog-show="isExportDialogShow"
             :project-info-loading="projectInfoLoading"
             :pending="pending.export"
+            :project_id="project_id"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
         <bk-dialog
+            width="400"
             :mask-close="false"
             :header-position="'left'"
             :ext-cls="'common-dialog'"
-            :title="i18n.delete"
-            width="400"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
+            :auto-close="false"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{i18n.deleleTip + '"' + deleteTemplateName + '"' + '?' }}
+                {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import toolsUtils from '@/utils/tools.js'
+    import tools from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import ListPageTipsTitle from '../ListPageTipsTitle.vue'
+
     const searchForm = [
         {
             type: 'select',
-            label: gettext('分类'),
+            label: i18n.t('分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
-            list: []
+            placeholder: i18n.t('请选择分类'),
+            list: [],
+            value: ''
         },
         {
             type: 'dateRange',
             key: 'queryTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('更新时间'),
-            value: []
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('更新时间'),
+            value: ['', '']
         },
         {
             type: 'select',
-            label: gettext('子流程更新'),
+            label: i18n.t('子流程更新'),
             key: 'subprocessUpdateVal',
-            placeholder: gettext('请选择'),
+            placeholder: i18n.t('请选择'),
             list: [
-                { 'value': 1, name: gettext('是') },
-                { 'value': -1, name: gettext('否') },
-                { 'value': 0, name: gettext('无子流程') }
-            ]
+                { 'value': 1, name: i18n.t('是') },
+                { 'value': -1, name: i18n.t('否') },
+                { 'value': 0, name: i18n.t('无子流程') }
+            ],
+            value: ''
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         }
     ]
@@ -239,56 +275,23 @@
             CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
+            ListPageTipsTitle,
             AdvanceSearchForm,
-            BaseTitle,
             NoData
         },
         mixins: [permission],
-        props: ['project_id'],
+        props: {
+            project_id: [String, Number],
+            page: [String, Number],
+            limit: [String, Number]
+        },
         data () {
             return {
-                i18n: {
-                    placeholder: gettext('请输入ID或流程名称'),
-                    projectFlow: gettext('项目流程'),
-                    new: gettext('新建'),
-                    name: gettext('流程名称'),
-                    type: gettext('分类'),
-                    updateTime: gettext('更新时间'),
-                    subflowUpdate: gettext('子流程更新'),
-                    creator: gettext('创建人'),
-                    operation: gettext('操作'),
-                    newTemplate: gettext('新建任务'),
-                    edit: gettext('编辑'),
-                    clone: gettext('克隆'),
-                    delete: gettext('删除'),
-                    executeHistory: gettext('执行历史'),
-                    deleleTip: gettext('确认删除'),
-                    import_v1_template: gettext('导入 V1 模板'),
-                    export: gettext('导出'),
-                    import: gettext('导入'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    yes: gettext('是'),
-                    no: gettext('否'),
-                    empty: gettext('无数据'),
-                    templateNamePlaceholder: gettext('请输入流程名称'),
-                    subprocessUpdatePlaceholder: gettext('请选择子流程更新'),
-                    templateType: gettext('来源'),
-                    templateTypePlaceholder: gettext('请选择来源'),
-                    select: gettext('请选择'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    templateName: gettext('名称'),
-                    advanceSearch: gettext('高级搜索'),
-                    searchName: gettext('搜索流程名称')
-                },
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                totalPage: 1,
+                searchForm: tools.deepClone(searchForm),
+                expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isExportDialogShow: false,
@@ -300,7 +303,6 @@
                     export: false, // 导出
                     delete: false // 删除
                 },
-                templateCategoryList: [],
                 editEndTime: undefined,
                 isSubprocessUpdated: undefined,
                 isHasSubprocess: undefined,
@@ -312,16 +314,16 @@
                     creator: '',
                     flowName: ''
                 },
+                totalPage: 1,
                 pagination: {
-                    current: 1,
+                    current: Number(this.page) || 1,
                     count: 0,
-                    limit: 15,
-                    'limit-list': [15, 20, 30]
+                    limit: Number(this.limit) || 15,
+                    'limit-list': [15, 30, 50, 100]
                 },
-                createTplRequired: ['create_template'],
-                tplOperations: [], // 模板权限字典
-                tplResource: {}, // 模板资源信息
-                createCommonTplAction: [] // 创建公共流程权限
+                collectingId: '', // 正在被收藏/取消收藏的模板id
+                collectListLoading: false,
+                collectionList: []
             }
         },
         computed: {
@@ -329,30 +331,42 @@
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
                 'projectBaseInfo': state => state.template.projectBaseInfo,
-                'v1_import_flag': state => state.v1_import_flag
+                'v1_import_flag': state => state.v1_import_flag,
+                'username': state => state.username
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
-                'authOperations': state => state.authOperations,
-                'authResource': state => state.authResource,
                 'projectName': state => state.projectName
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.templateCategoryList
-                value[0].loading = this.categoryLoading
-                return searchForm
+            })
+        },
+        watch: {
+            page (val, oldVal) {
+                if (val !== oldVal) {
+                    this.pagination.current = Number(val) || 1
+                    this.getTemplateList()
+                }
             }
         },
         created () {
             this.getTemplateList()
             this.getProjectBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.getExpiredSubflowData()
+            this.getCollectList()
+            this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
+        },
+        beforeRouteLeave (to, from, next) {
+            // 记录访问过的流程 id
+            if (to.name === 'templatePanel' && to.query.template_id) {
+                this.pushToVisitedFlow(to.query.template_id)
+            }
+            next()
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
+                'loadCollectList',
+                'addToCollectList',
+                'deleteCollect'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -360,9 +374,9 @@
             ...mapActions('templateList/', [
                 'loadTemplateList',
                 'deleteTemplate',
-                'saveTemplatePersons',
                 'templateImport',
-                'templateExport'
+                'templateExport',
+                'getExpiredSubProcess'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -374,32 +388,24 @@
                 this.listLoading = true
                 try {
                     const { subprocessUpdateVal, creator, category, queryTime, flowName } = this.requestData
-                    const has_subprocess = (subprocessUpdateVal === '' || subprocessUpdateVal === 0) ? undefined : (subprocessUpdateVal > 0)
-                    const subprocess_has_update = subprocessUpdateVal === '' ? undefined : (subprocessUpdateVal !== 0)
+
+                    /**
+                     * 无子流程 has_subprocess=false
+                     * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
+                     * 有子流程，不需要更新 has_subprocess=true&subprocess_has_update=false
+                     * 不做筛选 has_subprocess=undefined
+                     */
+                    const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
+                    const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
                     const data = {
+                        project__id: this.project_id,
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        pipeline_template__name__contains: flowName || undefined,
+                        pipeline_template__name__icontains: flowName || undefined,
                         pipeline_template__creator__contains: creator || undefined,
                         category: category || undefined,
                         subprocess_has_update,
                         has_subprocess
-                    }
-                    if (this.flowName) {
-                        data['pipeline_template__name__contains'] = this.flowName
-                    }
-
-                    if (this.creator) {
-                        data['pipeline_template__creator__contains'] = this.creator
-                    }
-
-                    if (this.category) {
-                        data['category'] = this.category
-                    }
-
-                    if (this.isHasSubprocess !== undefined) {
-                        data['subprocess_has_update'] = this.isSubprocessUpdated
-                        data['has_subprocess'] = this.isHasSubprocess
                     }
 
                     if (queryTime[0] && queryTime[1]) {
@@ -412,8 +418,6 @@
                     this.setTemplateListData({ list, isCommon: false })
                     this.pagination.count = templateListData.meta.total_count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
-                    this.tplOperations = templateListData.meta.auth_operations
-                    this.tplResource = templateListData.meta.auth_resource
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -429,24 +433,48 @@
                 this.projectInfoLoading = true
                 this.categoryLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(data)
-                    this.templateCategoryList = data.task_categories
+                    const res = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(res.data)
+                    this.searchForm[0].list = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
-                    this.categoryLoading = false
+                    this.searchForm[0].loading = false
+                }
+            },
+            async getExpiredSubflowData () {
+                try {
+                    const resp = await this.getExpiredSubProcess({ project__id: this.project_id })
+                    if (resp.result) {
+                        this.expiredSubflowTplList = resp.data
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            async getCollectList () {
+                try {
+                    this.collectListLoading = true
+                    const res = await this.loadCollectList()
+                    this.collectionList = res.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectListLoading = false
                 }
             },
             checkCreatePermission () {
-                if (!this.hasPermission(this.createTplRequired, this.authActions, this.authOperations)) {
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
                     const resourceData = {
-                        name: gettext('项目'),
-                        id: this.project_id,
-                        auth_actions: this.authActions
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
                     }
-                    this.applyForPermission(this.createTplRequired, resourceData, this.authOperations, this.authResource)
+                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
                 } else {
                     this.$router.push({
                         name: 'templatePanel',
@@ -456,6 +484,7 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getTemplateList()
             },
             searchInputhandler (data) {
@@ -480,10 +509,7 @@
                 if (this.pending.export) return
                 this.pending.export = true
                 try {
-                    const data = {
-                        list: list
-                    }
-                    const resp = await this.templateExport(data)
+                    const resp = await this.templateExport({ list })
                     if (resp.result) {
                         this.isExportDialogShow = false
                     } else {
@@ -498,9 +524,9 @@
             onExportCancel () {
                 this.isExportDialogShow = false
             },
-            onDeleteTemplate (template, event) {
-                if (!this.hasPermission(['delete'], template.auth_actions, this.tplOperations)) {
-                    this.onTemplatePermissonCheck(['delete'], template, event)
+            onDeleteTemplate (template) {
+                if (!this.hasPermission(['flow_delete'], template.auth_actions)) {
+                    this.onTemplatePermissonCheck(['flow_delete'], template)
                     return
                 }
                 this.theDeleteTemplateId = template.id
@@ -509,17 +535,26 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.$router.push({ name: 'process', query: { page, limit: this.pagination.limit } })
+                this.getTemplateList()
+            },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.$router.push({ name: 'process', query: { page: 1, limit: val } })
                 this.getTemplateList()
             },
             /**
              * 单个模板操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} template 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onTemplatePermissonCheck (required, template, event) {
-                this.applyForPermission(required, template, this.tplOperations, this.tplResource)
-                event.preventDefault()
+            onTemplatePermissonCheck (required, template) {
+                const project = {
+                    id: this.project_id,
+                    name: this.projectName
+                }
+                this.applyForPermission(required, this.authActions, { flow: [template], project: [project] })
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return
@@ -550,23 +585,6 @@
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
             },
-            async onAuthorityConfirm (data) {
-                if (this.pending.authority) return
-                this.pending.authority = true
-                try {
-                    await this.saveTemplatePersons(data)
-                    this.isAuthorityDialogShow = false
-                    this.theAuthorityManageId = undefined
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.pending.authority = false
-                }
-            },
-            onAuthorityCancel () {
-                this.isAuthorityDialogShow = false
-                this.theAuthorityManageId = undefined
-            },
             /**
              * 获取模版操作的跳转链接
              * @param {string} name -类型
@@ -589,20 +607,85 @@
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id }
+                    query: { template_id: id, template_source: 'project' }
                 }
             },
-            // 获得子流程展示内容
+            // 获得表格中“子流程更新”列展示内容
             getSubflowContent (item) {
                 if (!item.has_subprocess) {
                     return '--'
                 }
-                return item.subprocess_has_update ? this.i18n.yes : this.i18n.no
+                return item.subprocess_has_update ? i18n.t('待更新') : i18n.t('否')
             },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
-                this.getTemplateList()
+            // 标题提示信息，查看子流程更新
+            handleSubflowFilter () {
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(true)
+                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.submit()
+            },
+            // 添加/取消收藏模板
+            async onCollectTemplate (template) {
+                if (!this.hasPermission(['flow_view'], template.auth_actions)) {
+                    this.onTemplatePermissonCheck(['flow_view'], template)
+                    return
+                }
+
+                if (typeof this.collectingId === 'number') {
+                    return
+                }
+
+                try {
+                    this.collectingId = template.id
+                    if (!this.isCollected(template.id)) { // add
+                        const res = await this.addToCollectList([{
+                            extra_info: {
+                                project_id: template.project.id,
+                                template_id: template.template_id,
+                                template_source: template.template_source,
+                                name: template.name,
+                                id: template.id
+                            },
+                            category: 'flow'
+                        }])
+                        if (res.objects.length) {
+                            this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
+                        }
+                    } else { // cancel
+                        const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'flow').id
+                        await this.deleteCollect(delId)
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                    }
+                    this.getCollectList()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
+                }
+            },
+            // 判断是否已在收藏列表
+            isCollected (id) {
+                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'flow')
+            },
+            // 缓存记录访问过的流程 id
+            pushToVisitedFlow (id) {
+                const saveId = `${this.username}_${this.project_id}_${id}`
+                const visitedStr = sessionStorage.getItem('visitedFlow')
+                const visitedList = visitedStr ? JSON.parse(visitedStr) : []
+                if (!visitedList.some(item => item === saveId)) {
+                    visitedList.push(saveId)
+                    sessionStorage.setItem('visitedFlow', JSON.stringify(visitedList))
+                }
+            },
+            // 判断流程是否访问过
+            isFlowVisited (id) {
+                const saveId = `${this.username}_${this.project_id}_${id}`
+                const visitedStr = sessionStorage.getItem('visitedFlow')
+                if (visitedStr) {
+                    const visitedList = JSON.parse(visitedStr)
+                    return visitedList.some(item => item === saveId)
+                }
+                return false
             }
         }
     }
@@ -630,39 +713,28 @@
         height: 156px;
         background: #fff;
     }
-    .template-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
-    }
 }
 .template-table-content {
     background: #ffffff;
     a.template-name {
         color: $blueDefault;
     }
-    /deep/ .bk-table {
-        overflow: visible;
-        .bk-table-body-wrapper,.is-scrolling-none,
-        td.is-last .cell {
-            overflow: visible;
-        }
-    }
     .template-operation > .text-permission-disable {
         padding: 5px;
     }
     .template-operate-btn {
         padding: 5px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .drop-icon-ellipsis {
-        position: absolute;
-        top: -13px;
+        display: inline-block;
         font-size: 18px;
+        vertical-align: -3px;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
+            background: #dcdee5;
+            border-radius: 50%;
         }
     }
     .empty-data {
@@ -670,9 +742,15 @@
     }
     .subflow-has-update {
         color: $redDefault;
+        .red-dot {
+            margin-left: 3px;
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #ff5757;
+            border-radius: 50%;
+            vertical-align: 1px;
+        }
     }
-}
-.bk-dropdown-menu .bk-dropdown-list > li > a {
-    font-size: 12px;
 }
 </style>

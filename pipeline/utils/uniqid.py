@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,17 +17,14 @@ from pipeline.conf import settings
 
 
 def uniqid():
-    return uuid.uuid3(
-        uuid.uuid1(),
-        uuid.uuid4().hex
-    ).hex
+    return uuid.uuid3(uuid.uuid1(), uuid.uuid4().hex).hex
 
 
 def node_uniqid():
     uid = uniqid()
-    return 'n%s' % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
+    return "n%s" % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
 
 
 def line_uniqid():
     uid = uniqid()
-    return 'l%s' % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
+    return "l%s" % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid

@@ -1,0 +1,224 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "project_edit",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "flow_create",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "flow_view",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "flow_edit",
+                "related_actions": [
+                    "project_view",
+                    "flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "flow_create_task",
+                "related_actions": [
+                    "project_view",
+                    "flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "flow_create_mini_app",
+                "related_actions": [
+                    "project_view",
+                    "flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "flow_create_periodic_task",
+                "related_actions": [
+                    "project_view",
+                    "flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "task_view",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "task_edit",
+                "related_actions": [
+                    "project_view",
+                    "task_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "task_operate",
+                "related_actions": [
+                    "project_view",
+                    "task_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "task_claim",
+                "related_actions": [
+                    "project_view",
+                    "task_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "task_clone",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "common_flow_edit",
+                "related_actions": [
+                    "common_flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "common_flow_create_task",
+                "related_actions": [
+                    "project_view",
+                    "common_flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "common_flow_create_periodic_task",
+                "related_actions": [
+                    "project_view",
+                    "common_flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_view",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_edit",
+                "related_actions": [
+                    "project_view",
+                    "mini_app_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_delete",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_create_task",
+                "related_actions": [
+                    "project_view",
+                    "mini_app_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "periodic_task_view",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "periodic_task_edit",
+                "related_actions": [
+                    "project_view",
+                    "periodic_task_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "periodic_task_delete",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "admin_edit",
+                "related_actions": [
+                    "admin_view"
+                ]
+            }
+        }
+    ]
+}

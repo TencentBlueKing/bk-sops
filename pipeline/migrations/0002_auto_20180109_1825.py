@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,24 +19,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0001_initial'),
+        ("pipeline", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='creator',
-            field=models.CharField(blank=True, max_length=32, verbose_name='\u521b\u5efa\u8005'),
+            model_name="pipelineinstance",
+            name="creator",
+            field=models.CharField(blank=True, max_length=32, verbose_name="\u521b\u5efa\u8005"),
         ),
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='description',
-            field=models.TextField(blank=True, default='', verbose_name='\u63cf\u8ff0'),
+            model_name="pipelineinstance",
+            name="description",
+            field=models.TextField(blank=True, default="", verbose_name="\u63cf\u8ff0"),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='executor',
-            field=models.CharField(blank=True, max_length=32, verbose_name='\u6267\u884c\u8005'),
+            model_name="pipelineinstance",
+            name="executor",
+            field=models.CharField(blank=True, max_length=32, verbose_name="\u6267\u884c\u8005"),
         ),
     ]

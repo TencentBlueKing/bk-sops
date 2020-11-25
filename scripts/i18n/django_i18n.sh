@@ -1,16 +1,10 @@
 #!bin/bash
 WORK_PATH=`pwd`
 
-# check_vue_i18n_utils
-# 所有的 vue 文件都需要添加 import '@/utils/i18n.js'，排除不能和项目代码耦合的独立组件 IpSelector
-# $1 参数表示当前目录
-for item in `find $WORK_PATH/frontend/desktop/src -name "*.vue" ! -path "*IpSelector*"`;do
-    echo $item
-    grep "i18n.js" $item || exit 1
-done
-
 mkdir -p  ~/Temp/gcloud_open/ || exit 1
 mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/ || exit 1
+mv -f $WORK_PATH/frontend/desktop/node_modules ~/Temp/gcloud_open/desktop_node
+mv -f $WORK_PATH/frontend/mobile/node_modules ~/Temp/gcloud_open/modile_node
 rm -rf $WORK_PATH/frontend/desktop/static/ || exit 1
 
 pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit 1
@@ -18,7 +12,7 @@ pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit
 # pybabel init -i django.pot -D django -d locale -l en --no-wrap
 # pybabel init -i django.pot -D django -d locale -l zh_hans --no-wrap
 pybabel update -i django.pot -d locale -D django --no-wrap || exit 1
-django-admin makemessages -d djangojs -e vue,js -i '*node_modules*' -i '*dist*' --no-wrap || exit 1
+django-admin makemessages -d djangojs -e vue,js -i '*dist*' --no-wrap || exit 1
 
 # 避免手动翻译被注释
 #sed -i -e 's/#~ //g' $WORK_PATH/locale/en/LC_MESSAGES/djangojs.po
@@ -53,3 +47,5 @@ read -rsp $'Press translate django.po and djangojs.po, then press any key to con
 django-admin compilemessages
 
 mv -f ~/Temp/gcloud_open/static/ $WORK_PATH/
+mv -f ~/Temp/gcloud_open/desktop_node $WORK_PATH/frontend/desktop/node_modules
+mv -f ~/Temp/gcloud_open/modile_node $WORK_PATH/frontend/mobile/node_modules

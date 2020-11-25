@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@ from pipeline.core.data.context import OutputRef
 from pipeline.core.data.expression import ConstantTemplate, format_constant_key
 from pipeline.core.signals import pre_variable_register
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 class Variable(object):
@@ -43,7 +43,7 @@ class PlainVariable(Variable):
         return self.value
 
     def __repr__(self):
-        return '[plain_var] {}'.format(self.name)
+        return "[plain_var] {}".format(self.name)
 
     def __str__(self):
         return self.__repr__()
@@ -53,7 +53,6 @@ class PlainVariable(Variable):
 
 
 class SpliceVariable(Variable):
-
     def __init__(self, name, value, context):
         super(SpliceVariable, self).__init__(name, value)
         self._value = None
@@ -63,8 +62,8 @@ class SpliceVariable(Variable):
         if not self._value:
             try:
                 self._resolve()
-            except exceptions as e:
-                logger.error("get value[%s] of Variable[%s] error[%s]" % (self.value, self.name, e))
+            except Exception as e:
+                logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
                 return self.value
         return self._value
 
@@ -90,7 +89,7 @@ class SpliceVariable(Variable):
         self._value = val
 
     def __repr__(self):
-        return '[splice_var] {}'.format(self.name)
+        return "[splice_var] {}".format(self.name)
 
     def __str__(self):
         return self.__repr__()
@@ -113,8 +112,7 @@ class RegisterVariableMeta(type):
         new_class = super_new(cls, name, bases, attrs)
 
         if not new_class.code:
-            raise exceptions.ConstantReferenceException("LazyVariable %s: code can't be empty."
-                                                        % new_class.__name__)
+            raise exceptions.ConstantReferenceException("LazyVariable %s: code can't be empty." % new_class.__name__)
 
         pre_variable_register.send(sender=LazyVariable, variable_cls=new_class)
 
@@ -134,8 +132,8 @@ class LazyVariable(SpliceVariable, metaclass=RegisterVariableMeta):
         self.value = super(LazyVariable, self).get()
         try:
             return self.get_value()
-        except exceptions as e:
-            logger.error("get value[%s] of Variable[%s] error[%s]" % (self.value, self.name, e))
+        except Exception as e:
+            logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
             return self.value
 
     # get real value by user code

@@ -1,0 +1,31 @@
+default_stages: [commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.1.0
+    hooks:
+    - id: check-merge-conflict
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+    - id: black
+      language_version: python3.6
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.1.0
+    hooks:
+    - id: flake8
+  - repo: local
+    hooks:
+      - id: check-migrate
+        name: check migrate
+        entry: python scripts/check_migrate/check_migrate.py
+        language: system
+        types: [python]
+      - id: check-commit-message
+        name: Check commit message
+        entry: python scripts/check_commit_message.py
+        language: system
+        stages: [commit-msg]
+      - id: check-sensitive-info
+        name: Check Sensitive Info
+        entry: sh scripts/check_sensitive_info.sh
+        language: system

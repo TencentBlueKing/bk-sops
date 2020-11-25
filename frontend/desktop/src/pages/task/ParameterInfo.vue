@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="parameter-info-wrap" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
+    <div :class="['parameter-info-wrap', { 'no-data': isNoData }]" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
         <TaskParamEdit
             v-if="isReferencedShow"
             class="task-param-wrapper"
@@ -23,10 +23,10 @@
             v-if="isUnreferencedShow">
             <div class="title-background" @click="onToggleUnreferenceShow">
                 <div :class="['unreferenced-variable', { 'unreference-show': isUnrefVarShow }]"></div>
-                <span class="title">{{i18n.title}}</span>
+                <span class="title">{{$t('查看未引用变量')}}</span>
                 <i class="common-icon-info desc-tooltip"
                     v-bk-tooltips="{
-                        content: i18n.executorTips,
+                        content: $t('在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑'),
                         width: '400',
                         placements: ['bottom-end'] }">
                 </i>
@@ -44,7 +44,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import TaskParamEdit from './TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
@@ -56,10 +55,6 @@
         props: ['referencedVariable', 'unReferencedVariable', 'taskMessageLoading'],
         data () {
             return {
-                i18n: {
-                    title: gettext('查看未引用变量'),
-                    executorTips: gettext('在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑')
-                },
                 isUnrefVarShow: false,
                 isRefVarLoading: true,
                 isUnrefVarLoading: true
@@ -82,7 +77,7 @@
         },
         watch: {
             isParameterInfoLoading (Val) {
-                this.$emit('onParameterInfoLoading', Val)
+                this.$emit('paramsLoadingChange', Val)
             },
             taskMessageLoading (val) {
                 if (!val) {
@@ -99,11 +94,11 @@
             onToggleUnreferenceShow () {
                 this.isUnrefVarShow = !this.isUnrefVarShow
             },
-            onRefVarLoadingChange () {
-                this.isRefVarLoading = false
+            onRefVarLoadingChange (val) {
+                this.isRefVarLoading = val
             },
-            onUnrefVarLoadingChange () {
-                this.isUnrefVarLoading = false
+            onUnrefVarLoadingChange (val) {
+                this.isUnrefVarLoading = val
             },
             // 获取 TaskParamEdit
             getTaskParamEdit () {
@@ -122,7 +117,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
-    max-width: 620px;
+    max-width: 100%;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
@@ -168,6 +163,39 @@
             line-height: 60px;
             font-size: 14px
         }
+    }
+}
+/deep/ .render-form {
+    .el-input__inner,
+    .el-tree,
+    .el-date-editor,
+    .el-textarea__inner,
+    .el-input-number,
+    .tag-input,
+    .el-date-editor,
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
+        max-width: 598px;
+    }
+    /deep/.module-form  {
+        .bk-form-content,
+        .bk-input-number,
+        .bk-select {
+            max-width: 598px;
+        }
+    }
+    .el-radio__label,
+    .checkbox-item {
+        max-width: 160px;
+        margin-right: 24px;
+    }
+}
+.no-data {
+    /deep/ .no-data-wrapper {
+        position: relative;
+        top: 90px;
     }
 }
 </style>

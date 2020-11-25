@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,6 +12,7 @@
 <template>
     <div class="tag-textarea">
         <el-input
+            ref="tagTextarea"
             type="textarea"
             v-model="textareaValue"
             :class="{ 'rf-view-textarea-value': !formMode }"
@@ -60,6 +61,17 @@
                 set (val) {
                     this.updateForm(val)
                 }
+            }
+        },
+        watch: {
+            formMode () {
+                /**
+                 * 重新计算 textarea 高度，解决 disabled 下有滚动条和空白问题
+                 * resizeTextarea 为非官方暴露 api，后续需关注 element textarea 组件该问题修复后删除
+                 */
+                this.$nextTick(() => {
+                    this.$refs.tagTextarea.resizeTextarea()
+                })
             }
         }
     }

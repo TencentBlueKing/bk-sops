@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -31,12 +31,12 @@ class SubProcess(Activity):
     def __setstate__(self, state):
         for attr, obj in list(state.items()):
             if isinstance(attr, bytes):
-                attr = attr.decode('utf-8')
+                attr = attr.decode("utf-8")
                 obj = convert_bytes_to_str(obj)
             setattr(self, attr, obj)
 
-        if '_prepared_inputs' not in state:
+        if "_prepared_inputs" not in state:
             self._prepared_inputs = self.pipeline.data.inputs_copy()
 
-        if '_prepared_outputs' not in state:
+        if "_prepared_outputs" not in state:
             self._prepared_outputs = self.pipeline.data.outputs_copy()

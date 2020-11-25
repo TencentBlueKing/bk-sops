@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -9,11 +9,15 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-const topWindow = window.top
+import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
+
+const isCrossOrigin = isCrossOriginIFrame()
+const topWindow = isCrossOrigin ? window : window.top
 const topDocument = topWindow.document
+
 try {
-    topWindow.BLUEKING.corefunc.open_login_dialog = openLoginDialog
-    topWindow.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
+    window.top.BLUEKING.corefunc.open_login_dialog = openLoginDialog
+    window.top.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
 } catch (_) {
     topWindow.BLUEKING = {
         corefunc: {
@@ -21,7 +25,11 @@ try {
             close_login_dialog: closeLoginDialog
         }
     }
+    // 兼容接口返回的登录成功 html
+    window.open_login_dialog = openLoginDialog
+    window.close_login_dialog = closeLoginDialog
 }
+
 function openLoginDialog (src, width = 460, height = 490, method = 'get') {
     if (!src) return
     const isWraperExit = topDocument.querySelector('#bk-gloabal-login-iframe')
@@ -43,7 +51,7 @@ function openLoginDialog (src, width = 460, height = 490, method = 'get') {
 
     const wraper = topDocument.createElement('div')
     wraper.id = 'bk-gloabal-login-iframe'
-    wraper.style.cssText = 'position: fixed;top: 0;bottom: 0;left: 0;right: 0;background-color: rgba(0,0,0,.6);height: 100%;z-index: 1000;'
+    wraper.style.cssText = 'position: fixed;top: 0;bottom: 0;left: 0;right: 0;background-color: rgba(0,0,0,.6);height: 100%;z-index: 5000;'
     wraper.appendChild(dialogDiv)
     topDocument.body.appendChild(wraper)
 }

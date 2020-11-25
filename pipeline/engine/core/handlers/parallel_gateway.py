@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,22 +14,18 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from pipeline.exceptions import PipelineException
 from pipeline.core.flow.gateway import ParallelGateway
-from pipeline.engine.models import (
-    Status,
-    PipelineProcess,
-)
+from pipeline.engine.models import PipelineProcess, Status
+from pipeline.exceptions import PipelineException
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['ParallelGatewayHandler']
+__all__ = ["ParallelGatewayHandler"]
 
 
 class ParallelGatewayHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return ParallelGateway
@@ -40,9 +36,9 @@ class ParallelGatewayHandler(FlowElementHandler):
 
         for target in targets:
             try:
-                child = PipelineProcess.objects.fork_child(parent=process,
-                                                           current_node_id=target.id,
-                                                           destination_id=element.converge_gateway_id)
+                child = PipelineProcess.objects.fork_child(
+                    parent=process, current_node_id=target.id, destination_id=element.converge_gateway_id
+                )
             except PipelineException as e:
                 logger.error(traceback.format_exc())
                 Status.objects.fail(element, str(e))

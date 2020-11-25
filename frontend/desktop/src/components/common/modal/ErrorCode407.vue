@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,26 +11,16 @@
 */
 <template>
     <div class="content-wrapper">
-        <h3 class="error-title">{{ i18n.sorry }}</h3>
-        <p>{{ i18n.try }}</p>
+        <h3 class="error-title">{{ $t('对不起，您没有当前应用的管理员权限') }}</h3>
+        <p>{{ $t('请尝试如下操作：') }}</p>
         <ul>
-            <li>{{ i18n.contact }}</li>
+            <li>{{ $t('联系“管理员”为您添加管理员权限') }}</li>
         </ul>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
-        name: 'ErrorCode407',
-        data () {
-            return {
-                i18n: {
-                    sorry: gettext('对不起，您没有当前应用的管理员权限'),
-                    try: gettext('请尝试如下操作：'),
-                    contact: gettext('联系“管理员”为您添加管理员权限')
-                }
-            }
-        }
+        name: 'ErrorCode407'
     }
 </script>
 <style lang="scss" scoped>

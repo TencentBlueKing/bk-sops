@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -15,11 +15,12 @@
             <el-cascader
                 v-model="seletedValue"
                 :options="items"
+                popper-class="tag-component-popper"
                 :disabled="!editable || disabled"
                 :props="{
                     multiple,
                     lazy,
-                    lazyLoad
+                    lazyLoad: lazyLoad.bind(this)
                 }"
                 :filterable="filterable">
             </el-cascader>
@@ -211,7 +212,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    /deep/ .el-cascader {
+    /deep/ .tag-cascader-popperover.el-cascader {
         width: 100%;
         line-height: 32px;
         .el-cascader__search-input,

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -70,7 +70,7 @@ def convert_bytes_to_str(obj):
             for attr, value in obj.items():
 
                 if isinstance(attr, bytes):
-                    attr = attr.decode('utf-8')
+                    attr = attr.decode("utf-8")
 
                 value = _convert(value, converted)
 
@@ -89,11 +89,11 @@ def convert_bytes_to_str(obj):
         elif isinstance(obj, bytes):
 
             try:
-                obj = obj.decode('utf-8')
+                obj = obj.decode("utf-8")
             except Exception:
                 pass
 
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
 
             if id(obj) in converted:
                 return obj
@@ -105,7 +105,7 @@ def convert_bytes_to_str(obj):
             for attr, value in obj.__dict__.items():
 
                 if isinstance(attr, bytes):
-                    attr = attr.decode('utf-8')
+                    attr = attr.decode("utf-8")
 
                 new__dict__[attr] = _convert(value, converted)
 

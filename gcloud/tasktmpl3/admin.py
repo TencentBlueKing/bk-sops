@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,13 +18,13 @@ from gcloud.tasktmpl3 import models
 
 @admin.register(models.TaskTemplate)
 class TaskTemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'project', 'category', 'pipeline_template', 'is_deleted']
-    list_filter = ['project', 'category', 'is_deleted']
-    search_fields = ['id', 'pipeline_template__name']
-    raw_id_fields = ['pipeline_template']
-    actions = ['fake_delete']
+    list_display = ["id", "name", "project", "category", "pipeline_template", "is_deleted", "executor_proxy"]
+    list_filter = ["project", "category", "is_deleted"]
+    search_fields = ["id", "pipeline_template__name"]
+    raw_id_fields = ["pipeline_template"]
+    actions = ["fake_delete"]
 
     def fake_delete(self, request, queryset):
         queryset.update(is_deleted=True)
 
-    fake_delete.short_description = 'Fake delete'
+    fake_delete.short_description = "Fake delete"

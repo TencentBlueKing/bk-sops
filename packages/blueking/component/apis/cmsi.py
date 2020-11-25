@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -49,4 +49,14 @@ class CollectionsCMSI(object):
             client=self.client, method='POST',
             path='/api/c/compapi{bk_api_ver}/cmsi/send_weixin/',
             description='发送微信消息'
+        )
+        self.get_msg_type = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi{bk_api_ver}/cmsi/get_msg_type/',
+            description='查询 send_msg 组件支持发送消息的类型'
+        )
+        self.send_msg = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cmsi/send_msg/',
+            description='通用消息发送接口'
         )

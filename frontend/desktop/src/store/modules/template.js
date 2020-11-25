@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,11 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 import Vue from 'vue'
-import api from '@/api/index.js'
 import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
+import axios from 'axios'
+import i18n from '@/config/i18n/index.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -30,21 +31,21 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 80,
+            x: 40,
             y: 150,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 300,
-            y: 150,
+            x: 240,
+            y: 145,
             name: '',
-            stage_name: gettext('步骤1'),
+            stage_name: '',
             type: 'tasknode'
         },
         {
             id: 'node' + uuid(),
-            x: 600,
+            x: 540,
             y: 150,
             type: 'endpoint'
         }
@@ -66,7 +67,7 @@ function generateInitActivities (location, line) {
             name: '',
             optional: false,
             outgoing: line[1].id,
-            stage_name: gettext('步骤1'),
+            stage_name: '',
             type: 'ServiceActivity',
             retryable: true,
             skippable: true
@@ -179,6 +180,8 @@ const template = {
         notify_type: [],
         time_out: '',
         category: '',
+        description: '',
+        executor_proxy: '',
         subprocess_info: {
             details: [],
             subproc_has_update: false
@@ -201,14 +204,21 @@ const template = {
         setCategory (state, data) {
             state.category = data
         },
+        setTplConfig (state, data) {
+            const { category, notify_type, receiver_group, description, executor_proxy } = data
+            state.category = category
+            state.notify_type = notify_type
+            state.notify_receivers.receiver_group = receiver_group
+            state.description = description
+            state.executor_proxy = executor_proxy
+        },
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
-                if (
-                    subflow.template_id === item.template_id
-                    && subflow.subprocess_node_id === item.subprocess_node_id
-                ) {
+                if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
-                    subflow.version && (item.version = subflow.version)
+                    if (subflow.version) {
+                        item.version = subflow.version
+                    }
                     return true
                 }
             })
@@ -220,33 +230,55 @@ const template = {
             ]
             pipelineTreeOrder.forEach(key => {
                 let val = data[key]
-                if (key !== 'constants') {
-                    val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
-                }
-                if (key === 'location') {
-                    val = val.map(item => {
-                        if (item.type === 'tasknode' || item.type === 'subflow') {
-                            const node = state.activities[item.id]
-                            const loc = Object.assign({}, item, {
-                                name: node.name,
-                                stage_name: node.stage_name,
-                                optional: node.optional,
-                                error_ignorable: node.error_ignorable,
-                                retryable: node.can_retry || node.retryable,
-                                skippable: node.isSkipped || node.skippable
-                            })
-                            return loc
+
+                if (key === 'constants') {
+                    // 全局变量 index 修正，3.5版本之前变量 index 存在不连续的情况，导致新增变量时 index 不正确
+                    Object.keys(val).map(varKey => val[varKey])
+                        .sort((a, b) => a.index - b.index)
+                        .forEach((item, index) => {
+                            item.index = index
+                        })
+                } else {
+                    // 节点、连线不和规则 id 替换
+                    // 3.1版本之前节点和连线的 id 可能存在以数字开头的情况，导致使用 docuement.getElementById 等查找DOM节点失败
+                    val = nodeFilter.convertInvalidIdData(key, val)
+                    if (key === 'activities') { // 兼容脏数据 can_retry、isSkipped 字段不存在问题
+                        for (const nodeId in val) {
+                            const item = val[nodeId]
+                            if (!item.hasOwnProperty('can_retry') && !item.hasOwnProperty('retryable')) {
+                                item.can_retry = true
+                            }
+                            if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
+                                item.isSkipped = true
+                            }
                         }
-                        return item
-                    })
+                    }
+                    if (key === 'location') {
+                        val = val.map(item => {
+                            if (item.type === 'tasknode' || item.type === 'subflow') {
+                                const node = state.activities[item.id]
+                                const loc = Object.assign({}, item, {
+                                    name: node.name,
+                                    stage_name: node.stage_name,
+                                    optional: node.optional,
+                                    error_ignorable: node.error_ignorable,
+                                    retryable: node.can_retry || node.retryable,
+                                    skippable: node.isSkipped || node.skippable
+                                })
+                                return loc
+                            }
+                            return item
+                        })
+                    }
                 }
+                
                 state[key] = val
             })
         },
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const { name, template_id, pipeline_tree, notify_receivers,
-                notify_type, time_out, category, subprocess_info
+                notify_type, description, executor_proxy, time_out, category, subprocess_info
             } = data
             
             const pipelineData = JSON.parse(pipeline_tree)
@@ -255,6 +287,8 @@ const template = {
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
             state.notify_type = notify_type ? JSON.parse(notify_type) : []
+            state.description = description
+            state.executor_proxy = executor_proxy
             state.time_out = time_out
             state.category = category
             state.subprocess_info = subprocess_info
@@ -284,6 +318,13 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = ''
+            state.notify_type = []
+            state.notify_receivers = {
+                receiver_group: [],
+                more_receiver: ''
+            }
+            state.description = ''
+            state.executor_proxy = ''
         },
         // 重置模板数据
         resetTemplateData (state) {
@@ -298,11 +339,14 @@ const template = {
             state.start_event = {}
             state.template_id = ''
             state.constants = {}
+            state.category = ''
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
             }
+            state.description = ''
+            state.executor_proxy = ''
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -319,6 +363,7 @@ const template = {
             const constant = state.constants[key]
             const { source_info } = constant
 
+            // 遍历节点，去掉表单的勾选状态，并将变量值复制给对应表单
             for (const id in source_info) {
                 if (state.activities[id]) {
                     source_info[id].forEach(item => {
@@ -336,8 +381,18 @@ const template = {
                     })
                 }
             }
-            const vIndex = state.outputs.indexOf(key)
-            vIndex > -1 && state.outputs.splice(vIndex, 1)
+            // 删除输出变量的勾选状态
+            if (state.outputs.includes(key)) {
+                state.outputs.splice(state.outputs.indexOf(key), 1)
+            }
+
+            for (const key in state.constants) {
+                const varItem = state.constants[key]
+                if (varItem.index > constant.index) {
+                    varItem.index = varItem.index - 1
+                }
+            }
+
             Vue.delete(state.constants, key)
         },
         // 配置全局变量 source_info 字段
@@ -364,6 +419,9 @@ const template = {
                         }
                     })
                     sourceInfo[id].splice(atomIndex, 1)
+                }
+                if (!Object.keys(sourceInfo).length) {
+                    this.commit('template/deleteVariable', key)
                 }
             }
         },
@@ -535,8 +593,9 @@ const template = {
             const { type, location } = payload
             if (type === 'add') {
                 if (!state.activities[location.id]) {
+                    let activity = {}
                     if (location.type === 'tasknode') {
-                        state.activities[location.id] = {
+                        activity = {
                             component: {
                                 code: location.atomId,
                                 data: location.data,
@@ -549,13 +608,13 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: gettext('步骤1'),
+                            stage_name: '',
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true
                         }
                     } else if (location.type === 'subflow') {
-                        state.activities[location.id] = {
+                        activity = {
                             constants: {},
                             hooked_constants: [],
                             id: location.id,
@@ -564,15 +623,16 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: gettext('步骤1'),
+                            stage_name: '',
                             template_id: location.atomId,
                             version: location.atomVersion,
                             type: 'SubProcess'
                         }
                     }
+                    Vue.set(state.activities, location.id, activity)
                 }
             } else if (type === 'edit') {
-                state.activities[location.id] = location
+                Vue.set(state.activities, location.id, location)
                 state.location.some(item => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
@@ -580,6 +640,7 @@ const template = {
                     }
                 })
             } else if (type === 'delete') {
+                Vue.delete(state.activities, location.id)
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
@@ -587,11 +648,10 @@ const template = {
                         if (Object.keys(sourceInfo).length > 1) {
                             Vue.delete(sourceInfo, location.id)
                         } else {
-                            Vue.delete(state.constants, constant.key)
+                            this.commit('template/deleteVariable', cKey)
                         }
                     }
                 }
-                Vue.delete(state.activities, location.id)
             } else if (type === 'copy') { // 复制节点
                 const oldSouceId = location.oldSouceId
                 const newActivitie = tools.deepClone(state.activities[oldSouceId])
@@ -682,18 +742,25 @@ const template = {
                 Vue.set(state, 'end_event', {})
             }
         },
+        // 更新全局变量
+        setContants (state, data) {
+            state.constants = tools.deepClone(data)
+        },
         // 全局变量勾选是否为输出
         setOutputs (state, payload) {
-            const { changeType, key } = payload
+            const { changeType, key, newKey } = payload
             if (changeType === 'add') {
                 if (state.outputs.includes(key)) {
                     return
                 }
                 state.outputs.push(key)
-            } else {
+            } else if (changeType === 'delete') {
                 state.outputs = state.outputs.filter(item => {
                     return item !== key
                 })
+            } else {
+                const index = state.outputs.findIndex(item => item === key)
+                state.outputs.splice(index, 1, newKey)
             }
         },
         // 修改state中的模板数据
@@ -718,18 +785,29 @@ const template = {
     },
     actions: {
         loadProjectBaseInfo () {
-            return api.getProjectBaseInfo().then(response => response.data)
+            return axios.get('core/api/get_basic_info/').then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
-            return api.getTemplateData(data).then(response => response.data)
+            const { templateId, common } = data
+            let prefixUrl = ''
+            if (common) {
+                prefixUrl = 'api/v3/common_template/'
+            } else {
+                prefixUrl = 'api/v3/template/'
+            }
+            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data)
         },
         loadCustomVarCollection () {
-            return api.getCustomVarCollection().then(response => response.data.objects)
+            return axios.get('api/v3/variable/').then(response => response.data.objects)
         },
-        // 保存模板数据
+        /**
+         * 保存模板数据
+         * @param {Object} data 模板完整数据
+         */
         saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
-                location, outputs, start_event, notify_receivers, notify_type, time_out, category
+                location, outputs, start_event, notify_receivers, notify_type,
+                time_out, category, description, executor_proxy
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => {
@@ -756,69 +834,63 @@ const template = {
                 outputs,
                 start_event
             }
-            const data = {
-                projectId,
-                templateId,
-                timeout: time_out,
-                category,
-                notifyReceivers: JSON.stringify(notify_receivers),
-                notifyType: JSON.stringify(notify_type),
-                name: state.name,
-                pipelineTree: JSON.stringify(fullCanvasData),
-                common
-            }
             const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
 
             if (!validateResult.result) {
                 return new Promise((resolve, reject) => {
                     const info = {
-                        message: `${gettext('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
+                        message: `${i18n.t('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
                     }
                     reject(info)
                 })
             }
-            return api.saveTemplate(data).then(response => {
+
+            const name = state.name
+            const pipelineTree = JSON.stringify(fullCanvasData)
+            const notifyReceivers = JSON.stringify(notify_receivers)
+            const notifyType = JSON.stringify(notify_type)
+            const timeout = time_out
+            const headers = {}
+            const project = SITE_URL + 'api/v3/project/' + projectId + '/'
+            let url = ''
+            if (common) {
+                url = 'api/v3/common_template/'
+            } else {
+                url = 'api/v3/template/'
+            }
+
+            if (templateId !== undefined) {
+                url = `${url}${templateId}/`
+                headers['X-HTTP-Method-Override'] = 'PATCH'
+            }
+
+            return axios.post(url, {
+                name,
+                project,
+                category,
+                timeout,
+                description,
+                executor_proxy,
+                pipeline_tree: pipelineTree,
+                notify_receivers: notifyReceivers,
+                notify_type: notifyType
+            }, {
+                headers
+            }).then(response => {
                 return response.data
             })
         },
+        // 自动排版
         getLayoutedPipeline ({ commit }, data) {
-            return api.getLayoutedPipeline(data).then(response => response.data)
-        },
-        // 获取常用业务
-        loadCommonProject ({ commit }, data) {
-            return api.getCommonProject(data).then(response => response.data)
-        },
-        // 获取收藏列表
-        getCollectList ({ commit }, data) {
-            return api.getCollectList(data).then(response => response.data)
-        },
-        // 收藏模板，批量操作
-        collectSelect ({ commit }, list) {
-            return api.collectSelect(list).then(response => response.data)
-        },
-        // 删除收藏模板，单个删除
-        deleteCollect ({ commit }, id) {
-            return api.deleteCollect(id).then(response => response.data)
-        },
-        queryTemplateData ({ commit }, data) {
-            return api.queryTemplate(data).then(response => response.data)
-        },
-        loadTemplateSummary ({ commit }, data) {
-            return api.loadTemplateSummary(data).then(response => response.data)
-        },
-        loadCollectList ({ commit }) {
-            return api.loadCollectList().then(response => response.data)
-        },
-        getCollectedTemplateDetail ({ commit }, ids) {
-            return api.getCollectedTemplateDetail(ids).then(
-                response => response.data
-            )
+            return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
         },
         // 获取内置变量
-        loadInternalVariable ({ commit }) {
-            return api.getInternalVariableList().then(
-                response => response.data
-            )
+        loadInternalVariable () {
+            return axios.get('taskflow/api/context/').then(response => response.data)
+        },
+        // 获取节点标签列表
+        getLabels ({ commit }, data) {
+            return axios.get('api/v3/label/', { params: data }).then(response => response.data)
         }
     },
     getters: {

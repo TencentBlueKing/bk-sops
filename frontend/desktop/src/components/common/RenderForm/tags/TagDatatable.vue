@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,28 +10,31 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-datatable">
-        <template v-if="editable && formMode">
+    <div class="tag-datatable" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div class="button-area" v-if="editable && formMode">
             <bk-button
                 v-if="add_btn"
-                class="add-column"
+                class="add-column button-item"
                 size="small"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
-            <div v-for="btn in table_buttons" :key="btn.type" class="table-buttons">
+            <template v-for="btn in table_buttons">
                 <bk-button
                     v-if="btn.type !== 'import'"
+                    class="button-item"
                     type="default"
                     size="small"
-                    @click="onBtnClick(btn.callback)">
+                    :key="btn.type"
+                    @click.stop="onBtnClick(btn.callback)">
                     {{ btn.text}}
                 </bk-button>
                 <el-upload
                     v-else
                     ref="upload"
-                    class="upload-btn"
+                    class="upload-btn button-item"
                     action="/"
+                    :key="btn.type"
                     :show-file-list="false"
                     :on-change="importExcel"
                     :auto-upload="false">
@@ -42,78 +45,79 @@
                         {{ btn.text }}
                     </bk-button>
                 </el-upload>
-            </div>
-        </template>
-        <el-table
-            v-if="Array.isArray(value)"
-            style="width: 100%; font-size: 12px"
-            :data="currPageValue"
-            :empty-text="empty_text"
-            @row-click="onRowClick"
-            v-loading="loading"
-            border>
-            <template v-for="(item, cIndex) in columns">
-                <el-table-column
-                    v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
-                    :key="item.tag_code"
-                    :index="cIndex"
-                    :prop="item.tag_code"
-                    :label="'name' in item.attrs ? item.attrs.name : ''"
-                    :width="'width' in item.attrs ? item.attrs.width : ''"
-                    align="center">
+            </template>
+        </div>
+        <template v-if="Array.isArray(value) && !loading">
+            <el-table
+                style="width: 100%; font-size: 12px"
+                border
+                :data="dataList"
+                :empty-text="empty_text"
+                :fit="true"
+                @row-click="onRowClick">
+                <template v-for="(item, cIndex) in cellColumns">
+                    <el-table-column
+                        v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
+                        :key="item.tag_code"
+                        :index="cIndex"
+                        :prop="item.tag_code"
+                        :label="'name' in item.attrs ? item.attrs.name : ''"
+                        :width="'width' in item.attrs ? item.attrs.width : ''"
+                        align="center">
+                        <template slot-scope="scope">
+                            <component
+                                :is="item.type === 'combine' ? 'form-group' : 'form-item'"
+                                :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
+                                :scheme="item"
+                                :key="`${item.tag_code}_${cIndex}`"
+                                :option="getColumnOptions(scope.$index)"
+                                :value="scope.row[item.tag_code]"
+                                :parent-value="scope.row"
+                                @init="onInitColumn(scope, ...arguments)"
+                                @change="onEditColumn(scope, ...arguments)">
+                            </component>
+                        </template>
+                    </el-table-column>
+                </template>
+                <el-table-column v-if="editable && formMode"
+                    prop="operation"
+                    fixed="right"
+                    align="center"
+                    width="100"
+                    :label="i18n.operate_text">
                     <template slot-scope="scope">
-                        <component
-                            :is="item.type === 'combine' ? 'form-group' : 'form-item'"
-                            :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
-                            :scheme="item"
-                            :option="getColumnOptions(scope.$index)"
-                            :value="scope.row[item.tag_code]"
-                            :parent-value="scope.row"
-                            @change="onEditColumn">
-                        </component>
+                        <div v-if="scope.$index === editRowNumber">
+                            <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
+                            <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
+                        </div>
+                        <div v-else>
+                            <a v-if="rowEditable" class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
+                            <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
+                        </div>
                     </template>
                 </el-table-column>
-            </template>
-            <el-table-column v-if="editable && formMode"
-                prop="operation"
-                fixed="right"
-                align="center"
-                width="100"
-                :label="i18n.operate_text">
-                <template slot-scope="scope">
-                    <div v-if="scope.$index === editRowNumber">
-                        <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
-                        <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
-                    </div>
-                    <div v-else>
-                        <a class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
-                        <a v-if="add_btn" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
-                    </div>
-                </template>
-            </el-table-column>
-        </el-table>
-        <div class="table-pagination">
+            </el-table>
             <el-pagination
-                v-if="show_pagination"
+                v-if="pagination && (tableValue.length / page_size) > 1 "
                 layout="prev, pager, next"
-                :current-page="pagination.current"
-                :page-size="limit"
                 :total="tableValue.length"
-                @current-change="handlerPageChange">
+                :page-size="page_size"
+                :current-page.sync="currentPage">
             </el-pagination>
-        </div>
+        </template>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations } from 'vuex'
     import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
+    import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import bus from '@/utils/bus.js'
 
     export const attrs = {
         columns: {
@@ -154,6 +158,18 @@
             default: true,
             desc: 'show edit and delete button or not'
         },
+        rowEditable: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show edit button in a row'
+        },
+        deleteable: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show delete button in a row'
+        },
         value: {
             type: [Array, String],
             required: false,
@@ -174,7 +190,7 @@
             desc: 'tips when data is empty'
         },
         remote_url: {
-            type: String,
+            type: [String, Function],
             required: false,
             default: '',
             desc: 'remote url when remote is true'
@@ -195,23 +211,23 @@
             },
             desc: 'dataTable buttons setting'
         },
-        show_pagination: {
+        pagination: {
             type: Boolean,
-            require: false,
+            required: false,
             default: false,
-            desc: 'show table pagination or not'
+            desc: 'show table pagination'
         },
-        limit: {
+        page_size: {
             type: Number,
-            require: false,
-            default: 5,
-            desc: 'the number of per page'
+            required: false,
+            default: 10,
+            desc: 'number of items displayed per page'
         },
-        row_click_handler_name: {
-            type: String,
+        row_click_handler: {
+            type: Function,
             require: false,
-            default: '',
-            desc: 'on table row click callback function name'
+            default: function () {},
+            desc: 'on table row click callback function'
         }
     }
     export default {
@@ -233,9 +249,11 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                cellColumns: [], // 单元格的 scheme 配置项
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
                 loading: false,
+                currentPage: 1,
                 i18n: {
                     save_text: gettext('保存'),
                     cancel_text: gettext('取消'),
@@ -250,18 +268,10 @@
             }
         },
         computed: {
-            /**
-             * notice：兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
-             */
-            ...mapState({
-                'atomForm': state => state.atomForm,
-                'constants': state => state.template.constants
-            }),
-            currPageValue () {
-                if (this.show_pagination) {
-                    const start = (this.pagination.current - 1) * this.limit
-                    const end = start + this.limit
-                    return this.tableValue.slice(start, end)
+            dataList () {
+                if (this.pagination) {
+                    const start = (this.currentPage - 1) * this.page_size
+                    return this.tableValue.slice(start, start + this.page_size)
                 }
                 return this.tableValue
             }
@@ -278,51 +288,54 @@
                 if (this.tagCode === 'job_global_var' && this.formEdit) {
                     this.setOutputParams(val, oldVal)
                 }
+            },
+            columns: {
+                handler (value) {
+                    // 去掉单元格第一层事件监听，改由 datable 组件外层管理
+                    this.cellColumns = value.map(item => {
+                        return {
+                            ...item,
+                            events: []
+                        }
+                    })
+                },
+                immediate: true
             }
         },
         mounted () {
             if (this.tagCode === 'job_global_var' && this.formEdit) {
-                this.setOutputParams()
+                this.setOutputParams(this.value)
             }
             this.remoteMethod()
         },
         methods: {
-            /**
-             * notice：兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
-             */
-            ...mapMutations('atomForm/', [
-                'setAtomOutput'
-            ]),
-            ...mapMutations('template/', [
-                'deleteVariable'
-            ]),
             formatJson (filterVal, jsonData) {
                 return jsonData.map(v => filterVal.map(j => v[j]))
             },
             export2Excel () {
-                require.ensure([], () => {
-                    const TableToExcel = require('table-to-excel')
-                    const tableToExcel = new TableToExcel()
-                    const tableHeader = []
-                    const tableData = []
-                    const filterVal = []
-                    for (let i = 0; i < this.columns.length; i++) {
-                        const tagCode = this.columns[i].tag_code
-                        const name = this.columns[i].attrs.name
-                        tableHeader.push(name)
-                        filterVal.push(tagCode)
+                const tableHeader = []
+                const tableData = []
+                const filterVal = []
+                for (let i = 0; i < this.columns.length; i++) {
+                    const tagCode = this.columns[i].tag_code
+                    const name = this.columns[i].attrs.name
+                    tableHeader.push(name)
+                    filterVal.push(tagCode)
+                }
+                tableData.push(tableHeader)
+                const list = this.tableValue
+                for (let i = 0; i < list.length; i++) {
+                    const row = []
+                    for (let j = 0; j < filterVal.length; j++) {
+                        row.push(list[i][filterVal[j]])
                     }
-                    tableData.push(tableHeader)
-                    const list = this.tableValue
-                    for (let i = 0; i < list.length; i++) {
-                        const row = []
-                        for (let j = 0; j < filterVal.length; j++) {
-                            row.push(list[i][filterVal[j]])
-                        }
-                        tableData.push(row)
-                    }
-                    tableToExcel.render(tableData)
-                })
+                    tableData.push(row)
+                }
+                const wsName = 'Sheet1'
+                const wb = XLSX.utils.book_new()
+                const ws = XLSX.utils.aoa_to_sheet(tableData)
+                XLSX.utils.book_append_sheet(wb, ws, wsName)
+                XLSX.writeFile(wb, 'tableData.xlsx')
             },
             importExcel (file) {
                 const types = file.name.split('.')[1]
@@ -347,7 +360,7 @@
                                 delete excelValue[i][key]
                             }
                         }
-                        this.tableValue = tabJson[0]['sheet']
+                        this._set_value(tabJson[0]['sheet'])
                     }
                 })
             },
@@ -406,28 +419,73 @@
                     validateSet: ['required', 'custom', 'regex']
                 }
             },
+            /**
+             * 触发同一行单元格注册的监听事件
+             * @param {String} type 事件类型
+             * @param {Number} row 行序号
+             * @param {Number} col 列序号
+             * @param {Any} value 当前表单值
+             */
+            triggerSameRowEvent (type, row, col, value) {
+                const tagCode = this.columns[col].tag_code
+                this.columns.forEach((col, index) => {
+                    if (tagCode !== col.tag_code) {
+                        const listenedEvents = (col.events || []).filter(item => item.source === tagCode && item.type === type)
+                        if (listenedEvents.length > 0) {
+                            let editingCell = null
+                            const cells = this.$refs[`row_${row}_${index}_${col.tag_code}`]
+                            if (cells && cells.length > 0) {
+                                cells.some(crtCell => { // 找到 element table 提供给用户编辑的 body
+                                    if (crtCell.$parent.fixed === undefined) {
+                                        editingCell = crtCell
+                                        return true
+                                    }
+                                })
+                            }
+                            if (editingCell) {
+                                listenedEvents.forEach(event => {
+                                    event.action.call(editingCell.$refs.tagComponent, value)
+                                })
+                            }
+                        }
+                    }
+                })
+            },
             onBtnClick (callback) {
-                typeof callback === 'function' && callback()
+                typeof callback === 'function' && callback.bind(this)()
+            },
+            onInitColumn (scope, val) {
+                this.triggerSameRowEvent('init', scope.$index, scope.column.index, val)
             },
             onEdit (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 this.editRowNumber = index
             },
-            onEditColumn (fieldsArr, val) {
+            onEditColumn (scope, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
+                this.triggerSameRowEvent('change', scope.$index, scope.column.index, val)
             },
             onDelete (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 this.tableValue.splice(index, 1)
                 this.updateForm(this.tableValue)
             },
             onSave (index, row) {
+                if (this.pagination) {
+                    index = (this.currentPage - 1) * this.page_size + index
+                }
                 const valueValid = this.validateSubCom(index)
                 if (!valueValid) return
 
                 this.editRowNumber = undefined
                 this.updateForm(tools.deepClone(this.tableValue))
             },
-            onCancel (index, row) {
+            onCancel () {
                 this.editRowNumber = undefined
                 this.tableValue = tools.deepClone(this.value)
             },
@@ -442,7 +500,15 @@
 
                 const originData = {}
                 this.columns.forEach((item, index) => {
-                    originData[item.tag_code] = item.default || ''
+                    let value = ''
+                    if ('value' in item.attrs) {
+                        value = item.attrs.value
+                    } else if ('default' in item.attrs) {
+                        value = item.attrs.default
+                    } else {
+                        value = atomFilter.getFormItemDefaultValue([item])[item.tag_code]
+                    }
+                    originData[item.tag_code] = value
                 })
                 this.editRowNumber = this.tableValue.length
                 this.tableValue.push(originData)
@@ -479,52 +545,10 @@
              * @param {Array} oldVal 表格变更之前的值
              */
             setOutputParams (val, oldVal) {
-                const specialAtom = 'job_execute_task'
-                const version = this.atomForm.SingleAtomVersionMap[specialAtom]
-                if (Array.isArray(this.value)) {
-                    const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
-                    this.value.forEach(item => {
-                        if (typeof item.type === 'number' && item.type !== 2 && item.category === 1) {
-                            atomOutput.push({
-                                key: item.name,
-                                name: item.name
-                            })
-                        }
-                    })
-                    this.setAtomOutput({
-                        atomType: specialAtom,
-                        outputData: atomOutput,
-                        version
-                    })
-                }
-                // 删除输出变量已勾选的全局变量
-                if (oldVal && this.node.id) {
-                    oldVal.forEach(item => {
-                        if (val.find(v => v.id === item.id)) {
-                            return
-                        }
-                        if (typeof item.type === 'number' && item.type !== 2) {
-                            Object.keys(this.constants).some(key => {
-                                const cst = this.constants[key]
-                                const sourceInfo = cst.source_info[this.node.id]
-                                if (sourceInfo && sourceInfo.indexOf(item.name) > -1) {
-                                    this.deleteVariable(key)
-                                    return true
-                                }
-                            })
-                        }
-                    })
-                }
+                bus.$emit('jobExecuteTaskOutputs', { val, oldVal })
             },
-            handlerPageChange (val) {
-                this.pagination.current = val
-            },
-            // 表格单行点击
             onRowClick (row, column, event) {
-                const handlerName = this.row_click_handler_name
-                if (handlerName && typeof this[handlerName] === 'function') {
-                    this[handlerName](row, column, event)
-                }
+                typeof this.row_click_handler && this.row_click_handler(row, column, event)
             }
         }
     }
@@ -538,21 +562,24 @@
         .rf-form-item {
             margin: 0;
         }
+        /deep/ .rf-view-textarea-value textarea {
+            text-align: center;
+        }
+        .el-pagination {
+            text-align: right;
+        }
     }
-    .add-column {
+    .button-area {
         margin-bottom: 10px;
+        overflow: hidden;
+        .button-item {
+            float: left;
+            margin-right: 10px;
+        }
     }
     .operate-btn {
         color: $blueDefault;
         white-space: nowrap;
         cursor: pointer;
-    }
-    .table-buttons{
-        display: inline-block;
-        margin-left: 10px;
-        margin-bottom: 15px;
-    }
-    .table-pagination {
-        margin-top: 20px;
     }
 </style>

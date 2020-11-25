@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,15 +12,15 @@
 <template>
     <div class="my-dynamic">
         <h3 class="panel-title">
-            <span class="panel-name">{{ i18n.title }}</span>
+            <span class="panel-name">{{ $t('我的动态') }}</span>
             <div class="create-method">
                 <bk-select
                     class="bk-select-inline"
                     v-model="currentMethod"
-                    :loading="isCreateMethosLoading"
+                    :loading="isCreateMethodsLoading"
                     :popover-width="260"
                     :clearable="false"
-                    :placeholder="i18n.methodsPlaceholder"
+                    :placeholder="$t('请选择')"
                     @selected="onSelectMethod">
                     <bk-option
                         v-for="option in createMethods"
@@ -52,11 +52,11 @@
                     </template>
                     <template v-else-if="item.prop === 'name'">
                         <a
-                            v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                            v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                             v-cursor
                             class="text-permission-disable"
                             :title="props.row.name"
-                            @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                            @click="onTaskPermissonCheck(['task_view'], props.row)">
                             {{ props.row[item.prop] }}
                         </a>
                         <router-link
@@ -84,7 +84,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapState, mapActions } from 'vuex'
     import task from '@/mixins/task.js'
@@ -97,29 +97,29 @@
             width: '100'
         },
         {
-            label: gettext('任务名称'),
+            label: i18n.t('任务名称'),
             prop: 'name',
             width: '300'
         },
         {
-            label: gettext('项目'),
+            label: i18n.t('项目'),
             prop: 'project'
         },
         {
-            label: gettext('执行开始'),
+            label: i18n.t('执行开始'),
             prop: 'start_time'
         },
         {
-            label: gettext('执行结束'),
+            label: i18n.t('执行结束'),
             prop: 'finish_time'
         },
         {
-            label: gettext('创建方式'),
+            label: i18n.t('创建方式'),
             prop: 'create_method',
             width: '150'
         },
         {
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             prop: 'status',
             width: '100'
         }
@@ -132,18 +132,12 @@
         mixins: [permission, task],
         data () {
             return {
-                i18n: {
-                    title: gettext('我的动态'),
-                    methodsPlaceholder: gettext('请选择')
-                },
                 createMethods: [{
-                    name: gettext('所有创建方式'),
+                    name: i18n.t('所有创建方式'),
                     value: 'all'
                 }],
                 dynamicData: [],
                 executeStatus: [],
-                taskOperations: [],
-                taskResource: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -153,7 +147,7 @@
                 },
                 tableColumn: tableColumn,
                 isTableLoading: false,
-                isCreateMethosLoading: false,
+                isCreateMethodsLoading: false,
                 currentMethod: 'all'
             }
         },
@@ -162,11 +156,9 @@
                 username: state => state.username
             })
         },
-        created () {
-        },
-        mounted () {
+        async created () {
+            await this.getCreateMethods()
             this.getTaskList()
-            this.getCreateMethos()
         },
         methods: {
             ...mapActions('taskList/', [
@@ -188,21 +180,25 @@
                     const res = await this.loadTaskList(data)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
+                    
                     this.dynamicData = res.objects
-                    this.taskOperations = res.meta.auth_operations
-                    this.taskResource = res.meta.auth_resource
+                    this.dynamicData.forEach(m => {
+                        const item = this.createMethods.find(method => method.value === m.create_method)
+                        if (item) {
+                            m.create_method = item.name
+                        }
+                    })
                     this.isTableLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
             },
-            getCreateMethos () {
+            async getCreateMethods () {
                 try {
-                    this.isCreateMethosLoading = true
-                    this.loadCreateMethod().then(res => {
-                        this.createMethods = [...this.createMethods, ...res.data]
-                        this.isCreateMethosLoading = false
-                    })
+                    this.isCreateMethodsLoading = true
+                    const res = await this.loadCreateMethod()
+                    this.createMethods = [...this.createMethods, ...res.data]
+                    this.isCreateMethodsLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -211,13 +207,20 @@
                 this.currentMethod = val
                 this.getTaskList()
             },
-            onTaskPermissonCheck (required, task, event) {
-                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            onTaskPermissonCheck (required, task) {
+                const { id, name, project } = task
+                const resourceData = {
+                    task: [{ id, name }],
+                    project: [{
+                        id: project.id,
+                        name: project.name
+                    }]
+                }
+                this.applyForPermission(required, task.auth_actions, resourceData)
             }
         }
     }
-</script>
+</script>3
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
@@ -226,6 +229,8 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin-top: 0;
+        margin-bottom: 20px;
         .panel-name {
             color: #313238;
             font-size: 16px;
@@ -242,7 +247,7 @@
         @include ui-task-status;
     }
     .task-name {
-        color: #3c96ff;
+        color: #3a84ff;
     }
 }
 </style>

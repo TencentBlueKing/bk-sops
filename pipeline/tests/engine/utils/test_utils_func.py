@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,15 +20,14 @@ from pipeline.engine.utils import calculate_elapsed_time
 
 
 class EngineUtilsFuncTestCase(TestCase):
-
     def test_calculate_elapsed_time(self):
         self.assertEqual(calculate_elapsed_time(None, None), 0)
 
         self.assertEqual(calculate_elapsed_time(started_time=None, archived_time=timezone.now()), 0)
 
-        self.assertNotEqual(calculate_elapsed_time(started_time=timezone.now() - datetime.timedelta(seconds=1),
-                                                   archived_time=None),
-                            0)
+        self.assertNotEqual(
+            calculate_elapsed_time(started_time=timezone.now() - datetime.timedelta(seconds=1), archived_time=None), 0
+        )
 
         # seconds
         start = timezone.now()

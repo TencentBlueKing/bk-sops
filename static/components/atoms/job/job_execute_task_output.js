@@ -63,7 +63,6 @@
                         item.value = x.ip
                         return item
                     }(x))
-                    
                     var ipExitCodeList = resp.data.map(x => function () {
                         var item = new Object()
                         item.ip = x.ip
@@ -72,7 +71,6 @@
                     }(x))
                     var ipTable = this.get_parent().get_child('job_task_ip_exit_codes')
                     ipTable._set_value(ipExitCodeList)
-                    
                     this.logDict = {}
                     for (i in resp.data) {
                         this.logDict[resp.data[i].ip] = resp.data[i].log
@@ -102,5 +100,4 @@
             ]
         }
     ]
-
 })();

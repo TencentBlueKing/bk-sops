@@ -1,8 +1,6 @@
 ### 功能描述
 
-查询某个项目下的插件列表
-
-### 请求参数
+获取某个业务下所有的可用插件
 
 #### 通用参数
 
@@ -16,9 +14,10 @@
 #### 接口参数
 
 | 字段          |  类型       | 必选   |  描述             |
-|---------------|------------|--------|------------------|
-|   project_id    |   string     |   是   |  项目ID |
-| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 project_id 的项目；当值为 project 时则检索项目 ID 为 project_id 的项目|
+|-----------------|-------------|---------|------------------|
+|   bk_biz_id       |   string     |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
+|   scope       |   string     |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
+
 
 ### 请求参数示例
 
@@ -27,7 +26,7 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "project_id": "2"
+    "bk_biz_id": "2"
 }
 ```
 
@@ -35,201 +34,59 @@
 
 ```
 {
+    "result": true,
     "data": [
         {
-            "inputs": [
+            "inputs": [],
+            "outputs": [
                 {
-                    "required": true,
-                    "type": "string",
-                    "name": "业务 ID",
-                    "key": "biz_cc_id",
+                    "name": "执行结果",
+                    "key": "_result",
+                    "type": "bool",
                     "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "当前操作所属的 CMDB 业务 ID"
+                        "type": "boolean",
+                        "description": "是否执行成功",
+                        "enum": []
                     }
                 },
                 {
-                    "required": true,
-                    "type": "string",
-                    "name": "定时作业名称",
-                    "key": "job_cron_name",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "待创建的定时作业名称"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "定时规则",
-                    "key": "job_cron_expression",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "待创建的定时作业定时规则"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "定时作业状态",
-                    "key": "job_cron_status",
-                    "schema": {
-                        "enum": [
-                            1,
-                            2
-                        ],
-                        "type": "int",
-                        "description": "待创建的定时作业状态，暂停(1) 启动(2)"
-                    }
-                }
-            ],
-            "code": "job_cron_task",
-            "name": "新建定时作业",
-            "group_name": "作业平台(JOB)",
-            "output": [
-                {
+                    "name": "循环次数",
+                    "key": "_loop",
                     "type": "int",
-                    "name": "定时作业ID",
-                    "key": "cron_id",
                     "schema": {
-                        "enum": [],
                         "type": "int",
-                        "description": "成功创建的定时作业 ID"
-                    }
-                },
-                {
-                    "type": "string",
-                    "name": "定时作业状态",
-                    "key": "status",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "成功创建的定时作业状态"
-                    }
-                },
-                {
-                    "type": "bool",
-                    "name": "执行结果",
-                    "key": "_result",
-                    "schema": {
-                        "enum": [],
-                        "type": "boolean",
-                        "description": "是否执行成功"
+                        "description": "循环执行次数",
+                        "enum": []
                     }
                 }
             ],
-            "desc": ""
-        },
-        {
-            "inputs": [
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "业务 ID",
-                    "key": "biz_cc_id",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "当前操作所属的 CMDB 业务 ID"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "主机 IP",
-                    "key": "cc_host_ip",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "转移到资源池的主机内网 IP，多个以 \",\" 分隔"
-                    }
-                }
-            ],
-            "code": "cmdb_transfer_host_resource",
-            "name": "转移主机至资源池",
-            "group_name": "配置平台(CMDB)",
-            "output": [
-                {
-                    "type": "bool",
-                    "name": "执行结果",
-                    "key": "_result",
-                    "schema": {
-                        "enum": [],
-                        "type": "boolean",
-                        "description": "是否执行成功"
-                    }
-                }
-            ],
-            "desc": ""
-        },
-        {
-            "inputs": [
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "业务 ID",
-                    "key": "biz_cc_id",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "当前操作所属的 CMDB 业务 ID"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "主机 IP",
-                    "key": "cc_host_ip",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "转移到故障机的主机内网 IP，多个以 \",\" 分隔"
-                    }
-                }
-            ],
-            "code": "cmdb_transfer_fault_host",
-            "name": "转移主机到业务的故障机模块",
-            "group_name": "配置平台(CMDB)",
-            "output": [
-                {
-                    "type": "bool",
-                    "name": "执行结果",
-                    "key": "_result",
-                    "schema": {
-                        "enum": [],
-                        "type": "boolean",
-                        "description": "是否执行成功"
-                    }
-                }
-            ],
-            "desc": ""
+            "desc": "",
+            "code": "job_push_local_files",
+            "name": "分发本地文件",
+            "group_name": "作业平台(JOB)",
+            "version": "1.0.0"
         }
-    ],
-    "result": true
+    ]
 }
 ```
 
-### 返回结果参数说明
-
+### 返回结果说明
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
 
-#### data
-
+##### data[item]
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
-|  inputs      |    list    |      插件的输入参数    |
-|  code      |    string    |    插件的编码   |
-|  name      |    string    |    插件名   |
-|  group_name      |    string    |   插件所属的组名   |
-|  outputs      |    list    |   插件的输出参数   |
-|  desc      |    string    |   插件描述   |
+|  inputs      |    array    |      插件输入参数列表    |
+|  outputs      |    array    |      插件输出参数列表    |
+|  desc      |    string    |      插件描述    |
+|  code      |    string    |      插件代码    |
+|  name      |    string    |      插件名    |
+|  group_name      |    string    |      插件组名    |
+|  version      |    name    |      插件版本    |
 
 ##### inputs
 

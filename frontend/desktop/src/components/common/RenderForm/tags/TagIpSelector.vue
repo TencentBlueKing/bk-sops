@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,6 +19,7 @@
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
+                :dynamic-group-list="dynamicGroupList"
                 :allow-empty="allowEmpty"
                 v-model="ipValue">
             </ip-selector>
@@ -44,7 +45,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: gettext('组件禁用态')
+        },
+        remote_url: {
+            type: [Object, Function],
+            required: true,
+            default: '',
+            desc: gettext('组件内部调用接口地址')
         },
         value: {
             type: [Object, String],
@@ -55,7 +62,8 @@
                     ip: [],
                     topo: [],
                     filters: [],
-                    excludes: []
+                    excludes: [],
+                    with_cloud_id: false
                 }
             }
         }
@@ -68,11 +76,12 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
-                loading: true,
+                loading: false,
                 isvalidate: false,
                 staticIpList: [],
                 dynamicIpList: [],
-                topoModelList: []
+                topoModelList: [],
+                dynamicGroupList: [] // 动态分组的首页数据，如果大于 200 条，在组件内部单独请求
             }
         },
         computed: {
@@ -101,28 +110,43 @@
                 return !this.validateSet.includes('required')
             }
         },
-        created () {
+        mounted () {
             this.getData()
         },
         methods: {
             ...mapActions([
                 'getHostInCC',
                 'getTopoTreeInCC',
-                'getTopoModelInCC'
+                'getTopoModelInCC',
+                'getDynamicGroup'
             ]),
             getData () {
-                this.loading = true
                 const staticIpExtraFields = ['agent']
-
+                const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
+                if (!urls['cc_search_host'] || !urls['cc_search_topo_tree'] || !urls['cc_get_mainline_object_topo']) {
+                    return
+                }
+                this.loading = true
                 Promise.all([
-                    this.getHostInCC(staticIpExtraFields),
-                    this.getTopoTreeInCC(),
-                    this.getTopoModelInCC()
+                    this.getHostInCC({
+                        url: urls['cc_search_host'],
+                        fields: staticIpExtraFields
+                    }),
+                    this.getTopoTreeInCC({
+                        url: urls['cc_search_topo_tree']
+                    }),
+                    this.getTopoModelInCC({
+                        url: urls['cc_get_mainline_object_topo']
+                    }),
+                    this.getDynamicGroup({
+                        url: urls['cc_dynamic_group_list']
+                    })
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         this.staticIpList = (values[0] && values[0].data) || []
                         this.dynamicIpList = (values[1] && values[1].data) || []
                         this.topoModelList = (values[2] && values[2].data) || []
+                        this.dynamicGroupList = (values[3] && values[3].data && values[3].data.info) || []
                     }
                     this.loading = false
                 }).catch(e => {
@@ -139,6 +163,6 @@
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
     padding: 10px;
-    border: 1px solid #ececec;
+    border: 1px solid #dcdee5;
 }
 </style>

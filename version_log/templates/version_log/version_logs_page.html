@@ -1,0 +1,99 @@
+{% load static %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{% static 'version_log/css/version-log-gitbook-page.css' %}">
+    <link rel="stylesheet" href="{% static 'version_log/css/jquery.mCustomScrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'version_log/css/bootstrap.min.css' %}">
+</head>
+<body>
+    <div class="logs-list">
+        <ul>
+            {% for version in version_list %}
+                <li data-toggle="pill" onclick="log_detail('{{version.version}}')"> 
+                    <span>{{ version.version }}<span>
+                    <br>
+                    <span style="font-size: 14px;">{{ version.date }}<span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="log-body">
+        <div class="page-head" style="margin-top: 5px; padding: 5px 10px;">
+            <img onclick="back()" src="{% static 'version_log/images/back.svg' %}" title="{% trans '返回' %}" style="width:18px;height:18px; cursor:pointer; margin-left:10px;" />
+            <img onclick="home()" src="{% static 'version_log/images/homepage.svg' %}" title="{% trans '首页' %}" style="width:18px;height:18px; cursor:pointer; margin-left:10px;" />
+        </div>
+        <div class="page-inner">
+            <div id="log-detail">
+                <!-- detail version log -->
+            </div>
+        </div>
+    </div>
+    
+<script src="{% static 'version_log/js/jquery-1.10.2.min.js' %}"></script>
+<script src="{% static 'version_log/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'version_log/js/jquery.mCustomScrollbar.concat.min.js' %}"></script>
+<script>
+    $(function() {
+        var versions = {{ version_list | safe }};
+        if (versions.length > 0) {
+            // if exist version log, request the latest one.
+            log_detail(versions[0].version);
+            $('.logs-list li:first-child').addClass('active');
+        } else {
+            show_error_page(gettext('暂无版本日志'));
+        }
+
+        $(".logs-list").mCustomScrollbar({
+            setHeight:'100%',
+            theme:"minimal-dark"
+        });
+        $(".log-body").mCustomScrollbar({
+            setHeight:'100%',
+            theme:"minimal-dark"
+        });
+    })
+
+    // load detail version log
+    function log_detail(log_version) {
+        $.ajax({
+            url: "{{SITE_URL}}{{ENTRANCE_URL}}version_log_detail/?log_version="+log_version,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                if (data.code == 0) {
+                    data = data.data;
+                    $("#log-detail").html(data);
+                } else {
+                    show_error_page(gettext('页面异常，请稍后重试'));
+                }
+
+            }
+        })
+    }
+
+    function back() {
+        history.back(-1);
+    }
+
+    function home() {
+        window.location.href="{{SITE_URL}}";
+    }
+
+    function show_error_page(text) {
+        html_tpl = `
+        <div class="bk-exception" style="text-align: center;height:100%;padding:10%">
+            <img src="{% static 'version_log/images/error.png' %}" >
+            <h2 class="exception-text">` + text + `</h2>
+        </div>
+        `;
+        $("#log-detail").html(html_tpl);
+    }
+
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,24 +12,23 @@ specific language governing permissions and limitations under the License.
 """
 
 import mock
-
 from django.test import TestCase
+
 from pipeline.engine.apps import EngineConfig
 
 
 class EngineConfigTestCase(TestCase):
-
-    @mock.patch('pipeline.django_signal_valve.valve.set_valve_function', mock.MagicMock())
-    @mock.patch('pipeline.engine.models.FunctionSwitch.objects.init_db', mock.MagicMock())
-    @mock.patch('pipeline.engine.signals.dispatch.dispatch', mock.MagicMock())
+    @mock.patch("pipeline.django_signal_valve.valve.set_valve_function", mock.MagicMock())
+    @mock.patch("pipeline.engine.models.FunctionSwitch.objects.init_db", mock.MagicMock())
+    @mock.patch("pipeline.engine.signals.dispatch.dispatch", mock.MagicMock())
     def test_ready(self):
         from pipeline.engine.signals import dispatch  # noqa
         from pipeline.django_signal_valve import valve  # noqa
         from pipeline.engine.models import FunctionSwitch  # noqa
 
-        EngineConfig.path = 'test'
+        EngineConfig.path = "test"
 
-        config = EngineConfig('', '')
+        config = EngineConfig("", "")
 
         config.ready()
 

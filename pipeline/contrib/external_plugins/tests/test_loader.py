@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -24,27 +24,27 @@ class LoaderTestCase(TestCase):
 
         with patch(IMPORTLIB_IMPORT_MODULE, import_module):
             modules = [1, 2, 3, 4]
-            source = MockPackageSource(importer='importer', modules=modules)
+            source = MockPackageSource(importer="importer", modules=modules)
             loader._import_modules_in_source(source)
-            import_module.assert_has_calls(calls=[
-                call(modules[0]),
-                call(modules[1]),
-                call(modules[2]),
-                call(modules[3])
-            ])
+            import_module.assert_has_calls(
+                calls=[call(modules[0]), call(modules[1]), call(modules[2]), call(modules[3])]
+            )
 
     @patch(LOADER__IMPORT_MODULES_IN_SOURCE, MagicMock())
     def test_load_external_modules(self):
         cls_factory = Object()
-        setattr(cls_factory, 'items', MagicMock(return_value=[
-            ('type_1', MockPackageSourceClass(all=['source_1', 'source_2'])),
-            ('type_2', MockPackageSourceClass(all=['source_3', 'source_4']))
-        ]))
+        setattr(
+            cls_factory,
+            "items",
+            MagicMock(
+                return_value=[
+                    ("type_1", MockPackageSourceClass(all=["source_1", "source_2"])),
+                    ("type_2", MockPackageSourceClass(all=["source_3", "source_4"])),
+                ]
+            ),
+        )
         with patch(LOADER_SOURCE_CLS_FACTORY, cls_factory):
             loader.load_external_modules()
-            loader._import_modules_in_source.assert_has_calls(calls=[
-                call('source_1'),
-                call('source_2'),
-                call('source_3'),
-                call('source_4'),
-            ])
+            loader._import_modules_in_source.assert_has_calls(
+                calls=[call("source_1"), call("source_2"), call("source_3"), call("source_4")]
+            )

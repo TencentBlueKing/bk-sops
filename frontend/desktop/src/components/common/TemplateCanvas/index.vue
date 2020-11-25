@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -38,6 +38,7 @@
             @onCloseFrameSelect="onCloseFrameSelect">
             <template v-slot:palettePanel>
                 <palette-panel
+                    :common="common"
                     :atom-type-list="atomTypeList"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
@@ -50,7 +51,9 @@
                     :is-show-select-all-tool="isShowSelectAllTool"
                     :is-select-all-tool-disabled="isSelectAllToolDisabled"
                     :is-all-selected="isAllSelected"
+                    :show-small-map="showSmallMap "
                     :editable="editable"
+                    @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
                     @onResetPosition="onResetPosition"
@@ -96,11 +99,26 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
-        <div ref="dragReferenceLine" class="drag-reference-line"></div>
+        <div class="picture-download-btn" @click="onDownloadCanvas">
+            <div class="btn-wrapper" v-bkloading="{ isLoading: canvasImgDownloading, size: 'mini', opacity: 1 }">
+                <i class="bk-icon icon-download"></i>
+            </div>
+        </div>
+        <div class="small-map" ref="smallMap" v-if="showSmallMap">
+            <img :src="smallMapImg" alt="">
+            <div
+                ref="selectBox"
+                class="select-box"
+                @mousedown.prevent="onMouseDownSelect">
+            </div>
+        </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    // import html2canvas from 'html2canvas'
+    // import domtoimage from 'dom-to-image'
+    import domtoimage from '@/utils/domToImage.js'
+    // import htmltoimage from 'html-to-image'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
@@ -168,6 +186,10 @@
                 type: Boolean,
                 default: false
             },
+            common: {
+                type: [String, Number],
+                default: ''
+            },
             canvasData: {
                 type: Object,
                 default () {
@@ -176,6 +198,10 @@
                         'locations': []
                     }
                 }
+            },
+            isCanvasImg: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -193,6 +219,18 @@
                 })
             }
             return {
+                isSmallMap: false, // 小地图激活态
+                smallMapWidth: 344, // 344 小地图宽度
+                smallMapHeight: 216, // 216 小地图高度
+                smallMapImg: '',
+                showSmallMap: false,
+                isMouseEnterX: '', // 鼠标在选择框中按下的offsetX值
+                isMouseEnterY: '', // 鼠标在选择框中按下的offsetY值
+                windowWidth: document.documentElement.offsetWidth - 60, // 60 header的宽度
+                windowHeight: document.documentElement.offsetHeight - 60 - 50, // 50 tab栏的宽度
+                canvasWidth: 0, // 生成画布的宽
+                canvasHeight: 0, // 生成画布的高
+                canvasImgDownloading: false,
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
                 isDisableStartPoint: false,
@@ -220,8 +258,8 @@
                     x: 0,
                     y: 0
                 },
-                flowData,
                 endpointOptions: combinedEndpointOptions,
+                flowData,
                 connectorOptions
             }
         },
@@ -234,6 +272,9 @@
                 }
             }
         },
+        created () {
+            this.onWindowResize = tools.throttle(this.handlerWindowResize, 300)
+        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -243,13 +284,14 @@
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
             canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false)
             canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
+            // 监听页面视图变化
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
-            document.body.removeEventListener('click', this.handleReferenceLineHide, false)
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             if (canvasPaintArea) {
@@ -257,33 +299,61 @@
                 canvasPaintArea.removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
                 canvasPaintArea.removeEventListener('mousemove', this.onCanvasMouseMove, false)
             }
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            handlerWindowResize () {
+                this.windowWidth = document.documentElement.offsetWidth - 60
+                this.windowHeight = document.documentElement.offsetHeight - 60 - 50
+                if (this.showSmallMap) {
+                    this.onGenerateCanvas().then(res => {
+                        this.smallMapImg = res
+                    })
+                    this.getInitialValue()
+                }
+            },
+            onToggleMapShow () {
+                this.showSmallMap = !this.showSmallMap
+                if (this.showSmallMap) {
+                    this.onGenerateCanvas().then(res => {
+                        this.smallMapImg = res
+                    })
+                    this.$nextTick(() => {
+                        this.getInitialValue()
+                    })
+                }
+            },
             onZoomIn (pos) {
                 if (pos) {
                     const { x, y } = pos
                     this.$refs.jsFlow.zoomIn(1.1, x, y)
                 } else {
-                    this.$refs.jsFlow.zoomIn()
+                    this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
+                this.clearReferenceLine()
+                this.showSmallMap = false
             },
             onZoomOut (pos) {
                 if (pos) {
                     const { x, y } = pos
                     this.$refs.jsFlow.zoomOut(0.9, x, y)
                 } else {
-                    this.$refs.jsFlow.zoomOut()
+                    this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
+                this.clearReferenceLine()
+                this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
+                this.showSmallMap = false
             },
             onOpenFrameSelect () {
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
+                this.showSmallMap = false
             },
             onFrameSelectEnd (nodes) {
                 this.selectedNodes = nodes
@@ -404,15 +474,9 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const name = $branchEl.textContent
-                const value = $branchEl.dataset.value
-                // 先去除选中样式
-                document.querySelectorAll('.branch-condition.editing').forEach(dom => {
-                    dom.classList.remove('editing')
-                })
+                const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
-                    $branchEl.classList.add('editing')
                     this.$emit('onConditionClick', {
                         id: lineId,
                         nodeId,
@@ -421,13 +485,15 @@
                         overlayId
                     })
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
+                this.showSmallMap = false
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+                this.$emit('update:nodeMemuOpen', val)
             },
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
@@ -483,7 +549,7 @@
                     })
                     return false
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 return true
             },
             onCreateNodeAfter (node) {
@@ -558,7 +624,7 @@
                 const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', data)
-                    this.$emit('variableDataChanged')
+                    this.$emit('templateDataChanged')
                     return true
                 } else {
                     this.$bkMessage({
@@ -604,8 +670,7 @@
                         const labelData = {
                             type: 'Label',
                             name: `<div class="branch-condition"
-                                    title="${labelName}(${labelValue})"
-                                    data-value="${labelValue}"
+                                    title="${tools.escapeStr(labelName)}(${tools.escapeStr(labelValue)})"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
                             location: -70,
@@ -625,11 +690,11 @@
                         id: connection.targetId
                     }
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 this.$emit('onLineChange', 'delete', line)
             },
             onNodeMoveStop (loc) {
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 if (this.selectedNodes.length) {
                     const item = this.selectedNodes.find(m => m.id === loc.id)
                     if (!item) {
@@ -651,7 +716,7 @@
                 // 点击 overlay 类型
                 const TypeMap = [
                     { type: 'close', rule: /^(close_)(\w*)/ },
-                    { type: 'branchCondition', rule: /^(conditionline)(\w*)/ }
+                    { type: 'branchCondition', rule: /^(condition)(\w*)/ }
                 ]
                 let lineId = ''
                 const result = TypeMap.find(m => {
@@ -671,7 +736,7 @@
             },
             onNodeRemove (node) {
                 this.$refs.jsFlow.removeNode(node)
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
 
                 if (node.type === 'startpoint') {
@@ -682,27 +747,80 @@
             },
             onBeforeDrag (data) {
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                 }
             },
             // 节点拖动回调
             onNodeMoving (node) {
                 // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                 }
                 if (node.id !== this.idOfNodeShortcutPanel) {
                     this.handleShortcutPanelHide()
                 }
+            },
+            // 初始化生成参考线
+            createReferenceLine () {
+                const canvas = document.querySelector('.canvas-flow-wrap')
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+                svg.setAttribute('id', 'referenceLine')
+                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+                svg.setAttribute('version', '1.1')
+                svg.setAttribute('style', 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events: none;')
+
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+                const marker = `
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refx="0" refy="2" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,4 L6,2 z" fill="#979ba5" />
+                    </marker>
+                `
+                defs.innerHTML = marker
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+                line.setAttribute('id', 'referencePath')
+                line.setAttribute('marker-end', 'url(#arrow)')
+                line.setAttribute('x1', '0')
+                line.setAttribute('y1', '0')
+                line.setAttribute('x2', '0')
+                line.setAttribute('y2', '0')
+                line.setAttribute('style', 'stroke:#979ba5;stroke-width:2')
+                line.setAttribute('id', 'referencePath')
+
+                svg.appendChild(defs)
+                svg.appendChild(line)
+                canvas.appendChild(svg)
+                document.body.addEventListener('mousedown', this.clearReferenceLine, { once: true })
+            },
+            // 更新参考线位置
+            updataReferenceLinePositon (startPos, endPos) {
+                const referencePath = document.getElementById('referencePath')
+                if (referencePath) {
+                    referencePath.setAttribute('x1', startPos.x)
+                    referencePath.setAttribute('y1', startPos.y)
+                    referencePath.setAttribute('x2', endPos.x)
+                    referencePath.setAttribute('y2', endPos.y)
+                }
+            },
+            // 清除参考线
+            clearReferenceLine () {
+                const canvas = document.querySelector('.canvas-flow-wrap')
+                const line = document.getElementById('referenceLine')
+                if (canvas && line) {
+                    canvas.removeChild(line)
+                }
+                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
+                this.referenceLine = {}
             },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { pageX, pageY, offsetX, offsetY } = event
-                const bX = pageX - offsetX + 5
-                const bY = pageY - 50 - offsetY + 5
+                const { pageX, pageY } = event
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const bX = pageX - offsetX
+                const bY = pageY - offsetY
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -710,50 +828,28 @@
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
                     )
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                     return false
                 }
-                const line = this.$refs.dragReferenceLine
-                line.style.left = bX + 'px'
-                line.style.top = bY + 'px'
+                this.createReferenceLine()
                 this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
-            // 生成参考线
+            // 鼠标移动更新参考线
             handleReferenceLine (e) {
-                const line = this.$refs.dragReferenceLine
-                const { x: startX, y: startY } = this.referenceLine
                 const { pageX, pageY } = e
-                const pX = pageX - startX
-                const pY = pageY - startY - 56
-                let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
-                if (pX < 0 && pY > 0) r = 180 - r
-                if (pX < 0 && pY < 0) r = r + 180
-                if (pX > 0 && pY < 0) r = 360 - r
-                // set style
-                const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
-                window.requestAnimationFrame(() => {
-                    line.style.display = 'block'
-                    line.style.width = len - 8 + 'px'
-                    line.style.transformOrigin = `top left`
-                    line.style.transform = 'rotate(' + r + 'deg)'
-                    if (!this.referenceLine.id) {
-                        this.handleReferenceLineHide()
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const bX = pageX - offsetX
+                const bY = pageY - offsetY
+                const endPos = { x: bX, y: bY }
+                const animationFrame = () => {
+                    return window.requestAnimationFrame || function (fn) {
+                        setTimeout(fn, 1000 / 60)
                     }
-                })
-                document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
-            },
-            // 移出参考线
-            handleReferenceLineHide (e) {
-                const line = this.$refs.dragReferenceLine
-                if (line) {
-                    line.style.display = 'none'
                 }
-                this.referenceLine.id = ''
-                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
-                document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
+                animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
-            // 创建连线
+            // 创建节点间连线
             createLine (source, target) {
                 if (source.id === target.id) {
                     return false
@@ -797,6 +893,7 @@
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
             onToggleHotKeyInfo (val) {
+                this.showSmallMap = false
                 this.isShowHotKey = !this.isShowHotKey
             },
             onCloseHotkeyInfo () {
@@ -861,8 +958,7 @@
                     const labelData = {
                         type: 'Label',
                         name: `<div class="branch-condition"
-                                title="${name}(${value})"
-                                data-value="${value}"
+                                title="${tools.escapeStr(name)}(${tools.escapeStr(value)})"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
                         location: -70,
@@ -888,7 +984,7 @@
                     // 自动连线
                     this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
                     // 移出参考线
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                     return
                 }
                 if (type !== 'endpoint') {
@@ -934,9 +1030,10 @@
                 this.idOfNodeShortcutPanel = id
             },
             // 节点后面追加
-            onAppendNode ({ location, line }) {
+            onAppendNode ({ location, line, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
@@ -949,7 +1046,8 @@
              * @param {String} endNode -后节点 id
              * @param {Object} location -新建节点的 location
              */
-            onInsertNode ({ startNodeId, endNodeId, location }) {
+            onInsertNode ({ startNodeId, endNodeId, location, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
                 if (!deleteLine) {
                     return false
@@ -976,7 +1074,7 @@
                     }
                 }
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
@@ -1030,7 +1128,7 @@
                         by = length
                         break
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
                 selectedIds.forEach((node, index) => {
                     const el = document.getElementById(node.id)
                     const newX = node.x + bx
@@ -1067,12 +1165,169 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+            },
+            /**
+             * 设置画布偏移量
+             * @param {Number} x 画布向右偏移量
+             * @param {Number} y 画布向下偏移量
+             * @param {Boolean} animation 是否设置缓动动画
+             */
+            setCanvasPosition (x, y, animation = false) {
+                if (animation) {
+                    const canvas = this.$refs.jsFlow.$el.querySelector('#canvas-flow')
+                    canvas.style.transition = 'left 0.4s, top 0.4s'
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                    setTimeout(() => {
+                        canvas.style.transition = 'unset'
+                    }, 600)
+                } else {
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                }
+            },
+            // 下载画布图片
+            onDownloadCanvas () {
+                this.onGenerateCanvas().then(res => {
+                    if (this.canvasImgDownloading) {
+                        return
+                    }
+                    this.canvasImgDownloading = true
+                    const imgEl = document.createElement('a')
+                    imgEl.download = `bk_sops_template_${+new Date()}.png`
+                    imgEl.href = res
+                    imgEl.click()
+                    this.canvasImgDownloading = false
+                })
+            },
+            // 生成画布图片
+            onGenerateCanvas  () {
+                const canvasFlWp = document.querySelector('.canvas-flow-wrap')
+                const baseOffset = 200 // 节点宽度
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const maxX = Math.max(...xList)
+                const minY = Math.min(...yList)
+                const maxY = Math.max(...yList)
+                const offsetX = minX < 0 ? -minX : 0
+                const offsetY = minY < 0 ? -minY : 0
+                let width = null
+                if (minX < 0) {
+                    width = maxX > this.windowWidth ? maxX - minX : this.windowWidth - minX
+                } else {
+                    width = maxX > this.windowWidth ? maxX : this.windowWidth
+                }
+                let height = null
+                if (minY < 0) {
+                    height = maxY > this.windowHeight ? maxY - minY : this.windowHeight - minY
+                } else {
+                    height = maxY > this.windowHeight ? maxY : this.windowHeight
+                }
+                this.canvasHeight = height + baseOffset + 30
+                this.canvasWidth = width + baseOffset + 80
+                return domtoimage.toJpeg(canvasFlWp, {
+                    bgcolor: '#ffffff',
+                    height: this.canvasHeight,
+                    width: this.canvasWidth,
+                    cloneBack: clone => {
+                        clone.style.width = this.canvasWidth + 'px'
+                        clone.style.height = this.canvasHeight + 'px'
+                        const canvasDom = clone.querySelector('#canvas-flow')
+                        canvasDom.style.left = offsetX + 30 + 'px'
+                        canvasDom.style.top = offsetY + 30 + 'px'
+                        canvasDom.style.transform = 'inherit'
+                        canvasDom.style.border = 0
+                    }
+                })
+            },
+            getInitialValue () {
+                // 计算选择框的初始left top
+                const canvasFlow = document.querySelector('#canvas-flow')
+                const selectBox = document.querySelector('.select-box')
+                const miniMapWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
+                const miniMapHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight
+                // 画布的Top和Left
+                const xList = this.canvasData.locations.map(node => node.x)
+                const yList = this.canvasData.locations.map(node => node.y)
+                const minX = Math.min(...xList)
+                const minY = Math.min(...yList)
+                let initialLeft = null
+                const leftMostNodeLeft = minX < 0 ? -minX : 0
+                const topMostNodeTop = minY < 0 ? -minY : 0
+                const offsetGapLeft = (canvasFlow.offsetLeft > 0 ? -leftMostNodeLeft : leftMostNodeLeft) - canvasFlow.offsetLeft
+                const scaleOffsetLeft = this.smallMapWidth / this.canvasWidth * offsetGapLeft
+                if (scaleOffsetLeft + miniMapWidth >= this.smallMapWidth) {
+                    initialLeft = miniMapWidth < this.smallMapWidth ? this.smallMapWidth - miniMapWidth : scaleOffsetLeft
+                } else {
+                    initialLeft = scaleOffsetLeft > 0 ? scaleOffsetLeft : 0
+                }
+                let initialTop = null
+                const offsetGapTop = (canvasFlow.offsetTop > 0 ? -topMostNodeTop : topMostNodeTop) - canvasFlow.offsetTop
+                const scaleOffsetTop = this.smallMapHeight / this.canvasHeight * offsetGapTop
+                if (scaleOffsetTop + miniMapHeight >= this.smallMapHeight) {
+                    initialTop = miniMapHeight < this.smallMapHeight ? this.smallMapHeight - miniMapHeight : scaleOffsetTop
+                } else {
+                    initialTop = scaleOffsetTop > 0 ? scaleOffsetTop : 0
+                }
+                this.initialLeft = leftMostNodeLeft
+                this.initialTop = topMostNodeTop
+                selectBox.style.width = miniMapWidth + 'px'
+                selectBox.style.height = miniMapHeight + 'px'
+                selectBox.style.left = initialLeft + 'px'
+                selectBox.style.top = initialTop + 'px'
+            },
+            onMouseDownSelect (e) {
+                this.isMouseEnterX = e.offsetX
+                this.isMouseEnterY = e.offsetY
+                this.$refs.selectBox.addEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.addEventListener('mouseup', this.onMouseUpListener, false)
+            },
+            onMouseUpListener () {
+                this.$refs.selectBox.removeEventListener('mousemove', this.selectBoxMoveHandler, false)
+                window.removeEventListener('mouseup', this.onMouseUpListener, false)
+            },
+            selectBoxMoveHandler (e) {
+                const moreOffsetTop = 30 // 画布多向上偏移30px  露出点空白
+                const moreOffsetLeft = 30 // 画布多向左偏移30px  露出点空白
+                const selectBox = document.querySelector('.select-box')
+                const smallMapDistanceTop = this.$refs.smallMap.getBoundingClientRect().top // 小地图到顶部的距离
+                const samllmapDistanceLeft = this.$refs.smallMap.getBoundingClientRect().left // 小地图到左侧的距离
+                const targetX = e.clientX - this.isMouseEnterX - samllmapDistanceLeft
+                const targetY = e.clientY - this.isMouseEnterY - smallMapDistanceTop
+                // // 计算选择框宽高
+                const selectWidth = this.windowWidth / this.canvasWidth * this.smallMapWidth
+                const selectHeight = this.windowHeight / this.canvasHeight * this.smallMapHeight
+                // 边界检查
+                let left = null
+                let top = null
+                const maxLeft = this.smallMapWidth - selectWidth
+                if (targetX < 0) {
+                    left = 0
+                } else if (targetX > maxLeft) {
+                    left = maxLeft
+                } else {
+                    left = targetX
+                }
+                const maxTop = this.smallMapHeight - selectHeight
+                if (targetY < 0) {
+                    top = 0
+                } else if (targetY > maxTop) {
+                    top = maxTop
+                } else {
+                    top = targetY
+                }
+                selectBox.style.left = left + 'px'
+                selectBox.style.top = top + 'px'
+                // 计算画布的Top和Left
+                const canvasPositionX = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft
+                const canvasPositionY = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop
+                this.setCanvasPosition(canvasPositionX, canvasPositionY)
             }
         }
     }
 </script>
 <style lang="scss">
     .canvas-container {
+        position: relative;
         width: 100%;
         height: 100%;
     }
@@ -1131,7 +1386,7 @@
             .branch-condition {
                 padding: 4px 6px;
                 min-width: 60px;
-                max-width: 86px;
+                max-width: 112px;
                 min-height: 20px;
                 font-size: 12px;
                 text-align: center;
@@ -1148,19 +1403,17 @@
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
-                &.editing {
-                    background: #b1ac84;
-                    color: #ffffff;
-                }
-                &.failed {
-                    color: #ffffff;
-                    background: #ea3636;
-                }
             }
         }
         &.editable {
             .jtk-overlay.jtk-hover {
                 display: inline-block;
+            }
+        }
+        &:not(.editable) {
+            .jtk-endpoint circle{
+                fill: transparent;
+                stroke: transparent;
             }
         }
         &.tool-wrapper-telescopic {
@@ -1171,7 +1424,6 @@
             }
             & + .help-info-wrap {
                 .hot-key-panel {
-                    top: 124px;
                     left: 380px;
                     z-index: 5;
                 }
@@ -1201,6 +1453,48 @@
             border-top: 4px solid transparent;
             border-left: 8px solid #979ba5;
             border-bottom: 4px solid transparent;
+        }
+    }
+    .picture-download-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 16px;
+        background: #ffffff;
+        border-radius: 2px;
+        cursor: pointer;
+        .btn-wrapper {
+            padding: 8px 10px;
+        }
+        &:hover {
+            color: #3a84ff;
+        }
+    }
+    .small-map {
+        position: absolute;
+        z-index: 5;
+        left: 80px;
+        top: 80px;
+        width: 344px;
+        height: 216px;
+        border-radius: 4px;
+        background-color: #fafbfd;
+        transition: all 0.5s ease;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        img {
+            height: 100%;
+            width: 100%;
+        }
+        .select-box {
+            position: absolute;
+            z-index: 6;
+            top: 0;
+            left: 0;
+            width: 205px;
+            height: 112px;
+            border: 1px solid #738abe;
+            border-radius: 2px;
+            cursor: pointer;
         }
     }
 </style>

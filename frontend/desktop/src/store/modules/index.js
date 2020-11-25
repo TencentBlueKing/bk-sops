@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,17 +13,14 @@ import template from './template.js'
 import templateList from './templateList.js'
 import task from './task.js'
 import taskList from './taskList.js'
-import atomList from './atomList.js'
 import atomForm from './atomForm.js'
 import atomDev from './atomDev.js'
-import config from './config'
 import appmaker from './appmaker'
 import project from './project'
 import functionTask from './function.js'
 import auditTask from './audit.js'
 import periodic from './periodic.js'
 import manage from './manage.js'
-import member from './member.js'
 import admin from './admin.js'
 
 const modules = {
@@ -31,17 +28,14 @@ const modules = {
     templateList,
     task,
     taskList,
-    atomList,
     atomForm,
     atomDev,
-    config,
     appmaker,
     functionTask,
     auditTask,
     periodic,
     manage,
     project,
-    member,
     admin
 }
 

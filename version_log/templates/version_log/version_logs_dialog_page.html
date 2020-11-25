@@ -1,0 +1,36 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{% static 'version_log/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'version_log/css/ui-dialog.css' %}">
+    <script src="{% static 'version_log/js/jquery-1.10.2.min.js' %}"></script>
+    <script src="{% static 'version_log/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'version_log/js/dialog-min.js' %}"></script>
+    <script src="{% static 'version_log/js/modal_frame.js' %}"></script>
+</head>
+<body>
+</body>
+    <script type="text/javascript">
+        window.version_log_url = '{{ENTRANCE_URL}}';
+        window.site_url = '{{SITE_URL}}';
+        $(function () {
+            show_modal();
+            // waiting for modal loading
+            const use_hash = "{{ USE_HASH_URL }}";
+            setTimeout(() => {
+                $('.ui-dialog-close').click(function () {
+                    let referer_url = window.location.pathname;
+                    // 使用 hash 方式获取 url
+                    if(use_hash) {
+                        referer_url = window.location.hash;
+                    }
+                    window.location.href="{{SITE_URL}}" + referer_url;
+                });
+            }, 500);
+        });
+    </script>
+</html>

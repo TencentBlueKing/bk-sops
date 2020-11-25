@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,19 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-
-from django.http import HttpResponseRedirect, JsonResponse
 from django.conf import settings
+from django.http import HttpResponseRedirect, JsonResponse
 try:
     from django.urls import reverse
 except Exception:
     from django.core.urlresolvers import reverse
 
 from blueapps.account.utils.http import build_redirect_url
-from blueapps.core.exceptions import RioVerifyError
-
-logger = logging.getLogger('root')
+from blueapps.core.exceptions import RioVerifyError, BkJwtVerifyError
 
 
 class ResponseHandler(object):
@@ -37,7 +33,7 @@ class ResponseHandler(object):
 
     def build_401_response(self, request):
 
-        # 强制要求ajax弹窗
+        # 强制要求进行跳转的方式
         if getattr(settings, 'IS_AJAX_PLAIN_MODE', False) and request.is_ajax():
             return self._build_ajax_401_response(request)
 
@@ -85,11 +81,7 @@ class ResponseHandler(object):
         Redirect to login page in self app, redirect url format as
         http://xxx:8000/account/login_page/?refer_url=http%3A//xxx%3A8000/
         """
-        if self._settings.RUN_MODE in ['PRODUCT']:
-            _login_url = self._conf.CONSOLE_LOGIN_URL
-        else:
-            _login_url = request.build_absolute_uri(
-                reverse('account:login_page'))
+        _login_url = request.build_absolute_uri(reverse('account:login_page'))
 
         _next = request.build_absolute_uri()
         _redirect = build_redirect_url(_next, _login_url, 'refer_url')
@@ -133,7 +125,6 @@ class ResponseHandler(object):
         }
         _redirect = build_redirect_url(
             _next, _login_url, 'redirect_uri', extra_args=extra_args)
-        logger.info('weixin build 401 redirect url: %s' % _redirect)
         return HttpResponseRedirect(_redirect)
 
     def build_rio_401_response(self, request):
@@ -141,5 +132,16 @@ class ResponseHandler(object):
             'result': False,
             'code': RioVerifyError.ERROR_CODE,
             'message': u'您的登陆请求无法经智能网关正常检测，请与管理人员联系'
+        }
+        return JsonResponse(context, status=401)
+
+    def build_bk_jwt_401_response(self, request):
+        """
+        BK_JWT鉴权异常
+        """
+        context = {
+            "result": False,
+            "code": BkJwtVerifyError.ERROR_CODE,
+            "message": u"您的登陆请求无法经BK JWT检测，请与管理人员联系"
         }
         return JsonResponse(context, status=401)

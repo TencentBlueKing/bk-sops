@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -27,10 +27,10 @@ class ComponentManager(models.Manager):
         components = self.filter(status=True)
         component_dict = {}
         for bundle in components:
-            name = bundle.name.split('-')
+            name = bundle.name.split("-")
             group_name = _(name[0])
             name = _(name[1])
-            component_dict[bundle.code] = '{}-{}'.format(group_name, name)
+            component_dict[bundle.code] = "{}-{}".format(group_name, name)
         return component_dict
 
 
@@ -38,6 +38,7 @@ class ComponentModel(models.Model):
     """
     注册的组件
     """
+
     code = models.CharField(_("组件编码"), max_length=255)
     version = models.CharField(_("组件版本"), max_length=64, default=LEGACY_PLUGINS_VERSION)
     name = models.CharField(_("组件名称"), max_length=255)
@@ -48,7 +49,7 @@ class ComponentModel(models.Model):
     class Meta:
         verbose_name = _("组件 Component")
         verbose_name_plural = _("组件 Component")
-        ordering = ['-id']
+        ordering = ["-id"]
 
     def __unicode__(self):
         return self.name

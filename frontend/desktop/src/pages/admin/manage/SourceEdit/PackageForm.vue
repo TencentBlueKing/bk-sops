@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -15,16 +15,16 @@
             <div
                 :class="['title', { 'fold': !isSettingPanelShow }]"
                 @click="onTogglePanelShow">
-                {{i18n.sourceName}}: {{ name || i18n.noName }}
+                {{$t('包源名')}}: {{ name || $t('未命名') }}
             </div>
             <bk-button
                 theme="default"
                 size="small"
                 class="delete-btn"
                 @click="onDeleteSource">
-                {{i18n.delete}}
+                {{$t('删除')}}
             </bk-button>
-            <div class="error-msg" v-if="showError">{{i18n.errorMsg}}</div>
+            <div class="error-msg" v-if="showError">{{$t('输入有误，请展开检查')}}</div>
         </div>
         <div class="package-setting" v-show="isSettingPanelShow">
             <table class="form-table">
@@ -32,7 +32,7 @@
                     <tr>
                         <th>
                             <div class="form-label required">
-                                <label>{{i18n.name}}</label>
+                                <label>{{$t('名称')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -53,7 +53,7 @@
                     <tr>
                         <th>
                             <div class="form-label required">
-                                <label>{{i18n.type}}</label>
+                                <label>{{$t('类型')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -78,7 +78,7 @@
                     <tr>
                         <th>
                             <div class="form-label">
-                                <label>{{i18n.desc}}</label>
+                                <label>{{$t('描述')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -95,7 +95,7 @@
                     <tr>
                         <th>
                             <div class="form-label">
-                                <label>{{i18n.detail}}</label>
+                                <label>{{$t('详细信息')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -113,7 +113,7 @@
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="$t('必填项')"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -123,7 +123,7 @@
                     <tr>
                         <th>
                             <div class="form-label">
-                                <label>{{i18n.module}}</label>
+                                <label>{{$t('模块配置')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -131,10 +131,10 @@
                                 <table class="module-table">
                                     <thead>
                                         <tr>
-                                            <th>{{i18n.subModule}}</th>
-                                            <th>{{i18n.version}}</th>
-                                            <th>{{i18n.importModule}}</th>
-                                            <th>{{i18n.operation}}</th>
+                                            <th>{{$t('子模块名称')}}</th>
+                                            <th>{{$t('版本')}}</th>
+                                            <th>{{$t('导入模块')}}</th>
+                                            <th>{{$t('操作')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -146,11 +146,11 @@
                                                     type="text"
                                                     class="table-input"
                                                     :name="'moduleName' + index"
-                                                    :placeholder="i18n.placeholder"
+                                                    :placeholder="$t('请输入')"
                                                     v-model="item.key"
-                                                    v-validate="packageNameRule"
+                                                    v-validate="moduleNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('moduleName' + index)"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('moduleVersion' + index) }"
@@ -159,24 +159,25 @@
                                                     type="text"
                                                     class="table-input"
                                                     :name="'moduleVersion' + index"
-                                                    :placeholder="i18n.placeholder"
+                                                    :placeholder="$t('请输入')"
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('moduleVersion' + index)"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('modules' + index) }"
                                                 class="td-with-input">
-                                                <input
-                                                    type="text"
-                                                    class="table-input"
+                                                <textarea
+                                                    class="table-textarea"
+                                                    row="3"
                                                     :name="'modules' + index"
-                                                    :placeholder="i18n.importPlaceholder"
+                                                    :placeholder="$t('请输入模块绝对路径，如a.b.c，多个用换行分隔')"
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
-                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                </textarea>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('modules' + index)"></i>
                                             </td>
                                             <td>
                                                 <bk-button
@@ -191,9 +192,9 @@
                                     </tbody>
                                 </table>
                                 <div class="add-module">
-                                    <bk-button theme="default" size="small" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                                    <bk-button theme="default" size="small" class="add-btn" @click="onAddPackage">{{$t('添加')}}</bk-button>
                                 </div>
-                                <div v-if="showModuleError" class="common-error-tip error-msg">{{i18n.required}}</div>
+                                <div v-if="showModuleError" class="common-error-tip error-msg">{{$t('必填项')}}</div>
                             </div>
                         </td>
                     </tr>
@@ -203,7 +204,8 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
+    import { Validator } from 'vee-validate'
     import { SOURCE_TYPE } from '@/constants/manage.js'
     import { PACKAGE_NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
@@ -249,32 +251,19 @@
                 isSettingPanelShow: true,
                 showError: false, // 包源配置错误
                 showModuleError: false, // 模块配置错误
-                packageNameRule: { // 名称校验规则
+                packageNameRule: { // 包源名称校验规则
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
                     regex: PACKAGE_NAME_REG
                 },
+                moduleNameRule: { // 子模块名称校验规则
+                    required: true,
+                    nameMax: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
+                    nameReg: PACKAGE_NAME_REG,
+                    nameRepeat: true
+                },
                 valueRule: {
                     required: true
-                },
-                i18n: {
-                    sourceName: gettext('包源名'),
-                    noName: gettext('未命名'),
-                    delete: gettext('删除'),
-                    name: gettext('名称'),
-                    type: gettext('类型'),
-                    desc: gettext('描述'),
-                    detail: gettext('详细信息'),
-                    module: gettext('模块配置'),
-                    placeholder: gettext('请输入'),
-                    importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用,分隔'),
-                    subModule: gettext('子模块名称'),
-                    version: gettext('版本'),
-                    importModule: gettext('导入模块'),
-                    operation: gettext('操作'),
-                    add: gettext('添加'),
-                    errorMsg: gettext('输入有误，请展开检查'),
-                    required: gettext('必填项')
                 }
             }
         },
@@ -286,8 +275,42 @@
                 return this.packageValues && this.packageValues.length > 1
             },
             modulesOptName () {
-                return this.isShowDelete ? this.i18n.delete : '--'
+                return this.isShowDelete ? i18n.t('删除') : '--'
             }
+        },
+        created () {
+            this.validator = new Validator({})
+            // 模块名称长度显示
+            this.validator.extend('nameMax', {
+                getMessage: (field) => {
+                    return i18n.t('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + i18n.t('个字符')
+                },
+                validate: (value) => {
+                    return value.length <= STRING_LENGTH.SOURCE_NAME_MAX_LENGTH
+                }
+            })
+            // 模块名称字符规则
+            this.validator.extend('nameReg', {
+                getMessage: (field) => {
+                    return i18n.t('名称由英文字母、数字、下划线组成，且不能以数字开头')
+                },
+                validate: (value) => {
+                    return PACKAGE_NAME_REG.test(value)
+                }
+            })
+            // 不同模块名称不能重复
+            this.validator.extend('nameRepeat', {
+                getMessage: (field) => {
+                    return i18n.t('子模块名称不能重复')
+                },
+                validate: (value) => {
+                    if (this.packageValues.filter(item => item.key === value.trim()).length > 1) {
+                        return false
+                    }
+                    return true
+                }
+
+            })
         },
         methods: {
             getSourceTypeList () {
@@ -311,7 +334,7 @@
                     })
                     detailValues[key] = ''
                 }
-                
+
                 return [detailFields, detailValues]
             },
             /**
@@ -331,7 +354,7 @@
                     values.push({
                         key: key,
                         version: pkg.version,
-                        modules: Array.isArray(pkg.modules) ? pkg.modules.join(',') : pkg.modules
+                        modules: Array.isArray(pkg.modules) ? pkg.modules.join('\n') : pkg.modules
                     })
                 }
                 return values
@@ -342,10 +365,16 @@
             getPackages () {
                 const packages = {}
                 this.packageValues.forEach(item => {
+                    let modules
+                    if (Array.isArray(item.modules)) {
+                        modules = item.modules
+                    } else {
+                        modules = item.modules.replace('/\,/g', '\n').split('\n').filter(item => item.trim() !== '')
+                    }
                     if (item.key) {
                         packages[item.key] = {
                             version: item.version,
-                            modules: Array.isArray(item.modules) ? item.modules : item.modules.split(',')
+                            modules
                         }
                     }
                 })
@@ -410,7 +439,7 @@
                 this.updateValue('details', this.details)
             },
             onPackageInputBlur (e, type, index) {
-                const val = e.target.value
+                const val = e.target.value.trim()
                 this.packageValues[index][type] = val
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
@@ -422,6 +451,7 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
     @import '@/scss/mixins/input-error.scss';
     /deep/ .bk-select {
         background-color: #ffffff;
@@ -533,12 +563,12 @@
                     font-family: "SimSun";
                 }
             }
-            
+
         }
         .td-with-input {
             &:hover{
                 border-style: double;
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             @include common-input-error;
         }
@@ -556,10 +586,10 @@
             color: #63656e;
             outline: none;
             &:hover {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             &:active {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             &[disabled="disabled"] {
                 color: #aaa;
@@ -583,10 +613,10 @@
             min-height: 102px;
             max-height: 140px;
             &:hover {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             &:active {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
         }
     }
@@ -632,7 +662,8 @@
                 width: 50%;
             }
         }
-        input[aria-invalid="true"] + .common-error-tip {
+        input[aria-invalid="true"] + .common-error-tip,
+        textarea[aria-invalid="true"] + .common-error-tip {
             display: inline-block;
         }
         .common-error-tip {
@@ -649,7 +680,7 @@
         .td-with-input {
             &:hover{
                 border-style: double;
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             @include common-input-error;
         }
@@ -660,6 +691,14 @@
         color: #333333;
         border: none;
         outline: none;
+    }
+    .table-textarea {
+        width: 100%;
+        color: #333333;
+        border: none;
+        outline: none;
+        resize: vertical;
+        @include scrollbar;
     }
     .add-module {
         height: 40px;

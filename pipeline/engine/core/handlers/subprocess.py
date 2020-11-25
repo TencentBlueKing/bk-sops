@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,13 +19,12 @@ from pipeline.core.flow.activity import SubProcess
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['SubprocessHandler']
+__all__ = ["SubprocessHandler"]
 
 
 class SubprocessHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return SubProcess
@@ -57,4 +56,5 @@ class SubprocessHandler(FlowElementHandler):
 
         sub_pipeline = element.pipeline
         process.push_pipeline(sub_pipeline, is_subprocess=True)
+        process.take_snapshot()
         return self.HandleResult(next_node=sub_pipeline.start_event, should_return=False, should_sleep=False)

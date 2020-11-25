@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,12 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
 from pipeline.builder.flow import ExclusiveGateway
+from pipeline.core.constants import PE
 
 
 class ExclusiveGatewayTestCase(TestCase):
-
     def test_type(self):
         e = ExclusiveGateway()
         self.assertEqual(e.type(), PE.ExclusiveGateway)
@@ -30,32 +29,22 @@ class ExclusiveGatewayTestCase(TestCase):
         self.assertEqual(e.outgoing, [])
         self.assertEqual(e.conditions, {})
 
-        e = ExclusiveGateway(id='123', name='test_eg', outgoing=[1, 2, 3], conditions={0: '123'})
-        self.assertEqual(e.id, '123')
-        self.assertEqual(e.name, 'test_eg')
+        e = ExclusiveGateway(id="123", name="test_eg", outgoing=[1, 2, 3], conditions={0: "123"})
+        self.assertEqual(e.id, "123")
+        self.assertEqual(e.name, "test_eg")
         self.assertEqual(e.outgoing, [1, 2, 3])
-        self.assertEqual(e.conditions, {0: '123'})
+        self.assertEqual(e.conditions, {0: "123"})
 
     def test_add_condition(self):
-        e = ExclusiveGateway(id='123', name='test_eg', outgoing=[1, 2, 3], conditions={0: '123'})
-        e.add_condition(1, '456')
-        self.assertEqual(e.conditions, {0: '123', 1: '456'})
+        e = ExclusiveGateway(id="123", name="test_eg", outgoing=[1, 2, 3], conditions={0: "123"})
+        e.add_condition(1, "456")
+        self.assertEqual(e.conditions, {0: "123", 1: "456"})
 
     def test_link_conditions_with(self):
-        e = ExclusiveGateway(
-            id='123',
-            name='test_eg',
-            outgoing=[1, 2, 3],
-            conditions={
-                0: '123',
-                1: '456',
-                2: '789'
-            })
+        e = ExclusiveGateway(id="123", name="test_eg", outgoing=[1, 2, 3], conditions={0: "123", 1: "456", 2: "789"})
 
-        outgoing = ['abc', 'def', 'ghi']
+        outgoing = ["abc", "def", "ghi"]
         conditions = e.link_conditions_with(outgoing)
-        self.assertEqual(conditions, {
-            'abc': {'evaluate': '123'},
-            'def': {'evaluate': '456'},
-            'ghi': {'evaluate': '789'}
-        })
+        self.assertEqual(
+            conditions, {"abc": {"evaluate": "123"}, "def": {"evaluate": "456"}, "ghi": {"evaluate": "789"}}
+        )

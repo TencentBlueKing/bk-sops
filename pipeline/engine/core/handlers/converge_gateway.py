@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,13 +20,12 @@ from pipeline.engine.models import Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['ConvergeGatewayHandler']
+__all__ = ["ConvergeGatewayHandler"]
 
 
 class ConvergeGatewayHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return ConvergeGateway
@@ -40,8 +39,7 @@ class ConvergeGatewayHandler(FlowElementHandler):
                 logger.error(traceback.format_exc())
                 # clean children and update current_node to prevent re execute child process
                 process.clean_children()
-                Status.objects.fail(element,
-                                    ex_data='Sync branch context error, check data backend status please.')
+                Status.objects.fail(element, ex_data="Sync branch context error, check data backend status please.")
                 return self.HandleResult(next_node=None, should_return=True, should_sleep=True)
 
         Status.objects.finish(element)

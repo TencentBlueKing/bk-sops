@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,9 +14,10 @@
         <div v-if="formMode">
             <el-date-picker
                 v-model="dateValue"
-                type="datetime"
-                format="yyyy-MM-dd HH:mm:ss"
-                value-format="yyyy-MM-dd HH:mm:ss"
+                popper-class="tag-component-popper"
+                :type="type"
+                :format="format"
+                :value-format="format"
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-date-picker>
@@ -41,6 +42,18 @@
             required: false,
             default: false,
             desc: gettext('禁用选择器')
+        },
+        type: {
+            type: String,
+            required: false,
+            default: 'datetime',
+            desc: gettext('日期选择器显示类型')
+        },
+        format: {
+            type: String,
+            required: false,
+            default: 'yyyy-MM-dd HH:mm:ss',
+            desc: gettext('选中的时间以及展示的值')
         },
         value: {
             type: String,

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,9 +12,9 @@
 <template>
     <div class="rf-form-group" v-show="showForm">
         <!-- 分组名称和描述 -->
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <h3 class="name">{{scheme.attrs.name}}</h3>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc">
+        <div v-if="showFormTitle" class="rf-group-name">
+            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+            <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
                         content: scheme.attrs.desc,
@@ -23,7 +23,7 @@
                     }"
                     class="common-icon-info">
                 </i>
-            </div>
+            </span>
         </div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
@@ -41,10 +41,12 @@
             :key="`${form.tag_code}_${index}`"
             :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
             :class="{ 'rf-has-hook': form.type !== 'combine' && showHook }"
+            :constants="constants"
             :scheme="form"
             :option="groupOption"
             :value="value[form.tag_code]"
             :parent-value="value"
+            @init="$emit('init', $event)"
             @change="updateForm">
         </component>
         <!-- 变量勾选checkbox -->
@@ -63,12 +65,11 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import FormItem from './FormItem.vue'
 
     export default {
         name: 'FormGroup',
         components: {
-            FormItem
+            FormItem: () => import('./FormItem.vue')
         },
         props: {
             scheme: {
@@ -92,6 +93,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -121,6 +128,11 @@
                     hooked: gettext('取消勾选'),
                     cancelHook: gettext('勾选参数作为全局变量')
                 }
+            }
+        },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             }
         },
         watch: {
@@ -170,6 +182,9 @@
             },
             onHookForm (val) {
                 this.$emit('onHook', this.scheme.tag_code, val)
+            },
+            get_parent () {
+                return this.$parent
             },
             /**
              * 获取 combine 类型组件的子组件实例

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,11 +12,11 @@
 <template>
     <div class="atomdev-page">
         <div class="page-header">
-            <page-title :title="i18n.title"></page-title>
+            <page-title :title="$t('插件开发')"></page-title>
             <div class="operate-area">
-                <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ i18n.download }}</bk-button>
-                <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ i18n.preview }}</bk-button>
-                <bk-button theme="default" :disabled="isPreviewMode" @click="showUploadDialog = true">{{ i18n.import }}</bk-button>
+                <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ $t('下载') }}</bk-button>
+                <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ $t('预览') }}</bk-button>
+                <bk-button theme="default" :disabled="isPreviewMode" @click="showUploadDialog = true">{{ $t('导入') }}</bk-button>
             </div>
         </div>
         <div class="atom-edit-wrapper">
@@ -51,9 +51,9 @@
         </div>
         <bk-sideslider
             :is-show="showAtomSetting"
-            :quick-close="true"
+            :quick-close="false"
             :width="600"
-            :title="i18n.formSetting"
+            :title="$t('插件配置')"
             :before-close="closeSettingPanel">
             <atom-setting
                 slot="content"
@@ -63,31 +63,32 @@
                 :atom-forms="atomForms">
             </atom-setting>
             <div slot="footer" class="slider-footer">
-                <bk-button theme="primary" @click="onSaveAtomSetting">{{ i18n.confirm }}</bk-button>
-                <bk-button theme="default" @click="closeSettingPanel">{{ i18n.cancel }}</bk-button>
+                <bk-button theme="primary" @click="onSaveAtomSetting">{{ $t('确认') }}</bk-button>
+                <bk-button theme="default" @click="closeSettingPanel">{{ $t('取消') }}</bk-button>
             </div>
         </bk-sideslider>
         <bk-dialog
             v-model="showUploadDialog"
             :width="400"
             :mask-close="false"
-            :title="i18n.importTitle"
+            :title="$t('导入文件')"
             :loading="fileUploading">
             <div class="import-wrapper">
                 <upload-read-file class="import-code" @uploaded="handleFormFile($event, 'formCode')">
-                    <bk-button class="primary">{{ i18n.formCode }}</bk-button>
+                    <bk-button class="primary">{{ $t('前端代码') }}</bk-button>
                 </upload-read-file>
                 <upload-read-file class="import-code" @uploaded="handleFormFile($event, 'apiCode')">
-                    <bk-button class="primary">{{ i18n.apiCode }}</bk-button>
+                    <bk-button class="primary">{{ $t('后台代码') }}</bk-button>
                 </upload-read-file>
             </div>
         </bk-dialog>
         <bk-dialog
             v-model="previewDialogShow"
-            :fullscreen="true"
-            :title="i18n.preview"
             header-position="left"
-            :close-icon="false">
+            :fullscreen="true"
+            :title="$t('预览')"
+            :show-footer="false"
+            :on-close="onPreviewClose">
             <div v-if="isPreviewMode" class="preview-panel">
                 <render-form
                     class="render-form"
@@ -96,14 +97,22 @@
                     v-model="renderFormData">
                 </render-form>
             </div>
-            <template v-slot:footer>
-                <bk-button theme="default" @click="onPreviewClose">{{ i18n.close }}</bk-button>
-            </template>
+        </bk-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="$t('离开页面')"
+            :value="isLeaveDialogShow"
+            @confirm="onLeaveConfirm"
+            @cancel="onLeaveCancel">
+            <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import JSZip from 'jszip'
     import { saveAs } from 'file-saver'
     import PageTitle from './PageTitle.vue'
@@ -146,8 +155,12 @@
                 forms: [],
                 atomName: '',
                 atomConfig: [],
+                atomForms: [],
                 atomConfigStr: '',
                 atomStringError: '',
+                allowLeave: false,
+                leaveToPath: '',
+                contentChange: '', // 配置项内容有变更，用来做离开页面的二次确认
                 apiCodeStr: '',
                 editingForm: {},
                 isPreviewMode: false,
@@ -155,6 +168,7 @@
                 hideFormPanel: false,
                 showUploadDialog: false,
                 previewDialogShow: false,
+                isLeaveDialogShow: false,
                 fileUploading: false,
                 renderFormOption: {
                     showGroup: false,
@@ -162,36 +176,17 @@
                     showLabel: true,
                     showVarList: false
                 },
-                renderFormData: {},
-                i18n: {
-                    title: gettext('插件开发'),
-                    formSetting: gettext('插件配置'),
-                    preview: gettext('预览'),
-                    download: gettext('下载'),
-                    import: gettext('导入'),
-                    importTitle: gettext('导入文件'),
-                    formCode: gettext('前端代码'),
-                    apiCode: gettext('后台代码'),
-                    close: gettext('关闭'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消')
-                }
-            }
-        },
-        computed: {
-            atomForms () {
-                return this.forms.map(item => {
-                    return {
-                        tagCode: item.config.tag_code,
-                        name: item.config.attrs.name.value
-                    }
-                })
+                renderFormData: {}
             }
         },
         watch: {
-            forms (val) {
-                this.transAtomConfig(val)
-                this.atomConfigStr = serializeObj(this.atomConfig)
+            forms: {
+                handler: function (val) {
+                    this.getTransAtomConfig(val)
+                    this.atomConfigStr = serializeObj(this.atomConfig)
+                    this.atomForms = this.getAtomForms(val)
+                },
+                deep: true
             }
         },
         methods: {
@@ -230,22 +225,53 @@
                             methods: {}
                         }
                     }
+                    tagConfigMap['combine'] = {
+                        tag: 'combine',
+                        config: {
+                            type: 'combine',
+                            attrs: {
+                                name: {
+                                    type: String,
+                                    required: true,
+                                    value: ''
+                                },
+                                hookable: {
+                                    type: Boolean,
+                                    value: false
+                                },
+                                children: {
+                                    value: []
+                                }
+                            },
+                            events: [],
+                            methods: {}
+                        }
+                    }
                 })
                 return tagConfigMap
             },
             transAtomConfig (forms) {
                 const atomConfig = forms.map(item => {
                     const config = tools.deepClone(item.config)
-                    Object.keys(config.attrs).forEach(key => {
+                    if (config.type === 'combine' && Array.isArray(config.attrs.children.value)) {
+                        config.attrs.children = this.transAtomConfig(config.attrs.children.value)
+                    }
+                    for (const key in config.attrs) {
+                        if (key === 'children') {
+                            continue
+                        }
                         if (typeof config.attrs[key].value === 'function') {
                             config.attrs[key] = config.attrs[key].value
                         } else {
                             config.attrs[key] = tools.deepClone(config.attrs[key].value)
                         }
-                    })
+                    }
                     return config
                 })
-                this.atomConfig = atomConfig
+                return atomConfig
+            },
+            getTransAtomConfig (forms) {
+                this.atomConfig = this.transAtomConfig(forms || this.forms)
             },
             updateForm (formList) {
                 this.forms = formList
@@ -266,11 +292,16 @@
             atomEditError (error) {
                 this.atomStringError = error
             },
-            atomConfigUpdate (val) {
-                const formConfig = tools.deepClone(val)
-                const forms = formConfig.map((item, index) => {
-                    const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
-                    const tag = `Tag${tagName}`
+            // 代码片段转forms
+            atomConfigToForms (formConfig) {
+                return formConfig.map((item, index) => {
+                    let tag = ''
+                    if (item.type === 'combine') {
+                        tag = 'combine'
+                    } else {
+                        const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
+                        tag = `Tag${tagName}`
+                    }
                     const config = tools.deepClone(this.tags[tag].config)
                     config.tag_code = item.tag_code
 
@@ -286,11 +317,19 @@
                             attr.value = item.attrs[key]
                         }
                     })
+                    if (item.type === 'combine') {
+                        config.attrs.children.value = tools.deepClone(this.atomConfigToForms(config.attrs.children.value))
+                    }
                     return {
                         config,
                         tag
                     }
                 })
+            },
+            atomConfigUpdate (val) {
+                this.contentChange = true
+                const formConfig = tools.deepClone(val)
+                const forms = this.atomConfigToForms(formConfig)
                 const isFormChanged = !tools.isDataEqual(this.forms, forms)
                 this.forms = forms
                 if (isFormChanged) {
@@ -346,17 +385,64 @@
                     self.$refs.configPanel.scroll(type)
                 }
             },
+            saveForm (forms, setItem) {
+                for (let i = 0; i < forms.length; i++) {
+                    const item = forms[i]
+                    if (item.config.attrs.children) {
+                        this.saveForm(item.config.attrs.children.value, setItem)
+                    }
+                    if (item.config.tag_code === this.editingForm.config.tag_code) {
+                        forms[i] = setItem
+                        return
+                    }
+                }
+            },
             async onSaveAtomSetting () {
                 const form = await this.$refs.atomSetting.validate()
                 if (form) {
                     this.closeSettingPanel()
-                    const index = this.forms.findIndex(item => item.config.tag_code === this.editingForm.config.tag_code)
-                    this.forms.splice(index, 1, form)
+                    this.saveForm(this.forms, form)
+                    // 手动触发更新代码展示面板数据
+                    this.getTransAtomConfig(this.forms)
+                    this.atomConfigStr = serializeObj(this.atomConfig)
                     this.refreshFormPanel()
                 }
             },
             closeSettingPanel () {
                 this.showAtomSetting = false
+            },
+            onLeaveConfirm () {
+                this.allowLeave = true
+                this.$router.push({ path: this.leaveToPath })
+            },
+            onLeaveCancel () {
+                this.allowLeave = false
+                this.leaveToPath = ''
+                this.isLeaveDialogShow = false
+            },
+            // 获取扁平化数据 forms
+            getAtomForms (forms) {
+                let atomFroms = []
+                for (let i = 0; i < forms.length; i++) {
+                    const item = forms[i]
+                    if (item.type === 'combine' && Array.isArray(item.attrs.children.value)) {
+                        const localAtomForm = this.getAtomForms(item.config.attrs.children.value)
+                        atomFroms = [...atomFroms, ...localAtomForm]
+                    }
+                    atomFroms.push({
+                        tagCode: item.config.tag_code,
+                        name: item.config.attrs.name.value
+                    })
+                }
+                return atomFroms
+            }
+        },
+        beforeRouteLeave (to, from, next) {
+            if (this.allowLeave || !this.contentChange) {
+                next()
+            } else {
+                this.leaveToPath = to.fullPath
+                this.isLeaveDialogShow = true
             }
         }
     }
@@ -385,7 +471,7 @@
         height: calc(100% - 50px);
     }
     .tag-panel-col {
-        width: 56px;
+        width: 111px;
         height: 100%;
         border-right: 1px solid #dde4eb;
     }
@@ -394,7 +480,7 @@
         height: 100%;
     }
     .config-panel-col {
-        width: calc(100% - 806px);
+        width: calc(100% - 861px);
         height: 100%;
         background: #ffffff;
         border-left: 1px solid #dde4eb;
@@ -427,5 +513,8 @@
             height: 32px;
             border: none;
         }
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>

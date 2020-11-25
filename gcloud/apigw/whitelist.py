@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,11 +15,10 @@ import logging
 
 from gcloud.core.models import EnvironmentVariables
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 class EnvWhitelist(object):
-
     def __init__(self, transient_list, env_key):
         self.transient_list = transient_list
         self.env_key = env_key
@@ -29,11 +28,13 @@ class EnvWhitelist(object):
             return True
 
         env_list_var = EnvironmentVariables.objects.get_var(self.env_key)
+        if not env_list_var:
+            return False
 
         try:
-            env_list = set(env_list_var.split(','))
+            env_list = set(env_list_var.split(","))
         except Exception:
-            logger.exception('resolve {} error.'.format(self.env_key))
+            logger.exception("[API] resolve {} error.".format(self.env_key))
             return False
 
         return app in env_list

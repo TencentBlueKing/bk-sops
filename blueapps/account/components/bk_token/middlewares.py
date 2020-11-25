@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,7 +15,6 @@ import logging
 
 from django.conf import settings
 from django.contrib import auth
-
 try:
     from django.utils.deprecation import MiddlewareMixin
 except Exception:
@@ -38,10 +37,13 @@ class LoginRequiredMiddleware(MiddlewareMixin):
         if hasattr(request, 'is_wechat') and request.is_wechat():
             return None
 
+        if hasattr(request, 'is_bk_jwt') and request.is_bk_jwt():
+            return None
+
         if getattr(view, 'login_exempt', False):
             return None
 
-        user = LoginRequiredMiddleware.authenticate(request)
+        user = self.authenticate(request)
         if user:
             return None
 
@@ -53,6 +55,7 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 
     @staticmethod
     def authenticate(request):
+        # 先做数据清洗再执行逻辑
         form = AuthenticationForm(request.COOKIES)
         if not form.is_valid():
             return None

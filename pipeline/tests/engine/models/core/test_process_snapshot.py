@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,21 +13,21 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.utils import Stack
 from pipeline.engine.models.core import ProcessSnapshot
+from pipeline.engine.utils import Stack
 
 
 class TestProcessSnapshot(TestCase):
     def setUp(self):
-        self.pipeline_stack = Stack(['pipeline1', 'pipeline2'])
-        self.subprocess_stack = Stack(['subprocess1', 'subprocess2'])
-        self.children = ['child1', 'child2']
-        self.root_pipeline = 'root_pipeline'
+        self.pipeline_stack = Stack(["pipeline1", "pipeline2"])
+        self.subprocess_stack = Stack(["subprocess1", "subprocess2"])
+        self.children = ["child1", "child2"]
+        self.root_pipeline = "root_pipeline"
         self.snapshot = ProcessSnapshot.objects.create_snapshot(
             pipeline_stack=self.pipeline_stack,
             children=self.children,
             root_pipeline=self.root_pipeline,
-            subprocess_stack=self.subprocess_stack
+            subprocess_stack=self.subprocess_stack,
         )
 
     def test_properties(self):

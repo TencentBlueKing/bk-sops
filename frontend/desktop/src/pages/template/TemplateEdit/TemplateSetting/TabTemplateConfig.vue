@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,79 +10,113 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
-        <div class="config-title">
-            <span>{{i18n.basic_information}}</span>
-        </div>
-        <div class="common-form-item">
-            <label>{{ i18n.type }}</label>
-            <div class="common-form-content">
-                <bk-select
-                    class="category-select"
-                    v-model="category"
-                    @change="onChangeTaskCategories">
-                    <bk-option
-                        v-for="(item, index) in taskCategories"
-                        :key="index"
-                        :id="item.id"
-                        :name="item.name">
-                    </bk-option>
-                </bk-select>
-                <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ i18n.categoryTip}}</span>
+    <bk-sideslider
+        :title="$t('基础信息')"
+        :is-show="true"
+        :quick-close="false"
+        :width="800"
+        :before-close="closeTab">
+        <div class="config-wrapper" slot="content">
+            <bk-form class="form-area" :model="formData" :label-width="140" :rules="rules" ref="configForm">
+                <bk-form-item property="category" :label="$t('分类')" :required="true">
+                    <bk-select
+                        v-model="formData.category"
+                        class="category-select"
+                        :clearable="false">
+                        <bk-option
+                            v-for="(item, index) in taskCategories"
+                            :key="index"
+                            :id="item.id"
+                            :name="item.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
+                <bk-form-item :label="$t('通知方式')">
+                    <bk-checkbox-group v-model="formData.notifyType" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
+                        <template v-for="item in notifyTypeList">
+                            <bk-checkbox
+                                v-if="item.is_active"
+                                :key="item.type"
+                                :value="item.type">
+                                <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
+                                <span style="word-break: break-all;">{{item.label}}</span>
+                            </bk-checkbox>
+                        </template>
+                    </bk-checkbox-group>
+                </bk-form-item>
+                <bk-form-item :label="$t('通知分组')">
+                    <bk-checkbox-group v-model="formData.receiverGroup">
+                        <bk-checkbox
+                            v-for="item in notifyGroup"
+                            :key="item.id"
+                            :value="item.id">
+                            {{item.name}}
+                        </bk-checkbox>
+                    </bk-checkbox-group>
+                </bk-form-item>
+                <bk-form-item :label="$t('执行代理人')">
+                    <member-select
+                        :multiple="false"
+                        :value="formData.executorProxy"
+                        @change="formData.executorProxy = $event">
+                    </member-select>
+                </bk-form-item>
+                <bk-form-item property="notifyType" :label="$t('备注')">
+                    <bk-input type="textarea" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
+                </bk-form-item>
+            </bk-form>
+            <div class="btn-wrap">
+                <bk-button class="save-btn" theme="primary" :disabled="notifyTypeLoading" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
         </div>
-        <div class="common-form-item">
-            <label> {{i18n.notify_type}} </label>
-            <div class="common-form-content">
-                <bk-checkbox-group v-model="notifyType">
-                    <bk-checkbox
-                        v-for="item in notifyTypeList"
-                        :key="item.id"
-                        :value="item.id">
-                        {{item.name}}
-                    </bk-checkbox>
-                </bk-checkbox-group>
-            </div>
-        </div>
-        <div class="common-form-item hide">
-            <label>{{ i18n.timeout }}</label>
-            <div class="common-form-content">
-                <bk-input :value="timeout" @input="onChangeTimeout" />
-            </div>
-        </div>
-        <div class="common-form-item">
-            <label>{{ i18n.receiver_group }}</label>
-            <div class="common-form-content">
-                <bk-checkbox-group v-model="receiverGroup">
-                    <bk-checkbox
-                        v-for="item in notifyGroup"
-                        :key="item.id"
-                        :value="item.id">
-                        {{item.name}}
-                    </bk-checkbox>
-                </bk-checkbox-group>
-            </div>
-        </div>
-    </div>
+    </bk-sideslider>
 </template>
 
 <script>
-    import '@/utils/i18n.js'
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
+    import i18n from '@/config/i18n/index.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+
     export default {
         name: 'TabTemplateConfig',
-        props: ['projectInfoLoading', 'isTemplateConfigValid'],
+        components: {
+            MemberSelect
+        },
+        props: {
+            projectInfoLoading: Boolean,
+            isTemplateConfigValid: Boolean,
+            isShow: Boolean
+        },
         data () {
+            const { category, notify_type, notify_receivers, description, executor_proxy } = this.$store.state.template
             return {
-                i18n: {
-                    basic_information: gettext('基础信息'),
-                    type: gettext('分类'),
-                    notify_type: gettext('通知方式'),
-                    timeout: gettext('超时时间(分钟)'),
-                    receiver_group: gettext('通知分组'),
-                    categoryTip: gettext('必填项')
+                formData: {
+                    category,
+                    description,
+                    executorProxy: executor_proxy ? [executor_proxy] : [],
+                    receiverGroup: notify_receivers.receiver_group.slice(0),
+                    notifyType: notify_type.slice(0)
                 },
-                selectedTaskCategory: ''
+                rules: {
+                    category: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ]
+                    // description: [
+                    //     {
+                    //         max: 300,
+                    //         message: i18n.t('备注信息不能多于300个字符'),
+                    //         trigger: 'blur'
+                    //     }
+                    // ]
+                },
+                notifyTypeLoading: false,
+                notifyTypeList: []
             }
         },
         computed: {
@@ -101,17 +135,6 @@
                 }
                 return []
             },
-            notifyTypeList () {
-                if (this.projectBaseInfo.notify_type_list) {
-                    return this.projectBaseInfo.notify_type_list.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.name
-                        }
-                    })
-                }
-                return []
-            },
             taskCategories () {
                 if (this.projectBaseInfo.task_categories) {
                     return this.projectBaseInfo.task_categories.map(item => {
@@ -122,46 +145,53 @@
                     })
                 }
                 return []
-            },
-            receiverGroup: {
-                get () {
-                    return this.$store.state.template.notify_receivers.receiver_group
-                },
-                set (value) {
-                    this.setReceiversGroup(value)
-                }
-            },
-            notifyType: {
-                get () {
-                    return this.$store.state.template.notify_type
-                },
-                set (value) {
-                    this.setNotifyType(value)
-                }
-            },
-            category: {
-                get () {
-                    return this.$store.state.template.category
-                },
-                set (value) {
-                    this.setCategory(value)
-                    this.$emit('onSelectCategory', value)
-                }
+            }
+        },
+        created () {
+            this.getNotifyTypeList()
+        },
+        mounted () {
+            if (!this.isTemplateConfigValid) {
+                this.$refs.configForm.validate()
             }
         },
         methods: {
             ...mapMutations('template/', [
-                'setOutputs',
-                'setReceiversGroup',
-                'setNotifyType',
-                'setOvertime',
-                'setCategory'
+                'setTplConfig'
             ]),
-            onChangeTimeout (val) {
-                this.setOvertime(val)
+            ...mapActions([
+                'getNotifyTypes'
+            ]),
+            async getNotifyTypeList () {
+                try {
+                    this.notifyTypeLoading = true
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.notifyTypeLoading = false
+                }
             },
-            onChangeTaskCategories (id) {
-                this.selectedTaskCategory = id
+            onConfirm () {
+                this.$refs.configForm.validate().then(result => {
+                    if (result) {
+                        const { category, description, executorProxy, receiverGroup, notifyType } = this.formData
+                        const data = {
+                            category,
+                            description,
+                            executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
+                            receiver_group: receiverGroup,
+                            notify_type: notifyType
+                        }
+                        this.setTplConfig(data)
+                        this.closeTab()
+                        this.$emit('templateDataChanged')
+                    }
+                })
+            },
+            closeTab () {
+                this.$emit('closeTab')
             }
         }
     }
@@ -171,45 +201,46 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .config-wrapper {
-    height: 100%;
+    height: calc(100vh - 60px);
     background: none;
     border: none;
-    .config-title {
-        height: 35px;
-        line-height: 35px;
-        margin: 20px;
-        border-bottom: 1px solid #cacecb;
-        span {
-            font-size: 14px;
-            font-weight:600;
-            color:#313238;
+    .form-area {
+        padding: 30px 30px 0;
+        height: calc(100% - 49px);
+        overflow-y: auto;
+        @include scrollbar;
+    }
+    .btn-wrap {
+        padding: 8px 30px;
+        border-top: 1px solid #cacedb;
+        .bk-button {
+            margin-right: 10px;
+            padding: 0 25px;
         }
     }
-    .common-form-item {
-       margin: 20px
-    }
-    .common-form-item > label {
-        width: 70px;
+    /deep/ .bk-label {
         font-size: 12px;
-        font-weight: normal;
-    }
-    .common-form-content {
-        line-height: 32px;
-        .base-input {
-            height: 32px;
-            line-height: 32px;
-        }
     }
     .bk-form-checkbox {
-        margin: 0 30px 0 0;
+        margin-right: 20px;
+        margin-bottom: 6px;
         min-width: 96px;
         /deep/ .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
         }
     }
-    .hide {
-        display: none;
+    /deep/ .bk-checkbox-text {
+        display: inline-flex;
+        align-items: center;
+        width: 100px;
+    }
+    .notify-icon {
+        margin-right: 4px;
+        width: 18px;
+    }
+    .user-selector {
+        display: block;
     }
 }
 </style>

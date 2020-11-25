@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,6 +11,7 @@
 */
 import bus from '@/utils/bus.js'
 import store from '@/store/index.js'
+import i18n from '@/config/i18n/index.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
@@ -89,45 +90,43 @@ export function setConfigContext (site_url, project) {
  */
 // 在这里对ajax请求做一些统一公用处理
 export function setJqueryAjaxConfig () {
-    $.ajaxSetup({
-        // timeout: 8000,
-        statusCode: {
-            // tastypie args error
-            400: function (xhr) {
+    $(document).ajaxError(function (event, xhr, setting) {
+        const code = xhr.status
+        switch (code) {
+            case 400:
                 const message = xhr.responseText
                 const info = {
                     theme: 'error',
                     message
                 }
                 bus.$emit('showMessage', info)
-            },
-            401: function (xhr) {
-                const src = xhr.responseText
-                bus.$emit('showLoginModal', src)
-            },
-            402: function (xhr) {
+                break
+            case 401:
+                const { has_plain, login_url, width, height } = xhr.responseJSON
+                const method = setting.type
+                bus.$emit('showLoginModal', { has_plain, login_url, width, height, method })
+                break
+            case 402:
                 // 功能开关
                 const src = xhr.responseText
                 const ajaxContent = '<iframe name="403_iframe" frameborder="0" src="' + src + '" style="width:570px;height:400px;"></iframe>'
-                bus.$emit('showErrorModal', 'default', ajaxContent, gettext('提示'))
-            },
-            403: function (xhr) {
+                bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
+                break
+            case 403:
                 bus.$emit('showErrorModal', '403')
-            },
-            405: function (xhr) {
+                break
+            case 405:
                 bus.$emit('showErrorModal', '405', xhr.responseText)
-            },
-            406: function (xhr) {
+                break
+            case 406:
                 bus.$emit('showErrorModal', '406')
-            },
-            499: function (xhr) {
-                const resData = JSON.parse(xhr.responseText)
-                const permission = resData.permission
-                bus.$emit('showPermissionModal', permission)
-            },
-            500: function (xhr, textStatus) {
+                break
+            case 499:
+                bus.$emit('showPermissionModal', xhr.responseJSON.permission)
+                break
+            case 500:
                 bus.$emit('showErrorModal', '500', xhr.responseText)
-            }
+                break
         }
     })
 }

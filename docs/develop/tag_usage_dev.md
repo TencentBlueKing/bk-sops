@@ -33,6 +33,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - checkbox
 - datatable
 - datetime
+- time
 - input
 - int
 - ipSelector
@@ -44,7 +45,9 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - tree
 - upload
 - memberSelector
-- logDisplay
+- setAllocation
+- TagSection
+- codeEditor
 # Tag 组件属性、方法
 
 标准插件中定义的配置项在页面渲染时，会作为属性传入到 Tag 组件中。Tag 组件根据不同的属性值，可以灵活的扩展多种表单配置，例如 `TagSelect` 组件可以通过 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
@@ -59,9 +62,34 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 - `name`：表单项名称，在页面上控制 label 的显示
 - `hookable`：是否可勾选为全局变量
-- `validation`：表单项的校验规则
+- `validation`：表单项的校验规则，表单的校验分三种类型 `required`、`regex`、`custom`，根据需求选择使用：
+```js
+    {
+      // ...
+      validation: [
+        { type: 'required' },
+        {
+          type: 'regex',
+          args: RegExp, //例如 /\d{3}/
+          error_message: String //例如 '请输入3个数字'
+        },
+        {
+          type: 'custom',
+          args (value, parentValue) {
+            //...
+            return { // 校验方法必须返回如下格式对象
+              result: Boolean,
+              error_message: String
+            }
+          }
+        },
+      ]
+    }
+```
 - `default`：表单项的默认值，不同的 Tag 组件支持的数据类型存在差异
 - `hidden`：是否默认隐藏
+- `formViewHidden`：查看模式下，表单是否隐藏
+- `col`：横向栅格占有的格数，总数为 12 格，设置该属性后，多个表单可横向布局
 - `value`：表单组件的值，需要在 Tag 里手动定义，并作为调用 `getFormMixins` 函数的参数传入
 
 ## 公共方法
@@ -73,8 +101,9 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `get_form_instance`：获取表单实例，FormItem
 - `get_parent`：获取 combine 实例或根元素实例
 - `get_child`：获取表单实例，参数为子表单的 tag_code，支持 RenderForm 或 RenderGroup 组件调用
-- `_get_value`：获取表单值
-- `_set_value`：设置表单值
+- `get_value`：获取表单值，其中支持配置传入一个布尔值参数，默认为 false，如果传入参数值为 true，则 tag 表单勾选为全局变量时，可获取对应全局变量的 value 值
+- `get_tag_value`: 获取当前标准插件的任一表单值，参数 `path` 为目标 tag 表单的层级，表单值从标准插件最外层开始查找，例如 `['bk_receiver_info', 'bk_more_receiver']`
+- `set_value`：设置表单值，参数为表单值
 
 ## 官方 Tag 组件说明
 
@@ -85,12 +114,12 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 **属性**
 
   - `title`：按钮文字
-  - `type`：按钮类型
-  - `icon`：icon 类名, 取值参考 [element-ui icon](https://element.eleme.cn/#/zh-CN/component/icon)
-  - `size`：尺寸
-  - `plain`：是否为朴素按钮
-  - `round`：是否为圆角按钮
-  - `circle`： 是否为圆形按钮
+  - `type`：按钮类型，取值范围：default、primary、warning、success、danger
+  - `icon`：icon 类名, 取值参考 [蓝鲸 icon](https://magicbox.bk.tencent.com/#detail/show?id=bk_icon&isPro=1)
+  - `size`：尺寸，取值范围：small、normal、large
+  - `disabled`：是否禁用，禁用后按钮点击事件不生效
+  - `loading`：是否加载中，加载过程中按钮点击事件不生效
+  - `text`：是否是文字按钮
 
 **方法**
 
@@ -161,17 +190,19 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
       }
     }
   ]
-  - `editable`：是否显示编辑、删除按钮列
+  - `editable`：是否显示表格操作列，包含编辑、删除、保存、取消按钮
+  - `deleteable`：是否显示删除按钮，用来单独控制表格操作列的删除按钮
   - `add_btn`： 是否显示添加按钮
-  - `show_pagination`: 是否显示分页
-  - `limit`: 每页展示条数,默认 5 条
+  - `table_buttons`: 自定义配置表格按钮，eg: [{text: '点击', callback: function(){console.log(1)}, type: 'xxx or import'}, ...]，其中 type 为非必需字段，值为 import 时，点击回调使用内置的上传函数
   - `empty_text`：无数据提示
-  - `remote_url`：表格数据远程加载，支持 url 和方法
+  - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
-  - `row_click_handler_name`: 单行点击回调函数名，需在 `methods` 属性中先定义好该函数，回调参数如下：
+  - `row_click_handler`: 单行点击回调函数，回调参数如下：
     + row, eg: { key1:'value1',key2:'value2' }
     + column, eg: { label: 'name', property: 'key1' }
     + event
+  - `pagination`：表格数据分页展示，默认不展示（false）
+  - `page_size`：表格分页展示时，每页显示的条数(Number)，默认 10 条每页
   - `value`：表格的值
 
 **方法**
@@ -179,6 +210,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `validateSubCom`：校验表格内的数据是否符合规则（规则由对应的列的标准插件配置项指定）
   - `set_loading`：传入布尔类型参数来设置表格是否为 loading 状态
   - `remoteMethod`：远程加载数据
+  - `export2Excel`：将表格数据导出到 excel 文件
 
 ### 5. TagDatetime
 
@@ -188,13 +220,33 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
+  - `type`：日期选择器显示类型，默认为 datetime，可选值包括：date、datetime、datetimerange、daterange 等
+  - `format`：选中的时间以及展示的值，默认为 yyyy-MM-dd HH:mm:ss，参考[日期格式](https://element.eleme.cn/#/zh-CN/component/date-picker#ri-qi-ge-shi)
   - `value`：时间值
 
 **方法**
 
 *none*
 
-### 6. TagInput
+### 6. TagTime
+
+时间选择器。
+
+**属性**
+
+  - `placeholder`：占位文本
+  - `startPlaceholder`：开始时间占位文本
+  - `endPlaceholder`：结束时间占位文本
+  - `disabled`：设置是否禁用组件
+  - `isRange`：是否选择时间段
+  - `format`：选中的时间以及展示的值，默认为 HH:mm:ss，参考[日期格式](https://element.eleme.cn/#/zh-CN/component/date-picker#ri-qi-ge-shi)
+  - `value`：时间值
+
+**方法**
+
+*none*
+
+### 7. TagInput
 
 文本框，一般用来输入单行文本。
 
@@ -203,13 +255,14 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `min`：最小值，默认为 -Infinity
   - `max`：最大值，默认为 Infinity
   - `disabled`：设置是否禁用组件
+  - `showPassword`：是否以密码模式显示
   - `value`：文本框值
 
 **方法**
 
 *none*
 
-### 7. TagInt
+### 8. TagInt
 
 整数输入框，用来输入正整数。
 
@@ -223,13 +276,14 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 8. TagIpSelector
+### 9. TagIpSelector
 
 ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **属性**
 
   - `isMultiple`：ip 选择器是否为多选（单选为选择静态或者动态 ip，多选为同时选择静态、动态 ip）
+  - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
   - `disabled`：设置是否禁用组件
   - `value`：选择的 ip 值
 
@@ -238,7 +292,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 *none*
 
 
-### 9. TagPassword
+### 10. TagPassword
 
 密码输入框。
 
@@ -251,7 +305,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 10. TagRadio
+### 11. TagRadio
 
 单选框，通过配置项传入可选项，提供给使用者选择。
 
@@ -265,7 +319,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 11. TagSelect
+### 12. TagSelect
 
 下拉框，通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -274,18 +328,25 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `items`：提供选择的下拉框选项， eg:[{text: '微信', value: 'weixin'}, {text: '邮件', value: 'mail'}]
   - `multiple`：是否为多选
   - `remote`：是否开远程加载
+  - `remote_url`:  远程加载 url，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：远程加载后的数据处理函数
   - `placeholder`：占位文本
   - `empty_text`：无数据提示
+  - `hasGroup`：选项是否分组
+  - `clearable`：是否显示右侧清除表单值icon
+  - `allowCreate`：是否支持输入框创建选项
+  - `showRightBtn`：是否显示选择框右侧按钮，默认 false
+  - `rightBtnIcon`：选择框右侧按钮icon，默认 'bk-icon icon-chain'
+  - `rightBtnCb`：选择框右侧按钮点击回调函数，默认为空
   - `disabled`：设置是否禁用组件
-  - `value`：选中项的 value，多选框的值以 , 分隔
+  - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 
 **方法**
 
   - `set_loading`：传入布尔类型参数来设置下拉框是否为 loading 状态
   - `remoteMethod`：远程加载数据
 
-### 12. TagText
+### 13. TagText
 
 文本组件，不可编辑，一般用来展示文本信息。
 
@@ -297,7 +358,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 13. TagTextarea
+### 14. TagTextarea
 
 多行文本框。
 
@@ -311,7 +372,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 14. TagTree
+### 15. TagTree
 
 树形选择组件，一般用来多个分组层级数据的选择。通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -349,7 +410,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `show_checkbox`：节点是否可被选择
   - `default_expand_all`： 是否默认全部展开
   - `remote`： 是否开启远程加载
-  - `remote_url`： 远程加载 url
+  - `remote_url`： 远程加载 url，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：远程加载后的数据处理函数
   - `value`：选中的值
 
@@ -357,7 +418,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remoteMethod`：远程加载数据
 
 
-### 15. TagUpload
+### 16. TagUpload
 
 上传组件。
 
@@ -366,6 +427,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `url`： 服务器 url
   - `multiple`：是否支持多个上传
   - `headers`：http 请求头
+  - `data_params`：文件上传附加参数，eg: { filename: 'test.zip', filetype: 'zip' }
   - `auto_upload`：是否开启自动上传，默认值为 true，自动上传(选择文件后自动触发上传)，手动上传(选择文件后需要点击上传按钮，调用自定义的 submit 方法回调)
   - `submit`：自定义上传方法
   - `limit`：上传文件个数
@@ -383,7 +445,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
   - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
 
-### 16. TagMemberSelector
+### 17. TagMemberSelector
 
 人员选择组件
 
@@ -407,6 +469,48 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
+### 18. TagSetAllocation
+
+开区资源选择器。
+
+**属性**
+
+  - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
+  - `disabled`：设置是否禁用组件
+  - `value`：选择的资源值以及筛选配置
+
+**方法**
+
+*none*
+
+### 19. TagSection
+
+标准插件表单分隔 Tag，一般在表单项数量较多时用来做分组区分，配置项的 name 属性值会被渲染为分组名称。
+
+**属性**
+
+*none*
+
+**方法**
+
+*none*
+
+### 20. TagCodeEditor
+
+代码编辑器
+
+**属性**
+
+ - `value`：代码字符串
+ - `language`: 编辑器语言，默认为 python，支持 javascript typescript json python shell
+ - `height`: 编辑器高度，默认 100px
+ - `showMiniMap`: 显示小地图，默认 false
+ - `showLanguageSwitch`: 显示语言切换，默认 true
+ - `readOnly`: 只读模式，默认 false
+
+**方法**
+
+*none*
 
 # 标准插件中定义的方法
 

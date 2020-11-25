@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,12 +13,26 @@
     <div class="condition-item">
         <div class="select-field">
             <bk-select
+                v-model="condition.type"
+                :clearable="false"
+                :disabled="!editable"
+                @selected="onTypeSelect">
+                <bk-option
+                    v-for="option in typeList"
+                    :key="option.id"
+                    :id="option.id"
+                    :name="option.name">
+                </bk-option>
+            </bk-select>
+        </div>
+        <div class="select-field">
+            <bk-select
                 v-model="condition.field"
                 :disabled="!editable"
                 :placeholder="i18n.select"
                 @selected="onConditionSelect">
                 <bk-option
-                    v-for="(option, i) in filedsData"
+                    v-for="(option, i) in fieldsList"
                     :key="i"
                     :id="option.id"
                     :name="option.name">
@@ -44,43 +58,68 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
-
+    import '@/utils/i18n.js'
     const i18n = {
         select: gettext('请选择'),
-        desc: gettext('请输入拓扑实例名称，多个用换行符分隔'),
-        notEmpty: gettext('必填项')
+        desc: gettext('请输入，多个用换行分隔'),
+        notEmpty: gettext('必填项'),
+        filter: gettext('筛选'),
+        exclude: gettext('排除')
     }
 
     export default {
         name: 'ConditionItem',
-        props: ['editable', 'data', 'fieldsList', 'index'],
+        props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            data: {
+                type: Object,
+                default () {
+                    return {
+                        type: 'filter',
+                        field: '',
+                        value: []
+                    }
+                }
+            },
+            fieldsList: {
+                type: Array,
+                default: []
+            },
+            index: {
+                type: Number
+            }
+        },
         data () {
             return {
                 isDropdownShow: false,
                 filedError: false,
                 valueError: false,
+                typeList: [
+                    {
+                        id: 'filter',
+                        name: i18n.filter
+                    },
+                    {
+                        id: 'exclude',
+                        name: i18n.exclude
+                    }
+                ],
                 condition: {
+                    type: this.data.type,
                     field: this.data.field,
                     value: this.data.value.join('\n')
                 },
                 i18n
             }
         },
-        computed: {
-            filedsData () {
-                return this.fieldsList.map(item => {
-                    return {
-                        id: item.bk_obj_id,
-                        name: item.bk_obj_name
-                    }
-                })
-            }
-        },
         watch: {
             data: {
                 handler (val) {
                     this.condition = {
+                        type: val.type,
                         field: val.field,
                         value: val.value.join('\n')
                     }
@@ -89,19 +128,17 @@
             }
         },
         methods: {
+            onTypeSelect (value) {
+                const condition = Object.assign({}, this.data, { type: value })
+                this.$emit('changeCondition', condition, this.index)
+            },
             onConditionSelect (value) {
-                const condition = {
-                    field: value,
-                    value: this.data.value
-                }
+                const condition = Object.assign({}, this.data, { field: value })
                 this.$emit('changeCondition', condition, this.index)
                 this.filedError = !this.condition.field
             },
             onConditionTextChange () {
-                const condition = {
-                    field: this.condition.field,
-                    value: this.condition.value.split('\n')
-                }
+                const condition = Object.assign({}, this.data, { value: this.condition.value.split('\n') })
                 this.$emit('changeCondition', condition, this.index)
                 this.valueError = !this.condition.value
             },
@@ -137,13 +174,16 @@
 
 .select-field {
     float: left;
-    width: 120px;
+    width: 96px;
+    &:first-child {
+        margin-right: 6px;
+    }
 }
 .condition-text-wrap {
     float: left;
     position: relative;
     margin: 0 10px;
-    width: calc(100% - 190px);
+    width: calc(100% - 270px);
     .textarea-mirror, textarea {
         padding: 9px 10px 0;
         line-height: 1.2;

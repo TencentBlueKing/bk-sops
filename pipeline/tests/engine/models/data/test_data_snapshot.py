@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,15 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.engine.models import DataSnapshot
 
 
 class DataSnapshotTestCase(TestCase):
     def setUp(self):
-        self.key_1 = 'test_key_1'
-        self.key_2 = 'test_key_2'
-        self.not_exist_key = 'not_exist'
-        self.obj_1 = {'a': 'a', 1: '1', 2: '2', 'list': [1, 2, 3]}
+        self.key_1 = "test_key_1"
+        self.key_2 = "test_key_2"
+        self.not_exist_key = "not_exist"
+        self.obj_1 = {"a": "a", 1: "1", 2: "2", "list": [1, 2, 3]}
         self.obj_2 = [1, 5, 3]
         self.obj_3 = [1, 2, 3]
 

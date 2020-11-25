@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -23,9 +23,9 @@ class TestElement(TestCase):
         self.assertIsNone(e1.name)
         self.assertListEqual(e1.outgoing, [])
 
-        e2 = Element(id='id', name='name', outgoing=[1])
-        self.assertEqual(e2.id, 'id')
-        self.assertEqual(e2.name, 'name')
+        e2 = Element(id="id", name="name", outgoing=[1])
+        self.assertEqual(e2.id, "id")
+        self.assertEqual(e2.name, "name")
         self.assertEqual(e2.outgoing, [1])
 
     def test_extend(self):
@@ -83,8 +83,7 @@ class TestElement(TestCase):
         e9 = Element()
         e10 = Element()
 
-        ret = e6.extend(e7).extend(e8).to(e6) \
-            .extend(e9).to(e6).converge(e10)
+        ret = e6.extend(e7).extend(e8).to(e6).extend(e9).to(e6).converge(e10)
 
         self.assertEqual(ret, e10)
         self.assertEqual(e6.outgoing, [e7, e9])

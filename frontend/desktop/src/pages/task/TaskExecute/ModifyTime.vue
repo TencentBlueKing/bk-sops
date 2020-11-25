@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,9 +11,6 @@
 */
 <template>
     <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="panel-title">
-            <h3>{{ i18n.reset_timer }}</h3>
-        </div>
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -25,13 +22,13 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="success" @click="onModifyTime">{{ i18n.confirm }}</bk-button>
-            <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
+            <bk-button theme="primary" class="confirm-btn" :loading="modifyTimeLoading" @click="onModifyTime">{{ $t('确定') }}</bk-button>
+            <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -46,11 +43,7 @@
         props: ['nodeDetailConfig'],
         data () {
             return {
-                i18n: {
-                    reset_timer: gettext('修改定时时间'),
-                    confirm: gettext('确定'),
-                    cancel: gettext('取消')
-                },
+                modifyTimeLoading: false,
                 loading: true,
                 bkMessageInstance: null,
                 nodeInfo: {},
@@ -66,6 +59,9 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config
+            }),
+            ...mapState('project', {
+                project_id: state => state.project_id
             }),
             isEmptyParams () {
                 return Object.keys(this.renderData).length === 0
@@ -107,7 +103,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
+                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)
@@ -119,22 +115,22 @@
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid) return
+                if (!formvalid || this.modifyTimeLoading) return
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
                     instance_id,
                     node_id,
                     component_code,
-                    inputs: JSON.stringify(this.renderData)
+                    inputs: this.renderData
                 }
-                this.retrying = true
+                this.modifyTimeLoading = true
                 try {
                     const res = await this.setSleepNode(data)
                     if (res.result) {
                         this.$emit('modifyTimeSuccess', node_id)
                         this.$bkMessage({
-                            message: gettext('修改成功'),
+                            message: i18n.t('修改成功'),
                             theme: 'success'
                         })
                     } else {
@@ -143,7 +139,7 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.retrying = false
+                    this.modifyTimeLoading = false
                 }
             },
             onCancelRetry () {
@@ -160,25 +156,20 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-        .panel-title {
-            padding: 20px;
-            h3 {
-                margin: 0;
-                font-size: 22px;
-                font-weight: normal;
-            }
-        }
         .edit-wrapper {
             padding: 20px 20px 0;
-            height: calc(100% - 140px);
+            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
         .action-wrapper {
+            padding-left: 55px;
             height: 60px;
             line-height: 60px;
-            text-align: center;
             border-top: 1px solid $commonBorderColor;
+            .confirm-btn{
+                margin-right: 12px;
+            }
         }
     }
 </style>

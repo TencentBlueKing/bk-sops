@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,18 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import django
-
 from contextlib import contextmanager
+
+import django
 from django.db import transaction
 
 if django.VERSION < (1, 6):  # pragma: no cover
 
     def get_queryset(s):
         return s.get_query_set()
+
+
 else:
+
     def get_queryset(s):  # noqa
         return s.get_queryset()
+
 
 try:
     from django.db.transaction import atomic  # noqa
@@ -31,6 +35,7 @@ except ImportError:  # pragma: no cover
     try:
         from django.db.transaction import Transaction  # noqa
     except ImportError:
+
         @contextmanager
         def commit_on_success(*args, **kwargs):
             try:
@@ -51,12 +56,14 @@ except ImportError:  # pragma: no cover
                             raise
             finally:
                 transaction.leave_transaction_management(*args, **kwargs)
+
     else:  # pragma: no cover
         from django.db.transaction import commit_on_success  # noqa
 
     commit_unless_managed = transaction.commit_unless_managed
     rollback_unless_managed = transaction.rollback_unless_managed
 else:
+
     @contextmanager
     def commit_on_success(using=None):  # noqa
         connection = transaction.get_connection(using)

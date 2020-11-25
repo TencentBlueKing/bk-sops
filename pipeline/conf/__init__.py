@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,11 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf import settings as django_settings
+
 from pipeline.conf import default_settings
 
 
 class PipelineSettings(object):
-
     def __getattr__(self, key):
         if hasattr(django_settings, key):
             return getattr(django_settings, key)
@@ -24,7 +24,7 @@ class PipelineSettings(object):
         if hasattr(default_settings, key):
             return getattr(default_settings, key)
 
-        raise AttributeError('Settings object has no attribute %s' % key)
+        raise AttributeError("Settings object has no attribute %s" % key)
 
 
 settings = PipelineSettings()

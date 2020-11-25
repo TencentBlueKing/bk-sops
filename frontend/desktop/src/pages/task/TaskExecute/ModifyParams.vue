@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,16 +14,13 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
-        <div class="panel-title">
-            <h3>{{ i18n.changeParams }}</h3>
-        </div>
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ i18n.editTaskDisable }}
+                {{ $t('已开始执行的任务不能修改参数') }}
             </p>
         </div>
-        <div class="edit-wrapper">
+        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) && !paramsCanBeModify }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
@@ -33,22 +30,29 @@
             </TaskParamEdit>
             <NoData v-else></NoData>
         </div>
-        <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
-            <bk-button
-                theme="success"
-                :class="{
-                    'btn-permission-disable': !hasSavePermission
-                }"
-                v-cursor="{ active: !hasSavePermission }"
-                @click="onModifyParams">
-                {{ i18n.save }}
-            </bk-button>
+        <div class="action-wrapper">
+            <div v-if="!isParamsEmpty && paramsCanBeModify">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasSavePermission
+                    }"
+                    :loading="pending"
+                    v-cursor="{ active: !hasSavePermission }"
+                    @click="onModifyParams">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            </div>
+            
+            <bk-button v-else theme="default" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
+
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import i18n from '@/config/i18n/index.js'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -61,27 +65,26 @@
             NoData
         },
         mixins: [permission],
-        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'instanceOperations', 'instanceResource'],
+        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions'],
         data () {
             return {
                 bkMessageInstance: null,
                 constants: [],
                 cntLoading: true, // 全局变量加载
                 configLoading: true, // 变量配置项加载
-                pending: false, // 提交修改中
-                i18n: {
-                    editTaskDisable: gettext('已开始执行的任务不能修改参数'),
-                    changeParams: gettext('修改全局参数'),
-                    save: gettext('保存')
-                }
+                pending: false // 提交修改中
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             isParamsEmpty () {
                 return !Object.keys(this.constants).length
             },
             hasSavePermission () {
-                return this.hasPermission(['edit'], this.instanceActions, this.instanceOperations)
+                return this.hasPermission(['task_edit'], this.instanceActions)
             },
             loading () {
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
@@ -117,11 +120,17 @@
             async onModifyParams () {
                 if (!this.hasSavePermission) {
                     const resourceData = {
-                        id: this.instance_id,
-                        name: this.instanceName,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
                     }
-                    this.applyForPermission(['edit'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_edit'], this.instanceActions, resourceData)
+                    return
                 }
 
                 if (this.pending) {
@@ -133,24 +142,24 @@
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
                     if (!formValid) return
-                    const variables = paramEditComp.getVariableData()
+                    const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         formData[key] = variables[key].value
                     }
                 }
-
                 const data = {
                     instance_id: this.instance_id,
-                    constants: JSON.stringify(formData)
+                    constants: formData
                 }
                 try {
                     this.pending = true
                     const res = await this.instanceModifyParams(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('参数修改成功'),
+                            message: i18n.t('参数修改成功'),
                             theme: 'success'
                         })
+                        this.$emit('packUp')
                     } else {
                         errorHandler(res, this)
                     }
@@ -162,6 +171,9 @@
             },
             onChangeConfigLoading (val) {
                 this.configLoading = val
+            },
+            onCancelRetry () {
+                this.$emit('packUp')
             }
         }
     }
@@ -173,16 +185,6 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-        .panel-title {
-            margin: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #cacedb;
-            h3 {
-                margin: 0;
-                font-size: 14px;
-                font-weight: bold;
-            }
-        }
         .panel-notice-task-run {
             margin: 20px 20px 10px 20px;
             padding: 0 10px;
@@ -197,14 +199,17 @@
         }
         .edit-wrapper {
             padding: 20px;
-            height: calc(100% - 150px);
+            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
+        .cancel-check {
+            height: calc(100% - 126px);
+        }
         .action-wrapper {
-            height: 90px;
-            line-height: 90px;
-            text-align: center;
+            padding-left: 20px;
+            height: 60px;
+            line-height: 60px;
             border-top: 1px solid $commonBorderColor;
         }
     }

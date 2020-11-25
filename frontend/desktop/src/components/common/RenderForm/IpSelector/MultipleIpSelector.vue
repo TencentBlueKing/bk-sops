@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -52,20 +52,40 @@
                 :dynamic-ips="dynamicIps"
                 @change="onDynamicIpChange">
             </dynamic-ip>
+            <dynamic-group
+                v-show="activeSelector === 'group'"
+                ref="group"
+                :editable="editable"
+                :dynamic-group-list="dynamicGroupList"
+                :dynamic-groups="dynamicGroups"
+                @change="onDynamicGroupChange">
+            </dynamic-group>
         </div>
     </div>
 </template>
 <script>
     import StaticIp from './StaticIp.vue'
     import DynamicIp from './DynamicIp.vue'
+    import DynamicGroup from './DynamicGroup.vue'
 
     export default {
         name: 'MultipleIpSelector',
         components: {
             StaticIp,
-            DynamicIp
+            DynamicIp,
+            DynamicGroup
         },
-        props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'dynamicIps', 'staticIps'],
+        props: {
+            editable: Boolean,
+            selectorTabs: Array,
+            selectors: Array,
+            staticIpList: Array,
+            dynamicIpList: Array,
+            dynamicGroupList: Array,
+            staticIps: Array,
+            dynamicIps: Array,
+            dynamicGroups: Array
+        },
         data () {
             return {
                 activeSelector: this.selectors[0]
@@ -106,6 +126,9 @@
             },
             onDynamicIpChange (val) {
                 this.$emit('change', 'topo', val)
+            },
+            onDynamicGroupChange (val) {
+                this.$emit('change', 'group', val)
             },
             validate () {
                 let isValidate = true

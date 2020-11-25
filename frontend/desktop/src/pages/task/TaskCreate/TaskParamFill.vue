@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,13 +11,13 @@
 */
 <template>
     <div class="param-fill-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
+        <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]">
             <div class="task-info-title">
-                <span>{{ i18n.taskInfo }}</span>
+                <span>{{ $t('任务信息') }}</span>
             </div>
             <div>
                 <div class="common-form-item">
-                    <label class="required">{{ i18n.taskName }}</label>
+                    <label class="required">{{ $t('任务名称') }}</label>
                     <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
                         <bk-input
                             v-model="taskName"
@@ -31,18 +31,18 @@
                 <div
                     v-if="!isExecuteSchemeHide"
                     class="common-form-item">
-                    <label class="required">{{i18n.startMethod}}</label>
+                    <label class="required">{{$t('执行计划')}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
-                                {{ i18n.startNow }}
+                                {{ $t('立即执行') }}
                             </bk-button>
                             <bk-button
                                 :theme="!isStartNow ? 'primary' : 'default'"
                                 @click="onChangeStartNow(false)">
-                                {{ i18n.periodicStart }}
+                                {{ $t('周期执行') }}
                             </bk-button>
                         </div>
                     </div>
@@ -50,18 +50,18 @@
                 <div
                     v-if="isTaskTypeShow"
                     class="common-form-item">
-                    <label class="required">{{ i18n.flowType }}</label>
+                    <label class="required">{{ $t('流程类型') }}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
                                 :theme="isSelectFunctionalType ? 'default' : 'primary'"
                                 @click="onSwitchTaskType(false)">
-                                {{ i18n.defaultFlowType }}
+                                {{ $t('默认任务流程') }}
                             </bk-button>
                             <bk-button
                                 :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                 @click="onSwitchTaskType(true)">
-                                {{ i18n.functionFlowType }}
+                                {{ $t('职能化任务流程') }}
                             </bk-button>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
                 <div
                     v-if="!isStartNow"
                     class="common-form-item">
-                    <label class="required">{{i18n.periodicCron}}</label>
+                    <label class="required">{{$t('周期表达式')}}</label>
                     <div class="common-form-content step-form-item-cron">
                         <LoopRuleSelect
                             ref="loopRuleSelect"
@@ -82,7 +82,7 @@
         <div class="param-info">
             <div class="param-info-title">
                 <span>
-                    {{ i18n.paramsInfo }}
+                    {{ $t('参数信息') }}
                 </span>
             </div>
             <div>
@@ -91,7 +91,7 @@
                     :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
-                    @onParameterInfoLoading="onParameterInfoLoading">
+                    @paramsLoadingChange="paramsLoadingChange">
                 </ParameterInfo>
             </div>
         </div>
@@ -99,23 +99,24 @@
             <bk-button
                 class="preview-step-button"
                 @click="onGotoSelectNode">
-                {{ i18n.previous }}
+                {{ $t('上一步') }}
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
-                    'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
+                    'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
-                theme="success"
+                theme="primary"
                 :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
+                :disabled="paramsLoading || commonTplCreateTaskPermLoading || nextBtnDisable"
+                v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 @click="onCreateTask">
-                {{i18n.new}}
+                {{$t('下一步')}}
             </bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import { mapState, mapActions, mapMutations } from 'vuex'
@@ -125,6 +126,7 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+
     export default {
         name: 'TaskParamFill',
         components: {
@@ -135,20 +137,6 @@
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
         data () {
             return {
-                i18n: {
-                    taskInfo: gettext('任务信息'),
-                    taskName: gettext('任务名称'),
-                    flowType: gettext('流程类型'),
-                    defaultFlowType: gettext('默认任务流程'),
-                    functionFlowType: gettext('职能化任务流程'),
-                    paramsInfo: gettext('参数信息'),
-                    previous: gettext('上一步'),
-                    new: gettext('下一步'),
-                    startNow: gettext('立即执行'),
-                    periodicStart: gettext('周期执行'),
-                    periodicCron: gettext('周期表达式'),
-                    startMethod: gettext('执行计划')
-                },
                 bkMessageInstance: null,
                 isSubmit: false,
                 isSelectFunctionalType: false,
@@ -166,85 +154,112 @@
                     required: true,
                     regex: PERIODIC_REG
                 },
-                periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
+                periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 lastTaskName: '',
                 node: {},
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
+                hasCommonTplCreateTaskPerm: false,
+                commonTplCreateTaskPermLoading: false,
+                paramsLoading: false,
+                nextBtnDisable: false,
                 disabledButton: true,
-                tplActions: [],
-                tplOperations: [],
-                tplResource: {}
+                tplActions: []
             }
         },
         computed: {
             ...mapState({
                 'templateName': state => state.template.name,
-                'userRights': state => state.userRights,
                 'viewMode': state => state.view_mode,
-                'app_id': state => state.app_id
+                'app_id': state => state.app_id,
+                'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
-                'timeZone': state => state.timezone
+                'timeZone': state => state.timezone,
+                'projectName': state => state.projectName
             }),
             ...mapState('appmaker', {
                 'appmakerDetail': state => state.appmakerDetail
             }),
             isTaskTypeShow () {
-                return !this.userRights.function && this.isStartNow
-            },
-            isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
+                return this.entrance !== 'function' && this.isStartNow
             },
             isPeriodicSelectShow () {
                 return this.entrance.indexOf('periodicTask') > -1
             },
             nextStepPerm () {
-                return this.isStartNow ? ['create_task'] : ['create_periodic_task']
-            },
-            resourceName () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.name : this.templateName
-            },
-            resourceId () {
-                return this.viewMode === 'appmaker' ? this.app_id : this.template_id
+                if (this.viewMode === 'appmaker') {
+                    return ['mini_app_create_task']
+                } else {
+                    if (this.isStartNow) {
+                        return this.common ? ['common_flow_create_task'] : ['flow_create_task']
+                    } else {
+                        return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
+                    }
+                }
             },
             actions () {
                 return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_actions : this.tplActions
             },
-            resource () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_resource : this.tplResource
-            },
-            operations () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_operations : this.tplOperations
-            },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.common || this.viewMode === 'appmaker' || this.userRights.function || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
+                return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
             }
         },
-        mounted () {
+        created () {
+            if (this.entrance === 'periodicTask') {
+                this.isStartNow = false
+            }
+            if (this.common) {
+                this.queryCommonTplCreateTaskPerm()
+            }
             this.loadData()
-            this.period()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('template/', [
-                'loadTemplateData',
-                'getLayoutedPipeline'
+                'loadTemplateData'
             ]),
             ...mapActions('task/', [
                 'loadPreviewNodeData',
                 'createTask'
             ]),
-            ...mapMutations('template/', [
-                'setTemplateData'
-            ]),
             ...mapActions('periodic/', [
                 'createPeriodic'
             ]),
-            period () {
-                if (this.entrance === 'periodicTask') {
-                    this.isStartNow = false
+            ...mapMutations('template/', [
+                'setTemplateData'
+            ]),
+            async queryCommonTplCreateTaskPerm () {
+                try {
+                    this.commonTplCreateTaskPermLoading = true
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const data = {
+                        action: 'common_flow_create_task',
+                        resources: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.project_id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: this.template_id,
+                                attributes: {}
+                            }
+                        ]
+                    }
+                    const res = await this.queryUserPermission(data)
+                    this.hasCommonTplCreateTaskPerm = res.data.is_allow
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.commonTplCreateTaskPermLoading = false
                 }
             },
             async loadData () {
@@ -257,16 +272,16 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     if (templateData.result === false) {
-                        throw (templateData)
+                        errorHandler(templateData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
 
                     this.tplActions = templateData.auth_actions
-                    this.tplResource = templateData.auth_resource
-                    this.tplOperations = templateData.auth_operations
                     this.setTemplateData(templateData)
                     const params = {
                         templateId: this.template_id,
-                        excludeTaskNodesId: JSON.stringify(this.excludeNode),
+                        excludeTaskNodesId: this.excludeNode,
                         common: this.common,
                         project_id: this.project_id,
                         template_source: templateSource,
@@ -274,39 +289,20 @@
                     }
                     const previewData = await this.loadPreviewNodeData(params)
                     if (previewData.result === false) {
-                        throw (previewData)
+                        errorHandler(previewData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
-
-                    const pipelineTree = previewData.data.pipeline_tree
-                    if (this.excludeNode.length > 0) {
-                        const layoutedData = await this.getLayoutedPosition(pipelineTree)
-                        pipelineTree.line = layoutedData.line
-                        pipelineTree.location = layoutedData.location
-                    }
-                    this.pipelineData = pipelineTree
+                    this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.taskMessageLoading = false
-                }
-            },
-            /**
-             * 从接口获取编排后的画布数据
-             * @params {Object} data pipeline_tree 数据
-             */
-            async getLayoutedPosition (data) {
-                try {
-                    const width = document.body.scrollWidth - 90
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
-                    if (res.result) {
-                        return res.data.pipeline_tree
-                    } else {
-                        errorHandler(res, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
                 }
             },
             getDefaultTaskName () {
@@ -324,11 +320,15 @@
                 this.$emit('setFunctionalStep', isSelectFunctionalType)
             },
             onGotoSelectNode () {
-                this.$emit('setFunctionalStep', false)
                 const url = {
                     name: 'taskStep',
                     params: { project_id: this.project_id, step: 'selectnode' },
                     query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
+                }
+                if (this.entrance !== 'function') {
+                    this.$emit('setFunctionalStep', false)
+                } else {
+                    url.name = 'functionTemplateStep'
                 }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
@@ -337,13 +337,54 @@
                 this.$router.push(url)
             },
             onCreateTask () {
-                if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
-                    const resourceData = {
-                        name: this.resourceName,
-                        id: this.resourceId,
-                        auth_actions: this.actions
+                let hasNextPermission = false
+                if (this.common) {
+                    if (this.commonTplCreateTaskPermLoading) {
+                        return
                     }
-                    this.applyForPermission(this.nextStepPerm, resourceData, this.operations, this.resource)
+                    hasNextPermission = this.hasCommonTplCreateTaskPerm
+                } else {
+                    hasNextPermission = this.hasPermission(this.nextStepPerm, this.actions)
+                }
+                if (!hasNextPermission) {
+                    let resourceData = {}
+                    if (this.viewMode === 'appmaker') {
+                        resourceData = {
+                            mini_app: [{
+                                id: this.app_id,
+                                name: this.appmakerDetail.name
+                            }],
+                            project: [{
+                                id: this.project_id,
+                                name: this.projectName
+                            }]
+                        }
+                    } else {
+                        if (this.common) {
+                            resourceData = {
+                                common_flow: [{
+                                    id: this.template_id,
+                                    name: this.templateName
+                                }],
+                                project: [{
+                                    id: this.project_id,
+                                    name: this.projectName
+                                }]
+                            }
+                        } else {
+                            resourceData = {
+                                flow: [{
+                                    id: this.template_id,
+                                    name: this.templateName
+                                }],
+                                project: [{
+                                    id: this.project_id,
+                                    name: this.projectName
+                                }]
+                            }
+                        }
+                    }
+                    this.applyForPermission(this.nextStepPerm, this.actions, resourceData)
                     return
                 }
 
@@ -358,7 +399,7 @@
                     const pipelineData = tools.deepClone(this.pipelineData)
                     // 取最新参数
                     if (paramEditComp) {
-                        const formData = paramEditComp.getVariableData()
+                        const formData = await paramEditComp.getVariableData()
                         pipelineData.constants = formData
                         formValid = paramEditComp.validate()
                     }
@@ -367,10 +408,15 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (this.userRights.function) {
+                    if (
+                        (this.$route.name === 'functionTemplateStep'
+                        && this.entrance === 'function')
+                        || this.isSelectFunctionalType) {
+                        // 职能化任务
                         flowType = 'common_func'
                     } else {
-                        flowType = this.isSelectFunctionalType ? 'common_func' : 'common'
+                        // 普通任务
+                        flowType = 'common'
                     }
                     if (this.isStartNow) {
                         const data = {
@@ -397,11 +443,17 @@
                                         query: { instance_id: taskData.instance_id }
                                     }
                                 }
-                            } else if (this.isSelectFunctionalType) {
+                            } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                                url = {
+                                    name: 'functionTaskExecute',
+                                    params: { project_id: this.project_id },
+                                    query: { instance_id: taskData.instance_id, common: this.common }
+                                }
+                            } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
                                 url = {
                                     name: 'taskList',
                                     params: { project_id: this.project_id },
-                                    query: { common: this.common } // 公共流程创建职能化任务
+                                    query: { common: this.common }
                                 }
                             } else {
                                 url = {
@@ -419,13 +471,13 @@
                     } else {
                         // 创建周期任务
                         const cronArray = loopRule.rule.split(' ')
-                        const cron = JSON.stringify({
+                        const cron = {
                             'minute': cronArray[0],
                             'hour': cronArray[1],
                             'day_of_week': cronArray[2],
                             'day_of_month': cronArray[3],
                             'month_of_year': cronArray[4]
-                        })
+                        }
                         const data = {
                             'name': this.taskName,
                             'cron': cron,
@@ -436,7 +488,7 @@
                         try {
                             await this.createPeriodic(data)
                             this.$bkMessage({
-                                'message': gettext('创建周期任务成功'),
+                                'message': i18n.t('创建周期任务成功'),
                                 'theme': 'success'
                             })
                             this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id } })
@@ -461,10 +513,8 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onParameterInfoLoading (val) {
-                if (this.taskMessageLoading === false && val === false) {
-                    this.disabledButton = false
-                }
+            paramsLoadingChange (val) {
+                this.paramsLoading = val
             }
         }
     }
@@ -478,10 +528,6 @@
     box-sizing: border-box;
     min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    /deep/ .no-data-wrapper {
-        position: relative;
-        top: 122px;
-    }
 }
 .task-info,
 .param-info {
@@ -598,11 +644,6 @@
     }
     .next-step-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        color: #ffffff;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
 </style>

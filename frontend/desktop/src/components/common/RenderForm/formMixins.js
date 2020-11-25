@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -32,7 +32,8 @@ export const COMMON_ATTRS = {
         type: Array,
         default () {
             return []
-        }
+        },
+        desc: gettext('请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: ""}}}]')
     },
     default: {
         type: [String, Number, Boolean, Array, Object],
@@ -52,6 +53,14 @@ export const COMMON_ATTRS = {
         type: Boolean,
         default: true,
         inner: true
+    },
+    formViewHidden: { // 表单项为非编辑状态时，是否隐藏，例如(JOB执行作业刷新按钮)
+        type: Boolean,
+        default: false
+    },
+    cols: { // 横向栅格占有的格数，总数为 12 格
+        type: Number,
+        default: 0
     },
     validateSet: {
         type: Array,
@@ -92,9 +101,20 @@ export function getFormMixins (attrs = {}) {
             prop: 'value',
             event: 'change'
         },
+        inject: ['getFormData'],
         props: {
             ...COMMON_ATTRS, // 公共属性
             ...inheritAttrs, // tag 继承属性(value)
+            hook: {
+                type: Boolean,
+                default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
             atomEvents: {
                 type: Array,
                 default () {
@@ -147,11 +167,14 @@ export function getFormMixins (attrs = {}) {
         },
         mounted () {
             // 部分 Tag 组件需要执行初始化操作
-            this._tag_init && this._tag_init()
+            if (typeof this._tag_init === 'function') {
+                this._tag_init()
+            }
 
             // 组件插入到 DOM 后， 在父父组件上发布该 Tag 组件的 init 事件，触发标准插件配置项里监听的函数
             this.$nextTick(() => {
                 this.$parent.$parent.$emit(`${this.tagCode}_init`, this.value)
+                this.$emit('init', this.value)
             })
         },
         methods: {
@@ -257,8 +280,47 @@ export function getFormMixins (attrs = {}) {
             get_parent () {
                 return this.$parent.$parent
             },
-            _get_value () {
-                return this.value
+            /**
+             * 获取当前 tag 组件值
+             * @param {Boolean} keepValKey 表单勾选后是否返回当前变量 key 值
+             */
+            get_value (keepValKey) {
+                return this._get_value(keepValKey)
+            },
+            _get_value (keepValKey = false) {
+                if (keepValKey) {
+                    return this.value
+                } else {
+                    if (this.hook && this.constants) {
+                        const key = /^\$\{(\w+)\}$/.test(this.tagCode) ? this.tagCode : `\${${this.tagCode}}`
+                        const variable = this.constants[key]
+                        return variable ? variable.value : this.value
+                    }
+                    return this.value
+                }
+            },
+            /**
+             * 获取标准插件任意表单项的值
+             * @param {Array} path 目标 tag 表单的层级，表单值从标准插件最外层开始查找
+             * @param {Object} data 表单值
+             */
+            get_tag_value (path, data = this.getFormData()) {
+                const tag = path[0]
+                if (!(tag in data)) {
+                    throw new Error(`表单值中不存在 ${tag} 属性`)
+                }
+                if (path.length === 1) {
+                    return tools.deepClone(data[tag])
+                } else {
+                    return this.get_tag_value(path.slice(1), data[tag])
+                }
+            },
+            /**
+             * 设置当前 tag 组件值
+             * @param {Any} value
+             */
+            set_value (value) {
+                this._set_value(value)
             },
             _set_value (value) {
                 this.updateForm(value)

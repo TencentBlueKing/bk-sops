@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,8 +12,8 @@
 <template>
     <bk-dialog
         width="850"
-        :ext-cls="'common-dialog'"
-        :title="i18n.title"
+        :ext-cls="'common-dialog add-collection'"
+        :title="$t('')"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
         :header-position="'left'"
@@ -25,10 +25,13 @@
                 <div class="search-wrapper">
                     <bk-search-select
                         ref="bkSearchSelect"
+                        :popover-zindex="3000"
                         :show-condition="false"
                         :data="searchOptionalList"
+                        :show-popover-tag-change="searchOptionalList.length !== 0"
                         v-model="searchValue"
-                        @change="onSearchChange">
+                        @change="onSearchChange"
+                        @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
@@ -38,7 +41,7 @@
                                 v-if="group.children.length"
                                 :key="group.id"
                                 class="template-group">
-                                <h5 class="group-name">
+                                <h5 class="group-name" v-if="group.name">
                                     {{group.name}}
                                     (<span class="list-count">{{group.children.length}}</span>)
                                 </h5>
@@ -51,16 +54,16 @@
                                             'template-item',
                                             {
                                                 'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission(['view'], template.auth_actions, tplOperations)
+                                                'permission-disable': !hasPermission([viewPermission], template.auth_actions)
                                             }
                                         ]"
-                                        @click="onSelectTemplate(template)">
+                                        @click="onSelectItem(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
                                         <div class="item-name-box">
                                             <div class="template-item-name">{{template.name}}</div>
                                         </div>
                                         <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
+                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
@@ -72,9 +75,9 @@
             </div>
             <div class="selected-wrapper">
                 <div class="selected-area-title">
-                    {{i18n.selected}}
+                    {{$t('已选择')}}
                     <span class="select-count">{{selectedList.length}}</span>
-                    {{i18n.num}}
+                    {{$t('项')}}
                 </div>
                 <ul class="selected-list">
                     <li
@@ -87,12 +90,12 @@
                         <div class="item-name-box">
                             <div class="selected-item-name">{{template.name}}</div>
                         </div>
-                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
+                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="onUnselectItem(template)"></i>
                     </li>
                 </ul>
             </div>
             <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{i18n.errorInfo}}</span>
+                <span class="error-info">{{$t('请选择收藏项')}}</span>
             </div>
         </div>
         <DialogLoadingBtn
@@ -104,42 +107,44 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapGetters, mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
+
     const FILTER_LIST = [
         {
-            name: gettext('选择类型'),
+            name: i18n.t('选择类型'),
             id: 'type',
             children: [
                 {
-                    name: gettext('公共流程'),
-                    id: 'common'
+                    name: i18n.t('公共流程'),
+                    id: 'common_flow'
                 },
                 {
-                    name: gettext('项目流程'),
-                    id: 'process'
+                    name: i18n.t('项目流程'),
+                    id: 'flow'
                 },
                 {
-                    name: gettext('周期任务'),
-                    id: 'periodic'
+                    name: i18n.t('周期任务'),
+                    id: 'periodic_task'
                 },
                 {
-                    name: gettext('轻应用'),
-                    id: 'app_maker'
+                    name: i18n.t('轻应用'),
+                    id: 'mini_app'
                 }
             ]
         },
         {
-            name: gettext('选择项目'),
+            name: i18n.t('选择项目'),
             id: 'project',
             children: []
         }
     ]
+
     export default {
         name: 'AddCollectionDialog',
         components: {
@@ -159,28 +164,18 @@
         },
         data () {
             return {
-                i18n: {
-                    num: gettext('项'),
-                    delete: gettext('删除'),
-                    selected: gettext('已选择'),
-                    errorInfo: gettext('请选择收藏项'),
-                    applyPermission: gettext('申请权限'),
-                    noSearchResult: gettext('搜索结果为空')
-                },
                 selectError: false,
                 collectionPending: false,
-                tplOperations: [],
-                tplResource: {},
                 panelList: [],
                 selectedList: [],
                 dialogFooterData: [
                     {
                         type: 'primary',
                         loading: false,
-                        btnText: gettext('确认'),
+                        btnText: i18n.t('确认'),
                         click: 'onConfirm'
                     }, {
-                        btnText: gettext('取消'),
+                        btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
                 ],
@@ -188,15 +183,15 @@
                 searchValue: [ // 搜索值
                     {
                         id: 'type',
-                        name: gettext('选择类型'),
-                        values: [{ id: 'common', name: '公共流程' }]
+                        name: i18n.t('选择类型'),
+                        values: [{ id: 'common_flow', name: i18n.t('公共流程') }]
                     }
                 ]
             }
         },
         computed: {
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
+            ...mapState('project', {
+                projectList: state => state.userProjectList
             }),
             searchOptionalList: {
                 get () {
@@ -210,6 +205,17 @@
                 set (val) {
                     this.filterList = val
                 }
+            },
+            listItemType () {
+                const typeCondition = this.searchValue.find(item => item.id === 'type')
+                if (!typeCondition) {
+                    return ''
+                } else {
+                    return typeCondition.values[0].id
+                }
+            },
+            viewPermission () {
+                return `${this.listItemType}_view`
             }
         },
         watch: {
@@ -222,9 +228,8 @@
             }
         },
         methods: {
-            ...mapActions('template/', [
-                'loadCollectList',
-                'collectSelect'
+            ...mapActions([
+                'addToCollectList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
@@ -251,21 +256,21 @@
                             searchStr += value.id
                         }
                     })
-                    if (reqType !== 'common' && !projectId) {
+                    if (reqType !== 'common_flow' && !projectId) {
                         return false
                     }
                     this.collectionPending = true
                     switch (reqType) {
-                        case 'common':
+                        case 'common_flow':
                             panelList = await this.getTemplateList(1, searchStr)
                             break
-                        case 'process':
+                        case 'flow':
                             panelList = await this.getTemplateList(false, searchStr, projectId)
                             break
-                        case 'periodic':
+                        case 'periodic_task':
                             panelList = await this.getPeriodicList(projectId, searchStr)
                             break
-                        case 'app_maker':
+                        case 'mini_app':
                             panelList = await this.getAppMakerList(projectId, searchStr)
                             break
                         default:
@@ -288,10 +293,8 @@
                 const data = await this.loadTemplateList({
                     common: common || undefined,
                     project__id: projectId || undefined,
-                    pipeline_template__name__contains: searchStr || undefined
+                    pipeline_template__name__icontains: searchStr || undefined
                 })
-                this.tplOperations = data.meta.auth_operations
-                this.tplResource = data.meta.auth_resource
                 return data.objects || []
             },
             async getAppMakerList (projectId, searchStr) {
@@ -304,7 +307,7 @@
             async getPeriodicList (projectId, searchStr) {
                 const data = await this.loadPeriodicList({
                     project__id: projectId,
-                    task__name__contains: searchStr || undefined
+                    task__name__icontains: searchStr || undefined
                 })
                 return data.objects || []
             },
@@ -320,7 +323,7 @@
                     } else {
                         categorys.push(m.category)
                         group.push({
-                            name: m.category,
+                            name: m.category_name || m.category,
                             children: [m]
                         })
                     }
@@ -343,24 +346,33 @@
             getTemplateIcon (template) {
                 return template.name.trim().substr(0, 1).toUpperCase()
             },
-            // 选择收藏
-            onSelectTemplate (template) {
-                if (this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+            // 选中/取消选中
+            onSelectItem (item) {
+                if (this.hasPermission([this.viewPermission], item.auth_actions)) {
                     this.selectError = false
-                    const tplIndex = this.getTplIndexInSelected(template)
-                    if (tplIndex > -1) {
-                        this.selectedList.splice(tplIndex, 1)
+                    const index = this.getTplIndexInSelected(item)
+                    if (index > -1) {
+                        this.selectedList.splice(index, 1)
                     } else {
-                        this.selectedList.push(template)
+                        this.selectedList.push(item)
                     }
                 } else {
-                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
+                    const resources = {
+                        [this.listItemType]: [item]
+                    }
+                    if (this.listItemType !== 'common_flow') {
+                        resources.project = [{
+                            id: item.project.id,
+                            name: item.project.name
+                        }]
+                    }
+                    this.applyForPermission([this.viewPermission], item.auth_actions, resources)
                 }
             },
             // 取消选中
-            deleteTemplate (template) {
-                const tplIndex = this.getTplIndexInSelected(template)
-                this.selectedList.splice(tplIndex, 1)
+            onUnselectItem (item) {
+                const index = this.getTplIndexInSelected(item)
+                this.selectedList.splice(index, 1)
             },
             /**
              *过滤已选项
@@ -375,7 +387,7 @@
                         const item = list[0]
                         // type
                         if (item.id === 'type') {
-                            if (item.values[0].id === 'common') {
+                            if (item.values[0].id === 'common_flow') {
                                 this.searchOptionalList = []
                                 break
                             }
@@ -412,23 +424,17 @@
                 }
                 const saveList = this.selectedList.map(template => {
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
-                    const saveCategoryMap = {
-                        'process': 'flow',
-                        'common': 'common_flow',
-                        'periodic': 'periodic_task',
-                        'app_maker': 'mini_app'
-                    }
                     return {
                         extra_info,
-                        category: saveCategoryMap[template.collectType]
+                        category: template.collectType
                     }
                 })
                 try {
-                    const res = await this.collectSelect(saveList)
+                    const res = await this.addToCollectList(saveList)
                     this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({
-                            message: gettext('保存成功'),
+                            message: i18n.t('保存成功'),
                             theme: 'success'
                         })
                         this.$emit('onCloseDialog', true)
@@ -443,14 +449,14 @@
             getExtraInfo (template, type, projectId) {
                 let extraInfo = {}
                 switch (type) {
-                    case 'common':
+                    case 'common_flow':
                         extraInfo = {
                             template_id: template.template_id,
                             name: template.name,
                             id: template.id
                         }
                         break
-                    case 'process':
+                    case 'flow':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
@@ -459,7 +465,7 @@
                             id: template.id
                         }
                         break
-                    case 'periodic':
+                    case 'periodic_task':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
@@ -467,7 +473,7 @@
                             id: template.id
                         }
                         break
-                    case 'app_maker':
+                    case 'mini_app':
                         extraInfo = {
                             app_id: template.id,
                             project_id: projectId,
@@ -480,6 +486,16 @@
             },
             onCancel () {
                 this.$emit('onCloseDialog')
+            },
+            onChipDel (name) {
+                /**
+                 * 兼容方法，待 magicbox 版本 2.1.9 稳定更新后删除、
+                 * 解决：当前版本 magicbox 2.1.9-beta.5，searchSelect 组件点击 x 并不能同步更新待选面板数据
+                 */
+                const instance = this.$refs.bkSearchSelect
+                this.$nextTick(() => {
+                    instance && instance.showMenu()
+                })
             }
         }
     }
@@ -488,6 +504,9 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
+/deep/ .common-dialog.add-collection .bk-dialog-tool{
+    min-height: 0;
+}
 .export-container {
     position: relative;
     height: 340px;
@@ -496,7 +515,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 20px 4px 20px 0;
+        padding: 40px 4px 20px 0;
         width: 557px;
         height: 100%;
         .template-list {
@@ -506,13 +525,13 @@
             @include scrollbar;
         }
         .template-group {
-            margin-bottom: 30px;
+            margin: 30px 0;
         }
         .search-list {
             padding-top: 40px;
         }
         .group-name {
-            margin-bottom: 8px;
+            margin: 0 0 8px;
             font-size: 12px;
         }
     }

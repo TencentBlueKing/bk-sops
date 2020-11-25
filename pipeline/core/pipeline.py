@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,10 +20,7 @@ from pipeline.exceptions import PipelineException
 
 class PipelineSpec(object):
     def __init__(self, start_event, end_event, flows, activities, gateways, data, context):
-        objects = {
-            start_event.id: start_event,
-            end_event.id: end_event
-        }
+        objects = {start_event.id: start_event, end_event.id: end_event}
         for act in activities:
             objects[act.id] = act
         for gw in gateways:
@@ -130,7 +127,7 @@ class Pipeline(object):
     def data_for_node(self, node):
         node = self.spec.objects.get(node.id)
         if not node:
-            raise PipelineException('Can not find node %s in this pipeline.' % node.id)
+            raise PipelineException("Can not find node %s in this pipeline." % node.id)
         return node.data
 
     def node(self, id):

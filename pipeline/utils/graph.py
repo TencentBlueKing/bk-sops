@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@ class Graph(object):
         self.nodes = nodes
         self.flows = flows
         self.path = []
-        self.last_visited_node = ''
+        self.last_visited_node = ""
 
     def has_cycle(self):
         self.path = []
@@ -47,7 +47,7 @@ class Graph(object):
         return []
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     graph1 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4]])
     print((graph1.has_cycle(), graph1.get_cycle()))
     graph2 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4], [4, 1]])

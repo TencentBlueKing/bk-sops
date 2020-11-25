@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,23 +12,25 @@
 <template>
     <div class="admin-search">
         <div v-if="!showResultComp" class="search-wrapper">
-            <p class="tips">{{ i18n.tips }}</p>
+            <p class="tips">{{ $t('输入项目名、模板ID或任务ID进行搜索') }}</p>
             <bk-input
-                v-model="searchStr"
+                v-model.trim="searchStr"
                 class="search-input"
                 right-icon="bk-icon icon-search"
+                @change="onChange"
                 @enter="onSearchInput">
             </bk-input>
         </div>
         <search-result
             v-else
             :keyword="searchStr"
+            :has-edit-perm="hasEditPerm"
+            :edit-perm-loading="editPermLoading"
             @onSearch="onSearchInput">
         </search-result>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import SearchResult from './SearchResult.vue'
 
     export default {
@@ -36,16 +38,26 @@
         components: {
             SearchResult
         },
+        props: {
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
+        },
         data () {
             return {
                 showResultComp: false,
                 searchStr: '',
-                i18n: {
-                    tips: gettext('输入项目名、模板ID或任务ID进行搜索')
-                }
+                timer: null
             }
         },
         methods: {
+            onChange () {
+                if (this.timer) {
+                    clearTimeout(this.timer)
+                }
+                this.timer = setTimeout(() => {
+                    this.onSearchInput()
+                }, 1000)
+            },
             onSearchInput () {
                 this.showResultComp = true
             }

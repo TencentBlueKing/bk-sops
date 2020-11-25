@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -29,7 +29,7 @@
                 </condition-item>
             </div>
         </template>
-        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{i18n.addItem + label}}</div>
+        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{i18n.addItem}}</div>
     </div>
 </template>
 <script>
@@ -39,7 +39,7 @@
 
     const i18n = {
         allSatisfy: gettext('（同时满足）'),
-        addItem: gettext('增加一条')
+        addItem: gettext('点击增加条件')
     }
 
     export default {
@@ -47,7 +47,28 @@
         components: {
             ConditionItem
         },
-        props: ['editable', 'label', 'conditions', 'conditionFields'],
+        props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            label: {
+                type: String,
+                default: ''
+            },
+            conditions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            conditionFields: {
+                type: Array,
+                default () {
+                    return []
+                }
+            }
+        },
         data () {
             return {
                 i18n
@@ -65,6 +86,7 @@
                 }
                 const conditions = this.conditions.slice(0)
                 conditions.splice(index + 1, 0, {
+                    type: 'filter',
                     field: '',
                     value: []
                 })

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,24 +19,33 @@
                 @updateCache="updateCache"
                 @deleteCache="deleteCache">
             </cache-form>
-            <div v-if="list.length === 0" class="add-cache" @click="onCreateCache">{{i18n.addCache}}</div>
+            <div v-if="list.length === 0" class="add-cache" @click="onCreateCache">{{$t('添加本地缓存')}}</div>
         </div>
         <div class="operate-area">
-            <router-link :to="{ name: 'packageEdit' }" class="bk-button bk-default">{{ i18n.prevStep }}</router-link>
+            <router-link :to="{ name: 'packageEdit' }" class="bk-button bk-default">{{ $t('上一步') }}</router-link>
             <bk-button
-                theme="success"
+                v-if="!hasEditPerm"
+                v-cursor="{ active: true }"
+                theme="primary"
+                class="btn-permission-disable save-btn"
+                @click="applyEditPerm">
+                {{ $t('完成') }}
+            </bk-button>
+            <bk-button
+                v-else
+                theme="primary"
                 class="save-btn"
                 :loading="pending"
                 @click="onSaveSetting">
-                {{ i18n.save }}
+                {{ $t('完成') }}
             </bk-button>
-            <router-link :to="{ name: 'sourceManage' }" class="bk-button bk-default">{{ i18n.cancel }}</router-link>
+            <router-link :to="{ name: 'sourceManage' }" class="bk-button bk-default">{{ $t('取消') }}</router-link>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import CacheForm from './CacheForm.vue'
 
     export default {
@@ -44,27 +53,16 @@
         components: {
             CacheForm
         },
+        mixins: [permission],
         props: {
-            cacheList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            pending: {
-                type: Boolean,
-                default: false
-            }
+            cacheList: Array,
+            pending: Boolean,
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {
-                list: tools.deepClone(this.cacheList),
-                i18n: {
-                    prevStep: gettext('上一步'),
-                    save: gettext('完成'),
-                    cancel: gettext('取消'),
-                    addCache: gettext('添加本地缓存')
-                }
+                list: tools.deepClone(this.cacheList)
             }
         },
         computed: {
@@ -111,6 +109,12 @@
                         this.$emit('saveSetting')
                     }
                 })
+            },
+            applyEditPerm () {
+                if (this.editPermLoading) {
+                    return
+                }
+                this.applyForPermission(['admin_edit'])
             }
         }
     }

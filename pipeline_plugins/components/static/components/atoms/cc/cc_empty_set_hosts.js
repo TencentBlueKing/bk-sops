@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -16,10 +16,14 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
+                allowCreate: true,
                 hookable: true,
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 disabled: !$.context.canSelectBiz(),
@@ -50,6 +54,9 @@
                     return url;
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 validation: [
@@ -63,7 +70,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.items = [];
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';

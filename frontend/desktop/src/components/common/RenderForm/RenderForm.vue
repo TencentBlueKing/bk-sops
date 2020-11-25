@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,6 +19,7 @@
             :option="option"
             :value="getFormValue(atom)"
             :hook="hooked[atom.tag_code]"
+            :constants="constants"
             @change="updateForm"
             @onHook="updateHook">
         </component>
@@ -30,7 +31,7 @@
  * param {Array} scheme 标准插件表单配置项
  * param {Object} formOption 表单 UI 选项(label、checkbox、groupName)
  * param {Object} formData 表单值
- * param {Object} hooked 表单是否勾选
+ * param {Object} hooked 已被勾选的表单项
  */
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
@@ -44,8 +45,6 @@
         showLabel: false, // 是否显示标准插件名称
         formEdit: true, // 是否可编辑
         formMode: true, // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
-        formViewHidden: false, // 改表单项为非编辑状态时，是否隐藏
-        cols: 0, // 横向栅格占有的格数，总数为 12 格
         validateSet: ['required', 'custom', 'regex'] // 选择开启的校验类型，默认都开启
     }
 
@@ -58,6 +57,11 @@
         model: {
             prop: 'formData',
             event: 'change'
+        },
+        provide () {
+            return {
+                getFormData: () => this.formData
+            }
         },
         props: {
             scheme: {
@@ -85,6 +89,12 @@
                 default () {
                     return {}
                 }
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -100,30 +110,42 @@
         watch: {
             scheme: {
                 handler: function (val) {
-                    this.setDefaultValue(val, this.formData)
+                    this.checkValue(val, this.value)
                 },
                 deep: true
             },
             formData: {
-                handler: function (val) {
+                handler: function (val, oldVal) {
                     this.value = tools.deepClone(val)
                 },
                 deep: true
             }
         },
         created () {
-            this.setDefaultValue(this.scheme, this.formData)
+            this.checkValue(this.scheme, this.value)
         },
         methods: {
             /**
-             * 设置表单默认值
-             * 若传入的 formData 不包含表单项的值，取值顺序为：标准插件配置项 value 字段 -> 标准插件配置项 default 字段 -> tag 类型默认值
+             * 检查表单的 formData 是否有字段空缺
+             * 如果有空缺则给补上
              * @param {Array} scheme 表单配置项
              * @param {Object} data 表单值
              */
-            setDefaultValue (scheme, data) {
+            checkValue (scheme, data) {
                 if (!scheme || !Array.isArray(scheme)) return
 
+                const isSetValueToFormData = this.traverseSchemeAndFillData(scheme, data)
+                if (isSetValueToFormData) {
+                    this.$emit('change', tools.deepClone(data))
+                }
+            },
+            /**
+             * 遍历 scheme，填充缺失字段的值，并返回检查是否存在缺失的结果布尔值
+             */
+            traverseSchemeAndFillData (scheme, data) {
+                if (!scheme || !Array.isArray(scheme)) return
+
+                let hasValMissing = false // 传入的 data 是否存在 scheme 中对应属性的值有缺失
                 scheme.forEach(item => {
                     const key = item.tag_code
 
@@ -135,69 +157,111 @@
                     if (item.type === 'combine') {
                         if (!this.hooked || !this.hooked[item.tag_code]) {
                             if (!(key in data)) {
+                                hasValMissing = true
                                 this.$set(data, key, {})
-                                this.$set(this.value, key, {})
                             }
-                            this.setDefaultValue(item.attrs.children, data[key])
+                            const checkResult = this.traverseSchemeAndFillData(item.attrs.children, data[key])
+                            if (checkResult) {
+                                hasValMissing = true
+                            }
                         }
                     } else {
                         if (!(key in data)) {
-                            let val
-                            if ('value' in item.attrs) {
-                                val = tools.deepClone(item.attrs.value)
-                            } else if ('default' in item.attrs) {
-                                val = tools.deepClone(item.attrs.default)
-                            } else {
-                                switch (item.type) {
-                                    case 'input':
-                                    case 'textarea':
-                                    case 'radio':
-                                    case 'text':
-                                    case 'datetime':
-                                    case 'password':
-                                    case 'member_selector':
-                                    case 'log_display':
-                                        val = ''
-                                        break
-                                    case 'checkbox':
-                                    case 'datatable':
-                                    case 'tree':
-                                    case 'upload':
-                                        val = []
-                                        break
-                                    case 'select':
-                                        val = item.attrs.multiple ? [] : ''
-                                        break
-                                    case 'int':
-                                        val = 0
-                                        break
-                                    case 'ip_selector':
-                                        val = {
-                                            selectors: [],
-                                            ip: [],
-                                            topo: [],
-                                            filters: [],
-                                            excludes: []
-                                        }
-                                        break
-                                    default:
-                                        val = ''
-                                }
-                            }
-                            this.$set(data, key, val)
+                            hasValMissing = true
+                            const value = this.getDefaultValue(item)
+                            this.$set(data, key, value)
                         }
                     }
                 })
+                return hasValMissing
+            },
+            /**
+             * 若传入的 formData 不包含表单项的值，取值顺序为：标准插件配置项 value 字段 -> 标准插件配置项 default 字段 -> tag 类型默认值
+             */
+            getDefaultValue (scheme) {
+                let val
+                if ('value' in scheme.attrs) {
+                    val = tools.deepClone(scheme.attrs.value)
+                } else if ('default' in scheme.attrs) {
+                    val = tools.deepClone(scheme.attrs.default)
+                } else {
+                    switch (scheme.type) {
+                        case 'input':
+                        case 'textarea':
+                        case 'radio':
+                        case 'text':
+                        case 'datetime':
+                        case 'password':
+                        case 'member_selector':
+                        case 'section':
+                        case 'code_editor':
+                        case 'log_display':
+                            val = ''
+                            break
+                        case 'checkbox':
+                        case 'datatable':
+                        case 'tree':
+                        case 'upload':
+                            val = []
+                            break
+                        case 'select':
+                            val = scheme.attrs.multiple ? [] : ''
+                            break
+                        case 'time':
+                            val = scheme.attrs.isRange ? ['00:00:00', '23:59:59'] : ''
+                            break
+                        case 'int':
+                            val = 0
+                            break
+                        case 'ip_selector':
+                            val = {
+                                selectors: [],
+                                ip: [],
+                                topo: [],
+                                group: [],
+                                filters: [],
+                                excludes: [],
+                                with_cloud_id: false
+                            }
+                            break
+                        case 'set_allocation':
+                            val = {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: [],
+                                separetor: ','
+                            }
+                            break
+                        case 'host_allocation':
+                            val = {
+                                config: {
+                                    host_count: 0,
+                                    host_screen_value: '',
+                                    host_resources: [],
+                                    host_filter_detail: []
+                                },
+                                data: []
+                            }
+                            break
+                        default:
+                            val = ''
+                    }
+                }
+                return val
             },
             getFormValue (atom) {
                 /** warning 前端tag结构变化数据兼容 */
                 if (atom.tag_code === 'job_task') {
                     this.value[atom.tag_code] = this.reloadValue(atom, this.value)
                 }
-                return this.formData[atom.tag_code]
+                return this.value[atom.tag_code]
             },
             updateForm (fieldArr, val) {
-                const fieldDataObj = tools.deepClone(this.formData)
+                const fieldDataObj = tools.deepClone(this.value)
                 fieldArr.reduce((acc, cur, index, arr) => {
                     if (index === arr.length - 1) {
                         acc[cur] = val
@@ -208,6 +272,7 @@
                     }
                     return acc[cur]
                 }, fieldDataObj)
+                this.value = tools.deepClone(fieldDataObj) // 更新 value，通过下面触发 change 更新父组件 formData 后，watch 具有滞后性，导致 value 值不是最新的
                 this.$emit('change', fieldDataObj)
             },
             updateHook (field, val) {

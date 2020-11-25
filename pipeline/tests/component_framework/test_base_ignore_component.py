@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -23,7 +23,6 @@ __register_ignore__ = True
 
 
 class TestBaseIgnoreComponent(TestCase):
-
     def tearDown(self):
         ComponentModel.objects.all().delete()
         ComponentLibrary.components = {}
@@ -34,18 +33,15 @@ class TestBaseIgnoreComponent(TestCase):
                 pass
 
         class IgnoreComponent(Component):
-            name = 'ignore_service'
+            name = "ignore_service"
             bound_service = IgnoreService
-            code = 'ignore_component'
-            form = 'form path'
+            code = "ignore_component"
+            form = "form path"
 
             def outputs_format(self):
-                return {
-                    'result': bool,
-                    'message': str
-                }
+                return {"result": bool, "message": str}
 
             def clean_execute_data(self, context):
                 return {}
 
-        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'ignore_component')
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, "ignore_component")

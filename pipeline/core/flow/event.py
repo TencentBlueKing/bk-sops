@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,13 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import traceback
-
 from abc import ABCMeta, abstractmethod
-from pipeline.core.flow.base import FlowNode
-from pipeline.engine.signals import pipeline_end
-from pipeline.core.pipeline import Pipeline
 
-logger = logging.getLogger('celery')
+from pipeline.core.flow.base import FlowNode
+from pipeline.core.pipeline import Pipeline
+from pipeline.engine.signals import pipeline_end
+
+logger = logging.getLogger("celery")
 
 
 class Event(FlowNode, metaclass=ABCMeta):

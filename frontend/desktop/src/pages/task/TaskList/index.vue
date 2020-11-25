@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,10 +13,9 @@
     <div class="task-container">
         <div class="list-wrapper">
             <div class="operation-area">
-                <div class="operation-area clearfix">
-                </div>
                 <advance-search-form
-                    :search-config="{ placeholder: i18n.taskNamePlaceholder }"
+                    id="taskList"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -25,7 +24,7 @@
                             theme="primary"
                             class="task-btn"
                             @click="onCreateTask">
-                            {{i18n.create}}
+                            {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
@@ -35,17 +34,17 @@
                     :data="taskList"
                     :pagination="pagination"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange"
+                    @page-limit-change="onPageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.task_name" prop="name">
+                    <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
+                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(['task_view'], props.row)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -61,29 +60,34 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.start_time" prop="category_name">
+                    <bk-table-column :label="$t('执行开始')" prop="start_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finish_time">
+                    <bk-table-column :label="$t('执行结束')" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.task_type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.executor" width="100">
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120">
                         <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
+                            <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createMethod">
+                    <bk-table-column :label="$t('执行人')" width="120">
+                        <template slot-scope="props">
+                            <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('创建方式')" width="100">
                         <template slot-scope="props">
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="120">
+                    <bk-table-column :label="$t('状态')" width="120">
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -91,38 +95,52 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="120">
+                    <bk-table-column :label="$t('操作')" width="190">
                         <template slot-scope="props">
                             <div class="task-operation">
+                                <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
-                                    :class="['task-operation-clone', {
-                                        'text-permission-disable': !hasPermission(['clone'], props.row.auth_actions, taskOperations)
+                                    v-else-if="!hasCreateTaskPerm(props.row)"
+                                    v-cursor
+                                    class="text-permission-disable task-operation-btn"
+                                    @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
+                                    {{$t('再创建')}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-operation-btn"
+                                    :to="getCreateTaskUrl(props.row)">
+                                    {{$t('再创建')}}
+                                </router-link>
+                                <a
+                                    v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
+                                    :class="['task-operation-btn', {
+                                        'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onCloneTaskClick(props.row, $event)">
-                                    {{ i18n.clone }}
+                                    {{ $t('克隆') }}
                                 </a>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, taskOperations) }"
-                                    :class="['task-operation-delete', {
-                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, taskOperations)
+                                    v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
+                                    :class="['task-operation-btn', {
+                                        'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onDeleteTask(props.row, $event)">
-                                    {{ i18n.delete }}
+                                    {{ $t('删除') }}
                                 </a>
                             </div>
                         </template>
                     </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :entrance="'taskflow'"
-            :common="common"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -142,18 +160,18 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{i18n.deleleTip + '"' + theDeleteTaskName + '"?'}}
+                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
@@ -169,51 +187,55 @@
         {
             type: 'dateRange',
             key: 'executeTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('执行开始'),
-            value: []
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('执行开始'),
+            value: ['', '']
         },
         {
             type: 'select',
-            label: gettext('任务分类'),
+            label: i18n.t('任务分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
-            list: []
+            placeholder: i18n.t('请选择分类'),
+            list: [],
+            value: ''
         },
         {
             type: 'select',
-            label: gettext('创建方式'),
+            label: i18n.t('创建方式'),
             key: 'createMethod',
             loading: false,
-            placeholder: gettext('请选择创建方式'),
-            list: []
+            placeholder: i18n.t('请选择创建方式'),
+            list: [],
+            value: ''
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         },
         {
             type: 'input',
             key: 'executor',
-            label: gettext('执行人'),
-            placeholder: gettext('请输入执行人'),
+            label: i18n.t('执行人'),
+            placeholder: i18n.t('请输入执行人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'statusSync',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'nonExecution', 'name': gettext('未执行') },
-                { 'value': 'runing', 'name': gettext('未完成') },
-                { 'value': 'finished', 'name': gettext('完成') }
-            ]
+                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                { 'value': 'running', 'name': i18n.t('未完成') },
+                { 'value': 'revoked', 'name': i18n.t('撤销') },
+                { 'value': 'finished', 'name': i18n.t('完成') }
+            ],
+            value: ''
         }
     ]
     export default {
@@ -231,12 +253,16 @@
                 type: [String, Number],
                 default: ''
             },
-            common: {
+            template_source: {
                 type: String,
                 default: ''
             },
             create_method: {
                 type: String,
+                default: ''
+            },
+            create_info: {
+                type: [String, Number],
                 default: ''
             }
         },
@@ -261,43 +287,15 @@
                     delete: false,
                     clone: false
                 },
-                taskOperations: [],
-                taskResource: {},
-                i18n: {
-                    allCategory: gettext('全部'),
-                    placeholder: gettext('请输入ID或任务名称'),
-                    task_name: gettext('任务名称'),
-                    start_time: gettext('执行开始'),
-                    finish_time: gettext('执行结束'),
-                    task_type: gettext('任务分类'),
-                    creator: gettext('创建人'),
-                    executor: gettext('执行人'),
-                    status: gettext('状态'),
-                    operation: gettext('操作'),
-                    clone: gettext('克隆'),
-                    delete: gettext('删除'),
-                    deleleTip: gettext('确认删除'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    taskNamePlaceholder: gettext('请输入任务名称'),
-                    createMethod: gettext('创建方式'),
-                    createMethodApp: gettext('应用内'),
-                    createMethodAppmaker: gettext('轻应用'),
-                    advanceSearch: gettext('高级搜索'),
-                    executing: gettext('执行中'),
-                    pauseState: gettext('暂停'),
-                    create: gettext('新建')
-                },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
+                createInfo: this.create_info || '',
+                templateSource: this.template_source || '',
                 requestData: {
                     executeTime: [],
                     category: '',
-                    createMethod: '',
+                    createMethod: this.create_method || '',
                     creator: '',
                     executor: '',
                     statusSync: '',
@@ -307,7 +305,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 }
             }
         },
@@ -316,6 +314,7 @@
                 taskList: state => state.taskList.taskListData
             }),
             ...mapState('project', {
+                'authActions': state => state.authActions,
                 'timeZone': state => state.timezone
             }),
             searchForm () {
@@ -325,6 +324,7 @@
                 value[1].loading = this.taskBasicInfoLoading
                 // 创建方式
                 value[2].list = this.taskCreateMethodList
+                value[2].value = this.create_method || ''
                 value[5].loading = this.taskBasicInfoLoading
                 return searchForm
             }
@@ -360,26 +360,43 @@
                     const { executeTime, category, createMethod, creator, executor, statusSync, flowName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
-                    if (statusSync) {
-                        pipeline_instance__is_started = statusSync !== 'nonExecution'
-                        pipeline_instance__is_finished = statusSync === 'finished'
+                    let pipeline_instance__is_revoked
+                    switch (statusSync) {
+                        case 'nonExecution':
+                            pipeline_instance__is_started = false
+                            break
+                        case 'running':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
+                            break
+                        case 'revoked':
+                            pipeline_instance__is_revoked = true
+                            break
+                        case 'finished':
+                            pipeline_instance__is_finished = true
+                            break
                     }
+
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: category || undefined,
-                        template_id: this.templateId,
+                        template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
-                        pipeline_instance__name__contains: flowName || undefined,
+                        pipeline_instance__name__icontains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
+                        pipeline_instance__is_revoked,
                         create_method: createMethod || undefined,
-                        project__id: this.project_id
+                        create_info: this.createInfo || undefined,
+                        project__id: this.project_id,
+                        template_source: this.templateSource || undefined
                     }
 
                     if (executeTime[0] && executeTime[1]) {
-                        if (this.common) {
+                        if (this.template_source === 'common') {
                             data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
@@ -391,8 +408,6 @@
                     const list = taskListData.objects
                     this.pagination.count = taskListData.meta.total_count
                     this.totalCount = taskListData.meta.total_count
-                    this.taskOperations = taskListData.meta.auth_operations
-                    this.taskResource = taskListData.meta.auth_resource
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -410,9 +425,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -423,19 +438,48 @@
                 this.pagination.current = 1
                 this.getTaskList()
             },
+            hasCreateTaskPerm (task) {
+                const authActions = [...task.auth_actions, ...this.authActions]
+                const reqPerm = task.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'
+                return this.hasPermission([reqPerm], authActions)
+            },
+            getCreateTaskUrl (task) {
+                const url = {
+                    name: 'taskStep',
+                    query: { template_id: task.template_id },
+                    params: { project_id: this.project_id, step: 'selectnode' }
+                }
+                if (task.template_source === 'common') {
+                    url.query.common = 1
+                }
+                return url
+            },
             /**
              * 单个任务操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} task 任务数据对象
-             * @params {Object} event 事件对象
              */
-            onTaskPermissonCheck (required, task, event) {
-                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            onTaskPermissonCheck (required, task) {
+                const resourceData = {
+                    task: [{
+                        id: task.id,
+                        name: task.name
+                    }],
+                    project: [{
+                        id: task.project.id,
+                        name: task.project.name
+                    }]
+                }
+                const flowKey = task.template_source === 'project' ? 'flow' : 'common_flow'
+                resourceData[flowKey] = [{
+                    id: task.template_id,
+                    name: task.template_name
+                }]
+                this.applyForPermission(required, [...task.auth_actions, ...this.authActions], resourceData)
             },
-            onDeleteTask (task, event) {
-                if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
-                    this.onTaskPermissonCheck(['delete'], task, event)
+            onDeleteTask (task) {
+                if (!this.hasPermission(['task_delete'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_delete'], task)
                     return
                 }
                 this.theDeleteTaskId = task.id
@@ -470,9 +514,9 @@
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
             },
-            onCloneTaskClick (task, event) {
-                if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
-                    this.onTaskPermissonCheck(['clone'], task, event)
+            onCloneTaskClick (task) {
+                if (!this.hasPermission(['task_clone'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_clone'], task)
                     return
                 }
                 this.isTaskCloneDialogShow = true
@@ -513,6 +557,11 @@
                 this.pagination.current = page
                 this.getTaskList()
             },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getTaskList()
+            },
             async getCreateMethod () {
                 try {
                     const createMethodData = await this.loadCreateMethod()
@@ -546,11 +595,12 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
-                this.getTaskList()
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
                 this.pagination.current = 1
+                // 高级搜索手动点击时，清空 createInfo、templateId、templateSource 筛选条件
+                this.createInfo = ''
+                this.templateId = ''
+                this.templateSource = ''
+                this.$router.push({ name: 'taskList', params: { project_id: this.project_id } })
                 this.getTaskList()
             }
         }
@@ -573,15 +623,12 @@
 }
 .operation-area {
     margin: 20px 0;
+    .task-btn {
+        width: 120px;
+    }
     .template-btn {
         margin-left: 5px;
         color: #313238;
-    }
-    .task-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
     }
 }
 .bk-select-inline {
@@ -597,11 +644,6 @@
     font-size: 14px;
     vertical-align: middle;
 }
-.operation-area {
-    .bk-button {
-        min-width: 120px;
-    }
-}
 .task-table-content {
     background: #ffffff;
     a.task-name {
@@ -611,16 +653,14 @@
        @include ui-task-status;
     }
     .task-operation {
-        width: 150px;
-        .task-operation-clone {
+        .task-operation-btn {
             padding: 5px;
-            color: #3C96FF;
+            color: #3a84ff;
             font-size: 12px;
-        }
-        .task-operation-delete {
-            padding: 5px;
-            color: #3C96FF;
-            font-size: 12px;
+            &.disabled {
+                color: #cccccc;
+                cursor: not-allowed;
+            }
         }
     }
     .empty-data {
@@ -628,21 +668,6 @@
     }
     .template-operate-btn {
         color: $blueDefault;
-    }
-}
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #ffff;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 12px;
-    }
-    .bk-page {
-        display: inline-block;
     }
 }
 </style>

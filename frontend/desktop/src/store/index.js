@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,23 +12,21 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import modules from './modules/index.js'
-import api from '@/api'
+import axios from 'axios'
 
 Vue.use(Vuex)
 
 function getAppLang () {
-    return getCookie('blueking_language')
+    return getCookie('blueking_language') === 'en' ? 'en' : 'zh-cn'
 }
 
 const store = new Vuex.Store({
     strict: process.env.NODE_ENV !== 'production',
     state: {
         username: window.USERNAME,
-        userRights: {
-            function: false,
-            audit: false
-        },
-        hasAdminPerm: false, // 是否有管理员权限
+        footer: '',
+        hasAdminPerm: null, // 是否有管理员查看权限
+        hasStatisticsPerm: null, // 是否有运营数据查看权限
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
@@ -39,14 +37,25 @@ const store = new Vuex.Store({
         components: [],
         isSuperUser: window.IS_SUPERUSER === 1,
         v1_import_flag: window.IMPORT_V1_FLAG,
-        rsa_pub_key: window.RSA_PUB_KEY
+        rsa_pub_key: window.RSA_PUB_KEY,
+        permissionMeta: {
+            system: [],
+            resources: [],
+            actions: []
+        }
     },
     mutations: {
         setAppId (state, id) {
             state.app_id = id
         },
+        setPageFooter (state, content) {
+            state.footer = content
+        },
         setAdminPerm (state, perm) {
             state.hasAdminPerm = perm
+        },
+        setStatisticsPerm (state, perm) {
+            state.hasStatisticsPerm = perm
         },
         setViewMode (state, mode) {
             state.view_mode = mode
@@ -60,39 +69,133 @@ const store = new Vuex.Store({
         setSingleAtomList (state, data) {
             state.components = data
         },
-        setUserRights (state, data) {
-            const { type, val } = data
-            state.userRights[type] = val
+        setPermissionMeta (state, data) {
+            state.permissionMeta = data
         }
     },
     actions: {
+        // 获取页面动态 footer 内容
+        getFooterContent () {
+            return axios.get('core/footer/').then(response => response.data)
+        },
+        // 获取项目版本更新日志列表
+        getVersionList () {
+            return axios.get('version_log/version_logs_list/').then(response => response.data)
+        },
+        // 版本日志详情
+        getVersionDetail ({ commit }, data) {
+            return axios.get('version_log/version_log_detail/', {
+                params: {
+                    log_version: data.version
+                }
+            }).then(response => response.data)
+        },
         getCategorys ({ commit }) {
-            api.getCategorys().then(response => {
+            axios.get('analysis/get_task_category/').then(response => {
                 commit('setCategorys', response.data.data)
             })
         },
-        getSingleAtomList ({ commit }) {
-            api.getSingleAtomList().then(response => {
-                commit('setSingleAtomList', response.data.objects)
+        getNotifyTypes () {
+            return axios.get('core/api/get_msg_types/').then(response => response.data)
+        },
+        // 获取收藏列表
+        loadCollectList ({ commit }, data) {
+            return axios.get('api/v3/collection/', {
+                params: {
+                    limit: 0
+                }
+            }).then(response => response.data)
+        },
+        // 收藏模板，批量操作
+        addToCollectList ({ commit }, list) {
+            return axios.put('api/v3/collection/', {
+                objects: list
+            }).then(response => response.data)
+        },
+        // 删除收藏模板，单个删除
+        deleteCollect ({ commit }, id) {
+            return axios.delete(`api/v3/collection/${id}/`).then(response => response.data)
+        },
+        // ip 选择器接口 start --->
+        // 查询业务在 CMDB 的主机
+        getHostInCC ({ commmit }, data) {
+            const { url, fields, topo } = data
+            return axios.get(url, {
+                params: {
+                    fields: JSON.stringify(fields),
+                    topo: JSON.stringify(topo)
+                },
+                baseURL: '/'
+            }).then(response => response.data)
+        },
+        // 查询业务在 CMDB 的拓扑树
+        getTopoTreeInCC ({ commmit }, data) {
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
+        },
+        // 查询业务在 CMDB 的拓扑模型
+        getTopoModelInCC ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
+        },
+        // 查询业务在 CMDB 的动态分组
+        getDynamicGroup ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/', start: data.start, limit: 200 }).then(response => response.data)
+        },
+        // <--- ip 选择器接口 end
+        // 开区资源选择器接口 start --->
+        getResourceConfig ({ commit }, data) {
+            return axios.get(data.url).then(response => response.data)
+        },
+        saveResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.patch(url, data).then(response => response.data)
+        },
+        createResourceScheme ({ commit }, params) {
+            const { url, data } = params
+            return axios.post(url, data).then(response => response.data)
+        },
+        getCCSearchTopoSet ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
+        },
+        getCCSearchTopoResource ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
+        },
+        getCCSearchModule ({ commit }, data) {
+            return axios.get(data.url, {
+                params: {
+                    bk_set_id: data.bk_set_id
+                },
+                baseURL: '/'
+            }).then(response => response.data)
+        },
+        getCCSearchObjAttrHost ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
+        },
+        getCCSearchColAttrSet ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
+        },
+        // <--- 开区资源选择器接口 end
+        /**
+         * 获取权限相关元数据
+         */
+        getPermissionMeta ({ commit }) {
+            return axios.get('iam/api/meta/').then(response => {
+                commit('setPermissionMeta', response.data.data)
+                return response.data
             })
         },
-        getHostInCC ({ commmit }, fields) {
-            return api.loadHostInCC(fields).then(response => response.data)
-        },
-        getTopoTreeInCC ({ commmit }) {
-            return api.loadTopoTreeInCC().then(response => response.data)
-        },
-        getTopoModelInCC ({ commit }) {
-            return api.loadTopoModelInCC().then(response => response.data)
-        },
-        getPermissionUrl ({ commit }, data) {
-            return api.getPermissionUrl(data).then(response => response.data)
-        },
+        /**
+         * 查询用户是否有某项权限
+         */
         queryUserPermission ({ commit }, data) {
-            return api.queryUserPermission(data).then(response => response.data)
+            return axios.post('iam/api/is_allow/', data).then(response => response.data)
+        },
+        /**
+         * 获取权限中心跳转链接
+         */
+        getIamUrl ({ commit }, data) {
+            return axios.post('iam/api/apply_perms_url/', data).then(response => response.data)
         }
     },
-    getters: {},
     modules
 })
 

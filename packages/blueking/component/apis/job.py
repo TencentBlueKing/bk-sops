@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -144,4 +144,9 @@ class CollectionsJOB(object):
             client=self.client, method='GET',
             path='/api/c/compapi{bk_api_ver}/job/get_job_instance_global_var_value/',
             description='获取作业实例全局变量的值'
+        )
+        self.push_config_file = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/job/push_config_file/',
+            description='分发配置文件，此接口用于分发配置文件等小的纯文本文件'
         )

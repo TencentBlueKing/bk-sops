@@ -3,6 +3,10 @@
 
 {% block title %}{{ title }} | {% trans '管理' %}{% endblock %}
 
+{% block extrahead %}
+    <link href="{{STATIC_URL}}core/images/bk_sops.png" rel="shortcut icon" type="image/x-icon">
+{% endblock %}
+
 {% block branding %}
 <h1 id="site-name">{% trans '管理' %}</h1>
 {% endblock %}

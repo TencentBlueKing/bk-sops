@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -49,6 +49,9 @@ for _setting in dir(site_mod):
 # 蓝鲸平台URL
 BK_URL = os.getenv('BKPAAS_URL', BK_URL)  # noqa
 
+# 蓝鲸开发者页面
+BK_DEV_URL = BK_URL
+
 # 站点URL
 SITE_URL = os.getenv('BKPAAS_SUB_PATH', '/')
 
@@ -63,7 +66,14 @@ IS_LOCAL = not os.getenv('BKPAAS_ENVIRONMENT', False)
 if not IS_LOCAL:
     STATIC_ROOT = 'staticfiles'
     FORCE_SCRIPT_NAME = SITE_URL
-    STATIC_URL = '%sstatic/' % FORCE_SCRIPT_NAME
+
+    # 开启子域名时静态文件统一使用子域名访问
+    app_subdomains = os.getenv('BKPAAS_ENGINE_APP_DEFAULT_SUBDOMAINS', None)
+    # 存在该变量，而且不是空字符串
+    if app_subdomains is not None and app_subdomains != '':
+        STATIC_URL = 'http://%s/static/' % app_subdomains.split(';')[0]
+    else:
+        STATIC_URL = '%sstatic/' % FORCE_SCRIPT_NAME
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     STATIC_URL = '/static/'

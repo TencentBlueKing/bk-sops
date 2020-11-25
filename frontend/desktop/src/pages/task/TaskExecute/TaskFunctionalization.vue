@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,14 +11,14 @@
 */
 <template>
     <div class="functionalization-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
-            <span class="task-info-title">{{ i18n.task_info }}</span>
+        <div class="task-info">
+            <span class="task-info-title">{{ $t('任务信息') }}</span>
             <div class="task-info-division-line"></div>
             <div class="common-form-item">
-                <label class="required">{{ i18n.taskName }}</label>
+                <label class="required">{{ $t('任务名称') }}</label>
                 <div class="common-form-content">
                     <bk-input
-                        class="common-form-content-size"
+                        class="task-name"
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
@@ -30,32 +30,34 @@
         <div class="param-info">
             <div class="param-info-title">
                 <span>
-                    {{ i18n.params }}
+                    {{ $t('参数信息') }}
                 </span>
             </div>
             <div class="param-info-division-line"></div>
-            <NoData v-if="isVariableEmpty"></NoData>
-            <TaskParamEdit
-                v-else
-                ref="TaskParamEdit"
-                :constants="pipelineData.constants">
-            </TaskParamEdit>
+            <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1 }">
+                <TaskParamEdit
+                    ref="TaskParamEdit"
+                    :constants="pipelineData.constants"
+                    @onChangeConfigLoading="changeLoading">
+                </TaskParamEdit>
+            </div>
+            <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
             <bk-button
                 class="preview-button"
                 @click="onShowPreviewDialog">
-                {{ i18n.preview }}
+                {{ $t('预览') }}
             </bk-button>
             <bk-button
-                theme="success"
+                theme="primary"
                 :class="['task-claim-button', {
-                    'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
+                    'btn-permission-disable': !hasPermission(['task_claim'], instanceActions)
                 }]"
                 :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(['claim'], instanceActions, instanceOperations) }"
+                v-cursor="{ active: !hasPermission(['task_claim'], instanceActions) }"
                 @click="onTaskClaim">
-                {{ i18n.claim }}
+                {{ $t('认领') }}
             </bk-button>
         </div>
         <bk-dialog
@@ -64,11 +66,11 @@
             :header-position="'left'"
             :has-footer="false"
             :ext-cls="'common-dialog'"
-            :title="i18n.taskPreview"
+            :title="$t('任务流程预览')"
             width="1000"
             @cancel="onCancel">
             <NodePreview
-                v-if="previewDialogShow"
+                v-if="canvasShow"
                 ref="nodePreviewRef"
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData(previewData)"
@@ -80,7 +82,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -101,20 +102,14 @@
         mixins: [permission],
         props: [
             'project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName',
-            'instanceActions', 'instanceOperations', 'instanceResource'
+            'instanceActions'
         ],
         data () {
             return {
-                i18n: {
-                    task_info: gettext('任务信息'),
-                    taskName: gettext('任务名称'),
-                    params: gettext('参数信息'),
-                    preview: gettext('预览'),
-                    claim: gettext('认领'),
-                    taskPreview: gettext('任务流程预览')
-                },
                 isSubmit: false,
+                isConfigLoading: false,
                 previewDialogShow: false,
+                canvasShow: false,
                 previewDataLoading: false,
                 name: this.instanceName,
                 nodeSwitching: false,
@@ -129,11 +124,28 @@
             }
         },
         computed: {
-            ...mapState({
-                'userRights': state => state.userRights
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
             }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0
+            }
+        },
+        watch: {
+            /** HACK
+             * magicbox V2.1.8 版本，dialog 组件在切换为显示状态后，画布组件开始渲染，
+             * 弹窗内容区域 display 属性仍为 none，在 $nextTick 里才变更，
+             * 导致画布组件首次渲染时因为容器高度为 0，连线不能正确渲染位置
+             */
+            previewDialogShow (val) {
+                if (val) {
+                    setTimeout(() => {
+                        this.canvasShow = true
+                    }, 0)
+                } else {
+                    this.canvasShow = false
+                }
             }
         },
         methods: {
@@ -163,16 +175,24 @@
                     this.previewDataLoading = false
                 })
             },
+            changeLoading (val) {
+                this.isConfigLoading = val
+            },
             onTaskClaim () {
                 if (this.isSubmit) return
 
-                if (!this.hasPermission(['claim'], this.instanceActions, this.instanceOperations)) {
+                if (!this.hasPermission(['task_claim'], this.instanceActions)) {
                     const resourceData = {
-                        name: this.instanceName,
-                        id: this.instance_id,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
                     }
-                    this.applyForPermission(['claim'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_claim'], this.instanceActions, resourceData)
                     return
                 }
 
@@ -181,7 +201,7 @@
                     if (!result) return
                     const formData = {}
                     if (this.$refs.TaskParamEdit) {
-                        const variables = this.$refs.TaskParamEdit.getVariableData()
+                        const variables = await this.$refs.TaskParamEdit.getVariableData()
                         for (const key in variables) {
                             formData[key] = variables[key].value
                         }
@@ -190,7 +210,7 @@
                         name: this.name,
                         instance_id: this.instance_id,
                         project_id: this.project_id,
-                        constants: JSON.stringify(formData)
+                        constants: formData
                     }
                     try {
                         const res = await this.claimFuncTask(data)
@@ -245,9 +265,8 @@
 @import '@/scss/config.scss';
 .functionalization-wrapper {
     position: relative;
-    margin: 0 40px;
+    padding: 0 40px;
     padding-top: 30px;
-    width: calc(100% - 80px);
     min-height: calc(100vh - 50px - 139px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){
@@ -336,11 +355,11 @@
 .param-info  {
     padding-bottom: 80px;
 }
-.functor-task-info {
-    padding-bottom: 0px;
-}
 .task-param-wrapper {
-    width: 720px;
+    width: 100%;
+}
+.form-wrapper {
+    min-height: 200px;
 }
 .action-wrapper {
     position: absolute;
@@ -365,13 +384,9 @@
     }
     .task-claim-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
-.step-form-content-size {
+.task-name {
     max-width: 500px;
 }
 /deep/ .bk-dialog-body {
@@ -384,4 +399,36 @@
         left: 40px;
     }
 }
+/deep/ .render-form {
+    .el-input__inner,
+    .el-tree,
+    .el-date-editor,
+    .el-textarea__inner,
+    .el-input-number,
+    .tag-input,
+    .el-date-editor,
+    .el-cascader,
+    .el-select,
+    .user-selector-layout,
+    /deep/ .ip-search-wrap {
+        max-width: 598px;
+    }
+    /deep/.module-form  {
+        .bk-form-content,
+        .bk-input-number,
+        .bk-select {
+            max-width: 598px;
+        }
+    }
+    .el-radio__label,
+    .checkbox-item {
+        max-width: 160px;
+        margin-right: 24px;
+    }
+}
+/deep/ .no-data-wrapper {
+    position: relative;
+    top: 90px;
+}
+
 </style>

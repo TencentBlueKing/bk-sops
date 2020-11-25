@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,19 +12,22 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('component_framework', '0003_componentmodel'),
+        ("component_framework", "0003_componentmodel"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='componentmodel',
-            options={'ordering': ['-id'], 'verbose_name': '\u7ec4\u4ef6 Component', 'verbose_name_plural': '\u7ec4\u4ef6 Component'},
+            name="componentmodel",
+            options={
+                "ordering": ["-id"],
+                "verbose_name": "\u7ec4\u4ef6 Component",
+                "verbose_name_plural": "\u7ec4\u4ef6 Component",
+            },
         ),
     ]

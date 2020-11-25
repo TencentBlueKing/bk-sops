@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <div id="app">
         <navigator v-if="!hideHeader" :appmaker-data-loading="appmakerDataLoading" />
-        <div class="main-container" v-bkloading="{ isloading: adminPermLoading, opacity: 1 }">
+        <div class="main-container">
             <router-view v-if="isRouterViewShow"></router-view>
         </div>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
@@ -25,10 +25,10 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
@@ -52,13 +52,14 @@
         },
         data () {
             return {
+                footerLoading: false,
                 permissinApplyShow: false,
                 permissionData: {
                     type: 'project', // 无权限类型: project、other
-                    permission: []
+                    permission: null
                 },
                 isRouterAlive: false,
-                adminPermLoading: false, // 管理员权限加载
+                projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false // 轻应用加载 app 详情,
             }
         },
@@ -73,17 +74,23 @@
                 'project_id': state => state.project_id
             }),
             isRouterViewShow () {
-                return !this.permissinApplyShow && this.isRouterAlive && !this.adminPermLoading
+                return !this.permissinApplyShow && this.isRouterAlive && !this.projectDetailLoading
             }
         },
         watch: {
-            '$route' (val) {
-                this.handleRouteChange()
+            '$route' (val, oldVal) {
+                const prevRouterProjectId = oldVal.params.project_id
+                const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
+                this.handleRouteChange(id)
             }
         },
         created () {
             bus.$on('showLoginModal', args => {
-                this.$refs.userLogin.show(args)
+                const { has_plain, login_url, width, height, method } = args
+                if (has_plain) {
+                    const topWindow = isCrossOriginIFrame() ? window : window.top
+                    topWindow.BLUEKING.corefunc.open_login_dialog(login_url, width, height, method)
+                }
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
@@ -104,7 +111,7 @@
             bus.$on('showMessage', info => {
                 this.$bkMessage({
                     message: info.message,
-                    isSingleLine: false,
+                    ellipsisLine: info.lines || 1,
                     theme: info.theme || 'error'
                 })
             })
@@ -119,13 +126,16 @@
                     theme: type
                 })
             }
+            this.getPageFooter()
         },
         mounted () {
             this.initData()
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
+                'getPermissionMeta',
+                'queryUserPermission',
+                'getFooterContent'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -142,20 +152,25 @@
                 'setProjectActions'
             ]),
             ...mapMutations([
-                'setAdminPerm'
+                'setPageFooter',
+                'setAdminPerm',
+                'setStatisticsPerm'
             ]),
-            initData () {
+            async initData () {
                 if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
-                    this.getProjectDetail()
+                    await this.getProjectDetail()
                 }
+                await this.getPermissionMeta()
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()
                 } else {
                     this.queryAdminPerm()
+                    this.queryStatisticsPerm()
                 }
             },
             async getProjectDetail () {
                 try {
+                    this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
@@ -166,12 +181,15 @@
                     }
                 } catch (err) {
                     errorHandler(err, this)
+                } finally {
+                    this.projectDetailLoading = false
                 }
             },
             async getAppmakerDetail () {
                 this.appmakerDataLoading = true
                 try {
                     const res = await this.loadAppmakerDetail(this.appId)
+                    this.setProjectName(res.project.name)
                     this.setAppmakerDetail(res)
                 } catch (e) {
                     errorHandler(e, this)
@@ -182,49 +200,53 @@
             async queryAdminPerm () {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
+                        action: 'admin_view'
                     })
-    
-                    const hasPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
-                    })
-                    this.setAdminPerm(hasPerm)
+
+                    this.setAdminPerm(res.data.is_allow)
                 } catch (err) {
                     errorHandler(err, this)
                 }
             },
-            /**
-             * 查询用户是否有管理员查看权限
-             *
-             */
-            async getAdminPerm () {
+            async queryStatisticsPerm () {
                 try {
-                    this.adminPermLoading = true
                     const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
+                        action: 'statistics_view'
                     })
-    
-                    const hasPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
-                    })
-                    this.setAdminPerm(hasPerm)
-                    this.adminPermLoading = false
+
+                    this.setStatisticsPerm(res.data.is_allow)
                 } catch (err) {
                     errorHandler(err, this)
                 }
             },
-            handleRouteChange () {
+            // 动态获取页面 footer
+            async getPageFooter () {
+                try {
+                    this.footerLoading = true
+                    const resp = await this.getFooterContent()
+                    if (resp.result) {
+                        this.setPageFooter(resp.data)
+                    }
+                } catch (err) {
+                    this.setPageFooter(`<div class="copyright"><div>蓝鲸智云 版权所有</div></div>`)
+                    errorHandler(err, this)
+                } finally {
+                    this.footerLoading = false
+                }
+            },
+            handleRouteChange (preProjectId) {
                 this.isRouterAlive = true
                 if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
                     setConfigContext(this.site_url)
                 } else {
+                    // 项目上下文页面
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
-                        this.permissinApplyShow = false
-                        this.getProjectDetail()
-                    } else { // 需要项目id页面，id为空是显示无权限页面，申请按钮跳转到项目管理页面
+                        if (this.project_id !== preProjectId) {
+                            this.permissinApplyShow = false
+                            this.getProjectDetail()
+                        }
+                    } else { // 需要项目id页面，id为空时，显示无权限页面
                         this.permissinApplyShow = true
                     }
                 }

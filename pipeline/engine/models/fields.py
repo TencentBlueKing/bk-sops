@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,6 +18,7 @@ import zlib
 from django.db import models
 
 from pipeline.utils.utils import convert_bytes_to_str
+from . import nr_pickle
 
 
 class IOField(models.BinaryField):
@@ -27,7 +28,11 @@ class IOField(models.BinaryField):
 
     def get_prep_value(self, value):
         value = super(IOField, self).get_prep_value(value)
-        return zlib.compress(pickle.dumps(value), self.compress_level)
+        try:
+            serialized = zlib.compress(pickle.dumps(value), self.compress_level)
+        except RecursionError:
+            serialized = zlib.compress(nr_pickle.dumps(value), self.compress_level)
+        return serialized
 
     def to_python(self, value):
         try:
@@ -35,7 +40,7 @@ class IOField(models.BinaryField):
             return pickle.loads(zlib.decompress(value))
         except UnicodeDecodeError:
             # py2 pickle data process
-            return convert_bytes_to_str(pickle.loads(zlib.decompress(value), encoding='bytes'))
+            return convert_bytes_to_str(pickle.loads(zlib.decompress(value), encoding="bytes"))
         except Exception:
             return "IOField to_python raise error: {}".format(traceback.format_exc())
 

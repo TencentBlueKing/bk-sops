@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,16 +11,19 @@
 */
 <template>
     <div class="advanced-search">
-        <span v-if="!hideAdvance" class="search-content" @click="onShow">
-            {{i18n.advancedSearch}}
-            <div class="advanced-shape">
-                <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
-                <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
+        <div class="search-content">
+            <div :class="['toggle-open-btn', { opened: isAdvanceOpen }]" @click="onShow">
+                <span>{{$t('高级搜索')}}</span>
+                <span class="advanced-shape">
+                    <i class="bk-icon icon-down-shape search-shape" v-if="!isAdvanceOpen"></i>
+                    <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
+                </span>
             </div>
-        </span>
+            <slot name="extend"></slot>
+        </div>
         <bk-input
             class="search-input"
-            v-model="localValue"
+            v-model.trim="localValue"
             :clearable="true"
             :placeholder="inputPlaceholader"
             :right-icon="'bk-icon icon-search'"
@@ -30,7 +33,6 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'AdvanceSearch',
         props: {
@@ -38,7 +40,7 @@
                 type: String,
                 default: ''
             },
-            hideAdvance: {
+            isAdvanceOpen: {
                 type: Boolean,
                 default: false
             },
@@ -49,11 +51,7 @@
         },
         data () {
             return {
-                i18n: {
-                    advancedSearch: gettext('高级搜索')
-                },
                 isAdvancedSerachShow: false,
-                shapeShow: false,
                 localValue: this.value
             }
         },
@@ -64,12 +62,11 @@
         },
         methods: {
             onShow () {
-                this.$emit('onShow', this.isAdvancedSerachShow)
-                this.shapeShow = !this.shapeShow
+                this.$emit('update:isAdvanceOpen', !this.isAdvanceOpen)
             },
             onInput (value) {
                 const exportValue = typeof value === 'string' ? value : value.target.value
-                this.$emit('input', exportValue)
+                this.$emit('input', exportValue.trim())
             }
         }
     }
@@ -77,9 +74,11 @@
 
 <style lang='scss'>
 @import '@/scss/config.scss';
- .advanced-search {
+.advanced-search {
     position: relative;
     float: right;
+    display: flex;
+    align-items: center;
     .search-input {
         display: inline-block;
         width: 360px;
@@ -89,21 +88,25 @@
       }
     }
     .search-content {
-        margin: 30px;
+        margin: 0 30px;
         color:#313238;
         font-size: 14px;
         font-weight: 400;
-        cursor: pointer;
-        &:hover {
-            color: #3c96ff;
-        }
-        .advanced-shape {
+        .toggle-open-btn {
             display: inline-block;
-            margin-left: 5px;
-            font-size: 12px;
-            color:#cccccc;
+            cursor: pointer;
+            &.opened,
             &:hover {
-                color: #3c96ff;
+                color: #3a84ff;
+                .advanced-shape {
+                    color: #3a84ff;
+                }
+            }
+            .advanced-shape {
+                display: inline-block;
+                margin-left: 5px;
+                font-size: 12px;
+                color:#cccccc;
             }
         }
     }

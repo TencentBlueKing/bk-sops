@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,7 +11,8 @@
 */
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
-        <h3 class="panel-title">{{ i18n.title }}</h3>
+        <h3 class="panel-title">{{ $t('常用项目') }}</h3>
+        <router-link :to="{ name: 'projectHome' }" class="link-btn">{{ $t('全部项目') }}</router-link>
         <div ref="cardView" v-if="commonUsedList.length" class="card-view">
             <ul ref="cardList" class="card-list scroll-body">
                 <li
@@ -22,23 +23,23 @@
                     <p class="business-name">{{ item.project.name }}</p>
                     <div class="business-info">
                         <p class="info-item">
-                            <label class="label">{{ i18n.businessId }}</label>
+                            <label class="label">{{ $t('项目id：') }}</label>
                             <span class="text">{{ item.project.id }}</span>
                         </p>
                         <p class="info-item">
-                            <label class="label">{{ i18n.timeZone }}</label>
+                            <label class="label">{{ $t('时区：') }}</label>
                             <span class="text">{{ item.project.create_at | getTimeZone }}</span>
                         </p>
                     </div>
                 </li>
             </ul>
-            
+
         </div>
         <panel-nodata v-else>
-            <span>{{ i18n.nodataDes1 }}</span>
-            <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ i18n.nodataDes2 }}</span>
-            <span>{{ i18n.nodataDes3 }}</span>
-            <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ i18n.nodataDes4 }}</span>
+            <span>{{ $t('项目，项目集的权限请前往') }}</span>
+            <span class="link-text" @click="jumpToOther('bk_iam')">{{ $t('权限中心') }}</span>
+            <span>{{ $t('进行申请；如需新建项目，项目集请前往') }}</span>
+            <span class="link-text" @click="jumpToOther('bk_cmdb')">{{ $t('配置平台') }}</span>
         </panel-nodata>
         <span
             v-if="viewIndex > 0"
@@ -53,11 +54,12 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import PanelNodata from './PanelNodata.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions, mapMutations } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
+    import openOtherApp from '@/utils/openOtherApp.js'
+
     export default {
         name: 'CommonlyUsed',
         components: {
@@ -71,16 +73,6 @@
         },
         data () {
             return {
-                i18n: {
-                    title: gettext('常用项目'),
-                    nodataDes1: gettext('项目，项目集的权限请前往'),
-                    nodataDes2: gettext('权限中心'),
-                    nodataDes3: gettext('进行申请；如需新建项目，项目集请前往'),
-                    nodataDes4: gettext('配置平台'),
-                    businessId: gettext('项目id：'),
-                    timeZone: gettext('时区：')
-
-                },
                 commonlyUsedloading: false,
                 commonUsedList: [],
                 viewIndex: 0,
@@ -104,7 +96,8 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions('project/', [
+                'changeDefaultProject',
                 'loadCommonProject'
             ]),
             ...mapMutations('project', [
@@ -123,15 +116,18 @@
             getLimit () {
                 return document.body.clientWidth > 1920 ? 6 : 4
             },
-            openOtherApp (url) {
-                if (self === top) {
-                    window.open(url, '__blank')
-                } else {
-                    window.PAAS_API.open_other_app(url)
+            // 这里统一直接用后端提供的 host 跳转
+            jumpToOther (name) {
+                const code = name === 'bk_iam' ? window.BK_IAM_APP_CODE : name
+                const HOST_MAP = {
+                    'bk_iam': window.BK_IAM_SAAS_HOST,
+                    'bk_cmdb': window.BK_CC_HOST
                 }
+                openOtherApp(code, HOST_MAP[name])
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)
+                this.changeDefaultProject(id)
                 this.$router.push({
                     name: 'process',
                     params: { project_id: id }
@@ -151,12 +147,17 @@
                 cardListDom.style.transform = `translateX(-${this.viewIndex * baseW}px)`
             },
             handlerWindowResize () {
-                if (!this.commonUsedList || this.commonUsedList.length === 0) {
+                const cardList = this.$refs.cardView
+                const cardItem = document.querySelector('.my-collection .card-list .card-item')
+                if (
+                    !this.commonUsedList
+                    || this.commonUsedList.length === 0
+                    || !cardList
+                    || !cardItem) {
                     return
                 }
-                const cardView = this.$refs.cardView.offsetWidth
-                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
-                this.limit = Math.floor(cardView / cardItemW)
+
+                this.limit = Math.floor(cardList.offsetWidth / cardItem.offsetWidth)
                 this.viewIndex = 0
                 this.changeViewIndex()
             }
@@ -178,6 +179,13 @@
         font-size: 16px;
         font-weight: 600;
     }
+    .link-btn {
+        position: absolute;
+        right: 24px;
+        top: 24px;
+        font-size: 12px;
+        color: #3a84ff;
+    }
     .card-view {
         width: 100%;
         overflow: hidden;
@@ -190,6 +198,7 @@
                 height: 95px;
                 padding: 14px;
                 background: #f0f1f5;
+                border-radius: 2px;
                 cursor: pointer;
                 @media screen and (max-width: 1560px) {
                     width: calc( (100% - 48px) / 4 );

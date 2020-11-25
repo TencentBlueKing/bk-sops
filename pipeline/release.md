@@ -1,3 +1,52 @@
+# 2.4.3
+
+- feature:
+  - 增加引擎内部消息流转检测功能，记录发送失败的消息，开发者能够对其进行重放
+  - databackend 添加自动过期功能
+- bugfix:
+  - 修复 pipeline worker 检查未使用最新 mq 链接的问题
+
+# 2.4.2
+
+- optimization:
+  - pipeline worker 检查添加重连机制
+- bugfix:
+  - 旧版本存留任务 pickle 数据兼容 _runtime_attrs 不存在的情况
+
+# 2.4.1
+
+- fetures:
+  - force_fail 支持传入 ex_data 参数
+  - 变量引擎渲染内置函数时返回原字符串
+  - 标准插件支持自动加载模块子路径下的所有插件
+- optimization:
+  - 在 schedule 时更新节点对应的 Data 对象
+  - 部分 DB 字段增加索引，解决数据增长后带来的慢查询问题
+- bugfix:
+  - 修复读取 python manage cmd 可能出现的 IndexError
+
+# 2.4.0
+
+- fetures:
+  - 插件统计信息支持记录插件在流程中的版本号
+  - 添加僵死任务检测功能
+  - 在节点 RuntimeAttrs 中添加 `root_pipeline_id`
+- optimization:
+  - 插件扫描功能支持忽略特定命令
+- bugfix:
+  - 修复对子流程中的节点进行强制失败时可能会失败的问题
+  - 修复并发多次回调数据混乱问题
+
+# 2.3.0rc1
+
+- features:
+  - 节点重入时 `_loop` 的开始值可以配置
+  - 增加用户自定义配置隔离队列功能
+  - 添加引擎状态(workers, queeus)获取接口
+  - 调度节点支持多次回调 
+- bugfix:
+  - 修复子流程中有环时无法执行任务的问题
+
 # 2.2.0rc1
 
 - features:

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,8 +12,8 @@
 <template>
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">
-            {{ i18n.title }}
-            <span class="add-btn" @click="onAddCollection">{{ i18n.add }}</span>
+            {{ $t('我的收藏') }}
+            <span class="add-btn" @click="onAddCollection">{{ $t('添加') }}</span>
         </h3>
         <div
             v-for="(grounp, index) in collectionGrounpList"
@@ -46,8 +46,8 @@
             </ul>
         </div>
         <panel-nodata v-if="!collectionGrounpList.length">
-            <span class="link-text" @click="onAddCollection">{{ i18n.add }}</span>
-            <span>{{ i18n.noDataDesc }}</span>
+            <span class="link-text" @click="onAddCollection">{{ $t('添加') }}</span>
+            <span>{{ $t('常用流程到收藏夹，可作为你的流程管理快捷入口') }}</span>
         </panel-nodata>
         <add-collection-dialog
             :collection-list="collectionList"
@@ -55,8 +55,6 @@
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
         <select-create-task-dialog
-            :tpl-resource="collectionResource.common_flow"
-            :tpl-operations="tplOperations"
             :create-task-item="createTaskItem"
             :is-create-task-dialog-show="isCreateTaskDialogShow"
             @cancel="onHideCreateTask">
@@ -67,18 +65,18 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1 }">
-                {{i18n.deleteTips}}
+                {{$t('确认删除收藏？')}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import PanelNodata from './PanelNodata.vue'
     import BaseCard from '@/components/common/base/BaseCard.vue'
     import AddCollectionDialog from './AddCollectionDialog.vue'
@@ -98,16 +96,7 @@
         mixins: [permission],
         data () {
             return {
-                i18n: {
-                    title: gettext('我的收藏'),
-                    add: gettext('添加'),
-                    delete: gettext('删除'),
-                    deleteTips: gettext('确认删除收藏？'),
-                    noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
-                },
-                createTaskItem: '',
-                tplOperations: [],
-                collectionResource: {},
+                createTaskItem: {},
                 collectionList: [],
                 collectionGrounpList: [],
                 categorySwitchMap: {},
@@ -131,18 +120,14 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions([
                 'deleteCollect',
-                'getCollectList'
+                'loadCollectList'
             ]),
             async initData () {
                 try {
                     this.collectionBodyLoading = true
-                    const res = await this.getCollectList()
-                    if (res.objects && res.objects.length > 0) {
-                        this.tplOperations = res.meta.auth_operations
-                        this.collectionResource = res.meta.auth_resource
-                    }
+                    const res = await this.loadCollectList()
                     this.collectionList = res.objects
                     this.collectionGrounpList = this.getGrounpList(res.objects)
                     this.collectionBodyLoading = false
@@ -174,10 +159,10 @@
             },
             getCategoryChineseName (enType) {
                 const categoryMap = {
-                    'flow': gettext('项目流程'),
-                    'common_flow': gettext('公共流程'),
-                    'mini_app': gettext('轻应用'),
-                    'periodic_task': gettext('周期任务')
+                    'flow': i18n.t('项目流程'),
+                    'common_flow': i18n.t('公共流程'),
+                    'mini_app': i18n.t('轻应用'),
+                    'periodic_task': i18n.t('周期任务')
                 }
                 return categoryMap[enType]
             },
@@ -252,11 +237,11 @@
                 this.createTaskItem = item
             },
             /**
-             * 判断单个资源权限
+             * 判断单个资源权限，这里只做了流程模板的权限校验
              */
             getRourcePerm (item) {
                 if (item.category === 'flow') {
-                    return !this.hasPermission(['create_task'], item.auth_actions, this.tplOperations)
+                    return !this.hasPermission(['flow_create_task'], item.auth_actions)
                 }
                 return false
             },
@@ -266,19 +251,23 @@
             checkForPermission (item) {
                 if (item.category === 'flow') {
                     item.name = item.extra_info.name
-                    this.applyForPermission(['create_task'], item, this.tplOperations, this.collectionResource.flow)
+                    this.applyForPermission(['flow_create_task'], item.auth_actions, { flow: [item], project: [{ id: item.extra_info.project_id, name: item.extra_info.project_name }] })
                 }
             },
             onHideCreateTask () {
                 this.isCreateTaskDialogShow = false
             },
             handlerWindowResize () {
-                if (!this.collectionList || this.collectionList.length === 0) {
+                const cardList = document.querySelector('.my-collection .card-list')
+                const cardItem = document.querySelector('.my-collection .card-list .card-item')
+                if (
+                    !this.collectionList
+                    || this.collectionList.length === 0
+                    || !cardList
+                    || !cardItem) {
                     return
                 }
-                const cardView = document.querySelector('.my-collection .card-list').offsetWidth
-                const cardItemW = document.querySelector('.my-collection .card-list .card-item').offsetWidth
-                this.limit = Math.floor(cardView / cardItemW)
+                this.limit = Math.floor(cardList.offsetWidth / cardItem.offsetWidth)
             }
         }
     }
@@ -336,6 +325,7 @@
             .card-item {
                 display: inline-block;
                 margin-right: 0;
+                border-radius: 2px;
                 @media screen and (max-width: 1560px) {
                     &:not(:nth-child(4n)) {
                         margin-right: 16px;

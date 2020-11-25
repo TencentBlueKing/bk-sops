@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,18 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.core.constants import PE
+from pipeline_web.constants import PWE
 
 
 def format_pipeline_node_types(pipeline):
     node_types = {
-        pipeline[PE.start_event][PE.id]: PE.start_event,
-        pipeline[PE.end_event][PE.id]: PE.end_event
+        pipeline[PWE.start_event][PWE.id]: PWE.start_event,
+        pipeline[PWE.end_event][PWE.id]: PWE.end_event
     }
-    for act_id in pipeline[PE.activities].keys():
-        node_types[act_id] = PE.activities
-    for gw_id in pipeline[PE.gateways].keys():
-        node_types[gw_id] = PE.gateways
+    for act_id in pipeline[PWE.activities].keys():
+        node_types[act_id] = PWE.activities
+    for gw_id in pipeline[PWE.gateways].keys():
+        node_types[gw_id] = PWE.gateways
     return node_types
 
 
@@ -45,7 +45,7 @@ def delete_flow_id_from_node_io(node, flow_id, io_type):
             node[io_type].pop(node[io_type].index(flow_id))
 
             # recover to original format
-            if len(node[io_type]) == 1 and io_type == PE.outgoing and node[PE.type] in [PE.EmptyStartEvent,
-                                                                                        PE.ServiceActivity,
-                                                                                        PE.ConvergeGateway]:
+            if len(node[io_type]) == 1 and io_type == PWE.outgoing and node[PWE.type] in [PWE.EmptyStartEvent,
+                                                                                          PWE.ServiceActivity,
+                                                                                          PWE.ConvergeGateway]:
                 node[io_type] = node[io_type][0]

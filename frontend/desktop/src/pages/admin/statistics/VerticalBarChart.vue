@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -41,7 +41,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import Plotly from 'plotly.js/dist/plotly-basic.min.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -72,14 +72,6 @@
                 default: true
             }
         },
-        data () {
-            return {
-                i18n: {
-                    date: gettext('日期'),
-                    task: gettext('任务')
-                }
-            }
-        },
         watch: {
             dataList (val) {
                 if (val.length > 0) {
@@ -102,7 +94,7 @@
                 this.dataList.forEach(item => {
                     x.push(item.time)
                     y.push(item.value)
-                    text.push(`${this.i18n.date}：${item.time}    ${this.i18n.task}：${item.value}`)
+                    text.push(`${i18n.t('日期')}：${item.time}    ${i18n.t('任务')}：${item.value}`)
                 })
                 const max = Math.max(...y)
                 const RangeMax = max < 100 ? Math.floor((max / 10 + 1)) * 10 : Math.floor((max / 100 + 1)) * 100

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,43 +20,52 @@ from gcloud.external_plugins.models import (
     S3OriginalSource,
     FileSystemOriginalSource,
     CachePackageSource,
-    SyncTask
+    SyncTask,
 )
 
 
 @admin.register(GitRepoOriginalSource)
 class GitRepoOriginalSourceAdmin(admin.ModelAdmin):
     form = JsonFieldModelForm
-    list_display = ['id', 'name', 'base_source_id', 'repo_address', 'repo_raw_address', 'branch']
+    list_display = ["id", "name", "base_source_id", "repo_address", "repo_raw_address", "branch"]
     list_filter = []
-    search_fields = ['name', 'repo_address']
+    search_fields = ["name", "repo_address"]
 
 
 @admin.register(S3OriginalSource)
 class S3OriginalSourceAdmin(admin.ModelAdmin):
     form = JsonFieldModelForm
-    list_display = ['id', 'name', 'base_source_id', 'service_address', 'bucket', 'access_key', 'secret_key']
+    list_display = [
+        "id",
+        "name",
+        "base_source_id",
+        "service_address",
+        "bucket",
+        "source_dir",
+        "access_key",
+        "secret_key",
+    ]
     list_filter = []
-    search_fields = ['name', 'service_address', 'bucket']
+    search_fields = ["name", "service_address", "bucket"]
 
 
 @admin.register(FileSystemOriginalSource)
 class FileSystemOriginalSourceAdmin(admin.ModelAdmin):
     form = JsonFieldModelForm
-    list_display = ['id', 'name', 'base_source_id', 'path']
+    list_display = ["id", "name", "base_source_id", "path"]
     list_filter = []
-    search_fields = ['name', 'path']
+    search_fields = ["name", "path"]
 
 
 @admin.register(CachePackageSource)
 class CachePackageSourceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'type', 'base_source_id']
-    list_filter = ['type']
-    search_fields = ['base_source_id']
+    list_display = ["id", "type", "base_source_id"]
+    list_filter = ["type"]
+    search_fields = ["base_source_id"]
 
 
 @admin.register(SyncTask)
 class SyncTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'creator', 'status', 'start_time', 'finish_time']
-    list_filter = ['status']
-    search_fields = ['creator']
+    list_display = ["id", "creator", "status", "start_time", "finish_time"]
+    list_filter = ["status"]
+    search_fields = ["creator"]

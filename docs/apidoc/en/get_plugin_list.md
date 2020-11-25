@@ -1,13 +1,11 @@
 ### Functional description
 
-Query plugin list for project
-
-### Request Parameters
+Get all plugins info for a business
 
 #### General Parameters
 
-|   Field         |  Type       | Required |  Description     |
-|-----------------|-------------|----------|------------------|
+|   Field         |  Type       | Required |  Description    |
+|-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
 |   bk_app_secret |   string    |   YES    |  APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
 |   bk_token      |   string    |   NO     |  Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
@@ -15,10 +13,11 @@ Query plugin list for project
 
 #### Interface Parameters
 
-| Field         |  Type      | Required |  Description     |
-|---------------|------------|----------|------------------|
-|   project_id  |   int      |  YES     |  the project ID  |
-| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to project_id. otherwise, bk_sops will find a project which id equal to project_id when scope value is 'project'|
+|   Field         |  Type       | Required |  Description     |
+|-----------------|-------------|----------|------------------|
+|   bk_biz_id   |   string   |   YES   |  the business ID             |
+|   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
+
 
 ### Request Parameters Example
 
@@ -27,7 +26,7 @@ Query plugin list for project
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "project_id": "2"
+    "bk_biz_id": "2"
 }
 ```
 
@@ -35,117 +34,61 @@ Query plugin list for project
 
 ```
 {
+    "result": true,
     "data": [
         {
-            "inputs": [
+            "inputs": [],
+            "outputs": [
                 {
-                    "required": true,
-                    "type": "string",
-                    "name": "business ID",
-                    "key": "biz_cc_id",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "current operation's business ID"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "periodic task name",
-                    "key": "job_cron_name",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "periodic task name"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "cron",
-                    "key": "job_cron_expression",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "cron"
-                    }
-                },
-                {
-                    "required": true,
-                    "type": "string",
-                    "name": "status",
-                    "key": "job_cron_status",
-                    "schema": {
-                        "enum": [
-                            1,
-                            2
-                        ],
-                        "type": "int",
-                        "description": "status"
-                    }
-                }
-            ],
-            "code": "job_cron_task",
-            "name": "create cron job",
-            "group_name": "JOB",
-            "output": [
-                {
-                    "type": "int",
-                    "name": "cron job id",
-                    "key": "cron_id",
-                    "schema": {
-                        "enum": [],
-                        "type": "int",
-                        "description": "cron job id"
-                    }
-                },
-                {
-                    "type": "string",
-                    "name": "cron job status",
-                    "key": "status",
-                    "schema": {
-                        "enum": [],
-                        "type": "string",
-                        "description": "cron job status"
-                    }
-                },
-                {
-                    "type": "bool",
-                    "name": "execution result",
+                    "name": "result",
                     "key": "_result",
+                    "type": "bool",
                     "schema": {
-                        "enum": [],
                         "type": "boolean",
-                        "description": "execution result"
+                        "description": "success",
+                        "enum": []
+                    }
+                },
+                {
+                    "name": "loop_time",
+                    "key": "_loop",
+                    "type": "int",
+                    "schema": {
+                        "type": "int",
+                        "description": "loop_time",
+                        "enum": []
                     }
                 }
             ],
-            "desc": ""
+            "desc": "",
+            "code": "job_push_local_files",
+            "name": "push local file",
+            "group_name": "(JOB)",
+            "version": "1.0.0"
         }
-    ],
-    "result": true
+    ]
 }
 ```
 
 ### Return Result Description
 
 | Field      | Type      | Description      |
-| ------------ | ---------- | ------------------------------ |
-|  result    | bool      | true or false, indicate success or failure |
-|  data      | dict      | data returned when result is true, details are described below |
-|  message   | string    | error message returned when result is false |
+|-----------|----------|-----------|
+|  result   |    bool    |      true or false, indicate success or failure                      |
+|  data     |    list    |      data returned when result is true, details are described below  |
+|  message  |    string  |      error message returned when result is false                     |
 
-#### data
+##### data[item]
 
 | Field      | Type      | Description      |
 | ------------ | ---------- | ------------------------------ |
-|  inputs      |    list    |      plugin's inputs    |
-|  code      |    string    |    plugin's code   |
-|  name      |    string    |   plugin's name    |
-|  group_name      |    string    |   plugin's group name   |
-|  outputs      |    list    |   plugin's outputs   |
-|  desc      |    string    |   plugin's description   |
+|  inputs      |    array    |      plugin inputs list    |
+|  outputs      |    array    |      plugin output list    |
+|  desc      |    string    |      plugin description    |
+|  code      |    string    |      plugin code    |
+|  name      |    string    |      plugin name    |
+|  group_name      |    string    |      plugin group name    |
+|  version      |    name    |      plugin version    |
 
 ##### inputs
 

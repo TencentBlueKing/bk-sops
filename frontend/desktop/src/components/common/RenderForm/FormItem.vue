@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,67 +16,81 @@
             'rf-form-item',
             'clearfix',
             {
-                'rf-has-hook': showHook,
+                'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
                 'rf-view-mode': !option.formMode,
-                'rf-col-layout': scheme.attrs.cols
+                'rf-col-layout': scheme.attrs.cols,
+                'rf-section-item': scheme.type === 'section'
             }
         ]"
         :style="{
             width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
         }">
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <span class="name">{{scheme.attrs.name}}</span>
-            <span v-if="scheme.attrs.desc" class="rf-group-desc">
-                <i
+        <!-- 分组 Tag，样式特殊处理 -->
+        <tag-section
+            v-if="scheme.type === 'section'"
+            ref="tagComponent"
+            :name="scheme.attrs.name"
+            :tag-code="scheme.tag_code">
+        </tag-section>
+        <template v-else>
+            <!-- 表单作为全局变量时的名称 -->
+            <div v-if="showFormTitle" class="rf-group-name">
+                <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+                <span v-if="scheme.attrs.desc" class="rf-group-desc">
+                    <i
+                        v-bk-tooltips="{
+                            content: scheme.attrs.desc,
+                            placements: ['right'],
+                            zIndex: 2002
+                        }"
+                        class="common-icon-info">
+                    </i>
+                </span>
+            </div>
+            <!-- 表单名称 -->
+            <label
+                v-if="option.showLabel && scheme.attrs.name"
+                :class="['rf-tag-label', { 'required': isRequired() }]">
+                {{scheme.attrs.name}}
+            </label>
+            <!-- 表单勾选为全局变量 -->
+            <div v-show="hook" class="rf-tag-form">
+                <el-input :disabled="true" :value="String(value)"></el-input>
+            </div>
+            <!-- 表单元素 -->
+            <component
+                v-show="!hook"
+                :class="scheme.attrs.name ? 'rf-tag-form' : ''"
+                ref="tagComponent"
+                :is="tagComponent"
+                v-bind="getDefaultAttrs()"
+                :tag-code="scheme.tag_code"
+                :hook="hook"
+                :constants="constants"
+                :atom-events="scheme.events"
+                :atom-methods="scheme.methods"
+                :value="formValue"
+                :parent-value="parentValue"
+                @init="$emit('init', $event)"
+                @change="updateForm"
+                @onShow="onShowForm"
+                @onHide="onHideForm">
+            </component>
+            <!-- 变量勾选checkbox -->
+            <div class="rf-tag-hook" v-if="showHook">
+                <bk-checkbox
                     v-bk-tooltips="{
-                        content: scheme.attrs.desc,
-                        placements: ['right'],
+                        content: hook ? i18n.hooked : i18n.cancelHook,
+                        placements: ['left'],
+                        customClass: 'offset-left-tooltip',
                         zIndex: 2002
                     }"
-                    class="common-icon-info">
-                </i>
-            </span>
-        </div>
-        <!-- 表单名称 -->
-        <label
-            v-if="option.showLabel && scheme.attrs.name"
-            :class="['rf-tag-label', { 'required': isRequired() }]">
-            {{scheme.attrs.name}}
-        </label>
-        <!-- 表单勾选为全局变量 -->
-        <div v-show="hook" class="rf-tag-form">
-            <el-input :disabled="true" :value="String(value)"></el-input>
-        </div>
-        <!-- 表单元素 -->
-        <component
-            v-show="!hook"
-            :class="scheme.attrs.name ? 'rf-tag-form' : ''"
-            ref="tagComponent"
-            :is="tagComponent"
-            v-bind="getDefaultAttrs()"
-            :tag-code="scheme.tag_code"
-            :atom-events="scheme.events"
-            :atom-methods="scheme.methods"
-            :value="formValue"
-            :parent-value="parentValue"
-            @change="updateForm"
-            @onShow="onShowForm"
-            @onHide="onHideForm">
-        </component>
-        <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook">
-            <bk-checkbox
-                v-bk-tooltips="{
-                    content: hook ? i18n.hooked : i18n.cancelHook,
-                    placements: ['left'],
-                    customClass: 'offset-left-tooltip',
-                    zIndex: 2002
-                }"
-                :value="hook"
-                @change="onHookForm">
-            </bk-checkbox>
-        </div>
+                    :value="hook"
+                    @change="onHookForm">
+                </bk-checkbox>
+            </div>
+        </template>
     </div>
 </template>
 <script>
@@ -102,7 +116,7 @@
             const componentConfig = context(fileName)
             const comp = componentConfig.default
             const typeName = comp.name.slice(3).replace(/[A-Z]/g, match => {
-                return `_${match.toLowerCase()}`
+                return `-${match.toLowerCase()}`
             })
             const name = 'tag' + typeName
 
@@ -145,6 +159,12 @@
             hook: {
                 type: Boolean,
                 default: false
+            },
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -165,7 +185,7 @@
             const formValue = this.getFormValue(this.value)
 
             return {
-                tagComponent: `tag_${this.scheme.type}`,
+                tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
                 formValue,
@@ -175,9 +195,14 @@
                 }
             }
         },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+            }
+        },
         watch: {
             scheme (val) {
-                this.tagComponent = `tag_${this.scheme.type}`
+                this.tagComponent = `tag-${this.scheme.type.replace(/_/g, '-')}`
             },
             value (val) {
                 this.formValue = this.getFormValue(val)
@@ -247,6 +272,8 @@
                     case 'password':
                     case 'memberSelector':
                     case 'logDisplay':
+                    case 'code_editor':
+                    case 'section':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''
@@ -275,6 +302,19 @@
                             }
                         }
                         break
+                    case 'time':
+                        if (this.scheme.attrs.isRange) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: ['00:00:00', '23:59:59']
+                            }
+                        } else {
+                            valueFormat = {
+                                type: 'String',
+                                value: ''
+                            }
+                        }
+                        break
                     case 'int':
                         valueFormat = {
                             type: 'Number',
@@ -288,8 +328,38 @@
                                 selectors: [],
                                 ip: [],
                                 topo: [],
+                                group: [],
                                 filters: [],
                                 excludes: []
+                            }
+                        }
+                        break
+                    case 'set_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: [],
+                                separetor: ','
+                            }
+                        }
+                        break
+                    case 'host_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    host_count: 0,
+                                    host_screen_value: '',
+                                    host_resources: [],
+                                    host_filter_detail: []
+                                },
+                                data: []
                             }
                         }
                         break
@@ -337,6 +407,7 @@
     margin: 15px 0;
     min-height: 32px;
     font-size: 12px;
+    color: #63656e;
     &:first-child {
         margin-top: 0;
     }
@@ -351,9 +422,14 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+        padding-right: 10px;
+        vertical-align: top;
     }
     &.rf-view-mode {
         margin: 8px 0;
+    }
+    &.rf-section-item {
+        min-height: initial;
     }
     .rf-tag-label {
         float: left;
@@ -361,7 +437,7 @@
         margin-top: 8px;
         width: 100px;
         font-size: 12px;
-        color: #313238;
+        color: #666666;
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
@@ -377,7 +453,7 @@
         }
     }
     &.show-label > .rf-tag-form {
-        margin-left: 120px;
+        margin-left: 130px;
     }
     .rf-tag-hook {
         position: absolute;
@@ -397,10 +473,34 @@
         line-height: 20px;
         width: 100%;
     }
-    .el-input__inner {
-        height: 32px;
-        line-height: 32px;
-        font-size: 12px;
+    .el-input:not(.el-input--mini) {
+        .el-input__inner {
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
+            border-radius: 2px !important;
+        }
+        .el-input__prefix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+            .el-icon-time {
+                line-height: 36px;
+            }
+        }
+        &.is-disabled {
+            .el-input__inner{
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
+        }
+    }
+    .el-select:not(.el-select--mini) {
+        .el-input__suffix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+        }
     }
     .el-radio__label,
     .el-checkbox__label {
@@ -412,6 +512,13 @@
     .el-tree__empty-block {
         font-size: 12px;
     }
+}
+.tag-component-popper {
+    // magicbox 组件引入了 popover 管理，z-index 起始值从 2000 开始，而 element-ui 组件自己的 popover 管理也是从 2000 开始
+    // 两边组件的 z-index 维护，并不能保证所有组件层级按照一个值递增，所以会出现弹出层可能被盖住的情况
+    // 这里把 tag 组件里涉及到弹出层情况的 z-index 固定为 3300
+    // notice：新增的弹出层组件需要手动添加这个 class
+    z-index: 3300 !important;
 }
 .el-select-dropdown .el-select-dropdown__item {
     font-size: 12px;

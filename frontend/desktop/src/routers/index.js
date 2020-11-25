@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -79,7 +79,7 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const viewMode = store.state.viewMode
+                const viewMode = store.state.view_mode
                 return viewMode === 'appmaker'
                     ? `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
                     : '/home/'
@@ -107,8 +107,9 @@ const routers = new VueRouter({
                     name: 'commonProcessList',
                     pathToRegexpOptions: { strict: true },
                     component: CommonTemplateList,
-                    props: () => ({
-                        common: '1'
+                    props: (route) => ({
+                        common: '1',
+                        page: route.query.page
                     })
                 },
                 {
@@ -117,7 +118,6 @@ const routers = new VueRouter({
                     name: 'commonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
                     props: (route) => ({
-                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: route.params.type,
                         common: '1'
@@ -135,14 +135,16 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id?/',
+                    path: 'home/:project_id/',
                     name: 'process',
                     pathToRegexpOptions: { strict: true },
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
-                        common_template: route.query.common_template
+                        common_template: route.query.common_template,
+                        page: route.query.page,
+                        limit: route.query.limit
                     }),
                     meta: { project: true }
                 },
@@ -174,19 +176,20 @@ const routers = new VueRouter({
                     name: 'taskHome',
                     children: [
                         {
-                            path: 'list/:project_id?/',
+                            path: 'list/:project_id/',
                             component: TaskList,
                             name: 'taskList',
                             pathToRegexpOptions: { strict: true },
                             props: (route) => ({
                                 project_id: route.params.project_id,
-                                common: route.query.common,
-                                create_method: route.query.create_method
+                                template_source: route.query.template_source,
+                                create_method: route.query.create_method,
+                                create_info: route.query.create_info
                             }),
                             meta: { project: true }
                         },
                         {
-                            path: 'periodic/:project_id?/',
+                            path: 'periodic/:project_id/',
                             pathToRegexpOptions: { strict: true },
                             component: periodicTemplateList,
                             name: 'periodicTemplate',
@@ -226,7 +229,7 @@ const routers = new VueRouter({
                 }]
         },
         {
-            path: '/appmaker/home/:project_id?/',
+            path: '/appmaker/home/:project_id/',
             component: AppMaker,
             name: 'appMakerList',
             pathToRegexpOptions: { strict: true },
@@ -430,14 +433,14 @@ const routers = new VueRouter({
                             component: SourceSync
                         }
                     ]
+                },
+                {
+                    path: 'atomdev/',
+                    name: 'atomDev',
+                    pathToRegexpOptions: { strict: true },
+                    component: AtomDev
                 }
             ]
-        },
-        {
-            path: '/atomdev/',
-            name: 'atomDev',
-            pathToRegexpOptions: { strict: true },
-            component: AtomDev
         },
         {
             path: '/error/:code(401|403|405|406|500)/',

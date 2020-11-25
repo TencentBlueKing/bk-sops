@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -22,7 +22,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
@@ -55,7 +55,10 @@
         },
         computed: {
             ...mapState({
-                'atomFormConfig': state => state.atomForm.config
+                atomFormConfig: state => state.atomForm.config
+            }),
+            ...mapState('project', {
+                project_id: state => state.project_id
             })
         },
         watch: {
@@ -104,14 +107,18 @@
                     return a.index - b.index
                 })
 
+                if (variableArray.length > 0) {
+                    this.isConfigLoading = true
+                    this.$emit('onChangeConfigLoading', true)
+                }
+
                 for (const variable of variableArray) {
                     const { key } = variable
-                    const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                    const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
-                    if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
-                        this.isConfigLoading = true
-                        await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
+                    if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
+                        await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
                     }
                     const atomConfig = this.atomFormConfig[atom][version]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -126,7 +133,7 @@
                             }
                         }
                         currentFormConfig.tag_code = key
-                        currentFormConfig.attrs.name = variable.name
+                        currentFormConfig.name = variable.name // 变量名称，全局变量编辑时填写的名称，和表单配置项 label 名称不同
                         currentFormConfig.attrs.desc = variable.desc
                         if (
                             variable.custom_type === 'input'
@@ -135,7 +142,7 @@
                             currentFormConfig.attrs.validation.push({
                                 type: 'regex',
                                 args: variable.validation,
-                                error_message: gettext('参数值不符合正则规则：') + variable.validation
+                                error_message: i18n.t('参数值不符合正则规则：') + variable.validation
                             })
                         }
                         this.renderConfig.push(currentFormConfig)
@@ -150,28 +157,30 @@
             validate () {
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
-            getVariableData () {
+            async getVariableData () {
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]
-                    if (key in this.renderData) {
+                    if (variable.show_type === 'hide') {
+                        if (variable.is_meta) {
+                            const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                            // custom_type 可以判断是手动新建节点还是组件勾选
+                            const version = variable.version || 'legacy'
+                            if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
+                                await this.loadAtomConfig({ name, atom, classify, version })
+                            }
+                            const atomConfig = this.atomFormConfig[atom][version]
+                            let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                            currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                            variable.meta = tools.deepClone(variable) // JSON.stringify 循环引用的问题，需要深拷贝一下
+                            variable.value = currentFormConfig.attrs.value
+                        }
+                    } else {
                         variable.value = this.renderData[key]
                         variable.meta = this.metaConfig[key]
-                    } else if (variable.is_meta) {
-                        const sourceTag = variable.source_tag
-                        const [atomType, tagCode] = sourceTag.split('.')
-                        const atomVersion = variable.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atomType, atomVersion, this.atomFormConfig)) {
-                            this.loadAtomConfig({ atomType, atomVersion })
-                        }
-                        const atomConfig = this.atomFormConfig[atomType]
-                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                        variable.meta = tools.deepClone(variable)
-                        variable.value = currentFormConfig.attrs.value
                     }
                 }
-                return variables
+                return Promise.resolve(variables)
             }
         }
     }
