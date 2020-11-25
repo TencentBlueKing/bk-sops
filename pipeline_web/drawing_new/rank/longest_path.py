@@ -45,15 +45,17 @@ def longest_path_ranker(pipeline):
         incoming_node_ranks = []
         for flow_id in format_to_list(node[PWE.incoming]):
             flow = pipeline[PWE.flows][flow_id]
-            incoming_node = pipeline['all_nodes'][flow[PWE.source]]
-            incoming_node_ranks.append(dfs(incoming_node) - MIN_LEN)
+            incoming_node = pipeline["all_nodes"][flow[PWE.source]]
+            source_rank = dfs(incoming_node) - MIN_LEN
+            ranks[incoming_node[PWE.id]] = source_rank
+            incoming_node_ranks.append(source_rank)
 
         if not incoming_node_ranks:
             return 0
         else:
             return min(incoming_node_ranks)
 
-    for node_id, node in pipeline['all_nodes'].items():
+    for node_id, node in pipeline["all_nodes"].items():
         ranks[node_id] = dfs(node)
 
     # 重置结束节点的 rank 为 0，并且其他节点 rank 小于 结束节点
