@@ -144,7 +144,7 @@ const atomForm = {
             if (atomClassify === 'component') {
                 params.version = atomVersion
             }
-            await axios.get(url, { params }).then(async response => {
+            return axios.get(url, { params }).then(async response => {
                 const {
                     output: outputData,
                     form: inputForm,

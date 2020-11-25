@@ -429,7 +429,7 @@
                 const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                 this.setTimeZone(timeZone)
                 this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
-                
+
                 this.$router.push({
                     name: 'process',
                     params: { project_id: id }

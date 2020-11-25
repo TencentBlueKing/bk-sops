@@ -747,7 +747,7 @@
                     this.isRenderOutputForm = true
                 } else {
                     try {
-                        const res = await this.loadAtomConfig({ atomType: type, version })
+                        const res = await this.loadAtomConfig({ atom: type, version })
                         this.renderConfig = this.atomFormConfig[type][version]
                         if (res.isRenderOutputForm) {
                             this.outputRenderConfig = this.atomOutputConfig[type][version]
