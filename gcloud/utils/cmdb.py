@@ -45,7 +45,7 @@ def batch_request(
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
         except Exception as e:
-            logger.error("[batch_request] please input correct page param")
+            logger.error("[batch_request] please input correct page param, {}".format(e))
             return []
     else:
         cur_page_param = "start"
