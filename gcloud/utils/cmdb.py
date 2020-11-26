@@ -17,7 +17,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-
 from .thread import ThreadPool
 from gcloud.core.models import StaffGroupSet
 
@@ -27,10 +26,12 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def batch_request(
-    func, params, get_data=lambda x: x["data"]["info"], get_count=lambda x: x["data"]["count"], limit=500
+        func, params, get_data=lambda x: x["data"]["info"], get_count=lambda x: x["data"]["count"], limit=500,
+        page_param=None
 ):
     """
     并发请求接口
+    :param page_params: 分页参数，默认使用start/limit分页，例如：{"cur_page_param":"start", "page_size_param":"limit"}
     :param func: 请求方法
     :param params: 请求参数
     :param get_data: 获取数据函数
@@ -38,8 +39,20 @@ def batch_request(
     :param limit: 一次请求数量
     :return: 请求结果
     """
+    # 兼容其他分页参数类型
+    if page_param:
+        try:
+            cur_page_param = page_param["cur_page_param"]
+            page_size_param = page_param["page_size_param"]
+        except Exception as e:
+            logger.error("[batch_request] please input correct page param")
+            return []
+    else:
+        cur_page_param = "start"
+        page_size_param = "limit"
+
     # 请求第一次获取总数
-    result = func(page={"start": 0, "limit": 1}, **params)
+    result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
 
     if not result["result"]:
         logger.error("[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result))
@@ -53,7 +66,7 @@ def batch_request(
     pool = ThreadPool()
     params_and_future_list = []
     while start < count:
-        request_params = {"page": {"limit": limit, "start": start}}
+        request_params = {"page": {page_size_param: limit, cur_page_param: start}}
         request_params.update(params)
         params_and_future_list.append({"params": request_params, "future": pool.apply_async(func, kwds=request_params)})
 
