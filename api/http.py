@@ -17,8 +17,6 @@ import logging
 import requests
 import curlify
 
-from django.conf import settings
-
 logger = logging.getLogger("component")
 
 
@@ -34,9 +32,6 @@ def _http_request(
 ):
     resp = requests.Response()
     request_id = None
-
-    data["bk_app_code"] = settings.APP_CODE
-    data["bk_app_secret"] = settings.SECRET_KEY
 
     try:
         if method == "GET":
@@ -110,7 +105,7 @@ def _http_request(
         )
 
 
-def http_get(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def get(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
     if not headers:
         headers = _gen_header()
     return _http_request(
@@ -118,7 +113,7 @@ def http_get(url, data, headers=None, verify=False, cert=None, timeout=None, coo
     )
 
 
-def http_post(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def post(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
     if not headers:
         headers = _gen_header()
     return _http_request(
@@ -126,7 +121,7 @@ def http_post(url, data, headers=None, verify=False, cert=None, timeout=None, co
     )
 
 
-def http_put(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def put(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
     if not headers:
         headers = _gen_header()
     return _http_request(
@@ -134,7 +129,7 @@ def http_put(url, data, headers=None, verify=False, cert=None, timeout=None, coo
     )
 
 
-def http_delete(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
+def delete(url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
     if not headers:
         headers = _gen_header()
     return _http_request(

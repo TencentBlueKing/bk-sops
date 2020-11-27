@@ -16,7 +16,7 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.default_settings import ESB_GET_OLD_CLIENT_BY_USER as get_client_by_user
+from api import BKMonitorClient
 from gcloud.conf import settings
 from gcloud.utils import cmdb
 from gcloud.core.models import Business
@@ -27,54 +27,61 @@ from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.utils.sites.open.utils import get_module_id_list_by_name
-from pipeline_plugins.variables.utils import get_set_list, get_list_by_selected_names, get_service_template_list, \
-    get_service_template_list_by_names
+from pipeline_plugins.variables.utils import (
+    get_set_list,
+    get_list_by_selected_names,
+    get_service_template_list,
+    get_service_template_list_by_names,
+)
 
 __group_name__ = _("监控平台(Monitor)")
 
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
 
-SCOPE = {
-    'business': 'bk_alarm_shield_business',
-    'IP': 'bk_alarm_shield_IP',
-    'node': 'bk_alarm_shield_node'
-}
+SCOPE = {"business": "bk_alarm_shield_business", "IP": "bk_alarm_shield_IP", "node": "bk_alarm_shield_node"}
 
 ALL_SELECTED_STR = "all"
 
 
 class MonitorAlarmShieldService(Service):
-
     def inputs_format(self):
-        return [self.InputItem(name=_('屏蔽范围类型'),
-                               key='bk_alarm_shield_info',
-                               type='object',
-                               schema=ObjectItemSchema(description=_(u'屏蔽范围类型'),
-                                                       property_schemas={})),
-                self.InputItem(name=_('策略 ID'),
-                               key='bk_alarm_shield_target',
-                               type='string',
-                               schema=StringItemSchema(description=_('需要执行屏蔽的指标'))),
-                self.InputItem(name=_('屏蔽开始时间'),
-                               key='bk_alarm_shield_begin_time',
-                               type='string',
-                               schema=StringItemSchema(description=_('开始屏蔽的时间'))),
-                self.InputItem(name=_('屏蔽结束时间'),
-                               key='bk_alarm_shield_end_time',
-                               type='string',
-                               schema=StringItemSchema(description=_('结束屏蔽的时间'))),
-                ]
+        return [
+            self.InputItem(
+                name=_("屏蔽范围类型"),
+                key="bk_alarm_shield_info",
+                type="object",
+                schema=ObjectItemSchema(description=_(u"屏蔽范围类型"), property_schemas={}),
+            ),
+            self.InputItem(
+                name=_("策略 ID"),
+                key="bk_alarm_shield_target",
+                type="string",
+                schema=StringItemSchema(description=_("需要执行屏蔽的指标")),
+            ),
+            self.InputItem(
+                name=_("屏蔽开始时间"),
+                key="bk_alarm_shield_begin_time",
+                type="string",
+                schema=StringItemSchema(description=_("开始屏蔽的时间")),
+            ),
+            self.InputItem(
+                name=_("屏蔽结束时间"),
+                key="bk_alarm_shield_end_time",
+                type="string",
+                schema=StringItemSchema(description=_("结束屏蔽的时间")),
+            ),
+        ]
 
     def execute(self, data, parent_data):
-        bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
-        executor = parent_data.get_one_of_inputs('executor')
-        client = get_client_by_user(executor)
-        combine = data.get_one_of_inputs('bk_alarm_shield_info')
-        scope_type = combine.get('bk_alarm_shield_scope')
+        bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
+        executor = parent_data.get_one_of_inputs("executor")
+        client = BKMonitorClient(username=executor)
+        combine = data.get_one_of_inputs("bk_alarm_shield_info")
+        scope_type = combine.get("bk_alarm_shield_scope")
         scope_value = combine.get(SCOPE[scope_type])
-        target = data.get_one_of_inputs('bk_alarm_shield_target')
-        begin_time = data.get_one_of_inputs('bk_alarm_shield_begin_time')
-        end_time = data.get_one_of_inputs('bk_alarm_shield_end_time')
+        target = data.get_one_of_inputs("bk_alarm_shield_target")
+        begin_time = data.get_one_of_inputs("bk_alarm_shield_begin_time")
+        end_time = data.get_one_of_inputs("bk_alarm_shield_end_time")
 
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
@@ -82,84 +89,76 @@ class MonitorAlarmShieldService(Service):
 
         supplier_account = supplier_account_for_business(bk_biz_id)
 
-        request_body = self.get_request_body(bk_biz_id, begin_time, end_time, scope_type,
-                                             scope_value, executor, supplier_account)
-        if 'all' not in target:
-            request_body['dimension_config'].update({'metric_id': target})
+        request_body = self.get_request_body(
+            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
+        )
+        if "all" not in target:
+            request_body["dimension_config"].update({"metric_id": target})
 
         result_flag = self.send_request(request_body, data, client)
 
         return result_flag
 
     def get_dimension_config(self, shied_type, shied_value, bk_biz_id, username, bk_supplier_account):
-        dimension_map = {'business': self.get_biz_dimension,
-                         'IP': self.get_ip_dimension,
-                         'node': self.get_node_dimension}
+        dimension_map = {
+            "business": self.get_biz_dimension,
+            "IP": self.get_ip_dimension,
+            "node": self.get_node_dimension,
+        }
         return dimension_map[shied_type](shied_value, bk_biz_id, username, bk_supplier_account)
 
     def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username, bk_supplier_account):
-        category_map = {
-            'business': 'scope',
-            'IP': 'scope',
-            'node': 'scope',
-            'strategy': 'strategy'
-        }
+        category_map = {"business": "scope", "IP": "scope", "node": "scope", "strategy": "strategy"}
         dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, username, bk_supplier_account)
-        request_body = {'begin_time': begin_time,
-                        'bk_biz_id': bk_biz_id,
-                        'category': category_map[shied_type],
-                        'cycle_config': {'begin_time': "", 'end_time': "", 'day_list': [], 'week_list': [], 'type': 1},
-                        'description': "shield by bk_sops",
-                        'dimension_config': dimension_config,
-                        'end_time': end_time,
-                        'notice_config': {},
-                        'shield_notice': False,
-                        'source': settings.APP_ID}
+        request_body = {
+            "begin_time": begin_time,
+            "bk_biz_id": bk_biz_id,
+            "category": category_map[shied_type],
+            "cycle_config": {"begin_time": "", "end_time": "", "day_list": [], "week_list": [], "type": 1},
+            "description": "shield by bk_sops",
+            "dimension_config": dimension_config,
+            "end_time": end_time,
+            "notice_config": {},
+            "shield_notice": False,
+        }
         return request_body
 
     def send_request(self, request_body, data, client):
-        response = client.monitor.create_shield(request_body)
-        if not response['result']:
-            message = monitor_handle_api_error('monitor.create_shield', request_body, response)
+        response = client.add_shield(**request_body)
+        if not response["result"]:
+            message = monitor_handle_api_error("monitor.add_shield", request_body, response)
             self.logger.error(message)
-            shield_id = ''
+            shield_id = ""
             ret_flag = False
         else:
-            shield_id = response['data']['id']
+            shield_id = response["data"]["id"]
             ret_flag = True
-            message = response['message']
-        data.set_outputs('shield_id', shield_id)
-        data.set_outputs('message', message)
+            message = response["message"]
+        data.set_outputs("shield_id", shield_id)
+        data.set_outputs("message", message)
         return ret_flag
 
     def get_ip_dimension(self, scope_value, bk_biz_id, username, bk_supplier_account):
-        ip_list = scope_value.split(',')
+        ip_list = scope_value.split(",")
         hosts = cmdb.get_business_host(
             username=username,
             bk_biz_id=bk_biz_id,
             supplier_account=Business.objects.supplier_account_for_business(bk_biz_id),
-            host_fields=[
-                "bk_host_id",
-                "bk_cloud_id",
-                "bk_host_innerip"
-            ],
-            ip_list=ip_list
+            host_fields=["bk_host_id", "bk_cloud_id", "bk_host_innerip"],
+            ip_list=ip_list,
         )
         if not hosts:
             raise Exception("cmdb.get_business_host return empty")
 
         target = []
         for host in hosts:
-            target.append({
-                "ip": host["bk_host_innerip"],
-                "bk_cloud_id": host["bk_cloud_id"]
-            })
+            target.append({"ip": host["bk_host_innerip"], "bk_cloud_id": host["bk_cloud_id"]})
 
-        return {'scope_type': "ip", 'target': target}
+        return {"scope_type": "ip", "target": target}
 
     @staticmethod
     def get_biz_dimension(scope_value, bk_biz_id, username, bk_supplier_account):
-        return {'scope_type': "biz"}
+        return {"scope_type": "biz"}
 
     @staticmethod
     def get_node_dimension(scope_value, bk_biz_id, username, bk_supplier_account):
@@ -194,22 +193,18 @@ class MonitorAlarmShieldService(Service):
             )
         # 获取模块id列表
         module_ids = get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list)
-        target = [{'bk_obj_id': "module",
-                   'bk_inst_id': module_id}
-                  for module_id in module_ids]
+        target = [{"bk_obj_id": "module", "bk_inst_id": module_id} for module_id in module_ids]
 
-        return {'scope_type': "node", 'target': target}
+        return {"scope_type": "node", "target": target}
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_('屏蔽Id'),
-                            key='shield_id',
-                            type='string',
-                            schema=StringItemSchema(description=_('创建的告警屏蔽 ID'))),
-            self.OutputItem(name=_('详情'),
-                            key='message',
-                            type='string',
-                            schema=StringItemSchema(description=_('创建的告警屏蔽详情')))
+            self.OutputItem(
+                name=_("屏蔽Id"), key="shield_id", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽 ID"))
+            ),
+            self.OutputItem(
+                name=_("详情"), key="message", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽详情"))
+            ),
         ]
 
 
@@ -217,6 +212,6 @@ class MonitorAlarmShieldComponent(Component):
     name = _("蓝鲸监控告警屏蔽(按范围)")
     code = "monitor_alarm_shield"
     bound_service = MonitorAlarmShieldService
-    form = '{static_url}components/atoms/monitor/alarm_shield/v1_0.js'.format(static_url=settings.STATIC_URL)
+    form = "{static_url}components/atoms/monitor/alarm_shield/v1_0.js".format(static_url=settings.STATIC_URL)
     version = "1.0"
-    desc = _("注意： 1.屏蔽方案选择\"自定义监控\"时，屏蔽范围CC大区和集群必须选择\"all\"")
+    desc = _('注意： 1.屏蔽方案选择"自定义监控"时，屏蔽范围CC大区和集群必须选择"all"')
