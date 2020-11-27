@@ -129,7 +129,6 @@
     import dom from '@/utils/dom.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
-
     export default {
         name: 'TemplateCanvas',
         components: {
@@ -519,11 +518,9 @@
              */
             getNodeWithEndpoint (endpoint) {
                 const parentEl = endpoint.parentNode
-
                 if (!parentEl || parentEl.nodeName === 'HTML') {
                     return false
                 }
-
                 if (parentEl.classList.contains('bk-flow-location')) {
                     return parentEl
                 } else {
@@ -541,7 +538,6 @@
                     }
                 }
                 const validateMessage = validatePipeline.isLocationValid(node, this.canvasData.locations)
-
                 if (!validateMessage.result) {
                     this.$bkMessage({
                         message: validateMessage.message,
@@ -585,7 +581,6 @@
                         arrow = (nodeRects.width - offsetX) > (nodeRects.height - offsetY) ? 'Bottom' : 'Right'
                     }
                 }
-
                 const line = {
                     source,
                     target: {
@@ -610,7 +605,6 @@
                 if (sourceId === targetId) {
                     return false
                 }
-
                 const data = {
                     source: {
                         id: sourceId,
@@ -651,7 +645,7 @@
                                 midpoint: lineInCanvasData.midpoint
                             }
                         ]
-                        
+
                         this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                     // 增加连线删除 icon
@@ -738,7 +732,6 @@
                 this.$refs.jsFlow.removeNode(node)
                 this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
-
                 if (node.type === 'startpoint') {
                     this.isDisableStartPoint = false
                 } else if (node.type === 'endpoint') {
@@ -768,7 +761,6 @@
                 svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
                 svg.setAttribute('version', '1.1')
                 svg.setAttribute('style', 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events: none;')
-
                 const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
                 const marker = `
                     <marker id="arrow" markerWidth="10" markerHeight="10" refx="0" refy="2" orient="auto" markerUnits="strokeWidth">
@@ -776,7 +768,6 @@
                     </marker>
                 `
                 defs.innerHTML = marker
-
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
                 line.setAttribute('id', 'referencePath')
                 line.setAttribute('marker-end', 'url(#arrow)')
@@ -786,7 +777,6 @@
                 line.setAttribute('y2', '0')
                 line.setAttribute('style', 'stroke:#979ba5;stroke-width:2')
                 line.setAttribute('id', 'referencePath')
-
                 svg.appendChild(defs)
                 svg.appendChild(line)
                 canvas.appendChild(svg)
@@ -854,7 +844,7 @@
                 if (source.id === target.id) {
                     return false
                 }
-                
+
                 const line = {
                     source,
                     target
@@ -934,7 +924,6 @@
                 document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
                 document.removeEventListener('keydown', this.nodeSelectedhandler)
                 document.removeEventListener('keydown', this.nodeLineDeletehandler)
-
                 this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             },
             /**
