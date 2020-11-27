@@ -651,7 +651,7 @@
                                 midpoint: lineInCanvasData.midpoint
                             }
                         ]
-
+                        
                         this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                     // 增加连线删除 icon
@@ -854,7 +854,7 @@
                 if (source.id === target.id) {
                     return false
                 }
-
+                
                 const line = {
                     source,
                     target
