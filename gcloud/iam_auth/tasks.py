@@ -11,12 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
+import logging
+from celery import task
+
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
+
+logger = logging.getLogger("root")
 
 
-class IamAuthConfig(AppConfig):
-    name = "gcloud.iam_auth"
-
-    def ready(self):
-        from gcloud.iam_auth.resource_creator_action import common_flow, flow, mini_app, periodic_task  # noqa
-        from gcloud.iam_auth.signals.handlers import user_enter_handler  # noqa
+@task
+def register_grant_resource_creator_task(username):
+    register_grant_resource_creator_action_attributes(
+        IAMMeta.TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
+    )
