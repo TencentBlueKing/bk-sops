@@ -218,7 +218,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         # get all referenced constants in flow
         constants = pipeline_tree[PE.constants]
 
-        # template strategy: show all constants may be used
+        # temporarily strategy: show all constants may be used
         referenced_keys = list(constants.keys())
         # referenced_keys = []
         # while True:

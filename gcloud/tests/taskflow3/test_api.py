@@ -130,7 +130,9 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockJsonBodyRequest("POST", data1), TEST_PROJECT_ID)
             self.assertTrue(result["result"])
-            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}"])
+            # temporarily strategy: show all constants may be used
+            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), [])
+            # self.assertEqual(list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}"])
 
         with mock.patch(
             TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
@@ -143,7 +145,9 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockJsonBodyRequest("POST", data2), TEST_PROJECT_ID)
             self.assertTrue(result["result"])
-            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), ["${custom_key2}"])
+            # temporarily strategy: show all constants may be used
+            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), [])
+            # self.assertEqual(list(result["data"]["constants_not_referred"].keys()), ["${custom_key2}"])
 
         with mock.patch(
             TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
@@ -169,6 +173,8 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockJsonBodyRequest("POST", data4), TEST_PROJECT_ID)
             self.assertTrue(result["result"])
-            self.assertEqual(
-                list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}", "${custom_key2}"]
-            )
+            # temporarily strategy: show all constants may be used
+            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), [])
+            # self.assertEqual(
+            #     list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}", "${custom_key2}"]
+            # )
