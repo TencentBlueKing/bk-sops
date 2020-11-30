@@ -10,10 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
@@ -39,6 +41,10 @@ def task_path_value_hook(value):
 
 
 class TaskResourceProvider(ResourceProvider):
+    def pre_search_instance(self, filter, page, **options):
+        if page.limit == 0 or page.limit > 1000:
+            raise InvalidPageException("limit in page too large")
+
     def pre_list_instance(self, filter, page, **options):
         if page.limit == 0 or page.limit > 1000:
             raise InvalidPageException("limit in page too large")
@@ -46,6 +52,29 @@ class TaskResourceProvider(ResourceProvider):
     def pre_list_instance_by_policy(self, filter, page, **options):
         if page.limit == 0 or page.limit > 1000:
             raise InvalidPageException("limit in page too large")
+
+    def search_instance(self, filter, page, **options):
+        """
+        task search instance
+        """
+        keyword = filter.keyword
+        cache_keyword = "iam_search_instance_task_{}".format(keyword)
+        project_id = filter.parent["id"] if filter.parent else None
+
+        results = cache.get(cache_keyword)
+        if results is None:
+            queryset = (
+                TaskFlowInstance.objects.select_related("pipeline_instance")
+                .filter(pipeline_instance__name__icontains=keyword, is_deleted=False)
+                .only("pipeline_instance__name")
+            )
+            if project_id:
+                queryset = queryset.filter(project__id=project_id)
+            results = [
+                {"id": str(task.id), "display_name": task.name} for task in queryset[page.slice_from : page.slice_to]
+            ]
+            cache.set(cache_keyword, results, SEARCH_INSTANCE_CACHE_TIME)
+        return ListResult(results=results, count=len(results))
 
     def list_attr(self, **options):
         """
