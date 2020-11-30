@@ -23,7 +23,7 @@ from pipeline.engine.core import context
 from pipeline.engine.core.data import delete_parent_data, get_schedule_parent_data, set_schedule_data
 from pipeline.engine.models import Data, MultiCallbackData, PipelineProcess, ScheduleService, Status
 
-logger = logging.getLogger("celery")
+logger = logging.getLogger("celery_and_engine_component")
 
 
 @contextlib.contextmanager
