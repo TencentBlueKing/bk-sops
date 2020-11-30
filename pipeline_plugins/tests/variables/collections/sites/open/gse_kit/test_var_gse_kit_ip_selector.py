@@ -98,7 +98,7 @@ class VarGseKitIpSelector(TestCase):
         mock_client = MagicMock()
         mock_client.gse_kit.list_process = "list_process"
         self.get_client_by_user_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.gse_kit.var_gse_kit_ip_selector.get_client_by_user",
+            "pipeline_plugins.variables.collections.sites.open.gse_kit.var_gse_kit_ip_selector.BKGseKitClient",
             MagicMock(return_value=mock_client)
         )
 
