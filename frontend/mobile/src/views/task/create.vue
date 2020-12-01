@@ -144,6 +144,7 @@
                 columns: [],
                 currentDate: new Date(),
                 currentRef: null,
+                collectedList: [],
                 collected: false,
                 collecting: false,
                 templateData: {
@@ -330,7 +331,9 @@
                     this.collecting = true
                     try {
                         if (this.collected) {
-                            await this.deleteCollect(this.templateData.id)
+                            const collected = this.collectedList.find(item => item.extra_info.id === Number(this.templateData.id))
+                            const collectId = collected.id
+                            await this.deleteCollect(collectId)
                             this.collected = false
                             this.$toast.success(this.i18n.cancelCollectSuccess)
                         } else {
@@ -347,6 +350,7 @@
                             this.collected = true
                             this.$toast.success(this.i18n.collectSuccess)
                         }
+                        this.isTemplateCollected()
                     } catch (e) {
                         errorHandler(e, this)
                     } finally {
@@ -357,7 +361,8 @@
             async isTemplateCollected () {
                 try {
                     const response = await this.getCollectedTemplate()
-                    this.collected = response.objects.some(template => {
+                    this.collectedList = response.objects
+                    this.collected = this.collectedList.some(template => {
                         return template.category === 'flow' && template.extra_info.id === Number(this.templateId)
                     })
                 } catch (e) {

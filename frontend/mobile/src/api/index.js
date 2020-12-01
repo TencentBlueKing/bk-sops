@@ -26,11 +26,6 @@ const axiosInstance = axios.create({
  * request interceptor
  */
 axiosInstance.interceptors.request.use(config => {
-    // 绝对路径不走 mock
-    if (!/^(https|http)?:\/\//.test(config.url)) {
-        const prefix = config.url.indexOf('?') === -1 ? '?' : '&'
-        config.url += prefix
-    }
     return config
 }, error => Promise.reject(error))
 

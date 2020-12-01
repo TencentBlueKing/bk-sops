@@ -38,7 +38,7 @@ export default {
             ).then(response => response)
         },
         deleteCollect ({ rootState }, id) {
-            return http.delete(`api/v3/collection/${id}/`).then(response => response.data)
+            return http.delete(`api/v3/weixin_collection/${id}/`).then(response => response.data)
         },
         getSchemeList ({ state, rootState }) {
             return http.get('api/v3/weixin_scheme/', {
