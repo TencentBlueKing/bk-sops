@@ -96,7 +96,6 @@ class VarGseKitIpSelector(TestCase):
     def setUp(self):
         self.pipeline_data = {"executor": "admin", "biz_cc_id": 123, "project_id": 1}
 
-
     @patch(LIST_PROCESS_CLIENT, MagicMock(return_value=PROC_STATUS_SUCCESS_RETURN))
     def test_ip_selector_success_case(self):
         ip_selector = GseKitSetModuleIpSelector(
