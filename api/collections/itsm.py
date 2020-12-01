@@ -11,8 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
+from django.conf import settings
 
-BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
-BK_ITSM_API_ENTRY = os.getenv("BK_ITSM_API_ENTRY")
-BK_NODEMAN_API_ENTRY = os.getenv("BK_NODEMAN_API_ENTRY")
+import env
+from api.client import BKComponentClient
+
+ITSM_API_ENTRY = env.BK_ITSM_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/itsm")
+
+
+def _get_itsm_api(api_name):
+    return "{}/{}/".format(ITSM_API_ENTRY, api_name)
+
+
+class BKItsmClient(BKComponentClient):
+    def create_ticket(self, creator, fields, fast_approval, meta):
+        return self._request(
+            method="post",
+            url=_get_itsm_api("create_ticket"),
+            data={
+                "creator": creator,
+                "fields": fields,
+                "fast_approval": fast_approval,
+                "meta": meta,
+            },
+        )
