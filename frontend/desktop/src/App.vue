@@ -141,13 +141,16 @@
                 'loadAppmakerDetail'
             ]),
             ...mapActions('project', [
-                'loadProjectDetail'
+                'loadProjectDetail',
+                'changeDefaultProject'
             ]),
             ...mapMutations('appmaker/', [
                 'setAppmakerTemplateId',
                 'setAppmakerDetail'
             ]),
             ...mapMutations('project', [
+                'setProjectId',
+                'setTimeZone',
                 'setProjectName',
                 'setProjectActions'
             ]),
@@ -172,6 +175,10 @@
                 try {
                     this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.setProjectId(this.project_id)
+                    this.setTimeZone(projectDetail.timeZone)
+
+                    $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
@@ -179,6 +186,7 @@
                     } else {
                         setConfigContext(this.site_url, projectDetail)
                     }
+                    this.changeDefaultProject(this.project_id)
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
