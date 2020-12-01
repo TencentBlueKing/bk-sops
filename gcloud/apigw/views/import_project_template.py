@@ -67,7 +67,7 @@ def import_project_template(request, project_id):
         import_result = TaskTemplate.objects.import_templates(
             template_data=r["data"]["template_data"],
             override=False,
-            project_id=project_id,
+            project_id=request.project.id,
             operator=request.user.username,
         )
     except Exception as e:
