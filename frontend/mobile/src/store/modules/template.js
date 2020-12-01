@@ -70,10 +70,11 @@ export default {
                 'creator': rootState.user.username,
                 'name': data.name,
                 'description': data.description,
-                'pipeline_tree': data.exec_data,
+                'pipeline_tree': JSON.stringify(data.exec_data),
                 'create_method': 'mobile',
                 'create_info': 'mobile',
-                'flow_type': 'common'
+                'flow_type': 'common',
+                'template_source': 'project'
             }
             return http.post(
                 'api/v3/weixin_taskflow/',

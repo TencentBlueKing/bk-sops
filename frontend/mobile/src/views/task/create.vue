@@ -267,7 +267,9 @@
                         }
                         const pipelineTree = await this.getPreviewTaskTree(params)
                         Object.keys(this.templateConstants).forEach(k => {
-                            pipelineTree.constants[k].value = this.templateConstants[k].value
+                            if (pipelineTree.constants[k]) { // 可能存在未引用变量
+                                pipelineTree.constants[k].value = this.templateConstants[k].value
+                            }
                         })
                         const data = {
                             'name': this.taskName,
