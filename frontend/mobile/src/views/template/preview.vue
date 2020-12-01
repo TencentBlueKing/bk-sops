@@ -51,7 +51,7 @@
             async loadData () {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const params = {
-                    template_id: this.$route.query.templateId || this.template_id,
+                    template_id: Number(this.$route.query.templateId || this.template_id),
                     exclude_task_nodes_id: this.excludeTaskNodes,
                     template_source: 'project'
                 }
