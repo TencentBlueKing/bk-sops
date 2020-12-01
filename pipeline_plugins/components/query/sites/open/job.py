@@ -31,14 +31,7 @@ JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT
 JOB_VAR_CATEGORY_IP = 3
 
 
-def job_get_script_list(request, biz_cc_id):
-    """
-    查询业务脚本列表
-    :param request:
-    :param biz_cc_id:
-    :return:
-    """
-    # 查询脚本列表
+def _job_get_scripts_data(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     source_type = request.GET.get("type")
     script_type = request.GET.get("script_type")
@@ -60,8 +53,32 @@ def job_get_script_list(request, biz_cc_id):
         message = handle_api_error("job", api_name, kwargs, script_result)
         logger.error(message)
         result = {"result": False, "message": message}
-        return JsonResponse(result)
+        return result
 
+    return script_result
+
+
+def job_get_script_name_list(request, biz_cc_id):
+    script_result = _job_get_scripts_data(request, biz_cc_id)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
+    script_names = []
+    for script in script_result["data"]["data"]:
+        script_names.append({"text": script["name"], "value": script["name"]})
+    return JsonResponse({"result": True, "data": script_names})
+
+
+def job_get_script_list(request, biz_cc_id):
+    """
+    查询业务脚本列表
+    :param request:
+    :param biz_cc_id:
+    :return:
+    """
+    # 查询脚本列表
+    script_result = _job_get_scripts_data(request, biz_cc_id)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
     script_dict = {}
     for script in script_result["data"]["data"]:
         script_dict.setdefault(script["name"], []).append(script["id"])
@@ -208,6 +225,7 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
 
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
+    url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
     url(r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$", job_get_own_db_account_list,),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
     url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
