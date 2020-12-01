@@ -14,10 +14,10 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf import settings
-from gcloud.utils.cmdb import batch_request
-from pipeline.core.data.var import LazyVariable
 from api import BKGseKitClient
+from gcloud.conf import settings
+from pipeline.core.data.var import LazyVariable
+
 logger = logging.getLogger("root")
 
 
@@ -41,9 +41,10 @@ class GseKitSetModuleIpSelector(LazyVariable):
             "bk_process_id": var_ip_selector.get("var_process_instance_id", "*"),
         }
         client = BKGseKitClient(operator)
-        process_status_result = batch_request(client.list_process,
-                                              expression_scope_kwargs,
-                                              page_param={"cur_page_param": "page", "page_size_param": "pagesize"})
+        process_status_result = client.list_process(
+            expression_scope=expression_scope_kwargs,
+            page_param={"cur_page_param": "page", "page_size_param": "pagesize"}
+        )
         ip_list = [process_status["bk_host_innerip"] for process_status in process_status_result]
         ip_str = ",".join(ip_list)
         return ip_str

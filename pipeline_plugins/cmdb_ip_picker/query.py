@@ -17,7 +17,7 @@ import ujson as json
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.cmdb import batch_request
+from api.utils.cmdb import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 

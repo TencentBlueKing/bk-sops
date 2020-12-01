@@ -88,26 +88,16 @@ PROC_STATUS_ERROR_RETURN = []
 
 SUCCESS_RESULT = "127.0.0.1,172.0.0.1"
 ERROR_RESULT = ""
-BATCH_REQUEST = "pipeline_plugins.variables.collections.sites.open.gse_kit.var_gse_kit_ip_selector.batch_request"
+LIST_PROCESS_CLIENT = "pipeline_plugins.variables.collections.sites.open.gse_kit.var_gse_kit_ip_selector." \
+                      "BKGseKitClient.list_process"
 
 
 class VarGseKitIpSelector(TestCase):
     def setUp(self):
         self.pipeline_data = {"executor": "admin", "biz_cc_id": 123, "project_id": 1}
 
-        mock_client = MagicMock()
-        mock_client.gse_kit.list_process = "list_process"
-        self.get_client_by_user_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.gse_kit.var_gse_kit_ip_selector.BKGseKitClient",
-            MagicMock(return_value=mock_client)
-        )
 
-        self.get_client_by_user_patcher.start()
-
-    def tearDown(self):
-        self.get_client_by_user_patcher.stop()
-
-    @patch(BATCH_REQUEST, MagicMock(return_value=PROC_STATUS_SUCCESS_RETURN))
+    @patch(LIST_PROCESS_CLIENT, MagicMock(return_value=PROC_STATUS_SUCCESS_RETURN))
     def test_ip_selector_success_case(self):
         ip_selector = GseKitSetModuleIpSelector(
             pipeline_data=self.pipeline_data,
@@ -117,7 +107,7 @@ class VarGseKitIpSelector(TestCase):
         )
         self.assertEqual(SUCCESS_RESULT, ip_selector.get_value())
 
-    @patch(BATCH_REQUEST, MagicMock(return_value=PROC_STATUS_ERROR_RETURN))
+    @patch(LIST_PROCESS_CLIENT, MagicMock(return_value=PROC_STATUS_ERROR_RETURN))
     def test_ip_fail_case(self):
         ip_selector = GseKitSetModuleIpSelector(
             pipeline_data=self.pipeline_data,

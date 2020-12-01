@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
-from gcloud.utils.cmdb import batch_request
+from api.utils.cmdb import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_inject
 from pipeline_plugins.variables.query.sites.open import select

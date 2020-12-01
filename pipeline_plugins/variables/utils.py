@@ -4,7 +4,7 @@ import logging
 from django.http import JsonResponse
 
 from gcloud.conf import settings
-from gcloud.utils.cmdb import batch_request
+from api.utils.cmdb import batch_request
 from gcloud.utils.handlers import handle_api_error
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

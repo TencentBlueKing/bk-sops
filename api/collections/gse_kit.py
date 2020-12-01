@@ -15,6 +15,7 @@ from django.conf import settings
 
 import env
 from api.client import BKComponentClient
+from api.utils.cmdb import batch_request
 
 # TODO:待GSE KIT接入ESB后修改
 GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(
@@ -40,6 +41,24 @@ class BKGseKitClient(BKComponentClient):
         return data
 
     def list_process(
+            self,
+            page_param,
+            scope=None,
+            expression_scope=None,
+            bk_cloud_ids=None,
+            process_status=None,
+            is_auto=None,
+    ):
+        params = {
+            "scope": scope,
+            "expression_scope": expression_scope,
+            "bk_cloud_ids": bk_cloud_ids,
+            "process_status": process_status,
+            "is_auto": is_auto
+        }
+        return batch_request(func=self._list_processes, params=params, page_param=page_param)
+
+    def _list_processes(
             self,
             pagesize,
             page,
