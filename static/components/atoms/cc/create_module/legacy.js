@@ -263,28 +263,24 @@
                             validation: [{type: "required"}],
                             multiple: false,
                         },
-                        events: [
-                            {
-                                source: "cc_service_category",
-                                type: "init",
-                                action: function () {
-                                    const url = $.context.get('site_url') + 'pipeline/cc_get_service_category_topo/' + $.context.getBkBizId() + '/';
-                                    let self = this;
-                                    $.ajax({
-                                        url: url,
-                                        type: 'GET',
-                                        dataType: 'json',
-                                        success: function (resp) {
-                                            self.items = resp.data;
-                                        },
-                                        error: function (resp) {
-                                            self.items = [];
-                                            show_msg(resp.message, 'error');
-                                        }
-                                    })
-                                }
-                            },
-                        ]
+                        methods: {
+                            _tag_init() {
+                                const url = $.context.get('site_url') + 'pipeline/cc_get_service_category_topo/' + $.context.getBkBizId() + '/';
+                                let self = this;
+                                $.ajax({
+                                    url: url,
+                                    type: 'GET',
+                                    dataType: 'json',
+                                    success: function (resp) {
+                                        self.items = resp.data;
+                                    },
+                                    error: function (resp) {
+                                        self.items = [];
+                                        show_msg(resp.message, 'error');
+                                    }
+                                })
+                            }
+                        }
                     });
                     return data;
                 },
@@ -396,11 +392,11 @@
                                 return $.context.get('site_url') + 'pipeline/cc_list_service_template/' + $.context.getBkBizId() + '/';
                             },
                             remote_data_init: function (resp) {
-                    if (resp.result === false) {
-                        show_msg(resp.message, 'error');
-                    }
-                    return resp.data;
-                },
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
+                                return resp.data;
+                            },
                         }
                     });
                     return data;

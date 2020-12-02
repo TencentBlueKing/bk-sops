@@ -20,7 +20,7 @@ Get tasks list for a business, support task name keyword searching
 |   keyword     |   string     |   NO   |  keyword to filter the task list based on the task name. default is no filter |
 |   is_started  |   bool       |   NO   |  task status to filter the task list based on the start status. default is no filter |
 |   is_finished |   bool       |   NO   |  task status to filter the task list based on the finish status. default is no filter |
-|   limit       |   int        |   NO   |  pagination, the number of tasks in the task list in each result. default is 15 |
+|   limit       |   int        |   NO   | pagination, the number of tasks in the task list in each result. default is 100 |
 |   offset      |   int        |   NO   |  pagination, the start index of task in the task list in each result. default is 0 |
 
 ### Request Parameters Example
@@ -144,6 +144,7 @@ Get tasks list for a business, support task name keyword searching
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+| count | int | amount of data list |
 
 ##### data[item]
 
@@ -165,9 +166,3 @@ Get tasks list for a business, support task name keyword searching
 |  project_name    |  string      | project name |
 |  bk_biz_id       |  int         | business ID  |
 |  bk_biz_name     |  string      | business name |
-
-
-
-
-
-

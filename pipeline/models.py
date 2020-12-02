@@ -613,7 +613,7 @@ class PipelineInstance(models.Model):
     流程实例对象
     """
 
-    instance_id = models.CharField(_("实例ID"), max_length=32, unique=True)
+    instance_id = models.CharField(_("实例ID"), max_length=32, unique=True, db_index=True)
     template = models.ForeignKey(
         PipelineTemplate, verbose_name=_("Pipeline模板"), null=True, blank=True, on_delete=models.SET_NULL
     )
