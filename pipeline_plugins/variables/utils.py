@@ -109,7 +109,7 @@ def get_service_template_list(username, bk_biz_id, bk_supplier_account):
     if not list_service_template_return["result"]:
         message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
         logger.error(message)
-        return []
+        return JsonResponse({"result": False, "data": [], "message": message})
     return list_service_template_return["data"]["info"]
 
 
@@ -152,7 +152,13 @@ def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
         message = handle_api_error("cc", "cc.get_biz_internal_module", params, get_biz_internal_module_return)
         logger.error(message)
         return JsonResponse({"result": False, "data": [], "message": message})
-    return get_biz_internal_module_return["data"]["info"]
+    result = []
+    for get_biz_internal_module_option in get_biz_internal_module_return["data"]["module"]:
+        result.append({
+            "id": get_biz_internal_module_option["bk_module_id"],
+            "name": get_biz_internal_module_option["bk_module_name"]
+        })
+    return result
 
 
 def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
