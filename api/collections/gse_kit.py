@@ -15,7 +15,7 @@ from django.conf import settings
 
 import env
 from api.client import BKComponentClient
-from api.utils.cmdb import batch_request
+from api.utils.request import batch_request
 
 # TODO:待GSE KIT接入ESB后修改
 GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(

@@ -16,7 +16,7 @@ import logging
 from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from api.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from pipeline.core.data.var import LazyVariable
 
 logger = logging.getLogger("root")

@@ -15,7 +15,7 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from api.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error

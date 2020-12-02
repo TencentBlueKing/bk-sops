@@ -17,7 +17,7 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
-from api.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
