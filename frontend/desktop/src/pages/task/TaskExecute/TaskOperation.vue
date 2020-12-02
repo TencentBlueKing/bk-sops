@@ -284,7 +284,8 @@
                 isNodeResumeDialogShow: false,
                 nodeResumeId: undefined,
                 operateLoading: false,
-                retrievedCovergeGateways: [] // 遍历过的汇聚节点
+                retrievedCovergeGateways: [], // 遍历过的汇聚节点
+                pollErrorTimes: 0 // 任务状态查询异常连续三次后，停止轮询
             }
         },
         computed: {
@@ -439,6 +440,8 @@
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
+                        this.pollErrorTimes = 0
+
                         if (
                             !this.cacheStatus
                             && ['FINISHED', 'REVOKED'].includes(this.state)
@@ -451,7 +454,12 @@
                         }
                         this.updateNodeInfo()
                     } else {
-                        this.cancelTaskStatusTimer()
+                        this.pollErrorTimes += 1
+                        if (this.pollErrorTimes > 2) {
+                            this.cancelTaskStatusTimer()
+                        } else {
+                            this.setTaskStatusTimer()
+                        }
                         errorHandler(instanceStatus, this)
                     }
                 } catch (e) {

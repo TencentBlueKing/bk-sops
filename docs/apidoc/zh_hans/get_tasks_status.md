@@ -54,6 +54,9 @@
                 "start_time": "2020-03-18 17:22:05 +0800",
                 "finish_time": "2020-03-18 17:22:46 +0800"
             },
+            "flow_type": "common",
+            "current_flow": "finished",
+            "is_deleted": false,
             "create_time": "2020-03-18 17:21:24 +0800",
             "start_time": "2020-03-18 17:22:04 +0800",
             "finish_time": "2020-03-18 17:22:46 +0800",
@@ -75,6 +78,9 @@
                 "start_time": "2020-03-18 17:15:34 +0800",
                 "finish_time": ""
             },
+            "flow_type": "common",
+            "current_flow": "finished",
+            "is_deleted": false,
             "create_time": "2020-03-18 17:14:44 +0800",
             "start_time": "2020-03-18 17:15:33 +0800",
             "finish_time": "",
@@ -96,6 +102,9 @@
                 "start_time": "2020-03-18 15:44:36 +0800",
                 "finish_time": ""
             },
+            "flow_type": "common",
+            "current_flow": "finished",
+            "is_deleted": false,
             "create_time": "2020-03-18 15:44:31 +0800",
             "start_time": "2020-03-18 15:44:35 +0800",
             "finish_time": "",
@@ -119,10 +128,13 @@
 | ------------ | ---------- | ------------------------------ |
 |  id      |    string    |      任务 ID    |
 |  name      |    string    |    任务名    |
-|  status      |    dict    |      状态详情    |
+|  status      |    dict    |    状态详情，详细信息见下面说明    |
 |  create_time      |    string    |     任务创建时间   |
 |  start_time      |    string    |     任务开始时间   |
 |  finish_time      |    string    |      任务完成时间    |
+| flow_type | stirng | 任务流程类型（common:普通流程任务, common_func: 职能化任务） |
+| current_flow | string | 任务当前流程，详细信息见下面说明 |
+| is_deleted | bool | 任务当前是否删除 |
 |  children      |    dict   |      任务节点执行详情，详细信息见下面说明   |
 
 
@@ -147,3 +159,23 @@
 
 #### data.children VALUE
 同 status 格式
+
+#### data.current_flow（flow_type为common）
+
+| 名称         | 含义     |
+| ------------ | -------- |
+| select_steps | 步骤选择 |
+| fill_params  | 参数填写 |
+| execute_task | 任务执行 |
+| finished     | 完成     |
+
+#### data.current_flow（flow_type为common_func）
+
+| 名称         | 含义       |
+| ------------ | ---------- |
+| select_steps | 步骤选择   |
+| func_submit  | 提交需求   |
+| func_claim   | 职能化认领 |
+| execute_task | 任务执行   |
+| finished     | 完成       |
+
