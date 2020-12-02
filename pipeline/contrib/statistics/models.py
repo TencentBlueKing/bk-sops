@@ -55,7 +55,7 @@ class ComponentExecuteData(models.Model):
 
 
 class TemplateInPipeline(models.Model):
-    template_id = models.CharField(_("模板ID"), max_length=255)
+    template_id = models.CharField(_("模板ID"), max_length=255, db_index=True)
     atom_total = models.IntegerField(_("标准插件总数"))
     subprocess_total = models.IntegerField(_("子流程总数"))
     gateways_total = models.IntegerField(_("网关总数"))
@@ -69,7 +69,7 @@ class TemplateInPipeline(models.Model):
 
 
 class InstanceInPipeline(models.Model):
-    instance_id = models.CharField(_("实例ID"), max_length=255)
+    instance_id = models.CharField(_("实例ID"), max_length=255, db_index=True)
     atom_total = models.IntegerField(_("标准插件总数"))
     subprocess_total = models.IntegerField(_("子流程总数"))
     gateways_total = models.IntegerField(_("网关总数"))
