@@ -195,6 +195,7 @@
                         case 'member_selector':
                         case 'section':
                         case 'code_editor':
+                        case 'log_display':
                             val = ''
                             break
                         case 'checkbox':
