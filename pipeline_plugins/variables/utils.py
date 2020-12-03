@@ -3,7 +3,7 @@ import logging
 
 from django.http import JsonResponse
 
-from api.utils.request import batch_request
+from gcloud.utils.cmdb import batch_request
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 

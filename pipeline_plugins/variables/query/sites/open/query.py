@@ -16,7 +16,7 @@ from django.conf.urls import url
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
-from api.utils.request import batch_request
+from gcloud.utils.cmdb import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
