@@ -28,6 +28,7 @@ future==0.18.1
 django-cors-headers==3.2.1
 pyinstrument==3.1.3
 djangorestframework==3.11.1
+django-filter==2.0.0
 
 # pipeline
 ujson==1.35
