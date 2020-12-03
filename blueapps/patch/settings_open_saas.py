@@ -43,8 +43,8 @@ INSTALLED_APPS = (
 
 # PAASV2对外版不需要whitenoise,MIDDLEWARE中去除'whitenoise.middleware.WhiteNoiseMiddleware'
 MIDDLEWARE = (
-    MIDDLEWARE[0 : MIDDLEWARE.index("whitenoise.middleware." "WhiteNoiseMiddleware")]
-    + MIDDLEWARE[MIDDLEWARE.index("whitenoise.middleware." "WhiteNoiseMiddleware") + 1 :]  # noqa
+    MIDDLEWARE[0 : MIDDLEWARE.index("whitenoise.middleware.WhiteNoiseMiddleware")]
+    + MIDDLEWARE[MIDDLEWARE.index("whitenoise.middleware.WhiteNoiseMiddleware") + 1 :]  # noqa
 )
 
 # BROKER_URL
