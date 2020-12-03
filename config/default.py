@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import env
+
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
@@ -340,8 +342,23 @@ PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 # pipeline mako render settings
 MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
 
-MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+MAKO_SANDBOX_IMPORT_MODULES = {
+    "datetime": "datetime",
+    "re": "re",
+    "hashlib": "hashlib",
+    "random": "random",
+    "time": "time",
+}
 
+if env.SOPS_MAKO_IMPORT_MODULES:
+    for module_name in env.SOPS_MAKO_IMPORT_MODULES.split(","):
+        try:
+            __import__(module_name)
+        except ImportError as e:
+            err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(module_name, e)
+            print(err)
+            raise ImportError(err)
+        MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
