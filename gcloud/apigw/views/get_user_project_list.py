@@ -36,11 +36,11 @@ def get_user_project_list(request):
     try:
         biz_list = get_user_projects(request.user.username)
     except Exception as e:
-        logger.exception("[API] get_user_business_list call fail: {}".format(e))
+        logger.exception("[API] get_user_project_list call fail: {}".format(e))
         return JsonResponse(
             {
                 "result": False,
-                "message": "can not fetch business for user[{}]".format(request.user.username),
+                "message": "can not fetch project for user[{}]".format(request.user.username),
                 "code": err_code.UNKNOWN_ERROR.code,
             }
         )
