@@ -14,6 +14,8 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.conf import settings
+from gcloud.core.models import Project
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str
@@ -26,12 +28,12 @@ from pipeline_plugins.variables.utils import (
     get_service_template_list,
     list_biz_hosts,
     find_module_with_relation,
+    get_biz_internal_module,
 )
 
-from gcloud.conf import settings
-from gcloud.core.models import Project
-
 ALL_SELECTED_STR = "all"
+BIZ_INTERNAL_SET = "空闲机池"
+BIZ_INTERNAL_MODULE = ("空闲机", "待回收", "故障机")
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -131,8 +133,11 @@ def get_module_id_list(
     if not filter_set_names:
         set_ids = [set_item["bk_set_id"] for set_item in set_list]
     else:
+        # 如果筛选规则中有空闲机池，排除空闲机池set id
         set_ids = [
-            set_item["bk_set_id"] for set_item in set_list if set_item["bk_set_name"] in filter_set_names.split(",")
+            set_item["bk_set_id"]
+            for set_item in set_list
+            if set_item["bk_set_name"] in filter_set_names.split(",") and set_item["bk_set_name"] != BIZ_INTERNAL_SET
         ]
     if not filter_service_template_names:
         service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
@@ -142,6 +147,23 @@ def get_module_id_list(
             for service_template_item in service_template_list
             if service_template_item["name"] in filter_service_template_names.split(",")
         ]
+
+    # 筛选规则与空闲机、待回收、故障机模块取交集
+    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names.split(","))
+    # 用户输入空闲机，只取空闲机模块ID
+    if biz_internal_module:
+        service_template_ids.append(
+            biz_internal_module_item["id"]
+            for biz_internal_module_item in service_template_list
+            if biz_internal_module_item["name"] in biz_internal_module
+        )
+    # 用户输入空闲机池，取空闲机池下所有模块ID
+    if BIZ_INTERNAL_SET in filter_set_names and not biz_internal_module:
+        service_template_ids.append(
+            biz_internal_module_item["id"]
+            for biz_internal_module_item in service_template_list
+            if biz_internal_module_item["name"] in BIZ_INTERNAL_MODULE
+        )
 
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
@@ -208,6 +230,20 @@ def get_ip_result_by_input_method(
         service_template_list = get_service_template_list_by_names(
             selected_service_template_names, service_template_list
         )
+
+    # 根据输入获取空闲机module id
+    service_template_list.extend(
+        get_biz_inner_module_list(
+            set_input_method,
+            module_input_method,
+            var_ip_selector,
+            username,
+            bk_biz_id,
+            bk_supplier_account,
+            produce_method,
+        )
+    )
+
     # 获取模块id列表
     module_ids = get_module_id_list(
         bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template
@@ -220,3 +256,43 @@ def get_ip_result_by_input_method(
         kwargs = {"bk_ids": module_ids, "fields": var_module_name.split(",")}
         data = [module_attr[var_module_name] for module_attr in get_module_list(username, bk_biz_id, kwargs=kwargs)]
     return data
+
+
+def get_biz_inner_module_list(
+    set_input_method,
+    module_input_method,
+    var_ip_selector,
+    username,
+    bk_biz_id,
+    bk_supplier_account,
+    produce_method,
+):
+    """
+    @summary 根据输入获取空闲机module id
+    @param var_module_name: 模块属性名
+    @param set_input_method: 集群输入方式对应tag code
+    @param module_input_method: 模块输入方式对应tag code
+    @param var_ip_selector: 表单数据
+    @param username: 用户名
+    @param bk_biz_id: 业务id
+    @param bk_supplier_account: 供应商账户
+    @param produce_method: 输入方式
+    @return:
+    """
+    select_method = var_ip_selector[produce_method]
+    # 获取所有空闲机池下的模块ID
+    biz_internal_module_list = get_biz_internal_module(username, bk_biz_id, bk_supplier_account)
+    # 勾选的模块与空闲机、待回收、故障机模块取交集
+    select_biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(select_method[module_input_method])
+
+    biz_internal_module_option_list = []
+    # 用户输入空闲机池，取空闲机池下所有模块ID
+    if BIZ_INTERNAL_SET in select_method[set_input_method] and not select_biz_internal_module:
+        biz_internal_module_option_list = biz_internal_module_list
+    # 用户输入空闲机，只取空闲机模块ID
+    if select_biz_internal_module:
+        for biz_internal_module_option in biz_internal_module_list:
+            if biz_internal_module_option["name"] in select_biz_internal_module:
+                biz_internal_module_option_list.append(biz_internal_module_option)
+
+    return biz_internal_module_option_list
