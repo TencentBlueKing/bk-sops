@@ -217,7 +217,7 @@ msgstr "New Task"
 msgid "新建周期任务"
 msgstr "New Periodic Task"
 
-#: gcloud/conf/i18n.py:18
+#: gcloud/conf/sites/enterprise/ver_settings.py:19
 msgid "蓝鲸智云企业版"
 msgstr "BK Enterprise Edition"
 

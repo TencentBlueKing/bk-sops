@@ -40,7 +40,7 @@ APP_NAME = _("标准运维")
 DEFAULT_OPEN_VER = "community"
 OPEN_VER = os.environ.get("RUN_VER", "open")
 
-# 区分社区版和企业版
+# 区分社区版和其他open版本
 if OPEN_VER == "open":
     OPEN_VER = os.environ.get("OPEN_VER", DEFAULT_OPEN_VER)
     if not OPEN_VER:
