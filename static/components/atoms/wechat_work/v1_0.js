@@ -14,19 +14,19 @@ $.atoms.wechat_work_send_message = [
         "tag_code": "wechat_work_chat_id"
     },
     {
-        tag_code: "msgtype",
-        type: "radio",
-        attrs: {
-            name: gettext("消息格式"),
-            hookable: false,
-            items: [
-                {name: gettext("文本(text)"), value: "text"},
-                {name: gettext("Markdown"), value: "markdown"},
+        "tag_code": "msgtype",
+        "type": "radio",
+        "attrs": {
+            "name": gettext("消息格式"),
+            "hookable": false,
+            "items": [
+                {"name": gettext("文本(text)"), "value": "text"},
+                {"name": gettext("Markdown"), "value": "markdown"},
             ],
-            default: "text",
-            validation: [
+            "default": "text",
+            "validation": [
                 {
-                    type: "required"
+                    "type": "required"
                 }
             ],
         },
