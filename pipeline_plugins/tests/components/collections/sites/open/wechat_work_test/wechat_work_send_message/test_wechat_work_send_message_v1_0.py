@@ -52,7 +52,12 @@ REQUESTS_POST = (
 
 WEBHOOK_NOT_CONFIG_CASE = ComponentTestCase(
     name="webhook not config test case",
-    inputs={"wechat_work_chat_id": "@all", "message_content": "haha", "wechat_work_mentioned_members": ""},
+    inputs={
+        "wechat_work_chat_id": "@all",
+        "message_content": "haha",
+        "wechat_work_mentioned_members": "",
+        "msgtype": "text",
+    },
     parent_data={},
     execute_assertion=ExecuteAssertion(
         success=False, outputs={"ex_data": "WechatWork send message URL is not config, contact admin please"}
@@ -63,7 +68,12 @@ WEBHOOK_NOT_CONFIG_CASE = ComponentTestCase(
 
 EMPTY_CHAT_ID_CASE = ComponentTestCase(
     name="empty chat id case",
-    inputs={"wechat_work_chat_id": "", "message_content": "haha", "wechat_work_mentioned_members": ""},
+    inputs={
+        "wechat_work_chat_id": "",
+        "message_content": "haha",
+        "wechat_work_mentioned_members": "",
+        "msgtype": "text",
+    },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "会话 ID 不能为空"}),
     schedule_assertion=None,
@@ -72,7 +82,12 @@ EMPTY_CHAT_ID_CASE = ComponentTestCase(
 
 INVALID_CHAT_ID_CASE = ComponentTestCase(
     name="invalid chat id case",
-    inputs={"wechat_work_chat_id": "@all", "message_content": "haha", "wechat_work_mentioned_members": ""},
+    inputs={
+        "wechat_work_chat_id": "@all",
+        "message_content": "haha",
+        "wechat_work_mentioned_members": "",
+        "msgtype": "text",
+    },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无效的会话 ID: @all"}),
     schedule_assertion=None,
@@ -85,6 +100,7 @@ WEBHOOK_CALL_ERR_CASE = ComponentTestCase(
         "wechat_work_chat_id": "11111111111111111111111111111111\n22222222222222222222222222222222",  # noqa
         "message_content": "haha",
         "wechat_work_mentioned_members": "",
+        "msgtype": "text",
     },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "企业微信发送消息请求失败，详细信息: exc_token"}),
@@ -106,6 +122,7 @@ WEBHOOK_CALL_RESP_NOT_OK_CASE = ComponentTestCase(
         "wechat_work_chat_id": "11111111111111111111111111111111\n22222222222222222222222222222222",  # noqa
         "message_content": "haha",
         "wechat_work_mentioned_members": "",
+        "msgtype": "text",
     },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "企业微信发送消息请求失败，状态码: 500, 响应: content_token"}),
@@ -129,6 +146,7 @@ SUCCESS_CASE = ComponentTestCase(
         "wechat_work_chat_id": "11111111111111111111111111111111\n22222222222222222222222222222222",  # noqa
         "message_content": "haha",
         "wechat_work_mentioned_members": "m1,m2",
+        "msgtype": "text",
     },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
