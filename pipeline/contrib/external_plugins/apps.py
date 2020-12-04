@@ -24,7 +24,7 @@ from pipeline.utils import env
 logger = logging.getLogger("root")
 
 DJANGO_MANAGE_CMD = "manage.py"
-DEFAULT_TRIGGERS = {"runserver", "celery", "worker", "uwsgi", "shell"}
+DEFAULT_TRIGGERS = {"runserver", "celery", "worker", "uwsgi", "shell", "update_component_models"}
 
 
 class ExternalPluginsConfig(AppConfig):
