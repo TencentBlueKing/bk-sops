@@ -14,49 +14,87 @@ import axios from 'axios'
 import store from '@/store/index.js'
 import transAtom from '@/utils/transAtom.js'
 
+/**
+ * 异步获取插件配置列表
+ * @param {String} atomUrl 配置文件 js 地址
+ * @param {Boolean} isEmbedded 是为否嵌入式
+ * @param {String} atomType 插件类型
+ * @param {Boolean} atomType 是否输出类型
+ */
+const asyncGetAtomConfig = async function (atomUrl, isEmbedded, atomType, isOutput = false) {
+    // 输入表单挂载名为 code
+    // 输出表单挂载名为 code_output
+    const type = isOutput ? atomType + '_output' : atomType
+    if (!atomUrl) {
+        return []
+    }
+
+    if (isEmbedded) {
+        /* eslint-disable-next-line */
+        eval(atomUrl)
+        const configData = transAtom($.atoms, type)
+        $.atoms[type] = configData
+        return $.atoms[type]
+    } else {
+        const list = await new Promise((resolve, reject) => {
+            $.getScript(atomUrl, function (response) {
+                const configData = transAtom($.atoms, type)
+                $.atoms[type] = configData
+                resolve($.atoms[type])
+            })
+        })
+        return list
+    }
+}
+
 const atomForm = {
     namespaced: true,
     state: {
-        form: {},
-        config: {},
-        output: {}
+        fetching: false,
+        SingleAtomVersionMap: {},
+        form: {}, // 插件所有信息(描述，输入，输出等)
+        config: {}, // 输入-表单配置项
+        output: {}, // 输出-表单初始值 data
+        outputConfig: {} // 输出-表单配置项
     },
     mutations: {
+        setFetching (state, status) {
+            state.fetching = status
+        },
+        // 设置插件信息
         setAtomForm (state, payload) {
-            const atomType = payload.atomType
-            const action = {}
-            action[payload.version] = payload.data
+            const { atomType, version, data } = payload
             if (state.form[atomType]) {
-                Vue.set(state.form, atomType, {
-                    ...state.form[atomType],
-                    ...action
-                })
+                Vue.set(state.form[atomType], version, data)
             } else {
-                Vue.set(state.form, atomType, action)
+                Vue.set(state.form, atomType, { [version]: data })
             }
         },
-        setAtomConfig (state, payload) {
-            const action = {}
-            action[payload.version] = payload.configData
-            if (state.config[payload.atomType]) {
-                Vue.set(state.config, payload.atomType, {
-                    ...state.config[payload.atomType],
-                    ...action
-                })
+        // 设置输入配置
+        setInputConfig (state, payload) {
+            const { version, configList, atomType } = payload
+            if (state.config[atomType]) {
+                Vue.set(state.config[atomType], version, configList)
             } else {
-                Vue.set(state.config, payload.atomType, action)
+                Vue.set(state.config, atomType, { [version]: configList })
             }
         },
-        setAtomOutput (state, payload) {
-            const action = {}
-            action[payload.version] = payload.outputData
-            if (state.output[payload.atomType]) {
-                Vue.set(state.output, payload.atomType, {
-                    ...state.output[payload.atomType],
-                    ...action
-                })
+        // 设置输出数据
+        setAtomOutputData (state, payload) {
+            const { version, atomType, outputData } = payload
+            if (state.output[atomType]) {
+                Vue.set(state.output[atomType], version, outputData)
             } else {
-                Vue.set(state.output, payload.atomType, action)
+                Vue.set(state.output, atomType, { [version]: outputData })
+            }
+        },
+        // 设置输出配置
+        setOutputConfig (state, payload) {
+            const { atomType, version, configList } = payload
+            if (state.outputConfig[atomType]) {
+                Vue.set(state.outputConfig[atomType], version, configList)
+            } else {
+                Vue.set(state.outputConfig, atomType, { [version]: configList })
             }
         },
         clearAtomForm (state, payload) {
@@ -64,6 +102,7 @@ const atomForm = {
             state.form = {}
             state.config = {}
             state.output = {}
+            state.outputConfig = {}
         }
     },
     actions: {
@@ -105,36 +144,38 @@ const atomForm = {
             if (atomClassify === 'component') {
                 params.version = atomVersion
             }
-            await axios.get(url, { params }).then(async response => {
-                const { output: outputData, form: formResource, form_is_embedded: embedded, base } = response.data
+            return axios.get(url, { params }).then(async response => {
+                const {
+                    output: outputData,
+                    form: inputForm,
+                    form_is_embedded: isInputFormEmbedded,
+                    output_form: outputForm,
+                    embedded_output_form: isOutputFormEmbedded,
+                    base
+                } = response.data
+                const result = {
+                    input: [],
+                    output: [],
+                    isRenderOutputForm: !!outputForm
+                }
 
                 commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
-                commit('setAtomOutput', { atomType: atom, outputData, version: atomVersion })
+                commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
                 // 加载标准插件 base 文件
                 if (base) {
                     await $.getScript(base)
                 }
 
-                // 标准插件配置项内嵌到 form 字段
-                if (embedded) {
-                    /*eslint-disable */
-                    eval(formResource)
-                    /*eslint-disable */
-                    const configData = transAtom($.atoms, atom)
-                    $.atoms[atom] = configData
-                    commit('setAtomConfig', { atomType: atom, version: atomVersion, configData })
-                    return Promise.resolve({ data: config })
+                if (outputForm) {
+                    result.output = await asyncGetAtomConfig(outputForm, isOutputFormEmbedded, atom, true)
+                    commit('setOutputConfig', { atomType: atom, version: atomVersion, configList: result.output })
                 }
-
-                return await new Promise ((resolve, reject) => {
-                    $.getScript(formResource, function(response) {
-                        const configData = transAtom($.atoms, atom)
-                        $.atoms[atom] = configData
-                        commit('setAtomConfig', { atomType: atom, version: atomVersion, configData })
-                        resolve(response)
-                    })
-                })
+                if (inputForm) {
+                    result.input = await asyncGetAtomConfig(inputForm, isInputFormEmbedded, atom)
+                    commit('setInputConfig', { atomType: atom, version: atomVersion, configList: result.input })
+                }
+                return result
             })
         },
         /**

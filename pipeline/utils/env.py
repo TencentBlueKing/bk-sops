@@ -10,16 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
+import sys
+import traceback
+
+DJANGO_MANAGE_CMD = "manage.py"
 
 
-@receiver(post_save, sender=TaskFlowInstance)
-def task_resource_creator_action_handler(sender, instance, created, **kwargs):
-    register_grant_resource_creator_action_attributes(
-        IAMMeta.TASK_RESOURCE, instance.creator, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
-    )
+def get_django_command():
+    if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
+        try:
+            return sys.argv[1]
+        except Exception:
+            print(
+                "get django start up command error with argv: {argv}, traceback: {traceback}".format(
+                    argv=sys.argv, traceback=traceback.format_exc()
+                )
+            )
+
+            return None
+
+    return None

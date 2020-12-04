@@ -64,7 +64,7 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     :rtype: list
     """
     client = get_client_by_user(username)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": host_fields or []}
+    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if ip_list:
         kwargs["host_property_filter"] = {
@@ -114,7 +114,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     ]
     :rtype: [type]
     """
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": host_fields or []}
+    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if ip_list:
         kwargs["host_property_filter"] = {

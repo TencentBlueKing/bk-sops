@@ -11,12 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.engine.signals import activity_failed
-from gcloud.taskflow3.signals.handlers import taskflow_node_failed_handler
+from pipeline.conf import settings
+from pipeline.utils import env
+
+UPDATE_TRIGGER = "update_component_models"
 
 
-def dispatch_activity_failed():
-    activity_failed.connect(
-        taskflow_node_failed_handler,
-        dispatch_uid='_taskflow_node_failed',
-    )
+def skip_update_comp_models():
+    if settings.AUTO_UPDATE_COMPONENT_MODELS:
+        return False
+
+    django_command = env.get_django_command()
+    if django_command is None:
+        return True
+
+    return django_command != UPDATE_TRIGGER

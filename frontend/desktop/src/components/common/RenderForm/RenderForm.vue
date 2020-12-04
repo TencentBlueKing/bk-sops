@@ -195,6 +195,7 @@
                         case 'member_selector':
                         case 'section':
                         case 'code_editor':
+                        case 'log_display':
                             val = ''
                             break
                         case 'checkbox':
@@ -232,7 +233,7 @@
                                     module_detail: []
                                 },
                                 data: [],
-                                separetor: ','
+                                separator: ','
                             }
                             break
                         case 'host_allocation':
@@ -243,7 +244,8 @@
                                     host_resources: [],
                                     host_filter_detail: []
                                 },
-                                data: []
+                                data: [],
+                                separator: ','
                             }
                             break
                         default:

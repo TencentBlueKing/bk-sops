@@ -30,6 +30,7 @@ urlpatterns = [
     url(r"^core/footer/$", api.get_footer),
     url(r"^core/api/get_user_list/$", api.get_user_list),
     url(r"^core/api/get_msg_types/$", api.get_msg_types),
+    url(r"^core/healthz", api.healthz),
     # i18n
     url(r"^jsi18n/(?P<packages>\S+?)/$", javascript_catalog),
     # version log

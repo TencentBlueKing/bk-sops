@@ -14,10 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from packages.blueking.component.shortcuts import (
-    get_client_by_request,
-    get_client_by_user
-)
+from packages.blueking.component.shortcuts import get_client_by_request, get_client_by_user
 
 RUN_VER_NAME = _("蓝鲸智云社区版")
 
@@ -27,13 +24,12 @@ ESB_GET_CLIENT_BY_USER = get_client_by_user
 ESB_GET_OLD_CLIENT_BY_REQUEST = get_client_by_request
 ESB_GET_OLD_CLIENT_BY_USER = get_client_by_user
 
-APP_HOST = '{}{}'.format(settings.BK_PAAS_HOST, settings.SITE_URL)
-ESB_GET_ALL_USER = '{}/api/c/compapi/v2/usermanage/fe_list_users/'.format(settings.BK_PAAS_HOST)
-
-APP_MAKER_UPLOAD_LOGO_USER_UIN = 'bk_token'
-APP_MAKER_UPLOAD_LOGO_USER_KEY = 'bk_token_null'
+APP_HOST = "{}{}".format(settings.BK_PAAS_HOST, settings.SITE_URL)
+ESB_GET_ALL_USER = "{}/api/c/compapi/v2/usermanage/fe_list_users/".format(settings.BK_PAAS_HOST)
+BK_DOC_URL = "https://bk.tencent.com/docs/markdown/标准运维/产品白皮书/产品简介/README.md"
+FEEDBACK_URL = "https://bk.tencent.com/s-mart/community"
+APP_MAKER_UPLOAD_LOGO_USER_UIN = "bk_token"
+APP_MAKER_UPLOAD_LOGO_USER_KEY = "bk_token_null"
 
 IMPORT_V1_TEMPLATE_FLAG = False
 WHETHER_PREPARE_BIZ_IN_API_CALL = True
-
-TEMPLATE_DATA_SALT = 'e5483c1ccde63392bd439775bba6a7ae'

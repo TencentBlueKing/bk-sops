@@ -18,7 +18,7 @@
                 :view-value="!formMode"
                 :urls="urls"
                 :config="setValue.config"
-                :separetor="setValue.separetor"
+                :separator="setValue.separator"
                 :value="setValue.data"
                 @update="update">
             </set-allocation>
@@ -56,6 +56,7 @@
                         host_resources: [],
                         module_detail: []
                     },
+                    separator: '',
                     data: []
                 }
             }
