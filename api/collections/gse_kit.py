@@ -81,3 +81,39 @@ class BKGseKitClient(BKComponentClient):
                 "is_auto": is_auto
             }
         )
+
+    def create_job(self,
+                   bk_biz_id,
+                   job_object,
+                   job_action,
+                   scope=None,
+                   expression_scope=None
+                   ):
+        """
+        创建 gsekit 任务命令
+        """
+        param = {
+            "job_object": job_object,
+            "job_action": job_action,
+            "scope": scope,
+            "expression_scope": expression_scope
+        }
+        return self._request(
+            method="post",
+            url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)),
+            data=param
+        )
+
+    def job_status(self, bk_biz_id, job_task_id):
+        """
+        查询gsekit 任务状态
+        :param job_task_id: string
+        """
+        param = {
+            "job_task_id_list": [job_task_id]
+        }
+        return self._request(
+            method="post",
+            url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)),
+            data=param
+        )
