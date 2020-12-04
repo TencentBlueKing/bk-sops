@@ -50,37 +50,37 @@ JOB_STATUS_CHOICES = (
 
 
 class GsekitJobExecService(Service):
-    # __need_schedule__ = True
-    # interval = StaticIntervalGenerator(5)  # 每隔5秒钟进行重启结果状态轮询
+    __need_schedule__ = True
+    interval = StaticIntervalGenerator(5)  # 每隔5秒钟进行重启结果状态轮询
 
-    # def schedule(self, data, parent_data, callback_data=None):
-    #     """
-    #     gsekit-轮询服务重启结果
-    #     """
-    #     executor = parent_data.get_one_of_inputs("executor")
-    #     client = BKGseKitClient(executor)
-    #     job_task_id = data.outputs.gsekit_job_task_id
-    #
-    #     job_task_status = client.job_status(job_task_id=job_task_id)
-    #     self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
-    #
-    #     if not job_task_status["result"]:
-    #         err_message = handle_api_error("gsekit", "gsekit.check_job_task_status", job_task_id, job_task_status)
-    #         data.set_outputs("ex_data", err_message)
-    #         return False
-    #
-    #     code = job_task_status["data"]["status"]
-    #
-    #     if code == JobStatus.SUCCEEDED:
-    #         self.finish_schedule()
-    #         return True
-    #     elif code in (JobStatus.PENDING, JobStatus.RUNNING):
-    #         return True
-    #     else:
-    #         self.logger.error(
-    #             "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status))
-    #         data.set_outputs("ex_data", "unexpect gsekit job task status code: {}".format(code))
-    #         return False
+    def schedule(self, data, parent_data, callback_data=None):
+        """
+        gsekit-轮询服务重启结果
+        """
+        executor = parent_data.get_one_of_inputs("executor")
+        client = BKGseKitClient(executor)
+        job_task_id = data.outputs.gsekit_job_task_id
+
+        job_task_status = client.job_status(job_task_id=job_task_id)
+        self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
+
+        if not job_task_status["result"]:
+            err_message = handle_api_error("gsekit", "gsekit.check_job_task_status", job_task_id, job_task_status)
+            data.set_outputs("ex_data", err_message)
+            return False
+
+        code = job_task_status["data"]["status"]
+
+        if code == JobStatus.SUCCEEDED:
+            self.finish_schedule()
+            return True
+        elif code in (JobStatus.PENDING, JobStatus.RUNNING):
+            return True
+        else:
+            self.logger.error(
+                "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status))
+            data.set_outputs("ex_data", "unexpect gsekit job task status code: {}".format(code))
+            return False
 
     def inputs_format(self):
         return [
