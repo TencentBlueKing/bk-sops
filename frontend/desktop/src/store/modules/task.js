@@ -258,6 +258,20 @@ const task = {
             }).then(response => response.data)
         },
         /**
+         * 获取执行记录日志
+         * @param {Object} data 节点配置数据
+         */
+        getNodeExecutionRecordLog ({ commit }, data) {
+            const { project_id } = store.state.project
+            const { history_id, instance_id, node_id } = data
+            return axios.get(`taskflow/api/nodes/log/${project_id}/${node_id}/`, {
+                params: {
+                    history_id,
+                    instance_id
+                }
+            }).then(response => response.data)
+        },
+        /**
          * 获取节点执行信息
          * @param {Object} data 节点配置数据
          */

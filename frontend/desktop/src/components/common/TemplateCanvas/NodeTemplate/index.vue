@@ -176,7 +176,7 @@
 <style lang="scss">
     @import '@/scss/mixins/multiLineEllipsis.scss';
 
-    $blueDark: #52699D;
+    $blueDark: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;
@@ -199,6 +199,9 @@
     }
 
     @mixin taskNodeStyle ($color) {
+        &:hover .node-name {
+            border-color: $color;
+        }
         .node-status-block {
             background-color: $color;
         }
@@ -324,6 +327,9 @@
             }
             &:hover {
                 box-shadow: 0px 0px 20px 0px $activeShadow;
+                .node-name {
+                    border-color: $blueDark;
+                }
             }
             &.failed {
                 @include taskNodeStyle ($redDark)
@@ -338,36 +344,47 @@
                 @include taskNodeStyle ($greenDark)
             }
             .node-status-block {
-                float: left;
                 display: flex;
-                justify-content: center;
                 align-items: center;
-                width: 32px;
-                height: 100%;
-                background: #52699d;
+                padding: 0 8px;
+                height: 20px;
+                background: $blueDark;
+                text-align: left;
                 border-top-left-radius: 4px;
-                border-bottom-left-radius: 4px;
+                border-top-right-radius: 4px;
                 .node-icon {
                     width: 16px;
                 }
                 .node-icon-font {
-                    font-size: 18px;
+                    font-size: 16px;
                     color: #ffffff;
+                }
+                .stage-name {
+                    padding: 0 4px;
+                    width: 170px;
+                    font-size: 12px;
+                    color: #ffffff;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
                 }
             }
             .node-name {
                 display: flex;
                 align-items: center;
-                margin-left: 32px;
-                padding: 0 10px;
-                width: 118px;
-                height: 100%;
+                padding: 0 8px;
+                height: calc(100% - 20px);
+                line-height: 14px;
+                border: 1px solid #ffffff;
+                border-top: none;
+                border-bottom-left-radius: 4px;
+                border-bottom-right-radius: 4px;
                 .name-text {
                     display: -webkit-box;
                     width: 100%;
                     font-size: 12px;
                     color: #63656e;
-                    text-align: center;
+                    text-align: left;
                     overflow : hidden;
                     text-overflow: ellipsis;
                     word-break: break-all;

@@ -21,6 +21,9 @@
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 disabled: !$.context.canSelectBiz(),
@@ -77,6 +80,9 @@
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 validation: [
@@ -110,7 +116,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.items = [];
                         if (biz_cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + biz_cc_id + '/';
@@ -235,6 +241,9 @@
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     const data = resp.data;
                     // 将每一列的tag类型修改为input类型，扩充宽度
                     data.forEach(function (column) {
@@ -254,28 +263,24 @@
                             validation: [{type: "required"}],
                             multiple: false,
                         },
-                        events: [
-                            {
-                                source: "cc_service_category",
-                                type: "init",
-                                action: function () {
-                                    const url = $.context.get('site_url') + 'pipeline/cc_get_service_category_topo/' + $.context.getBkBizId() + '/';
-                                    let self = this;
-                                    $.ajax({
-                                        url: url,
-                                        type: 'GET',
-                                        dataType: 'json',
-                                        success: function (resp) {
-                                            self.items = resp.data;
-                                        },
-                                        error: function (resp) {
-                                            self.items = [];
-                                            show_msg(resp.message, 'error');
-                                        }
-                                    })
-                                }
-                            },
-                        ]
+                        methods: {
+                            _tag_init() {
+                                const url = $.context.get('site_url') + 'pipeline/cc_get_service_category_topo/' + $.context.getBkBizId() + '/';
+                                let self = this;
+                                $.ajax({
+                                    url: url,
+                                    type: 'GET',
+                                    dataType: 'json',
+                                    success: function (resp) {
+                                        self.items = resp.data;
+                                    },
+                                    error: function (resp) {
+                                        self.items = [];
+                                        show_msg(resp.message, 'error');
+                                    }
+                                })
+                            }
+                        }
                     });
                     return data;
                 },
@@ -322,7 +327,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.columns = [];
                         if (biz_cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + biz_cc_id + '/';
@@ -355,6 +360,9 @@
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/';
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     let data = resp.data;
                     data.forEach(function (column) {
                         column.type = 'input';
@@ -384,6 +392,9 @@
                                 return $.context.get('site_url') + 'pipeline/cc_list_service_template/' + $.context.getBkBizId() + '/';
                             },
                             remote_data_init: function (resp) {
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
                                 return resp.data;
                             },
                         }
@@ -435,7 +446,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.columns = [];
                         if (biz_cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + biz_cc_id + '/';

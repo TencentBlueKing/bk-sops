@@ -19,6 +19,7 @@ from django.db import transaction
 
 from pipeline.django_signal_valve import valve
 from pipeline.engine import exceptions, signals, states
+from pipeline.engine.core import context
 from pipeline.engine.core.data import delete_parent_data, get_schedule_parent_data, set_schedule_data
 from pipeline.engine.models import Data, MultiCallbackData, PipelineProcess, ScheduleService, Status
 
@@ -59,6 +60,8 @@ def schedule(process_id, schedule_id, data_id=None):
     :return:
     """
     with schedule_exception_handler(process_id, schedule_id):
+        # set up context
+        context.set_node_id(schedule_id[: ScheduleService.SCHEDULE_ID_SPLIT_DIVISION])
 
         # schedule maybe destroyed by other schedule
         try:

@@ -112,7 +112,10 @@
                             trigger: 'blur'
                         },
                         {
-                            max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                            validator (val) {
+                                const reqLenth = /^\$\{\w+\}$/.test(val) ? (STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + 3) : STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH
+                                return val.length <= reqLenth
+                            },
                             message: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         },

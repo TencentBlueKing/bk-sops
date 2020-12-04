@@ -24,8 +24,8 @@
                             <th width="40">
                                 <span
                                     :class="['checkbox', {
-                                        'checked': listAllSelected === true,
-                                        'half-checked': listAllSelected === 'half'
+                                        'checked': listAllSelected,
+                                        'half-checked': selectedIp.length > 0 && selectedIp.length < staticIpList.length
                                     }]"
                                     @click="onSelectAllClick">
                                 </span>
@@ -217,36 +217,25 @@
             },
             onSelectAllClick () {
                 if (this.listAllSelected) {
-                    this.listInPage.forEach(item => {
-                        const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
-                        this.selectedIp.splice(index, 1)
-                    })
+                    this.selectedIp = []
                     this.listAllSelected = false
                 } else {
-                    this.listInPage.forEach(item => {
-                        const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
-                        if (index === -1) {
-                            this.selectedIp.push(item)
-                        }
-                    })
+                    this.selectedIp = [...this.staticIpList]
                     this.listAllSelected = true
                 }
             },
             onHostItemClick (host) {
                 const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
-                let checkedNumInPage = 0
-            
-                this.listInPage.forEach(el => {
-                    if (this.selectedIp.findIndex(item => item.bk_host_id === el.bk_host_id) > -1) {
-                        checkedNumInPage += 1
-                    }
-                })
                 if (index > -1) {
                     this.selectedIp.splice(index, 1)
-                    this.listAllSelected = checkedNumInPage > 1 ? 'half' : false
                 } else {
                     this.selectedIp.push(host)
-                    this.listAllSelected = checkedNumInPage === this.listInPage.length - 1 ? true : 'half'
+                }
+                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.staticIpList.length
+                if (half || this.selectedIp.length === 0) {
+                    this.listAllSelected = false
+                } else {
+                    this.listAllSelected = true
                 }
             },
             getSortIpList (list, way = 'up') {
@@ -274,7 +263,6 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                this.listAllSelected = false
                 this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             onAddIpConfirm () {

@@ -21,6 +21,9 @@
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 disabled: !$.context.canSelectBiz(),
@@ -51,6 +54,9 @@
                     return url
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 validation: [
@@ -64,7 +70,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/prev/' + cc_id + '/';
                             this.remoteMethod();
@@ -98,6 +104,9 @@
                     return url
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     const data = resp.data;
                     data.forEach(function (column) {
                         column.type = 'textarea'
@@ -117,7 +126,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         this.columns = [];
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + cc_id + '/';

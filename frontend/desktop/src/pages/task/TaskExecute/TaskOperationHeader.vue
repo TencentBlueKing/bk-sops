@@ -56,7 +56,6 @@
                     :class="[
                         'params-btn',
                         'solid-eye',
-                        'common-icon',
                         'common-icon-solid-eye',
                         {
                             actived: nodeInfoType === 'executeInfo'
@@ -71,7 +70,6 @@
                 <i
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-edit',
                         {
                             actived: nodeInfoType === 'modifyParams'
@@ -94,10 +92,23 @@
                     :to="getTplURL()">
                 </router-link>
                 <i
+                    :class="[
+                        'params-btn',
+                        'common-icon-flow-data',
+                        {
+                            actived: nodeInfoType === 'templateData'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('流程模板数据'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('templateData', $t('流程模板数据'))">
+                </i>
+                <i
                     v-if="adminView"
                     :class="[
                         'params-btn',
-                        'common-icon',
                         'common-icon-paper',
                         {
                             actived: nodeInfoType === 'taskExecuteInfo'
@@ -336,6 +347,9 @@
                 background: #ffffff;
                 border: 1px solid #c4c6cc;
             }
+        }
+        /deep/.bk-button .bk-icon {
+            font-size: 14px;
         }
     }
 }
