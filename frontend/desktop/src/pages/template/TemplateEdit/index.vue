@@ -483,7 +483,7 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, $.atoms[code])
+                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -737,6 +737,20 @@
              */
             checkAtomData (config, formData) {
                 let isValid = true
+                const formObj = {
+                    // tag 组件的内置方法，未渲染 vue 组件时，在外层提供
+                    get_tag_value: function (path, data = formData) {
+                        const tag = path[0]
+                        if (!(tag in data)) {
+                            throw new Error(`表单值中不存在 ${tag} 属性`)
+                        }
+                        if (path.length === 1) {
+                            return tools.deepClone(data[tag])
+                        } else {
+                            return this.get_tag_value(path.slice(1), data[tag])
+                        }
+                    }
+                }
                 config.forEach(item => {
                     const { tag_code, type, attrs } = item
                     const value = formData[tag_code]
@@ -760,7 +774,7 @@
                                 }
                                 if (item.type === 'custom') {
                                     if (!/^\${[^${}]+}$/.test(value)) { // '${xxx}'格式的值不校验
-                                        const validateInfo = item.args.call(this, value, formData)
+                                        const validateInfo = item.args.call(formObj, value, formData)
                                         if (!validateInfo.result) {
                                             isValid = false
                                         }

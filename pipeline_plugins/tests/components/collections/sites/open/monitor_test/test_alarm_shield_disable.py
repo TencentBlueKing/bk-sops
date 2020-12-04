@@ -20,18 +20,18 @@ from pipeline.component_framework.test import (
     CallAssertion,
     ExecuteAssertion,
     Call,
-    Patcher
+    Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0 import \
-    MonitorAlarmShieldDisableComponent
+from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0 import (
+    MonitorAlarmShieldDisableComponent,
+)
 
 
 class MonitorAlarmShieldDisableComponentTest(TestCase, ComponentTestMixin):
-
     def cases(self):
         return [
-            ALTER_BILL_FAIL_CASE,
-            ALTER_BILL_SUCCESS_CASE,
+            DISABLE_SHIELD_FAIL_CASE,
+            DISABLE_SHIELD_SUCCESS_CASE,
         ]
 
     def component_cls(self):
@@ -40,80 +40,51 @@ class MonitorAlarmShieldDisableComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, disable_shield_result=None):
-        self.monitor = MagicMock()
-        self.monitor.disable_shield = MagicMock(return_value=disable_shield_result)
+        self.disable_shield = MagicMock(return_value=disable_shield_result)
+
+    def __call__(self, *args, **kwargs):
+        return self
 
 
 # mock path
-GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0' \
-                     '.get_client_by_user'
+MONITOR_CLIENT = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield_disable.v1_0.BKMonitorClient"
 
 # mock client
 DISABLE_SHIELD_FAIL_CLIENT = MockClient(
-    disable_shield_result={
-        'result': False,
-        'message': 'disable shield fail',
-        'code': 500
-    }
+    disable_shield_result={"result": False, "message": "disable shield fail", "code": 500}
 )
 
 DISABLE_SHIELD_SUCCESS_CLIENT = MockClient(
-    disable_shield_result={
-        'result': True,
-        'data': {
-            'id': '1',
-        },
-        'message': 'success',
-        'code': 200
-    }
+    disable_shield_result={"result": True, "data": {"id": "1"}, "message": "success", "code": 200}
 )
 
 # test case
-ALTER_BILL_FAIL_CASE = ComponentTestCase(
-    name='disable shield fail case',
-    inputs={
-        'bk_alarm_shield_id_input': '1',
-    },
-    parent_data={
-        'executor': 'executor',
-        'biz_cc_id': 2,
-    },
+DISABLE_SHIELD_FAIL_CASE = ComponentTestCase(
+    name="disable shield fail case",
+    inputs={"bk_alarm_shield_id_input": "1"},
+    parent_data={"executor": "executor", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'data': {'result': '调用监控平台(Monitor)接口monitor.disable_shield返回失败, '
-                                    'params={"bk_biz_id":2,"id":"1"}, error=disable shield fail'},
-                 'status_code': 500}
+        outputs={
+            "data": {
+                "result": "调用监控平台(Monitor)接口monitor.disable_shield返回失败, " 'params={"id":"1"}, error=disable shield fail'
+            },
+            "status_code": 500,
+        },
     ),
     schedule_assertion=None,
-    execute_call_assertion=[CallAssertion(
-        func=DISABLE_SHIELD_FAIL_CLIENT.monitor.disable_shield,
-        calls=[Call({'bk_biz_id': 2, 'id': '1'})]
-    )],
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=DISABLE_SHIELD_FAIL_CLIENT)
-    ]
+    execute_call_assertion=[CallAssertion(func=DISABLE_SHIELD_FAIL_CLIENT.disable_shield, calls=[Call(**{"id": "1"})])],
+    patchers=[Patcher(target=MONITOR_CLIENT, return_value=DISABLE_SHIELD_FAIL_CLIENT)],
 )
 
-ALTER_BILL_SUCCESS_CASE = ComponentTestCase(
-    name='disable shield success case',
-    inputs={
-        'bk_alarm_shield_id_input': '1',
-    },
-    parent_data={
-        'executor': 'executor',
-        'biz_cc_id': 2,
-    },
-    execute_assertion=ExecuteAssertion(
-        success=True,
-        outputs={'data': {'result': {'id': '1'}},
-                 'status_code': 200}
-    ),
+DISABLE_SHIELD_SUCCESS_CASE = ComponentTestCase(
+    name="disable shield success case",
+    inputs={"bk_alarm_shield_id_input": "1"},
+    parent_data={"executor": "executor", "biz_cc_id": 2},
+    execute_assertion=ExecuteAssertion(success=True, outputs={"data": {"result": {"id": "1"}}, "status_code": 200}),
     schedule_assertion=None,
-    execute_call_assertion=[CallAssertion(
-        func=DISABLE_SHIELD_SUCCESS_CLIENT.monitor.disable_shield,
-        calls=[Call({'bk_biz_id': 2, 'id': '1'})]
-    )],
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=DISABLE_SHIELD_SUCCESS_CLIENT)
-    ]
+    execute_call_assertion=[
+        CallAssertion(func=DISABLE_SHIELD_SUCCESS_CLIENT.disable_shield, calls=[Call(**{"id": "1"})])
+    ],
+    patchers=[Patcher(target=MONITOR_CLIENT, return_value=DISABLE_SHIELD_SUCCESS_CLIENT)],
 )

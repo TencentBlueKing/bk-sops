@@ -22,6 +22,8 @@ SYSTEM_INFO = [
     {"id": SYSTEM_ID, "name": settings.APP_NAME},
 ]
 
+SEARCH_INSTANCE_CACHE_TIME = 60 * 10
+
 RESOURCES = [
     {"id": "project", "name": _("项目"), "parent_id": None},
     {"id": "flow", "name": _("流程模板"), "parent_id": "project"},

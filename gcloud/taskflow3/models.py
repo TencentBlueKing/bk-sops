@@ -22,7 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.utils.handlers import handle_plain_log
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
-from pipeline.component_framework.constant import ConstantPool
+from pipeline.component_framework.constant import ConstantPool  # noqa
 from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions as engine_exceptions
 from pipeline.engine import api as pipeline_api
@@ -217,19 +217,22 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         # get all referenced constants in flow
         constants = pipeline_tree[PE.constants]
-        referenced_keys = []
-        while True:
-            last_count = len(referenced_keys)
-            cons_pool = ConstantPool(data, lazy=True)
-            refs = cons_pool.get_reference_info(strict=False)
-            for keys in list(refs.values()):
-                for key in keys:
-                    # add outputs keys later
-                    if key in constants and key not in referenced_keys:
-                        referenced_keys.append(key)
-                        data.update({key: constants[key]})
-            if len(referenced_keys) == last_count:
-                break
+
+        # temporarily strategy: show all constants may be used
+        referenced_keys = list(constants.keys())
+        # referenced_keys = []
+        # while True:
+        #     last_count = len(referenced_keys)
+        #     cons_pool = ConstantPool(data, lazy=True)
+        #     refs = cons_pool.get_reference_info(strict=False)
+        #     for keys in list(refs.values()):
+        #         for key in keys:
+        #             # add outputs keys later
+        #             if key in constants and key not in referenced_keys:
+        #                 referenced_keys.append(key)
+        #                 data.update({key: constants[key]})
+        #     if len(referenced_keys) == last_count:
+        #         break
 
         # keep outputs constants
         outputs_keys = [key for key, value in list(constants.items()) if value["source_type"] == "component_outputs"]
@@ -507,6 +510,12 @@ class TaskFlowInstance(models.Model):
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
             return CommonTemplate.objects.get(pk=self.template_id)
+
+    @property
+    def executor_proxy(self):
+        if self.template_source not in NON_COMMON_TEMPLATE_TYPES:
+            return None
+        return TaskTemplate.objects.filter(id=self.template_id).values_list("executor_proxy", flat=True).first()
 
     @property
     def url(self):

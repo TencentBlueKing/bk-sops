@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import env
+
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
@@ -173,6 +175,10 @@ if IS_USE_CELERY:
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
+TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
+OLD_COMMUNITY_TEMPLATE_DATA_SALT = "e5483c1ccde63392bd439775bba6a7ae"
+
+
 LOGGING["loggers"]["pipeline"] = {
     "handlers": ["root"],
     "level": LOG_LEVEL,
@@ -285,6 +291,7 @@ BK_PAAS_ESB_HOST = os.getenv("BKAPP_SOPS_PAAS_ESB_HOST", BK_PAAS_INNER_HOST)
 BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
 BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
 BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
+BK_IAM_SKIP = os.getenv("BK_IAM_SKIP")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 # 权限中心 SaaS host
@@ -375,8 +382,23 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
-MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+MAKO_SANDBOX_IMPORT_MODULES = {
+    "datetime": "datetime",
+    "re": "re",
+    "hashlib": "hashlib",
+    "random": "random",
+    "time": "time",
+}
 
+if env.SOPS_MAKO_IMPORT_MODULES:
+    for module_name in env.SOPS_MAKO_IMPORT_MODULES.split(","):
+        try:
+            __import__(module_name)
+        except ImportError as e:
+            err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(module_name, e)
+            print(err)
+            raise ImportError(err)
+        MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

@@ -19,6 +19,7 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 from .thread import ThreadPool
+from gcloud.core.models import StaffGroupSet
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -218,16 +219,39 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         return result
 
     biz_data = cc_result["data"]["info"][0]
+    staff_groups = []
     receivers = []
 
     if isinstance(receiver_group, str):
         receiver_group = receiver_group.split(",")
 
     for group in receiver_group:
-        receivers.extend(biz_data[group].split(","))
+        # 原通知分组
+        if group in biz_data:
+            if biz_data[group]:
+                receivers.extend(biz_data[group].split(","))
+        # 自定义人员分组
+        else:
+            staff_groups.append(group)
+    staff_groups = StaffGroupSet.objects.filter(is_deleted=False, id__in=staff_groups).values_list("members", flat=True)
+    for group in staff_groups:
+        receivers.extend(group.split(","))
 
     if more_receiver:
         receivers.extend(more_receivers)
 
     result = {"result": True, "message": "success", "data": ",".join(sorted(set(receivers)))}
     return result
+
+
+def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
+    """获取动态分组中对应主机列表"""
+    client = get_client_by_user(username)
+    kwargs = {
+        "bk_biz_id": bk_biz_id,
+        "bk_supplier_account": bk_supplier_account,
+        "id": dynamic_group_id,
+        "fields": ["bk_host_innerip", "bk_cloud_id"],
+    }
+    host_list = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
+    return True, {"code": 0, "message": "success", "data": host_list}

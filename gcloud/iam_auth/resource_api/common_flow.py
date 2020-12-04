@@ -10,15 +10,43 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.core.cache import cache
 from django.db.models import Q
+
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import DjangoQuerySetConverter
+from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.commons.template.models import CommonTemplate
 
 
 class CommonFlowResourceProvider(ResourceProvider):
+    def pre_search_instance(self, filter, page, **options):
+        if page.limit == 0 or page.limit > 1000:
+            raise InvalidPageException("limit in page too large")
+
+    def search_instance(self, filter, page, **options):
+        """
+        common flow search instance. 没有上层资源，不需要处理 filter 的 parent
+        """
+        keyword = filter.keyword
+        cache_keyword = "iam_search_instance_common_flow_{}".format(keyword)
+
+        results = cache.get(cache_keyword)
+        if results is None:
+            queryset = (
+                CommonTemplate.objects.select_related("pipeline_template")
+                .filter(pipeline_template__name__icontains=keyword, is_deleted=False)
+                .only("pipeline_template__name")
+            )
+            results = [
+                {"id": str(common_flow.id), "display_name": common_flow.name}
+                for common_flow in queryset[page.slice_from : page.slice_to]
+            ]
+            cache.set(cache_keyword, results, SEARCH_INSTANCE_CACHE_TIME)
+        return ListResult(results=results, count=len(results))
+
     def list_attr(self, **options):
         """
         common_flow 资源没有属性，返回空

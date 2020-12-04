@@ -10,16 +10,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
+import os
 
+BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
 
-@receiver(post_save, sender=TaskFlowInstance)
-def task_resource_creator_action_handler(sender, instance, created, **kwargs):
-    register_grant_resource_creator_action_attributes(
-        IAMMeta.TASK_RESOURCE, instance.creator, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
-    )
+SOPS_MAKO_IMPORT_MODULES = os.getenv("BKAPP_SOPS_MAKO_IMPORT_MODULES", "")

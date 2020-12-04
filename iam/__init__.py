@@ -47,6 +47,7 @@ from .auth.models import Subject, Action, Resource  # noqa
 from .auth.models import Request, MultiActionRequest  # noqa
 
 from .iam import IAM  # noqa
+from .dummy_iam import DummyIAM  # noqa
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging

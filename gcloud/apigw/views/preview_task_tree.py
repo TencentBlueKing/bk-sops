@@ -63,13 +63,9 @@ def preview_task_tree(request, project_id, template_id):
     try:
         data = preview_template_tree(request.project.id, PROJECT, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        logger.exception("[API] preview_template_tree fail: {}".format(e))
+        logger.exception("[API] preview_task_tree fail: {}".format(e))
         return JsonResponse(
-            {
-                "result": False,
-                "message": "preview_template_tree fail: {}".format(e),
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
+            {"result": False, "message": "preview_task_tree fail: {}".format(e), "code": err_code.UNKNOWN_ERROR.code}
         )
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
