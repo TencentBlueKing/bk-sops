@@ -27,7 +27,8 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 JOB_VAR_CATEGORY_CLOUD = 1
 JOB_VAR_CATEGORY_CONTEXT = 2
-JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT}
+JOB_VAR_CATEGORY_PASSWORD = 4
+JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT, JOB_VAR_CATEGORY_PASSWORD}
 JOB_VAR_CATEGORY_IP = 3
 
 
@@ -133,6 +134,11 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     task_detail = job_result["data"]
     global_var = []
     steps = []
+    if not task_detail:
+        message = "请求作业平台执行方案详情返回数据为空: {}".format(job_result)
+        logger.error(message)
+        return JsonResponse({"result": False, "message": message})
+
     for var in task_detail.get("global_vars", []):
         # 1-字符串, 2-IP, 3-索引数组, 4-关联数组
         if var["category"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
@@ -144,6 +150,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                     for ip_item in var.get("ip_list", [])
                 ]
             )
+
         global_var.append(
             {
                 "id": var["id"],
