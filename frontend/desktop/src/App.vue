@@ -148,6 +148,9 @@
                 'setAppmakerTemplateId',
                 'setAppmakerDetail'
             ]),
+            ...mapMutations('atomForm/', [
+                'clearAtomForm'
+            ]),
             ...mapMutations('project', [
                 'setProjectId',
                 'setTimeZone',
@@ -175,10 +178,9 @@
                 try {
                     this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
                     this.setProjectId(this.project_id)
                     this.setTimeZone(projectDetail.timeZone)
-
-                    $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
