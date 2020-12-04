@@ -94,6 +94,7 @@
                         </div>
                         <code-editor
                             v-else
+                            class="primary-value"
                             :value="inputsInfo"
                             :options="{ readOnly: readOnly, language: 'json' }">
                         </code-editor>
@@ -132,6 +133,7 @@
                         </table>
                         <code-editor
                             v-else
+                            class="primary-value"
                             :value="outputsInfo"
                             :options="{ readOnly: readOnly, language: 'json' }">
                         </code-editor>
@@ -166,6 +168,7 @@
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
                         <code-editor
                             v-if="logInfo"
+                            class="primary-value"
                             :value="logInfo"
                             :options="{ readOnly: readOnly, language: 'javascript' }">
                         </code-editor>
@@ -211,6 +214,7 @@
                                             </div>
                                             <code-editor
                                                 v-else
+                                                class="primary-value"
                                                 :value="historyLog[props.row.history_id]"
                                                 :options="{ readOnly: readOnly, language: 'javascript' }">
                                             </code-editor>
@@ -885,6 +889,7 @@
     display: flex;
     flex-direction: column;
     padding-bottom: 0;
+    width: 500px;
     height: 100%;
     color: #313238;
     &.loading {
@@ -1046,7 +1051,7 @@
     /deep/ .bk-table .bk-table-expanded-cell {
         padding: 20px;
     }
-    /deep/ .code-editor {
+    /deep/ .primary-value.code-editor {
         height: 300px;
     }
     .action-wrapper {
