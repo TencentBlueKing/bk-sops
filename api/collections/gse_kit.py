@@ -83,7 +83,7 @@ class BKGseKitClient(BKComponentClient):
         )
 
     def create_job(self,
-                   # bk_biz_id,
+                   bk_biz_id,
                    job_object,
                    job_action,
                    scope=None,
@@ -100,11 +100,11 @@ class BKGseKitClient(BKComponentClient):
         }
         return self._request(
             method="post",
-            url=_get_gse_kit_api("job"),
+            url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)),
             data=param
         )
 
-    def job_status(self, job_task_id):
+    def job_status(self, bk_biz_id, job_task_id):
         """
         查询gsekit 任务状态
         :param job_task_id: string
@@ -114,7 +114,6 @@ class BKGseKitClient(BKComponentClient):
         }
         return self._request(
             method="post",
-            url=_get_gse_kit_api("job"),
+            url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)),
             data=param
         )
-

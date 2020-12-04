@@ -14,13 +14,12 @@ specific language governing permissions and limitations under the License.
 import logging
 from functools import partial
 
-from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from api import BKGseKitClient
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
+from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
@@ -33,6 +32,7 @@ __group_name__ = _("gsekit(gsekit)")
 VERSION = "v1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
+
 
 class JobStatus(object):
     PENDING = "pending"
@@ -49,38 +49,38 @@ JOB_STATUS_CHOICES = (
 )
 
 
-class CCUpdateSetServiceStatusService(Service):
-    __need_schedule__ = True
-    interval = StaticIntervalGenerator(5)  # 每隔5秒钟进行重启结果状态轮询
+class GsekitJobExecService(Service):
+    # __need_schedule__ = True
+    # interval = StaticIntervalGenerator(5)  # 每隔5秒钟进行重启结果状态轮询
 
-    def schedule(self, data, parent_data, callback_data=None):
-        """
-        gsekit-轮询服务重启结果
-        """
-        executor = parent_data.get_one_of_inputs("executor")
-        client = BKGseKitClient(executor)
-        job_task_id = data.outputs.gsekit_job_task_id
-
-        job_task_status = client.job_status(job_task_id=job_task_id)
-        self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
-
-        if not job_task_status["result"]:
-            err_message = handle_api_error("gsekit", "gsekit.check_job_task_status", job_task_id, job_task_status)
-            data.set_outputs("ex_data", err_message)
-            return False
-
-        code = job_task_status["data"]["status"]
-
-        if code == JobStatus.SUCCEEDED:
-            self.finish_schedule()
-            return True
-        elif code in (JobStatus.PENDING, JobStatus.RUNNING):
-            return True
-        else:
-            self.logger.error(
-                "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status))
-            data.set_outputs("ex_data", "unexpect gsekit job task status code: {}".format(code))
-            return False
+    # def schedule(self, data, parent_data, callback_data=None):
+    #     """
+    #     gsekit-轮询服务重启结果
+    #     """
+    #     executor = parent_data.get_one_of_inputs("executor")
+    #     client = BKGseKitClient(executor)
+    #     job_task_id = data.outputs.gsekit_job_task_id
+    #
+    #     job_task_status = client.job_status(job_task_id=job_task_id)
+    #     self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
+    #
+    #     if not job_task_status["result"]:
+    #         err_message = handle_api_error("gsekit", "gsekit.check_job_task_status", job_task_id, job_task_status)
+    #         data.set_outputs("ex_data", err_message)
+    #         return False
+    #
+    #     code = job_task_status["data"]["status"]
+    #
+    #     if code == JobStatus.SUCCEEDED:
+    #         self.finish_schedule()
+    #         return True
+    #     elif code in (JobStatus.PENDING, JobStatus.RUNNING):
+    #         return True
+    #     else:
+    #         self.logger.error(
+    #             "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status))
+    #         data.set_outputs("ex_data", "unexpect gsekit job task status code: {}".format(code))
+    #         return False
 
     def inputs_format(self):
         return [
@@ -154,10 +154,11 @@ class CCUpdateSetServiceStatusService(Service):
             "bk_service_ids": [gsekit_service_id],  # 服务实例id 列表
             "bk_process_names": [gsekit_process_name],
             "bk_process_ids": [gsekit_process_id],
-                       }
+        }
 
         client = BKGseKitClient(executor)
-        job_result = client.create_job(job_object=gsekit_job_object_choices,
+        job_result = client.create_job(bk_biz_id=biz_cc_id,
+                                       job_object=gsekit_job_object_choices,
                                        job_action=gsekit_job_action_choices,
                                        scope=scope_param)
         self.logger.info("start gsekit job task with param {0}".format(scope_param))
@@ -167,6 +168,8 @@ class CCUpdateSetServiceStatusService(Service):
             return True
         else:
             self.logger.error("unexpect gsekit job task: {}, gsekit response: {}".format(scope_param, job_result))
+            err_message = handle_api_error("gsekit", "gsekit.", scope_param, job_result)
+            data.set_outputs("ex_data", err_message)
             return False
 
     def outputs_format(self):
@@ -178,14 +181,14 @@ class CCUpdateSetServiceStatusService(Service):
         ]
 
 
-class CCUpdateSetServiceStatusComponent(Component):
+class GsekitJobExecComponent(Component):
     """
     @version log（v1.0）: gsekit, 固定命令列表
     """
 
     name = _("gsekit执行命令")
     code = "gsekit_job_exec"
-    bound_service = CCUpdateSetServiceStatusService
+    bound_service = GsekitJobExecService
     form = '{static_url}components/atoms/gsekit/job_exec/{ver}.js'.format(static_url=settings.STATIC_URL,
                                                                           ver=VERSION.replace('.', '_'))
     version = VERSION
