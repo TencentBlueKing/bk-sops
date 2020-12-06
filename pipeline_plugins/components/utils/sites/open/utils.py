@@ -12,11 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
-import os
 import logging
 
 from cryptography.fernet import Fernet
 
+import env
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
@@ -160,7 +160,7 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
 def get_node_callback_url(node_id):
     f = Fernet(settings.CALLBACK_KEY)
     return "%staskflow/api/nodes/callback/%s/" % (
-        os.getenv("BKAPP_INNER_CALLBACK_HOST", settings.BK_PAAS_INNER_HOST + settings.SITE_URL),
+        env.BKAPP_INNER_CALLBACK_HOST,
         f.encrypt(bytes(node_id, encoding="utf8")).decode(),
     )
 
