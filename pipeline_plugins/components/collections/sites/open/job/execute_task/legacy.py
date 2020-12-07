@@ -125,7 +125,7 @@ class JobExecuteTaskService(JobService):
 
                 if ip_is_exist:
                     # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-                    input_ip_list = get_ip_by_regex(val)
+                    input_ip_list = list(set(get_ip_by_regex(val)))
                     self.logger.info(
                         "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list)
                     )
