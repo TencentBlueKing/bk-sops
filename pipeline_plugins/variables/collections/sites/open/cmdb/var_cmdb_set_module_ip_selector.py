@@ -15,6 +15,7 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
+from gcloud.constants import BIZ_INTERNAL_MODULE, BIZ_INTERNAL_SET
 from gcloud.core.models import Project
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
@@ -32,8 +33,6 @@ from pipeline_plugins.variables.utils import (
 )
 
 ALL_SELECTED_STR = "all"
-BIZ_INTERNAL_SET = "空闲机池"
-BIZ_INTERNAL_MODULE = ("空闲机", "待回收", "故障机")
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -147,22 +146,24 @@ def get_module_id_list(
         set_ids = [set_item["bk_set_id"] for set_item in set_list]
     else:
         # 如果筛选规则中有空闲机池，排除空闲机池set id
+        filter_set_names = filter_set_names.split(",")
         set_ids = [
             set_item["bk_set_id"]
             for set_item in set_list
-            if set_item["bk_set_name"] in filter_set_names.split(",") and set_item["bk_set_name"] != BIZ_INTERNAL_SET
+            if set_item["bk_set_name"] in filter_set_names and set_item["bk_set_name"] != BIZ_INTERNAL_SET
         ]
+    filter_service_template_names = filter_service_template_names.split(",")
     if not filter_service_template_names:
         service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     else:
         service_template_ids = [
             service_template_item["id"]
             for service_template_item in service_template_list
-            if service_template_item["name"] in filter_service_template_names.split(",")
+            if service_template_item["name"] in filter_service_template_names
         ]
 
     # 筛选规则与空闲机、待回收、故障机模块取交集
-    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names.split(","))
+    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names)
 
     # 取空闲机池下所有模块ID
     inner_module_id_list = [

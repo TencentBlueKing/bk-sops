@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
+from gcloud.constants import BIZ_INTERNAL_MODULE
 from gcloud.utils.cmdb import batch_request
 from gcloud.core.models import StaffGroupSet
 from pipeline_plugins.base.utils.inject import supplier_account_inject
@@ -28,7 +29,6 @@ logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 urlpatterns = select.select_urlpatterns
-BIZ_INTERNAL_MODULE = ("空闲机", "待回收", "故障机")
 
 
 def cc_get_set(request, biz_cc_id):

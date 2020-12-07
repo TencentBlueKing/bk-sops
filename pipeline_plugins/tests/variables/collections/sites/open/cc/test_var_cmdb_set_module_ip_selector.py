@@ -671,7 +671,7 @@ IP_SELECTOR_CUSTOM_METHOD_FAIL_VALUE = {
     "var_filter_set": "集群1,集群2",
     "var_filter_module": "ls",
 }
-IP_SELECTOR_CUSTOM_METHOD_BIZ_INNERIP_SUCCESS_VALUE = {
+IP_SELECTOR_CUSTOM_METHOD_BIZ_INPUT_INNER_SET_SUCCESS_VALUE = {
     "var_ip_method": "custom",
     "var_ip_custom_value": "192.168.15.18,192.168.15.4",
     "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": "ip"},
@@ -679,7 +679,23 @@ IP_SELECTOR_CUSTOM_METHOD_BIZ_INNERIP_SUCCESS_VALUE = {
     "var_filter_set": "空闲机池,集群2",
     "var_filter_module": "ls",
 }
-IP_SELECTOR_SELECT_METHOD_BIZ_INNERIP_SUCCESS_VALUE = {
+IP_SELECTOR_CUSTOM_METHOD_BIZ_INPUT_INNER_MODULE_SUCCESS_VALUE = {
+    "var_ip_method": "custom",
+    "var_ip_custom_value": "192.168.15.18,192.168.15.4",
+    "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "",
+    "var_filter_module": "空闲机",
+}
+IP_SELECTOR_SELECT_METHOD_BIZ_INPUT_INNER_SET_SUCCESS_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip,空闲机"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "空闲机池,集群2",
+    "var_filter_module": "ls",
+}
+IP_SELECTOR_SELECT_METHOD_BIZ_INPUT_INNER_MODULE_SUCCESS_VALUE = {
     "var_ip_method": "select",
     "var_ip_custom_value": "",
     "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机"], "var_module_name": "ip,空闲机"},
@@ -727,9 +743,10 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         self.manual_method_fail_return = ""
         self.custom_method_success_return = "192.168.15.18,192.168.15.4"
         self.custom_method_fail_return = ""
-        self.custom_method_biz_innerip_success_case_return = "192.168.15.18,192.168.15.4"
-        self.select_method_biz_innerip_success_case_return = "192.168.15.18,192.168.15.4"
-
+        self.custom_method_biz_input_inner_module_success_case_return = "192.168.15.18,192.168.15.4"
+        self.custom_method_biz_input_inner_set_success_case_return = "192.168.15.18,192.168.15.4"
+        self.select_method_biz_input_inner_module_success_case_return = "192.168.15.18,192.168.15.4"
+        self.select_method_biz_input_inner_set_success_case_return = "192.168.15.18,192.168.15.4"
     def tearDown(self):
         self.cc_get_ips_info_by_str_patcher.stop()
         self.project_patcher.stop()
@@ -796,21 +813,39 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         self.assertEqual(self.custom_method_fail_return, set_module_ip_selector.get_value())
 
     @patch(GET_CLIENT_BY_USER, return_value=CUSTOM_METHOD_BIZ_INNERIP_SUC_CLIENT)
-    def test_custom_method_biz_innerip_success_case(self, mock_get_client_by_user_return):
+    def test_custom_method_biz_input_inner_set_success_case(self, mock_get_client_by_user_return):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
-            value=IP_SELECTOR_CUSTOM_METHOD_BIZ_INNERIP_SUCCESS_VALUE,
+            value=IP_SELECTOR_CUSTOM_METHOD_BIZ_INPUT_INNER_SET_SUCCESS_VALUE,
             name="test_custom_method_biz_innerip_success_case",
             context={},
         )
-        self.assertEqual(self.custom_method_biz_innerip_success_case_return, set_module_ip_selector.get_value())
-
-    @patch(GET_CLIENT_BY_USER, return_value=SELECT_METHOD_BIZ_INNERIP_SUC_CLIENT)
-    def test_select_method_biz_innerip_success_case(self, mock_get_client_by_user_return):
+        self.assertEqual(self.custom_method_biz_input_inner_module_success_case_return, set_module_ip_selector.get_value())
+    @patch(GET_CLIENT_BY_USER, return_value=CUSTOM_METHOD_BIZ_INNERIP_SUC_CLIENT)
+    def test_custom_method_biz_input_inner_module_success_case(self, mock_get_client_by_user_return):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
-            value=IP_SELECTOR_SELECT_METHOD_BIZ_INNERIP_SUCCESS_VALUE,
+            value=IP_SELECTOR_CUSTOM_METHOD_BIZ_INPUT_INNER_MODULE_SUCCESS_VALUE,
+            name="test_custom_method_biz_input_inner_module_success_case",
+            context={},
+        )
+        self.assertEqual(self.custom_method_biz_input_inner_set_success_case_return, set_module_ip_selector.get_value())
+
+    @patch(GET_CLIENT_BY_USER, return_value=SELECT_METHOD_BIZ_INNERIP_SUC_CLIENT)
+    def test_select_method_biz_input_inner_module_success_case(self, mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_BIZ_INPUT_INNER_MODULE_SUCCESS_VALUE,
             name="test_select_method_biz_innerip_success_case",
             context={},
         )
-        self.assertEqual(self.select_method_biz_innerip_success_case_return, set_module_ip_selector.get_value())
+        self.assertEqual(self.select_method_biz_input_inner_module_success_case_return, set_module_ip_selector.get_value())
+    @patch(GET_CLIENT_BY_USER, return_value=SELECT_METHOD_BIZ_INNERIP_SUC_CLIENT)
+    def test_select_method_biz_input_inner_set_success_case(self, mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_BIZ_INPUT_INNER_SET_SUCCESS_VALUE,
+            name="test_select_method_biz_input_inner_set_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_biz_input_inner_set_success_case_return, set_module_ip_selector.get_value())

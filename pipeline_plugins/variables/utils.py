@@ -151,7 +151,7 @@ def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
     if not get_biz_internal_module_return["result"]:
         message = handle_api_error("cc", "cc.get_biz_internal_module", params, get_biz_internal_module_return)
         logger.error(message)
-        return JsonResponse({"result": False, "data": [], "message": message})
+        return {"result": False, "data": [], "message": message}
     result = []
     for get_biz_internal_module_option in get_biz_internal_module_return["data"]["module"]:
         result.append({
