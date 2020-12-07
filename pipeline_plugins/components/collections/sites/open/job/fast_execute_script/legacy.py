@@ -160,14 +160,11 @@ class JobFastExecuteScriptService(JobService):
             username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
         )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-
         if ip_is_exist:
             # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-            input_ip_list = get_ip_by_regex(original_ip_list)
+            input_ip_list = list(set(get_ip_by_regex(original_ip_list)))
             self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
-
             difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
-
             if len(ip_list) != len(input_ip_list):
                 data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
                 return False
