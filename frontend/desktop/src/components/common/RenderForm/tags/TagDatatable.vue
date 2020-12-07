@@ -50,10 +50,11 @@
         <template v-if="Array.isArray(value) && !loading">
             <el-table
                 style="width: 100%; font-size: 12px"
+                border
                 :data="dataList"
                 :empty-text="empty_text"
                 :fit="true"
-                border>
+                @row-click="onRowClick">
                 <template v-for="(item, cIndex) in cellColumns">
                     <el-table-column
                         v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
@@ -221,6 +222,12 @@
             required: false,
             default: 10,
             desc: 'number of items displayed per page'
+        },
+        row_click_handler: {
+            type: Function,
+            require: false,
+            default: function () {},
+            desc: 'on table row click callback function'
         }
     }
     export default {
@@ -254,6 +261,9 @@
                     operate_text: gettext('操作'),
                     delete_text: gettext('删除'),
                     add_text: gettext('添加')
+                },
+                pagination: {
+                    current: 1
                 }
             }
         },
@@ -536,6 +546,9 @@
              */
             setOutputParams (val, oldVal) {
                 bus.$emit('jobExecuteTaskOutputs', { val, oldVal })
+            },
+            onRowClick (row, column, event) {
+                typeof this.row_click_handler && this.row_click_handler(row, column, event)
             }
         }
     }

@@ -14,3 +14,5 @@ specific language governing permissions and limitations under the License.
 import os
 
 BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
+
+SOPS_MAKO_IMPORT_MODULES = os.getenv("BKAPP_SOPS_MAKO_IMPORT_MODULES", "")

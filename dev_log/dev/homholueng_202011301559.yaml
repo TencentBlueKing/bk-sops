@@ -1,0 +1,2 @@
+feature:
+  - 支持通过 SOPS_MAKO_IMPORT_MODULES 环境变量配置任务 MAKO 语法渲染上下文中能够使用的模块

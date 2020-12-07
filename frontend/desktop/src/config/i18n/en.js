@@ -628,6 +628,7 @@ const en = {
     '执行信息': 'Execution Info',
     '输入参数': 'Input Parameters',
     '输出参数': 'Output Parameters',
+    '输出表单': 'Output Form',
     '参数名': 'Name',
     '执行记录': 'Execution History',
     '节点日志': 'Node logs',
