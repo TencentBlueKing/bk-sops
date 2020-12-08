@@ -747,6 +747,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         self.custom_method_biz_input_inner_set_success_case_return = "192.168.15.18,192.168.15.4"
         self.select_method_biz_input_inner_module_success_case_return = "192.168.15.18,192.168.15.4"
         self.select_method_biz_input_inner_set_success_case_return = "192.168.15.18,192.168.15.4"
+
     def tearDown(self):
         self.cc_get_ips_info_by_str_patcher.stop()
         self.project_patcher.stop()
@@ -820,7 +821,9 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             name="test_custom_method_biz_innerip_success_case",
             context={},
         )
-        self.assertEqual(self.custom_method_biz_input_inner_module_success_case_return, set_module_ip_selector.get_value())
+        self.assertEqual(self.custom_method_biz_input_inner_module_success_case_return,
+                         set_module_ip_selector.get_value())
+
     @patch(GET_CLIENT_BY_USER, return_value=CUSTOM_METHOD_BIZ_INNERIP_SUC_CLIENT)
     def test_custom_method_biz_input_inner_module_success_case(self, mock_get_client_by_user_return):
         set_module_ip_selector = SetModuleIpSelector(
@@ -839,7 +842,9 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             name="test_select_method_biz_innerip_success_case",
             context={},
         )
-        self.assertEqual(self.select_method_biz_input_inner_module_success_case_return, set_module_ip_selector.get_value())
+        self.assertEqual(self.select_method_biz_input_inner_module_success_case_return,
+                         set_module_ip_selector.get_value())
+
     @patch(GET_CLIENT_BY_USER, return_value=SELECT_METHOD_BIZ_INNERIP_SUC_CLIENT)
     def test_select_method_biz_input_inner_set_success_case(self, mock_get_client_by_user_return):
         set_module_ip_selector = SetModuleIpSelector(
