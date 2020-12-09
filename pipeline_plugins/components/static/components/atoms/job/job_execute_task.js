@@ -79,6 +79,17 @@
                     }
                 },
                 {
+                    source: "button_refresh",
+                    type: "click",
+                    action: function (value) {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
@@ -145,46 +156,10 @@
                             name: gettext("描述")
                         }
                     }
-                ]
-            },
-            events: [
-                {
-                    source: "job_task_id",
-                    type: "change",
-                    action: function (value) {
-                        var $this = this;
-                        this.changeHook(false);
-                        if (value === '') {
-                            this._set_value([]);
-                            return;
-                        }
-                        this.set_loading(true);
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function (resp) {
-                                if (resp.result === false) {
-                                    show_msg(resp.message, 'error');
-                                } else {
-                                    $this._set_value(resp.data.global_var)
-                                }
-
-                                $this.set_loading(false);
-                            },
-                            error: function () {
-                                $this._set_value([]);
-                                $this.set_loading(false);
-                                show_msg('request job detail error', 'error');
-                            }
-                        });
-                    }
-                },
-                {
-                    source: "button_refresh",
-                    type: "click",
-                    action: function (value) {
+                ],
+                table_buttons: [{
+                    text: '刷新全局变量',
+                    callback: function() {
                         const job_id = this.get_parent().get_child("job_task_id").value;
                         var $this = this;
                         this.changeHook(false);
@@ -216,6 +191,41 @@
                                 if (resp.result === false) {
                                     show_msg(resp.message, 'error');
                                 }
+                            },
+                            error: function () {
+                                $this._set_value([]);
+                                $this.set_loading(false);
+                                show_msg('request job detail error', 'error');
+                            }
+                        });
+                    }
+                }]
+            },
+            events: [
+                {
+                    source: "job_task_id",
+                    type: "change",
+                    action: function (value) {
+                        var $this = this;
+                        this.changeHook(false);
+                        if (value === '') {
+                            this._set_value([]);
+                            return;
+                        }
+                        this.set_loading(true);
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        $.ajax({
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (resp) {
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                } else {
+                                    $this._set_value(resp.data.global_var)
+                                }
+
+                                $this.set_loading(false);
                             },
                             error: function () {
                                 $this._set_value([]);

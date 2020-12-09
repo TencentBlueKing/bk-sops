@@ -23,3 +23,5 @@ from .task_operate import TaskOperateInterceptor  # noqa
 from .get_template_info import GetTemplateInfoInterceptor  # noqa
 from .flow_view import FlowViewInterceptor  # noqa
 from .periodic_task_edit import PeriodicTaskEditInterceptor  # noqa
+from .functionalization_task_view import FunctionViewInterceptor  # noqa
+from .claim_functionalization_task import FunctionTaskInterceptor  # noqa

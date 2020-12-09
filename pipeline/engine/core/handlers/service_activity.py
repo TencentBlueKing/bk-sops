@@ -23,7 +23,7 @@ from pipeline.engine.models import Data, ScheduleService, Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger("celery")
+logger = logging.getLogger("celery_and_engine_component")
 
 __all__ = ["ServiceActivityHandler"]
 

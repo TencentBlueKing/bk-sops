@@ -10,31 +10,29 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-tree">
-        <el-tree
-            v-if="Array.isArray(value)"
-            v-loading="loading"
-            ref="tree"
-            node-key="id"
-            :data="items"
-            :props="default_props"
-            :show-checkbox="editable && formMode && show_checkbox"
-            :default-expand-all="default_expand_all"
-            :default-checked-keys="value"
-            :default-expanded-keys="expanded_keys"
-            :filter-node-method="filterNode"
-            :check-on-click-node="true"
-            :expand-on-click-node="false"
-            @check="_handleBoxCheck"
-            @node-expand="nodeExpend"
-            @node-collapse="nodeCollapse">
-        </el-tree>
-        <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
+    <div class="tag-tree" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <no-data v-if="items.length === 0"></no-data>
+        <template v-else>
+            <bk-big-tree
+                v-if="Array.isArray(value)"
+                ref="tree"
+                :options="{ nameKey: 'label' }"
+                :show-checkbox="editable && formMode && show_checkbox"
+                :default-expand-all="default_expand_all"
+                :default-checked-nodes="value"
+                :default-expanded-nodes="expanded_keys"
+                :height="570"
+                :data="items"
+                @check-change="nodeCheckChange">
+            </bk-big-tree>
+            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
+        </template>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export const attrs = {
         value: {
@@ -94,14 +92,10 @@
     }
     export default {
         name: 'TagTree',
+        components: { NoData },
         mixins: [getFormMixins(attrs)],
         data () {
             return {
-                default_props: {
-                    label: 'label',
-                    children: 'children',
-                    disabled: true
-                },
                 loading: false
             }
         },
@@ -109,25 +103,10 @@
             this.remoteMethod()
         },
         methods: {
-            handleCheckChange (data, checked, indeterminate) {
-                return true
-            },
-            filterNode (value, data) {
-                return true
-            },
-            handleBoxCheck (data) {
-                return this.editable && this.formMode && this.show_checkbox
-            },
-            _handleBoxCheck (data) {
-                if (this.handleBoxCheck(data)) {
-                    this.updateForm(this.$refs.tree.getCheckedKeys(true))
+            nodeCheckChange (checkedList, node) {
+                if (this.editable && this.formMode && this.show_checkbox) {
+                    this.updateForm(checkedList)
                 }
-            },
-            nodeExpend (data, node, tag) {
-                this.expanded_keys.push(data.id)
-            },
-            nodeCollapse (data, node, tag) {
-                this.expanded_keys.pop(data.id)
             },
             remoteMethod () {
                 const self = this
@@ -149,9 +128,13 @@
                         }
 
                         self.items = treeData
-                        self.$refs.tree && self.$refs.tree.setCheckedKeys(self.value) // 兼容组件勾选的情况
-
                         self.loading = false
+                        self.$nextTick(() => {
+                            if (self.$refs.tree) { // 兼容组件勾选的情况
+                                self.$refs.tree.removeChecked({ emitEvent: false })
+                                self.$refs.tree.setChecked(self.value, { checked: true })
+                            }
+                        })
                     },
                     error: function () {
                         self.empty_text = gettext('请求数据失败')
@@ -176,16 +159,12 @@
 </script>
 <style lang="scss" scoped>
 .tag-tree {
-    /deep/ .el-tree {
-        & > .el-tree-node > .el-tree-node__content {
-            height: 36px;
-        }
-        .el-tree-node__label {
-            padding-left: 4px;
-        }
-        .el-tree__empty-text {
-            font-size: 12px;
-        }
+    padding: 10px 0 20px 10px;
+    border: 1px solid #ececec;
+    border-radius: 2px;
+    overflow: hidden;
+    /deep/ .bk-big-tree-node .node-content {
+        font-size: 12px;
     }
 }
 </style>

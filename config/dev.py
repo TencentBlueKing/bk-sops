@@ -93,3 +93,10 @@ LOGGING["loggers"]["pipeline.logging"] = {
     "level": "INFO",
     "propagate": True,
 }
+
+# 多环境需要，celery的handler需要动态获取
+LOGGING["loggers"]["celery_and_engine_component"] = {
+    "handlers": ["engine_component", LOGGING["loggers"]["celery"]["handlers"][0]],
+    "level": "INFO",
+    "propagate": True,
+}

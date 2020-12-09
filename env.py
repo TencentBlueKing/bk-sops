@@ -9,10 +9,10 @@ http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
-
-用来兼容企业版国际化翻译
 """
 
-from django.utils.translation import ugettext_lazy as _
+import os
 
-EE_RUN_VER_NAME = _("蓝鲸智云企业版")
+BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
+
+SOPS_MAKO_IMPORT_MODULES = os.getenv("BKAPP_SOPS_MAKO_IMPORT_MODULES", "")
