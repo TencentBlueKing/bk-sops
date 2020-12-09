@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import time
 from functools import partial
 
 from django.utils import translation
@@ -103,14 +102,6 @@ class MonitorAlarmShieldService(Service):
             begin_time, end_time = choose_time(time_type, begin_time, end_time, shield_duration)
         except ValueError:
             return False
-
-        # 从当前时间开始，仅输入持续时间
-        if time_type == 1:
-            begin_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-            end_time = self.get_end_time_by_duration(begin_time, int(shield_duration))
-        # 输入开始时间和持续时间
-        elif time_type == 2:
-            end_time = self.get_end_time_by_duration(begin_time, int(shield_duration))
 
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
