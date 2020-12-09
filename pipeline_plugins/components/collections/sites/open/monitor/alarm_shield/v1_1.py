@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import datetime
 import time
 from functools import partial
 
@@ -27,6 +26,7 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.utils.sites.open.choose_time_tools import choose_time
 from pipeline_plugins.components.utils.sites.open.utils import get_module_id_list_by_name
 from pipeline_plugins.variables.utils import (
     get_set_list,
@@ -45,11 +45,6 @@ ALL_SELECTED_STR = "all"
 
 
 class MonitorAlarmShieldService(Service):
-    def get_end_time_by_duration(self, shield_start_time, shield_duration):
-        dt = datetime.datetime.strptime(shield_start_time, "%Y-%m-%d %H:%M:%S")
-        shield_end_time = (dt + datetime.timedelta(minutes=shield_duration)).strftime("%Y-%m-%d %H:%M:%S")
-        return shield_end_time
-
     def inputs_format(self):
         return (
             [
@@ -104,6 +99,10 @@ class MonitorAlarmShieldService(Service):
         end_time = data.get_one_of_inputs("bk_alarm_shield_end_time")
         time_type = int(data.get_one_of_inputs("bk_alarm_time_type"))
         shield_duration = data.get_one_of_inputs("bk_alarm_shield_duration")
+        try:
+            begin_time, end_time = choose_time(time_type, begin_time, end_time, shield_duration)
+        except ValueError:
+            return False
 
         # 从当前时间开始，仅输入持续时间
         if time_type == 1:
