@@ -40,7 +40,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 class SetModuleIpSelector(LazyVariable):
     code = "set_module_ip_selector"
     name = _("集群模块IP选择器")
-    type = "general"
+    type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
 
