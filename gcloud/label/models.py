@@ -29,7 +29,6 @@ class LabelManager(models.Manager):
 
 
 class Label(models.Model):
-    code = models.CharField(_("标签编码"), max_length=255, db_index=True)
     name = models.CharField(_("标签名称"), max_length=255, db_index=True)
     creator = models.CharField(_("创建者"), max_length=255)
     project_id = models.IntegerField(_("项目 ID"), default=-1)
@@ -42,10 +41,10 @@ class Label(models.Model):
     class Meta:
         verbose_name = _("用户标签 Label")
         verbose_name_plural = _("用户标签 Label")
-        unique_together = ("project_id", "code")
+        unique_together = ("project_id", "name")
 
     def __str__(self):
-        return "{}_{}".format(self.code, self.name)
+        return "label name:{}, description:{}".format(self.name, self.description)
 
 
 class TemplateLabelManager(models.Manager):
@@ -59,7 +58,7 @@ class TemplateLabelManager(models.Manager):
 
     def fetch_labels_for_templates(self, template_ids):
         label_ids = self.filter(template_id__in=template_ids).distinct().values_list("label_id", flat=True)
-        labels = Label.objects.filter(id__in=label_ids).values_list("id", "code", "name")
+        labels = Label.objects.filter(id__in=label_ids).values_list("id", "name", "color")
         return labels
 
     def fetch_templates_labels(self, template_ids, label_fields=("name", "color")):
@@ -97,6 +96,13 @@ class TemplateLabelManager(models.Manager):
             .filter(num_templates=len(label_ids))
         )
         return template_ids
+
+    def fetch_label_template_ids(self, label_ids):
+        relations = self.filter(label_id__in=label_ids)
+        label_template_ids = defaultdict(list)
+        for relation in relations:
+            label_template_ids[relation.label_id].append(relation.template_id)
+        return label_template_ids
 
     def delete_relations_based_on_template(self, template_id):
         self.filter(template_id=template_id).delete()

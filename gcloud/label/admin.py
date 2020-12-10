@@ -11,17 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import serializers
+from django.contrib import admin
 
-from gcloud.label.models import Label
+from gcloud.label import models
 
 
-class LabelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Label
-        fields = "__all__"
+@admin.register(models.Label)
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "project_id"]
+    list_filter = ["project_id", "is_default", "color", "creator"]
+    search_fields = ["name", "project_id", "creator"]
 
-    def validate_is_default(self, value):
-        if value is True:
-            raise serializers.ValidationError("is_default should be False")
-        return value
+
+@admin.register(models.TemplateLabelRelation)
+class TemplateLabelRelation(admin.ModelAdmin):
+    list_display = ["id", "label_id", "template_id"]
+    search_fields = ["label_id", "template_id"]

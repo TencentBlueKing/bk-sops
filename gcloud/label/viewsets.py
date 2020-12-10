@@ -59,5 +59,13 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         template_ids = request.query_params.get("template_ids")
         if not template_ids:
             raise APIException("template_ids must be provided.")
-        template_ids = template_ids.strip().split(",")
+        template_ids = [int(template_id) for template_id in template_ids.strip().split(",")]
         return Response(TemplateLabelRelation.objects.fetch_templates_labels(template_ids))
+
+    @action(methods=["get"], detail=False)
+    def get_label_template_ids(self, request):
+        label_ids = request.query_params.get("label_ids")
+        if not label_ids:
+            raise APIException("label_ids must be provided.")
+        label_ids = [int(label_id) for label_id in label_ids.strip().split(",")]
+        return Response(TemplateLabelRelation.objects.fetch_label_template_ids(label_ids))
