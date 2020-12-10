@@ -43,6 +43,7 @@ class BKComponentClient(object):
         data["bk_username"] = self.username
         data["bk_app_code"] = self.app_code
         data["bk_app_secret"] = self.app_secret
+        return data
 
     def _request(self, method, url, data, headers=None, verify=False, cert=None, timeout=None, cookies=None):
 
