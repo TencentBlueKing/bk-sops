@@ -17,6 +17,7 @@ import traceback
 from django.http import JsonResponse
 from django.conf.urls import url
 
+from gcloud.utils.cmdb import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
@@ -418,6 +419,34 @@ def cc_search_status_options(request, biz_cc_id):
     return JsonResponse({"result": True, "data": options})
 
 
+def cc_find_host_by_topo(request, biz_cc_id, bk_inst_id):
+    """
+    批量查询拓扑节点下的主机
+    @param request:
+    @param biz_cc_id: cc id
+    @param bk_inst_id: 模块ID列表，以 , 分割，例如 123,234,345
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+
+    # 去除split后的空字符串
+    bk_inst_id = filter(lambda x: x, bk_inst_id.split(","))
+    params = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "module",
+        "fields": ["bk_host_id", "bk_cloud_id"],
+    }
+
+    data = []
+    for inst_id in bk_inst_id:
+        request_params = {"bk_inst_id": int(inst_id)}
+        request_params.update(params)
+        data.extend(batch_request(client.cc.find_host_by_topo, request_params))
+
+    return {"result": True, "data": data}
+
+
+
 cc_urlpatterns = [
     url(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
@@ -441,4 +470,6 @@ cc_urlpatterns = [
     url(r"^cc_search_status_options/(?P<biz_cc_id>\d+)/$", cc_search_status_options),
     # 获取可更改的set属性
     url(r"^cc_get_set_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_set_attribute),
+    # 批量查询拓扑节点下的主机
+    url(r"^cc_find_host_by_topo/(?P<biz_cc_id>\d+)/(?P<bk_inst_id>\d+)/$", cc_find_host_by_topo),
 ]
