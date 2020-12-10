@@ -128,6 +128,26 @@ const project = {
             return axios.delete(`api/v3/staff_group/${id}/`).then(
                 response => response.data
             )
+        },
+        getTemplateLabels ({ commit }, id) {
+            return axios.get('api/v3/new_label/', {
+                params: { project_id: id }
+            }).then(response => response.data)
+        },
+        createTemplateLabel ({ commit }, data) {
+            return axios.post(`api/v3/new_label/`, data).then(
+                response => response.data
+            )
+        },
+        updateTemplateLabel ({ commit }, data) {
+            return axios.put(`api/v3/new_label/${data.id}/`, data).then(
+                response => response.data
+            )
+        },
+        delTemplateLabel ({ commit }, id) {
+            return axios.delete(`api/v3/new_label/${id}/`).then(
+                response => response.data
+            )
         }
     }
 }
