@@ -18,6 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
+from api import BKGseKitClient
 from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_inject
@@ -145,6 +146,23 @@ def cc_get_set_group(request, biz_cc_id):
     return JsonResponse({"result": True, "data": group_data})
 
 
+def gsekit_get_config_template_list(request, biz_cc_id):
+    """
+    通过bk_biz_id获取当前业务下所有可用的 gsekit config template
+    :param biz_cc_id: 业务ID
+    :param request:
+    :return:
+    """
+    client = BKGseKitClient(request.user.username)
+    # kwargs = {"bk_biz_id": int(biz_cc_id)}
+    template_raw_info = client.list_config_template(bk_biz_id=int(biz_cc_id),
+                                                    page_param={"cur_page_param": "0","page_size_param": "1000"})
+    template_list = []
+    for template in template_raw_info:
+        template_list.append({"text": template["template"], "value": template["id"]})
+    return JsonResponse({"result": True, "data": template_list})
+
+
 @supplier_account_inject
 def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     """
@@ -178,4 +196,5 @@ urlpatterns += [
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
     url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
     url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
+    url(r"^gsekit_get_config_template_list/(?P<biz_cc_id>\d+)/$", gsekit_get_config_template_list),
 ]

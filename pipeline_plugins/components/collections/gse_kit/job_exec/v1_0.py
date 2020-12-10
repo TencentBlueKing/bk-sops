@@ -28,7 +28,7 @@ from gcloud.utils.handlers import handle_api_error
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-__group_name__ = _("gsekit(gsekit)")
+__group_name__ = _("GSEKIT(gsekit)")
 VERSION = "v1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
@@ -59,7 +59,7 @@ class GsekitJobExecService(Service):
         """
         executor = parent_data.get_one_of_inputs("executor")
         client = BKGseKitClient(executor)
-        job_task_id = data.outputs.gsekit_job_task_id
+        job_task_id = data.outputs.gsekit_task_id
 
         job_task_status = client.job_status(job_task_id=job_task_id)
         self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
@@ -132,6 +132,12 @@ class GsekitJobExecService(Service):
                 type="string",
                 schema=StringItemSchema(description=_("进程实例ID"), ),
             ),
+            self.InputItem(
+                name=_("配置文件模版"),
+                key="gsekit_config_template",
+                type="string",
+                schema=StringItemSchema(description=_("配置文件模版名"), ),
+            ),
         ]
 
     def execute(self, data, parent_data):
@@ -147,6 +153,7 @@ class GsekitJobExecService(Service):
         gsekit_service_id = data.get_one_of_inputs("gsekit_service_id")
         gsekit_process_name = data.get_one_of_inputs("gsekit_process_name")
         gsekit_process_id = data.get_one_of_inputs("gsekit_process_id")
+        gsekit_config_template = data.get_one_of_inputs("gsekit_config_template")
         scope_param = {
             "bk_set_env": gsekit_bk_env,
             "bk_set_ids": [gsekit_set],
@@ -154,6 +161,7 @@ class GsekitJobExecService(Service):
             "bk_service_ids": [gsekit_service_id],  # 服务实例id 列表
             "bk_process_names": [gsekit_process_name],
             "bk_process_ids": [gsekit_process_id],
+            "bk_config_template": [gsekit_config_template]
         }
 
         client = BKGseKitClient(executor)
@@ -164,7 +172,7 @@ class GsekitJobExecService(Service):
         self.logger.info("start gsekit job task with param {0}".format(scope_param))
         if job_result['result']:
             job_id = job_result["data"]["job_id"]
-            data.set_outputs("gsekit_job_task_id", job_id)
+            data.set_outputs("gsekit_task_id", job_id)
             return True
         else:
             self.logger.error("unexpect gsekit job task: {}, gsekit response: {}".format(scope_param, job_result))
@@ -175,7 +183,7 @@ class GsekitJobExecService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("gsekit_job_task_ID"), key="gsekit_job_task_id", type="string",
+                name=_("gsekit_task_ID"), key="gsekit_task_id", type="string",
                 schema=StringItemSchema(description=_("gsekit的任务ID")),
             )
         ]
@@ -186,7 +194,7 @@ class GsekitJobExecComponent(Component):
     @version log（v1.0）: gsekit, 固定命令列表
     """
 
-    name = _("gsekit执行命令")
+    name = _("执行命令")
     code = "gsekit_job_exec"
     bound_service = GsekitJobExecService
     form = '{static_url}components/atoms/gsekit/job_exec/{ver}.js'.format(static_url=settings.STATIC_URL,

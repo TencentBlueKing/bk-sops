@@ -5,6 +5,7 @@
             type: "select",
             attrs: {
                 name: gettext("环境类型"),
+                placeholder: gettext("请选择环境类型"),
                 hookable: true,
                 validation: [
                     {
@@ -19,27 +20,10 @@
             }
         },
         {
-            tag_code: "gsekit_job_object_choices",
-            type: "radio",
-            attrs: {
-                name: gettext("操作对象"),
-                hookable: true,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ],
-                items: [
-                    {name: 'CONFIGFILE', value: 'configfile'},
-                    {name: 'PROCESS', value: 'process'},
-                ]
-            }
-        },
-        {
             tag_code: "gsekit_job_action_choices",
             type: "select",
             attrs: {
-                name: gettext("操作类型"),
+                name: gettext("执行命令"),
                 hookable: true,
                 validation: [
                     {
@@ -47,15 +31,15 @@
                     }
                 ],
                 items: [
-                    {text: '生成', value: 'GENERATE'},
-                    {text: '下发', value: 'RELEASE'},
-                    {text: '启动', value: 'START'},
-                    {text: '停止', value: 'STOP'},
-                    {text: '重启', value: 'RESTART'},
-                    {text: '重载', value: 'RELOAD'},
-                    {text: '强制停止', value: 'FORCE_STOP'},
-                    {text: '托管', value: 'SET_AUTO'},
-                    {text: '取消托管', value: 'UNSET_AUTO'}
+                    {text: '启动(start)', value: 'START'},
+                    {text: '停止(stop)', value: 'STOP'},
+                    {text: '重启(restart)', value: 'RESTART'},
+                    {text: '重载(reload)', value: 'RELOAD'},
+                    {text: '强制停止(kill)', value: 'FORCE_STOP'},
+                    {text: '托管(set_auto)', value: 'SET_AUTO'},
+                    {text: '取消托管(unset_auto)', value: 'UNSET_AUTO'},
+                    {text: '生成配置(create_cfg)', value: 'GENERATE'},
+                    {text: '下发配置(push_cfg)', value: 'RELEASE'}
                 ]
             }
         },
@@ -119,15 +103,46 @@
             tag_code: "gsekit_process_id",
             type: "input",
             attrs: {
-                name: gettext("进程实例ID"),
+                name: gettext("process_id"),
                 hookable: true,
-                placeholder: gettext("进程实例ID"),
+                placeholder: gettext("process_id"),
                 validation: [
                     {
                         type: "required"
                     }
                 ]
             }
+        },
+        {
+        "type": "select",
+        "attrs": {
+            "name": "config_template",
+            "hookable": true,
+            "validation": [
+            ],
+            "default": "",
+            "hidden": false,
+            "value": "",
+            "multiple": false,
+            "multiple_limit": 0,
+            "clearable": true,
+            "allowCreate": false,
+            "remote": true,
+            "remote_url": $.context.get('site_url') + 'pipeline/gsekit_get_config_template_list' + '/' + $.context.getBkBizId() + '/',
+            remote_data_init: function (resp) {
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
+                                return resp.data;
+                            },
+            "hasGroup": false,
+            "disabled": false,
+            "placeholder": "config_template",
+            "empty_text": "当前项目下无可用配置模版"
+        },
+        "events": [],
+        "methods": {},
+        "tag_code": "gsekit_config_template"
         }
     ]
 })();
