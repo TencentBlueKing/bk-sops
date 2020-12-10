@@ -1003,7 +1003,7 @@
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
                 this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
                     this.quickClose = false
                 }
             },
