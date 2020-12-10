@@ -13,23 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.core.management import BaseCommand
 
-from pipeline.component_framework.component import Component
-from pipeline.component_framework.library import ComponentLibrary
-from pipeline.component_framework.models import ComponentModel
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-
-        for component_cls in ComponentLibrary.component_list():
-
-            if isinstance(component_cls, type) and issubclass(component_cls, Component):
-
-                # not register ignored component
-                ignore = getattr(component_cls, "__register_ignore__", False)
-                if ignore:
-                    continue
-
-                ComponentModel.objects.get_or_create(
-                    code=component_cls.code, defaults={"name": component_cls.name, "status": __debug__}
-                )
+        # do not need to do anything, the app ready will handle model update work
+        print("component models update finished.")

@@ -39,7 +39,7 @@
             ]
         },
         {
-            tag_code: "host_transfer_detail",
+            tag_code: "cc_host_transfer_detail",
             type: "datatable",
             attrs: {
                 name: gettext("主机所属模块修改详情"),

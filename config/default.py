@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import env
+
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
@@ -147,7 +149,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.18"
+STATIC_VERSION = "3.6.24"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -172,6 +174,10 @@ if IS_USE_CELERY:
     djcelery.setup_loader()
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+
+TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
+OLD_COMMUNITY_TEMPLATE_DATA_SALT = "e5483c1ccde63392bd439775bba6a7ae"
+
 
 LOGGING["loggers"]["pipeline"] = {
     "handlers": ["root"],
@@ -334,10 +340,65 @@ PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 # pipeline mako render settings
-MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+MAKO_SANDBOX_SHIELD_WORDS = [
+    "ascii",
+    "bytearray",
+    "bytes",
+    "callable",
+    "chr",
+    "classmethod",
+    "compile",
+    "delattr",
+    "dir",
+    "divmod",
+    "exec",
+    "eval",
+    "filter",
+    "frozenset",
+    "getattr",
+    "globals",
+    "hasattr",
+    "hash",
+    "help",
+    "id",
+    "input",
+    "isinstance",
+    "issubclass",
+    "iter",
+    "locals",
+    "map",
+    "memoryview",
+    "next",
+    "object",
+    "open",
+    "print",
+    "property",
+    "repr",
+    "setattr",
+    "staticmethod",
+    "super",
+    "type",
+    "vars",
+    "__import__",
+]
 
-MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+MAKO_SANDBOX_IMPORT_MODULES = {
+    "datetime": "datetime",
+    "re": "re",
+    "hashlib": "hashlib",
+    "random": "random",
+    "time": "time",
+}
 
+if env.SOPS_MAKO_IMPORT_MODULES:
+    for module_name in env.SOPS_MAKO_IMPORT_MODULES.split(","):
+        try:
+            __import__(module_name)
+        except ImportError as e:
+            err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(module_name, e)
+            print(err)
+            raise ImportError(err)
+        MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
@@ -373,3 +434,6 @@ MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48
 # keywords to shield in node log
 LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + os.getenv("BKAPP_LOG_SHIELDING_KEYWORDS", "")
 LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if LOG_SHIELDING_KEYWORDS else []
+
+AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
+AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"

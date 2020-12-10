@@ -69,6 +69,7 @@ def handle_api_error(system, api_name, params, result):
 
     logger.error(message)
 
+    handle_plain_log(message)
     return message
 
 

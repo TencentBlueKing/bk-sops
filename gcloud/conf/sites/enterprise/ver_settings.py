@@ -26,10 +26,10 @@ ESB_GET_OLD_CLIENT_BY_USER = get_client_by_user
 
 APP_HOST = "%s%s" % (settings.BK_PAAS_HOST, settings.SITE_URL)
 ESB_GET_ALL_USER = "{}/api/c/compapi/v2/usermanage/fe_list_users/".format(settings.BK_PAAS_HOST)
+BK_DOC_URL = "{}/o/bk_docs_center/markdown/标准运维/产品白皮书/产品简介/README.md".format(settings.BK_PAAS_HOST)
+FEEDBACK_URL = "https://bk.tencent.com/s-mart/community"
 APP_MAKER_UPLOAD_LOGO_USER_UIN = "bk_token"
 APP_MAKER_UPLOAD_LOGO_USER_KEY = "bk_token_null"
 
 IMPORT_V1_TEMPLATE_FLAG = False
 WHETHER_PREPARE_BIZ_IN_API_CALL = True
-
-TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"

@@ -122,7 +122,7 @@
             window.show_msg = (message, type) => {
                 this.$bkMessage({
                     message,
-                    isSingleLine: false,
+                    ellipsisLine: 2,
                     theme: type
                 })
             }
@@ -141,13 +141,19 @@
                 'loadAppmakerDetail'
             ]),
             ...mapActions('project', [
-                'loadProjectDetail'
+                'loadProjectDetail',
+                'changeDefaultProject'
             ]),
             ...mapMutations('appmaker/', [
                 'setAppmakerTemplateId',
                 'setAppmakerDetail'
             ]),
+            ...mapMutations('atomForm/', [
+                'clearAtomForm'
+            ]),
             ...mapMutations('project', [
+                'setProjectId',
+                'setTimeZone',
                 'setProjectName',
                 'setProjectActions'
             ]),
@@ -172,6 +178,9 @@
                 try {
                     this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
+                    this.setProjectId(this.project_id)
+                    this.setTimeZone(projectDetail.timeZone)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
@@ -179,6 +188,7 @@
                     } else {
                         setConfigContext(this.site_url, projectDetail)
                     }
+                    this.changeDefaultProject(this.project_id)
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {

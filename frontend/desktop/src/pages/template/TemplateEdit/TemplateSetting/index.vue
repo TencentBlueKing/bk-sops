@@ -20,6 +20,7 @@
         </TabGlobalVariables>
         <TabTemplateConfig
             v-if="activeTab === 'templateConfigTab'"
+            :common="common"
             :is-template-config-valid="isTemplateConfigValid"
             :project-info-loading="projectInfoLoading"
             @templateDataChanged="$emit('templateDataChanged')"

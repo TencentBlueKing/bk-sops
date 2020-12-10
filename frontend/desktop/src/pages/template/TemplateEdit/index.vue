@@ -134,6 +134,7 @@
     import moment from 'moment-timezone'
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
+    import bus from '@/utils/bus.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import validatePipeline from '@/utils/validatePipeline.js'
@@ -483,7 +484,7 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, $.atoms[code])
+                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -1024,6 +1025,7 @@
                 this.allowLeave = false
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
+                bus.$emit('resetProjectChange', this.project_id)
             },
             // 修改line和location
             onReplaceLineAndLocation (data) {
