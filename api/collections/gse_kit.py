@@ -33,7 +33,7 @@ class BKGseKitClient(BKComponentClient):
         :return:
         """
         super()._pre_process_data(data)
-        data = filter(lambda item: item is not None, data)
+        data = {k: v for k, v in data.items() if v is not None}
 
         return data
 
