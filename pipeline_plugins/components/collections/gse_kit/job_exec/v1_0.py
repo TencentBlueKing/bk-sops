@@ -197,6 +197,6 @@ class GsekitJobExecComponent(Component):
     name = _("执行命令")
     code = "gsekit_job_exec"
     bound_service = GsekitJobExecService
-    form = '{static_url}components/atoms/gsekit/job_exec/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                          ver=VERSION.replace('.', '_'))
+    form = '{static_url}components/atoms/gse_kit/job_exec/v{ver}.js'.format(static_url=settings.STATIC_URL,
+                                                                            ver=VERSION.replace('.', '_'))
     version = VERSION
