@@ -446,7 +446,6 @@ def cc_find_host_by_topo(request, biz_cc_id, bk_inst_id):
     return {"result": True, "data": data}
 
 
-
 cc_urlpatterns = [
     url(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
