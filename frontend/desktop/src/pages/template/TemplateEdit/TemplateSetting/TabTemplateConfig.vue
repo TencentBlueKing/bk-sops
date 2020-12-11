@@ -24,7 +24,8 @@
                         <bk-select
                             class="category-select"
                             :clearable="false"
-                            v-model="selectedTaskCategory">
+                            v-model="selectedTaskCategory"
+                            @change="isCategoryEmpty = false">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
@@ -32,7 +33,7 @@
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
-                        <span v-show="!selectedTaskCategory" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+                        <span v-show="!selectedTaskCategory || isCategoryEmpty" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -91,7 +92,8 @@
                 receiverGroup: notify_receivers.receiver_group.slice(0),
                 notifyType: notify_type.slice(0),
                 notifyTypeLoading: false,
-                notifyTypeList: []
+                notifyTypeList: [],
+                isCategoryEmpty: true
             }
         },
         computed: {
@@ -151,6 +153,7 @@
             },
             onConfirm () {
                 if (!this.selectedTaskCategory) {
+                    this.isCategoryEmpty = true
                     return
                 }
                 this.setCategory(this.selectedTaskCategory)
