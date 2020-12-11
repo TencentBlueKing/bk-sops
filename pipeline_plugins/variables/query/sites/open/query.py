@@ -155,8 +155,7 @@ def gsekit_get_config_template_list(request, biz_cc_id):
     """
     client = BKGseKitClient(request.user.username)
     # kwargs = {"bk_biz_id": int(biz_cc_id)}
-    template_raw_info = client.list_config_template(bk_biz_id=int(biz_cc_id),
-                                                    page_param={"cur_page_param": "0","page_size_param": "1000"})
+    template_raw_info = client.list_config_template(bk_biz_id=int(biz_cc_id))
     template_list = []
     for template in template_raw_info:
         template_list.append({"text": template["template"], "value": template["id"]})
