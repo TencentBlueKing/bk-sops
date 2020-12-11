@@ -82,7 +82,7 @@ class BKGseKitClient(BKComponentClient):
 
     def job_status(self, bk_biz_id, job_task_id):
         """
-        查询gsekit 任务状态
+        查询 gsekit 任务状态
         :param job_task_id: string
         """
         param = {"job_task_id_list": [job_task_id]}
@@ -98,4 +98,17 @@ class BKGseKitClient(BKComponentClient):
         param = {"bk_biz_id": [bk_biz_id]}
         return self._redataquest(
             method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
+        )
+
+    def list_config_template(self, bk_biz_id):
+        """
+        获取 gsekit 配置模版列表
+        """
+        params = {
+            "bk_biz_id": bk_biz_id
+        }
+        return self._request(
+            method="get",
+            url=_get_gse_kit_api("config_template"),
+            data=params
         )

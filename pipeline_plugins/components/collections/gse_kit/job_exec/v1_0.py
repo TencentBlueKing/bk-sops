@@ -28,8 +28,8 @@ from gcloud.utils.handlers import handle_api_error
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-__group_name__ = _("gsekit(gsekit)")
-VERSION = "v1.0"
+__group_name__ = _("GSEKIT(gsekit)")
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -59,7 +59,7 @@ class GsekitJobExecService(Service):
         """
         executor = parent_data.get_one_of_inputs("executor")
         client = BKGseKitClient(executor)
-        job_task_id = data.outputs.gsekit_job_task_id
+        job_task_id = data.outputs.gsekit_task_id
 
         job_task_status = client.job_status(job_task_id=job_task_id)
         self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
@@ -78,15 +78,17 @@ class GsekitJobExecService(Service):
             return True
         else:
             self.logger.error(
-                "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status)
-            )
+                "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status))
             data.set_outputs("ex_data", "unexpect gsekit job task status code: {}".format(code))
             return False
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("环境类型"), key="gsekit_bk_env", type="string", schema=StringItemSchema(description=_("当前业务的环境类型")),
+                name=_("环境类型"),
+                key="gsekit_bk_env",
+                type="string",
+                schema=StringItemSchema(description=_("当前业务的环境类型")),
             ),
             self.InputItem(
                 name=_("操作对象"),
@@ -101,25 +103,40 @@ class GsekitJobExecService(Service):
                 schema=StringItemSchema(description=_("操作类型")),
             ),
             self.InputItem(
-                name=_("集群ID"), key="gsekit_set", type="string", schema=StringItemSchema(description=_("集群ID")),
+                name=_("集群ID"),
+                key="gsekit_set",
+                type="string",
+                schema=StringItemSchema(description=_("集群ID")),
             ),
             self.InputItem(
-                name=_("模块ID"), key="gsekit_module", type="string", schema=StringItemSchema(description=_("模块ID"),),
+                name=_("模块ID"),
+                key="gsekit_module",
+                type="string",
+                schema=StringItemSchema(description=_("模块ID"),),
             ),
             self.InputItem(
                 name=_("服务实例"),
                 key="gsekit_service_id",
                 type="string",
-                schema=StringItemSchema(description=_("服务实例ID"),),
+                schema=StringItemSchema(description=_("服务实例ID"), ),
             ),
             self.InputItem(
-                name=_("进程"), key="gsekit_process_name", type="string", schema=StringItemSchema(description=_("进程ID"),),
+                name=_("进程"),
+                key="gsekit_process_name",
+                type="string",
+                schema=StringItemSchema(description=_("进程ID"), ),
             ),
             self.InputItem(
                 name=_("进程实例"),
                 key="gsekit_process_id",
                 type="string",
-                schema=StringItemSchema(description=_("进程实例ID"),),
+                schema=StringItemSchema(description=_("进程实例ID"), ),
+            ),
+            self.InputItem(
+                name=_("配置文件模版"),
+                key="gsekit_config_template",
+                type="string",
+                schema=StringItemSchema(description=_("配置文件模版名"), ),
             ),
         ]
 
@@ -136,6 +153,7 @@ class GsekitJobExecService(Service):
         gsekit_service_id = data.get_one_of_inputs("gsekit_service_id")
         gsekit_process_name = data.get_one_of_inputs("gsekit_process_name")
         gsekit_process_id = data.get_one_of_inputs("gsekit_process_id")
+        gsekit_config_template = data.get_one_of_inputs("gsekit_config_template")
         scope_param = {
             "bk_set_env": gsekit_bk_env,
             "bk_set_ids": [gsekit_set],
@@ -143,19 +161,18 @@ class GsekitJobExecService(Service):
             "bk_service_ids": [gsekit_service_id],  # 服务实例id 列表
             "bk_process_names": [gsekit_process_name],
             "bk_process_ids": [gsekit_process_id],
+            "bk_config_template": [gsekit_config_template]
         }
 
         client = BKGseKitClient(executor)
-        job_result = client.create_job(
-            bk_biz_id=biz_cc_id,
-            job_object=gsekit_job_object_choices,
-            job_action=gsekit_job_action_choices,
-            scope=scope_param,
-        )
+        job_result = client.create_job(bk_biz_id=biz_cc_id,
+                                       job_object=gsekit_job_object_choices,
+                                       job_action=gsekit_job_action_choices,
+                                       scope=scope_param)
         self.logger.info("start gsekit job task with param {0}".format(scope_param))
         if job_result["result"]:
             job_id = job_result["data"]["job_id"]
-            data.set_outputs("gsekit_job_task_id", job_id)
+            data.set_outputs("gsekit_task_id", job_id)
             return True
         else:
             self.logger.error("unexpect gsekit job task: {}, gsekit response: {}".format(scope_param, job_result))
@@ -166,9 +183,7 @@ class GsekitJobExecService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("gsekit_job_task_ID"),
-                key="gsekit_job_task_id",
-                type="string",
+                name=_("gsekit_task_ID"), key="gsekit_task_id", type="string",
                 schema=StringItemSchema(description=_("gsekit的任务ID")),
             )
         ]
@@ -179,10 +194,9 @@ class GsekitJobExecComponent(Component):
     @version log（v1.0）: gsekit, 固定命令列表
     """
 
-    name = _("gsekit执行命令")
+    name = _("执行命令")
     code = "gsekit_job_exec"
     bound_service = GsekitJobExecService
-    form = "{static_url}components/atoms/gse_kit/job_exec/{ver}.js".format(
-        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
-    )
+    form = '{static_url}components/atoms/gse_kit/job_exec/v{ver}.js'.format(static_url=settings.STATIC_URL,
+                                                                            ver=VERSION.replace('.', '_'))
     version = VERSION
