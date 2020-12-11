@@ -98,8 +98,16 @@
                         <span class="label-name" :style="{ background: props.row.color }">{{ props.row.name }}</span>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="$t('标签描述')" property="description" :width="300"></bk-table-column>
-                <bk-table-column :label="$t('标签引用')"></bk-table-column>
+                <bk-table-column :label="$t('标签描述')" :width="300">
+                    <template slot-scope="props">
+                        {{ props.row.description || '--' }}
+                    </template>
+                </bk-table-column>
+                <bk-table-column :label="$t('标签引用')">
+                    <template slot-scope="props">
+                        {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
+                    </template>
+                </bk-table-column>
                 <bk-table-column :label="$t('操作')" :width="300">
                     <template slot-scope="props">
                         <bk-button :text="true" @click="onEditLabel('edit', props.row)">{{ $t('编辑') }}</bk-button>
@@ -277,6 +285,7 @@
                 deletingLabelDetail: {},
                 isDeleteLabelDialogShow: false,
                 labelDetail: {},
+                labelCount: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
                 colorDropdownShow: false,
                 colorList: [
@@ -360,7 +369,8 @@
                 'getProjectLabels',
                 'updateTemplateLabel',
                 'createTemplateLabel',
-                'delTemplateLabel'
+                'delTemplateLabel',
+                'getlabelsCitedCount'
             ]),
             async getProjectDetail () {
                 this.projectLoading = true
@@ -553,9 +563,15 @@
             },
             async getTplLabels () {
                 this.labelLoading = true
+                this.labelCount = {}
                 try {
                     const resp = await this.getProjectLabels(this.id)
                     this.labelList = resp.data
+                    if (resp.data.length > 0) {
+                        const ids = resp.data.map(item => item.id).join(',')
+                        const labelData = await this.getlabelsCitedCount(ids)
+                        this.labelCount = labelData.data
+                    }
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {

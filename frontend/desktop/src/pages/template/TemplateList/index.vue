@@ -77,9 +77,9 @@
                                     {{props.row.name}}
                                 </router-link>
                             </template>
-                            <template v-if="tplsLabels[props.row.id] && tplsLabels[props.row.id].length > 0">
+                            <template v-if="props.row.labels && props.row.labels.length > 0">
                                 <span
-                                    v-for="label in tplsLabels[props.row.id]"
+                                    v-for="label in props.row.labels"
                                     class="label-name"
                                     :key="label.id"
                                     :style="{ background: label.color }"
@@ -342,8 +342,7 @@
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
-                collectionList: [],
-                tplsLabels: {} // 模板标签
+                collectionList: []
             }
         },
         computed: {
@@ -400,7 +399,6 @@
                 'getExpiredSubProcess'
             ]),
             ...mapActions('project/', [
-                'getTemplatesLabels',
                 'getProjectLabelsWithDefault'
             ]),
             ...mapMutations('template/', [
@@ -411,7 +409,6 @@
             ]),
             async getTemplateList () {
                 this.listLoading = true
-                this.tplsLabels = {}
                 try {
                     const { subprocessUpdateVal, creator, category, queryTime, flowName, label_ids } = this.requestData
 
@@ -449,11 +446,6 @@
                         this.totalPage = 1
                     } else {
                         this.totalPage = totalPage
-                    }
-                    const ids = list.map(item => item.id).join(',')
-                    if (ids.length > 0) {
-                        const labelData = await this.getTemplatesLabels(ids)
-                        this.tplsLabels = labelData.data
                     }
                 } catch (e) {
                     errorHandler(e, this)

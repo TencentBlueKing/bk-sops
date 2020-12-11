@@ -156,10 +156,9 @@ const project = {
                 response => response.data
             )
         },
-        // 查询流程模板的标签
-        getTemplatesLabels ({ commit }, ids) {
-            return axios.get('api/v3/new_label/get_templates_labels/', {
-                params: { template_ids: ids }
+        getlabelsCitedCount ({ commit }, ids) {
+            return axios.get('api/v3/new_label/get_label_template_ids/', {
+                params: { label_ids: ids }
             }).then(response => response.data)
         }
     }

@@ -143,10 +143,8 @@
                     // ]
                 },
                 notifyTypeList: [],
-                projectNotifyGroup: [],
                 templateLabels: [],
                 notifyTypeLoading: false,
-                notifyGroupLoading: false,
                 templateLabelLoading: false
             }
         },
@@ -181,9 +179,6 @@
         created () {
             this.getNotifyTypeList()
             this.getTemplateLabelList()
-            if (!this.common) {
-                this.getProjectNotifyGroup()
-            }
         },
         mounted () {
             if (!this.isTemplateConfigValid) {
@@ -209,17 +204,6 @@
                     errorHandler(error, this)
                 } finally {
                     this.notifyTypeLoading = false
-                }
-            },
-            async getProjectNotifyGroup () {
-                try {
-                    this.notifyGroupLoading = true
-                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
-                    this.projectNotifyGroup = res.data
-                } catch (error) {
-                    errorHandler(error, this)
-                } finally {
-                    this.notifyGroupLoading = false
                 }
             },
             async getTemplateLabelList () {
