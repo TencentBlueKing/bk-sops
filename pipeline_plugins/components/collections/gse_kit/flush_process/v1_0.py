@@ -25,10 +25,9 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("celery")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-__group_name__ = _("gsekit(gsekit)")
-VERSION = "v1.0"
+__group_name__ = _("GSEKIT(gsekit)")
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -59,10 +58,10 @@ class GsekitFlushProcessInstanceComponent(Component):
     @version log（v1.0）: gsekit
     """
 
-    name = _("gsekit刷新进程实例")
+    name = _("刷新进程实例")
     code = "gsekit_flush_process"
     bound_service = GsekitFlushProcessService
-    form = "{static_url}components/atoms/gse_kit/flush_process/{ver}.js".format(
+    form = "{static_url}components/atoms/gse_kit/flush_process/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION
