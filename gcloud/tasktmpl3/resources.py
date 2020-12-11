@@ -117,13 +117,23 @@ class TaskTemplateResource(GCloudModelResource):
         collected_templates = (
             user_model.objects.get(username=user.username).tasktemplate_set.all().values_list("id", flat=True)
         )
+        template_ids = [bundle.obj.id for bundle in data["objects"]]
+        templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for bundle in data["objects"]:
             if bundle.obj.id in collected_templates:
                 bundle.data["is_add"] = 1
             else:
                 bundle.data["is_add"] = 0
+            bundle.data["labels"] = templates_labels.get(bundle.obj.id, [])
 
         return data
+
+    def alter_detail_data_to_serialize(self, request, data):
+        bundle = super(TaskTemplateResource, self).alter_detail_data_to_serialize(request, data)
+        template_id = bundle.obj.id
+        labels = TemplateLabelRelation.objects.fetch_templates_labels([template_id]).get(template_id, [])
+        bundle.data["template_labels"] = labels
+        return bundle
 
     def obj_create(self, bundle, **kwargs):
         with transaction.atomic():
@@ -247,7 +257,7 @@ class TaskTemplateResource(GCloudModelResource):
 
 
 class TemplateSchemeResource(GCloudModelResource):
-    data = fields.CharField(attribute="data", use_in="detail",)
+    data = fields.CharField(attribute="data", use_in="detail")
 
     class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()
