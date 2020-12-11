@@ -18,9 +18,7 @@ from api.client import BKComponentClient
 from api.utils.request import batch_request
 
 # TODO:待GSE KIT接入ESB后修改
-GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/gse_kit"
-)
+GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/gse_kit")
 
 
 def _get_gse_kit_api(api_name):
@@ -34,39 +32,25 @@ class BKGseKitClient(BKComponentClient):
         :param data:
         :return:
         """
-        data = super()._pre_process_data(data)
-        for param in data.keys():
-            if data[param] is None:
-                data.pop(param)
+        super()._pre_process_data(data)
+        data = filter(lambda item: item is not None, data)
+
         return data
 
     def list_process(
-            self,
-            page_param,
-            scope=None,
-            expression_scope=None,
-            bk_cloud_ids=None,
-            process_status=None,
-            is_auto=None,
+        self, page_param, scope=None, expression_scope=None, bk_cloud_ids=None, process_status=None, is_auto=None,
     ):
         params = {
             "scope": scope,
             "expression_scope": expression_scope,
             "bk_cloud_ids": bk_cloud_ids,
             "process_status": process_status,
-            "is_auto": is_auto
+            "is_auto": is_auto,
         }
         return batch_request(func=self._list_processes, params=params, page_param=page_param)
 
     def _list_processes(
-            self,
-            pagesize,
-            page,
-            scope=None,
-            expression_scope=None,
-            bk_cloud_ids=None,
-            process_status=None,
-            is_auto=None,
+        self, pagesize, page, scope=None, expression_scope=None, bk_cloud_ids=None, process_status=None, is_auto=None,
     ):
         return self._request(
             method="post",
@@ -78,17 +62,11 @@ class BKGseKitClient(BKComponentClient):
                 "expression_scope": expression_scope,
                 "bk_cloud_ids": bk_cloud_ids,
                 "process_status": process_status,
-                "is_auto": is_auto
-            }
+                "is_auto": is_auto,
+            },
         )
 
-    def create_job(self,
-                   bk_biz_id,
-                   job_object,
-                   job_action,
-                   scope=None,
-                   expression_scope=None
-                   ):
+    def create_job(self, bk_biz_id, job_object, job_action, scope=None, expression_scope=None):
         """
         创建 gsekit 任务命令
         """
@@ -96,12 +74,10 @@ class BKGseKitClient(BKComponentClient):
             "job_object": job_object,
             "job_action": job_action,
             "scope": scope,
-            "expression_scope": expression_scope
+            "expression_scope": expression_scope,
         }
         return self._request(
-            method="post",
-            url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)),
-            data=param
+            method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
         )
 
     def job_status(self, bk_biz_id, job_task_id):
@@ -109,11 +85,17 @@ class BKGseKitClient(BKComponentClient):
         查询gsekit 任务状态
         :param job_task_id: string
         """
-        param = {
-            "job_task_id_list": [job_task_id]
-        }
+        param = {"job_task_id_list": [job_task_id]}
         return self._request(
-            method="post",
-            url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)),
-            data=param
+            method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
+        )
+
+    def flush_process(self, bk_biz_id):
+        """
+        刷新业务进程缓存
+        :param bk_biz_id: string
+        """
+        param = {"bk_biz_id": [bk_biz_id]}
+        return self._redataquest(
+            method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
         )
