@@ -37,7 +37,7 @@
                     @page-limit-change="onPageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
+                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="240">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['task_view'], props.row.auth_actions)"

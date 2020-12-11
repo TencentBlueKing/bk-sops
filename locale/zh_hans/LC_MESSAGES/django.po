@@ -217,7 +217,7 @@ msgstr "新建任务"
 msgid "新建周期任务"
 msgstr "新建周期任务"
 
-#: gcloud/conf/i18n.py:18
+#: gcloud/conf/sites/enterprise/ver_settings.py:19
 msgid "蓝鲸智云企业版"
 msgstr "蓝鲸智云企业版"
 

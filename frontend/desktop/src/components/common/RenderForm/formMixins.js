@@ -142,8 +142,8 @@ export function getFormMixins (attrs = {}) {
                     valid: true,
                     message: ''
                 },
-                ...noInheritData,
-                editable: this.formEdit
+                editable: this.formEdit,
+                ...noInheritData
             }
         },
         created () {

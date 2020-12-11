@@ -59,7 +59,7 @@
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
                     <bk-table-column label="ID" prop="id" width="100"></bk-table-column>
-                    <bk-table-column :label="$t('流程名称')">
+                    <bk-table-column :label="$t('流程名称')" min-width="240">
                         <template slot-scope="props">
                             <template>
                                 <a
