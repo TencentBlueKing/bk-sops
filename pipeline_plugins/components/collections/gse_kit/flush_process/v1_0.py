@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -28,8 +27,6 @@ logger = logging.getLogger("celery")
 
 __group_name__ = _("GSEKIT(gsekit)")
 VERSION = "1.0"
-
-cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class GsekitFlushProcessService(Service):
