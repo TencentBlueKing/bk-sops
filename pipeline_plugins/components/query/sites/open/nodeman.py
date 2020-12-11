@@ -16,16 +16,15 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
-from gcloud.conf import settings
+from api.collections.nodeman import BKNodeManClient
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def nodeman_get_cloud_area(request):
-    client = get_client_by_user(request.user.username)
-    cloud_area_result = client.nodeman.cloud_list()
+    client = BKNodeManClient(username=request.user.username)
+    cloud_area_result = client.cloud_list()
     if not cloud_area_result["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
         logger.error(message)
@@ -42,8 +41,8 @@ def nodeman_get_cloud_area(request):
 
 
 def nodeman_get_ap_list(request):
-    client = get_client_by_user(request.user.username)
-    ap_list = client.nodeman.ap_list()
+    client = BKNodeManClient(username=request.user.username)
+    ap_list = client.ap_list()
     if not ap_list["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.ap_list", {}, ap_list)
         logger.error(message)
