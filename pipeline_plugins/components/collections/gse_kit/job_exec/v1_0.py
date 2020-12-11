@@ -29,7 +29,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("GSEKIT(gsekit)")
-VERSION = "v1.0"
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -170,7 +170,7 @@ class GsekitJobExecService(Service):
                                        job_action=gsekit_job_action_choices,
                                        scope=scope_param)
         self.logger.info("start gsekit job task with param {0}".format(scope_param))
-        if job_result['result']:
+        if job_result["result"]:
             job_id = job_result["data"]["job_id"]
             data.set_outputs("gsekit_task_id", job_id)
             return True
