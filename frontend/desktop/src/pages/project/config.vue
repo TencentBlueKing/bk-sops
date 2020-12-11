@@ -190,7 +190,29 @@
             @cancel="isLabelDialogShow = false">
             <bk-form ref="labelForm" class="label-dialog" :model="labelDetail" :rules="labelRules">
                 <bk-form-item property="color" :label="$t('颜色')" :required="true">
-                    <bk-color-picker v-model="labelDetail.color"></bk-color-picker>
+                    <bk-dropdown-menu
+                        ref="dropdown"
+                        trigger="click"
+                        class="color-dropdown"
+                        @show="colorDropdownShow = true"
+                        @hide="colorDropdownShow = false">
+                        <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                            <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                            <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                        </div>
+                        <div class="color-list" slot="dropdown-content">
+                            <div class="tip">{{ $t('选择颜色') }}</div>
+                            <div>
+                                <span
+                                    v-for="color in colorList"
+                                    :key="color"
+                                    class="color-item color-block"
+                                    :style="{ background: color }"
+                                    @click="labelDetail.color = color">
+                                </span>
+                            </div>
+                        </div>
+                    </bk-dropdown-menu>
                 </bk-form-item>
                 <bk-form-item property="name" :label="$t('名称')" :required="true">
                     <bk-input v-model="labelDetail.name"></bk-input>
@@ -256,6 +278,12 @@
                 isDeleteLabelDialogShow: false,
                 labelDetail: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
+                colorDropdownShow: false,
+                colorList: [
+                    '#c4c6cc', '#ffd695', '#ffdddd', '#e1ecff', '#dcffe2',
+                    '#c4c6cc', '#ffd695', '#fd9c9c', '#a3c5fd', '#94f5a4',
+                    '#979ba5', '#ffb848', '#ff5656', '#699df4', '#45e35f'
+                ],
                 descRules: {
                     value: [{
                         max: 512,
@@ -329,7 +357,7 @@
                 'createProjectStaffGroup',
                 'updateProjectStaffGroup',
                 'delProjectStaffGroup',
-                'getTemplateLabels',
+                'getProjectLabels',
                 'updateTemplateLabel',
                 'createTemplateLabel',
                 'delTemplateLabel'
@@ -526,7 +554,7 @@
             async getTplLabels () {
                 this.labelLoading = true
                 try {
-                    const resp = await this.getTemplateLabels(this.id)
+                    const resp = await this.getProjectLabels(this.id)
                     this.labelList = resp.data
                 } catch (error) {
                     errorHandler(error, this)
@@ -535,8 +563,11 @@
                 }
             },
             onEditLabel (type, label) {
-                this.labelDetail = type === 'edit' ? { ...label, type: 'edit' } : { color: '', name: '', description: '' }
+                this.labelDetail = type === 'edit' ? { ...label, type: 'edit' } : { color: '#dcffe2', name: '', description: '' }
                 this.isLabelDialogShow = true
+            },
+            onSelectColor (val) {
+                this.labelDetail.color = val
             },
             editLabelConfirm () {
                 if (this.pending.label) {
@@ -724,6 +755,47 @@
         }
         .user-selector {
             width: 100%;
+        }
+    }
+    .color-dropdown {
+        .dropdown-trigger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 7px;
+            height: 32px;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+            cursor: pointer;
+            &>i {
+                margin: 0 6px;
+                font-size: 16px;
+            }
+        }
+        .color-block {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+        .color-list {
+            width: 148px;
+            padding: 6px 16px 6px;
+            overflow: hidden;
+            .tip {
+                margin-bottom: 10px;
+                color: #b2bed4;
+                font-size: 12px;
+                line-height: 1;
+            }
+            .color-item {
+                float: left;
+                margin-right: 4px;
+                margin-bottom: 4px;
+                cursor: pointer;
+                &:nth-child(5n) {
+                    margin-right: 0;
+                }
+            }
         }
     }
 </style>

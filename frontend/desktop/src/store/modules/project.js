@@ -129,8 +129,15 @@ const project = {
                 response => response.data
             )
         },
-        getTemplateLabels ({ commit }, id) {
+        // 查询项目下用户可编辑的模板标签
+        getProjectLabels ({ commit }, id) {
             return axios.get('api/v3/new_label/', {
+                params: { project_id: id }
+            }).then(response => response.data)
+        },
+        // 查询项目下支持的模板标签（包含默认标签）
+        getProjectLabelsWithDefault ({ commit }, id) {
+            return axios.get('api/v3/new_label/list_with_default_labels', {
                 params: { project_id: id }
             }).then(response => response.data)
         },
@@ -148,6 +155,12 @@ const project = {
             return axios.delete(`api/v3/new_label/${id}/`).then(
                 response => response.data
             )
+        },
+        // 查询流程模板的标签
+        getTemplatesLabels ({ commit }, ids) {
+            return axios.get('api/v3/new_label/get_templates_labels/', {
+                params: { template_ids: ids }
+            }).then(response => response.data)
         }
     }
 }

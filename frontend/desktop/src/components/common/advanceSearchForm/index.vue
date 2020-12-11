@@ -45,7 +45,7 @@
                                 :key="form.key"
                                 :title="form.value">
                                 <span class="label">{{ form.label }}{{ $t('：') }}</span>
-                                <span class="value">{{ form.value }}</span>
+                                <span class="value" v-bk-overflow-tips>{{ form.value }}</span>
                             </div>
                         </template>
                         <span class="delete-btn" @click.stop="onDeleteRecord(item.id)">{{ $t('删除') }}</span>
@@ -66,6 +66,8 @@
                                 :loading="item.loading"
                                 :clearable="true"
                                 :searchable="true"
+                                :display-tag="item.multiple || false"
+                                :multiple="item.multiple || false"
                                 v-model="formData[item.key]"
                                 @clear="onClearFormItem(item.key)"
                                 @change="onChangeFormItem($event, item.key, item.type)">
@@ -172,8 +174,17 @@
                         const { label, type } = form
                         let value = ''
                         if (form.type === 'select') {
-                            const option = form.list.find(opt => opt.value === recordItem.form[key])
-                            value = option ? option.name : '--'
+                            if (Array.isArray(recordItem.form[key])) {
+                                const options = []
+                                recordItem.form[key].forEach(recordVal => {
+                                    const option = form.list.find(opt => opt.value === recordVal)
+                                    option && options.push(option)
+                                })
+                                value = options.length > 0 ? options.map(item => item.name).join(',') : '--'
+                            } else {
+                                const option = form.list.find(opt => opt.value === recordItem.form[key])
+                                value = option ? option.name : '--'
+                            }
                         } else if (form.type === 'dateRange') {
                             const timeStr = []
                             recordItem.form[key].forEach(timeItem => {
@@ -319,7 +330,7 @@
                 this.selectedRecord = null
                 Object.keys(this.formData).forEach(key => {
                     const form = this.searchForm.find(item => item.key === key)
-                    const val = form.type === 'dateRange' ? [] : ''
+                    const val = form.type === 'dateRange' || form.multiple ? [] : ''
                     this.$set(this.formData, key, val)
                 })
                 this.$emit('submit', this.formData)
