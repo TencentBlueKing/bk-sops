@@ -11,10 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import time
+from threading import Lock
 
 from django.core.cache import cache
 
 from gcloud.taskflow3.models import TaskOperationTimesConfig
+
+task_operation_throttle_lock = Lock()
 
 
 def check_task_operation_throttle(project_id, operation):
@@ -25,7 +28,6 @@ def check_task_operation_throttle(project_id, operation):
     except TaskOperationTimesConfig.DoesNotExist:
         # not limit if no config on project
         return True
-
     time_unit_mapping = {"m": 60, "h": 3600, "d": 86400}
     allowed_times = int(times_config.times)
     scope_seconds = time_unit_mapping.get(times_config.time_unit)
@@ -34,18 +36,23 @@ def check_task_operation_throttle(project_id, operation):
     cache_prefix = "task_operation_throttle"
     token_num_key = "{}_token_num_{}_{}".format(cache_prefix, project_id, operation)
     last_time_key = "{}_last_time_{}_{}".format(cache_prefix, project_id, operation)
-    token_num = cache.get(token_num_key, allowed_times)
-    now = time.time()
-    last_time = cache.get(last_time_key, now)
-    cache.set(last_time_key, now)
 
-    token_gen_rate = allowed_times / scope_seconds
-    token_num = token_num + (now - last_time) * token_gen_rate
+    task_operation_throttle_lock.acquire()
+    try:
+        token_num = cache.get(token_num_key, allowed_times)
+        now = time.time()
+        last_time = cache.get(last_time_key, now)
+        cache.set(last_time_key, now)
 
-    if token_num < 1:
+        token_gen_rate = allowed_times / scope_seconds
+        token_num = token_num + (now - last_time) * token_gen_rate
+
+        if token_num < 1:
+            cache.set(token_num_key, token_num)
+            return False
+
+        token_num = allowed_times if token_num - 1 > allowed_times else token_num - 1
         cache.set(token_num_key, token_num)
-        return False
-
-    token_num = allowed_times if token_num - 1 > allowed_times else token_num - 1
-    cache.set(token_num_key, token_num)
-    return True
+        return True
+    finally:
+        task_operation_throttle_lock.release()
