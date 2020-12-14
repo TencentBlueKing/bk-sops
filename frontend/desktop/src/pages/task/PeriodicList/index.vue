@@ -19,7 +19,7 @@
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
+                    <template v-if="!adminView" v-slot:operation>
                         <bk-button
                             ref="childComponent"
                             theme="primary"
