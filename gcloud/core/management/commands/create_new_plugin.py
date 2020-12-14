@@ -2,7 +2,6 @@ import sys
 import re
 import os
 import django
-from django.conf import settings
 from django.template import engines
 from django.core.management.base import BaseCommand, CommandError
 
