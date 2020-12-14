@@ -96,7 +96,7 @@ class BKGseKitClient(BKComponentClient):
         :param bk_biz_id: string
         """
         param = {"bk_biz_id": [bk_biz_id]}
-        return self._redataquest(
+        return self._request(
             method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
         )
 
