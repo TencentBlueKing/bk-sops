@@ -132,7 +132,7 @@ class TaskTemplateResource(GCloudModelResource):
         bundle = super(TaskTemplateResource, self).alter_detail_data_to_serialize(request, data)
         template_id = bundle.obj.id
         labels = TemplateLabelRelation.objects.fetch_templates_labels([template_id]).get(template_id, [])
-        bundle.data["template_labels"] = labels
+        bundle.data["template_labels"] = [label["label_id"] for label in labels]
         return bundle
 
     def obj_create(self, bundle, **kwargs):
@@ -166,17 +166,18 @@ class TaskTemplateResource(GCloudModelResource):
                 raise BadRequest("flow template referred as SubProcess does not exist")
             kwargs["pipeline_template_id"] = pipeline_template.template_id
 
+            bundle = super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
             label_ids = bundle.data.get("template_labels")
-            if label_ids is not None and len(label_ids) > 0:
+            if label_ids and len(label_ids) > 0 and bundle.obj:
                 label_ids = list(set(label_ids))
                 if not Label.objects.check_label_ids(label_ids):
                     raise BadRequest("Containing template label not exist, please check.")
                 try:
-                    TemplateLabelRelation.objects.set_labels_for_template(pipeline_template.template_id, label_ids)
+                    TemplateLabelRelation.objects.set_labels_for_template(bundle.obj.id, label_ids)
                 except Exception as e:
                     raise BadRequest(str(e))
 
-            return super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
+            return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         with transaction.atomic():
