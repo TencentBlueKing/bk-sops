@@ -13,10 +13,10 @@ specific language governing permissions and limitations under the License.
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import ApiMixin, permissions
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.label.serilaziers import LabelSerializer
@@ -32,24 +32,24 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")
         if not project_id:
-            raise APIException("project_id should be provided.")
+            raise ValidationException("project_id should be provided.")
         return super(LabelViewSet, self).list(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         if self.get_object().is_default:
-            raise APIException("default label cannot be updated.")
+            raise ValidationException("default label cannot be updated.")
         return super(LabelViewSet, self).update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         if self.get_object().is_default:
-            raise APIException("default label cannot be deleted.")
+            raise ValidationException("default label cannot be deleted.")
         return super(LabelViewSet, self).destroy(request, *args, **kwargs)
 
     @action(methods=["get"], detail=False)
     def list_with_default_labels(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")
         if not project_id:
-            raise APIException("project_id should be provided.")
+            raise ValidationException("project_id should be provided.")
         queryset = Label.objects.filter(Q(project_id=project_id) | Q(is_default=True))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -58,7 +58,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     def get_templates_labels(self, request):
         template_ids = request.query_params.get("template_ids")
         if not template_ids:
-            raise APIException("template_ids must be provided.")
+            raise ValidationException("template_ids must be provided.")
         template_ids = [int(template_id) for template_id in template_ids.strip().split(",")]
         return Response(TemplateLabelRelation.objects.fetch_templates_labels(template_ids))
 
@@ -66,6 +66,6 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     def get_label_template_ids(self, request):
         label_ids = request.query_params.get("label_ids")
         if not label_ids:
-            raise APIException("label_ids must be provided.")
+            raise ValidationException("label_ids must be provided.")
         label_ids = [int(label_id) for label_id in label_ids.strip().split(",")]
         return Response(TemplateLabelRelation.objects.fetch_label_template_ids(label_ids))
