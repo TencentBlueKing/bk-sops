@@ -12,12 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 import re
+import time
+import random
 from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.conf import settings
 from pipeline.utils.crypt import rsa_decrypt_password
+from gcloud.utils.thread import ThreadPool
 
 logger = logging.getLogger("root")
 
@@ -88,3 +91,25 @@ def chunk_table_data(column_dict, break_line):
             item[key] = column[key][i]
         chunk_data.append(item)
     return {"result": True, "data": chunk_data, "message": ""}
+
+
+def batch_execute_func(func, params_list: list, interval_enabled=False):
+    """
+    并发处理func
+    :param func: 待处理函数
+    :param params_list: 请求参数
+    :param interval_enabled: 启用间隔
+    :return: 请求结果
+    """
+    pool = ThreadPool()
+    execute_future_list = []
+    for params in params_list:
+        execute_future_list.append(pool.apply_async(func, kwds=params))
+        if interval_enabled:
+            time.sleep(random.random())
+
+    pool.close()
+    pool.join()
+
+    # 取值
+    return [future_result.get() for future_result in execute_future_list]
