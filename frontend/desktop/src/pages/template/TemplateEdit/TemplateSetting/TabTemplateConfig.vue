@@ -124,7 +124,7 @@
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
                     notifyType: notify_type.slice(0),
-                    labels: template_labels ? template_labels.split(',').map(item => Number(item)) : []
+                    labels: template_labels
                 },
                 rules: {
                     category: [
@@ -227,7 +227,7 @@
                         const data = {
                             category,
                             description,
-                            template_labels: labels.join(','),
+                            template_labels: labels,
                             executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                             receiver_group: receiverGroup,
                             notify_type: notifyType

@@ -292,7 +292,7 @@ const template = {
             state.notify_type = notify_type ? JSON.parse(notify_type) : []
             state.description = description
             state.executor_proxy = executor_proxy
-            state.template_labels = template_labels || ''
+            state.template_labels = template_labels || []
             state.time_out = time_out
             state.category = category
             state.subprocess_info = subprocess_info
@@ -329,7 +329,7 @@ const template = {
             }
             state.description = ''
             state.executor_proxy = ''
-            state.template_labels = ''
+            state.template_labels = []
         },
         // 重置模板数据
         resetTemplateData (state) {
@@ -352,7 +352,7 @@ const template = {
             }
             state.description = ''
             state.executor_proxy = ''
-            state.template_labels = ''
+            state.template_labels = []
         },
         // 增加全局变量
         addVariable (state, variable) {
