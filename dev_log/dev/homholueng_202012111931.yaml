@@ -1,0 +1,2 @@
+optimization:
+  - 节点管理，ITSM 插件优化，支持调用 APIGW 接口
