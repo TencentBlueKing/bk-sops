@@ -938,6 +938,7 @@
                     fullMdHosts.forEach(item => {
                         const md = this.formData.modules.find(m => m.id === item.id)
                         const mutedHostAttrs = this.getModuleMutedHostAttrs(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
+                        const innerMuteAttr = [] // 模块内互斥
                         moduleHosts[md.name] = []
 
                         if (md.count > 0) {
@@ -946,8 +947,12 @@
                                     return true
                                 }
                                 if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
+                                    if (md.muteMethod === 1 && innerMuteAttr.includes(h[this.formData.muteAttribute])) { // 模块内互斥
+                                        return
+                                    }
                                     moduleHosts[md.name].push(h.bk_host_innerip)
                                     usedHosts.push(h.bk_host_innerip)
+                                    innerMuteAttr.push(h[this.formData.muteAttribute])
                                 }
                             })
                         }
@@ -972,7 +977,7 @@
             getFullModuleHosts (data) {
                 const fullMdHosts = []
                 this.formData.modules.forEach(md => {
-                    const { id, selectMethod, customIpList, muteMethod, muteModules, hostFilterList } = md
+                    const { id, selectMethod, customIpList, muteModules, hostFilterList } = md
                     const validFilters = hostFilterList.filter(item => item.type === 'filter' && item.filed !== '' && item.value.length > 0)
                     const validExclude = hostFilterList.filter(item => item.type === 'exclude' && item.filed !== '' && item.value.length > 0)
                     let list = []
@@ -993,8 +998,6 @@
                                 percent: data.length > 0 ? list.length / data.length : 0
                             })
                         } else { // 默认筛选方式，则计算本模块数据
-                            const innerMuteAttr = [] // 模块内互斥，已使用的属性的值
-
                             if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
                                 list = data
                             } else {
@@ -1026,14 +1029,7 @@
                                     }
 
                                     if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                        if (muteMethod === 1) { // 模块内互斥
-                                            if (!innerMuteAttr.includes(item[this.formData.muteAttribute])) {
-                                                innerMuteAttr.push(item[this.formData.muteAttribute])
-                                                list.push(item)
-                                            }
-                                        } else {
-                                            list.push(item)
-                                        }
+                                        list.push(item)
                                     }
                                 })
                             }
