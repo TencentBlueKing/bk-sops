@@ -77,9 +77,9 @@
                                     {{props.row.name}}
                                 </router-link>
                             </template>
-                            <template v-if="props.row.labels && props.row.labels.length > 0">
+                            <template v-if="props.row.template_labels && props.row.template_labels.length > 0">
                                 <span
-                                    v-for="label in props.row.labels"
+                                    v-for="label in props.row.template_labels"
                                     class="label-name"
                                     :key="label.id"
                                     :style="{ background: label.color }"
