@@ -167,8 +167,8 @@ class TaskTemplateResource(GCloudModelResource):
             kwargs["pipeline_template_id"] = pipeline_template.template_id
 
             label_ids = bundle.data.get("template_labels")
-            if label_ids is not None:
-                label_ids = list(set([int(label_id) for label_id in label_ids.strip().split(",")]))
+            if label_ids is not None and len(label_ids) > 0:
+                label_ids = list(set(label_ids))
                 if not Label.objects.check_label_ids(label_ids):
                     raise BadRequest("Containing template label not exist, please check.")
                 try:
@@ -201,8 +201,8 @@ class TaskTemplateResource(GCloudModelResource):
                 raise BadRequest(str(e))
 
             label_ids = bundle.data.get("template_labels")
-            if label_ids is not None:
-                label_ids = list(set([int(label_id) for label_id in label_ids.strip().split(",")]))
+            if label_ids is not None and len(label_ids) > 0:
+                label_ids = list(set(label_ids))
                 if not Label.objects.check_label_ids(label_ids):
                     raise BadRequest("Containing template label not exist, please check.")
                 try:
