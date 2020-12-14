@@ -4,11 +4,12 @@ import os
 import django
 from django.conf import settings
 from django.template import engines
+from django.core.management.base import BaseCommand, CommandError
 
-PLUGIN_BASE_DIR = "pipeline_plugins/components/collections/sites"
-JS_BASE_DIR = "pipeline_plugins/components/static/components/atoms"
-TEST_FILE_BASE_DIR = "pipeline_plugins/tests/components/collections/sites"
-DOCS_BASE_DIR = "pipeline_plugins/components/collections/sites"
+PLUGIN_BASE_DIR = "components/collections"
+JS_BASE_DIR = "components/static/components/atoms"
+TEST_FILE_BASE_DIR = "tests/components/collections"
+DOCS_BASE_DIR = "components/collections"
 
 TEMPLATES = [
     {
@@ -17,26 +18,25 @@ TEMPLATES = [
     }
 ]
 
-settings.configure(TEMPLATES=TEMPLATES)
 django.setup()
 django_engine = engines['django']
 
 
-def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env):
+def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env, app_code, append=None):
     # init文件模板
-    with open("scripts/create_plugin_data/init.txt", "r", encoding="UTF-8") as f:
+    with open("gcloud/core/management/commands/_template/init.txt", "r", encoding="UTF-8") as f:
         init_content = f.read()
     # 插件后端文件模板
-    with open("scripts/create_plugin_data/plugin_py.txt", "r", encoding="UTF-8") as f:
+    with open("gcloud/core/management/commands/_template/plugin_py.txt", "r", encoding="UTF-8") as f:
         plugin_content = f.read()
     # 插件前端文件模板
-    with open("scripts/create_plugin_data/static_file.txt", "r", encoding="UTF-8") as f:
+    with open("gcloud/core/management/commands/_template/static.txt", "r", encoding="UTF-8") as f:
         static_content = f.read()
     # 插件单元测试文件模板
-    with open("scripts/create_plugin_data/test_file.txt", "r", encoding="UTF-8") as f:
+    with open("gcloud/core/management/commands/_template/test_file.txt", "r", encoding="UTF-8") as f:
         test_content = f.read()
     # 说明文档文件模板
-    with open("scripts/create_plugin_data/docs_file.txt", "r", encoding="UTF-8") as f:
+    with open("gcloud/core/management/commands/_template/docs_file.txt", "r", encoding="UTF-8") as f:
         docs_content = f.read()
 
     # 判断输入是否合法
@@ -48,7 +48,10 @@ def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env):
         sys.exit(0)
 
     # 创建group文件夹
-    group_dir = "{base_file}/{plugin_env}/{group_code}".format(base_file=PLUGIN_BASE_DIR,
+    plugin_base_dir = "{base_dir}/{base_file}".format(base_dir=app_code, base_file=PLUGIN_BASE_DIR)
+    if append:
+        plugin_base_dir += "/{append}".format(append=append)
+    group_dir = "{base_file}/{plugin_env}/{group_code}".format(base_file=plugin_base_dir,
                                                                plugin_env=v3_plugin_env,
                                                                group_code=v3_group_code)
     if not os.path.exists(group_dir):
@@ -88,10 +91,11 @@ def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env):
             f.write(template.render(plugin_template_dir))
 
     # 创建前端代码文件
+    js_base_dir = "{base_dir}/{base_file}".format(base_dir=app_code, base_file=JS_BASE_DIR)
     if v3_plugin_env == "open":
-        static_group_dir = "{base_file}/{group_code}".format(base_file=JS_BASE_DIR, group_code=v3_group_code)
+        static_group_dir = "{base_file}/{group_code}".format(base_file=js_base_dir, group_code=v3_group_code)
     else:
-        static_group_dir = "{base_file}/sites/ieod/{group_code}".format(base_file=JS_BASE_DIR,
+        static_group_dir = "{base_file}/sites/ieod/{group_code}".format(base_file=js_base_dir,
                                                                         group_code=v3_group_code)
     if not os.path.exists(static_group_dir):
         os.makedirs(static_group_dir)
@@ -115,7 +119,10 @@ def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env):
                                     format(v3_group_code=v3_group_code, v3_plugin_code=v3_plugin_code)}))
 
     # 创建单元测试文件
-    test_group_dir = "{test_file_base_dir}/{plugin_env}/{group_code}_test".format(test_file_base_dir=TEST_FILE_BASE_DIR,
+    test_file_base_dir = "{base_dir}/{base_file}".format(base_dir=app_code, base_file=TEST_FILE_BASE_DIR)
+    if append:
+        test_file_base_dir += "/{}".format(append)
+    test_group_dir = "{test_file_base_dir}/{plugin_env}/{group_code}_test".format(test_file_base_dir=test_file_base_dir,
                                                                                   group_code=v3_group_code,
                                                                                   plugin_env=v3_plugin_env)
     if not os.path.exists(test_group_dir):
@@ -138,7 +145,10 @@ def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env):
         f.write(template.render(test_file_dir))
 
     # 创建说明文档文件
-    docs_group_dir = "{base_file}/{v3_plugin_env}/docs/{group_code}".format(base_file=DOCS_BASE_DIR,
+    docs_base_dir = "{base_dir}/{base_file}".format(base_dir=app_code, base_file=DOCS_BASE_DIR)
+    if append:
+        docs_base_dir += "/{}".format(append)
+    docs_group_dir = "{base_file}/{v3_plugin_env}/docs/{group_code}".format(base_file=docs_base_dir,
                                                                             v3_plugin_env=v3_plugin_env,
                                                                             group_code=v3_group_code)
     if not os.path.exists(static_group_dir):
@@ -161,15 +171,23 @@ def create_plugin(v3_group_code, v3_plugin_code, v3_version, v3_plugin_env):
             f.write(template.render({"group_code": v3_group_code, "plugin_code": v3_plugin_code}))
 
 
-if __name__ == "__main__":
-    """
-    python -m scripts.create_new_plugin group_code plugin_code version plugin_env
-    eg. python -m scripts.create_new_plugin cc create_set v1.0 open
-    """
+class Command(BaseCommand):
+    help = 'create new plugin by parameter 【group_code, plugin_code, version, plugin_env, app_code, (append)】'
 
-    group_code = sys.argv[1]
-    plugin_code = sys.argv[2]
-    version = sys.argv[3]
-    plugin_env = sys.argv[4]
+    def add_arguments(self, parser):
+        parser.add_argument("params", nargs="*", type=str)
 
-    create_plugin(group_code, plugin_code, version, plugin_env)
+    def handle(self, *args, **options):
+        params = options["params"]
+        if len(params) < 5:
+            raise CommandError("No less than 5 parameters")
+        group_code = params[0]
+        plugin_code = params[1]
+        version = params[2]
+        plugin_env = params[3]
+        app_code = params[4]
+        append = None
+        if len(params) == 6:
+            append = params[5]
+        create_plugin(group_code, plugin_code, version, plugin_env, app_code, append)
+        self.stdout.write("Create new plugin successfully", ending='')
