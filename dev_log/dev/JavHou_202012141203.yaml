@@ -1,0 +1,2 @@
+bugfix:
+  - list_biz_module接口添加module id限制
