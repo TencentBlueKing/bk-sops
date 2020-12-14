@@ -118,6 +118,17 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
+                <!-- 均摊属性 -->
+                <bk-form-item :label="i18n.shareEqually" property="shareEqually">
+                    <bk-select v-model="formData.shareEqually">
+                        <bk-option
+                            v-for="condition in conditions"
+                            :key="condition.id"
+                            :id="condition.id"
+                            :name="condition.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
             </bk-form>
             <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1 }">
                 <bk-tab
@@ -264,7 +275,7 @@
             }
         },
         data () {
-            const { set_count, host_resources, mute_attribute = '', module_detail } = tools.deepClone(this.config)
+            const { set_count, host_resources, mute_attribute = '', shareEqually = '', module_detail } = tools.deepClone(this.config)
             const $this = this
             return {
                 formData: {
@@ -273,6 +284,7 @@
                     set: [],
                     resource: host_resources,
                     muteAttribute: mute_attribute,
+                    shareEqually: shareEqually,
                     modules: module_detail
                 },
                 schemeData: {
@@ -382,6 +394,7 @@
                     set: gettext('集群模板'),
                     resource: gettext('主机资源所属'),
                     exclusive: gettext('互斥属性'),
+                    shareEqually: gettext('均摊属性'),
                     resourceNum: gettext('主机数量'),
                     selectMethod: gettext('筛选方式'),
                     default: gettext('默认'),
@@ -984,10 +997,11 @@
                                     }
                                 })
                             }
+                            const shareEquallyList = this.shareEquallyAttrs(list)
                             fullMdHosts.push({
                                 id,
                                 muteModules,
-                                list,
+                                list: shareEquallyList,
                                 percent: data.length > 0 ? list.length / data.length : 0
                             })
                         }
@@ -1026,6 +1040,12 @@
                 }
 
                 return hosts
+            },
+            /**
+             * 均摊属性
+             */
+            shareEquallyAttrs (list) {
+                return list
             },
             /**
              * 条件数据转换为对象，整合相同条件的 value, 减少条件遍历次数
@@ -1071,7 +1091,7 @@
             },
             // 将本地表单编辑数据格式转换为接口所需数据格式
             getConfigData () {
-                const { clusterCount, modules, resource, set, muteAttribute } = this.formData
+                const { clusterCount, modules, resource, set, muteAttribute, shareEqually } = this.formData
                 const moduleDetail = []
                 modules.forEach(md => { // 取出所有模块的筛选、排除条件字段，并模块详情数据转换为接口保存格式
                     const { id, name, count, selectMethod, reuse, customIpList, muteMethod, muteModules, hostFilterList } = md
@@ -1103,6 +1123,7 @@
                     set_template_name: set[0].label,
                     host_resources: resource,
                     mute_attribute: muteAttribute,
+                    shareEqually: shareEqually,
                     module_detail: moduleDetail
                 }
             }
