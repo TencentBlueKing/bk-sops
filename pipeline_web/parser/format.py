@@ -78,7 +78,7 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
 def classify_constants(constants, is_subprocess):
     # pipeline tree inputs
     data_inputs = {}
-    # pipeline tree outputs
+    # pipeline act outputs
     acts_outputs = {}
     for key, info in list(constants.items()):
         # 显示的变量可以引用父流程 context，通过 param 传参
