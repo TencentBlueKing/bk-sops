@@ -65,7 +65,7 @@ function generateInitActivities (location, line) {
             incoming: [line[0].id],
             loop: null,
             name: '',
-            optional: false,
+            optional: true,
             outgoing: line[1].id,
             stage_name: '',
             type: 'ServiceActivity',
@@ -251,6 +251,7 @@ const template = {
                             if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
                                 item.isSkipped = true
                             }
+                            item.optional = true
                         }
                     }
                     if (key === 'location') {
@@ -606,7 +607,7 @@ const template = {
                             incoming: [],
                             loop: null,
                             name: location.name || '',
-                            optional: false,
+                            optional: true,
                             outgoing: '',
                             stage_name: '',
                             type: 'ServiceActivity',
@@ -621,7 +622,7 @@ const template = {
                             incoming: [],
                             loop: null,
                             name: location.name || '',
-                            optional: false,
+                            optional: true,
                             outgoing: '',
                             stage_name: '',
                             template_id: location.atomId,
