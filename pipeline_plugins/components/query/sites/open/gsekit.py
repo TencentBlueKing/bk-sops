@@ -37,8 +37,8 @@ def gsekit_get_config_template_list(request, biz_cc_id):
         return JsonResponse(
             {"result": template_raw_info["result"], "code": template_raw_info.get("code", "-1"), "message": message})
     template_list = []
-    for template in template_raw_info["data"]:
-        template_list.append({"text": template["template"], "value": template["id"]})
+    for template in template_raw_info["data"]["list"]:
+        template_list.append({"text": template["template_name"], "value": template["config_template_id"]})
     return JsonResponse({"result": True, "data": template_list})
 
 

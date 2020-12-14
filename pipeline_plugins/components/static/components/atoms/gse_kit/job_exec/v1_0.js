@@ -116,14 +116,13 @@
         {
         "type": "select",
         "attrs": {
-            "name": "config_template",
+            "name": "配置模版",
             "hookable": true,
             "validation": [
             ],
             "default": "",
-            "hidden": false,
             "value": "",
-            "multiple": false,
+            "multiple": true,
             "multiple_limit": 0,
             "clearable": true,
             "allowCreate": false,
@@ -140,7 +139,20 @@
             "placeholder": "config_template",
             "empty_text": "当前项目下无可用配置模版"
         },
-        "events": [],
+        "events": [
+            {
+                    source: "gsekit_job_action_choices",
+                    type: "change",
+                    action: function (value) {
+                        let self = this;
+                        if (value ==="GENERATE"||value==="RELEASE") {
+                            self.show();
+                        } else {
+                            self.hide();
+                        }
+                    }
+                },
+        ],
         "methods": {},
         "tag_code": "gsekit_config_template"
         }
