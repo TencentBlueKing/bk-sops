@@ -17,7 +17,6 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
@@ -27,7 +26,7 @@ from pipeline_plugins.components.utils import (
     loose_strip,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
+from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg, get_difference_ip_list
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -131,13 +130,8 @@ class JobFastPushFileService(JobService):
         job_timeout = data.get_one_of_inputs("job_timeout")
 
         if ip_is_exist:
-            # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-            input_ip_list = list(set(get_ip_by_regex(original_ip_list)))
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
-
-            difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
-
-            if len(ip_list) != len(input_ip_list):
+            difference_ip_list = get_difference_ip_list(original_ip_list, ip_list)
+            if difference_ip_list:
                 data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
                 return False
 
