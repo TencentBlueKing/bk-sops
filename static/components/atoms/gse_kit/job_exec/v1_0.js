@@ -139,20 +139,32 @@
             "placeholder": "config_template",
             "empty_text": "当前项目下无可用配置模版"
         },
-        "events": [
-            {
+            "events": [
+                {
                     source: "gsekit_job_action_choices",
                     type: "change",
                     action: function (value) {
                         let self = this;
-                        if (value ==="GENERATE"||value==="RELEASE") {
+                        if (value === "GENERATE" || value === "RELEASE") {
                             self.show();
                         } else {
                             self.hide();
                         }
                     }
                 },
-        ],
+                {
+                    source: "gsekit_job_action_choices",
+                    type: "init",
+                    action: function (value) {
+                        let self = this;
+                        if (value === "GENERATE" || value === "RELEASE") {
+                            self.show();
+                        } else {
+                            self.hide();
+                        }
+                    }
+                },
+            ],
         "methods": {},
         "tag_code": "gsekit_config_template"
         }

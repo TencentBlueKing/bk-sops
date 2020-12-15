@@ -152,6 +152,18 @@
                         }
                     }
                 },
+            {
+                    source: "gsekit_job_action_choices",
+                    type: "init",
+                    action: function (value) {
+                        let self = this;
+                        if (value ==="GENERATE"||value==="RELEASE") {
+                            self.show();
+                        } else {
+                            self.hide();
+                        }
+                    }
+                },
         ],
         "methods": {},
         "tag_code": "gsekit_config_template"
