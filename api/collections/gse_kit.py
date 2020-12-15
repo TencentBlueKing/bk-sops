@@ -107,8 +107,9 @@ class BKGseKitClient(BKComponentClient):
         params = {
             "bk_biz_id": bk_biz_id
         }
+        url = _get_gse_kit_api("{bk_biz_id}/config_template".format(bk_biz_id=bk_biz_id))
         return self._request(
-            method="get",
-            url=_get_gse_kit_api("config_template"),
+            method="GET",
+            url=url,
             data=params
         )
