@@ -31,15 +31,15 @@
                     }
                 ],
                 items: [
-                    {text: '启动(start)', value: 'START'},
-                    {text: '停止(stop)', value: 'STOP'},
-                    {text: '重启(restart)', value: 'RESTART'},
-                    {text: '重载(reload)', value: 'RELOAD'},
-                    {text: '强制停止(kill)', value: 'FORCE_STOP'},
-                    {text: '托管(set_auto)', value: 'SET_AUTO'},
-                    {text: '取消托管(unset_auto)', value: 'UNSET_AUTO'},
-                    {text: '生成配置(create_cfg)', value: 'GENERATE'},
-                    {text: '下发配置(push_cfg)', value: 'RELEASE'}
+                    {text: '启动(start)', value: 'start'},
+                    {text: '停止(stop)', value: 'stop'},
+                    {text: '重启(restart)', value: 'restart'},
+                    {text: '重载(reload)', value: 'reload'},
+                    {text: '强制停止(kill)', value: 'force_stop'},
+                    {text: '托管(setauto)', value: 'set_auto'},
+                    {text: '取消托管(noauto)', value: 'unset_auto'},
+                    {text: '生成配置(createcfg)', value: 'generate'},
+                    {text: '下发配置(pushcfg)', value: 'release'}
                 ]
             }
         },
