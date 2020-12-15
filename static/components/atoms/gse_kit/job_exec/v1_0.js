@@ -114,31 +114,30 @@
             }
         },
         {
-        "type": "select",
-        "attrs": {
-            "name": "配置模版",
-            "hookable": true,
-            "validation": [
-            ],
-            "default": "",
-            "value": "",
-            "multiple": true,
-            "multiple_limit": 0,
-            "clearable": true,
-            "allowCreate": false,
-            "remote": true,
-            "remote_url": $.context.get('site_url') + 'pipeline/gsekit_get_config_template_list' + '/' + $.context.getBkBizId() + '/',
-            remote_data_init: function (resp) {
-                                if (resp.result === false) {
-                                    show_msg(resp.message, 'error');
-                                }
-                                return resp.data;
-                            },
-            "hasGroup": false,
-            "disabled": false,
-            "placeholder": "config_template",
-            "empty_text": "当前项目下无可用配置模版"
-        },
+            "type": "select",
+            "attrs": {
+                "name": "配置模版",
+                "hookable": true,
+                "validation": [],
+                "default": "",
+                "value": "",
+                "multiple": true,
+                "multiple_limit": 0,
+                "clearable": true,
+                "allowCreate": false,
+                "remote": true,
+                "remote_url": $.context.get('site_url') + 'pipeline/gsekit_get_config_template_list' + '/' + $.context.getBkBizId() + '/',
+                remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
+                    return resp.data;
+                },
+                "hasGroup": false,
+                "disabled": false,
+                "placeholder": "config_template",
+                "empty_text": "当前项目下无可用配置模版"
+            },
             "events": [
                 {
                     source: "gsekit_job_action_choices",
@@ -165,8 +164,8 @@
                     }
                 },
             ],
-        "methods": {},
-        "tag_code": "gsekit_config_template"
+            "methods": {},
+            "tag_code": "gsekit_config_template"
         }
     ]
 })();
