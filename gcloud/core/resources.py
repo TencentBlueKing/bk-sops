@@ -181,7 +181,7 @@ class ComponentModelResource(GCloudModelResource):
             project_id = filters.pop("project_id")
             # 处理list接口和detail接口获取到project_id形式不同的情况
             project_id = project_id[0] if type(project_id) is list else project_id
-            exclude_component_codes = ProjectBasedComponent.objects.get_components_with_project(project_id)
+            exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
         else:
             exclude_component_codes = ProjectBasedComponent.objects.get_components()
         query_set = ~Q(code__in=exclude_component_codes)
