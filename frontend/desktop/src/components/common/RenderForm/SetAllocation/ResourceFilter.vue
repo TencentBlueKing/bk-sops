@@ -480,7 +480,8 @@
                 'getCCSearchTopoSet',
                 'getCCSearchTopoResource',
                 'getCCSearchModule',
-                'getCCSearchObjAttrHost'
+                'getCCSearchObjAttrHost',
+                'getCCHostCount'
             ]),
             async gitResourceSchemes () {
                 try {
@@ -578,6 +579,17 @@
                     }
                     const resp = await this.getCCSearchModule(params)
                     if (resp.result) {
+                        if (resp.data.info.length > 0) {
+                            const ids = resp.data.info.map(item => item.bk_module_id)
+                            const respCount = await this.getCCHostCount({
+                                url: this.urls['cc_find_host_by_topo'],
+                                ids: ids.join(',')
+                            })
+                            resp.data.info.forEach(md => {
+                                const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
+                                md.count = mdInfo ? mdInfo.host_count : 0
+                            })
+                        }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
                     } else {
@@ -702,7 +714,7 @@
                 await this.getModule(checked.id)
                 this.moduleList.forEach((item, index) => {
                     this.$set(this.formData.modules, index, {
-                        count: 0,
+                        count: item.count || 0,
                         name: item.bk_module_name,
                         id: item.bk_module_id,
                         isReuse: false,
