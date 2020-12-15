@@ -518,17 +518,9 @@
                             }]
                         }
                         this.$nextTick(() => { // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
-                            if (this.$refs.setTree) { // 集群模板 tree 只有集群节点可选，业务、模块需要禁用
-                                const disabledNodes = []
-                                this.setList.map(biz => {
-                                    disabledNodes.push(biz.id)
-                                    if (biz.children) {
-                                        biz.children.forEach(set => {
-                                            disabledNodes.push(set.id)
-                                        })
-                                    }
-                                })
-                                this.$refs.setTree.setDisabled(disabledNodes, { disabled: true })
+                            if (this.$refs.setTree) {
+                                const bizNodes = this.setList.map(item => item.id)
+                                this.$refs.setTree.setDisabled(bizNodes, { disabled: true })
                                 this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
                             }
                         })
