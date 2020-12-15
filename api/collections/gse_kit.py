@@ -71,13 +71,14 @@ class BKGseKitClient(BKComponentClient):
         创建 gsekit 任务命令
         """
         param = {
+            "bk_biz_id": bk_biz_id,
+            "expression_scope": expression_scope,
             "job_object": job_object,
             "job_action": job_action,
             "scope": scope,
-            "expression_scope": expression_scope,
         }
         return self._request(
-            method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
+            method="post", url=_get_gse_kit_api("job/create_job"), data=param
         )
 
     def job_status(self, bk_biz_id, job_task_id):
@@ -85,9 +86,12 @@ class BKGseKitClient(BKComponentClient):
         查询 gsekit 任务状态
         :param job_task_id: string
         """
-        param = {"job_task_id_list": [job_task_id]}
+        param = {
+            "job_task_id_list": [job_task_id],
+            "bk_biz_id": bk_biz_id
+        }
         return self._request(
-            method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
+            method="post", url=_get_gse_kit_api("job/job_status"), data=param
         )
 
     def flush_process(self, bk_biz_id):
@@ -107,7 +111,7 @@ class BKGseKitClient(BKComponentClient):
         params = {
             "bk_biz_id": bk_biz_id
         }
-        url = _get_gse_kit_api("{bk_biz_id}/config_template".format(bk_biz_id=bk_biz_id))
+        url = _get_gse_kit_api("config_template/config_template_list")
         return self._request(
             method="GET",
             url=url,
