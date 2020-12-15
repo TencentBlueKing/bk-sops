@@ -477,6 +477,10 @@
                 default () {
                     return {}
                 }
+            },
+            state: { // 总任务状态
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -553,6 +557,7 @@
                 return state
             },
             nodeState () {
+                if (this.state === 'CREATED') return ''
                 return this.executeInfo.state && TASK_STATE_DICT[this.executeInfo.state]
             },
             loopTimes () {
