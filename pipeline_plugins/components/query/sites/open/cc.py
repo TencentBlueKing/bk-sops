@@ -14,13 +14,16 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from django.http import JsonResponse
 from django.conf.urls import url
+from django.http import JsonResponse
 
+from gcloud.conf import settings
+from gcloud.core.utils import get_user_business_list
+from gcloud.exceptions import APIError
 from gcloud.utils.cmdb import batch_request
+from gcloud.utils.handlers import handle_api_error
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
-
 from pipeline_plugins.base.utils.inject import (
     supplier_account_inject,
     supplier_id_inject,
@@ -31,11 +34,6 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
     cmdb_search_dynamic_group,
 )
-
-from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
-from gcloud.exceptions import APIError
-from gcloud.core.utils import get_user_business_list
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -443,9 +441,9 @@ def cc_find_host_by_topo(request, biz_cc_id, bk_inst_id):
         request_params.update(params)
         host_info = batch_request(client.cc.find_host_by_topo, request_params)
         data.append({
-                "bk_inst_id": request_params["bk_inst_id"],
-                "host_count": len(host_info)
-            })
+            "bk_inst_id": request_params["bk_inst_id"],
+            "host_count": len(host_info)
+        })
 
     return {"result": True, "data": data}
 
