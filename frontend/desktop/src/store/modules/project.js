@@ -137,7 +137,7 @@ const project = {
         },
         // 查询项目下支持的模板标签（包含默认标签）
         getProjectLabelsWithDefault ({ commit }, id) {
-            return axios.get('api/v3/new_label/list_with_default_labels', {
+            return axios.get('api/v3/new_label/list_with_default_labels/', {
                 params: { project_id: id }
             }).then(response => response.data)
         },
