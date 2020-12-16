@@ -443,9 +443,9 @@ def cc_find_host_by_topo(request, biz_cc_id, bk_inst_id):
         request_params.update(params)
         host_info = batch_request(client.cc.find_host_by_topo, request_params)
         data.append({
-                "bk_inst_id": request_params["bk_inst_id"],
-                "host_count": len(host_info)
-            })
+            "bk_inst_id": request_params["bk_inst_id"],
+            "host_count": len(host_info)
+        })
 
     return {"result": True, "data": data}
 
