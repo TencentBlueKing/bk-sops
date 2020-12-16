@@ -717,5 +717,11 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/find_host_by_topo/",
             description="查询拓扑节点下的主机",
         )
+        self.search_host_lock = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/search_host_lock/",
+            description="根据主机id列表查询主机锁",
+        )
 
 
