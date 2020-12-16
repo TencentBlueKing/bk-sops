@@ -135,7 +135,7 @@ class GsekitJobExecService(Service):
             self.InputItem(
                 name=_("配置文件模版"),
                 key="gsekit_config_template",
-                type="string",
+                type="list",
                 schema=StringItemSchema(description=_("配置文件模版名"), ),
             ),
         ]
@@ -145,7 +145,6 @@ class GsekitJobExecService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
 
         gsekit_bk_env = data.get_one_of_inputs("gsekit_bk_env")
-        gsekit_job_object_choices = data.get_one_of_inputs("gsekit_job_object_choices")
         gsekit_job_action_choices = data.get_one_of_inputs("gsekit_job_action_choices")
 
         gsekit_set = data.get_one_of_inputs("gsekit_set")
@@ -154,6 +153,7 @@ class GsekitJobExecService(Service):
         gsekit_process_name = data.get_one_of_inputs("gsekit_process_name")
         gsekit_process_id = data.get_one_of_inputs("gsekit_process_id")
         gsekit_config_template = data.get_one_of_inputs("gsekit_config_template")
+
         scope_param = {
             "bk_set_env": gsekit_bk_env,
             "bk_set_ids": [gsekit_set],
@@ -161,8 +161,12 @@ class GsekitJobExecService(Service):
             "bk_service_ids": [gsekit_service_id],  # 服务实例id 列表
             "bk_process_names": [gsekit_process_name],
             "bk_process_ids": [gsekit_process_id],
-            "bk_config_template": [gsekit_config_template]
         }
+        if gsekit_job_action_choices in ("generate", "release"):
+            gsekit_job_object_choices = "configfile"
+            scope_param["bk_config_template"] = gsekit_config_template
+        else:
+            gsekit_job_object_choices = "process"
 
         client = BKGseKitClient(executor)
         job_result = client.create_job(bk_biz_id=biz_cc_id,
