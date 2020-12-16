@@ -33,7 +33,7 @@
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
-                        <span v-show="!selectedTaskCategory || isCategoryEmpty" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+                        <span v-show="isCategoryEmpty" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -93,7 +93,7 @@
                 notifyType: notify_type.slice(0),
                 notifyTypeLoading: false,
                 notifyTypeList: [],
-                isCategoryEmpty: true
+                isCategoryEmpty: false
             }
         },
         computed: {
