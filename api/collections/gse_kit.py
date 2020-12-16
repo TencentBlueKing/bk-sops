@@ -18,7 +18,8 @@ from api.client import BKComponentClient
 from api.utils.request import batch_request
 
 # TODO:待GSE KIT接入ESB后修改
-GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/gse_kit")
+GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST,
+                                                               "api/c/compapi/v2/gsekit/api")
 
 
 def _get_gse_kit_api(api_name):
