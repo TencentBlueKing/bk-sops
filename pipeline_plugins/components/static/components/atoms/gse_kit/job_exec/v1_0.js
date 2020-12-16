@@ -144,7 +144,7 @@
                     type: "change",
                     action: function (value) {
                         let self = this;
-                        if (value === "GENERATE" || value === "RELEASE") {
+                        if (value === "generate" || value === "release") {
                             self.show();
                         } else {
                             self.hide();
@@ -156,7 +156,7 @@
                     type: "init",
                     action: function (value) {
                         let self = this;
-                        if (value === "GENERATE" || value === "RELEASE") {
+                        if (value === "generate" || value === "release") {
                             self.show();
                         } else {
                             self.hide();
