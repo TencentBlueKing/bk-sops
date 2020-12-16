@@ -31,15 +31,15 @@
                     }
                 ],
                 items: [
-                    {text: '启动(start)', value: 'START'},
-                    {text: '停止(stop)', value: 'STOP'},
-                    {text: '重启(restart)', value: 'RESTART'},
-                    {text: '重载(reload)', value: 'RELOAD'},
-                    {text: '强制停止(kill)', value: 'FORCE_STOP'},
-                    {text: '托管(set_auto)', value: 'SET_AUTO'},
-                    {text: '取消托管(unset_auto)', value: 'UNSET_AUTO'},
-                    {text: '生成配置(create_cfg)', value: 'GENERATE'},
-                    {text: '下发配置(push_cfg)', value: 'RELEASE'}
+                    {text: '启动(start)', value: 'start'},
+                    {text: '停止(stop)', value: 'stop'},
+                    {text: '重启(restart)', value: 'restart'},
+                    {text: '重载(reload)', value: 'reload'},
+                    {text: '强制停止(kill)', value: 'force_stop'},
+                    {text: '托管(setauto)', value: 'set_auto'},
+                    {text: '取消托管(noauto)', value: 'unset_auto'},
+                    {text: '生成配置(createcfg)', value: 'generate'},
+                    {text: '下发配置(pushcfg)', value: 'release'}
                 ]
             }
         },
@@ -114,47 +114,58 @@
             }
         },
         {
-        "type": "select",
-        "attrs": {
-            "name": "配置模版",
-            "hookable": true,
-            "validation": [
-            ],
-            "default": "",
-            "value": "",
-            "multiple": true,
-            "multiple_limit": 0,
-            "clearable": true,
-            "allowCreate": false,
-            "remote": true,
-            "remote_url": $.context.get('site_url') + 'pipeline/gsekit_get_config_template_list' + '/' + $.context.getBkBizId() + '/',
-            remote_data_init: function (resp) {
-                                if (resp.result === false) {
-                                    show_msg(resp.message, 'error');
-                                }
-                                return resp.data;
-                            },
-            "hasGroup": false,
-            "disabled": false,
-            "placeholder": "config_template",
-            "empty_text": "当前项目下无可用配置模版"
-        },
-        "events": [
-            {
+            "type": "select",
+            "attrs": {
+                "name": "配置模版",
+                "hookable": true,
+                "validation": [],
+                "default": "",
+                "value": "",
+                "multiple": true,
+                "multiple_limit": 0,
+                "clearable": true,
+                "allowCreate": false,
+                "remote": true,
+                "remote_url": $.context.get('site_url') + 'pipeline/gsekit_get_config_template_list' + '/' + $.context.getBkBizId() + '/',
+                remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
+                    return resp.data;
+                },
+                "hasGroup": false,
+                "disabled": false,
+                "placeholder": "config_template",
+                "empty_text": "当前项目下无可用配置模版"
+            },
+            "events": [
+                {
                     source: "gsekit_job_action_choices",
                     type: "change",
                     action: function (value) {
                         let self = this;
-                        if (value ==="GENERATE"||value==="RELEASE") {
+                        if (value === "generate" || value === "release") {
                             self.show();
                         } else {
                             self.hide();
                         }
                     }
                 },
-        ],
-        "methods": {},
-        "tag_code": "gsekit_config_template"
+                {
+                    source: "gsekit_job_action_choices",
+                    type: "init",
+                    action: function (value) {
+                        let self = this;
+                        if (value === "generate" || value === "release") {
+                            self.show();
+                        } else {
+                            self.hide();
+                        }
+                    }
+                },
+            ],
+            "methods": {},
+            "tag_code": "gsekit_config_template"
         }
     ]
 })();
