@@ -43,9 +43,12 @@ import {
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
 import 'amfe-flexible'
+import Vconsole from 'vconsole'
 
 import '../static/style/app.scss'
 
+const vconsole = new Vconsole()
+console.log(vconsole)
 Vue.use(NavBar)
     .use(Search)
     .use(Button)
