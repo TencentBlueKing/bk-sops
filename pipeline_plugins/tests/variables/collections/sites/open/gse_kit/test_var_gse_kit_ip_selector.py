@@ -89,7 +89,7 @@ PROC_STATUS_ERROR_RETURN = []
 SUCCESS_RESULT = "127.0.0.1,172.0.0.1"
 ERROR_RESULT = ""
 LIST_PROCESS_CLIENT = "pipeline_plugins.variables.collections.sites.open.gse_kit.var_gse_kit_ip_selector." \
-                      "BKGseKitClient.list_process"
+                      "BKGseKitClient.process_status"
 
 
 class VarGseKitIpSelector(TestCase):
