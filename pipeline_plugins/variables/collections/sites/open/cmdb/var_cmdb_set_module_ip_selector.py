@@ -45,6 +45,8 @@ class SetModuleIpSelector(LazyVariable):
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
 
     def get_value(self):
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         var_ip_selector = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
