@@ -723,5 +723,3 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/search_host_lock/",
             description="根据主机id列表查询主机锁",
         )
-
-
