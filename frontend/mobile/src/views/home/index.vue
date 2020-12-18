@@ -50,6 +50,7 @@
                 error: false,
                 finished: false,
                 offset: 0,
+                page: 0,
                 limit: 10,
                 total: 0
             }
@@ -65,13 +66,14 @@
 
             async loadData () {
                 try {
+                    this.page += 1
                     const response = await this.getProjectList({ offset: this.offset, limit: this.limit })
                     this.total = response.meta.total_count
                     const totalPage = Math.ceil(this.total / this.limit)
-                    if (this.offset + 1 >= totalPage) {
+                    if (this.page === totalPage) {
                         this.finished = true
                     } else {
-                        this.offset = this.offset + 1
+                        this.offset = this.page * this.limit
                     }
                     this.projectList = [...this.projectList, ...response.objects]
                     this.projectList.map(item => {
