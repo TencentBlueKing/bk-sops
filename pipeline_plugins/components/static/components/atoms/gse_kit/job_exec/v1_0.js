@@ -13,9 +13,9 @@
                     }
                 ],
                 items: [
-                    {text: '测试', value: 'TESTING'},
-                    {text: '体验', value: 'EXPERIENCE'},
-                    {text: '正式', value: 'FORMAL'},
+                    {text: '测试', value: "1"},
+                    {text: '体验', value: "2"},
+                    {text: '正式', value: "3"},
                 ]
             }
         },
