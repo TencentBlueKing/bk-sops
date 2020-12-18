@@ -121,7 +121,7 @@
                                     :to="{
                                         name: 'taskList',
                                         params: { project_id: props.row.project.id },
-                                        query: { template_id: props.row.template_id, create_method: 'periodic', create_info: props.row.id, template_source: props.row.template_source }
+                                        query: { template_id: props.row.template_id, create_method: 'periodic', create_info: props.row.task.id, template_source: props.row.template_source }
                                     }">
                                     {{ $t('执行历史') }}
                                 </router-link>
