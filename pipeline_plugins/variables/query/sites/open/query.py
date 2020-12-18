@@ -167,6 +167,5 @@ urlpatterns += [
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
     url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
     url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
-    url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
     url(r"^cc_get_set_attributes/(?P<biz_cc_id>\d+)/$", cc_get_set_attribute),
 ]
