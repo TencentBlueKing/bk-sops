@@ -145,6 +145,21 @@ def cc_get_set_group(request, biz_cc_id):
     return JsonResponse({"result": True, "data": group_data})
 
 
+def cc_get_set_attribute(request, biz_cc_id):
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "set",
+    }
+    client = get_client_by_user(request.user.username)
+    result = client.cc.search_object_attribute(kwargs)
+    if not result["result"]:
+        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+    data = result["data"]
+    set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]
+
+    return JsonResponse({"result": True, "data": set_attribute})
+
+
 urlpatterns += [
     url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
@@ -152,4 +167,6 @@ urlpatterns += [
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
     url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
     url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
+    url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
+    url(r"^cc_get_set_attributes/(?P<biz_cc_id>\d+)/$", cc_get_set_attribute),
 ]
