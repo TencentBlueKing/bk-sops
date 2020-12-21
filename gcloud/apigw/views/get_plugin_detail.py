@@ -34,25 +34,40 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-def get_plugin_list(request, project_id):
+def get_plugin_detail(request, project_id):
     project_id = request.project.id
+    code = request.GET.get("code")
+    version = request.GET.get("version", "legacy")
 
+    if not code:
+        return JsonResponse(
+            {"result": False, "message": "parameter code need to be provided.", "code": err_code.VALIDATION_ERROR.code}
+        )
+
+    # 排除基于业务的插件，只支持公共插件
     exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
-    components = ComponentModel.objects.filter(status=True).exclude(code__in=exclude_component_codes)
-
-    data = []
-    for comp_model in components:
-        comp = ComponentLibrary.get_component_class(comp_model.code, comp_model.version)
-        data.append(
+    try:
+        component = ComponentModel.objects.exclude(code__in=exclude_component_codes).get(
+            status=True, code=code, version=version
+        )
+    except ComponentModel.DoesNotExist:
+        return JsonResponse(
             {
-                "inputs": comp.inputs_format(),
-                "outputs": comp.outputs_format(),
-                "desc": comp.desc,
-                "code": comp.code,
-                "name": comp.name,
-                "group_name": comp.group_name,
-                "version": comp.version,
+                "result": False,
+                "message": "can not find suitable component with code: {} and version: {}".format(code, version),
+                "code": err_code.VALIDATION_ERROR.code,
             }
         )
+
+    component_info = ComponentLibrary.get_component_class(component.code, component.version)
+    data = {
+        "inputs": component_info.inputs_format(),
+        "outputs": component_info.outputs_format(),
+        "desc": component_info.desc,
+        "code": component_info.code,
+        "name": component_info.name,
+        "group_name": component_info.group_name,
+        "version": component_info.version,
+    }
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
