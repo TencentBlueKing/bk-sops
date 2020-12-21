@@ -616,14 +616,24 @@
                     if (group) {
                         group.list.push(item)
                     } else {
-                        const { type, group_name, group_icon } = item
+                        const { type, group_name, group_icon, sort_key_group_en } = item
                         grouped.push({
-                            group_name: group_name,
-                            group_icon: group_icon,
-                            type: type,
+                            group_name,
+                            group_icon,
+                            type,
+                            sort_key_group_en,
                             list: [item]
                         })
                     }
+                })
+                grouped.sort((g1, g2) => {
+                    if (g1.sort_key_group_en < g2.sort_key_group_en) {
+                        return -1
+                    }
+                    if (g1.sort_key_group_en > g2.sort_key_group_en) {
+                        return 1
+                    }
+                    return 0
                 })
                 this.atomTypeList.tasknode = grouped
             },
