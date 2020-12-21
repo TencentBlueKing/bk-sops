@@ -23,6 +23,7 @@ from pipeline.engine.models import (
     ProcessCeleryTask,
     ScheduleCeleryTask,
     SendFailedCeleryTask,
+    ResendCeleryTask,
 )
 
 logger = logging.getLogger("root")
@@ -63,9 +64,7 @@ def pipeline_ready_handler(sender, process_id, **kwargs):
 
     with celery_task_send_fail_pass():
         ProcessCeleryTask.objects.start_task(
-            process_id=process_id,
-            task=task,
-            kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
+            process_id=process_id, task=task, kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
         )
 
 
@@ -79,15 +78,11 @@ def child_process_ready_handler(sender, child_id, **kwargs):
 
     with celery_task_send_fail_pass():
         ProcessCeleryTask.objects.start_task(
-            process_id=child_id,
-            task=task,
-            kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
+            process_id=child_id, task=task, kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
         )
 
 
-def process_ready_handler(
-    sender, process_id, current_node_id=None, call_from_child=False, **kwargs
-):
+def process_ready_handler(sender, process_id, current_node_id=None, call_from_child=False, **kwargs):
 
     task = tasks.process_wake_up
     args_resolver = CeleryTaskArgsResolver(process_id)
@@ -96,10 +91,7 @@ def process_ready_handler(
         ProcessCeleryTask.objects.start_task(
             process_id=process_id,
             task=task,
-            kwargs={
-                "args": [process_id, current_node_id, call_from_child],
-                **args_resolver.resolve_args(task),
-            },
+            kwargs={"args": [process_id, current_node_id, call_from_child], **args_resolver.resolve_args(task)},
         )
 
 
@@ -118,11 +110,11 @@ def batch_process_ready_handler(sender, process_id_list, pipeline_id, **kwargs):
         kwargs["routing_key"] = QueueResolver(queue).resolve_task_routing_key(task)
 
     with celery_task_send_fail_pass():
+        ResendCeleryTask.objects.record(
+            name=task.name, task_kwargs=kwargs, task_type=ResendCeleryTask.TASK_TYPE_EMPTY, extra_kwargs={},
+        )
         with SendFailedCeleryTask.watch(
-            name=task.name,
-            kwargs=kwargs,
-            type=SendFailedCeleryTask.TASK_TYPE_EMPTY,
-            extra_kwargs={},
+            name=task.name, kwargs=kwargs, type=SendFailedCeleryTask.TASK_TYPE_EMPTY, extra_kwargs={},
         ):
             task.apply_async(**kwargs)
 
@@ -136,10 +128,7 @@ def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
         ProcessCeleryTask.objects.start_task(
             process_id=process_id,
             task=task,
-            kwargs={
-                "args": [process_id, activity_id],
-                **args_resolver.resolve_args(task),
-            },
+            kwargs={"args": [process_id, activity_id], **args_resolver.resolve_args(task)},
         )
 
 
@@ -149,15 +138,11 @@ def process_unfreeze_handler(sender, process_id, **kwargs):
 
     with celery_task_send_fail_pass():
         ProcessCeleryTask.objects.start_task(
-            process_id=process_id,
-            task=task,
-            kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
+            process_id=process_id, task=task, kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
         )
 
 
-def schedule_ready_handler(
-    sender, process_id, schedule_id, countdown, data_id=None, **kwargs
-):
+def schedule_ready_handler(sender, process_id, schedule_id, countdown, data_id=None, **kwargs):
     task = tasks.service_schedule
     args_resolver = CeleryTaskArgsResolver(process_id)
 
@@ -173,9 +158,7 @@ def schedule_ready_handler(
         )
 
 
-def service_activity_timeout_monitor_start_handler(
-    sender, node_id, version, root_pipeline_id, countdown, **kwargs
-):
+def service_activity_timeout_monitor_start_handler(sender, node_id, version, root_pipeline_id, countdown, **kwargs):
     NodeCeleryTask.objects.start_task(
         node_id=node_id,
         task=tasks.node_timeout_check,

@@ -37,6 +37,7 @@ from pipeline.engine.models import (
     ScheduleService,
     Status,
     SubProcessRelationship,
+    ResendCeleryTask,
 )
 from pipeline.engine.signals import pipeline_revoke
 from pipeline.engine.utils import ActionResult, calculate_elapsed_time
@@ -98,6 +99,15 @@ def _worker_check(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+@_worker_check
+@_frozen_check
+def resend_celery_task(task_type, task_name, **kwargs):
+    """
+    resend celery task to execute
+    """
+    ResendCeleryTask.objects.resend(task_type, task_name, **kwargs)
 
 
 @_worker_check

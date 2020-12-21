@@ -185,3 +185,20 @@ class SendFailedCeleryTaskAdmin(admin.ModelAdmin):
     ]
     search_fields = ["id", "name"]
     actions = [resend_task]
+
+
+@admin.register(models.ResendCeleryTask)
+class ResendCeleryTaskAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "name",
+        "kwargs",
+        "type",
+        "extra_kwargs",
+        "exec_trace",
+        "created_at",
+        "resend_times",
+        "bind_resource_id",
+    ]
+    search_fields = ["id", "name", "type", "bind_resource_id"]
+    actions = [resend_task]

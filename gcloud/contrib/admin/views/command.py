@@ -12,11 +12,14 @@ specific language governing permissions and limitations under the License.
 
 superuser command
 """
+import ujson as json
 
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
+from pipeline.engine import api as pipeline_api
 from gcloud import err_code
 from gcloud.core.decorators import check_is_superuser
 from gcloud.core.tasks import migrate_pipeline_parent_data_task
@@ -49,3 +52,22 @@ def migrate_pipeline_parent_data(request):
     """
     migrate_pipeline_parent_data_task.apply_async()
     return JsonResponse({"reuslt": True, "data": None, "message": "migrte start."})
+
+
+@require_POST
+@check_is_superuser()
+def resend_celery_tasks(request):
+    params = json.loads(request.body)
+    for task_params in params:
+        task_type = task_params.pop("task_type")
+        task_name = task_params.pop("task_name")
+        task_kwargs = task_params
+        if task_type is None or task_name is None or len(task_kwargs) < 1:
+            return JsonResponse({"result": False, "message": "命令参数有误", "code": err_code.REQUEST_PARAM_INVALID.code})
+        try:
+            pipeline_api.resend_celery_task(task_type, task_name, **task_kwargs)
+        except Exception as e:
+            return JsonResponse(
+                {"result": False, "message": "error: {}".format(e), "code": err_code.REQUEST_PARAM_INVALID.code}
+            )
+    return JsonResponse({"result": True, "message": "all celery tasks resend success.", "code": err_code.SUCCESS.code})
