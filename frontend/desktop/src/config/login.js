@@ -51,7 +51,7 @@ function openLoginDialog (src, width = 460, height = 490, method = 'get') {
     frame.style.cssText = `border: 0;outline: 0;width:${width}px;height:${height}px;`
 
     const dialogDiv = topDocument.createElement('div')
-    dialogDiv.style.cssText = 'position: absolute;left: 50%;top: 20%;transform: translateX(-50%);'
+    dialogDiv.style.cssText = 'position: absolute;left: 50%;top: 20%;transform: translateX(-50%);background: #ffffff;'
     dialogDiv.appendChild(closeIcon)
     dialogDiv.appendChild(frame)
 
