@@ -128,7 +128,7 @@
                 try {
                     const response = await this.getCollectedTemplate()
                     this.collectTemplateList = response.objects
-                    this.originalCollectTemplateList = this.collectTemplateList.slice(0)
+                    this.originalCollectTemplateList = this.collectTemplateList.slice(0).filter(item => item.project.id === this.$store.state.bizId)
                 } catch (e) {
                     this.error = true
                     errorHandler(e, this)
