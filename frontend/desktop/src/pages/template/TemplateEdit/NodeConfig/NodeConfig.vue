@@ -634,7 +634,7 @@
                     ignorable: false,
                     skippable: true,
                     retryable: true,
-                    selectable: false
+                    selectable: true
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}

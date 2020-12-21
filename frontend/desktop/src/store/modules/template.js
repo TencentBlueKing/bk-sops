@@ -251,7 +251,6 @@ const template = {
                             if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
                                 item.isSkipped = true
                             }
-                            item.optional = true
                         }
                     }
                     if (key === 'location') {
@@ -306,7 +305,6 @@ const template = {
             const activities = generateInitActivities(location, line)
             const start_event = generateStartNode(location[0], line[0])
             const end_event = generateEndNode(location[2], line[1])
-
             state.name = ''
             state.activities = activities
             state.end_event = end_event
