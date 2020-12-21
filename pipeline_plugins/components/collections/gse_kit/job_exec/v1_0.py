@@ -58,10 +58,11 @@ class GsekitJobExecService(Service):
         gsekit-轮询服务重启结果
         """
         executor = parent_data.get_one_of_inputs("executor")
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         client = BKGseKitClient(executor)
         job_task_id = data.outputs.gsekit_task_id
 
-        job_task_status = client.job_status(job_task_id=job_task_id)
+        job_task_status = client.job_status(bk_biz_id=biz_cc_id, job_task_id=job_task_id)
         self.logger.info("gsekit job {id} with status {status}".format(id=job_task_id, status=job_task_status))
 
         if not job_task_status["result"]:
@@ -69,7 +70,7 @@ class GsekitJobExecService(Service):
             data.set_outputs("ex_data", err_message)
             return False
 
-        code = job_task_status["data"]["status"]
+        code = job_task_status["data"]["job_info"]["status"]
 
         if code == JobStatus.SUCCEEDED:
             self.finish_schedule()
