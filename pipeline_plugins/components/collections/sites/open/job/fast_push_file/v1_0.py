@@ -64,6 +64,15 @@ class JobFastPushFileService(JobService):
                 ),
             ),
             self.InputItem(
+                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+            ),
+            self.InputItem(
+                name=_("下载限速"),
+                key="download_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
+            ),
+            self.InputItem(
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
@@ -94,6 +103,8 @@ class JobFastPushFileService(JobService):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
         across_biz = data.get_one_of_inputs("job_across_biz", False)
+        upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
+        download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         file_source = []
         for item in original_source_files:
             if across_biz:
@@ -136,6 +147,10 @@ class JobFastPushFileService(JobService):
             "file_target_path": data.get_one_of_inputs("job_target_path"),
             "bk_callback_url": get_node_callback_url(self.id),
         }
+        if upload_speed_limit:
+            job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
+        if download_speed_limit:
+            job_kwargs["download_speed_limit"] = int(download_speed_limit)
         if job_timeout:
             job_kwargs["timeout"] = int(job_timeout)
 

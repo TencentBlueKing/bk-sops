@@ -122,6 +122,24 @@
             }
         },
         {
+            tag_code: "upload_speed_limit",
+            type: "input",
+            attrs: {
+                name: gettext("上传限速"),
+                placeholder: gettext("MB/s 若不限速则不填写"),
+                hookable: true,
+            }
+        },
+        {
+            tag_code: "download_speed_limit",
+            type: "input",
+            attrs: {
+                name: gettext("下载限速"),
+                placeholder: gettext("MB/s 若不限速则不填写"),
+                hookable: true,
+            }
+        },
+        {
             tag_code: "job_ip_list",
             type: "textarea",
             attrs: {
