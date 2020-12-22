@@ -13,7 +13,7 @@ export default {
     mutations: {},
     actions: {
         getTaskStatus ({ commit, rootState }, params) {
-            return http.get(`taskflow/api/status/${rootState.bizId}`, {
+            return http.get(`taskflow/api/status/${rootState.bizId}/`, {
                 params: {
                     instance_id: params.id
                 }
