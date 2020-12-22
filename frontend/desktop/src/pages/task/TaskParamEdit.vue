@@ -34,7 +34,22 @@
             RenderForm,
             NoData
         },
-        props: ['constants', 'editable', 'showRequired'],
+        props: {
+            constants: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            showRequired: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 variables: tools.deepClone(this.constants),
