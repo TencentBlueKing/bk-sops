@@ -321,6 +321,10 @@
                             children: []
                         },
                         {
+                            name: i18n.t('动态变量'),
+                            children: []
+                        },
+                        {
                             name: i18n.t('元变量'),
                             children: []
                         }
@@ -328,8 +332,10 @@
                     customVarCollection.forEach(item => {
                         if (item.type === 'general') {
                             listData[0].children.push(item)
-                        } else {
+                        } else if (item.type === 'dynamic') {
                             listData[1].children.push(item)
+                        } else {
+                            listData[2].children.push(item)
                         }
                     })
                     this.varTypeList = listData
