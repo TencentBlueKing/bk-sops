@@ -67,7 +67,7 @@ class BKGseKitClient(BKComponentClient):
             },
         )
 
-    def create_job(self, bk_biz_id, job_object, job_action, scope=None):
+    def create_job(self, bk_biz_id, job_object, job_action, expression_scope=None):
         """
         创建 gsekit 任务命令
         """
@@ -75,7 +75,7 @@ class BKGseKitClient(BKComponentClient):
             "bk_biz_id": bk_biz_id,
             "job_object": job_object,
             "job_action": job_action,
-            "scope": scope,
+            "expression_scope": expression_scope,
         }
         return self._request(
             method="post", url=_get_gse_kit_api("job/create_job"), data=param

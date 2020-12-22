@@ -173,7 +173,7 @@ class GsekitJobExecService(Service):
         job_result = client.create_job(bk_biz_id=biz_cc_id,
                                        job_object=gsekit_job_object_choices,
                                        job_action=gsekit_job_action_choices,
-                                       scope=scope_param)
+                                       expression_scope=scope_param)
         self.logger.info("start gsekit job task with param {0}".format(scope_param))
         if job_result["result"]:
             job_id = job_result["data"]["job_id"]
@@ -181,7 +181,7 @@ class GsekitJobExecService(Service):
             return True
         else:
             self.logger.error("unexpect gsekit job task: {}, gsekit response: {}".format(scope_param, job_result))
-            err_message = handle_api_error("gsekit", "gsekit.", scope_param, job_result)
+            err_message = handle_api_error("gsekit", "gsekit.create_job", scope_param, job_result)
             data.set_outputs("ex_data", err_message)
             return False
 
