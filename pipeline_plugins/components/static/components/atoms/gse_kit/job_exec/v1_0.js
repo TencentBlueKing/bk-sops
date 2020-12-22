@@ -36,7 +36,7 @@
                     {text: '重启(restart)', value: 'restart'},
                     {text: '重载(reload)', value: 'reload'},
                     {text: '强制停止(kill)', value: 'force_stop'},
-                    {text: '托管(setauto)', value: 'set_auto'},
+                    {text: '托管(auto)', value: 'set_auto'},
                     {text: '取消托管(noauto)', value: 'unset_auto'},
                     {text: '生成配置(createcfg)', value: 'generate'},
                     {text: '下发配置(pushcfg)', value: 'release'}
@@ -135,7 +135,7 @@
                 },
                 "hasGroup": false,
                 "disabled": false,
-                "placeholder": "config_template",
+                "placeholder": "如不指定，则默认下发全部配置",
                 "empty_text": "当前项目下无可用配置模版"
             },
             "events": [

@@ -163,9 +163,10 @@ class GsekitJobExecService(Service):
             "bk_process_names": [gsekit_process_name],
             "bk_process_ids": [gsekit_process_id],
         }
+        extra_data = {}
         if gsekit_job_action_choices in ("generate", "release"):
             gsekit_job_object_choices = "configfile"
-            scope_param["bk_config_template"] = gsekit_config_template
+            extra_data["config_template_ids"] = gsekit_config_template
         else:
             gsekit_job_object_choices = "process"
 
@@ -173,7 +174,8 @@ class GsekitJobExecService(Service):
         job_result = client.create_job(bk_biz_id=biz_cc_id,
                                        job_object=gsekit_job_object_choices,
                                        job_action=gsekit_job_action_choices,
-                                       expression_scope=scope_param)
+                                       expression_scope=scope_param,
+                                       extra_data=extra_data)
         self.logger.info("start gsekit job task with param {0}".format(scope_param))
         if job_result["result"]:
             job_id = job_result["data"]["job_id"]
