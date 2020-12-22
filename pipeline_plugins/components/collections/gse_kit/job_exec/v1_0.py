@@ -155,13 +155,13 @@ class GsekitJobExecService(Service):
         gsekit_process_id = data.get_one_of_inputs("gsekit_process_id")
         gsekit_config_template = data.get_one_of_inputs("gsekit_config_template")
 
-        scope_param = {
+        expression_scope_param = {
             "bk_set_env": gsekit_bk_env,
-            "bk_set_ids": [gsekit_set],
-            "bk_module_ids": [gsekit_module],
-            "bk_service_ids": [gsekit_service_id],  # 服务实例id 列表
-            "bk_process_names": [gsekit_process_name],
-            "bk_process_ids": [gsekit_process_id],
+            "bk_set_name": gsekit_set,
+            "bk_module_name": gsekit_module,
+            "service_instance_name": gsekit_service_id,  # 服务实例id 列表
+            "bk_process_name": gsekit_process_name,
+            "bk_process_id": gsekit_process_id,
         }
         extra_data = {}
         if gsekit_job_action_choices in ("generate", "release"):
@@ -174,16 +174,17 @@ class GsekitJobExecService(Service):
         job_result = client.create_job(bk_biz_id=biz_cc_id,
                                        job_object=gsekit_job_object_choices,
                                        job_action=gsekit_job_action_choices,
-                                       expression_scope=scope_param,
+                                       expression_scope=expression_scope_param,
                                        extra_data=extra_data)
-        self.logger.info("start gsekit job task with param {0}".format(scope_param))
+        self.logger.info("start gsekit job task with param {0}".format(expression_scope_param))
         if job_result["result"]:
             job_id = job_result["data"]["job_id"]
             data.set_outputs("gsekit_task_id", job_id)
             return True
         else:
-            self.logger.error("unexpect gsekit job task: {}, gsekit response: {}".format(scope_param, job_result))
-            err_message = handle_api_error("gsekit", "gsekit.create_job", scope_param, job_result)
+            self.logger.error(
+                "unexpect gsekit job task: {}, gsekit response: {}".format(expression_scope_param, job_result))
+            err_message = handle_api_error("gsekit", "gsekit.create_job", expression_scope_param, job_result)
             data.set_outputs("ex_data", err_message)
             return False
 
