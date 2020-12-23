@@ -18,3 +18,6 @@ BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
 SOPS_MAKO_IMPORT_MODULES = os.getenv("BKAPP_SOPS_MAKO_IMPORT_MODULES", "")
 
 BK_GSE_KIT_API_ENTRY = os.getenv("BK_GSE_KIT_API_ENTRY")
+
+BK_GSE_KIT_PAGE_URL_TEMPLATE = os.getenv("BK_GSEKIT_PAGE_URL_TEMPLATE",
+                                         "{PAAS_HOST}/o/bk_gsekit/task-history/detail/{job_id}?biz={bk_biz_id}")

@@ -17,6 +17,7 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from api import BKGseKitClient
+from env import BK_GSE_KIT_PAGE_URL_TEMPLATE
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
@@ -180,6 +181,10 @@ class GsekitJobExecService(Service):
         if job_result["result"]:
             job_id = job_result["data"]["job_id"]
             data.set_outputs("gsekit_task_id", job_id)
+            data.set_outputs("gsekit_task_page_url",
+                             BK_GSE_KIT_PAGE_URL_TEMPLATE.format(PAAS_HOST=settings.BK_PAAS_HOST,
+                                                                 job_id=job_id,
+                                                                 bk_biz_id=biz_cc_id))
             return True
         else:
             self.logger.error(
@@ -193,6 +198,10 @@ class GsekitJobExecService(Service):
             self.OutputItem(
                 name=_("gsekit_task_ID"), key="gsekit_task_id", type="string",
                 schema=StringItemSchema(description=_("gsekit的任务ID")),
+            ),
+            self.OutputItem(
+                name=_("任务详情"), key="gsekit_task_page_url", type="string",
+                schema=StringItemSchema(description=_("gsekit的任务详情页链接")),
             )
         ]
 
