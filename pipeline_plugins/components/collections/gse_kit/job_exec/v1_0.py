@@ -17,6 +17,7 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from api import BKGseKitClient
+from env import BK_GSE_KIT_PAGE_URL_TEMPLATE
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
@@ -27,7 +28,6 @@ from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-gsekit_page_url_template = settings.BK_GSE_KIT_PAGE_URL_TEMPLATE
 
 __group_name__ = _("GSEKIT(gsekit)")
 VERSION = "1.0"
@@ -181,9 +181,10 @@ class GsekitJobExecService(Service):
         if job_result["result"]:
             job_id = job_result["data"]["job_id"]
             data.set_outputs("gsekit_task_id", job_id)
-            data.set_outputs("gsekit_task_page_url", gsekit_page_url_template.format(PAAS_HOST=settings.BK_PAAS_HOST,
-                                                                                     job_id=job_id,
-                                                                                     bk_biz_id=biz_cc_id))
+            data.set_outputs("gsekit_task_page_url",
+                             BK_GSE_KIT_PAGE_URL_TEMPLATE.format(PAAS_HOST=settings.BK_PAAS_HOST,
+                                                                 job_id=job_id,
+                                                                 bk_biz_id=biz_cc_id))
             return True
         else:
             self.logger.error(
