@@ -81,7 +81,7 @@ class GsekitJobExecService(Service):
         else:
             self.logger.error(
                 "unexpect gsekit job task status code: {}, gsekit response: {}".format(code, job_task_status))
-            data.set_outputs("ex_data", "unexpect gsekit job task status code: {}".format(code))
+            data.set_outputs("ex_data", "Gsekit任务执行异常, 任务状态为 {}".format(code))
             return False
 
     def inputs_format(self):
