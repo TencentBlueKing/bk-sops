@@ -24,12 +24,12 @@ from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
+    chunk_table_data,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -92,6 +92,20 @@ class JobFastPushFileService(JobService):
             ),
         ]
 
+    def get_ip_info(self, ip, break_line):
+        if plat_ip_reg.match(ip):
+            ip_result = []
+            for line in ip.split(break_line):
+                line = line.split(":")
+                ip_result.append({"Source": line[0], "InnerIP": line[1]})
+            result = {
+                "result": True,
+                "ip_result": ip_result,
+                "ip_count": len(ip_result),
+            }
+            return result
+        return {"result": False}
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -134,40 +148,73 @@ class JobFastPushFileService(JobService):
                 }
             )
 
-        original_ip_list = data.get_one_of_inputs("job_ip_list")
-        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-        job_timeout = data.get_one_of_inputs("job_timeout")
+        select_method = data.get_one_of_inputs("select_method")
+        break_line = data.get_one_of_inputs("break_line") or ","
+        job_dispatch_attr = data.get_one_of_inputs("job_dispatch_attr")
+        attr_list = []
+        for attr in job_dispatch_attr:
+            # 如果用户选择了单行扩展
+            if select_method == "auto":
+                chunk_result = chunk_table_data(attr, break_line)
+                if not chunk_result["result"]:
+                    data.set_outputs("ex_data", chunk_result["message"])
+                    return False
+                attr_list.extend(chunk_result["data"])
+            else:
+                # 非单行扩展的情况无需处理
+                attr_list.append(attr)
+        # 循环请求接口
+        job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
+        for source in file_source:
+            for attr in attr_list:
+                original_ip_list = attr["job_ip_list"]
+                job_account = attr["job_account"]
+                # 将[FILESRCIP]替换成源IP
+                job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"])
+                # 如果允许跨业务，则调用不去查云区域ID的方法
+                target_ip_info = (
+                    self.get_ip_info(original_ip_list, break_line)
+                    if across_biz
+                    else cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
+                )
 
-        job_kwargs = {
-            "bk_biz_id": biz_cc_id,
-            "file_source": file_source,
-            "ip_list": ip_list,
-            "account": data.get_one_of_inputs("job_account"),
-            "file_target_path": data.get_one_of_inputs("job_target_path"),
-            "bk_callback_url": get_node_callback_url(self.id),
-        }
-        if upload_speed_limit:
-            job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
-        if download_speed_limit:
-            job_kwargs["download_speed_limit"] = int(download_speed_limit)
-        if job_timeout:
-            job_kwargs["timeout"] = int(job_timeout)
+                ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in target_ip_info["ip_result"]]
+                job_timeout = data.get_one_of_inputs("job_timeout")
+                job_kwargs = {
+                    "bk_biz_id": biz_cc_id,
+                    "file_source": file_source,
+                    "ip_list": ip_list,
+                    "account": job_account,
+                    "file_target_path": job_target_path,
+                    "bk_callback_url": get_node_callback_url(self.id),
+                }
+                if upload_speed_limit:
+                    job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
+                if download_speed_limit:
+                    job_kwargs["download_speed_limit"] = int(download_speed_limit)
+                if job_timeout:
+                    job_kwargs["timeout"] = int(job_timeout)
 
-        job_result = client.job.fast_push_file(job_kwargs)
-        self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
-        if job_result["result"]:
-            job_instance_id = job_result["data"]["job_instance_id"]
-            data.outputs.job_inst_id = job_instance_id
-            data.outputs.job_inst_name = job_result["data"]["job_instance_name"]
-            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
-            data.outputs.client = client
-            return True
-        else:
-            message = job_handle_api_error("job.fast_push_file", job_kwargs, job_result)
-            self.logger.error(message)
-            data.outputs.ex_data = message
+                job_result = client.job.fast_push_file(job_kwargs)
+                self.logger.info(
+                    "job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs)
+                )
+                if job_result["result"]:
+                    job_instance_id.append(job_result["data"]["job_instance_id"])
+                    job_inst_name.append(job_result["data"]["job_instance_name"])
+                    job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
+                else:
+                    message = job_handle_api_error("job.fast_push_file", job_kwargs, job_result)
+                    self.logger.error(message)
+                    ex_data.append(message)
+        data.outputs.job_inst_id = job_instance_id
+        data.outputs.job_inst_name = job_inst_name
+        data.outputs.job_inst_url = job_inst_url
+        data.outputs.client = client
+        if ex_data:
+            data.outputs.ex_data = ex_data
             return False
+        return True
 
     def schedule(self, data, parent_data, callback_data=None):
         return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
@@ -180,5 +227,5 @@ class JobFastPushFileComponent(Component):
     name = _("快速分发文件")
     code = "job_fast_push_file"
     bound_service = JobFastPushFileService
-    form = "%scomponents/atoms/job/fast_push_file/v1_0.js" % settings.STATIC_URL
-    version = "v1.0"
+    form = "%scomponents/atoms/job/fast_push_file/v2_0.js" % settings.STATIC_URL
+    version = "v2.0"
