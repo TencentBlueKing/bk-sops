@@ -50,7 +50,7 @@
             </div>
             <!-- 表单名称 -->
             <label
-                v-if="option.showLabel"
+                v-if="option.showLabel && scheme.attrs.name"
                 :class="['rf-tag-label', { 'required': isRequired() }]">
                 {{scheme.attrs.name}}
             </label>
@@ -61,7 +61,7 @@
             <!-- 表单元素 -->
             <component
                 v-show="!hook"
-                class="rf-tag-form"
+                :class="scheme.attrs.name ? 'rf-tag-form' : ''"
                 ref="tagComponent"
                 :is="tagComponent"
                 v-bind="getDefaultAttrs()"
