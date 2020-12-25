@@ -188,6 +188,18 @@
         },
         mixins: [permission, task],
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                selectedProject = '',
+                category = '',
+                start_time = '',
+                end_time = '',
+                creator = '',
+                executor = '',
+                statusSync = '',
+                keyword = ''
+            } = this.$route.query
             return {
                 taskBasicInfoLoading: true,
                 listLoading: true,
@@ -203,18 +215,18 @@
                 taskCategory: [],
                 executeStatus: [], // 任务执行态
                 requestData: {
-                    selectedProject: '',
-                    executeTime: [],
-                    category: '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
+                    selectedProject,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    executeTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    taskName: keyword
                 },
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 }
             }
@@ -252,7 +264,7 @@
             async loadAuditTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    const { selectedProject, executeTime, category, creator, executor, statusSync, taskName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -278,7 +290,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         project__id: selectedProject || undefined,
                         category: category || undefined,
-                        audit__pipeline_instance__name__icontains: flowName || undefined,
+                        audit__pipeline_instance__name__icontains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
@@ -309,15 +321,41 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.loadAuditTask()
             },
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.loadAuditTask()
             },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { selectedProject, category, executeTime, creator, executor, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    selectedProject,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    page: current,
+                    start_time: executeTime[0],
+                    end_time: executeTime[1],
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'auditHome', query })
+            },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
                 this.loadAuditTask()
             },
@@ -367,6 +405,7 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.loadAuditTask()
             }
         }

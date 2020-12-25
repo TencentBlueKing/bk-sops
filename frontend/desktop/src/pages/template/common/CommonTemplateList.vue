@@ -274,10 +274,17 @@
             NoData
         },
         mixins: [permission],
-        props: {
-            page: [String, Number]
-        },
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                category = '',
+                start_time = '',
+                end_time = '',
+                subprocessUpdateVal = '',
+                creator = '',
+                keyword = ''
+            } = this.$route.query
             return {
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
@@ -303,17 +310,17 @@
                 templateType: this.common_template,
                 deleteTemplateName: '',
                 requestData: {
-                    category: '',
-                    queryTime: [],
-                    subprocessUpdateVal: '',
-                    creator: '',
-                    flowName: ''
+                    category,
+                    subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
+                    creator,
+                    queryTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    flowName: keyword
                 },
                 totalPage: 1,
                 pagination: {
-                    current: Number(this.page) || 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
@@ -492,6 +499,7 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
             },
             onImportTemplate () {
@@ -541,13 +549,36 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
-                this.$router.push({ name: 'commonProcessList', query: { page: page } })
+                this.updateUrl()
                 this.getTemplateList()
             },
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { category, queryTime, subprocessUpdateVal, creator, flowName } = this.requestData
+                const filterObj = {
+                    limit,
+                    category,
+                    subprocessUpdateVal,
+                    creator,
+                    page: current,
+                    start_time: queryTime[0],
+                    end_time: queryTime[1],
+                    keyword: flowName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'commonProcessList', query })
             },
             /**
              * 单个模板操作项点击时校验
