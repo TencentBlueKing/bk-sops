@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import env
+from . import env
 from .managers.nfs import HostNFSManager
 from .managers.upload_module import UploadModuleManager
 from .bartenders.nfs import HostNFSBartender
