@@ -477,6 +477,10 @@
                 default () {
                     return {}
                 }
+            },
+            state: { // 总任务状态
+                type: String,
+                default: ''
             }
         },
         data () {

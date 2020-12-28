@@ -328,7 +328,7 @@ class PipelineTemplate(models.Model):
         for item in subprocess_info:
             item["expired"] = (
                 False
-                if item["version"] is None
+                if item["version"] is None or item["descendant_template_id"] not in temp_current_versions
                 else (item["version"] != temp_current_versions[item["descendant_template_id"]].current_version)
             )
             info["details"].append(item)

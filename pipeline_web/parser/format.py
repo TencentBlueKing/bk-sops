@@ -15,7 +15,6 @@ import copy
 
 from pipeline import exceptions
 from pipeline.core.data import library, var
-from pipeline.component_framework.constant import ConstantPool
 from pipeline.core.data.expression import ConstantTemplate
 from pipeline.validators.utils import format_node_io_to_list
 
@@ -32,11 +31,6 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     pipeline_tree = copy.deepcopy(web_pipeline)
     constants = pipeline_tree.pop("constants")
     classification = classify_constants(constants, is_subprocess)
-    # 解析隐藏全局变量互引用
-    pool_obj = ConstantPool(classification["constant_pool"])
-    pre_resolved_constants = pool_obj.pool
-    classification["data_inputs"] = calculate_constants_type(pre_resolved_constants, classification["data_inputs"])
-    classification["data_inputs"] = calculate_constants_type(classification["params"], classification["data_inputs"])
     pipeline_tree["data"] = {
         "inputs": classification["data_inputs"],
         "outputs": [key for key in pipeline_tree.pop("outputs")],
@@ -82,14 +76,10 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
 
 
 def classify_constants(constants, is_subprocess):
-    # 可以预解析的变量
-    constant_pool = {}
-    # 不能预解析的变量
+    # pipeline tree inputs
     data_inputs = {}
-    # 节点输出的变量
+    # pipeline act outputs
     acts_outputs = {}
-    # 需要在父流程中解析的变量
-    params = {}
     for key, info in list(constants.items()):
         # 显示的变量可以引用父流程 context，通过 param 传参
         if info["show_type"] == "show":
@@ -105,6 +95,7 @@ def classify_constants(constants, is_subprocess):
             if info["source_info"].values():
                 source_key = list(info["source_info"].values())[0][0]
                 source_step = list(info["source_info"].keys())[0]
+                # 生成 pipeline 层需要的 pipeline input
                 data_inputs[key] = {
                     "type": "splice",
                     "source_act": source_step,
@@ -112,6 +103,7 @@ def classify_constants(constants, is_subprocess):
                     "value": info["value"],
                     "is_param": info["is_param"],
                 }
+                # 生成 pipeline 层需要的 acts_output
                 acts_outputs.setdefault(source_step, {}).update({source_key: key})
         # 自定义的Lazy类型变量
         elif info["custom_type"] and var_cls and issubclass(var_cls, var.LazyVariable):
@@ -123,17 +115,12 @@ def classify_constants(constants, is_subprocess):
                 "is_param": info["is_param"],
             }
         else:
-            if info["show_type"] == "show" and is_subprocess:
-                params[key] = info
-            # 只有隐藏的变量才需要预先解析
-            else:
-                constant_pool[key] = info
-    result = {
-        "constant_pool": constant_pool,
-        "data_inputs": data_inputs,
-        "acts_outputs": acts_outputs,
-        "params": params,
-    }
+            ref = ConstantTemplate(info["value"]).get_reference()
+            constant_type = "splice" if ref else "plain"
+            is_param = info["show_type"] == "show" and is_subprocess
+            data_inputs[key] = {"type": constant_type, "value": info["value"], "is_param": is_param}
+
+    result = {"data_inputs": data_inputs, "acts_outputs": acts_outputs}
     return result
 
 
@@ -147,12 +134,7 @@ def calculate_constants_type(to_calculate, calculated):
     data = copy.deepcopy(calculated)
     for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info["value"]).get_reference()
-        if ref:
-            constant_type = "splice"
-        elif info.get("type", "plain") != "plain":
-            constant_type = info["type"]
-        else:
-            constant_type = "plain"
+        constant_type = "splice" if ref else "plain"
         data.setdefault(key, {"type": constant_type, "value": info["value"], "is_param": info.get("is_param", False)})
 
     return data

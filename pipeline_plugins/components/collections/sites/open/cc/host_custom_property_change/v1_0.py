@@ -105,7 +105,7 @@ class CCHostCustomPropertyChangeService(Service):
             data.set_outputs("ex_data", _("请选择至少一种规则"))
             return False
 
-        hostname_rule = sorted(hostname_rule, key=lambda e: e.__getitem__("field_order"))
+        hostname_rule = sorted(hostname_rule, key=lambda e: str(e.__getitem__("field_order")))
 
         ip_list = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=sa_ip_list, use_cache=False)
         if not ip_list["result"] or not ip_list["ip_count"]:
@@ -197,14 +197,16 @@ class CCHostCustomPropertyChangeService(Service):
                     custom_property_value += host_content[rule["field_content"]]
                 if rule["field_rule_code"] == self.FileCode.set_rule:
                     # 集群属性
-                    set_content = set_property[host["SetID"]]
-                    if set_content[rule["field_content"]]:
-                        custom_property_value += set_content[rule["field_content"]]
+                    set_content_list = [set_property[_set["bk_set_id"]] for _set in host["Sets"]]
+                    for set_content in set_content_list:
+                        if set_content[rule["field_content"]]:
+                            custom_property_value += set_content[rule["field_content"]]
                 if rule["field_rule_code"] == self.FileCode.module_rule:
                     # 模块属性
-                    module_content = module_property[host["ModuleID"]]
-                    if module_content[rule["field_content"]]:
-                        custom_property_value += module_content[rule["field_content"]]
+                    module_content_list = [module_property[_module["bk_module_id"]] for _module in host["Modules"]]
+                    for module_content in module_content_list:
+                        if module_content[rule["field_content"]]:
+                            custom_property_value += module_content[rule["field_content"]]
                 if rule["field_rule_code"] == self.FileCode.ip_type_rule:
                     custom_property_value += host["InnerIP"].replace(".", rule["field_content"])
                 # 第一个自增变量

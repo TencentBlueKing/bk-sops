@@ -50,7 +50,7 @@
             </div>
         </div>
         <div class="global-variable-panel" slot="content">
-            <template v-if="!variableData">
+            <div v-show="!variableData" :class="{ 'is-hidden': variableData }">
                 <div class="add-variable">
                     <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
                     <div class="toggle-system-var">
@@ -104,9 +104,9 @@
                         </div>
                     </div>
                 </div>
-            </template>
+            </div>
             <variable-edit
-                v-else
+                v-if="variableData"
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
@@ -330,6 +330,9 @@
 }
 .global-variable-panel {
     height: calc(100vh - 60px);
+    .is-hidden {
+        transform: scale(0)
+    }
     .add-variable {
         padding: 30px 30px 20px;
         .add-variable-btn {

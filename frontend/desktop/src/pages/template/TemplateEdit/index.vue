@@ -851,7 +851,7 @@
                         start: START_POSITION
                     })
                     if (res.result) {
-                        this.onCreateSnapshoot()
+                        this.onCreateSnapshoot('isFormatPosition')
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
@@ -1125,13 +1125,15 @@
                 })
             },
             // 本地快照面板新增快照
-            onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
+            onCreateSnapshoot (type) {
                 this.snapshootTimer && clearTimeout(this.snapshootTimer)
                 this.setTplSnapshoot()
-                this.$bkMessage({
-                    message,
-                    theme: 'success'
-                })
+                if (!type) {
+                    this.$bkMessage({
+                        message: i18n.t('新增流程本地快照成功'),
+                        theme: 'success'
+                    })
+                }
                 this.snapshoots = this.getTplSnapshoots()
                 this.openSnapshootTimer()
             },
