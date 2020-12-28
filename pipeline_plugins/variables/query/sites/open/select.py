@@ -30,7 +30,7 @@ def variable_select_source_data_proxy(request):
     """
     url = request.GET.get("url")
     try:
-        response = requests.get(url=url, verify=False)
+        response = requests.get(url=url, verify=False, timeout=10)
     except Exception as e:
         logger.exception("variable select get data from url[url={url}] raise error: {error}".format(url=url, error=e))
         text = _("请求数据异常: {error}").format(error=e)
