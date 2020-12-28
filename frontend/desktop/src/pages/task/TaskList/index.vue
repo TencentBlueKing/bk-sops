@@ -594,7 +594,7 @@
                 this.isNewTaskDialogShow = false
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 // 高级搜索手动点击时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
