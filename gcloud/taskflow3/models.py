@@ -130,7 +130,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         try:
             TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
         except Exception as e:
-            return False, e.message
+            return False, e
 
         # change constants
         for key, value in list(constants.items()):
