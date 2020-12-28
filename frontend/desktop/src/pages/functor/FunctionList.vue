@@ -41,7 +41,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
+                    @page-limit-change="onPageLimitChange">
                     <bk-table-column :label="$t('所属项目')" width="160">
                         <template slot-scope="props">
                             <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
@@ -338,7 +338,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 },
                 permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
                 tplAction: [],
@@ -422,6 +422,12 @@
                 this.loadFunctionTask()
                 // 重置自动刷新时间
                 this.onOpenAutoRedraw()
+            },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.onOpenAutoRedraw() // 重置自动刷新时间
+                this.loadFunctionTask()
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
@@ -699,12 +705,6 @@
                 clearTimeout(this.autoRedrawTimer)
                 this.autoRedrawTimer = null
                 this.isAutoRedraw = false
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
-                this.onOpenAutoRedraw() // 重置自动刷新时间
-                this.loadFunctionTask()
             }
         }
     }

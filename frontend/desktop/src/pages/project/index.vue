@@ -242,7 +242,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 }
             }
         },
@@ -265,6 +265,9 @@
         methods: {
             ...mapMutations('project', [
                 'setTimeZone'
+            ]),
+            ...mapMutations('atomForm', [
+                'clearAtomForm'
             ]),
             ...mapActions([
                 'queryUserPermission'
@@ -425,7 +428,7 @@
                 await this.changeDefaultProject(id)
                 const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                 this.setTimeZone(timeZone)
-                $.atoms = {}
+                this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
 
                 this.$router.push({
                     name: 'process',

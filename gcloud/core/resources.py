@@ -223,6 +223,7 @@ class ComponentModelResource(GCloudModelResource):
                 continue
             bundle.data["output"] = component.outputs_format()
             bundle.data["form"] = component.form
+            bundle.data["output_form"] = component.output_form
             bundle.data["desc"] = component.desc
             bundle.data["form_is_embedded"] = component.form_is_embedded()
             # 国际化
@@ -247,6 +248,7 @@ class ComponentModelResource(GCloudModelResource):
             raise NotFound("Can not found {}({})".format(bundle.data["code"], bundle.data["version"]))
         bundle.data["output"] = component.outputs_format()
         bundle.data["form"] = component.form
+        bundle.data["output_form"] = component.output_form
         bundle.data["desc"] = component.desc
         bundle.data["form_is_embedded"] = component.form_is_embedded()
         # 国际化

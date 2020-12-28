@@ -25,7 +25,16 @@ CONFIG = Config(connect_timeout=10, read_timeout=10, retries={"max_attempts": 2}
 
 class S3ModuleImporter(AutoInstallRequirementsImporter):
     def __init__(
-        self, name, modules, service_address, bucket, access_key, secret_key, use_cache=True, secure_only=True
+        self,
+        name,
+        modules,
+        service_address,
+        bucket,
+        access_key,
+        secret_key,
+        use_cache=True,
+        secure_only=True,
+        source_dir="",
     ):
         super(S3ModuleImporter, self).__init__(name=name, modules=modules)
 
@@ -36,6 +45,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
 
         self.service_address = service_address if service_address.endswith("/") else "%s/" % service_address
         self.bucket = bucket
+        self.source_dir = source_dir if source_dir == "" or source_dir.endswith("/") else "%s/" % source_dir
         self.use_cache = use_cache
         self.s3 = boto3.resource(
             "s3",
@@ -57,8 +67,11 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
 
         if source_code is None:
             raise ImportError(
-                "Can not find {module} in {service_address}{bucket}".format(
-                    module=fullname, service_address=self.service_address, bucket=self.bucket
+                "Can not find {module} in {service_address}{bucket}/{source_dir}".format(
+                    module=fullname,
+                    service_address=self.service_address,
+                    bucket=self.bucket,
+                    source_dir=self.source_dir,
                 )
             )
 
@@ -75,7 +88,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
         )
 
     def _obj_key(self, fullname, is_pkg):
-        base_key = fullname.replace(".", "/")
+        base_key = self.source_dir + fullname.replace(".", "/")
         key = "%s/__init__.py" % base_key if is_pkg else "%s.py" % base_key
         return key
 

@@ -142,6 +142,16 @@
                         <NoData v-else></NoData>
                     </div>
                 </section>
+                <section class="info-section" v-if="isRenderOutputForm && outputRenderConfig && outputRenderConfig.length !== 0 && !loading">
+                    <h4 class="common-section-title">{{ $t('输出表单') }}</h4>
+                    <div class="code-block-wrap">
+                        <RenderForm
+                            :scheme="outputRenderConfig"
+                            :form-option="outputRenderOption"
+                            v-model="outputRenderData">
+                        </RenderForm>
+                    </div>
+                </section>
                 <section class="info-section" v-if="executeInfo.ex_data">
                     <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                     <div v-html="failInfo"></div>
@@ -472,6 +482,7 @@
                 isShowOutputOrigin: false,
                 readOnly: true,
                 loading: true,
+                isRenderOutputForm: false,
                 executeInfo: {},
                 inputsInfo: {},
                 outputsInfo: [],
@@ -488,6 +499,15 @@
                     formMode: false
                 },
                 renderConfig: [],
+                outputRenderData: {},
+                outputRenderConfig: [],
+                outputRenderOption: {
+                    showGroup: false,
+                    showLabel: true,
+                    showHook: false,
+                    formEdit: true,
+                    formMode: true
+                },
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined,
@@ -499,6 +519,7 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
+                'atomOutputConfig': state => state.atomForm.outputConfig,
                 'atomFormInfo': state => state.atomForm.form
             }),
             ...mapState('project', {
@@ -597,9 +618,15 @@
                     this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code
+
+                    // 添加插件输出表单所需上下文
+                    $.context.input_form.inputs = inputs
+                    $.context.output_form.outputs = outputs
+                    $.context.output_form.state = state
+
                     // 任务节点需要加载标准插件
                     if (componentCode) {
-                        this.renderConfig = await this.getNodeConfig(componentCode, version)
+                        await this.getNodeConfig(componentCode, version)
                     }
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -639,7 +666,9 @@
                             // 普通插件展示 preset 为 true 的输出参数
                             this.outputsInfo = outputs.filter(output => output.preset)
                         }
-                        
+                        this.outputsInfo.forEach(out => {
+                            this.$set(this.outputRenderData, out.key, out.value)
+                        })
                         if (this.theExecuteTime === undefined) {
                             this.loop = respData.loop
                             this.theExecuteTime = respData.loop
@@ -709,12 +738,21 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
-                    return this.atomFormConfig[type][version]
+                if (
+                    atomFilter.isConfigExists(type, version, this.atomFormConfig)
+                    && atomFilter.isConfigExists(type, version, this.atomOutputConfig)
+                ) {
+                    this.renderConfig = this.atomFormConfig[type][version]
+                    this.outputRenderConfig = this.atomOutputConfig[type][version]
+                    this.isRenderOutputForm = true
                 } else {
                     try {
-                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
-                        return this.atomFormConfig[type][version]
+                        const res = await this.loadAtomConfig({ atom: type, version })
+                        this.renderConfig = this.atomFormConfig[type][version]
+                        if (res.isRenderOutputForm) {
+                            this.outputRenderConfig = this.atomOutputConfig[type][version]
+                        }
+                        this.isRenderOutputForm = res.isRenderOutputForm
                     } catch (e) {
                         this.$bkMessage({
                             message: e,

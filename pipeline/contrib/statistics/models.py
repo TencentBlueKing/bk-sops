@@ -32,8 +32,8 @@ class ComponentInTemplate(models.Model):
 
 
 class ComponentExecuteData(models.Model):
-    component_code = models.CharField(_("组件编码"), max_length=255)
-    instance_id = models.CharField(_("实例ID"), max_length=32)
+    component_code = models.CharField(_("组件编码"), max_length=255, db_index=True)
+    instance_id = models.CharField(_("实例ID"), max_length=32, db_index=True)
     node_id = models.CharField(_("节点ID"), max_length=32)
     is_sub = models.BooleanField(_("是否子流程引用"), default=False)
     subprocess_stack = models.TextField(_("子流程堆栈"), default="[]", help_text=_("JSON 格式的列表"))
@@ -55,7 +55,7 @@ class ComponentExecuteData(models.Model):
 
 
 class TemplateInPipeline(models.Model):
-    template_id = models.CharField(_("模板ID"), max_length=255)
+    template_id = models.CharField(_("模板ID"), max_length=255, db_index=True)
     atom_total = models.IntegerField(_("标准插件总数"))
     subprocess_total = models.IntegerField(_("子流程总数"))
     gateways_total = models.IntegerField(_("网关总数"))
@@ -69,7 +69,7 @@ class TemplateInPipeline(models.Model):
 
 
 class InstanceInPipeline(models.Model):
-    instance_id = models.CharField(_("实例ID"), max_length=255)
+    instance_id = models.CharField(_("实例ID"), max_length=255, db_index=True)
     atom_total = models.IntegerField(_("标准插件总数"))
     subprocess_total = models.IntegerField(_("子流程总数"))
     gateways_total = models.IntegerField(_("网关总数"))

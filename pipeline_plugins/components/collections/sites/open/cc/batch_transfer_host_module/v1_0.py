@@ -27,7 +27,7 @@ from pipeline_plugins.components.utils import chunk_table_data
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
 )
 
 
@@ -44,7 +44,9 @@ class CCBatchTransferHostModule(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_transfer_select_method_method", type="str",
+                name=_("填参方式"),
+                key="cc_transfer_select_method_method",
+                type="str",
                 schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(

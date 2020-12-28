@@ -30,6 +30,7 @@ const SCHEMA_CONFIG = {
     'select': ['remote', 'remote_url', 'remote_data_init'],
     'text': null,
     'textarea': null,
+    'logDisplay': null,
     'tree': ['remote', 'remote_url', 'remote_data_init'],
     'upload': ['url', 'headers', 'auto_upload', 'limit', 'text']
 }

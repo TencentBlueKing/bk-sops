@@ -29,7 +29,7 @@ class GitRepoSourceAdmin(admin.ModelAdmin):
 @admin.register(S3Source)
 class S3SourceAdmin(admin.ModelAdmin):
     form = JsonFieldModelForm
-    list_display = ["name", "from_config", "service_address", "bucket"]
+    list_display = ["name", "from_config", "service_address", "bucket", "source_dir"]
     search_fields = ["name", "bucket", "service_address"]
 
 

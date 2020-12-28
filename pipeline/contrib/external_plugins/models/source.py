@@ -46,6 +46,7 @@ class GitRepoSource(ExternalPackageSource):
 class S3Source(ExternalPackageSource):
     service_address = models.TextField(_("对象存储服务地址"))
     bucket = models.TextField(_("bucket 名"))
+    source_dir = models.TextField(_("源目录名"), default="")
     access_key = models.TextField(_("access key"))
     secret_key = models.TextField(_("secret key"))
 
@@ -59,6 +60,7 @@ class S3Source(ExternalPackageSource):
             modules=list(self.packages.keys()),
             service_address=self.service_address,
             bucket=self.bucket,
+            source_dir=self.source_dir,
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT,
@@ -68,6 +70,7 @@ class S3Source(ExternalPackageSource):
         return {
             "service_address": self.service_address,
             "bucket": self.bucket,
+            "source_dir": self.source_dir,
             "access_key": self.access_key,
             "secret_key": self.secret_key,
         }

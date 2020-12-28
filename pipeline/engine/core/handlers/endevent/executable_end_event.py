@@ -19,7 +19,7 @@ from pipeline.engine.models import Status
 
 from .base import EndEventHandler
 
-logger = logging.getLogger("celery")
+logger = logging.getLogger("celery_and_engine_component")
 
 
 class ExecutableEndEventHandler(EndEventHandler):
