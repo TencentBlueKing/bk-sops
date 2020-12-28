@@ -219,7 +219,9 @@
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
                 isSelectorPanelShow, // 是否显示选择插件(子流程)面板
-                localConstants: {} // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                isChange: false, // 输入、输出参数勾选状态是否有变化
+                pluginOrTplChangeVal: {} // 选择插件的信息
             }
         },
         computed: {
@@ -605,6 +607,7 @@
             
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
+                this.pluginOrTplChangeVal = val
                 this.isSelectorPanelShow = false
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
@@ -683,6 +686,18 @@
              */
             updateBasicInfo (data) {
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
+                // 获取当前接口的不同版本的描述
+                const { component } = this.$store.state.template.activities[this.nodeId]
+                const code = component.code || this.pluginOrTplChangeVal.code
+                if (code) {
+                    const atom = this.atomList.find(item => item.code === code)
+                    const { desc } = atom.list.find(item => item.version === this.basicInfo.version)
+                    this.basicInfo.desc = desc
+                    if (desc.includes('\n')) {
+                        const descList = desc.split('\n')
+                        this.basicInfo.desc = descList.join('<p></p>')
+                    }
+                }
             },
             // 输入参数表单值更新
             updateInputsValue (val) {
