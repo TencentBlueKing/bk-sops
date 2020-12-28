@@ -127,8 +127,8 @@
                 this.collectedLoading = true
                 try {
                     const response = await this.getCollectedTemplate()
-                    this.collectTemplateList = response.objects
-                    this.originalCollectTemplateList = this.collectTemplateList.slice(0).filter(item => item.project.id === this.$store.state.bizId)
+                    this.collectTemplateList = response.objects.filter(item => item.extra_info.project_id === Number(this.$store.state.bizId))
+                    this.originalCollectTemplateList = this.collectTemplateList.slice(0)
                 } catch (e) {
                     this.error = true
                     errorHandler(e, this)
