@@ -771,6 +771,7 @@ const en = {
     '双击左键': 'Double click Mouse-Left',
     '可以快捷打开节点配置面板': 'will open node config panel',
     '普通变量': 'Common Variables',
+    '动态变量': 'Dynamic variable',
     '元变量': 'Meta Variables',
     '导出流程': 'Export',
     '选择流程': 'Flows',
