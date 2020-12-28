@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import copy
 from abc import ABCMeta
 
 import ujson as json
@@ -52,17 +52,36 @@ class ExclusiveGateway(Gateway):
             raise InvalidOperationException("sequence flow(%s) does not exist." % flow_id)
         return flow_to_target[flow_id]
 
+    @staticmethod
+    def _transform_escape_char(string):
+        """
+        对未转义的字符串进行转义，现有的转义字符包括\n, \r, \t
+        """
+        if not isinstance(string, str):
+            return string
+        escaped_chars = {"\n": r"\n", "\r": r"\r", "\t": r"\t"}
+        # 已转义的情况
+        if len([c for c in escaped_chars.values() if c in string]) > 0:
+            return string
+        for key, value in escaped_chars.items():
+            if key in string:
+                string = string.replace(key, value)
+        return string
+
     def _determine_next_flow_with_boolrule(self, data):
         """
         根据当前传入的数据判断下一个应该流向的 flow （ 不使用 eval 的版本）
         :param data:
         :return:
         """
+        new_data = copy.deepcopy(data)
+        for key, value in new_data.items():
+            new_data[key] = self._transform_escape_char(value)
         for condition in self.conditions:
-            deformatted_data = {deformat_constant_key(key): value for key, value in list(data.items())}
+            deformatted_data = {deformat_constant_key(key): value for key, value in list(new_data.items())}
             try:
                 resolved_evaluate = ConstantTemplate(condition.evaluate).resolve_data(deformatted_data)
-                result = BoolRule(resolved_evaluate).test(data)
+                result = BoolRule(resolved_evaluate).test(new_data)
             except Exception as e:
                 raise EvaluationException(
                     "evaluate[%s] fail with data[%s] message: %s"
