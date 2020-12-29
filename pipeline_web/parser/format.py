@@ -17,6 +17,7 @@ from pipeline import exceptions
 from pipeline.core.data import library, var
 from pipeline.core.data.expression import ConstantTemplate
 from pipeline.validators.utils import format_node_io_to_list
+from pipeline.component_framework.constant import ConstantPool
 
 from pipeline_web.constants import PWE
 
@@ -30,7 +31,16 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     """
     pipeline_tree = copy.deepcopy(web_pipeline)
     constants = pipeline_tree.pop("constants")
+    # classify inputs and outputs
     classification = classify_constants(constants, is_subprocess)
+    # pre render mako for some vars
+    pre_render_keys = get_pre_render_mako_keys(constants)
+    pre_render_pool = ConstantPool(
+        pool={k: {"value": info["value"]} for k, info in classification["data_inputs"].items() if k in pre_render_keys}
+    )
+    for k, v in pre_render_pool.pool.items():
+        classification["data_inputs"][k]["value"] = v["value"]
+
     pipeline_tree["data"] = {
         "inputs": classification["data_inputs"],
         "outputs": [key for key in pipeline_tree.pop("outputs")],
@@ -73,6 +83,14 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     format_node_io_to_list(pipeline_tree["end_event"], o=False)
 
     return pipeline_tree
+
+
+def get_pre_render_mako_keys(constants):
+    pre_render_inputs_keys = set()
+    for key, info in list(constants.items()):
+        if info["source_type"] != "component_outputs" and info["show_type"] != "show":
+            pre_render_inputs_keys.add(key)
+    return pre_render_inputs_keys
 
 
 def classify_constants(constants, is_subprocess):
