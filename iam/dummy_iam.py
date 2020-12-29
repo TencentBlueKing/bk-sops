@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from django.db.models import Q
 
-from iam.api.client import Client
-from iam.eval.object import ObjectSet
-from iam.contrib.converter.queryset import DjangoQuerySetConverter
-from iam.auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest
-from iam.exceptions import AuthAPIError, AuthInvalidRequest, AuthInvalidParam
-from iam.apply.models import Application
+from .api.client import Client
+from .eval.object import ObjectSet
+from .contrib.converter.queryset import DjangoQuerySetConverter
+from .auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest
+from .exceptions import AuthAPIError, AuthInvalidRequest, AuthInvalidParam
+from .apply.models import Application
 
 
 class DummyIAM(object):

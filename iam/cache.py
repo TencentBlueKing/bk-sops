@@ -11,10 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
 
-from iam.contrib.iam_migration.constants import APP_NAME
-
-
-class IAMMigrationConfig(AppConfig):
-    name = APP_NAME
+def hash_key(*args):
+    args = args[1:]
+    return tuple(hash(k) for k in args)
