@@ -98,8 +98,19 @@ class Context(object):
             self.change_keys.clear()
 
     def sync_change(self, context):
+        from pipeline.core.data.var import SpliceVariable
+
+        # sync obvious change keys
         for k in context.change_keys:
             self.set_global_var(k, context.get(k))
+
+        # sync resolved splice value
+        for k, child_v in context.variables.items():
+            parent_v = self.variables.get(k)
+            if isinstance(child_v, SpliceVariable) and isinstance(parent_v, SpliceVariable):
+                # if var is resolved in child
+                if parent_v._value is None and child_v._value is not None:
+                    parent_v._value = child_v._value
 
     def __repr__(self):
         return "variables:{}\nact_outputs:{}\n_output_key:{}".format(
