@@ -326,7 +326,7 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_op_target",
                 type="object",
                 schema=ObjectItemSchema(
-                    _("需要操作的对象"),
+                    description=_("需要操作的对象"),
                     property_schemas={
                         "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域 ID")),
                         "nodeman_node_type": StringItemSchema(
@@ -340,7 +340,7 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_op_info",
                 type="object",
                 schema=ObjectItemSchema(
-                    _("操作内容信息"),
+                    description=_("操作内容信息"),
                     property_schemas={
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(
