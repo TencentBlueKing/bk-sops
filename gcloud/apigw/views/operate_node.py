@@ -24,6 +24,7 @@ from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
+from gcloud.contrib.operate_record.decorators import record_operation
 
 try:
     from bkoauth.decorators import apigw_required
@@ -38,6 +39,7 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskOperateInterceptor())
+@record_operation("task", "nodes_action", "api")
 def operate_node(request, project_id, task_id):
     try:
         req_data = json.loads(request.body)
