@@ -1050,7 +1050,8 @@ const en = {
     '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
     '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?',
     '备注': 'Description',
-    '请输入流程模板备注信息': 'please enter process template description'
+    '请输入流程模板备注信息': 'please enter process template description',
+    '预览值': 'Preview Value'
 }
 
 export default en
