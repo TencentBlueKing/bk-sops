@@ -257,7 +257,7 @@
              * 删除方案
              */
             async onDeleteScheme (id) {
-                const hasPermission = this.checkSchemeRelativePermission(['flow_delete'])
+                const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
 
                 if (this.deleting || !hasPermission) return
                 this.deleting = true
