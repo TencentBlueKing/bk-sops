@@ -42,8 +42,7 @@ class GseKitSetModuleIpSelector(LazyVariable):
         }
         client = BKGseKitClient(operator)
         process_status_result = client.process_status(
-            expression_scope=expression_scope_kwargs,
-            page_param={"cur_page_param": "page", "page_size_param": "pagesize"}
+            expression_scope=expression_scope_kwargs
         )
         logger.info("process_status_result {result} with {param}".format(result=process_status_result,
                                                                          param=expression_scope_kwargs))
