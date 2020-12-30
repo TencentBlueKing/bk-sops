@@ -112,6 +112,7 @@ class JobExecuteTaskService(JobService):
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
+        print(original_global_var)
 
         for _value in original_global_var:
             # 3-IP
@@ -125,15 +126,13 @@ class JobExecuteTaskService(JobService):
 
                 if ip_is_exist:
                     # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-                    input_ip_list = list(set(get_ip_by_regex(val)))
+                    input_ip_set = set(get_ip_by_regex(val))
                     self.logger.info(
-                        "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list)
+                        "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set)
                     )
 
-                    difference_ip_list = list(
-                        set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list]))
-                    )
-                    if len(ip_list) != len(input_ip_list):
+                    difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
+                    if len(ip_list) != len(input_ip_set):
                         data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
                         return False
                 if ip_list:
