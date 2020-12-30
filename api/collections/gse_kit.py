@@ -53,7 +53,7 @@ class BKGseKitClient(BKComponentClient):
     ):
         return self._request(
             method="post",
-            url=_get_gse_kit_api("list_process"),
+            url=_get_gse_kit_api("process/process_status"),
             data={
                 "pagesize": pagesize,
                 "page": page,
@@ -93,9 +93,9 @@ class BKGseKitClient(BKComponentClient):
         刷新业务进程缓存
         :param bk_biz_id: string
         """
-        param = {"bk_biz_id": [bk_biz_id]}
+        param = {"bk_biz_id": bk_biz_id}
         return self._request(
-            method="post", url=_get_gse_kit_api("{bk_biz_id}/job".format(bk_biz_id=bk_biz_id)), data=param
+            method="post", url=_get_gse_kit_api("flush/process"), data=param
         )
 
     def list_config_template(self, bk_biz_id):

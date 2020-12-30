@@ -49,7 +49,7 @@
             attrs: {
                 name: gettext("集群"),
                 hookable: true,
-                placeholder: gettext("集群ID"),
+                placeholder: gettext("集群"),
                 validation: [
                     {
                         type: "required"
@@ -63,7 +63,7 @@
             attrs: {
                 name: gettext("模块"),
                 hookable: true,
-                placeholder: gettext("模块ID"),
+                placeholder: gettext("模块"),
                 validation: [
                     {
                         type: "required"
@@ -75,9 +75,9 @@
             tag_code: "gsekit_service_id",
             type: "input",
             attrs: {
-                name: gettext("服务实例ID"),
+                name: gettext("服务实例"),
                 hookable: true,
-                placeholder: gettext("服务实例ID"),
+                placeholder: gettext("服务实例"),
                 validation: [
                     {
                         type: "required"
