@@ -104,7 +104,7 @@ class BKGseKitClient(BKComponentClient):
         """
         param = {"bk_biz_id": bk_biz_id}
         return self._request(
-            method="post", url=_get_gse_kit_api("flush/process"), data=param
+            method="post", url=_get_gse_kit_api("process/flush_process"), data=param
         )
 
     def list_config_template(self, bk_biz_id):
