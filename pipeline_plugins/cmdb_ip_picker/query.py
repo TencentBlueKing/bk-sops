@@ -17,6 +17,7 @@ import ujson as json
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
+from api.utils.request import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
@@ -179,3 +180,24 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=""):
             bk_obj["bk_obj_name"] = "IP"
     result = {"result": cc_result["result"], "code": cc_result["code"], "data": cc_result["data"]}
     return JsonResponse(result)
+
+
+def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
+    """
+    @summary: 查询动态分组列表
+    @param request:
+    @param bk_biz_id:
+    @param bk_supplier_account:
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    result = batch_request(client.cc.search_dynamic_group, kwargs, limit=200)
+
+    dynamic_groups = []
+    for dynamic_group in result:
+        if dynamic_group["bk_obj_id"] == "host":
+            dynamic_groups.append(
+                {"id": dynamic_group["id"], "name": dynamic_group["name"], "create_user": dynamic_group["create_user"]}
+            )
+    return JsonResponse({"result": True, "data": {"count": len(dynamic_groups), "info": dynamic_groups}})

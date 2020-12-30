@@ -19,6 +19,7 @@
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
+                :dynamic-group-list="dynamicGroupList"
                 :allow-empty="allowEmpty"
                 v-model="ipValue">
             </ip-selector>
@@ -79,7 +80,8 @@
                 isvalidate: false,
                 staticIpList: [],
                 dynamicIpList: [],
-                topoModelList: []
+                topoModelList: [],
+                dynamicGroupList: [] // 动态分组的首页数据，如果大于 200 条，在组件内部单独请求
             }
         },
         computed: {
@@ -115,7 +117,8 @@
             ...mapActions([
                 'getHostInCC',
                 'getTopoTreeInCC',
-                'getTopoModelInCC'
+                'getTopoModelInCC',
+                'getDynamicGroup'
             ]),
             getData () {
                 const staticIpExtraFields = ['agent']
@@ -134,12 +137,16 @@
                     }),
                     this.getTopoModelInCC({
                         url: urls['cc_get_mainline_object_topo']
+                    }),
+                    this.getDynamicGroup({
+                        url: urls['cc_dynamic_group_list']
                     })
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         this.staticIpList = (values[0] && values[0].data) || []
                         this.dynamicIpList = (values[1] && values[1].data) || []
                         this.topoModelList = (values[2] && values[2].data) || []
+                        this.dynamicGroupList = (values[3] && values[3].data && values[3].data.info) || []
                     }
                     this.loading = false
                 }).catch(e => {

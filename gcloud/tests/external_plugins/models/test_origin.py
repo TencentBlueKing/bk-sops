@@ -13,63 +13,34 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.contrib.external_plugins.models import (
-    GIT,
-    S3,
-    FILE_SYSTEM,
-    GitRepoSource,
-    S3Source,
-    FileSystemSource
-)
+from pipeline.contrib.external_plugins.models import GIT, S3, FILE_SYSTEM, GitRepoSource, S3Source, FileSystemSource
 
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
 from gcloud.external_plugins import exceptions
-from gcloud.external_plugins.models.origin import (
-    GitRepoOriginalSource,
-    S3OriginalSource,
-    FileSystemOriginalSource
-)
+from gcloud.external_plugins.models.origin import GitRepoOriginalSource, S3OriginalSource, FileSystemOriginalSource
 
 
 class TestGitRepoOriginalSource(TestCase):
     def setUp(self):
-        self.ORIGINAL_SOURCE_NAME = 'ORIGINAL_GIT_SOURCE'
+        self.ORIGINAL_SOURCE_NAME = "ORIGINAL_GIT_SOURCE"
         self.SOURCE_TYPE = GIT
         self.SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
-            'root_package_2': {
-                'version': '',
-                'modules': ['test3', 'test4']
-            },
-            'root_package_3': {
-                'version': '',
-                'modules': ['test5', 'test6']
-            }
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
+            "root_package_2": {"version": "", "modules": ["test3", "test4"]},
+            "root_package_3": {"version": "", "modules": ["test5", "test6"]},
         }
         self.UPDATED_SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
         }
         self.ORIGINAL_KWARGS = {
-            'repo_address': 'repo_address',
+            "repo_address": "repo_address",
         }
-        self.SOURCE_KWARGS = {
-            'repo_raw_address': 'repo_raw_address',
-            'branch': 'master'
-        }
+        self.SOURCE_KWARGS = {"repo_raw_address": "repo_raw_address", "branch": "master"}
         self.UPDATED_ORIGINAL_KWARGS = {
-            'repo_address': 'new_address',
+            "repo_address": "new_address",
         }
-        self.UPDATED_SOURCE_KWARGS = {
-            'repo_raw_address': 'new_address',
-            'branch': 'dev'
-        }
+        self.UPDATED_SOURCE_KWARGS = {"repo_raw_address": "new_address", "branch": "dev"}
         self.original_source = GitRepoOriginalSource.objects.add_original_source(
             name=self.ORIGINAL_SOURCE_NAME,
             source_type=self.SOURCE_TYPE,
@@ -79,8 +50,7 @@ class TestGitRepoOriginalSource(TestCase):
         )
 
     def tearDown(self):
-        GitRepoOriginalSource.objects.delete_base_source(self.original_source.id,
-                                                         self.original_source.type)
+        GitRepoOriginalSource.objects.delete_base_source(self.original_source.id, self.original_source.type)
         GitRepoOriginalSource.objects.filter(id=self.original_source.id).delete()
 
     def test_add_original_source__cls(self):
@@ -92,8 +62,10 @@ class TestGitRepoOriginalSource(TestCase):
         self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source_fields(self):
-        self.assertEqual(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
-                         {'id', 'name', 'from_config', 'packages', 'repo_raw_address', 'branch'})
+        self.assertEqual(
+            set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+            {"id", "name", "from_config", "packages", "repo_raw_address", "branch"},
+        )
 
     def test_divide_details_parts(self):
         details = {}
@@ -125,44 +97,33 @@ class TestGitRepoOriginalSource(TestCase):
         )
         self.original_source = GitRepoOriginalSource.objects.get(id=self.original_source.id)
         self.assertEqual(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
-        self.assertEqual(self.original_source.repo_address, self.UPDATED_ORIGINAL_KWARGS['repo_address'])
+        self.assertEqual(self.original_source.repo_address, self.UPDATED_ORIGINAL_KWARGS["repo_address"])
 
 
 class TestS3OriginalSource(TestCase):
     def setUp(self):
-        self.ORIGINAL_SOURCE_NAME = 'ORIGINAL_S3_SOURCE'
+        self.ORIGINAL_SOURCE_NAME = "ORIGINAL_S3_SOURCE"
         self.SOURCE_TYPE = S3
         self.SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
-            'root_package_2': {
-                'version': '',
-                'modules': ['test3', 'test4']
-            },
-            'root_package_3': {
-                'version': '',
-                'modules': ['test5', 'test6']
-            }
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
+            "root_package_2": {"version": "", "modules": ["test3", "test4"]},
+            "root_package_3": {"version": "", "modules": ["test5", "test6"]},
         }
         self.UPDATED_SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
         }
         self.SOURCE_KWARGS = {
-            'service_address': 'service_address',
-            'bucket': 'bucket',
-            'access_key': 'access_key',
-            'secret_key': 'secret_key',
+            "service_address": "service_address",
+            "bucket": "bucket",
+            "access_key": "access_key",
+            "secret_key": "secret_key",
+            "source_dir": "",
         }
         self.UPDATED_SOURCE_KWARGS = {
-            'service_address': 'new_service_address',
-            'bucket': 'new_bucket',
-            'access_key': 'new_access_key',
-            'secret_key': 'new_secret_key',
+            "service_address": "new_service_address",
+            "bucket": "new_bucket",
+            "access_key": "new_access_key",
+            "secret_key": "new_secret_key",
         }
         self.original_source = S3OriginalSource.objects.add_original_source(
             name=self.ORIGINAL_SOURCE_NAME,
@@ -172,8 +133,7 @@ class TestS3OriginalSource(TestCase):
         )
 
     def tearDown(self):
-        S3OriginalSource.objects.delete_base_source(self.original_source.id,
-                                                    self.original_source.type)
+        S3OriginalSource.objects.delete_base_source(self.original_source.id, self.original_source.type)
         S3OriginalSource.objects.filter(id=self.original_source.id).delete()
 
     def test_add_original_source__cls(self):
@@ -185,9 +145,20 @@ class TestS3OriginalSource(TestCase):
         self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source_fields(self):
-        self.assertEqual(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
-                         {'id', 'name', 'from_config', 'packages', 'service_address', 'bucket', 'access_key',
-                          'secret_key'})
+        self.assertEqual(
+            set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+            {
+                "id",
+                "name",
+                "from_config",
+                "packages",
+                "service_address",
+                "bucket",
+                "access_key",
+                "secret_key",
+                "source_dir",
+            },
+        )
 
     def test_details(self):
         details = {}
@@ -213,34 +184,18 @@ class TestS3OriginalSource(TestCase):
 
 class TestFileSystemOriginalSource(TestCase):
     def setUp(self):
-        self.ORIGINAL_SOURCE_NAME = 'ORIGINAL_FS_SOURCE'
+        self.ORIGINAL_SOURCE_NAME = "ORIGINAL_FS_SOURCE"
         self.SOURCE_TYPE = FILE_SYSTEM
         self.SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
-            'root_package_2': {
-                'version': '',
-                'modules': ['test3', 'test4']
-            },
-            'root_package_3': {
-                'version': '',
-                'modules': ['test5', 'test6']
-            }
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
+            "root_package_2": {"version": "", "modules": ["test3", "test4"]},
+            "root_package_3": {"version": "", "modules": ["test5", "test6"]},
         }
         self.UPDATED_SOURCE_PACKAGES = {
-            'root_package_1': {
-                'version': '',
-                'modules': ['test1', 'test2']
-            },
+            "root_package_1": {"version": "", "modules": ["test1", "test2"]},
         }
-        self.SOURCE_KWARGS = {
-            'path': '/tmp'
-        }
-        self.UPDATED_SOURCE_KWARGS = {
-            'path': '/dev'
-        }
+        self.SOURCE_KWARGS = {"path": "/tmp"}
+        self.UPDATED_SOURCE_KWARGS = {"path": "/dev"}
         self.original_source = FileSystemOriginalSource.objects.add_original_source(
             name=self.ORIGINAL_SOURCE_NAME,
             source_type=self.SOURCE_TYPE,
@@ -249,8 +204,7 @@ class TestFileSystemOriginalSource(TestCase):
         )
 
     def tearDown(self):
-        FileSystemOriginalSource.objects.delete_base_source(self.original_source.id,
-                                                            self.original_source.type)
+        FileSystemOriginalSource.objects.delete_base_source(self.original_source.id, self.original_source.type)
         FileSystemOriginalSource.objects.filter(id=self.original_source.id).delete()
 
     def test_add_original_source__cls(self):
@@ -262,8 +216,10 @@ class TestFileSystemOriginalSource(TestCase):
         self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source_fields(self):
-        self.assertEqual(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
-                         {'id', 'name', 'from_config', 'packages', 'path'})
+        self.assertEqual(
+            set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+            {"id", "name", "from_config", "packages", "path"},
+        )
 
     def test_details(self):
         details = {}

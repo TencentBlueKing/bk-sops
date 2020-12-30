@@ -469,6 +469,7 @@
             background: #f8b53f;
             color: #ffffff;
             text-align: center;
+            box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
             .common-icon-double-vertical-line {
                 display: inline-block;
                 font-size: 12px;
@@ -480,6 +481,12 @@
             .common-icon-loading {
                 display: inline-block;
                 animation: loading 1.4s infinite linear;
+            }
+            .icon-arrows-right-shape {
+                font-size: 12px;
+            }
+            .retry-times {
+                font-size: 12px;
             }
             @keyframes loading {
                 from {

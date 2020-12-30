@@ -10,9 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.core.cache import cache
 from django.db.models import Q
+
+from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from iam import PathEqDjangoQuerySetConverter
+from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.contrib.appmaker.models import AppMaker
@@ -25,6 +28,30 @@ def mini_app_path_value_hook(value):
 
 
 class MiniAppResourceProvider(ResourceProvider):
+    def pre_search_instance(self, filter, page, **options):
+        if page.limit == 0 or page.limit > 1000:
+            raise InvalidPageException("limit in page too large")
+
+    def search_instance(self, filter, page, **options):
+        """
+        mini app search instance
+        """
+        keyword = filter.keyword
+        cache_keyword = "iam_search_instance_mini_app_{}".format(keyword)
+        project_id = filter.parent["id"] if filter.parent else None
+
+        results = cache.get(cache_keyword)
+        if results is None:
+            queryset = AppMaker.objects.filter(name__icontains=keyword, is_deleted=False).only("name")
+            if project_id:
+                queryset = queryset.filter(project__id=project_id)
+            results = [
+                {"id": str(mini_app.id), "display_name": mini_app.name}
+                for mini_app in queryset[page.slice_from : page.slice_to]
+            ]
+            cache.set(cache_keyword, results, SEARCH_INSTANCE_CACHE_TIME)
+        return ListResult(results=results, count=len(results))
+
     def list_attr(self, **options):
         """
         mini_app 不包含属性

@@ -17,7 +17,7 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
-from gcloud.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
@@ -37,12 +37,28 @@ class CCUpdateSetServiceStatusService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"),
-                key="cc_set_select_method",
+                name=_("传参形式"),
+                key="set_select_method",
                 type="string",
-                schema=StringItemSchema(description=_("集群填入方式，Set名称(name)，Set ID(id)"), enum=["name", "id"]),
+                schema=StringItemSchema(
+                    description=_("集群填入方式，Set名称(name)，Set ID(id)，自定义（根据集群属性过滤）"), enum=["name", "id", "custom"]
+                ),
             ),
-            self.InputItem(name=_("大区范围"), key="set_list", type="string",),
+            self.InputItem(
+                name=_("集群属性ID"),
+                key="set_attr_id",
+                type="string",
+                schema=StringItemSchema(description=_("集群范围中填写的值会在此处填写的属性 ID 的值上进行过滤")),
+            ),
+            self.InputItem(
+                name=_("集群范围"),
+                key="set_list",
+                type="string",
+                schema=StringItemSchema(description=_("集群范围，多个集群使用英文','分割")),
+            ),
+            self.InputItem(
+                name=_("服务状态"), key="set_status", type="string", schema=StringItemSchema(description=_("实时拉取的服务状态")),
+            ),
         ]
 
     def outputs_format(self):

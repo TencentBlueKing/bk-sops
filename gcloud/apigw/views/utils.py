@@ -96,34 +96,87 @@ def format_template_list_data(templates, project=None):
     return data
 
 
+def format_task_info_data(task, project=None):
+    item = {
+        "id": task.id,
+        "name": task.pipeline_instance.name,
+        "category": task.category_name,
+        "create_method": task.create_method,
+        "creator": task.pipeline_instance.creator,
+        "executor": task.pipeline_instance.executor,
+        "start_time": task.pipeline_instance.start_time,
+        "finish_time": task.pipeline_instance.finish_time,
+        "is_started": task.pipeline_instance.is_started,
+        "is_finished": task.pipeline_instance.is_finished,
+        "template_source": task.template_source,
+        "template_id": task.template_id,
+    }
+    if project:
+        item.update(
+            {
+                "project_id": project.id,
+                "project_name": project.name,
+                "bk_biz_id": project.bk_biz_id,
+                "bk_biz_name": project.name if project.from_cmdb else None,
+            }
+        )
+    return item
+
+
 def format_task_list_data(tasks, project=None):
     data = []
     for task in tasks:
-        item = {
-            "id": task.id,
-            "name": task.pipeline_instance.name,
-            "category": task.category_name,
-            "create_method": task.create_method,
-            "creator": task.pipeline_instance.creator,
-            "executor": task.pipeline_instance.executor,
-            "start_time": task.pipeline_instance.start_time,
-            "finish_time": task.pipeline_instance.finish_time,
-            "is_started": task.pipeline_instance.is_started,
-            "is_finished": task.pipeline_instance.is_finished,
-            "template_source": task.template_source,
-            "template_id": task.template_id,
-        }
-
-        if project:
-            item.update(
-                {
-                    "project_id": project.id,
-                    "project_name": project.name,
-                    "bk_biz_id": project.bk_biz_id,
-                    "bk_biz_name": project.name if project.from_cmdb else None,
-                }
-            )
-
+        item = format_task_info_data(task, project)
         data.append(item)
-
     return data
+
+
+def format_function_task_list_data(function_tasks, project=None):
+    data = []
+    for function_task in function_tasks:
+        item = {
+            "id": function_task.id,
+            "name": function_task.task.name,
+            "creator": function_task.creator,
+            "create_time": function_task.create_time,
+            "claimant": function_task.claimant,
+            "claim_time": function_task.claim_time,
+            "rejecter": function_task.rejecter,
+            "reject_time": function_task.reject_time,
+            "predecessor": function_task.predecessor,
+            "transfer_time": function_task.transfer_time,
+            "status": function_task.status,
+        }
+        task_item = format_task_info_data(function_task.task, project=project)
+        item["task"] = task_item
+        data.append(item)
+    return data
+
+
+def paginate_list_data(request, queryset):
+    """
+    @summary: 读取request中的offset和limit参数，对筛选出的queryset进行分页
+    @return: 分页结果列表, 分页前数据总数
+    """
+    try:
+        offset = int(request.GET.get("offset", 0))
+        limit = int(request.GET.get("limit", 100))
+        list_data = list(queryset)
+        count = len(list_data)
+
+        if offset < 0 or limit < 0:
+            raise Exception("offset and limit must be greater or equal to 0.")
+        # 全量拉取情况
+        if limit == 0 and offset == 0:
+            results = list_data
+        else:
+            results = list_data[offset : offset + limit]
+        return results, count
+    except ValueError as e:
+        logger.error("[API] pagination value error: {}, request: {}".format(e, request))
+        return [], 0
+    except Exception as e:
+        logger.error(
+            "[API] pagination parameter error: {}, request: {}, offset: {}, limit: {}".format(e, request, offset, limit)
+        )
+        return [], 0

@@ -19,7 +19,7 @@
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
+                    <template v-if="!adminView" v-slot:operation>
                         <bk-button
                             ref="childComponent"
                             theme="primary"
@@ -286,7 +286,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 }
             }
         },

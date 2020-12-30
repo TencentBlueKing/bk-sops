@@ -143,7 +143,8 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         common: route.query.common,
                         common_template: route.query.common_template,
-                        page: route.query.page
+                        page: route.query.page,
+                        limit: route.query.limit
                     }),
                     meta: { project: true }
                 },
