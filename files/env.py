@@ -10,17 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import os
 
-from django.conf import settings
-
-import env
-from iam import IAM
-from iam import DummyIAM
-
-
-def get_iam_client():
-    app_code = env.BKAPP_SOPS_IAM_APP_CODE
-    app_secret = env.BKAPP_SOPS_IAM_APP_SECRET_KEY
-    if settings.BK_IAM_SKIP:
-        return DummyIAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
-    return IAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
+BKAPP_NFS_CONTAINER_ROOT = os.getenv("BKAPP_NFS_CONTAINER_ROOT")
+BKAPP_NFS_HOST_ROOT = os.getenv("BKAPP_NFS_HOST_ROOT")
