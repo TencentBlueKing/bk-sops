@@ -1,2 +1,2 @@
 bugfix:
-  - list_biz_module接口添加module id限制
+  - 修复当模块超过 200 个时集群模块 IP 选择器获取 IP 失败的问题
