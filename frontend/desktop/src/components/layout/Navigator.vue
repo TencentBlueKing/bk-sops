@@ -439,7 +439,7 @@ header {
                 border: 1px solid #c4c6cc;
                 border-radius: 2px;
                 box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
-                z-index: 1001;
+                z-index: 2001;
                 .sub-nav-item {
                     width: 100%;
                     display: block;
