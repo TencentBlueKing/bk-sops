@@ -41,7 +41,7 @@ class GseKitSetModuleIpSelector(LazyVariable):
             "bk_process_id": var_ip_selector.get("var_process_instance_id", "*"),
         }
         client = BKGseKitClient(operator)
-        process_status_result = client.list_process(
+        process_status_result = client.process_status(
             expression_scope=expression_scope_kwargs,
             page_param={"cur_page_param": "page", "page_size_param": "pagesize"}
         )

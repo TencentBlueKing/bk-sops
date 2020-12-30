@@ -17,9 +17,7 @@ import env
 from api.client import BKComponentClient
 from api.utils.request import batch_request
 
-# TODO:待GSE KIT接入ESB后修改
-GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST,
-                                                               "api/c/compapi/v2/gsekit/api")
+GSE_KIT_API_ENTRY = env.BK_GSE_KIT_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/gsekit/api")
 
 
 def _get_gse_kit_api(api_name):
@@ -38,7 +36,7 @@ class BKGseKitClient(BKComponentClient):
 
         return data
 
-    def list_process(
+    def process_status(
         self, page_param, scope=None, expression_scope=None, bk_cloud_ids=None, process_status=None, is_auto=None,
     ):
         params = {
@@ -48,9 +46,9 @@ class BKGseKitClient(BKComponentClient):
             "process_status": process_status,
             "is_auto": is_auto,
         }
-        return batch_request(func=self._list_processes, params=params, page_param=page_param)
+        return batch_request(func=self._process_status, params=params, page_param=page_param)
 
-    def _list_processes(
+    def _process_status(
         self, pagesize, page, scope=None, expression_scope=None, bk_cloud_ids=None, process_status=None, is_auto=None,
     ):
         return self._request(
@@ -78,10 +76,8 @@ class BKGseKitClient(BKComponentClient):
             "expression_scope": expression_scope,
         }
         if extra_data:
-            param['extra_data'] = extra_data
-        return self._request(
-            method="post", url=_get_gse_kit_api("job/create_job"), data=param
-        )
+            param["extra_data"] = extra_data
+        return self._request(method="post", url=_get_gse_kit_api("job/create_job"), data=param)
 
     def job_status(self, bk_biz_id, job_task_id):
         """
@@ -89,13 +85,8 @@ class BKGseKitClient(BKComponentClient):
         :param bk_biz_id: string
         :param job_task_id: string
         """
-        param = {
-            "bk_biz_id": bk_biz_id,
-            "job_id": job_task_id
-        }
-        return self._request(
-            method="post", url=_get_gse_kit_api("job/job_status"), data=param
-        )
+        param = {"bk_biz_id": bk_biz_id, "job_id": job_task_id}
+        return self._request(method="post", url=_get_gse_kit_api("job/job_status"), data=param)
 
     def flush_process(self, bk_biz_id):
         """
@@ -111,12 +102,6 @@ class BKGseKitClient(BKComponentClient):
         """
         获取 gsekit 配置模版列表
         """
-        params = {
-            "bk_biz_id": bk_biz_id
-        }
+        params = {"bk_biz_id": bk_biz_id}
         url = _get_gse_kit_api("config_template/config_template_list")
-        return self._request(
-            method="GET",
-            url=url,
-            data=params
-        )
+        return self._request(method="GET", url=url, data=params)
