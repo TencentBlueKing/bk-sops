@@ -112,7 +112,6 @@ class JobExecuteTaskService(JobService):
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
-        print(original_global_var)
 
         for _value in original_global_var:
             # 3-IP
