@@ -157,7 +157,13 @@
                         }
                     }
                 ],
-                table_buttons: [{
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        this.table_buttons = [{
                     text: '刷新全局变量',
                     callback: function() {
                         const job_id = this.get_parent().get_child("job_task_id").value;
@@ -200,8 +206,8 @@
                         });
                     }
                 }]
-            },
-            events: [
+                    }
+                },
                 {
                     source: "job_task_id",
                     type: "change",
