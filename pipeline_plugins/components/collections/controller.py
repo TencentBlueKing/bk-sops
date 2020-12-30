@@ -20,9 +20,8 @@ from django.utils import translation, timezone
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
-
 from gcloud.core.models import Project
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -37,10 +36,20 @@ class PauseService(Service):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
+        if callback_data is not None:
+            data.outputs.callback_data = callback_data
+            self.finish_schedule()
         return True
 
     def outputs_format(self):
-        return []
+        return [
+            self.OutputItem(
+                name=_("API回调数据"),
+                key="callback_data",
+                type="object",
+                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={},),
+            ),
+        ]
 
 
 class PauseComponent(Component):
