@@ -45,6 +45,8 @@ class GseKitSetModuleIpSelector(LazyVariable):
             expression_scope=expression_scope_kwargs,
             page_param={"cur_page_param": "page", "page_size_param": "pagesize"}
         )
+        logger.info("process_status_result {result} with {param}".format(result=process_status_result,
+                                                                         param=expression_scope_kwargs))
         ip_list = [process_status["bk_host_innerip"] for process_status in process_status_result]
         ip_str = ",".join(ip_list)
         return ip_str
