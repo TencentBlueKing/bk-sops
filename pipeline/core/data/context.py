@@ -64,7 +64,11 @@ class Context(object):
 
         data = pipeline.data
         for key in self._output_key:
-            value = self.get(key)
+            try:
+                value = self.get(key)
+            except ReferenceNotExistError:
+                value = key
+
             if issubclass(value.__class__, var.Variable):
                 value = value.get()
                 # break circle
