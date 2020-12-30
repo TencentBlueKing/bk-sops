@@ -59,6 +59,16 @@
                     }
                     return resp.data;
                 },
+                showRightBtn: true,
+                rightBtnCb: function () {
+                    if (!this.value) {
+                        return;
+                    }
+                    let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                    let bk_job_host = window.BK_JOB_HOST;
+                    let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" + this.value;
+                    window.open(url, '_blank')
+                },
                 validation: [
                     {
                         type: "required"
@@ -159,7 +169,7 @@
                 ],
                 table_buttons: [{
                     text: '刷新全局变量',
-                    callback: function() {
+                    callback: function () {
                         const job_id = this.get_parent().get_child("job_task_id").value;
                         var $this = this;
                         this.changeHook(false);
