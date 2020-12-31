@@ -30,7 +30,6 @@
                             class="bk-input-inline"
                             :clearable="true"
                             @keyup.enter.native="onAddScheme"
-                            @blur="onAddScheme"
                             :placeholder="$t('方案名称')">
                         </bk-input>
                         <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
