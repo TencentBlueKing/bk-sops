@@ -145,6 +145,18 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 )
                 host["agent"] = agent_info.get("bk_agent_alive", -1)
 
+        # search host lock status
+        bk_host_id_list = [host_detail["bk_host_id"] for host_detail in data]
+        host_lock_status_result = client.cc.search_host_lock({"id_list": bk_host_id_list})
+        if not host_lock_status_result["result"]:
+            message = handle_api_error(_("配置平台(CMDB)"), "cc.search_host_lock", {}, host_lock_status_result)
+            result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
+            return JsonResponse(result)
+        host_lock_status_data = {int(k): v for k, v in host_lock_status_result["data"].items()}
+        for host_detail in data:
+            host_lock_status = host_lock_status_data.get(host_detail["bk_host_id"])
+            if host_lock_status is not None:
+                host_detail["bk_host_lock_status"] = host_lock_status
     result = {"result": True, "code": NO_ERROR, "data": data}
     return JsonResponse(result)
 
