@@ -46,6 +46,7 @@
             tag_code: "cc_host_replace_detail",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("主机详情"),
                 empty_text: gettext("请至少添加一条数据"),
                 editable: true,

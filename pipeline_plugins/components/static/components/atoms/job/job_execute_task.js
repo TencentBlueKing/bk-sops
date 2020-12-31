@@ -121,6 +121,7 @@
             tag_code: "job_global_var",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("全局变量"),
                 hookable: true,
                 deleteable: false,

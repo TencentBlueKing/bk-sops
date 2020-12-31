@@ -204,7 +204,8 @@
                     {
                         tag_code: "nodeman_hosts",
                         type: "datatable",
-                        attrs: {
+            attrs: {
+                pagination: true,
                             name: gettext("主机"),
                             table_buttons: [
                                 {
