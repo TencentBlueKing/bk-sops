@@ -10,11 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import copy
 from abc import ABCMeta
 
 import ujson as json
 
+from pipeline.core.constants import ESCAPED_CHARS
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
 from pipeline.core.flow.base import FlowNode
 from pipeline.exceptions import ConditionExhaustedException, EvaluationException, InvalidOperationException
@@ -59,11 +59,10 @@ class ExclusiveGateway(Gateway):
         """
         if not isinstance(string, str):
             return string
-        escaped_chars = {"\n": r"\n", "\r": r"\r", "\t": r"\t"}
         # 已转义的情况
-        if len([c for c in escaped_chars.values() if c in string]) > 0:
+        if len([c for c in ESCAPED_CHARS.values() if c in string]) > 0:
             return string
-        for key, value in escaped_chars.items():
+        for key, value in ESCAPED_CHARS.items():
             if key in string:
                 string = string.replace(key, value)
         return string
@@ -74,14 +73,13 @@ class ExclusiveGateway(Gateway):
         :param data:
         :return:
         """
-        new_data = copy.deepcopy(data)
-        for key, value in new_data.items():
-            new_data[key] = self._transform_escape_char(value)
+        for key, value in data.items():
+            data[key] = self._transform_escape_char(value)
         for condition in self.conditions:
-            deformatted_data = {deformat_constant_key(key): value for key, value in list(new_data.items())}
+            deformatted_data = {deformat_constant_key(key): value for key, value in list(data.items())}
             try:
                 resolved_evaluate = ConstantTemplate(condition.evaluate).resolve_data(deformatted_data)
-                result = BoolRule(resolved_evaluate).test(new_data)
+                result = BoolRule(resolved_evaluate).test(data)
             except Exception as e:
                 raise EvaluationException(
                     "evaluate[%s] fail with data[%s] message: %s"
