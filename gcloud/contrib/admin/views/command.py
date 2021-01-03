@@ -58,6 +58,7 @@ def migrate_pipeline_parent_data(request):
 @check_is_superuser()
 def resend_celery_tasks(request):
     params = json.loads(request.body)
+    resend_failed_tasks = {}
     for task_params in params:
         task_type = task_params.pop("task_type")
         task_name = task_params.pop("task_name")
@@ -67,7 +68,14 @@ def resend_celery_tasks(request):
         try:
             pipeline_api.resend_celery_task(task_type, task_name, **task_kwargs)
         except Exception as e:
-            return JsonResponse(
-                {"result": False, "message": "error: {}".format(e), "code": err_code.REQUEST_PARAM_INVALID.code}
-            )
+            resend_failed_tasks["{}-{}".format(task_type, task_name)] = str(e)
+    if len(resend_failed_tasks) > 0:
+        message = ";".join(["{}:{}".format(key, value) for key, value in resend_failed_tasks.items()])
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "Failed tasks: {}".format(message),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
     return JsonResponse({"result": True, "message": "all celery tasks resend success.", "code": err_code.SUCCESS.code})
