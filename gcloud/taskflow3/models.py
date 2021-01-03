@@ -127,10 +127,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             constants = {}
         pipeline_tree = template.pipeline_tree
 
-        try:
-            TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
-        except Exception as e:
-            return False, e
+        TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
         # change constants
         for key, value in list(constants.items()):
@@ -140,7 +137,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         task_info["pipeline_tree"] = pipeline_tree
         pipeline_inst = TaskFlowInstanceManager.create_pipeline_instance(template, **task_info)
 
-        return True, pipeline_inst
+        return pipeline_inst
 
     @staticmethod
     def _replace_node_incoming(next_node, replaced_incoming, new_incoming):
