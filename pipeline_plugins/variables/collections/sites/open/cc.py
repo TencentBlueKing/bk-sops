@@ -193,7 +193,7 @@ class VarCmdbAttributeQuery(LazyVariable):
         @return:
         """
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return
+            return ""
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)

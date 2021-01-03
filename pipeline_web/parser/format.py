@@ -137,14 +137,15 @@ def classify_constants(constants, is_subprocess):
     return result
 
 
-def calculate_constants_type(to_calculate, calculated):
+def calculate_constants_type(to_calculate, calculated, change_calculated=False):
     """
     @summary:
     @param to_calculate: 待计算的变量
     @param calculated: 变量类型确定的，直接放入结果
+    @param change_calculated: 是否直接修改calculated并作为结果返回
     @return:
     """
-    data = copy.deepcopy(calculated)
+    data = copy.deepcopy(calculated) if not change_calculated else calculated
     for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info["value"]).get_reference()
         if ref:

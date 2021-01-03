@@ -53,12 +53,13 @@ def get_constant_values(constants, extra_data):
         else:
             custom_constants[key] = info
     # 获取变量类型
-    lazy_constants = {}
+    classified_constants = {}
     to_calculate_constants = {}
+    # 先计算lazy的情况
     for key, info in custom_constants.items():
         var_cls = VariableLibrary.get_var_class(info["custom_type"])
         if var_cls and issubclass(var_cls, var.LazyVariable):
-            lazy_constants[key] = {
+            classified_constants[key] = {
                 "type": "lazy",
                 "source_tag": info["source_tag"],
                 "custom_type": info["custom_type"],
@@ -66,7 +67,9 @@ def get_constant_values(constants, extra_data):
             }
         else:
             to_calculate_constants[key] = info
-    classified_constants = calculate_constants_type(to_calculate_constants, lazy_constants)
+    classified_constants = calculate_constants_type(
+        to_calculate_constants, classified_constants, change_calculated=True
+    )
 
     # 对变量进行第一次解析，放到context中
     context = Context({})
