@@ -12,3 +12,5 @@ specific language governing permissions and limitations under the License.
 """
 
 from .legacy import JobFastExecuteScriptService, JobFastExecuteScriptComponent  # noqa
+from .v1_0 import JobFastExecuteScriptService, JobFastExecuteScriptComponent  # noqa
+from .v1_1 import JobFastExecuteScriptService, JobFastExecuteScriptComponent  # noqa
