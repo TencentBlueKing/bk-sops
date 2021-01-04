@@ -24,7 +24,9 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobFastExecuteScriptComponent
+from pipeline_plugins.components.collections.sites.open.job.fast_execute_script.v1_1 import (
+    JobFastExecuteScriptComponent,
+)
 
 
 class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
