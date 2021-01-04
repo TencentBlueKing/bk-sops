@@ -174,4 +174,15 @@ def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
     if kwargs:
         params.update(kwargs)
-    return batch_request(client.cc.list_biz_hosts, params)
+    start = 0
+    step = 500
+    bk_module_ids = kwargs["bk_module_ids"]
+
+    result = []
+
+    while start < len(bk_module_ids):
+        params["bk_module_ids"] = bk_module_ids[start: start + step]
+        host_list_result = batch_request(client.cc.list_biz_hosts, params)
+        result.extend(host_list_result)
+        start += step
+    return result

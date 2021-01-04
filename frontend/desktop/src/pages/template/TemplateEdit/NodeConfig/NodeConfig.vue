@@ -39,10 +39,10 @@
                         ext-cls="variable-popover"
                         placement="bottom-end">
                         <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
-                        <div class="variable-list" slot="content">
+                        <div :class="['variable-list', { 'list-change': isChange }]" slot="content">
                             <bk-table :data="variableList" :max-height="400">
                                 <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
-                                <bk-table-column label="KEY" :show-overflow-tooltip="true">
+                                <bk-table-column label="KEY" :show-overflow-tooltip="true" :width="isChange ? '165' : ''">
                                     <template slot-scope="props" width="165">
                                         <div class="key">{{ props.row.key }}</div>
                                         <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
@@ -219,7 +219,8 @@
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
                 isSelectorPanelShow, // 是否显示选择插件(子流程)面板
-                localConstants: {} // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                isChange: false // 输入、输出参数勾选状态是否有变化
             }
         },
         computed: {
@@ -233,7 +234,7 @@
             }),
             variableList () {
                 const systemVars = Object.keys(this.systemConstants).map(key => this.systemConstants[key])
-                const userVars = Object.keys(this.constants).map(key => this.constants[key])
+                const userVars = Object.keys(this.localConstants).map(key => this.localConstants[key])
                 return [...systemVars, ...userVars]
             },
             isSubflow () {
@@ -634,7 +635,7 @@
                     ignorable: false,
                     skippable: true,
                     retryable: true,
-                    selectable: false
+                    selectable: true
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
@@ -810,6 +811,8 @@
             // 输入、输出参数勾选状态变化
             onHookChange (type, data) {
                 if (type === 'create') {
+                    // 如果全局变量数据有变，需要修改tip样式
+                    this.isChange = true
                     this.$set(this.localConstants, data.key, data)
                 } else {
                     this.setVariableSourceInfo(data)
@@ -1088,6 +1091,12 @@
                 .color-org {
                     color: #de9524;
                 }
+            }
+        }
+        .list-change {
+            /deep/ .bk-table-body-wrapper {
+                overflow-y: scroll;
+                padding-bottom: 27px;
             }
         }
         td {

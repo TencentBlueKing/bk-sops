@@ -19,7 +19,9 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 from .thread import ThreadPool
+
 from gcloud.core.models import StaffGroupSet
+
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")

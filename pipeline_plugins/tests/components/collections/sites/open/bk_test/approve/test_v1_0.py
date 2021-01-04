@@ -39,11 +39,10 @@ class BkApproveComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, create_ticket=None):
-        self.itsm = MagicMock()
-        self.itsm.create_ticket = MagicMock(return_value=create_ticket)
+        self.create_ticket = MagicMock(return_value=create_ticket)
 
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.BKItsmClient"
 GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.get_node_callback_url"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.handle_api_error"
 
@@ -91,7 +90,10 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "create ticket fail"}),
     execute_call_assertion=[
-        CallAssertion(func=CREAT_TICKET_FAIL_RETURN_CLIENT.itsm.create_ticket, calls=[Call(CREAT_TICKET_CALL)],)
+        CallAssertion(
+            func=CREAT_TICKET_FAIL_RETURN_CLIENT.create_ticket,
+            calls=[Call(**CREAT_TICKET_CALL)],
+        )
     ],
     schedule_assertion=None,
     patchers=[
@@ -107,7 +109,10 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
     execute_call_assertion=[
-        CallAssertion(func=CREAT_TICKET_SUCCESS_CLIENT.itsm.create_ticket, calls=[Call(CREAT_TICKET_CALL)],)
+        CallAssertion(
+            func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket,
+            calls=[Call(**CREAT_TICKET_CALL)],
+        )
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,

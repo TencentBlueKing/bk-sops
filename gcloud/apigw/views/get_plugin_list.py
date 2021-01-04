@@ -37,7 +37,7 @@ except ImportError:
 def get_plugin_list(request, project_id):
     project_id = request.project.id
 
-    exclude_component_codes = ProjectBasedComponent.objects.get_components_with_project(project_id)
+    exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
     components = ComponentModel.objects.filter(status=True).exclude(code__in=exclude_component_codes)
 
     data = []

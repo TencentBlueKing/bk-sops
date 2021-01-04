@@ -1,0 +1,2 @@
+feature:
+  - 添加get_plugin_detail api接口，根据插件code获取业务下插件信息

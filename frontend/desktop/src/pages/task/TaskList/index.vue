@@ -252,21 +252,23 @@
             project_id: {
                 type: [String, Number],
                 default: ''
-            },
-            template_source: {
-                type: String,
-                default: ''
-            },
-            create_method: {
-                type: String,
-                default: ''
-            },
-            create_info: {
-                type: [String, Number],
-                default: ''
             }
         },
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                template_source = '',
+                create_info = '',
+                category = '',
+                start_time = '',
+                end_time = '',
+                create_method = '',
+                creator = '',
+                executor = '',
+                statusSync = '',
+                keyword = ''
+            } = this.$route.query
             return {
                 listLoading: true,
                 templateId: this.$route.query.template_id,
@@ -289,22 +291,22 @@
                 },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
-                createMethod: this.create_method || '',
-                createInfo: this.create_info || '',
-                templateSource: this.template_source || '',
+                createMethod: create_method,
+                createInfo: create_info,
+                templateSource: template_source,
                 requestData: {
-                    executeTime: [],
-                    category: '',
-                    createMethod: this.create_method || '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
+                    executeTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    createMethod: create_method,
+                    taskName: keyword
                 },
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 }
             }
@@ -357,7 +359,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { executeTime, category, createMethod, creator, executor, statusSync, flowName } = this.requestData
+                    const { executeTime, category, createMethod, creator, executor, statusSync, taskName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -385,7 +387,7 @@
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
-                        pipeline_instance__name__icontains: flowName || undefined,
+                        pipeline_instance__name__icontains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
@@ -434,7 +436,7 @@
                 }
             },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
                 this.getTaskList()
             },
@@ -555,12 +557,38 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.getTaskList()
             },
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTaskList()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { category, executeTime, createMethod, creator, executor, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    page: current,
+                    create_method: createMethod,
+                    start_time: executeTime[0],
+                    end_time: executeTime[1],
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'taskList', params: { project_id: this.project_id }, query })
             },
             async getCreateMethod () {
                 try {
@@ -600,7 +628,7 @@
                 this.createInfo = ''
                 this.templateId = ''
                 this.templateSource = ''
-                this.$router.push({ name: 'taskList', params: { project_id: this.project_id } })
+                this.updateUrl()
                 this.getTaskList()
             }
         }

@@ -276,11 +276,11 @@ class PipelineTemplate(models.Model):
 
     template_id = models.CharField(_("模板ID"), max_length=32, unique=True)
     name = models.CharField(_("模板名称"), max_length=MAX_LEN_OF_NAME, default="default_template", db_index=True)
-    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
     creator = models.CharField(_("创建者"), max_length=32)
     description = models.TextField(_("描述"), null=True, blank=True)
     editor = models.CharField(_("修改者"), max_length=32, null=True, blank=True)
-    edit_time = models.DateTimeField(_("修改时间"), auto_now=True)
+    edit_time = models.DateTimeField(_("修改时间"), auto_now=True, db_index=True)
     snapshot = models.ForeignKey(
         Snapshot, verbose_name=_("模板结构数据"), related_name="snapshot_templates", on_delete=models.DO_NOTHING
     )
@@ -328,7 +328,7 @@ class PipelineTemplate(models.Model):
         for item in subprocess_info:
             item["expired"] = (
                 False
-                if item["version"] is None
+                if item["version"] is None or item["descendant_template_id"] not in temp_current_versions
                 else (item["version"] != temp_current_versions[item["descendant_template_id"]].current_version)
             )
             info["details"].append(item)

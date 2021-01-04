@@ -43,16 +43,13 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 class MockClient(object):
     def __init__(self, create_task_return, get_task_info_return, get_log_return):
         self.name = "name"
-        self.nodeman = MagicMock()
-        self.nodeman.create_task = MagicMock(return_value=create_task_return)
-        self.nodeman.get_task_info = MagicMock(return_value=get_task_info_return)
-        self.nodeman.get_log = MagicMock(return_value=get_log_return)
+        self.create_task = MagicMock(return_value=create_task_return)
+        self.get_task_info = MagicMock(return_value=get_task_info_return)
+        self.get_log = MagicMock(return_value=get_log_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.legacy.get_client_by_user"
-)
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.legacy.BKNodeManClient"
 NODEMAN_RSA_ENCRYPT = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.legacy.nodeman_rsa_encrypt"
 )
@@ -183,10 +180,10 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.create_task,
+            func=CREATE_TASK_SUCCESS_CLIENT.create_task,
             calls=[
                 Call(
-                    {
+                    **{
                         "bk_biz_id": "1",
                         "bk_cloud_id": "1",
                         "node_type": "AGENT",
@@ -213,8 +210,8 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.get_task_info,
-            calls=[Call({"bk_biz_id": "1", "job_id": "1"})],
+            func=CREATE_TASK_SUCCESS_CLIENT.get_task_info,
+            calls=[Call(**{"bk_biz_id": "1", "job_id": "1"})],
         ),
     ],
     patchers=[
@@ -260,10 +257,10 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT.nodeman.create_task,
+            func=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT.create_task,
             calls=[
                 Call(
-                    {
+                    **{
                         "bk_biz_id": "1",
                         "bk_cloud_id": "1",
                         "node_type": "AGENT",
@@ -290,8 +287,8 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT.nodeman.get_task_info,
-            calls=[Call({"bk_biz_id": "1", "job_id": "1"})],
+            func=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT.get_task_info,
+            calls=[Call(**{"bk_biz_id": "1", "job_id": "1"})],
         ),
     ],
     patchers=[
@@ -326,16 +323,14 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
         ],
     },
     parent_data={"executor": "tester", "biz_cc_id": "1"},
-    execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": u"create agent install task failed: fail"}
-    ),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"create agent install task failed: fail"}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_FAIL_CLIENT.nodeman.create_task,
+            func=CREATE_TASK_FAIL_CLIENT.create_task,
             calls=[
                 Call(
-                    {
+                    **{
                         "bk_biz_id": "1",
                         "bk_cloud_id": "1",
                         "node_type": "AGENT",
@@ -390,15 +385,13 @@ TASK_RUNNING_CASE = ComponentTestCase(
     },
     parent_data={"executor": "tester", "biz_cc_id": "1"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
-    schedule_assertion=ScheduleAssertion(
-        success=True, callback_data=None, outputs={"job_id": "1"}
-    ),
+    schedule_assertion=ScheduleAssertion(success=True, callback_data=None, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=TASK_RUNNING_CLIENT.nodeman.create_task,
+            func=TASK_RUNNING_CLIENT.create_task,
             calls=[
                 Call(
-                    {
+                    **{
                         "bk_biz_id": "1",
                         "bk_cloud_id": "1",
                         "node_type": "AGENT",
@@ -425,8 +418,8 @@ TASK_RUNNING_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=TASK_RUNNING_CLIENT.nodeman.get_task_info,
-            calls=[Call({"bk_biz_id": "1", "job_id": "1"})],
+            func=TASK_RUNNING_CLIENT.get_task_info,
+            calls=[Call(**{"bk_biz_id": "1", "job_id": "1"})],
         ),
     ],
     patchers=[
@@ -467,10 +460,10 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.create_task,
+            func=CREATE_TASK_SUCCESS_CLIENT.create_task,
             calls=[
                 Call(
-                    {
+                    **{
                         "bk_biz_id": "1",
                         "bk_cloud_id": "1",
                         "node_type": "AGENT",
@@ -497,8 +490,8 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.get_task_info,
-            calls=[Call({"bk_biz_id": "1", "job_id": "1"})],
+            func=CREATE_TASK_SUCCESS_CLIENT.get_task_info,
+            calls=[Call(**{"bk_biz_id": "1", "job_id": "1"})],
         ),
     ],
     patchers=[

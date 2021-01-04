@@ -67,6 +67,7 @@
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
+                    :state="state"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"

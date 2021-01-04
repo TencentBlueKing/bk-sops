@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
+from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
 from gcloud.apigw.views.claim_functionalization_task import claim_functionalization_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
@@ -78,6 +79,7 @@ urlpatterns = [
     url(r"^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$", node_callback),
     url(r"^import_common_template/$", import_common_template),
     url(r"^get_plugin_list/(?P<project_id>\d+)/$", get_plugin_list),
+    url(r"^get_plugin_detail/(?P<project_id>\d+)/$", get_plugin_detail),
     url(r"^get_user_project_list/$", get_user_project_list),
     url(r"^get_user_project_detail/(?P<project_id>\d+)/$", get_user_project_detail),
     url(r"^get_template_schemes/(?P<project_id>\d+)/(?P<template_id>\d+)/$", get_template_schemes,),

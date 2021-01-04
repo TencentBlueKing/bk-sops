@@ -15,7 +15,7 @@
             <div class="operation-area">
                 <advance-search-form
                     id="periodicList"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.flowName }"
+                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -256,6 +256,7 @@
             }
         },
         data () {
+            const { page = 1, limit = 15, creator = '', enabled = '', keyword = '' } = this.$route.query
             return {
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
@@ -278,14 +279,14 @@
                 taskCategory: [],
                 searchForm: searchForm,
                 requestData: {
-                    creator: '',
-                    enabled: '',
-                    flowName: this.$route.query.q || ''
+                    creator,
+                    enabled,
+                    taskName: keyword
                 },
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 }
             }
@@ -322,13 +323,13 @@
             async getPeriodicList () {
                 this.listLoading = true
                 try {
-                    const { creator, enabled, flowName } = this.requestData
+                    const { creator, enabled, taskName } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__celery_task__enabled: enabled || undefined,
                         task__creator__contains: creator || undefined,
-                        task__name__icontains: flowName || undefined
+                        task__name__icontains: taskName || undefined
                     }
 
                     if (!this.admin) {
@@ -371,7 +372,7 @@
                 }
             },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
                 this.getPeriodicList()
             },
@@ -406,7 +407,43 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.getPeriodicList()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.updateUrl()
+                this.getPeriodicList()
+            },
+            onSearchFormSubmit (data) {
+                this.requestData = data
+                this.pagination.current = 1
+                this.updateUrl()
+                this.getPeriodicList()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { creator, enabled, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    creator,
+                    enabled,
+                    page: current,
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                if (this.admin) {
+                    this.$router.push({ name: 'adminPeriodic', query })
+                } else {
+                    this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
+                }
             },
             async onSetEnable (item) {
                 if (!this.hasPermission(['periodic_task_edit'], item.auth_actions)) {
@@ -512,16 +549,6 @@
                     query: { template_id: templateId, common: templateSource === 'common' || undefined }
                 }
                 return url
-            },
-            onSearchFormSubmit (data) {
-                this.requestData = data
-                this.pagination.current = 1
-                this.getPeriodicList()
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
-                this.getPeriodicList()
             },
             // 添加/取消收藏模板
             async onCollectTask (task, event) {
