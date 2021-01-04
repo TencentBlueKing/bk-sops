@@ -24,4 +24,5 @@ urlpatterns = [
     url(r"^api/draw_pipeline/$", api.draw_pipeline),
     url(r"^api/get_template_count/(?P<project_id>\d+)/$", api.get_template_count),
     url(r"^api/get_templates_with_expired_subprocess/(?P<project_id>\d+)/$", api.get_templates_with_expired_subprocess),
+    url(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
 ]

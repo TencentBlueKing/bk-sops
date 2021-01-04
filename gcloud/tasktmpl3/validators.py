@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
-from gcloud.utils.validate import RequestValidator
+from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
 from gcloud.utils.strings import check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 
@@ -115,5 +115,19 @@ class DrawPipelineValidator(RequestValidator):
 
         if not pipeline_tree:
             return False, "pipeline_tree can not be empty"
+
+        return True, ""
+
+
+class AnalysisConstantsRefValidator(ObjectJsonBodyValidator):
+    def validate(self, request, *args, **kwargs):
+        result, message = super().validate(request, *args, **kwargs)
+        if not result:
+            return result, message
+
+        obj_valid_list = ["constants", "activities", "gateways"]
+        for obj_key in obj_valid_list:
+            if not isinstance(self.data.get(obj_key, {}), dict):
+                return False, "{} in tree is not a object".format(obj_key)
 
         return True, ""
