@@ -152,7 +152,8 @@ def get_module_id_list(
             for set_item in set_list
             if set_item["bk_set_name"] in filter_set_names and set_item["bk_set_name"] != BIZ_INTERNAL_SET
         ]
-    filter_service_template_names = filter_service_template_names.split(",")
+    if filter_service_template_names:
+        filter_service_template_names = filter_service_template_names.split(",")
     if not filter_service_template_names:
         service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     else:
