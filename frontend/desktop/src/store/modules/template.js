@@ -890,6 +890,10 @@ const template = {
         // 获取节点标签列表
         getLabels ({ commit }, data) {
             return axios.get('api/v3/label/', { params: data }).then(response => response.data)
+        },
+        // 获取变量预览值
+        getConstantsPreviewResult ({ commit }, data) {
+            return axios.post('/template/api/get_constant_preview_result/', data).then(response => response.data)
         }
     },
     getters: {
