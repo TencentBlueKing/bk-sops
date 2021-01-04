@@ -99,6 +99,8 @@ def mysetting(request):
         "FILE_UPLOAD_ENTRY": env.BKAPP_FILE_UPLOAD_ENTRY,
         "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
         "BK_STATIC_URL": frontend_entry_url,
+        "BK_DOC_URL": settings.BK_DOC_URL,
+        "FEEDBACK_URL": settings.FEEDBACK_URL,
     }
 
     return ctx

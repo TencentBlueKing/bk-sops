@@ -231,8 +231,9 @@ const en = {
     '运营数据': 'Analysis',
     '插件开发': 'Plugin Dev',
     '任务记录': 'Tasks',
-    '帮助文档': 'Help',
+    '产品文档': 'Product Doc',
     '版本日志': 'Version log',
+    '问题反馈': 'Feedback',
     '标准运维': 'Standard OPS',
     '职能化中心': 'Functional',
     '查看': 'View',
@@ -711,7 +712,7 @@ const en = {
     '新建变量': 'New',
     '变量名称': 'Variable Name',
     '变量KEY': 'Variable KEY',
-    '已存在相同Key且版本不同的变量，请新建变量': 'There is a variable from different version plugin with same key, create a new variable please',
+    '已存在相同Key的变量，请新建变量': 'Variables that already have the same key, create a new variable please',
     '创建新变量': 'Create new variable',
     '是否复用变量': 'Whether To Reuse Variable',
     '已选': ' Selected',
@@ -1050,7 +1051,8 @@ const en = {
     '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
     '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?',
     '备注': 'Description',
-    '请输入流程模板备注信息': 'please enter process template description'
+    '请输入流程模板备注信息': 'please enter process template description',
+    '动态分组': 'Dynamic Group'
 }
 
 export default en

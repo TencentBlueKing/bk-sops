@@ -37,9 +37,7 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 def verify_host_property(executor, supplier_account, language, cc_host_property, cc_host_prop_value):
     if cc_host_property == "bk_isp_name":
-        bk_isp_name = cc_format_prop_data(
-            executor, "host", "bk_isp_name", language, supplier_account
-        )
+        bk_isp_name = cc_format_prop_data(executor, "host", "bk_isp_name", language, supplier_account)
         if not bk_isp_name["result"]:
             ex_data = bk_isp_name["message"]
             return False, ex_data
@@ -50,9 +48,7 @@ def verify_host_property(executor, supplier_account, language, cc_host_property,
             return False, ex_data
 
     elif cc_host_property == "bk_state_name":
-        bk_state_name = cc_format_prop_data(
-            executor, "host", "bk_state_name", language, supplier_account
-        )
+        bk_state_name = cc_format_prop_data(executor, "host", "bk_state_name", language, supplier_account)
         if not bk_state_name["result"]:
             ex_data = bk_state_name["message"]
             return False, ex_data
@@ -62,9 +58,7 @@ def verify_host_property(executor, supplier_account, language, cc_host_property,
             ex_data = _("所在国家【{}】校验失败，请重试并修改为正确的所在国家".format(cc_host_prop_value))
             return False, ex_data
     elif cc_host_property == "bk_province_name":
-        bk_province_name = cc_format_prop_data(
-            executor, "host", "bk_province_name", language, supplier_account
-        )
+        bk_province_name = cc_format_prop_data(executor, "host", "bk_province_name", language, supplier_account)
         if not bk_province_name["result"]:
             ex_data = bk_province_name["message"]
             return False, ex_data
@@ -76,20 +70,20 @@ def verify_host_property(executor, supplier_account, language, cc_host_property,
 
 
 class CCBatchUpdateHostService(Service):
-
     def inputs_format(self):
         return [
-            self.InputItem(name=_('填参方式'),
-                           key='cc_host_update_method',
-                           type='string',
-                           schema=StringItemSchema(description=_('填参方式'),
-                                                   enum=['manual', 'auto'])),
+            self.InputItem(
+                name=_("填参方式"),
+                key="cc_host_update_method",
+                type="string",
+                schema=StringItemSchema(description=_("填参方式"), enum=["manual", "auto"]),
+            ),
             self.InputItem(
                 name=_("主机属性修改"),
                 key="cc_host_property_custom",
                 type="array",
                 schema=ArrayItemSchema(
-                    item_schema=ObjectItemSchema(description=_("主机属性修改"), property_schemas={}),
+                    item_schema=ObjectItemSchema(description=_("主机属性修改"), property_schemas={}), description="主机属性列表"
                 ),
             ),
             self.InputItem(
@@ -128,8 +122,7 @@ class CCBatchUpdateHostService(Service):
             bk_host_innerip_list.append(host["bk_host_innerip"])
 
         ip_str = ",".join(bk_host_innerip_list)
-        ip_list = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id,
-                                         ip_str=ip_str, use_cache=False)
+        ip_list = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
         if not ip_list["result"] or not ip_list["ip_count"]:
             data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
             return False
@@ -140,9 +133,7 @@ class CCBatchUpdateHostService(Service):
 
         ip_dir = {}
         for host in ip_list["ip_result"]:
-            ip_dir.update({
-                host["InnerIP"]: host["HostID"]
-            })
+            ip_dir.update({host["InnerIP"]: host["HostID"]})
 
         update_host_message = []
         for host_property_dir in host_property_custom:
@@ -152,15 +143,14 @@ class CCBatchUpdateHostService(Service):
                 self.logger.error(message)
                 return False
             host_id = ip_dir[host_property_dir["bk_host_innerip"]]
-            host_update = {
-                "bk_host_id": host_id
-            }
+            host_update = {"bk_host_id": host_id}
             host_property_dir.pop("bk_host_innerip")
             properties = {}
             for cc_host_property, cc_host_prop_value in host_property_dir.items():
                 if cc_host_prop_value:
-                    is_legal, ex_data = verify_host_property(executor, supplier_account, language,
-                                                             cc_host_property, cc_host_prop_value)
+                    is_legal, ex_data = verify_host_property(
+                        executor, supplier_account, language, cc_host_property, cc_host_prop_value
+                    )
                     if not is_legal:
                         data.outputs.ex_data = ex_data
                         self.logger.error(ex_data)
@@ -169,10 +159,7 @@ class CCBatchUpdateHostService(Service):
             host_update["properties"] = properties
             update_host_message.append(host_update)
 
-        cc_kwargs = {
-            "bk_supplier_account": supplier_account,
-            "update": update_host_message
-        }
+        cc_kwargs = {"bk_supplier_account": supplier_account, "update": update_host_message}
 
         cc_result = client.cc.batch_update_host(cc_kwargs)
         if cc_result["result"]:
@@ -185,10 +172,9 @@ class CCBatchUpdateHostService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_('不合法的IP'),
-                            key='invalid_ip',
-                            type='string',
-                            schema=StringItemSchema(description=_('不合法的IP'))),
+            self.OutputItem(
+                name=_("不合法的IP"), key="invalid_ip", type="string", schema=StringItemSchema(description=_("不合法的IP"))
+            ),
         ]
 
 
@@ -196,10 +182,13 @@ class CCBatchUpdateHostComponent(Component):
     name = _("批量修改主机属性")
     code = "cc_batch_update_host"
     bound_service = CCBatchUpdateHostService
-    form = '{static_url}components/atoms/cc/batch_update_host/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                               ver="v1_0")
+    form = "{static_url}components/atoms/cc/batch_update_host/{ver}.js".format(
+        static_url=settings.STATIC_URL, ver="v1_0"
+    )
     version = VERSION
-    desc = _("1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-             "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
-             "插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4\n"
-             "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据")
+    desc = _(
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
+        '插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4\n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

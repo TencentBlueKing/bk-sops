@@ -77,3 +77,11 @@ COMPONENT_PATH = [
 ### 节点管理系列
 
 #### 节点管理(Nodeman)-安装
+
+### 企业微信系列
+
+#### 企业微信(WechatWork)-发送消息
+
+确保`开发者中心 #### S-mart应用 #### 标准运维 #### 环境变量`中包含有以下变量：
+
+- BKAPP_SOPS_WECHAT_WORK_WEB_HOOK：企业微信机器人发送消息 webhook 地址
