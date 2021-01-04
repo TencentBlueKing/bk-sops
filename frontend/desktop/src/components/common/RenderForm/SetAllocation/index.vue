@@ -40,6 +40,7 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ResourceList from './ResourceList.vue'
     import ResourceFilter from './ResourceFilter.vue'
@@ -277,9 +278,9 @@
                                         [tagCode]: val
                                     }
                                 } else {
-                                    valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
-                                        [tagCode]: ''
-                                    }
+                                    // renderForm 组件 value 需要接受 object 类型数据, 优先取标准插件配置项默认值
+                                    const val = atomFilter.getFormItemDefaultValue([item.config])
+                                    valItem[tagCode] = val
                                 }
                             }
                         })
