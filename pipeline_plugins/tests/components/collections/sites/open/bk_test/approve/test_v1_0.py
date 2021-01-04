@@ -144,7 +144,7 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
     execute_call_assertion=[
-        CallAssertion(func=CREAT_TICKET_SUCCESS_CLIENT.itsm.create_ticket, calls=[Call(CREAT_TICKET_CALL)],)
+        CallAssertion(func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket, calls=[Call(**CREAT_TICKET_CALL)],)
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
