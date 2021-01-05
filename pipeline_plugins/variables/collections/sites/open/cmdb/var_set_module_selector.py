@@ -101,6 +101,8 @@ class VarSetModuleSelector(LazyVariable):
             flat__module_name: ${var.flat__module_name}
             flat__module_id: ${var.flat__module_id}
         """
+        if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
+            return SetModuleInfo({})
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_set_id = int(self.value.get("bk_set_id", 0))
