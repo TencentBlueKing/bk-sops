@@ -39,7 +39,9 @@ from gcloud.tasktmpl3.validators import (
     CheckBeforeImportValidator,
     GetTemplateCountValidator,
     DrawPipelineValidator,
+    AnalysisConstantsRefValidator,
 )
+from gcloud.tasktmpl3.utils import analysis_pipeline_constants_ref
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
@@ -218,3 +220,30 @@ def get_templates_with_expired_subprocess(request, project_id):
             "message": "",
         }
     )
+
+
+@require_POST
+@request_validate(AnalysisConstantsRefValidator)
+def analysis_constants_ref(request):
+    """
+    @summary：计算模板中的变量引用
+    @param request:
+    @return:
+    """
+    tree = json.loads(request.body)
+    result = None
+    try:
+        result = analysis_pipeline_constants_ref(tree)
+    except Exception:
+        logger.exception("[analysis_constants_ref] error")
+
+    data = {"defined": {}, "undefined": {}}
+    defined_keys = tree.get("constants", {}).keys()
+    if result:
+        for k, v in result.items():
+            if k in defined_keys:
+                data["defined"][k] = v
+            else:
+                data["undefined"][k] = v
+
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
