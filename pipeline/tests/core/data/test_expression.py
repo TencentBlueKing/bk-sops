@@ -144,3 +144,20 @@ class TestConstantTemplate(TestCase):
     def test_built_in_functions__cover(self):
         int_template = expression.ConstantTemplate("${int}")
         self.assertEqual(int_template.resolve_data({"int": "cover"}), "cover")
+
+    def test_template_join(self):
+        template = expression.ConstantTemplate("a-${1 if t else 2}-${a}")
+        self.assertEqual(template.resolve_data({"t": False, "a": "c"}), "a-2-c")
+        template = expression.ConstantTemplate("${'a-%s-c' % 1 if t else 2}")
+        self.assertEqual(template.resolve_data({"t": True}), "a-1-c")
+
+    def test_mako_attack(self):
+        attack_templates = [
+            '${"".__class__.__mro__[-1].__subclasses__()[127].__init__.__globals__["system"]("whoami")}',  # noqa
+            '${getattr("", dir(0)[0][0] + dir(0)[0][0] + "class" + dir(0)[0][0]+ dir(0)[0][0])}',  # noqa
+            'a-${__import__("os").system("whoami")}',
+            "${while True: pass}",
+            """<% import json %> ${json.codecs.builtins.exec('import os; os.system("whoami")')}""",  # noqa
+        ]
+        for at in attack_templates:
+            self.assertEqual(expression.ConstantTemplate(at).resolve_data({}), at)

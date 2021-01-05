@@ -45,7 +45,7 @@
             type: "input",
             attrs: {
                 name: gettext("集群属性ID"),
-                placeholder: gettext("集群范围中填写的值会在此处填写的属性 ID 的值上进行过滤"),
+                placeholder: gettext("用英文','分割，集群范围中填写的值会在此处填写的属性 ID 的值上进行过滤"),
                 hookable: true,
                 validation: [
                     {
@@ -97,15 +97,6 @@
                     }
                 ]
             },
-            events: [
-                {
-                    source: "set_select_method",
-                    type: "change",
-                    action: function () {
-                        this.value = '';
-                    }
-                },
-            ]
         },
         {
             tag_code: "set_status",

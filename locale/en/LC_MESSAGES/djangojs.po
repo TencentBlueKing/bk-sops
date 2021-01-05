@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-22 21:22+0800\n"
+"POT-Creation-Date: 2020-12-11 16:36+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,66 +17,181 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: frontend/desktop/src/api/index.js:91
+#: frontend/desktop/src/api/index.js:90
 msgid "接口数据返回为空"
 msgstr "API response is empty"
 
-#: frontend/desktop/src/api/index.js:92
+#: frontend/desktop/src/api/index.js:91
 msgid "接口异常，"
 msgstr "API error:"
 
-#: frontend/desktop/src/api/index.js:92
+#: frontend/desktop/src/api/index.js:91
 msgid "HTTP状态码："
 msgstr "HTTP status code: "
 
-#: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:120
-#: frontend/desktop/src/components/common/RenderForm/FormItem.vue:184
+#: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:128
+#: frontend/desktop/src/components/common/RenderForm/FormItem.vue:193
 msgid "取消勾选"
 msgstr "Check to cancel"
 
-#: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:121
-#: frontend/desktop/src/components/common/RenderForm/FormItem.vue:185
+#: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:129
+#: frontend/desktop/src/components/common/RenderForm/FormItem.vue:194
 msgid "勾选参数作为全局变量"
 msgstr "Check to adding the parameter to Global Variables"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:49
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:168
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:182
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:189
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:285
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:299
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:306
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:313
+msgid "必选项"
+msgstr "Required"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:173
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:290
+#| msgid "任务名称长度不能超过50个字符"
+msgid "方法名称不能超过50个字符"
+msgstr "Length of name cannot be larger than 50 "
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:206
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:374
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:140
+msgid "资源筛选"
+msgstr "Resource filter"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:207
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:379
+msgid "确认"
+msgstr "OK"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:208
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:129
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:380
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:146
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:259
+#: frontend/mobile/src/views/task/reset.vue:79
+#: frontend/mobile/src/views/task/timing.vue:40
+msgid "取消"
+msgstr "Cancel"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:209
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:383
+msgid "主机资源所属"
+msgstr "Hosts belongs"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:210
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:385
+msgid "主机数量"
+msgstr "Hosts number"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:211
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:76
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:399
+#| msgid "主机排除条件"
+msgid "筛选条件和排除条件"
+msgstr "Hosts exclusion condition"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:212
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:145
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:258
+msgid "保存"
+msgstr "Save"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:213
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:375
+msgid "筛选方案"
+msgstr "Allocation strategy"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:214
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:376
+msgid "方案名称"
+msgstr "Strategy name"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:215
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:377
+msgid "修改名称会新建方案记录"
+msgstr "Modify name will add a strategy"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/HostFilter.vue:216
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:378
+msgid "保存筛选方案"
+msgstr "Save allocation strategy"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/index.vue:209
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:239
+msgid "资源不足"
+msgstr "Lack of resources"
+
+#: frontend/desktop/src/components/common/RenderForm/HostAllocation/index.vue:235
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:147
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:259
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:261
+msgid "操作"
+msgstr "Operation"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:63
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:107
 msgid "请选择"
 msgstr "Please select"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:50
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:64
 msgid "请输入，多个用换行分隔"
 msgstr "Please enter, multiple are separated by Line breaks"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:51
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:53
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:143
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:220
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:232
-#: frontend/desktop/src/components/common/RenderForm/formMixins.js:219
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:65
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicGroup.vue:65
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:67
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:153
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:321
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:351
+#: frontend/desktop/src/components/common/RenderForm/formMixins.js:233
 #: frontend/mobile/src/main.js:107
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:65
 msgid "必填项"
 msgstr "Required"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:49
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:131
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:66
+#| msgid "筛选条件"
+msgid "筛选"
+msgstr "Filter Condition"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:67
+#| msgid "排除条件"
+msgid "排除"
+msgstr "Exclusion condition"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicGroup.vue:61
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:63
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:122
 msgid "已选择"
 msgstr " Selected"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:50
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicGroup.vue:62
+msgid "个动态分组"
+msgstr " Dynamic groups"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicGroup.vue:63
+msgid "搜索分组"
+msgstr "Search dynamic groups"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicGroup.vue:64
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:66
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:151
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:127
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:189
+#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:164
+msgid "无数据"
+msgstr "No Data"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:64
 msgid "个节点"
 msgstr " Nodes"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:51
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:65
 msgid "搜索节点"
 msgstr "Search Nodes"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:52
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:142
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:98
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:177
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:141
-msgid "无数据"
-msgstr "No Data"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/IpSearchInput.vue:30
 msgid "搜索IP，多个以逗号隔开"
@@ -87,215 +202,283 @@ msgid "（同时满足）"
 msgstr "(All match)"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/SelectCondition.vue:42
-msgid "增加一条"
-msgstr "Add"
+msgid "点击增加条件"
+msgstr "Click to add condition"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:125
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:133
 msgid "复制IP"
 msgstr "Copy IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:126
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:134
 msgid "复制Agent异常IP"
 msgstr "Copy agent abnormal IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:127
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:135
 msgid "清空IP"
 msgstr "Remove IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:128
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:136
 msgid "清空Agent异常IP"
 msgstr "Remove agent abnormal IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:129
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:94
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:231
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:137
+msgid "选择添加"
+msgstr "Select to add"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:138
+msgid "手动添加"
+msgstr "Add manually"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:139
+msgid "批量操作"
+msgstr "Batch operate"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:140
+msgid "共"
+msgstr "Totally"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:141
+#| msgid "静态IP"
+msgid "个静态IP，"
+msgstr "Static IP"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:142
+msgid "其中"
+msgstr "Among them"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:143
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:123
+#| msgid "个)"
+msgid "个"
+msgstr " )"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:144
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:124
+msgid "云区域"
+msgstr "Cloud Area"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:145
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:125
+msgid "状态"
+msgstr "Status"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:146
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:126
+msgid "异常"
+msgstr " abnormal"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:148
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:87
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:156
+msgid "移除"
+msgstr "Remove"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:149
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:128
+msgid "正常"
+msgstr " normal"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:150
+msgid "服务器"
+msgstr "Host"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:152
+#| msgid "无数据，点击"
+msgid "无数据，可"
+msgstr "No data, click"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:154
+msgid "或者"
+msgstr "Or"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:121
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:263
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:212
 #: pipeline_plugins/variables/static/variables/datatable.js:93
 msgid "添加"
 msgstr "Add"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:130
-msgid "更多操作"
-msgstr "More Operations"
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:130
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:390
+#| msgid "搜索IP，多个以逗号隔开"
+msgid "请输入IP，多个以逗号或者换行符隔开"
+msgstr "Search IP, multiple are separated by commas"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:132
-msgid "个静态IP(未安装agent"
-msgstr " Static IP(not installed "
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:131
+msgid "IP地址不合法，"
+msgstr "IP Address Invalid, "
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:133
-msgid "个)"
-msgstr " )"
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:132
+msgid "IP地址不存在，"
+msgstr "IP Address not Exists, "
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:134
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:95
-msgid "云区域"
-msgstr "Cloud Area"
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:133
+msgid "查看详情"
+msgstr "View Detail"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:135
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:96
-msgid "状态"
-msgstr "Status"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:136
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:97
-msgid "异常"
-msgstr " abnormal"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:137
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:241
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:229
-msgid "操作"
-msgstr "Operation"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:138
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:83
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:152
-msgid "移除"
-msgstr "Remove"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:139
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:99
-msgid "正常"
-msgstr " normal"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:140
-msgid "无数据，点击"
-msgstr "No data, click"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:141
-msgid "服务器"
-msgstr "Host"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:100
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:252
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:138
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:227
-#: frontend/mobile/src/views/task/reset.vue:79
-#: frontend/mobile/src/views/task/timing.vue:40
-msgid "取消"
-msgstr "Cancel"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:76
-msgid "静态IP"
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:73
+msgid "静态 IP"
 msgstr "Static IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:77
-msgid "动态IP"
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:74
+msgid "动态 IP"
 msgstr "Dynamic IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:78
-msgid "筛选条件"
-msgstr "Filter Condition"
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:75
+msgid "动态分组"
+msgstr "Dynamic Group"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:79
-msgid "排除条件"
-msgstr "Exclusion condition"
-
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:80
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:77
 msgid "变量值是否带云区域："
 msgstr "Value with cloud id: "
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:198
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:205
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:212
-msgid "必选项"
-msgstr "Required"
+#: frontend/desktop/src/components/common/RenderForm/SeparatorSelect.vue:31
+msgid "分隔符："
+msgstr "Separator: "
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:250
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:132
-msgid "资源筛选"
-msgstr "Resource filter"
+#: frontend/desktop/src/components/common/RenderForm/SeparatorSelect.vue:32
+msgid "逗号"
+msgstr "Commas"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:251
-msgid "确认"
-msgstr "OK"
+#: frontend/desktop/src/components/common/RenderForm/SeparatorSelect.vue:33
+#| msgid " 分"
+msgid "分号"
+msgstr " Minute"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:253
+#: frontend/desktop/src/components/common/RenderForm/SeparatorSelect.vue:34
+msgid "竖线"
+msgstr "Vertical Line"
+
+#: frontend/desktop/src/components/common/RenderForm/SeparatorSelect.vue:35
+msgid "换行符"
+msgstr "Newline"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:339
+msgid "IP地址不合法"
+msgstr "IP Address Invalid"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:381
 msgid "集群个数"
 msgstr "Set number"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:254
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:382
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:223
 msgid "集群模板"
 msgstr "Set template"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:255
-msgid "主机资源所属"
-msgstr "Hosts belongs"
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:384
+msgid "互斥属性"
+msgstr "Mutually Exclusive Attribute"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:256
-msgid "主机数量"
-msgstr "Hosts number"
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:386
+msgid "筛选方式"
+msgstr "Filter Method"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:257
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:387
+#| msgid "默认值"
+msgid "默认"
+msgstr "Default"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:388
+msgid "手动指定"
+msgstr "Manual"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:389
+#| msgid "脚本列表"
+msgid "列表"
+msgstr "Script List"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:391
 msgid "复用其他模块机器"
 msgstr "Reuse hosts"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:258
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:392
 msgid "复用模块"
 msgstr "Module reused"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:259
-msgid "主机筛选条件"
-msgstr "Hosts filter condition"
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:393
+msgid "互斥方案"
+msgstr "Mutually Exclusive Strategy"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:260
-msgid "主机排除条件"
-msgstr "Hosts exclusion condition"
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:394
+msgid "不互斥"
+msgstr "Not Mutually Exclusive"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:532
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:155
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:155
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:395
+msgid "模块内互斥"
+msgstr "Mutually Exclusive in Module"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:396
+msgid "模块间互斥"
+msgstr "Mutually Exclusive between Modules"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:397
+msgid "如果互斥模块复用本模块，则该互斥约束失效"
+msgstr "If Mutually Exclusive Module Reuse This Module, the Exclusive Constraints would not Take Effect"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:398
+msgid "互斥模块"
+msgstr "Mutually Exclusive Module"
+
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:836
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:162
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:162
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:80
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:280
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:72
 msgid "模块"
 msgstr "Module"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:532
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:836
 msgid "存在循环引用"
 msgstr "exist cycle reference"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:554
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:859
 msgid "参数错误，请检查模块表单项"
 msgstr "Params error, please check modules forms"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:133
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:141
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:79
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:49
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:223
 #: pipeline_plugins/variables/static/variables/datatable.js:100
 msgid "导出"
 msgstr "Export"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:134
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:142
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:56
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:56
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:86
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:56
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:219
 #: pipeline_plugins/variables/static/variables/datatable.js:107
 msgid "导入"
 msgstr "Import"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:135
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:228
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:143
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:260
 msgid "编辑"
 msgstr "Edit"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:136
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:230
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:144
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:262
 msgid "删除"
 msgstr "Delete"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:137
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:226
-msgid "保存"
-msgstr "Save"
-
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:183
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:288
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:191
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:344
 msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
 msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:210
+#: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:228
 msgid "模块："
 msgstr "Module:"
-
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:221
-msgid "资源不足"
-msgstr "Lack of resources"
 
 #: frontend/desktop/src/components/common/RenderForm/formMixins.js:36
 msgid "请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: \"\"}}}]"
@@ -305,149 +488,174 @@ msgstr "Please enter check validation, e.g. [{type: required}, {type: custom, ar
 msgid "按钮文本"
 msgstr "Button text"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:42
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:43
 msgid "一级分组1"
 msgstr "Group l1-1"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:46
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:47
 msgid "二级分组1"
 msgstr "Group l2-1"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:50
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:51
 msgid "三级分组1"
 msgstr "Group l3-1"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:54
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:55
 msgid "三级分组2"
 msgstr "Group l3-2"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:60
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:61
 msgid "二级分组2"
 msgstr "Group l2-2"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:64
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:65
 msgid "三级分组3"
 msgstr "Group l3-3"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:68
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:69
 msgid "三级分组4"
 msgstr "Group l3-4"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:72
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:73
 msgid "三级分组5"
 msgstr "Group l3-5"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:80
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:81
 msgid "一级分组2"
 msgstr "Group l1-2"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:84
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:85
 msgid "二级分组3"
 msgstr "Group l2-3"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:88
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:89
 msgid "三级分组6"
 msgstr "Group l3-6"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:92
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:93
 msgid "三级分组7"
 msgstr "Group l3-7"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:98
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:99
 msgid "二级分组4"
 msgstr "Group l2-4"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:102
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:103
 msgid "三级分组8"
 msgstr "Group l3-8"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:106
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:107
 msgid "三级分组9"
 msgstr "Group l3-9"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:110
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:111
 msgid "三级分组10"
 msgstr "Group l3-10"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:127
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:128
 msgid "级联选择器的选中值"
 msgstr "Select value for cascade selector"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:133
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:43
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:134
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:44
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:57
 msgid "禁用选择器"
 msgstr "Disable selector"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:139
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:140
 msgid "设置是否可多选"
 msgstr "Enable multi-select"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:145
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:146
 msgid "设置是否可搜索"
 msgstr "Enable searchable"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:150
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:151
 msgid "请输入"
 msgstr "Please enter"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:157
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:158
 msgid "是否开启远程加载"
 msgstr "Enable remote load"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:167
+#: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:168
 msgid "远程加载方法, 文档参考element-ui cascader组件lazyload说明"
 msgstr "Remote load method, reference at LazyLoad in 'element-ui cascader'"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagCheckbox.vue:36
 #: frontend/desktop/src/components/common/RenderForm/tags/TagRadio.vue:36
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:73
 msgid "选项1"
 msgstr "Item1"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagCheckbox.vue:40
 #: frontend/desktop/src/components/common/RenderForm/tags/TagRadio.vue:40
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:77
 msgid "选项2"
 msgstr "Item2"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagCheckbox.vue:44
 #: frontend/desktop/src/components/common/RenderForm/tags/TagRadio.vue:44
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:81
 msgid "选项3"
 msgstr "Item3"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:120
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:118
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:132
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:133
 msgid "参数名称"
 msgstr "Name"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:127
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:125
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:139
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:140
 msgid "参数类型"
 msgstr "Type"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:135
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:133
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:147
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:148
 msgid "参数值"
 msgstr "Value"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:425
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:534
 msgid "请求表头数据失败，使用预置表头"
 msgstr "Requesting table titles failed, please config columns"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:36
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:37
 #: frontend/desktop/src/components/tags/TagTestDatetime.vue:35
 #: frontend/mobile/src/views/task/create.vue:159
 msgid "请选择日期时间"
 msgstr "Please select a datetime"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:48
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:50
+msgid "日期选择器显示类型"
+msgstr "Date Selector Showing Type"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:56
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:69
+#| msgid "选中的时间"
+msgid "选中的时间以及展示的值"
+msgstr "Selected time"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:61
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:74
 msgid "选中的时间"
 msgstr "Selected time"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagInput.vue:61
+#: frontend/desktop/src/components/common/RenderForm/tags/TagHostAllocation.vue:38
+#: frontend/desktop/src/components/common/RenderForm/tags/TagIpSelector.vue:48
+#: frontend/desktop/src/components/common/RenderForm/tags/TagSetAllocation.vue:38
+msgid "组件禁用态"
+msgstr "Tag disabled"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagHostAllocation.vue:46
+#: frontend/desktop/src/components/common/RenderForm/tags/TagIpSelector.vue:54
+#: frontend/desktop/src/components/common/RenderForm/tags/TagSetAllocation.vue:46
+msgid "组件内部调用接口地址"
+msgstr "The address of the internal call interface of the tag"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagInput.vue:62
 msgid "禁用表单输入"
 msgstr "Disable form input"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagInput.vue:68
+msgid "是否以密码模式显示"
+msgstr "Show in password mode or not"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagInt.vue:43
 msgid "最大值"
@@ -464,35 +672,54 @@ msgstr "Min Value"
 msgid "禁用组件"
 msgstr "Disable tag"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagIpSelector.vue:47
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSetAllocation.vue:37
-msgid "组件禁用态"
-msgstr "Tag disabled"
-
-#: frontend/desktop/src/components/common/RenderForm/tags/TagIpSelector.vue:53
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSetAllocation.vue:45
-msgid "组件内部调用接口地址"
-msgstr "The address of the internal call interface of the tag"
-
 #: frontend/desktop/src/components/common/RenderForm/tags/TagPassword.vue:56
 #: frontend/mobile/src/components/VantForm/VantPassword.vue:55
 msgid "要修改密码请点击后重新输入密码"
 msgstr "Please enter a new password when modifying"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:65
+#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:71
 msgid "下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据"
 msgstr "Select value of selector, can be String, Booleamn or Number, or array of those type when multi-select is enable"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:151
+#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:175
 #: frontend/mobile/src/views/task/create.vue:152
 #: frontend/mobile/src/views/task/detail.vue:51
 msgid "加载中"
 msgstr "Loading"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:227
-#: frontend/desktop/src/components/common/RenderForm/tags/TagTree.vue:157
+#: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:262
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTree.vue:135
 msgid "请求数据失败"
 msgstr "Get data failed"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:38
+#: pipeline_plugins/variables/static/variables/time.js:19
+msgid "请选择时间"
+msgstr "Select time"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:44
+#| msgid "开始时间"
+msgid "请选择开始时间"
+msgstr "Date Started"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:45
+#| msgid "开始时间"
+msgid "开始时间 placeholder"
+msgstr "Date Started"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:50
+#| msgid "结束时间"
+msgid "请选择结束时间"
+msgstr "Date Finished"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:51
+#| msgid "结束时间"
+msgid "结束时间 placeholder"
+msgstr "Date Finished"
+
+#: frontend/desktop/src/components/common/RenderForm/tags/TagTime.vue:63
+msgid "是否为选择时间范围"
+msgstr "In the range of selected time or not"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:149
 msgid "提交"
@@ -507,7 +734,7 @@ msgid "选择文件"
 msgstr "Select"
 
 #: frontend/desktop/test/unit/components/RenderForm/combinePlugin.js:85
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:140
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:144
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:158
 msgid "通知主题"
 msgstr "Title"
@@ -588,7 +815,7 @@ msgid "执行中"
 msgstr "Executing"
 
 #: frontend/mobile/src/views/task/canvas.vue:89
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:154
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:158
 msgid "暂停"
 msgstr "Suspend"
 
@@ -728,10 +955,14 @@ msgid "执行信息"
 msgstr "Execution Info"
 
 #: frontend/mobile/src/views/task/nodes.vue:106
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:445
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:46
 msgid "开始时间"
 msgstr "Date Started"
 
 #: frontend/mobile/src/views/task/nodes.vue:107
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:459
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:60
 msgid "结束时间"
 msgstr "Date Finished"
 
@@ -744,12 +975,22 @@ msgid "失败后跳过"
 msgstr "Skipped"
 
 #: frontend/mobile/src/views/task/nodes.vue:110
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:173
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:35
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:96
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:246
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:406
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:177
 msgid "是"
 msgstr "Yes"
 
 #: frontend/mobile/src/views/task/nodes.vue:111
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:174
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:36
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:97
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:247
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:407
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:178
 msgid "否"
 msgstr "No"
 
@@ -808,6 +1049,22 @@ msgstr "Collect"
 msgid "搜索流程名称"
 msgstr "Search by flow name"
 
+#: pipeline_plugins/components/static/components/atoms/bk/approve/v1_0.js:18
+msgid "审核人"
+msgstr "Reviewer"
+
+#: pipeline_plugins/components/static/components/atoms/bk/approve/v1_0.js:20
+msgid "多个审核人，请用英文`,`分隔"
+msgstr "Reviewers, separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/bk/approve/v1_0.js:32
+msgid "审核标题"
+msgstr "Review Title"
+
+#: pipeline_plugins/components/static/components/atoms/bk/approve/v1_0.js:45
+msgid "审核内容"
+msgstr "Review Content"
+
 #: pipeline_plugins/components/static/components/atoms/bk/http/legacy.js:18
 #: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:18
 msgid "请求方式"
@@ -823,7 +1080,9 @@ msgid "请求头，一行填写一个头部的信息"
 msgstr "Request Headers, one header per line"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:101
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:344
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:170
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:351
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:151
 msgid "超时时间"
 msgstr "Timeout(s) "
 
@@ -831,11 +1090,11 @@ msgstr "Timeout(s) "
 msgid "请求超时时间"
 msgstr "Timeout(s) "
 
-#: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:112
+#: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:113
 msgid "成功条件"
 msgstr "Success condition"
 
-#: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:114
+#: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:115
 msgid "根据返回的 JSON 的数据来控制节点的成功或失败，使用 resp 引用返回的 JSON 对象，例 resp.result==True"
 msgstr "Control node's success by response JSON data, use 'resp' to reference respomse JSON: resp.result==True"
 
@@ -851,738 +1110,1280 @@ msgstr "Control node's success by response JSON data, use 'resp' to reference re
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_add_host_lock/v1_0.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_delete_host_lock/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:18
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:7
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:17
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:33
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:19
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:27
 msgid "业务"
 msgstr "Business"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:45
-#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:45
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
 msgid "通知方式"
 msgstr "Notification Method"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:48
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:52
 msgid "微信"
 msgstr "Wechat"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:53
 msgid "邮件"
 msgstr "Email"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:50
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:54
 msgid "短信"
 msgstr "SMS"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:63
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:67
 msgid "请至少选择一种通知方式"
 msgstr "Please select one notify method at lease"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:75
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:82
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:79
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:86
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:93
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:100
 msgid "通知分组"
 msgstr "Notification Group"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:84
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:88
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:102
+#: pipeline_plugins/variables/static/variables/staff_group_multi_selector.js:29
 msgid "运维人员"
 msgstr "Maintainer"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:85
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:89
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:103
+#: pipeline_plugins/variables/static/variables/staff_group_multi_selector.js:30
 msgid "产品人员"
 msgstr "Productor"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:86
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:90
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:104
+#: pipeline_plugins/variables/static/variables/staff_group_multi_selector.js:31
 msgid "开发人员"
 msgstr "Developer"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:87
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:91
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:105
+#: pipeline_plugins/variables/static/variables/staff_group_multi_selector.js:32
 msgid "测试人员"
 msgstr "Tester"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:109
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:113
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:127
 msgid "附加人员"
 msgstr "More Receivers"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:110
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:114
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:128
 msgid "填写用户名，多个用英文逗号 `,` 分隔"
 msgstr "Enter username, multiple are separated by `,`"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:125
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:129
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:143
 msgid "通知分组与附加人员不可同时为空"
 msgstr "Notification Group and More Receivers cannot be empty at the same time"
 
-#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:153
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:157
 #: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:171
 msgid "通知内容"
 msgstr "Content"
 
-#: pipeline_plugins/components/static/components/atoms/bk/timer.js:30
-msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
-msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
-
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:45
-#: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:42
-msgid "填参方式"
-msgstr "Method"
-
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:48
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:48
-msgid "拓扑选择"
-msgstr "Topo Select"
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:32
+msgid "强制晚于当前时间"
+msgstr "Force to be later than current time"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:49
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:49
+#: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:42
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:26
+msgid "填参方式"
+msgstr "Method"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:52
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:52
+msgid "拓扑选择"
+msgstr "Topo Select"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:53
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:97
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:202
 msgid "手动输入"
 msgstr "Manual Input"
 
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:155
-#: pipeline_plugins/components/static/components/atoms/cc/cc_batch_delete_set.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:155
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:155
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:155
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:161
+#: pipeline_plugins/components/static/components/atoms/cc/cc_batch_delete_set.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:162
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:162
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:162
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:66
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:115
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:175
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:63
 msgid "集群"
 msgstr "Set"
 
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:101
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:96
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:100
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:101
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:101
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:101
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:103
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:107
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:103
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:107
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:108
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:108
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:108
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:119
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:130
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:153
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:157
 msgid "请选择集群"
 msgstr "Select set please"
 
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:157
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:156
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:157
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:157
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:157
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:163
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:163
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:164
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:164
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:164
 msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
 msgstr "Input complete path begin with business, mutiple set split by line breaker. e.g. business_a > network_b > set_c"
 
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:176
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:176
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:171
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:175
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:176
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:176
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:176
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:178
+#: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:182
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:179
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:183
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:178
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:182
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:178
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:182
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:179
+#: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:183
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:179
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:183
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:179
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:183
 msgid "集群完整路径不能为空"
 msgstr "Set complete path can not be empty"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:45
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:22
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:21
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:21
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:21
+msgid "手动填写"
+msgstr "Manual Filling"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:23
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:22
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:22
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:22
+msgid "单行自动扩展"
+msgstr "Row Automatic Expansion"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:45
+#| msgid "模块属性"
+msgid "拓扑模块属性修改"
+msgstr "Module Attribute"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:107
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:110
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:119
+msgid "自动扩展分隔符"
+msgstr "Automatic Expansion Separator"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_module_update/v1_0.js:108
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:105
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:120
+msgid "可为空，单行自动扩展模式下每一行的换行符，默认使用 ,"
+msgstr "Allow Empty, Each Newline Character in Row Automatic Expansion Mode, Default Separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:45
+msgid "主机所属模块修改详情"
+msgstr "Host Module Modifying Detail"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:64
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:75
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:57
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:332
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:37
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:398
+#: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:76
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:61
+msgid "IP"
+msgstr "IP"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:74
+msgid "目标模块"
+msgstr "Target Module"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:75
+msgid "网络A>集群B>模块C"
+msgstr "Network_A>Set_B>Module_C"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:45
+#| msgid "主机属性"
+msgid "主机属性修改"
+msgstr "Host Attribute"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:56
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:235
+msgid "内网IP"
+msgstr "Inner IP"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:112
+msgid "单行自动扩展模式下每一行的换行符，默认使用 ,"
+msgstr "Each Newline Character in Row Automatic Expansion Mode, Default Separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_update_set/v1_0.js:45
+msgid "集群修改参数"
+msgstr "Set Modifying Parameter"
+
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:49
 msgid "主机详情"
 msgstr "Host Detail"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:46
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:50
 msgid "请至少添加一条数据"
 msgstr "Please add one at least"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:54
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:58
 msgid "故障机IP"
 msgstr "Fault Host IP"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:67
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:71
 msgid "替换机IP"
 msgstr "Replacement Host IP"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:95
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_to_idle.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:202
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:93
+msgid "复制故障机属性"
+msgstr "Copy Fault Machine Attribute"
+
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:102
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_to_idle.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_add_host_lock/v1_0.js:46
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_delete_host_lock/v1_0.js:46
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:209
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_attribute_query.js:18
 msgid "主机内网IP"
 msgstr "Host Inner IP"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:96
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_to_idle.js:46
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:46
-#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:46
-#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:46
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:203
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:103
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_to_idle.js:50
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:50
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:50
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:50
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:210
 msgid "请输入主机内网IP，多个用换行分隔"
 msgstr "Please enter host inner IP, multiple are separated by Line breaks"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:109
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:216
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:116
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:223
 msgid "转移方式"
 msgstr "Transfer Type"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:112
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:219
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:119
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:226
 msgid "覆盖"
 msgstr "cover"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:113
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:220
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:120
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:227
 msgid "追加"
 msgstr "increment"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:59
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:63
 msgid "主机属性"
 msgstr "Host Attribute"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:60
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:64
 msgid "请选择需要更新的主机属性"
 msgstr "Please select a host attribute to update"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:109
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:145
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:145
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:252
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:252
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:116
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:155
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:155
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:267
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:262
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:262
 msgid "属性值"
 msgstr "Attribute Value"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:110
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:146
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:146
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:253
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:253
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:117
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:156
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:156
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:263
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:263
 msgid "请输入更新后的属性值"
 msgstr "Please enter a new attribute value"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:95
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:202
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:102
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:209
 msgid "模块属性"
 msgstr "Module Attribute"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:96
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:203
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:103
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:210
 msgid "请选择需要更新的模块属性"
 msgstr "Please select a module attribute to update"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:95
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:202
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:102
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:247
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:209
 msgid "集群属性"
 msgstr "Set Attribute"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:96
-#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:203
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:103
+#: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:210
 msgid "请选择需要更新的集群属性"
 msgstr "Please select a set attribute to update"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:94
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:202
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:101
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:209
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:105
 msgid "服务状态"
 msgstr "Service Status"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:205
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:212
 msgid "开放"
 msgstr "Open"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:98
-#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:206
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:105
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:213
 msgid "关闭"
 msgstr "Close"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:154
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_add_host_lock/v1_0.js:47
+#| msgid "请输入主机内网IP，多个用换行分隔"
+msgid "需要加锁的主机内网 IP，多个用换行符分隔"
+msgstr "Please enter host inner IP, multiple are separated by Line breaks"
+
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_delete_host_lock/v1_0.js:47
+#| msgid "请输入主机内网IP，多个用换行分隔"
+msgid "需要解锁的主机内网 IP，多个用换行符分隔"
+msgstr "Please enter host inner IP, multiple are separated by Line breaks"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:161
 msgid "所属集群"
 msgstr "Set"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:202
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:209
 msgid "创建方式"
 msgstr "Create Way"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:205
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:212
 msgid "从模板创建"
 msgstr "Create From Template"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:206
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:213
 msgid "直接创建"
 msgstr "Create Directly"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:229
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:352
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:236
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:358
 msgid "模块信息"
 msgstr "Module Info"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:249
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:259
 msgid "服务实例分类"
 msgstr "Service Instance Category"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:296
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:300
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:409
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:413
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:302
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:306
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:421
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:425
 msgid "模块信息不能为空"
 msgstr "Module info can not be empty"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:376
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:385
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:220
 msgid "服务模板"
 msgstr "Service Template"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:379
+#: pipeline_plugins/components/static/components/atoms/cc/create_module/legacy.js:388
 msgid "无可用模板，请选择直接创建或前往配置平台(CMDB)创建服务模板"
 msgstr "No Template, please go to cmdb and create service template"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:72
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:154
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:49
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:161
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:76
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:161
 msgid "父实例"
 msgstr "Parent Instance"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:94
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:94
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:201
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:101
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:101
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:208
 msgid "集群信息"
 msgstr "Set Instance"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:101
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:108
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:108
 msgid "请选择父实例"
 msgstr "Select parent instance please"
 
-#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:156
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v2_0.js:163
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:163
 msgid "父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔"
 msgstr "Input complete parent instance text path begin with business, multiple parent instance split by line breaker. e.g. business_a > network_b"
 
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:101
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:97
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:101
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:208
+msgid "集群名称"
+msgstr "Set Name"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:209
+msgid "请输入集群名称，多个以,分隔"
+msgstr "Input Set Name, separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:222
+#| msgid "请选择集群"
+msgid "请选择集群模板"
+msgstr "Select set please"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set_by_template/v1_0.js:255
+msgid "属性唯一标识"
+msgstr "Attribute Unique Identification"
+
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:44
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:147
+msgid "没有数据"
+msgstr "No Data"
+
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:50
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:154
+msgid "字段组件"
+msgstr "Field Component"
+
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:82
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:178
+msgid "具体内容"
+msgstr "Detail Content"
+
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:129
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:198
+msgid "必须为大于等于1的整数"
+msgstr "Should be Integer greater than or equal to 1"
+
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:135
+#: pipeline_plugins/components/static/components/atoms/cc/host_custom_property_change/v1_0.js:207
+msgid "次序"
+msgstr "Order"
+
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:108
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:104
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:108
 msgid "请选择模块"
 msgstr "Select module please"
 
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:157
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:157
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:164
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:164
 msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
 msgstr "Input complete text path begin with business, multiple parent instance split by line breaker. e.g. business_a > network_b > set_c > module_d"
 
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:176
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:172
-#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:176
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:179
+#: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:183
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:179
+#: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:183
 msgid "模块完整路径不能为空"
 msgstr "Module complete path can not be empty"
 
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:45
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:45
-msgid "作业模板"
-msgstr "JOB"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:96
-msgid "定时作业名称"
-msgstr "JOB Name"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:98
-msgid "请填写定时作业名称"
-msgstr "Please enter timed job name"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:137
-msgid "定时规则"
-msgstr "Timing Rules"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:139
-msgid "Crontab定时规则，请参考JOB平台定时任务Crontab规则"
-msgstr "Crontab rules, please refer to JOB System"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:151
-msgid "定时作业状态"
-msgstr "Timing Status"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:155
-msgid "启动"
-msgstr "Activate"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:109
-msgid "全局变量"
-msgstr "Global Variable"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:112
-msgid "没选中作业模板或当前作业模板全局变量为空"
-msgstr "No job selected or global variable are empty"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:141
-msgid "描述"
-msgstr "Desc"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:45
-msgid "脚本来源"
-msgstr "Script Source"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:48
-msgid "手工录入"
-msgstr "Manual"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:49
-msgid "业务脚本"
-msgstr "Business Script"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:50
-msgid "公共脚本"
-msgstr "Common Script"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:73
-msgid "脚本类型"
-msgstr "Script Type"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:97
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:101
-msgid "请选择脚本类型"
-msgstr "Choose script Type"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:127
-msgid "脚本内容"
-msgstr "Script Content"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:129
-msgid "填写执行脚本内容"
-msgstr "Please enter script content"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:144
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:148
-msgid "请输入脚本内容"
-msgstr "Please enter script content"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:174
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:253
-msgid "脚本列表"
-msgstr "Script List"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:201
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:205
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:280
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:284
-msgid "请选择脚本"
-msgstr "Choose script please"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:335
-msgid "脚本参数"
-msgstr "Script Parameter"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:336
-msgid "可为空"
-msgstr "Empty is valid"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:345
-msgid "单位为秒，为空时使用 JOB 默认值"
-msgstr "The unit is second, empty is valid, defaulted as same with JOB"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:357
-msgid "请输入数字"
-msgstr "Please enter a number"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:369
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:105
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:89
-msgid "目标IP"
-msgstr "Target IP"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:370
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:106
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:90
-#: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:77
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:383
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:119
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:103
-msgid "目标账户"
-msgstr "Target Account"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:384
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:120
-msgid "请输入在蓝鲸作业平台上注册的账户名"
-msgstr "Please enter the account name"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:45
-msgid "源文件"
-msgstr "Source File"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:53
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:375
-#: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:76
-msgid "IP"
-msgstr "IP"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:67
-msgid "文件路径"
-msgstr "File"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:68
-msgid "多个用换行分隔"
-msgstr "Multiple are separated by line breaks"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:82
-msgid "执行账户"
-msgstr "Account"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:133
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:116
-msgid "目标路径"
-msgstr "Target Path"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:134
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:117
-msgid "请输入绝对路径"
-msgstr "Please enter absolute path"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:34
-msgid "本地文件"
-msgstr "Local file"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:38
-msgid "公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传"
-msgstr "Can not upload file at common flow edit state, please upload at param fill stage"
-
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:38
-msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
-msgstr "File name can not contain chinese and size can not over 2G"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:46
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:61
-msgid "云区域ID"
-msgstr "Cloud ID"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:59
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:85
-msgid "节点类型"
-msgstr "Node type"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:62
-msgid "直连区域AGENT"
-msgstr "Direct Connect AGENT"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:63
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:89
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:110
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:126
-msgid "PROXY"
-msgstr "PROXY"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:64
-msgid "非直连区域AGENT"
-msgstr "Non Direct Connect AGENT"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:78
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:140
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:147
-msgid "操作类型"
-msgstr "Operation type"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:80
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:149
-msgid "安裝"
-msgstr "Install"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:81
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:150
-msgid "重新安装"
-msgstr "Reinstall"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:82
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:151
-msgid "卸载"
-msgstr "Uninstall"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:84
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:153
-msgid "升级"
-msgstr "Upgrate"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:98
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:204
-msgid "主机"
-msgstr "Host"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:106
-msgid "通信IP"
-msgstr "Communication IP"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:107
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:213
-msgid "多个用,隔开"
-msgstr "multiple items are seperated by ','"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:121
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:238
-msgid "登录IP"
-msgstr "Login IP"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:122
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:132
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:239
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:249
-msgid "可为空，适配复杂网络时填写"
-msgstr "Use in complex network adaption"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:131
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:248
-msgid "数据IP"
-msgstr "Data IP"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:142
-msgid "级联IP"
-msgstr "Cascade IP"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:143
-msgid "可为空，节点类型是 PROXY 时必填"
-msgstr "must provide when node type is PROXY"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:152
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:259
-msgid "操作系统类型"
-msgstr "OS Type"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:155
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:262
-msgid "LINUX"
-msgstr "LINUX"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:156
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:263
-msgid "WINDOWS"
-msgstr "WINDOWS"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:157
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:264
-msgid "AIX"
-msgstr "AIX"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:171
-msgid "是否安装cygwin"
-msgstr "Install cygwin"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:189
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:287
-msgid "端口号"
-msgstr "Port"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:203
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:278
-msgid "登录账号"
-msgstr "Login account"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:212
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:301
-msgid "认证方式"
-msgstr "Auth type"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:215
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:304
-msgid "PASSWORD"
-msgstr "PASSWORD"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:216
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:305
-msgid "KEY"
-msgstr "KEY"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:230
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:319
-msgid "认证密钥"
-msgstr "Auth key"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:54
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:19
+msgid "传参形式"
+msgstr "Parameter Format"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:22
+msgid "Set名称"
+msgstr "Set Name"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:23
+msgid "Set ID"
+msgstr "Set ID"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:24
+#: pipeline_plugins/variables/static/variables/select.js:27
+msgid "自定义"
+msgstr "custom"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:47
+#| msgid "集群属性"
+msgid "集群属性ID"
+msgstr "Set Attribute"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:48
+msgid "用英文','分割，集群范围中填写的值会在此处填写的属性 ID 的值上进行过滤"
+msgstr "Separated by `,`, Values in the Set Range will be filtered based on values of Attribute ID"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:63
+msgid "传参形式为自定义时必填"
+msgstr "Needed with Custom Parameter Format"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:91
+msgid "集群范围"
+msgstr "Set Range"
+
+#: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_1.js:92
+msgid "多个集群使用英文','分割"
+msgstr "Multiple Sets Separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:7
+msgid "环境类型"
+msgstr "Environment Type"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:25
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:58
 msgid "操作对象"
 msgstr "Operate Type"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:70
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:42
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:82
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:144
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:151
+msgid "操作类型"
+msgstr "Operation type"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:68
+msgid "集群ID"
+msgstr "Set ID"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:82
+msgid "模块ID"
+msgstr "Module ID"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:94
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:96
+#| msgid "服务实例分类"
+msgid "服务实例ID"
+msgstr "Service Instance Category"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:108
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:90
+msgid "进程"
+msgstr "Process"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:110
+msgid "进程别名"
+msgstr "Process Alias"
+
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:122
+#: pipeline_plugins/components/static/components/atoms/gse_kit/job_exec/v1_0.js:124
+msgid "进程实例ID"
+msgstr "Process Instance ID"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:49
+msgid "是否允许跨业务"
+msgstr "Allow Cross Business"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:67
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:49
+msgid "源文件"
+msgstr "Source File"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:76
+msgid "跨业务用【云区域ID:IP】"
+msgstr "Cross Business should Use [Cloud ID:IP]"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:90
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:71
+msgid "文件路径"
+msgstr "File"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:91
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:72
+msgid "多个用换行分隔"
+msgstr "Multiple are separated by line breaks"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:105
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:86
+msgid "执行账户"
+msgstr "Account"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:128
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:376
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:109
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:93
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:45
+msgid "目标IP"
+msgstr "Target IP"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:129
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:377
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:110
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:94
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:46
+#: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:77
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:62
+msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:142
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:390
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:123
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:107
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:59
+msgid "目标账户"
+msgstr "Target Account"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:143
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:391
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:124
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:60
+msgid "请输入在蓝鲸作业平台上注册的账户名"
+msgstr "Please enter the account name"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:156
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:137
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:120
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:73
+msgid "目标路径"
+msgstr "Target Path"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:157
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:138
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:121
+msgid "请输入绝对路径"
+msgstr "Please enter absolute path"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:171
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:152
+#| msgid "单位为秒，为空时使用 JOB 默认值"
+msgid "单位为秒，为空时使用JOB默认值"
+msgstr "The unit is second, empty is valid, defaulted as same with JOB"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:49
+msgid "作业模板"
+msgstr "JOB"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:100
+msgid "定时作业名称"
+msgstr "JOB Name"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:102
+msgid "请填写定时作业名称"
+msgstr "Please enter timed job name"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:141
+msgid "定时规则"
+msgstr "Timing Rules"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:143
+msgid "Crontab定时规则，请参考JOB平台定时任务Crontab规则"
+msgstr "Crontab rules, please refer to JOB System"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:155
+msgid "定时作业状态"
+msgstr "Timing Status"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:159
+msgid "启动"
+msgstr "Activate"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:49
+msgid "执行方案"
+msgstr "Executing Plan"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:124
+msgid "全局变量"
+msgstr "Global Variable"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:127
+msgid "没选中作业模板或当前作业模板全局变量为空"
+msgstr "No job selected or global variable are empty"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:156
+msgid "描述"
+msgstr "Desc"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:244
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:404
+msgid "IP 存在性校验"
+msgstr "IP Existence Validation"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:18
+msgid "JOB 任务 ID"
+msgstr "JOB Task ID"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:26
+msgid "JOB 任务链接"
+msgstr "JOB Task Url"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:34
+msgid "IP 执行状态"
+msgstr "IP Execution Status"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:48
+msgid "退出码"
+msgstr "Exit Code"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:58
+msgid "执行 IP 列表"
+msgstr "Execute IP List"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:88
+msgid "作业日志"
+msgstr "Logs of JOB"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:49
+msgid "脚本来源"
+msgstr "Script Source"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:52
+msgid "手工录入"
+msgstr "Manual"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:53
+msgid "业务脚本"
+msgstr "Business Script"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:54
+msgid "公共脚本"
+msgstr "Common Script"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:77
+msgid "脚本类型"
+msgstr "Script Type"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:101
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:105
+msgid "请选择脚本类型"
+msgstr "Choose script Type"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:131
+msgid "脚本内容"
+msgstr "Script Content"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:133
+msgid "填写执行脚本内容"
+msgstr "Please enter script content"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:151
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:155
+msgid "请输入脚本内容"
+msgstr "Please enter script content"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:181
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:260
+msgid "脚本列表"
+msgstr "Script List"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:208
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:212
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:287
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:291
+msgid "请选择脚本"
+msgstr "Choose script please"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:342
+msgid "脚本参数"
+msgstr "Script Parameter"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:343
+msgid "可为空"
+msgstr "Empty is valid"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:352
+msgid "单位为秒，为空时使用 JOB 默认值"
+msgstr "The unit is second, empty is valid, defaulted as same with JOB"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:364
+msgid "请输入数字"
+msgstr "Please enter a number"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:38
+msgid "本地文件"
+msgstr "Local file"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:42
+msgid "公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传"
+msgstr "Can not upload file at common flow edit state, please upload at param fill stage"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:42
+msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
+msgstr "File name can not contain chinese and size can not over 2G"
+
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:18
+msgid "生成文件名[后缀]"
+msgstr "Generated File Name[Postfix]"
+
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:19
+msgid "输入生成文件名"
+msgstr "Generated File Name"
+
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:32
+msgid "文本内容"
+msgstr "Script Content"
+
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:74
+#| msgid "目标路径"
+msgid "输入目标路径"
+msgstr "Target Path"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:7
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:14
+msgid "屏蔽范围"
+msgstr "Shield Range"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:19
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:86
+msgid "结点"
+msgstr "Node"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:93
+msgid "大区获取方式"
+msgstr "Method to Get Set"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:96
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:201
+msgid "从CMDB获取"
+msgstr "Get from CMDB"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:177
+#| msgid "填写用户名，多个用英文逗号 `,` 分隔"
+msgid "请输入集群名，多个目标集群用英文逗号`,`分隔"
+msgstr "Enter username, multiple are separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:198
+#| msgid "服务模板"
+msgid "服务模板获取方式"
+msgstr "Service Template"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:223
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:172
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:195
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:199
+#| msgid "服务模板"
+msgid "请选择服务模板"
+msgstr "Service Template"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:282
+#| msgid "填写用户名，多个用英文逗号 `,` 分隔"
+msgid "请输入模块名，多个目标模块用英文逗号`,`分隔"
+msgstr "Enter username, multiple are separated by `,`"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:334
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:39
+#| msgid "请输入主机内网IP，多个用换行分隔"
+msgid "请输入主机IP，多个用逗号分隔"
+msgstr "Please enter host inner IP, multiple are separated by Line breaks"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:349
+msgid "IP不可为空"
+msgstr "IP should not be empty"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:392
+msgid "指标"
+msgstr "Indicator"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:396
+msgid "所有告警"
+msgstr "All Alarms"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:397
+msgid "5分钟平均负载"
+msgstr "Average load of 5 minutes"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:398
+msgid "CPU总使用率"
+msgstr "Total CPU utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:399
+msgid "CPU单核使用率"
+msgstr "CPU single core utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:400
+msgid "接收字节流量"
+msgstr "Receive byte traffic"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:401
+msgid "发送字节流量"
+msgstr "Send byte traffic"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:402
+msgid "发送包速率"
+msgstr "Packet sending rate"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:403
+msgid "接收包速率"
+msgstr "Packet receiving rate"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:404
+msgid "可用物理内存"
+msgstr "Available physical memory"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:405
+msgid "交换分区使用量"
+msgstr "Swap partition usage"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:406
+msgid "物理内存使用率"
+msgstr "Physical memory utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:407
+msgid "磁盘使用率"
+msgstr "Disk utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:408
+msgid "读速率"
+msgstr "Reading rate"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:409
+msgid "写速率"
+msgstr "Writing rate"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:410
+msgid "磁盘IO使用率"
+msgstr "Disk IO utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:411
+msgid "物理内存使用量"
+msgstr "Physical memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:412
+msgid "应用内存使用量"
+msgstr "Application memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:413
+msgid "应用内存使用率"
+msgstr "Application memory utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:414
+msgid "ESTABLISHED连接数"
+msgstr "Number of ESTABLISHED connections"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:415
+msgid "TIME_WAIT连接数"
+msgstr "Number of TIME_WAIT connections"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:416
+msgid "SYN_RECV连接数"
+msgstr "Number of SYN_RECV connections"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:417
+msgid "UDP接收包量"
+msgstr "Number of packets received by UDP"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:418
+msgid "UDP发送包量"
+msgstr "Number of packets sent by UDP"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:419
+msgid "CPU使用率"
+msgstr "CPU utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:420
+msgid "内存使用率"
+msgstr "Memory utilization"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:421
+msgid "进程物理内存使用量"
+msgstr "Process physical memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:422
+msgid "进程虚拟内存使用量"
+msgstr "Process virtual memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:423
+msgid "文件句柄数"
+msgstr "Number of file handles"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:424
+msgid "系统进程数"
+msgstr "Number of system processes"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:425
+msgid "CLOSE_WAIT连接数"
+msgstr "Number of CLOSE_WAIT connections"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:426
+msgid "系统重新启动"
+msgstr "System restart"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:427
+msgid "进程端口"
+msgstr "Process port"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:428
+msgid "Agent心跳丢失"
+msgstr "Agent lost heartbeat"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:429
+msgid "磁盘只读"
+msgstr "Disk read-only"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:430
+msgid "磁盘写满"
+msgstr "Disk full"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:431
+msgid "Corefile产生"
+msgstr "Corefile generation"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:432
+msgid "PING不可达告警"
+msgstr "PING unreachable alarm"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:447
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:461
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:47
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:61
+msgid "时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变量"
+msgstr "Time Format yyyy-MM-dd HH:mm:ss, recommended to refer to Custom Date Time Variables"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_disable/v1_0.js:19
+msgid "屏蔽id"
+msgstr "Shield ID"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_disable/v1_0.js:20
+msgid "请输入屏蔽id"
+msgstr "Please Input Shield ID"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:19
+msgid "策略"
+msgstr "Strategy"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:50
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:65
+msgid "云区域ID"
+msgstr "Cloud ID"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:63
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:89
+msgid "节点类型"
+msgstr "Node type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:66
+msgid "直连区域AGENT"
+msgstr "Direct Connect AGENT"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:67
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:93
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:114
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:130
+msgid "PROXY"
+msgstr "PROXY"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:68
+msgid "非直连区域AGENT"
+msgstr "Non Direct Connect AGENT"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:84
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:153
+msgid "安裝"
+msgstr "Install"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:85
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:154
+msgid "重新安装"
+msgstr "Reinstall"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:86
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:155
+msgid "卸载"
+msgstr "Uninstall"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:88
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:157
+msgid "升级"
+msgstr "Upgrate"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:102
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:208
+msgid "主机"
+msgstr "Host"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:110
+msgid "通信IP"
+msgstr "Communication IP"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:111
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:236
+msgid "多个用,隔开"
+msgstr "multiple items are seperated by ','"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:125
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:261
+msgid "登录IP"
+msgstr "Login IP"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:126
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:136
+msgid "可为空，适配复杂网络时填写"
+msgstr "Use in complex network adaption"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:135
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:271
+msgid "数据IP"
+msgstr "Data IP"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:146
+msgid "级联IP"
+msgstr "Cascade IP"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:147
+msgid "可为空，节点类型是 PROXY 时必填"
+msgstr "must provide when node type is PROXY"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:156
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:282
+msgid "操作系统类型"
+msgstr "OS Type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:159
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:285
+msgid "LINUX"
+msgstr "LINUX"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:160
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:286
+msgid "WINDOWS"
+msgstr "WINDOWS"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:161
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:287
+msgid "AIX"
+msgstr "AIX"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:175
+msgid "是否安装cygwin"
+msgstr "Install cygwin"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:193
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:310
+msgid "端口号"
+msgstr "Port"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:207
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:301
+msgid "登录账号"
+msgstr "Login account"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:216
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:324
+msgid "认证方式"
+msgstr "Auth type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:219
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:327
+msgid "PASSWORD"
+msgstr "PASSWORD"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:220
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:328
+msgid "KEY"
+msgstr "KEY"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:234
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:342
+msgid "认证密钥"
+msgstr "Auth key"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:74
 msgid "直连区域"
 msgstr "Direct Connect Area"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:88
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:105
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:92
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:109
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:121
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:113
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:125
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:129
 msgid "AGENT"
 msgstr "AGENT"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:168
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:172
 msgid "接入点"
 msgstr "Access Point"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:212
-msgid "内网IP"
-msgstr "Inner IP"
-
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:227
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:250
 msgid "外网IP"
 msgstr "Outter IP"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:228
-msgid "可选"
-msgstr "no-essential"
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:251
+msgid "可选,如填写需与内网ip一一对应"
+msgstr "Optional, should be one to one correspondence with inner_ip"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:344
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:262
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:272
+#| msgid "可为空，适配复杂网络时填写"
+msgid "可为空，如填写需与内网ip一一对应，适配复杂网络时填写"
+msgstr "Use in complex network adaption"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:367
 msgid "请完善主机信息"
 msgstr "complete host info please"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:376
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:399
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:19
 msgid "多个用英文逗号 `,` 分隔"
 msgstr "mutiple items seperated by `,`"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:391
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:414
 msgid "请填写IP"
 msgstr "Input IP please"
+
+#: pipeline_plugins/components/static/components/atoms/wechat_work/wechat_work_send_message/v1_0.js:12
+msgid "通过在群里@企业微信机器人获取，多个用换行分隔"
+msgstr "Get by @WechatWorkRobot in Group, separated by newline"
 
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:18
 msgid "选择人员"
@@ -1596,7 +2397,7 @@ msgstr "Enter Ip, multiple are separated by `,` or Line breaks"
 msgid "选择服务器"
 msgstr "IP"
 
-#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_selector.js:42
+#: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_selector.js:43
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_resource_allocation.js:36
 msgid "该变量只能在关联CMDB业务的项目下使用"
 msgstr "This variable can only be used under project associated with CMDB business"
@@ -1622,6 +2423,144 @@ msgstr "Topology"
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:241
 msgid "请求后台接口异常:"
 msgstr "Server API error:"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_group_selector.js:20
+#| msgid "请选择集群"
+msgid "请选择集群分组"
+msgstr "Select set please"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:17
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:19
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:119
+msgid "集群模块IP选择器"
+msgstr "Set Module IP Selector"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:28
+#| msgid "自定义输入"
+msgid "自定义输入IP"
+msgstr "Custom Enter"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:29
+#| msgid "请选择集群"
+msgid "选择集群模块"
+msgstr "Select set please"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:30
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:249
+#| msgid "手动输入"
+msgid "手动输入集群模块"
+msgstr "Manual Input"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:77
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:81
+msgid "请输入IP"
+msgstr "Input IP"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:126
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_selector.js:25
+#| msgid "请选择集群"
+msgid "选择集群"
+msgstr "Select set please"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:169
+#| msgid "服务模板"
+msgid "选择服务模板"
+msgstr "Service Template"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:212
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:321
+#| msgid "模块属性"
+msgid "使用模块属性名"
+msgstr "Module Attribute"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:213
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:322
+msgid "请输入需要使用的模块属性，多个用英文逗号分隔，不填默认为ip属性"
+msgstr "Input needed module attributes, separated by `,`, default is IP attribute without filling"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:256
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:272
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:276
+msgid "请输入集群"
+msgstr "Input Set"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:257
+msgid "请输入集群，多个使用英文逗号分隔，可输入all选择所有集群"
+msgstr "Input Set, separated by `,`, `all` means all sets"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:288
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:304
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:308
+#| msgid "服务模板"
+msgid "请输入服务模板"
+msgstr "Service Template"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:289
+msgid "请输入服务模板，多个使用英文逗号分隔，可输入all选择所有服务模板"
+msgstr "Input Service Template, separated by `,`, `all` means all service templates"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:359
+msgid "筛选集群"
+msgstr "Set"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:360
+msgid "请输入需要筛选的集群名称，多个使用英文逗号分隔，为空则不做筛选"
+msgstr "Input Set to be filtered, separated by `,`, not be filtered when empty"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:368
+#| msgid "服务模板"
+msgid "筛选服务模板"
+msgstr "Service Template"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:369
+msgid "请输入需要筛选的服务模板名称，多个使用英文逗号分隔，为空则不做筛选"
+msgstr "Input Service Template to be filtered, separated by `,`, not be filtered when empty"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_module_selector.js:53
+#| msgid "请选择模块"
+msgid "选择模块"
+msgstr "Select module please"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:18
+msgid "系统当前时间格式"
+msgstr "System Current Time Format"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:26
+msgid "年"
+msgstr "Year"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:27
+msgid "月"
+msgstr "Month"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:28
+msgid "日"
+msgstr "Day"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:29
+#| msgid " 小时"
+msgid "时"
+msgstr " Hour"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:30
+#| msgid " 分"
+msgid "分"
+msgstr " Minute"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:31
+#| msgid " 秒"
+msgid "秒"
+msgstr " Second"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:44
+#| msgid "请至少选择一种通知方式"
+msgid "请至少选择一种单位格式"
+msgstr "Please select one notify method at lease"
+
+#: pipeline_plugins/variables/static/variables/current_time.js:56
+#: pipeline_plugins/variables/static/variables/format_support_current_time.js:40
+msgid "时区"
+msgstr "Time Zone"
 
 #: pipeline_plugins/variables/static/variables/datatable.js:18
 #: pipeline_plugins/variables/static/variables/datatable.js:84
@@ -1661,9 +2600,75 @@ msgstr "Table default value is not legal JSON"
 msgid "表格默认值解析后不是列表格式，请检查变量配置"
 msgstr "Table default value is not a list format after parsing"
 
+#: pipeline_plugins/variables/static/variables/date.js:20
+#| msgid "请选择日期时间"
+msgid "请选择日期"
+msgstr "Please select a datetime"
+
+#: pipeline_plugins/variables/static/variables/date.js:21
+#| msgid "日期时间"
+msgid "日期"
+msgstr "Datetime"
+
 #: pipeline_plugins/variables/static/variables/datetime.js:18
 msgid "日期时间"
 msgstr "Datetime"
+
+#: pipeline_plugins/variables/static/variables/format_support_current_time.js:18
+msgid "系统当前时间"
+msgstr "System Current Time"
+
+#: pipeline_plugins/variables/static/variables/format_support_current_time.js:25
+msgid "时间格式"
+msgstr "Time Format"
+
+#: pipeline_plugins/variables/static/variables/format_support_current_time.js:27
+msgid "自定义时间格式，默认为`%Y-%m-%d %H:%M:%S`"
+msgstr "Custom Time Format, default is `%Y-%m-%d %H:%M:%S`"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:18
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:20
+msgid "GSEKit IP 选择器"
+msgstr "GSEKit IP Selector"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:27
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:28
+msgid "集群环境类型"
+msgstr "Set Environment Type"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:45
+#| msgid "请选择集群"
+msgid "请选择集群环境类型"
+msgstr "Select set please"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:64
+msgid "集群，默认值为 *"
+msgstr "Set, default is *"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:73
+msgid "模块，默认值为 *"
+msgstr "Module, default is *"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:81
+#| msgid "服务实例分类"
+msgid "服务实例"
+msgstr "Service Instance Category"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:82
+msgid "服务实例，默认值为 *"
+msgstr "Service Instance, default is *"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:91
+msgid "进程，默认值为 *"
+msgstr "Process, default is *"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:99
+msgid "进程实例"
+msgstr "Process Instance"
+
+#: pipeline_plugins/variables/static/variables/gse_kit/var_gse_kit_ip_selector.js:100
+msgid "进程实例，默认值为 *"
+msgstr "Process Instance, default is *"
 
 #: pipeline_plugins/variables/static/variables/input.js:18
 msgid "输入框"
@@ -1685,10 +2690,6 @@ msgstr "Select"
 #: pipeline_plugins/variables/static/variables/select.js:25
 msgid "数据源"
 msgstr "Data source"
-
-#: pipeline_plugins/variables/static/variables/select.js:27
-msgid "自定义"
-msgstr "custom"
 
 #: pipeline_plugins/variables/static/variables/select.js:27
 msgid "远程数据源"
@@ -1723,10 +2724,46 @@ msgstr "Please enter the default value, \"value\" format if single, \"value, val
 msgid "非法下拉框数据源，请检查您的配置"
 msgstr "Data source is invalid, please check the config"
 
+#: pipeline_plugins/variables/static/variables/staff_group_multi_selector.js:18
+#| msgid "选择人员"
+msgid "选择人员分组"
+msgstr "Select member"
+
+#: pipeline_plugins/variables/static/variables/staff_group_multi_selector.js:19
+#| msgid "选择人员"
+msgid "请选择人员分组"
+msgstr "Select member"
+
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
 
+#: pipeline_plugins/variables/static/variables/time.js:18
+#| msgid "修改时间"
+msgid "时间"
+msgstr "Reset Timer"
+
 #: version_log/static/version_log/js/modal_frame.js:26
 msgid "版本日志"
 msgstr "Version log"
+
+#~ msgid "增加一条"
+#~ msgstr "Add"
+
+#~ msgid "更多操作"
+#~ msgstr "More Operations"
+
+#~ msgid "个静态IP(未安装agent"
+#~ msgstr " Static IP(not installed "
+
+#~ msgid "动态IP"
+#~ msgstr "Dynamic IP"
+
+#~ msgid "主机筛选条件"
+#~ msgstr "Hosts filter condition"
+
+#~ msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
+#~ msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
+
+#~ msgid "可选"
+#~ msgstr "no-essential"

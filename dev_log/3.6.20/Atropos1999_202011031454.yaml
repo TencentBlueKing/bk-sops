@@ -1,0 +1,2 @@
+improvement:
+    - "cc_search_object_attribute函数增加bk_biz_id参数，支持查询自定义属性"

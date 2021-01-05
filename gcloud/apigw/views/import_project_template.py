@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -34,6 +35,7 @@ except ImportError:
 @csrf_exempt
 @require_POST
 @apigw_required
+@project_inject
 @mark_request_whether_is_trust
 def import_project_template(request, project_id):
     if not request.is_trust:
@@ -49,21 +51,13 @@ def import_project_template(request, project_id):
         req_data = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     template_data = req_data.get("template_data", None)
     if not template_data:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "template data can not be none",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "template data can not be none", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
     r = read_encoded_template_data(template_data)
     if not r["result"]:
@@ -73,8 +67,8 @@ def import_project_template(request, project_id):
         import_result = TaskTemplate.objects.import_templates(
             template_data=r["data"]["template_data"],
             override=False,
-            project_id=project_id,
-            operator=request.user.username
+            project_id=request.project.id,
+            operator=request.user.username,
         )
     except Exception as e:
         logger.exception("[API] import common tempalte error: {}".format(e))

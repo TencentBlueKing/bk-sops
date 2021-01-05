@@ -85,6 +85,24 @@
                     }
                 ]
             }
+        },
+        {
+            tag_code: "copy_attributes",
+            type: "radio",
+            attrs: {
+                name: gettext("复制故障机属性"),
+                hookable: true,
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")}
+                ],
+                default: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();

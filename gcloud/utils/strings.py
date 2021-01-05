@@ -24,7 +24,7 @@ logger = logging.getLogger("root")
 def name_handler(name, max_length):
     """名称处理"""
     # 替换特殊字符
-    name_str = re.compile(r"[<>.,;~!@#^&*￥\'\"]+").sub("", name)
+    name_str = re.compile(r"[<>,;~!@#^&*￥\'\"]+").sub("", name)
     # 长度截取
     return name_str[:max_length]
 
