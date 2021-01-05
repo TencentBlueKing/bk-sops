@@ -11,4 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-__version__ = "1.1.7"
+
+def hash_key(*args):
+    args = args[1:]
+    return tuple(hash(k) for k in args)

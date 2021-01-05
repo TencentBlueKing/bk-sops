@@ -17,13 +17,16 @@ import base64
 import sys
 from six import string_types
 
+from cachetools import cached, TTLCache
+
 from .api.client import Client
 from .eval.expression import make_expression
 from .eval.object import ObjectSet
 from .contrib.converter.queryset import DjangoQuerySetConverter
-from .auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest
+from .auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest, ApiBatchAuthRequest
 from .exceptions import AuthAPIError, AuthInvalidRequest, AuthInvalidParam
 from .apply.models import Application
+from .cache import hash_key
 
 logger = logging.getLogger("iam")
 
@@ -159,6 +162,10 @@ class IAM(object):
             raise AuthInvalidParam(
                 "resources_list should all with the same resource_type, but got %s" % resource_types.keys()
             )
+
+    @cached(cache=TTLCache(maxsize=1024, ttl=10), key=hash_key)
+    def is_allowed_with_cache(self, request):
+        return self.is_allowed(request)
 
     def is_allowed(self, request):
         """
@@ -365,7 +372,7 @@ class IAM(object):
 
         auth = basic_auth.strip().split()
         if len(auth) != 2 or auth[0].lower() != "basic":
-            logger.debug("invalid basic auth format")
+            logger.error("invalid basic auth format [length=%d, authorization=%s]", len(auth), auth)
             return False
 
         decoded_str = base64.b64decode(auth[1])
@@ -376,16 +383,20 @@ class IAM(object):
 
         username, password = decoded_str.split(":")
         if username != "bk_iam":
-            logger.debug("username is not bk_iam")
+            logger.error("username is not bk_iam")
             return False
 
         ok, message, token = self.get_token(system)
         if not ok:
-            logger.debug("get system token fail: %s", message)
+            logger.error("get system token fail: %s", message)
             return False
 
         if password != token:
-            logger.debug("password in basic_auth not equals to system token")
+            logger.error(
+                "password in basic_auth not equals to system token [password=%s***, token=%s***]",
+                password[6:],
+                token[6:],
+            )
             return False
 
         return True
@@ -415,7 +426,7 @@ class IAM(object):
         if not (bk_token or bk_username):
             raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
 
-        # bool, message
+        # bool, message, url
         return self._client.grant_resource_creator_actions(bk_token, bk_username, data)
 
     def grant_resource_creator_action_attributes(self, application, bk_token=None, bk_username=None):
@@ -439,7 +450,7 @@ class IAM(object):
         if not (bk_token or bk_username):
             raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
 
-        # bool, message
+        # bool, message, url
         return self._client.grant_batch_resource_creator_actions(bk_token, bk_username, data)
 
     def grant_or_revoke_instance_permission(self, request, bk_token=None, bk_username=None):
@@ -471,4 +482,52 @@ class IAM(object):
         ok, message, policies = self._client.path_authorization(bk_token, bk_username, data)
         if not ok:
             raise AuthAPIError(message)
+        return policies
+
+    def batch_grant_or_revoke_instance_permission(self, request, bk_token=None, bk_username=None):
+        if not isinstance(request, ApiBatchAuthRequest):
+            raise AuthInvalidRequest("request should be a instance of iam.auth.models.ApiBatchAuthRequest")
+
+        self._validate_request(request)
+        data = request.to_dict()
+
+        logger.debug("the request: %s", data)
+        if not (bk_token or bk_username):
+            raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
+
+        ok, message, policies = self._client.batch_instance_authorization(bk_token, bk_username, data)
+        if not ok:
+            raise AuthAPIError(message)
+        return policies
+
+    def batch_grant_or_revoke_path_permission(self, request, bk_token=None, bk_username=None):
+        if not isinstance(request, ApiBatchAuthRequest):
+            raise AuthInvalidRequest("request should be a instance of iam.auth.models.ApiBatchAuthRequest")
+
+        self._validate_request(request)
+        data = request.to_dict()
+
+        logger.debug("the request: %s", data)
+        if not (bk_token or bk_username):
+            raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
+
+        ok, message, policies = self._client.batch_path_authorization(bk_token, bk_username, data)
+        if not ok:
+            raise AuthAPIError(message)
+        return policies
+
+    def query_polices_with_action_id(self, system, data):
+
+        logger.debug("calling IAM.query_polices_with_action_id.....")
+
+        if not isinstance(system, string_types):
+            raise AuthInvalidParam("system should be a string")
+
+        if not isinstance(data, dict):
+            raise AuthInvalidParam("data should be a dict")
+
+        ok, message, policies = self._client.query_policies_with_action_id(system, data)
+        if not ok:
+            raise AuthAPIError(message)
+
         return policies
