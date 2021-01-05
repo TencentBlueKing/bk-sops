@@ -57,7 +57,51 @@ def nodeman_get_ap_list(request):
     return JsonResponse(ap_list)
 
 
+def nodeman_get_plugin_list(request, plugin_type):
+    """获取插件列表"""
+    client = get_client_by_user(request.user.username)
+    kwargs = {"plugin_type": plugin_type}
+    plugin_list = client.nodeman.plugin_process(kwargs)
+
+    if not plugin_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_process", {}, plugin_list)
+        logger.error(message)
+        return JsonResponse(
+            {"result": plugin_list["result"], "code": plugin_list.get("code", "-1"), "message": message}
+        )
+
+    data = plugin_list["data"]
+
+    result = [{"text": ap["name"], "value": ap["id"]} for ap in data]
+
+    plugin_list["data"] = result
+    return JsonResponse(plugin_list)
+
+
+def nodeman_get_plugin_version(request, plugin, os_type):
+    """根据系统获取插件版本"""
+    client = get_client_by_user(request.user.username)
+    kwargs = {"plugin": plugin, "os": os_type.upper()}
+    plugin_version_list = client.nodeman.plugin_package(kwargs)
+
+    if not plugin_version_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_package", {}, plugin_version_list)
+        logger.error(message)
+        return JsonResponse(
+            {"result": plugin_version_list["result"], "code": plugin_version_list.get("code", "-1"), "message": message}
+        )
+
+    data = plugin_version_list["data"]
+
+    result = [{"text": version["version"], "value": version["version"]} for version in data]
+
+    plugin_version_list["data"] = result
+    return JsonResponse(plugin_version_list)
+
+
 nodeman_urlpatterns = [
     url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
     url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
+    url(r"^nodeman_get_plugin_list/(?P<plugin_type>\w+)/$", nodeman_get_plugin_list),
+    url(r"^nodeman_get_plugin_version/(?P<plugin>\w+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
 ]
