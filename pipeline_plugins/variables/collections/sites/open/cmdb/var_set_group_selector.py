@@ -49,11 +49,7 @@ def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field):
     """
     client = get_client_by_user(operator)
     set_data_dir = {}
-    kwargs = {
-        "bk_biz_id": bk_biz_id,
-        "id": bk_group_id,
-        "fields": set_field
-    }
+    kwargs = {"bk_biz_id": bk_biz_id, "id": bk_group_id, "fields": set_field}
     group_info = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
     for _field in set_field:
         set_data_dir[_field] = []
@@ -81,7 +77,7 @@ class SetGroupInfo(object):
 class VarSetGroupSelector(LazyVariable):
     code = "set_group_selector"
     name = _("集群分组选择器")
-    type = "general"
+    type = "dynamic"
     tag = "var_set_group_selector.set_group_selector"
     form = "%svariables/cmdb/var_set_group_selector.js" % settings.STATIC_URL
 
