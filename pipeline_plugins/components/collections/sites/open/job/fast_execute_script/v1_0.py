@@ -9,7 +9,6 @@ http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
-
 # 作业平台任务状态参照表
 TASK_RESULT = [
     (0, '状态未知'),
@@ -51,8 +50,9 @@ from pipeline_plugins.components.utils import (
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
-
 __group_name__ = _("作业平台(JOB)")
+
+from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
@@ -113,6 +113,12 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("脚本执行参数")),
             ),
             self.InputItem(
+                name=_("是否允许跨业务"),
+                key="job_across_biz",
+                type="bool",
+                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+            ),
+            self.InputItem(
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
@@ -155,16 +161,34 @@ class JobFastExecuteScriptService(JobService):
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         script_source = data.get_one_of_inputs("job_script_source")
+        across_biz = data.get_one_of_inputs("job_across_biz", False)
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
-        ip_info = cc_get_ips_info_by_str(
-            username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
-        )
+        if across_biz:
+            ip_info = {"ip_result": []}
+            for ip_str in original_ip_list.split("\n"):
+                if not ip_str:
+                    continue
+                if plat_ip_reg.match(ip_str):
+                    plat_ip = []
+                    for match in plat_ip_reg.finditer(ip_str):
+                        plat_ip.append(match.group())
+                    for ip in plat_ip:
+                        cloud_id, inner_ip = ip.strip().split(":")
+                        ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
+                else:
+                    message = _("允许跨业务时IP格式需满足：【云区域ID:IP】")
+                    self.logger.error(message)
+                    data.set_outputs("ex_data", message)
+                    return False
+        else:
+            ip_info = cc_get_ips_info_by_str(
+                username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
+            )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-
-        if ip_is_exist:
-            # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
+        if ip_is_exist and not across_biz:
+            # 如果ip校验开关打开且不允许跨业务，校验通过的ip数量减少，返回错误
             input_ip_list = get_ip_by_regex(original_ip_list)
             self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
 
