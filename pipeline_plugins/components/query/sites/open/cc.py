@@ -89,6 +89,26 @@ def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account)
     return JsonResponse({"result": True, "data": obj_property})
 
 
+def cc_attribute_type_to_table_type(attribute):
+    result = {
+        "tag_code": attribute["bk_property_id"],
+        "type": "input",
+        "attrs": {"name": attribute["bk_property_name"], "editable": attribute["editable"]},
+    }
+    if attribute["bk_property_type"] == "int":
+        result["type"] = "int"
+    elif attribute["bk_property_type"] == "enum":
+        result["type"] = "select"
+        result["attrs"]["items"] = []
+        for item in attribute["option"]:
+            # 修改时会通过cc_format_prop_data获取对应的属性id，这里使用name字段方便展示
+            item_name = item["name"].strip()
+            if item["is_default"] is True:
+                result["attrs"]["default"] = item_name
+            result["attrs"]["items"].append({"text": item_name, "value": item_name})
+    return result
+
+
 @supplier_account_inject
 def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
@@ -102,15 +122,12 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
 
     obj_property = []
     for item in cc_result["data"]:
-        prop_dict = {
-            "tag_code": item["bk_property_id"],
-            "type": "input",
-            "attrs": {"name": item["bk_property_name"], "editable": "true"},
-        }
-        # 集群/模块名称设置为必填项
-        if item["bk_property_id"] in ["bk_set_name", "bk_module_name"]:
-            prop_dict["attrs"]["validation"] = [{"type": "required"}]
-        obj_property.append(prop_dict)
+        if item["editable"]:
+            prop_dict = cc_attribute_type_to_table_type(item)
+            # 集群/模块名称设置为必填项
+            if item["bk_property_id"] in ["bk_set_name", "bk_module_name"]:
+                prop_dict["attrs"]["validation"] = [{"type": "required"}]
+            obj_property.append(prop_dict)
 
     return JsonResponse({"result": True, "data": obj_property})
 
