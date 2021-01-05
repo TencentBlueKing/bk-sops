@@ -89,7 +89,8 @@ Get plugin info based on plugin code for a business
         "code": "sleep_timer",
         "name": "Timing",
         "group_name": "BK Service(BK)",
-        "version": "legacy"
+        "version": "legacy",
+        "form": "/static/components/atoms/bk/timer.js"
     },
     "code": 0
 }
@@ -113,7 +114,8 @@ Get plugin info based on plugin code for a business
 |  code      |    string    |      plugin code    |
 |  name      |    string    |      plugin name    |
 |  group_name      |    string    |      plugin group name    |
-|  version      |    name    |      plugin version    |
+|  version      |  string  |  plugin version    |
+|  form         |    string    | plugin form url |
 
 ##### inputs
 

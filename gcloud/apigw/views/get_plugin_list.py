@@ -52,6 +52,7 @@ def get_plugin_list(request, project_id):
                 "name": comp.name,
                 "group_name": comp.group_name,
                 "version": comp.version,
+                "form": comp.form,
             }
         )
 
