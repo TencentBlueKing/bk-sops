@@ -1,0 +1,2 @@
+bugfix:
+  - 修复高并发情况下 sleep 可能会覆写 schedule 产生的数据的问题
