@@ -24,9 +24,9 @@
                 clickable
                 v-for="item in collectTemplateList"
                 :key="item.id"
-                @click="onClickTemplate(item.id)">
+                @click="onClickTemplate(item.extra_info.id)">
                 <template slot="title">
-                    <div class="bk-text">{{ item.name }}</div>
+                    <div class="bk-text">{{ item.extra_info.name }}</div>
                     <div class="bk-name">{{ item.creator_name }}</div>
                     <div class="bk-time">{{ item.create_time }}</div>
                 </template>
@@ -35,9 +35,9 @@
         </section>
         <!-- 模板列表 -->
         <section class="bk-block">
-            <h2 class="bk-block-title" v-if="templateList.length > 0">{{ business.cc_name }}</h2>
+            <h2 class="bk-block-title" v-if="templateList.length > 0">{{ project.name }}</h2>
             <van-list
-                v-model="loading"
+                v-model="tplLoading"
                 :finished="finished"
                 :finished-text="i18n.finishedText"
                 :error.sync="error"
@@ -64,15 +64,14 @@
 
     export default {
         name: 'TemplateList',
-        props: { bizId: String },
         data () {
             return {
                 collectTemplateList: [],
                 templateList: [],
                 originalCollectTemplateList: [],
                 originalTemplateList: [],
-                business: {
-                    cc_name: ''
+                project: {
+                    name: ''
                 },
                 i18n: {
                     collect: window.gettext('收藏'),
@@ -80,7 +79,8 @@
                     errorText: window.gettext('请求失败，点击重新加载'),
                     placeholder: window.gettext('搜索流程名称')
                 },
-                loading: false,
+                collectedLoading: false,
+                tplLoading: false,
                 finished: false,
                 error: false,
                 offset: 0,
@@ -92,11 +92,16 @@
         },
         methods: {
             ...mapActions('template', [
-                'getTemplateList'
+                'getTemplateList',
+                'getCollectedTemplate'
             ]),
-
-            async loadData () {
+            loadData () {
+                this.loadTemplateList()
+                this.loadCollectedTpl()
+            },
+            async loadTemplateList () {
                 try {
+                    this.tplLoading = true
                     const response = await this.getTemplateList({ offset: this.offset, limit: this.limit })
                     this.total = response.meta.total_count
                     const totalPage = Math.ceil(this.total / this.limit)
@@ -109,19 +114,27 @@
                     this.templateList = [...this.templateList, ...response.objects]
                     this.originalTemplateList = this.templateList
                     if (this.templateList.length > 0) {
-                        this.business = this.templateList[0]['business']
+                        this.project = this.templateList[0]['project']
                     }
-                    this.getCollectedTemplateList()
                 } catch (e) {
                     this.error = true
                     errorHandler(e, this)
                 } finally {
-                    this.loading = false
+                    this.tplLoading = false
                 }
             },
-            getCollectedTemplateList () {
-                this.collectTemplateList = this.templateList.filter(t => t['is_add'])
-                this.originalCollectTemplateList = this.collectTemplateList
+            async loadCollectedTpl () {
+                this.collectedLoading = true
+                try {
+                    const response = await this.getCollectedTemplate()
+                    this.collectTemplateList = response.objects.filter(item => item.extra_info.project_id === Number(this.$store.state.bizId))
+                    this.originalCollectTemplateList = this.collectTemplateList.slice(0)
+                } catch (e) {
+                    this.error = true
+                    errorHandler(e, this)
+                } finally {
+                    this.collectedLoading = false
+                }
             },
             search () {
                 this.templateList = this.originalTemplateList.filter(item => item.name.includes(this.value))

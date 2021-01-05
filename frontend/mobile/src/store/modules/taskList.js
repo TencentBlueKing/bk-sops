@@ -13,15 +13,25 @@ export default {
     mutations: {},
     actions: {
         getTaskStatus ({ commit, rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceStatus}?instance_id=${params.id}`
-            return http.get(url).then(response => {
+            return http.get(`taskflow/api/status/${rootState.bizId}/`, {
+                params: {
+                    instance_id: params.id
+                }
+            }).then(response => {
                 return response.result ? response.data : {}
             })
         },
 
         getTaskList ({ commit, rootState, dispatch }, params) {
-            const url = `${global.getMobileUrlPrefix().instance}?limit=${params.limit}&offset=${params.offset}&create_method=mobile`
-            return http.get(url).then(response => response)
+            const { limit, offset } = params
+            return http.get(`api/v3/weixin_taskflow/`, {
+                params: {
+                    limit,
+                    offset,
+                    create_method: 'mobile',
+                    project__id: rootState.bizId
+                }
+            }).then(response => response)
         }
     }
 }
