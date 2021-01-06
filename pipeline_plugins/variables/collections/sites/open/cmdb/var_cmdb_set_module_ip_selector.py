@@ -159,12 +159,13 @@ def get_module_id_list(
     # 筛选规则与空闲机、待回收、故障机模块取交集
     biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names)
 
-    # 取空闲机池下所有模块ID
-    inner_module_id_list = [
-        {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
-        for biz_internal_module_item in service_template_list
-        if biz_internal_module_item["name"] in BIZ_INTERNAL_MODULE
-    ]
+    if BIZ_INTERNAL_SET in filter_set_names:
+        # 取空闲机池下所有模块ID
+        inner_module_id_list = [
+            {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
+            for biz_internal_module_item in service_template_list
+            if biz_internal_module_item["name"] in BIZ_INTERNAL_MODULE
+        ]
 
     # 用户输入空闲机，只取空闲机模块ID
     if biz_internal_module:
