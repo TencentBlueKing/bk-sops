@@ -191,6 +191,9 @@ class Client(object):
         "add_common_actions": "add_common_actions",
         "update_common_actions": "update_common_actions",
         "upsert_common_actions": "update_common_actions",
+        "add_feature_shield_rules": "add_feature_shield_rules",
+        "update_feature_shield_rules": "update_feature_shield_rules",
+        "upsert_feature_shield_rules": "update_feature_shield_rules",
     }
 
     """
@@ -309,6 +312,17 @@ class Client(object):
 
     def api_update_common_actions(self, system_id, data):
         path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_put, path, data)
+        return ok, message
+
+    # ---------- feature_shield_rules
+    def api_add_feature_shield_rules(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_post, path, data)
+        return ok, message
+
+    def api_update_feature_shield_rules(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(system_id=system_id)
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
@@ -432,6 +446,12 @@ class Client(object):
 
     def update_resource_creator_actions(self, system_id, data):
         return self.api_update_resource_creator_actions(system_id, data)
+
+    def add_feature_shield_rules(self, system_id, data):
+        return self.api_add_feature_shield_rules(system_id, data)
+
+    def update_feature_shield_rules(self, system_id, data):
+        return self.api_update_feature_shield_rules(system_id, data)
 
     def upsert_system(self, system_id, data):
         if system_id not in self.system_id_set:

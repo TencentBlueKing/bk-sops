@@ -15,6 +15,7 @@ import time
 import logging
 import base64
 import sys
+from copy import deepcopy
 from six import string_types
 
 from cachetools import cached, TTLCache
@@ -52,6 +53,10 @@ class IAM(object):
         if not ok:
             raise AuthAPIError(message)
         return policies
+
+    @cached(cache=TTLCache(maxsize=1024, ttl=60), key=hash_key)
+    def _do_policy_query_with_cache(self, request):
+        return self._do_policy_query(request)
 
     def _do_policy_query_by_actions(self, request, with_resources=True):
         data = request.to_dict()
@@ -193,6 +198,36 @@ class IAM(object):
         obj_set, _ = self._build_object_set(request.system, request.resources, only_local=True)
 
         # 4. eval
+        allowed = self._eval_policy(policies, obj_set)
+        return allowed
+
+    def is_allowed_with_policy_cache(self, request):
+        """
+        单个资源是否有权限校验, 缓存查询得到的策略
+        同一个subject-system-action查询到的策略会被缓存
+        不同的实例使用同一份缓存的策略, 提升鉴权性能
+
+        策略缓存1分钟
+        """
+        # 1. validate
+        self._validate_request(request)
+
+        # 2. request without resources
+        request_without_resources = deepcopy(request)
+        request_without_resources.resources = []
+
+        # 3. query policy from iam or cache
+        policies = self._do_policy_query_with_cache(request_without_resources)
+
+        logger.debug("the return policies: %s", policies)
+        if not policies:
+            logger.debug("no return policies, will return False")
+            return False
+
+        # 4. make objSet
+        obj_set, _ = self._build_object_set(request.system, request.resources, only_local=True)
+
+        # 5. eval
         allowed = self._eval_policy(policies, obj_set)
         return allowed
 

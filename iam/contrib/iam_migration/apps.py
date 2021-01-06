@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.apps import AppConfig
 
+from iam.contrib.iam_migration.constants import APP_NAME
+
 
 class IAMMigrationConfig(AppConfig):
-    name = "iam_migration"
+    name = APP_NAME
