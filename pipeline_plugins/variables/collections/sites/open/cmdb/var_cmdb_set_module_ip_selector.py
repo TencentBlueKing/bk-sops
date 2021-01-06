@@ -159,6 +159,7 @@ def get_module_id_list(
     # 筛选规则与空闲机、待回收、故障机模块取交集
     biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names)
 
+    inner_module_id_list = []
     if BIZ_INTERNAL_SET in filter_set_names:
         # 取空闲机池下所有模块ID
         inner_module_id_list = [
