@@ -10,26 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import traceback
-
-from django.db import connection
-from data_migration.conf import settings
-
-
-def dictfetchall(cursor):
-    "Return all rows from a cursor as a dict"
-    columns = [col[0] for col in cursor.description]
-    return [dict(list(zip(columns, row))) for row in cursor.fetchall()]
-
-
-def old_uer_table_exist():
-    with connection.cursor() as cursor:
-        try:
-            cursor.execute("show tables;")
-        except Exception:
-            print(traceback.format_exc())
-            return False
-        rows = {item[0] for item in cursor.fetchall()}
-        old_table = getattr(settings, "USER_TABLE", "account_bkuser")
-        return old_table in rows
