@@ -32,3 +32,8 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+    /deep/.van-cell__value {
+        word-break: break-all;
+    }
+</style>

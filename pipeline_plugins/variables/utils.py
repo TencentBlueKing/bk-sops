@@ -109,7 +109,7 @@ def get_service_template_list(username, bk_biz_id, bk_supplier_account):
     if not list_service_template_return["result"]:
         message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
         logger.error(message)
-        return JsonResponse({"result": False, "data": [], "message": message})
+        return []
     return list_service_template_return["data"]["info"]
 
 

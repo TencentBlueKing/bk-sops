@@ -480,14 +480,6 @@ class ServiceActivityHandlerTestCase(TestCase):
 
                 Data.objects.write_node_data.assert_called_once_with(service_act)
 
-                ScheduleService.objects.set_schedule.assert_called_once_with(
-                    service_act.id,
-                    service_act=service_act.shell(),
-                    process_id=process.id,
-                    version=status.version,
-                    parent_data=process.top_pipeline.data,
-                )
-
                 top_context.extract_output.assert_called_once_with(service_act, set_miss=False)
 
                 signals.service_activity_timeout_monitor_end.send.assert_not_called()
@@ -497,6 +489,18 @@ class ServiceActivityHandlerTestCase(TestCase):
                 self.assertIsNone(hdl_result.next_node)
                 self.assertTrue(hdl_result.should_return)
                 self.assertTrue(hdl_result.should_sleep)
+                self.assertEqual(hdl_result.after_sleep_call, ScheduleService.objects.set_schedule)
+                self.assertEqual(hdl_result.args, [])
+                self.assertEqual(
+                    hdl_result.kwargs,
+                    dict(
+                        activity_id=service_act.id,
+                        service_act=service_act.shell(),
+                        process_id=process.id,
+                        version=status.version,
+                        parent_data=process.top_pipeline.data,
+                    ),
+                )
 
                 # reset mock
                 service_act_h.hydrate_node_data.reset_mock()

@@ -6,7 +6,6 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 import http from '@/api'
-import qs from 'qs'
 
 export default {
     namespaced: true,
@@ -19,30 +18,35 @@ export default {
         }
     },
     actions: {
-        getTemplateList ({ rootState }, { limit, offset = 0 } = {}) {
-            const pager = limit ? `limit=${limit}&offset=${offset}&` : ''
-            const url = `${global.getMobileUrlPrefix().template}?${pager}business__cc_id=${rootState.bizId}`
-            return http.get(url).then(response => response)
+        getTemplateList ({ rootState }, params = {}) {
+            const { limit, offset } = params
+            return http.get('api/v3/weixin_template/', {
+                params: { limit, offset, project__id: rootState.bizId }
+            }).then(response => response)
         },
-
         getTemplate ({ commit, state }, templateId) {
-            const url = `${global.getMobileUrlPrefix().template}${templateId}/`
             commit('setTemplateId', templateId)
-            return http.get(url).then(response => response)
+            return http.get(`api/v3/weixin_template/${templateId}/`).then(response => response)
         },
-
-        collectTemplate ({ rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState.bizId).templateCollect}`
-            return http.post(
-                url,
-                qs.stringify(params),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        getCollectedTemplate ({ rootState }) {
+            return http.get(`api/v3/weixin_collection/`).then(response => response)
+        },
+        collectTemplate ({ rootState }, list) {
+            return http.put(
+                `api/v3/weixin_collection/`,
+                { objects: list }
             ).then(response => response)
         },
-
-        getSchemeList ({ commit, state, rootState }) {
-            const url = `${global.getMobileUrlPrefix().schemes}?biz_cc_id=${rootState.bizId}&template_id=${state.id}`
-            return http.get(url).then(response => {
+        deleteCollect ({ rootState }, id) {
+            return http.delete(`api/v3/weixin_collection/${id}/`).then(response => response.data)
+        },
+        getSchemeList ({ state, rootState }) {
+            return http.get('api/v3/weixin_scheme/', {
+                params: {
+                    project__id: rootState.bizId,
+                    template_id: state.id
+                }
+            }).then(response => {
                 const data = response.objects || []
                 data.map(o => {
                     o.text = o.name
@@ -51,40 +55,30 @@ export default {
                 return data
             })
         },
-
         getScheme ({ commit, state }, id) {
-            const url = `${global.getMobileUrlPrefix().schemes}${id}/`
-            return http.get(url).then(response => response)
+            return http.get(`api/v3/weixin_scheme/${id}/`).then(response => response)
         },
-
-        getPreviewTaskTree ({ rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState.bizId).instancePreview}`
-            return http.post(
-                url,
-                qs.stringify(params),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-            ).then(response => {
+        getPreviewTaskTree ({ rootState }, data) {
+            return http.post(`taskflow/api/preview_task_tree/${rootState.bizId}/`, data).then(response => {
                 return response.data.pipeline_tree
             })
         },
-
         createTask ({ rootState, state }, data) {
-            const url = `${global.getMobileUrlPrefix().instance}`
             const requestData = {
-                'business': `api/v3/business/${rootState.bizId}/`,
+                'project': `api/v3/project/${rootState.bizId}/`,
                 'template_id': state.id,
                 'creator': rootState.user.username,
                 'name': data.name,
                 'description': data.description,
-                'pipeline_tree': data.exec_data,
+                'pipeline_tree': JSON.stringify(data.exec_data),
                 'create_method': 'mobile',
                 'create_info': 'mobile',
-                'flow_type': 'common'
+                'flow_type': 'common',
+                'template_source': 'project'
             }
             return http.post(
-                url,
-                requestData,
-                { headers: { 'Content-Type': 'application/json;charset=UTF-8' } }
+                'api/v3/weixin_taskflow/',
+                requestData
             ).then(response => response)
         }
     }
