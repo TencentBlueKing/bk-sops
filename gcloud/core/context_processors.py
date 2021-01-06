@@ -104,7 +104,6 @@ def mysetting(request):
     # custom context config
     custom_context = getattr(settings, "CUSTOM_HOME_RENDER_CONTEXT", {})
     if isinstance(custom_context, dict):
-        for key, val in custom_context.items():
-            ctx[key] = val
+        ctx.update(custom_context)
 
     return ctx
