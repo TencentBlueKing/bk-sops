@@ -130,7 +130,7 @@ class JobFastPushFileService(JobService):
         job_timeout = data.get_one_of_inputs("job_timeout")
 
         if ip_is_exist:
-            difference_ip_list = get_difference_ip_list(original_ip_list, ip_list)
+            difference_ip_list = get_difference_ip_list(original_ip_list, [ip_item["ip"] for ip_item in ip_list])
             if difference_ip_list:
                 data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
                 return False

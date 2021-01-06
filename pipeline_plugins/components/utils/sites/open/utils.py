@@ -189,5 +189,5 @@ def get_difference_ip_list(original_ip_list, ip_list):
     @return:
     """
     input_ip_list = set(get_ip_by_regex(original_ip_list))
-    difference_ip_list = set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list]))
+    difference_ip_list = set(input_ip_list).difference(set(ip_list))
     return difference_ip_list
