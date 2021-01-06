@@ -101,4 +101,9 @@ def mysetting(request):
         "BK_STATIC_URL": frontend_entry_url,
     }
 
+    # custom context config
+    custom_context = getattr(settings, "CUSTOM_HOME_RENDER_CONTEXT", {})
+    if isinstance(custom_context, dict):
+        ctx.update(custom_context)
+
     return ctx
