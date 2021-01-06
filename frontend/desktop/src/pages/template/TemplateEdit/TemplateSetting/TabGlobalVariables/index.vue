@@ -368,7 +368,7 @@
             width: 242px;
         }
         .col-key {
-            width: 174px;
+            width: 180px;
         }
         .col-attributes {
             width: 77px;

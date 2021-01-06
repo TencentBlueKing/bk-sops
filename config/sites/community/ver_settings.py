@@ -11,16 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
+import env
 
-from config import BK_PAAS_HOST as _BK_PAAS_HOST
+REMOTE_ANALYSIS_URL = "%s/console/static/js/analysis.min.js" % env.BK_PAAS_HOST
+REMOTE_API_URL = "%s/console/static/bk_api/api.js" % env.BK_PAAS_HOST
 
-REMOTE_ANALYSIS_URL = '%s/console/static/js/analysis.min.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
-REMOTE_API_URL = '%s/console/static/bk_api/api.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
+ESB_SDK_NAME = "packages.blueking.component"
 
-ESB_SDK_NAME = 'packages.blueking.component'
-
-CALLBACK_KEY = b'jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY='
+CALLBACK_KEY = b"jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY="
 RSA_PRIV_KEY = """
 -----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQDA2XZvbf++4M6YLSgS93kYJS34e2TZvq/s6r0yFDz0je38ekW0
@@ -40,38 +38,34 @@ LOah9mmRwLJdcfa3Js+jw2lOCmxzqauYZHVHg/hH7g==
 """
 
 # PUB_KEY for frontend, which can not use three quotes
-RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
-              "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA2XZvbf++4M6YLSgS93kYJS34\\n" + \
-              "e2TZvq/s6r0yFDz0je38ekW02aH5efPTNijbJgHIbqfXzm8lBpmBbk9VlUHaJVyZ\\n" + \
-              "itqI6xYBqb3WBRu9WYEd8skFy1mwOEbxOgsXoOPd9tLkt4etSMzm7kdBqmZKIeiA\\n" + \
-              "OtbmirDqkuz6M64b5wIDAQAB\\n" + \
-              "-----END PUBLIC KEY-----"
+RSA_PUB_KEY = (
+    "-----BEGIN PUBLIC KEY-----\\n"
+    + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA2XZvbf++4M6YLSgS93kYJS34\\n"
+    + "e2TZvq/s6r0yFDz0je38ekW02aH5efPTNijbJgHIbqfXzm8lBpmBbk9VlUHaJVyZ\\n"
+    + "itqI6xYBqb3WBRu9WYEd8skFy1mwOEbxOgsXoOPd9tLkt4etSMzm7kdBqmZKIeiA\\n"
+    + "OtbmirDqkuz6M64b5wIDAQAB\\n"
+    + "-----END PUBLIC KEY-----"
+)
 
 # APIGW Auth
-APIGW_APP_CODE_KEY = 'bk_app_code'
-APIGW_USER_USERNAME_KEY = 'bk_username'
+APIGW_APP_CODE_KEY = "bk_app_code"
+APIGW_USER_USERNAME_KEY = "bk_username"
 
 COMPATIBLE_MODULE_MAP = {
     # 插件路径迁移兼容
-    'pipeline.components.collections.common': 'pipeline_plugins.components.collections.common',
-    'pipeline.components.collections.controller': 'pipeline_plugins.components.collections.controller',
-    'pipeline.components.collections.sites.community.bk': 'pipeline_plugins.components.collections.sites.open.bk',
-    'pipeline.components.collections.sites.community.cc': 'pipeline_plugins.components.collections.sites.open.cc',
-    'pipeline.components.collections.sites.community.job': 'pipeline_plugins.components.collections.sites.open.job',
-    'pipeline_plugins.components.collections.sites.community.bk':
-        'pipeline_plugins.components.collections.sites.open.bk',
-    'pipeline_plugins.components.collections.sites.community.cc':
-        'pipeline_plugins.components.collections.sites.open.cc',
-    'pipeline_plugins.components.collections.sites.community.job':
-        'pipeline_plugins.components.collections.sites.open.job',
-    'pipeline_plugins.components.collections.sites.open.cc_plugins.v1_0':
-        'pipeline_plugins.components.collections.sites.open.cc.create_set.v1_0',
-
+    "pipeline.components.collections.common": "pipeline_plugins.components.collections.common",
+    "pipeline.components.collections.controller": "pipeline_plugins.components.collections.controller",
+    "pipeline.components.collections.sites.community.bk": "pipeline_plugins.components.collections.sites.open.bk",
+    "pipeline.components.collections.sites.community.cc": "pipeline_plugins.components.collections.sites.open.cc",
+    "pipeline.components.collections.sites.community.job": "pipeline_plugins.components.collections.sites.open.job",
+    "pipeline_plugins.components.collections.sites.community.bk": "pipeline_plugins.components.collections.sites.open.bk",  # noqa
+    "pipeline_plugins.components.collections.sites.community.cc": "pipeline_plugins.components.collections.sites.open.cc",  # noqa
+    "pipeline_plugins.components.collections.sites.community.job": "pipeline_plugins.components.collections.sites.open.job",  # noqa
+    "pipeline_plugins.components.collections.sites.open.cc_plugins.v1_0": "pipeline_plugins.components.collections.sites.open.cc.create_set.v1_0",  # noqa
     # 变量路径迁移兼容
-    'pipeline.variables.collections.common': 'pipeline_plugins.variables.collections.common',
-    'pipeline.variables.collections.sites.community.cc': 'pipeline_plugins.variables.collections.sites.open.cc',
-    'pipeline_plugins.variables.variables.collections.sites.community.cc':
-        'pipeline_plugins.variables.collections.sites.open.cc',
+    "pipeline.variables.collections.common": "pipeline_plugins.variables.collections.common",
+    "pipeline.variables.collections.sites.community.cc": "pipeline_plugins.variables.collections.sites.open.cc",
+    "pipeline_plugins.variables.variables.collections.sites.community.cc": "pipeline_plugins.variables.collections.sites.open.cc",  # noqa
 }
 
-USER_TOKEN_TYPE = 'bk_token'
+USER_TOKEN_TYPE = "bk_token"

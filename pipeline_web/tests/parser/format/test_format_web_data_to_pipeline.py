@@ -597,6 +597,138 @@ web_tree = json.loads(
                                     }
                                 }
                             }
+                        },
+                        "${s1}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${s1}",
+                            "name": "s1",
+                            "show_type": "show",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "2",
+                            "version": "legacy"
+                        },
+                        "${h1}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${h1}",
+                            "name": "h1",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "12",
+                            "version": "legacy"
+                        },
+                        "${v1}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${v1}",
+                            "name": "v1",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "${5 if int(h1) < 10 else h1}",
+                            "version": "legacy"
+                        },
+                        "${v2}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${v2}",
+                            "name": "v2",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "${int(v1) + 1}",
+                            "version": "legacy"
+                        },
+                        "${v3}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${v3}",
+                            "name": "v3",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "${int(s1) + 1}",
+                            "version": "legacy"
+                        },
+                        "${v4}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${v4}",
+                            "name": "v4",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "${int(v3) + 1}",
+                            "version": "legacy"
                         }
                     },
                     "end_event": {
@@ -1737,6 +1869,36 @@ pipeline_tree = json.loads(
                                     "with_cloud_id": false
                                 },
                                 "is_param": true
+                            },
+                            "${h1}": {
+                                "type": "plain",
+                                "value": "12",
+                                "is_param": false
+                            },
+                            "${s1}": {
+                                "type": "plain",
+                                "value": "2",
+                                "is_param": true
+                            },
+                            "${v1}": {
+                                "type": "splice",
+                                "value": "12",
+                                "is_param": false
+                            },
+                            "${v2}": {
+                                "type": "splice",
+                                "value": "13",
+                                "is_param": false
+                            },
+                            "${v3}": {
+                                "type": "splice",
+                                "value": "${int(s1) + 1}",
+                                "is_param": false
+                            },
+                            "${v4}": {
+                                "type": "splice",
+                                "value": "${int(v3) + 1}",
+                                "is_param": false
                             }
                         },
                         "outputs": []
@@ -1788,6 +1950,10 @@ pipeline_tree = json.loads(
                             "excludes": [],
                             "with_cloud_id": false
                         }
+                    },
+                    "${s1}": {
+                        "type": "splice",
+                        "value": "2"
                     }
                 }
             },
@@ -2176,7 +2342,7 @@ pipeline_tree = json.loads(
                 },
                 "${time}": {
                     "type": "splice",
-                    "value": "${time2}",
+                    "value": "3",
                     "is_param": false
                 },
                 "${time2}": {
@@ -2216,7 +2382,7 @@ pipeline_tree = json.loads(
 
 class FormatWebDataToPipelineTestCase(TestCase):
     def setUp(self):
-        self.maxDiff = None
+        self.maxDiff = 1
 
     def test_normal(self):
         """
@@ -2227,5 +2393,7 @@ class FormatWebDataToPipelineTestCase(TestCase):
         隐藏变量表达式解析
         输出变量引用解析
         全局变量引用输出变量解析
+        子流程中隐藏变量 mako 预解析
+        隐藏变量 mako 预解析
         """
         self.assertEqual(format_web_data_to_pipeline(web_tree), pipeline_tree)

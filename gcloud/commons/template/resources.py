@@ -81,6 +81,7 @@ class CommonTemplateResource(GCloudModelResource):
             "subprocess_has_update": ALL,
             "has_subprocess": ALL,
         }
+        ordering = ["pipeline_template"]
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
         # iam config

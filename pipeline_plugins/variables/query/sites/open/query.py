@@ -16,13 +16,13 @@ from django.conf.urls import url
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.base.utils.inject import supplier_account_inject
-from pipeline_plugins.variables.utils import get_service_template_list, get_set_list
-
 from gcloud.conf import settings
+from gcloud.constants import BIZ_INTERNAL_MODULE
 from gcloud.utils.cmdb import batch_request
 from gcloud.core.models import StaffGroupSet
+from pipeline_plugins.base.utils.inject import supplier_account_inject
 from pipeline_plugins.variables.query.sites.open import select
+from pipeline_plugins.variables.utils import get_service_template_list, get_set_list
 
 logger = logging.getLogger("root")
 
@@ -116,15 +116,22 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     service_templates_untreated = get_service_template_list(request.user.username, biz_cc_id, supplier_account)
     service_templates = []
     for template_untreated in service_templates_untreated:
-        template = {
-            "value": template_untreated["name"],
-            "text": template_untreated["name"],
-        }
-        service_templates.append(template)
+        if template_untreated["name"] not in BIZ_INTERNAL_MODULE:
+            template = {
+                "value": template_untreated["name"],
+                "text": template_untreated["name"],
+            }
+            service_templates.append(template)
     # 为服务模板列表添加一个all选项
     if request.GET.get("all"):
         service_templates.insert(0, {"value": "all", "text": _("所有模块(all)")})
 
+    # 添加空闲机, 故障机和待回收模块选项
+    service_templates.extend([
+        {"value": _("空闲机"), "text": _("空闲机")},
+        {"value": _("待回收"), "text": _("待回收")},
+        {"value": _("故障机"), "text": _("故障机")}
+    ])
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 

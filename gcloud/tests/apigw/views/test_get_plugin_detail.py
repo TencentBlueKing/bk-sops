@@ -61,6 +61,7 @@ class GetPluginDetailAPITest(APITest):
                     "name": comp.name,
                     "group_name": comp.group_name,
                     "version": comp.version,
+                    "form": comp.form,
                 }
 
                 response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID, code="code_token"))

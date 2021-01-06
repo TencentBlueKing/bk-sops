@@ -54,7 +54,7 @@ class CCHostCustomPropertyChangeService(Service):
             ),
             self.InputItem(
                 name=_("规则定义(主机属性)"),
-                description="cc_hostname_rule",
+                key="cc_hostname_rule",
                 type="array",
                 schema=ArrayItemSchema(
                     description=_("没有数据"),
@@ -70,7 +70,7 @@ class CCHostCustomPropertyChangeService(Service):
             ),
             self.InputItem(
                 name=_("规则定义(自定义属性)"),
-                description="cc_hostname_rule",
+                key="cc_hostname_rule",
                 type="array",
                 schema=ArrayItemSchema(
                     description=_("没有数据"),
@@ -199,13 +199,13 @@ class CCHostCustomPropertyChangeService(Service):
                     # 集群属性
                     set_content_list = [set_property[_set["bk_set_id"]] for _set in host["Sets"]]
                     for set_content in set_content_list:
-                        if set_content[rule["field_content"]]:
+                        if set_content.get(rule["field_content"]):
                             custom_property_value += set_content[rule["field_content"]]
                 if rule["field_rule_code"] == self.FileCode.module_rule:
                     # 模块属性
                     module_content_list = [module_property[_module["bk_module_id"]] for _module in host["Modules"]]
                     for module_content in module_content_list:
-                        if module_content[rule["field_content"]]:
+                        if module_content.get(rule["field_content"]):
                             custom_property_value += module_content[rule["field_content"]]
                 if rule["field_rule_code"] == self.FileCode.ip_type_rule:
                     custom_property_value += host["InnerIP"].replace(".", rule["field_content"])
@@ -220,16 +220,9 @@ class CCHostCustomPropertyChangeService(Service):
                 # 自定义字符串
                 if rule["field_rule_code"] == self.FileCode.custom_string:
                     custom_property_value += rule["field_content"]
-            host_list.append({
-                "bk_host_id": host["HostID"],
-                "properties": {
-                    custom_property: custom_property_value
-                }
-            })
+            host_list.append({"bk_host_id": host["HostID"], "properties": {custom_property: custom_property_value}})
 
-        kwargs = {
-            "update": host_list
-        }
+        kwargs = {"update": host_list}
         result = client.cc.batch_update_host(kwargs)
         if not result["result"]:
             message = cc_handle_api_error("cc.batch_update_host", kwargs, result)
@@ -241,10 +234,9 @@ class CCHostCustomPropertyChangeService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_('不合法的IP'),
-                            key='invalid_ip',
-                            type='string',
-                            schema=StringItemSchema(description=_('不合法的IP'))),
+            self.OutputItem(
+                name=_("不合法的IP"), key="invalid_ip", type="string", schema=StringItemSchema(description=_("不合法的IP"))
+            ),
         ]
 
 
@@ -252,19 +244,22 @@ class CCHostCustomPropertyChangeComponent(Component):
     name = _("按规则修改主机自定义属性")
     code = "cc_host_custom_property_change"
     bound_service = CCHostCustomPropertyChangeService
-    form = '{static_url}components/atoms/cc/host_custom_property_change/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                                         ver=VERSION.replace('.', '_'))
+    form = "{static_url}components/atoms/cc/host_custom_property_change/{ver}.js".format(
+        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
+    )
     version = VERSION
-    desc = _("1.规则示例：\n"
-             "  IP: 192.168.0.1\n"
-             "  自定义属性：主要维护人\n"
-             "  规则定义(主机属性)：\n"
-             "     主机属性      | 主要维护人 | 1 \n"
-             "     set属性      | 集群名    | 3 \n"
-             "  规则定义(自定义属性)：\n"
-             "     自定义字符(串) | hello    | 2 \n"
-             "     ip(.需替换成) | *        | 4 \n"
-             "  修改成功后的期望值为：\n"
-             "     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
-             "     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
-             "2.次序是用来给规则排序的")
+    desc = _(
+        "1.规则示例：\n"
+        "  IP: 192.168.0.1\n"
+        "  自定义属性：主要维护人\n"
+        "  规则定义(主机属性)：\n"
+        "     主机属性      | 主要维护人 | 1 \n"
+        "     set属性      | 集群名    | 3 \n"
+        "  规则定义(自定义属性)：\n"
+        "     自定义字符(串) | hello    | 2 \n"
+        "     ip(.需替换成) | *        | 4 \n"
+        "  修改成功后的期望值为：\n"
+        "     主要维护人 = 主要维护人【admin】 + 自定义字符(串)【hello】 + 集群名【set_name】 + ip(.需替换成)【192*168*0*1】\n"
+        "     即： 主要维护人 = adminhelloset_name192*168*0*1 \n"
+        "2.次序是用来给规则排序的"
+    )
