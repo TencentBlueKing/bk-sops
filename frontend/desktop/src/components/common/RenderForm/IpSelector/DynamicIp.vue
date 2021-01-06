@@ -146,7 +146,7 @@
                 nodes.forEach(item => {
                     list.push(item.id)
                     if (item.children && item.children.length > 0) {
-                        list = list.concat(this.getDisabledNodes(item.children))
+                        list = list.concat(this.traverseNodesToList(item.children))
                     }
                 })
                 return list

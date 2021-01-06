@@ -16,7 +16,7 @@ import logging
 from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from pipeline.core.data.var import LazyVariable
 
 logger = logging.getLogger("root")
@@ -72,6 +72,10 @@ class SetGroupInfo(object):
             flat_field_name = "flat__{}".format(_field)
             setattr(self, _field, data[_field])
             setattr(self, "flat__{}".format(_field), data[flat_field_name])
+        self._pipeline_var_str_value = "set_field_data: {}".format(data)
+
+    def __repr__(self):
+        return self._pipeline_var_str_value
 
 
 class VarSetGroupSelector(LazyVariable):

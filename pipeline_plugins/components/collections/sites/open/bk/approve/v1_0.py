@@ -85,8 +85,12 @@ class ApproveService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
         try:
+            rejected_block = data.get_one_of_inputs("rejected_block", True)
             approve_result = callback_data["approve_result"]
             data.outputs.approve_result = _("通过") if approve_result else _("拒绝")
+            # 审核拒绝不阻塞
+            if not approve_result and not rejected_block:
+                return True
             return approve_result
         except Exception as e:
             err_msg = "get Approve Component result failed: {}, err: {}"

@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest
+from tastypie.exceptions import BadRequest, NotFound
 from tastypie.validation import FormValidation
 
 from iam.contrib.tastypie.authorization import ReadOnlyCompleteListIAMAuthorization
@@ -31,6 +31,7 @@ from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
 from pipeline_web.label.models import LabelGroup, Label
 from pipeline_web.plugin_management.utils import DeprecatedPlugin
+from pipeline.exceptions import ComponentNotExistException
 
 from gcloud.core.models import Business, Project, ProjectCounter, ProjectBasedComponent
 from gcloud.commons.tastypie import GCloudModelResource
@@ -135,7 +136,18 @@ class UserProjectResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = Project.objects.all().order_by("-id")
         resource_name = "user_project"
-        authorization = ReadOnlyAuthorization()
+        filtering = {"is_disable": ALL}
+        q_fields = ["id", "name", "desc", "creator"]
+        authorization = ProjectAuthorization(
+            iam=iam,
+            helper=ProjectIAMAuthorizationHelper(
+                system=IAMMeta.SYSTEM_ID,
+                create_action=None,
+                read_action=IAMMeta.PROJECT_VIEW_ACTION,
+                update_action=IAMMeta.PROJECT_EDIT_ACTION,
+                delete_action=None,
+            ),
+        )
         iam_resource_helper = SimpleResourceHelper(
             type=IAMMeta.PROJECT_RESOURCE,
             id_field="id",
@@ -150,7 +162,6 @@ class UserProjectResource(GCloudModelResource):
                 IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
             ],
         )
-        filtering = {"is_disable": ALL}
 
     def obj_get(self, bundle, **kwargs):
         raise BadRequest("invalid operation")
@@ -161,8 +172,6 @@ class UserProjectResource(GCloudModelResource):
 
 
 class ComponentModelResource(GCloudModelResource):
-    group_icon = fields.CharField(attribute="group_icon", readonly=True, null=True)
-
     class Meta(GCloudModelResource.Meta):
         queryset = ComponentModel.objects.filter(status=True).order_by("name")
         resource_name = "component"
@@ -204,9 +213,14 @@ class ComponentModelResource(GCloudModelResource):
     def alter_list_data_to_serialize(self, request, data):
 
         component_phase_dict = DeprecatedPlugin.objects.get_components_phase_dict()
+        altered_objects = []
 
         for bundle in data["objects"]:
-            component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
+            try:
+                component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
+            except ComponentNotExistException:
+                # 内存中没有读取到这个插件，故忽略掉后续的步骤避免影响整个接口的返回
+                continue
             bundle.data["output"] = component.outputs_format()
             bundle.data["form"] = component.form
             bundle.data["output_form"] = component.output_form
@@ -215,17 +229,23 @@ class ComponentModelResource(GCloudModelResource):
             # 国际化
             name = bundle.data["name"].split("-")
             bundle.data["group_name"] = _(name[0])
+            bundle.data["group_icon"] = component.group_icon
             bundle.data["name"] = _(name[1])
             bundle.data["phase"] = component_phase_dict.get(bundle.data["code"], {}).get(
                 bundle.data["version"], DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
             )
+            altered_objects.append(bundle)
 
+        data["objects"] = altered_objects
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
         data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         bundle = data
-        component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
+        try:
+            component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
+        except ComponentNotExistException:
+            raise NotFound("Can not found {}({})".format(bundle.data["code"], bundle.data["version"]))
         bundle.data["output"] = component.outputs_format()
         bundle.data["form"] = component.form
         bundle.data["output_form"] = component.output_form
@@ -234,6 +254,7 @@ class ComponentModelResource(GCloudModelResource):
         # 国际化
         name = bundle.data["name"].split("-")
         bundle.data["group_name"] = _(name[0])
+        bundle.data["group_icon"] = component.group_icon
         bundle.data["name"] = _(name[1])
 
         return data

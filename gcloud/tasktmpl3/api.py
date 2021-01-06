@@ -115,8 +115,8 @@ def import_templates(request, project_id):
 
     try:
         result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
-    except Exception as e:
-        logger.error(traceback.format_exc(e))
+    except Exception:
+        logger.error(traceback.format_exc())
         return JsonResponse(
             {
                 "result": False,

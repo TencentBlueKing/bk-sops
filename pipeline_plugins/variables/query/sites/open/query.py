@@ -18,8 +18,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.constants import BIZ_INTERNAL_MODULE
-from gcloud.utils.cmdb import batch_request
 from gcloud.core.models import StaffGroupSet
+from api.utils.request import batch_request
+from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_inject
 from pipeline_plugins.variables.query.sites.open import select
 from pipeline_plugins.variables.utils import get_service_template_list, get_set_list
@@ -127,11 +128,13 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
         service_templates.insert(0, {"value": "all", "text": _("所有模块(all)")})
 
     # 添加空闲机, 故障机和待回收模块选项
-    service_templates.extend([
-        {"value": _("空闲机"), "text": _("空闲机")},
-        {"value": _("待回收"), "text": _("待回收")},
-        {"value": _("故障机"), "text": _("故障机")}
-    ])
+    service_templates.extend(
+        [
+            {"value": _("空闲机"), "text": _("空闲机")},
+            {"value": _("待回收"), "text": _("待回收")},
+            {"value": _("故障机"), "text": _("故障机")},
+        ]
+    )
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 
@@ -152,7 +155,33 @@ def cc_get_set_group(request, biz_cc_id):
     return JsonResponse({"result": True, "data": group_data})
 
 
+@supplier_account_inject
+def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
+    """
+    @summary: 获取环境类型
+    @param request:
+    @param biz_cc_id:
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
+    cc_result = client.cc.search_object_attribute(kwargs)
+    if not cc_result["result"]:
+        message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    obj_property = []
+    for item in cc_result["data"]:
+        if item["bk_property_id"] == "bk_set_env":
+            for option in item["option"]:
+                obj_property.append({"value": option["id"], "text": option["name"]})
+    return JsonResponse({"result": True, "data": obj_property})
+
+
 urlpatterns += [
+    url(r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_get_set_env,),
     url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
     url(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),

@@ -536,7 +536,8 @@
                 if (!this.variableData.key) {
                     this.isSaveConfirmDialogShow = true
                 } else {
-                    const editingVariable = Object.assign({}, this.theEditingData)
+                    const tagCode = this.renderConfig[0].tag_code
+                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
@@ -564,23 +565,26 @@
                     }
 
                     const variable = this.theEditingData
-                    const tagCode = this.renderConfig[0].tag_code
-                    let varValue = {}
+                    if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
+                        const tagCode = this.renderConfig[0].tag_code
+                        let varValue = {}
+    
+                        // value为空且不渲染RenderForm组件的变量取表单默认值
+                        if (this.renderData.hasOwnProperty(tagCode)) {
+                            varValue = this.renderData
+                        } else {
+                            varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
+                        }
+
+                        // 变量key值格式统一
+                        if (!/^\$\{\w+\}$/.test(variable.key)) {
+                            variable.key = '${' + variable.key + '}'
+                        }
+    
+                        this.theEditingData.value = varValue[tagCode]
+                    }
+
                     this.theEditingData.name = this.theEditingData.name.trim()
-
-                    // value为空且不渲染RenderForm组件的变量取表单默认值
-                    if (this.renderData.hasOwnProperty(tagCode)) {
-                        varValue = this.renderData
-                    } else {
-                        varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
-                    }
-                    
-                    // 变量key值格式统一
-                    if (!/^\$\{\w+\}$/.test(variable.key)) {
-                        variable.key = '${' + variable.key + '}'
-                    }
-
-                    this.theEditingData.value = varValue[tagCode]
                     
                     if (!this.variableData.key) { // 新增变量
                         variable.version = 'legacy'

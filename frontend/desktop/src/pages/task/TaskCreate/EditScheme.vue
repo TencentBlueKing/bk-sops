@@ -73,6 +73,7 @@
                 this.errorMsg = ''
                 const text = this.schemeText.trim()
                 const excludeNodes = []
+                const passedNodes = [] // 匹配过的节点
                 const rules = text.split('\n').filter(item => item.trim() !== '')
                 if (rules.length !== this.orderedNodeData.length) {
                     this.errorMsg = i18n.t('方案节点个数（') + rules.length + i18n.t('）与实际节点个数（') + this.orderedNodeData.length + i18n.t('）不一致，请确认导出方案后模板是否有过修改')
@@ -100,8 +101,10 @@
                             const statusText = Number(nameSlice[ind])
                             nameSlice.pop(ind)
                             nodeName = nameSlice.join(' ')
-                            const node = this.orderedNodeData.find(item => item.stage_name === stageName && item.name === nodeName)
+                            // 找到节点名称和步骤名称的节点并去掉已匹配的节点
+                            const node = this.orderedNodeData.find(item => item.stage_name === stageName && item.name === nodeName && !passedNodes.includes(item.id))
                             if (node) {
+                                passedNodes.push(node.id)
                                 if (node.optional ? [0, 1].includes(statusText) : statusText === 2) {
                                     if (node.optional && statusText === 0) {
                                         excludeNodes.push(node.id)
@@ -163,6 +166,7 @@
     .form-content {
         padding: 20px 20px 20px 40px;
         height: calc(100vh - 110px);
+        overflow: auto;
         .content-tips {
             font-size: 12px;
             color: #63656e;

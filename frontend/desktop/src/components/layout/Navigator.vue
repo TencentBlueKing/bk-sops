@@ -65,8 +65,9 @@
                         </div>
                     </template>
                     <div class="operate-container" slot="dropdown-content">
-                        <div class="operate-item" @click="goToHelpDoc">{{ $t('帮助文档') }}</div>
+                        <div class="operate-item" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
                         <div class="operate-item" @click="onOpenVersion">{{ $t('版本日志') }}</div>
+                        <div class="operate-item" @click="goToFeedback">{{ $t('问题反馈') }}</div>
                     </div>
                 </bk-dropdown-menu>
             </li>
@@ -188,6 +189,8 @@
         data () {
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
+                bkDocUrl: window.BK_DOC_URL,
+                bkFeedbackUrl: window.FEEDBACK_URL,
                 logList: [],
                 logDetail: '',
                 isMoreOperateActive: false,
@@ -314,7 +317,10 @@
                 }
             },
             goToHelpDoc () {
-                window.open('https://bk.tencent.com/docs/document/5.1/3/22', '_blank')
+                window.open(this.bkDocUrl, '_blank')
+            },
+            goToFeedback () {
+                window.open(this.bkFeedbackUrl, '_blank')
             },
             /* 打开版本日志 */
             async onOpenVersion () {
@@ -433,7 +439,7 @@ header {
                 border: 1px solid #c4c6cc;
                 border-radius: 2px;
                 box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
-                z-index: 1001;
+                z-index: 2001;
                 .sub-nav-item {
                     width: 100%;
                     display: block;
