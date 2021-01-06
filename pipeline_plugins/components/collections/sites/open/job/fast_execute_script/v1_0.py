@@ -167,21 +167,12 @@ class JobFastExecuteScriptService(JobService):
 
         if across_biz:
             ip_info = {"ip_result": []}
-            for ip_str in original_ip_list.split("\n"):
-                if not ip_str:
+            for match in plat_ip_reg.finditer(original_ip_list):
+                if not match:
                     continue
-                if plat_ip_reg.match(ip_str):
-                    plat_ip = []
-                    for match in plat_ip_reg.finditer(ip_str):
-                        plat_ip.append(match.group())
-                    for ip in plat_ip:
-                        cloud_id, inner_ip = ip.strip().split(":")
-                        ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
-                else:
-                    message = _("允许跨业务时IP格式需满足：【云区域ID:IP】")
-                    self.logger.error(message)
-                    data.set_outputs("ex_data", message)
-                    return False
+                ip_str = match.group()
+                cloud_id, inner_ip = ip_str.split(":")
+                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
         else:
             ip_info = cc_get_ips_info_by_str(
                 username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
