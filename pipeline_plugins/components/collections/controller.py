@@ -39,6 +39,13 @@ class PauseService(Service):
     def schedule(self, data, parent_data, callback_data=None):
         return True
 
+    def inputs_format(self):
+        return [
+            self.InputItem(
+                name=_("描述"), key="description", type="string", schema=StringItemSchema(description=_("描述")),
+            )
+        ]
+
     def outputs_format(self):
         return []
 
