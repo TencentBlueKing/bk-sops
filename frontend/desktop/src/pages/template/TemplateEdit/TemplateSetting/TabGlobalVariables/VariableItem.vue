@@ -71,11 +71,11 @@
                     'col-item',
                     'col-cited',
                     {
-                        'disabled': citedList.length === 0
+                        'disabled': citedNum === 0
                     }
                 ]"
                 @click.stop="onViewCitedList">
-                {{ citedList.length }}
+                {{ citedNum }}
             </span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
@@ -109,7 +109,8 @@
         },
         props: {
             outputed: Boolean,
-            variableData: Object
+            variableData: Object,
+            variableCited: Object
         },
         data () {
             return {
@@ -125,44 +126,16 @@
                 return this.variableData.source_type === 'system'
             },
             citedList () {
-                const sourceInfo = this.variableData.source_info
-                // 该全局变量被哪些节点勾选的集合
-                const nodes = Object.keys(sourceInfo).map(id => id)
-                // 输入参数表单直接填写变量key的情况
-                Object.keys(this.activities).forEach(id => {
-                    // 节点已在引用节点列表中需要去重
-                    if (nodes.includes(id)) {
-                        return
-                    }
-                    const activity = this.activities[id]
-                    if (activity.type === 'SubProcess') { // 子流程任务节点
-                        Object.keys(activity.constants).forEach(key => {
-                            const varItem = activity.constants[key]
-                            // 隐藏类型变量不考虑
-                            if (varItem.show_type === 'hide') {
-                                return
-                            }
-                            // 表单已勾选到全局变量
-                            const isExist = sourceInfo[id] && sourceInfo[id].includes(varItem.key)
-                            if (isExist) {
-                                return
-                            }
-                            // 匹配表单项的值是否包含变量的key
-                            this.setCitingVarNodes(varItem.value, nodes, id)
-                        })
-                    } else { // 标准插件任务节点
-                        const component = activity.component
-                        Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
-                            const val = component.data[form].value
-                            const isExist = sourceInfo[id] && sourceInfo[id].includes(form)
-                            if (isExist) {
-                                return
-                            }
-                            this.setCitingVarNodes(val, nodes, id)
-                        })
-                    }
-                })
-                return nodes
+                const defaultCiteData = {
+                    activities: [],
+                    gateways: [],
+                    constants: []
+                }
+                return this.variableCited[this.variableData.key] || defaultCiteData
+            },
+            citedNum () {
+                const { activities, gateways, constants } = this.citedList
+                return activities.length + gateways.length + constants.length
             }
         },
         methods: {
@@ -227,7 +200,7 @@
             },
             // 查看引用节点信息
             onViewCitedList () {
-                if (this.citedList.length > 0 && !this.showCitedList) {
+                if (this.citedNum > 0 && !this.showCitedList) {
                     this.showCitedList = true
                 } else {
                     this.showCitedList = false
