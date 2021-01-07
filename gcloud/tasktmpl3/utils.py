@@ -36,10 +36,10 @@ def get_template_context(pipeline_template, data_type, username=""):
 
 def analysis_pipeline_constants_ref(pipeline_tree):
 
-    result = {key: {"activities": [], "gateways": [], "constants": []} for key in pipeline_tree.get("constants", {})}
+    result = {key: {"activities": [], "conditions": [], "constants": []} for key in pipeline_tree.get("constants", {})}
 
     def ref_counter(key):
-        return result.setdefault("${%s}" % key, {"activities": [], "gateways": [], "constants": []})
+        return result.setdefault("${%s}" % key, {"activities": [], "conditions": [], "constants": []})
 
     for act_id, act in pipeline_tree.get("activities", {}).items():
         if act["type"] == "SubProcess":
@@ -56,14 +56,14 @@ def analysis_pipeline_constants_ref(pipeline_tree):
                 for r in refs:
                     ref_counter(r)["activities"].append(act_id)
 
-    for gateway_id, gateway in pipeline_tree.get("gateways", {}).items():
+    for gateway in pipeline_tree.get("gateways", {}).values():
         if gateway["type"] != "ExclusiveGateway":
             continue
 
-        for condition in gateway.get("conditions", {}).values():
+        for condition_id, condition in gateway.get("conditions", {}).items():
             refs = ConstantTemplate(condition["evaluate"]).get_reference()
             for r in refs:
-                ref_counter(r)["gateways"].append(gateway_id)
+                ref_counter(r)["conditions"].append(condition_id)
 
     for key, const in pipeline_tree.get("constants", {}).items():
         refs = ConstantTemplate(const.get("value")).get_reference()

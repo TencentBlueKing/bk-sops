@@ -19,6 +19,9 @@ from gcloud.tests.mock_settings import *  # noqa
 
 
 class AnalysisPipelineConstantsRefTestCase(TestCase):
+    def setUp(self):
+        self.maxDiff = None
+
     def test_defective_tree(self):
         self.assertEqual(analysis_pipeline_constants_ref({}), {})
 
@@ -292,20 +295,20 @@ class AnalysisPipelineConstantsRefTestCase(TestCase):
         expect = {
             "${c1}": {
                 "activities": ["nodec360d91ee7d67988b2a62264fd9f", "node5a259597d556caa0688af3e53833"],
-                "gateways": ["nodee90a33e783f5fe4e8b7ff46310a4"],
+                "conditions": ["linecc134c88c3db75f3a20753c192c6"],
                 "constants": ["${c2}", "${c3}"],
             },
             "${c2}": {
                 "activities": ["nodec360d91ee7d67988b2a62264fd9f"],
-                "gateways": ["nodee90a33e783f5fe4e8b7ff46310a4"],
+                "conditions": ["linecc134c88c3db75f3a20753c192c6"],
                 "constants": [],
             },
             "${c3}": {
                 "activities": ["nodec360d91ee7d67988b2a62264fd9f", "node5a259597d556caa0688af3e53833"],
-                "gateways": [],
+                "conditions": [],
                 "constants": ["${c2}"],
             },
-            "${c4}": {"activities": ["nodec360d91ee7d67988b2a62264fd9f"], "gateways": [], "constants": []},
+            "${c4}": {"activities": ["nodec360d91ee7d67988b2a62264fd9f"], "conditions": [], "constants": []},
         }
         result = analysis_pipeline_constants_ref(tree)
         self.assertEqual(expect, result)
