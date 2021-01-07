@@ -128,14 +128,14 @@
             citedList () {
                 const defaultCiteData = {
                     activities: [],
-                    gateways: [],
+                    conditions: [],
                     constants: []
                 }
                 return this.variableCited[this.variableData.key] || defaultCiteData
             },
             citedNum () {
-                const { activities, gateways, constants } = this.citedList
-                return activities.length + gateways.length + constants.length
+                const { activities, conditions, constants } = this.citedList
+                return activities.length + conditions.length + constants.length
             }
         },
         methods: {

@@ -44,7 +44,7 @@
                         name: '任务节点'
                     },
                     {
-                        id: 'gateways',
+                        id: 'conditions',
                         name: '分支条件'
                     },
                     {
@@ -73,10 +73,9 @@
                         let name = ''
                         if (key === 'activities') {
                             name = this.activities[item].name
-                        } else if (key === 'gateways') {
+                        } else if (key === 'conditions') {
                             const nodeId = this.lines.find(line => line.id === item).source.id
                             name = this.gateways[nodeId].conditions[id].name
-                            // name = item
                         } else {
                             name = this.variableList[item].name
                         }
@@ -87,7 +86,7 @@
             }
         },
         methods: {
-            // 引用节点点击
+            // 引用详情点击
             onCitedNodeClick (group, id) {
                 this.$emit('onCitedNodeClick', { group, id })
             }
