@@ -11,45 +11,68 @@
             </div>
         </div>
         <div class="schema-list-panel" v-if="showPanel">
-            <div class="scheme-title">
-                <span> {{$t('执行方案列表')}}</span>
-                <bk-button size="small" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-            </div>
-            <div :class="['scheme-header', { 'disabled-btn': !hasPermission(['flow_edit'], tplActions) }]">
-                <div class="scheme-form" v-if="nameEditing">
-                    <bk-input
-                        v-model="schemaName"
-                        v-validate="schemaNameRule"
-                        data-vv-validate-on=" "
-                        name="schemaName"
-                        class="bk-input-inline"
-                        :clearable="true"
-                        @keyup.enter.native="onAddScheme"
-                        @blur="onAddScheme"
-                        :placeholder="$t('方案名称')">
-                    </bk-input>
-                    <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
+            <template v-if="!isEditSchemeShow">
+                <div class="scheme-title">
+                    <span> {{$t('执行方案')}}</span>
+                    <div>
+                        <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
+                        <bk-button size="small" @click="isEditSchemeShow = true">导入临时方案</bk-button>
+                    </div>
                 </div>
-                <div
-                    v-else
-                    class="add-plan"
-                    @click="onCreateScheme">
-                    <span class="common-icon-add"></span>
-                    {{ $t('新增方案') }}
+                <div :class="['scheme-header', { 'disabled-btn': !hasPermission(['flow_edit'], tplActions) }]">
+                    <div class="scheme-form" v-if="nameEditing">
+                        <bk-input
+                            ref="nameInput"
+                            v-model="schemaName"
+                            v-validate="schemaNameRule"
+                            data-vv-validate-on=" "
+                            name="schemaName"
+                            class="bk-input-inline"
+                            :clearable="true"
+                            @keyup.enter.native="onAddScheme"
+                            :placeholder="$t('方案名称')">
+                        </bk-input>
+                        <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
+                    </div>
+                    <div
+                        v-else
+                        class="add-plan"
+                        @click="onCreateScheme">
+                        <span class="common-icon-add"></span>
+                        {{ $t('新增方案') }}
+                    </div>
                 </div>
-            </div>
-            <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
-                <ul class="schemeList">
-                    <li
-                        v-for="item in schemaList"
-                        class="scheme-item"
-                        :key="item.id">
-                        <bk-checkbox @change="onCheckChange($event, item.id)"></bk-checkbox>
-                        <span class="scheme-name" :title="item.name">{{item.name}}</span>
-                        <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
-                    </li>
-                </ul>
-            </div>
+                <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
+                    <ul class="schemeList">
+                        <li
+                            v-for="item in schemaList"
+                            class="scheme-item"
+                            :key="item.id">
+                            <bk-checkbox @change="onCheckChange($event, item.id)"></bk-checkbox>
+                            <span class="scheme-name" :title="item.name">{{item.name}}</span>
+                            <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
+                        </li>
+                    </ul>
+                </div>
+            </template>
+            <bk-sideslider
+                v-else
+                :is-show="isEditSchemeShow"
+                :width="800"
+                :quick-close="false"
+                :before-close="onCloseEditScheme">
+                <div slot="header">
+                    <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
+                    >
+                    <span>{{ $t('导入临时方案') }}</span>
+                </div>
+                <edit-scheme
+                    slot="content"
+                    :is-show.sync="isEditSchemeShow"
+                    :ordered-node-data="orderedNodeData"
+                    @importTextScheme="$emit('importTextScheme', $event)">
+                </edit-scheme>
+            </bk-sideslider>
         </div>
     </div>
 </template>
@@ -59,9 +82,13 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
+    import EditScheme from './EditScheme.vue'
 
     export default {
         name: 'TaskSchema',
+        components: {
+            EditScheme
+        },
         mixins: [permission],
         props: {
             template_id: {
@@ -98,6 +125,12 @@
                     return []
                 }
             },
+            orderedNodeData: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
             tplActions: {
                 type: Array,
                 default () {
@@ -117,6 +150,7 @@
                 },
                 schemaList: [],
                 deleting: false,
+                isEditSchemeShow: false,
                 isPreview: false
             }
         },
@@ -169,12 +203,20 @@
                 const hasCreatePermission = this.checkSchemeRelativePermission(['flow_edit'])
                 if (hasCreatePermission && !this.isPreviewMode) {
                     this.nameEditing = true
+                    this.$nextTick(() => {
+                        this.$refs.nameInput.focus()
+                    })
                 }
             },
             /**
              * 添加方案
              */
             onAddScheme () {
+                if (this.schemaName === '') {
+                    this.nameEditing = false
+                    return
+                }
+
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
                     errorHandler({ message: i18n.t('方案名称已存在') }, this)
@@ -214,7 +256,7 @@
              * 删除方案
              */
             async onDeleteScheme (id) {
-                const hasPermission = this.checkSchemeRelativePermission(['flow_delete'])
+                const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
 
                 if (this.deleting || !hasPermission) return
                 this.deleting = true
@@ -264,6 +306,9 @@
             onChangePreviewNode () {
                 this.isPreview = !this.isPreview
                 this.$emit('togglePreviewMode', this.isPreview)
+            },
+            onCloseEditScheme () {
+                this.isEditSchemeShow = false
             }
         }
     }
@@ -278,7 +323,10 @@
         right: 0;
         height: 100%;
     }
-
+    .title-back {
+        color: #3a84ff;
+        cursor: pointer;
+    }
     .schema-list-panel {
         position: absolute;
         top: 0;
@@ -288,7 +336,7 @@
         background: $whiteDefault;
         border-left: 1px solid $commonBorderColor;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-        z-index: 4;
+        z-index: 2500;
         transition: right 0.5s ease-in-out;
         .scheme-title {
             display: flex;
@@ -393,9 +441,6 @@
                         color: #979ba5;
                     }
                 }
-            }
-            li:first-child {
-                border-top: 1px solid $commonBorderColor;
             }
         }
         .disable-scheme-list {

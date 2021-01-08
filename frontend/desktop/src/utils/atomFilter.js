@@ -53,6 +53,7 @@ const atomFilter = {
                         case 'datetime':
                         case 'password':
                         case 'member_selector':
+                        case 'log_display':
                         case 'code_editor':
                         case 'section':
                             val = ''
@@ -78,6 +79,7 @@ const atomFilter = {
                                 selectors: [],
                                 ip: [],
                                 topo: [],
+                                group: [],
                                 filters: [],
                                 excludes: [],
                                 with_cloud_id: false

@@ -95,7 +95,7 @@
                         projectsGroup[1].children.push(item)
                     }
                 })
-                
+
                 projectsGroup.forEach(group => {
                     if (group.children.length) {
                         projects.push(group)

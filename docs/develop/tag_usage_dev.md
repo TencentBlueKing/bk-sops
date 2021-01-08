@@ -62,7 +62,30 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 - `name`：表单项名称，在页面上控制 label 的显示
 - `hookable`：是否可勾选为全局变量
-- `validation`：表单项的校验规则
+- `validation`：表单项的校验规则，表单的校验分三种类型 `required`、`regex`、`custom`，根据需求选择使用：
+```js
+    {
+      // ...
+      validation: [
+        { type: 'required' },
+        {
+          type: 'regex',
+          args: RegExp, //例如 /\d{3}/
+          error_message: String //例如 '请输入3个数字'
+        },
+        {
+          type: 'custom',
+          args (value, parentValue) {
+            //...
+            return { // 校验方法必须返回如下格式对象
+              result: Boolean,
+              error_message: String
+            }
+          }
+        },
+      ]
+    }
+```
 - `default`：表单项的默认值，不同的 Tag 组件支持的数据类型存在差异
 - `hidden`：是否默认隐藏
 - `formViewHidden`：查看模式下，表单是否隐藏
@@ -78,8 +101,9 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `get_form_instance`：获取表单实例，FormItem
 - `get_parent`：获取 combine 实例或根元素实例
 - `get_child`：获取表单实例，参数为子表单的 tag_code，支持 RenderForm 或 RenderGroup 组件调用
-- `_get_value`：获取表单值，其中支持配置传入一个布尔值参数，默认为 false，如果传入参数值为 true，则 tag 表单勾选为全局变量时，可获取对应全局变量的 value 值
-- `_set_value`：设置表单值
+- `get_value`：获取表单值，其中支持配置传入一个布尔值参数，默认为 false，如果传入参数值为 true，则 tag 表单勾选为全局变量时，可获取对应全局变量的 value 值
+- `get_tag_value`: 获取当前标准插件的任一表单值，参数 `path` 为目标 tag 表单的层级，表单值从标准插件最外层开始查找，例如 `['bk_receiver_info', 'bk_more_receiver']`
+- `set_value`：设置表单值，参数为表单值
 
 ## 官方 Tag 组件说明
 
@@ -173,6 +197,10 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `empty_text`：无数据提示
   - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
+  - `row_click_handler`: 单行点击回调函数，回调参数如下：
+    + row, eg: { key1:'value1',key2:'value2' }
+    + column, eg: { label: 'name', property: 'key1' }
+    + event
   - `pagination`：表格数据分页展示，默认不展示（false）
   - `page_size`：表格分页展示时，每页显示的条数(Number)，默认 10 条每页
   - `value`：表格的值
@@ -307,6 +335,9 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `hasGroup`：选项是否分组
   - `clearable`：是否显示右侧清除表单值icon
   - `allowCreate`：是否支持输入框创建选项
+  - `showRightBtn`：是否显示选择框右侧按钮，默认 false
+  - `rightBtnIcon`：选择框右侧按钮icon，默认 'bk-icon icon-chain'
+  - `rightBtnCb`：选择框右侧按钮点击回调函数，默认为空
   - `disabled`：设置是否禁用组件
   - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 
@@ -423,6 +454,16 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
   - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
+
+**方法**
+
+### 17. TagLogDisplay
+
+日志展示
+
+**属性**
+
+  - `value`：日志内容， \n 表示换行
 
 **方法**
 

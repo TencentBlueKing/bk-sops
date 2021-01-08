@@ -41,8 +41,7 @@ class TaskContext(object):
         else:
             self.biz_supplier_account = None
         self.operator = operator
-        # 调用ESB接口的执行者
-        self.executor = ProjectConfig.objects.task_executor_for_project(self.project_id, operator)
+        self.executor = self.task_executor(taskflow, operator)
         self.task_id = taskflow.id
         self.task_name = taskflow.pipeline_instance.name
         # 兼容V3.4.X版本之前的引用非标准命名的插件
@@ -53,12 +52,24 @@ class TaskContext(object):
         project_tz = timezone.pytz.timezone(project.time_zone)
         self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
 
-    @classmethod
-    def to_flat_key(cls, key):
-        return "${%s.%s}" % (cls.prefix, key)
+    def task_executor(self, taskflow, operator):
+        """获取该任务的实际执行人
+
+        :param taskflow: 任务对象
+        :type taskflow: TaskFlowInstance
+        :param operator: 当前操作者
+        :type operator: str
+        :return: 该任务执行时实际使用的执行人
+        :rtype: str
+        """
+        return taskflow.executor_proxy or ProjectConfig.objects.task_executor_for_project(self.project_id, operator)
 
     def context(self):
         return {"${%s}" % TaskContext.prefix: {"type": "plain", "is_param": True, "value": self}}
+
+    @classmethod
+    def to_flat_key(cls, key):
+        return "${%s.%s}" % (cls.prefix, key)
 
     @classmethod
     def flat_details(cls):
@@ -68,7 +79,7 @@ class TaskContext(object):
                 "key": cls.to_flat_key("task_start_time"),
                 "name": _("任务开始时间"),
                 "index": -8,
-                "desc": ""
+                "desc": "",
             },
             cls.to_flat_key("language"): {
                 "key": cls.to_flat_key("language"),

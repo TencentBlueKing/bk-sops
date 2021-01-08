@@ -15,4 +15,13 @@ from django.apps import AppConfig
 
 
 class CollectionConfig(AppConfig):
-    name = 'collection'
+    name = "gcloud.contrib.collection"
+    verbose_name = "GcloudContribCollection"
+
+    def ready(self):
+        from gcloud.contrib.collection.handlers import (  # noqa
+            common_template_collection_delete_handler,
+            task_template_collection_delete_handler,
+            app_maker_collection_delete_handler,
+            periodic_task_collection_delete_handler,
+        )

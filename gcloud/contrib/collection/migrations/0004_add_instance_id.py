@@ -11,25 +11,24 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
+from __future__ import unicode_literals
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.intercept import ViewInterceptor
-
-iam = get_iam_client()
+from django.db import migrations
+import json
 
 
-class GetCommonTemplateInfoInterceptor(ViewInterceptor):
-    def process(self, request, *args, **kwargs):
-        if request.is_trust:
-            return
+def load_instance_id(apps, schema_editor):
+    collection_model = apps.get_model("collection", "Collection")
+    for row in collection_model.objects.all():
+        extra_info = json.loads(row.extra_info)
+        row.instance_id = extra_info.get("id")
+        row.save(update_fields=["instance_id"])
 
-        template_id = kwargs["template_id"]
 
-        subject = Subject("user", request.user.username)
-        action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-        resources = res_factory.resources_for_common_flow(template_id)
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("collection", "0003_auto_20201103_2229"),
+    ]
+
+    operations = [migrations.RunPython(load_instance_id, reverse_code=migrations.RunPython.noop)]

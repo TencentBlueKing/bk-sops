@@ -475,13 +475,8 @@
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
                 const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
-                // 先去除选中样式
-                document.querySelectorAll('.branch-condition.editing').forEach(dom => {
-                    dom.classList.remove('editing')
-                })
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
-                    $branchEl.classList.add('editing')
                     this.$emit('onConditionClick', {
                         id: lineId,
                         nodeId,
@@ -1391,7 +1386,7 @@
             .branch-condition {
                 padding: 4px 6px;
                 min-width: 60px;
-                max-width: 86px;
+                max-width: 112px;
                 min-height: 20px;
                 font-size: 12px;
                 text-align: center;
@@ -1408,14 +1403,6 @@
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
-                &.editing {
-                    background: #b1ac84;
-                    color: #ffffff;
-                }
-                &.failed {
-                    color: #ffffff;
-                    background: #ea3636;
-                }
             }
         }
         &.editable {

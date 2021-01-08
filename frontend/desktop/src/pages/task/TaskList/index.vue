@@ -34,7 +34,7 @@
                     :data="taskList"
                     :pagination="pagination"
                     @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange"
+                    @page-limit-change="onPageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
                     <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
@@ -305,7 +305,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15, 20, 30]
+                    'limit-list': [15, 30, 50, 100]
                 }
             }
         },
@@ -557,6 +557,11 @@
                 this.pagination.current = page
                 this.getTaskList()
             },
+            onPageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getTaskList()
+            },
             async getCreateMethod () {
                 try {
                     const createMethodData = await this.loadCreateMethod()
@@ -596,11 +601,6 @@
                 this.templateId = ''
                 this.templateSource = ''
                 this.$router.push({ name: 'taskList', params: { project_id: this.project_id } })
-                this.getTaskList()
-            },
-            handlePageLimitChange (val) {
-                this.pagination.limit = val
-                this.pagination.current = 1
                 this.getTaskList()
             }
         }

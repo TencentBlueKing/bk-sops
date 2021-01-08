@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
+from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource, ALL
 
 from gcloud.contrib.collection.models import Collection
@@ -49,8 +50,17 @@ class CollectionResources(ModelResource):
         return query.filter(username=request.user.username)
 
     def obj_create(self, bundle, **kwargs):
-
-        return super(CollectionResources, self).obj_create(bundle, username=bundle.request.user.username)
+        instance_id = bundle.data["extra_info"].get("id")
+        category = bundle.data["category"]
+        username = bundle.request.user.username
+        if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
+            raise BadRequest(
+                "The collection of user {} with category:{} and instance_id:{} already exists".format(
+                    username, category, instance_id
+                )
+            )
+        bundle.data["instance_id"] = instance_id
+        return super(CollectionResources, self).obj_create(bundle, username=username)
 
     def obj_delete_list_for_update(self, bundle, **kwargs):
         request = bundle.request

@@ -101,6 +101,7 @@ export function getFormMixins (attrs = {}) {
             prop: 'value',
             event: 'change'
         },
+        inject: ['getFormData'],
         props: {
             ...COMMON_ATTRS, // 公共属性
             ...inheritAttrs, // tag 继承属性(value)
@@ -141,8 +142,8 @@ export function getFormMixins (attrs = {}) {
                     valid: true,
                     message: ''
                 },
-                ...noInheritData,
-                editable: this.formEdit
+                editable: this.formEdit,
+                ...noInheritData
             }
         },
         created () {
@@ -280,9 +281,12 @@ export function getFormMixins (attrs = {}) {
                 return this.$parent.$parent
             },
             /**
-             * 获取 tag 组件值
+             * 获取当前 tag 组件值
              * @param {Boolean} keepValKey 表单勾选后是否返回当前变量 key 值
              */
+            get_value (keepValKey) {
+                return this._get_value(keepValKey)
+            },
             _get_value (keepValKey = false) {
                 if (keepValKey) {
                     return this.value
@@ -294,6 +298,29 @@ export function getFormMixins (attrs = {}) {
                     }
                     return this.value
                 }
+            },
+            /**
+             * 获取标准插件任意表单项的值
+             * @param {Array} path 目标 tag 表单的层级，表单值从标准插件最外层开始查找
+             * @param {Object} data 表单值
+             */
+            get_tag_value (path, data = this.getFormData()) {
+                const tag = path[0]
+                if (!(tag in data)) {
+                    throw new Error(`表单值中不存在 ${tag} 属性`)
+                }
+                if (path.length === 1) {
+                    return tools.deepClone(data[tag])
+                } else {
+                    return this.get_tag_value(path.slice(1), data[tag])
+                }
+            },
+            /**
+             * 设置当前 tag 组件值
+             * @param {Any} value
+             */
+            set_value (value) {
+                this._set_value(value)
             },
             _set_value (value) {
                 this.updateForm(value)

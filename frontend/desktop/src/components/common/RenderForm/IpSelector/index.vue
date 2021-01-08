@@ -19,9 +19,11 @@
                 :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
+                :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
                 :static-ips="ip"
                 :dynamic-ips="topo"
+                :dynamic-groups="group"
                 @change="updateValue">
             </multiple-ip-selector>
             <single-ip-selector
@@ -31,9 +33,11 @@
                 :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
+                :dynamic-group-list="dynamicGroupList"
                 :selectors="selectors"
                 :static-ips="ip"
                 :dynamic-ips="topo"
+                :dynamic-groups="group"
                 @change="updateValue">
             </single-ip-selector>
         </div>
@@ -68,6 +72,7 @@
     const i18n = {
         staticIp: gettext('静态 IP'),
         dynamicIp: gettext('动态 IP'),
+        dynamicGroup: gettext('动态分组'),
         filterTitle: gettext('筛选条件和排除条件'),
         showCloudArea: gettext('变量值是否带云区域：')
     }
@@ -98,6 +103,7 @@
                         selectors: [],
                         ip: [],
                         topo: [],
+                        group: [],
                         filters: [],
                         excludes: [],
                         with_cloud_id: false
@@ -117,6 +123,11 @@
                             type: 'dynamicIp',
                             id: 'topo',
                             name: i18n.dynamicIp
+                        },
+                        {
+                            type: 'dynamicGroup',
+                            id: 'group',
+                            name: i18n.dynamicGroup
                         }
                     ]
                 }
@@ -153,15 +164,23 @@
                 default () {
                     return []
                 }
+            },
+            // 动态分组可选列表(首页数据)
+            dynamicGroupList: {
+                type: Array,
+                default () {
+                    return []
+                }
             }
         },
         data () {
-            const { selectors, ip, topo, filters, excludes, with_cloud_id } = this.value
+            const { selectors, ip, topo, group, filters, excludes, with_cloud_id } = this.value
             const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
                 ip: ip.slice(0),
                 topo: topo.slice(0),
+                group: (group || []).slice(0), // 后增加字段，兼容旧数据
                 with_cloud_id,
                 conditions,
                 i18n
@@ -180,10 +199,11 @@
         watch: {
             value: {
                 handler (val) {
-                    const { selectors, ip, topo, filters, excludes } = this.value
+                    const { selectors, ip, topo, group, filters, excludes } = this.value
                     this.selectors = selectors.slice(0)
                     this.ip = ip.slice(0)
                     this.topo = topo.slice(0)
+                    this.group = (group || []).slice(0)
                     this.filters = filters.slice(0)
                     this.excludes = excludes.slice(0)
                     this.conditions = this.getConditions(filters, excludes)

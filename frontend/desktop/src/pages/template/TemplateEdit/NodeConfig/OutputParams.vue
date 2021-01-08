@@ -15,9 +15,9 @@
             <bk-table-column :label="$t('说明')" align="center">
                 <template slot-scope="props">
                     <span
-                        v-if="props.row.scheme && (description in props.row.scheme)"
-                        :title="props.row.scheme.description">
-                        {{ props.row.scheme.description }}
+                        v-if="props.row.description"
+                        :title="props.row.description">
+                        {{ props.row.description }}
                     </span>
                     <span v-else>--</span>
                 </template>
@@ -157,6 +157,7 @@
                     list.push({
                         key,
                         name: param.name,
+                        description: param.schema ? param.schema.description : '--',
                         version: param.version,
                         hooked: isHooked
                     })

@@ -138,6 +138,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTmplStatisticsMixin):
 
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
+    executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
 
     objects = TaskTemplateManager()
 

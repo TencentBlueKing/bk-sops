@@ -60,6 +60,7 @@ class TaskTemplateResource(GCloudModelResource):
     version = fields.CharField(attribute="version", readonly=True, null=True)
     subprocess_has_update = fields.BooleanField(attribute="subprocess_has_update", use_in="list", readonly=True)
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
+    description = fields.CharField(attribute="pipeline_template__description", readonly=True, null=True)
 
     class Meta(GCloudModelResource.Meta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)

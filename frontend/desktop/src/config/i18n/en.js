@@ -1,6 +1,6 @@
 const en = {
     '任务数据': 'Task data',
-    '继续执行': 'Continue to perform',
+    '继续执行': 'Continue Execution',
     '保存筛选方案': 'Save the filter scheme',
     '修改名称会新建方案记录': 'Changing the name creates a new schema record',
     '筛选方案': 'Screening scheme',
@@ -629,6 +629,7 @@ const en = {
     '执行信息': 'Execution Info',
     '输入参数': 'Input Parameters',
     '输出参数': 'Output Parameters',
+    '输出表单': 'Output Form',
     '参数名': 'Name',
     '执行记录': 'Execution History',
     '节点日志': 'Node logs',
@@ -1032,7 +1033,26 @@ const en = {
     '成员': 'Members',
     '保存已修改的节点信息吗？': 'Save the modified node information?',
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
-    '全部项目': 'All Projects'
+    '全部项目': 'All Projects',
+    '导入临时方案': 'Import Temporaty Scheme',
+    '方案内容': 'Scheme Text',
+    '变更节点对比': 'Node Selected List',
+    '选中状态': 'Status',
+    '参考格式：步骤：节点名 标识位(0：不选择；1：选择；2：非可选节点)，并以换行符分隔。': 'reference format：Stage：Node Status(0:deselect; 1:select; 2:non-selectable node), separated by a new line.',
+    '方案中的（': 'The node (',
+    '）节点选择标记与模板中不一致，请确认导出方案后模板中节点可选配置是否有过修改': ') optional field doesn\'t match the template, Please make sure that the template hasn\'t been modified after exporting the scheme',
+    '）节点在模板中未找到，请确认导出方案后模板是否有过修改': ') not found in the template, Please make sure that the template hasn\'t been modified after exporting the scheme',
+    '方案节点个数（': 'Number of nodes ( ',
+    '）与实际节点个数（': ' ) vs. actual number of nodes ( ',
+    '）不一致，请确认导出方案后模板是否有过修改': ' ) inconsistent, Please make sure that the template hasn\'t been modified after exporting the scheme',
+    '导出当前方案': 'Export Current Scheme',
+    '跳过节点': 'Skip',
+    '是否跳过该任务节点？': 'Is the execution of this task node skipped?',
+    '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
+    '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?',
+    '备注': 'Description',
+    '请输入流程模板备注信息': 'please enter process template description',
+    '动态分组': 'Dynamic Group'
 }
 
 export default en

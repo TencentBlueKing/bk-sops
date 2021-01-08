@@ -54,7 +54,7 @@ class CCHostCustomPropertyChangeService(Service):
             ),
             self.InputItem(
                 name=_("规则定义(主机属性)"),
-                description="cc_hostname_rule",
+                key="cc_hostname_rule",
                 type="array",
                 schema=ArrayItemSchema(
                     description=_("没有数据"),
@@ -70,7 +70,7 @@ class CCHostCustomPropertyChangeService(Service):
             ),
             self.InputItem(
                 name=_("规则定义(自定义属性)"),
-                description="cc_hostname_rule",
+                key="cc_hostname_rule",
                 type="array",
                 schema=ArrayItemSchema(
                     description=_("没有数据"),

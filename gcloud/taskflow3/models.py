@@ -217,6 +217,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         # get all referenced constants in flow
         constants = pipeline_tree[PE.constants]
+
         referenced_keys = []
         while True:
             last_count = len(referenced_keys)
@@ -507,6 +508,12 @@ class TaskFlowInstance(models.Model):
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
             return CommonTemplate.objects.get(pk=self.template_id)
+
+    @property
+    def executor_proxy(self):
+        if self.template_source not in NON_COMMON_TEMPLATE_TYPES:
+            return None
+        return TaskTemplate.objects.filter(id=self.template_id).values_list("executor_proxy", flat=True).first()
 
     @property
     def url(self):
