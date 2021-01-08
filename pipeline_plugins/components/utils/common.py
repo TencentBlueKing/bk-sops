@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.conf import settings
 from pipeline.utils.crypt import rsa_decrypt_password
-from gcloud.utils.thread import ThreadPool
+from api.utils.thread import ThreadPool
 
 logger = logging.getLogger("root")
 
