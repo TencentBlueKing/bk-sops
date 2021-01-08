@@ -126,58 +126,41 @@ def get_job_content(remote_files, operator, biz_cc_id):
     return result
 
 
-def get_job_instance_log(job_instance_record, operator, bk_biz_id, use_job_id=False):
+def get_job_instance_log(job_instance_record, operator, bk_biz_id):
     """
     轮询job执行结果
     @param job_instance_record: [({"file_name": file_name, "ip": remote_file["ip"]}, job_instant_id)]
     @param operator: admin
     @param bk_biz_id: 123
-    @param use_job_id：使用job_id
     @return:
     """
-
-    def get_log_content(job_instance_log_return):
-        try:
-            return "\n".join(
-                [job_log["step_results"][0]["ip_logs"][0]["log_content"] for job_log in job_instance_log_return["data"]]
-            )
-        except KeyError:
-            return ""
-
-    if use_job_id:
-        job_instance_id = job_instance_record
-        key = job_instance_record
-    else:
-        job_instance_id = job_instance_record[1]
-        key = job_instance_record[0]
-
     client = get_client_by_user(operator)
-    get_job_instance_log_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
+    get_job_instance_log_kwargs = {"job_instance_id": job_instance_record[1], "bk_biz_id": bk_biz_id}
     get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
-
     if not get_job_instance_log_return["result"]:
-        message = get_job_instance_log_return["message"]
-        return {"result": False, "message": message, "key": key, "log_content": message}
+        return {"result": False, "message": get_job_instance_log_return["message"], "key": job_instance_record[0]}
     else:
         start_time = time.time()
         while time.time() < start_time + JOB_WAIT_TIME_OUT:
             job_status = get_job_instance_log_return["data"][0]["status"]
-
             if job_status == 3:
                 return {
                     "result": True,
-                    "message": "success",
-                    "key": key,
-                    "log_content": get_log_content(get_job_instance_log_return),
+                    "key": job_instance_record[0],
+                    "log_content": "\n".join(
+                        [
+                            job_log["step_results"][0]["ip_logs"][0]["log_content"]
+                            for job_log in get_job_instance_log_return["data"]
+                        ]
+                    ),
                 }
             elif job_status > 3:
                 return {
                     "result": False,
                     "message": get_job_instance_log_return["message"],
-                    "key": key,
-                    "log_content": get_log_content(get_job_instance_log_return),
+                    "key": job_instance_record[0],
                 }
             # 休眠1s再去查询接口
             time.sleep(1)
             get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
-        return {"result": False, "message": _("请求job执行结果超时"), "key": key, "log_content": ""}
+        return {"result": False, "message": _("请求job执行结果超时"), "key": job_instance_record[0]}
