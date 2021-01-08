@@ -99,12 +99,12 @@ def batch_execute_func(func, params_list: list, interval_enabled=False):
     :param func: 待处理函数
     :param params_list: 请求参数
     :param interval_enabled: 启用间隔
-    :return: 请求结果
+    :return: [{"object":结果，”params“: 参数}，{"object":结果，”params“: 参数}，....]
     """
     pool = ThreadPool()
     execute_future_list = []
     for params in params_list:
-        execute_future_list.append(pool.apply_async(func, kwds=params))
+        execute_future_list.append({"result": pool.apply_async(func, kwds=params), "params": params})
         if interval_enabled:
             time.sleep(random.random())
 
@@ -112,4 +112,7 @@ def batch_execute_func(func, params_list: list, interval_enabled=False):
     pool.join()
 
     # 取值
-    return [future_result.get() for future_result in execute_future_list]
+    for future in execute_future_list:
+        future["result"] = future["result"].get()
+
+    return execute_future_list

@@ -57,11 +57,6 @@ GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.get_job_instance_url"
 )
 
-
-GET_JOB_INSTANCE_LOG = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.get_job_instance_log"
-)
-
 JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.job_handle_api_error"
 )
@@ -149,6 +144,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             outputs={
                 "requests_error": "Request Error:\nfailed\n",
                 "job_instance_id_list": [],
+                "job_id_of_batch_execute": [],
                 "job_inst_url": [],
                 "task_count": 1,
                 "request_success_count": 0,
@@ -186,9 +182,23 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
 
 def SCHEDULE_FAILURE_CASE():
     SCHEDULE_FAILURE_RESULT = {"result": True, "data": {"job_id": 12345}}
+    SCHEDULE_FAILURE_QUERY_RESULT = {
+        "data": [
+            {
+                "status": 4,
+                "step_results": [
+                    {
+                        "ip_logs": [{"log_content": "log_content_failed"}],
+                    }
+                ],
+            }
+        ],
+        "result": False,
+    }
     SCHEDULE_FAILURE_ESB_CLIENT = MagicMock()
     SCHEDULE_FAILURE_MANAGER = MagicMock()
     SCHEDULE_FAILURE_MANAGER.push_files_to_ips = MagicMock(return_value=SCHEDULE_FAILURE_RESULT)
+    SCHEDULE_FAILURE_ESB_CLIENT.job.get_job_instance_log = MagicMock(return_value=SCHEDULE_FAILURE_QUERY_RESULT)
     return ComponentTestCase(
         name="push_local_files v2 schedule failure case",
         inputs={
@@ -210,6 +220,7 @@ def SCHEDULE_FAILURE_CASE():
             outputs={
                 "requests_error": "Request Error:\n",
                 "job_instance_id_list": [12345],
+                "job_id_of_batch_execute": [12345],
                 "job_inst_url": ["url_token"],
                 "task_count": 1,
                 "request_success_count": 1,
@@ -222,13 +233,14 @@ def SCHEDULE_FAILURE_CASE():
             outputs={
                 "requests_error": "Request Error:\n",
                 "job_instance_id_list": [12345],
+                "job_id_of_batch_execute": [],
                 "job_inst_url": ["url_token"],
                 "task_count": 1,
                 "request_success_count": 1,
                 "success_count": 0,
-                "final_res": False,
-                "ex_data": "Request Error:\n\n Get Result Error:\n任务执行失败，<a href='' target='_blank'>"
-                "前往作业平台(JOB)查看详情</a>\n错误信息:log_content failed\n\n",
+                "final_res": True,
+                "ex_data": "Request Error:\n\n Get Result Error:\n任务执行失败，"
+                "<a href='' target='_blank'>前往作业平台(JOB)查看详情</a>\n",
             },
             schedule_finished=True,
         ),
@@ -255,10 +267,6 @@ def SCHEDULE_FAILURE_CASE():
             Patcher(target=GET_CLIENT_BY_USER, return_value=SCHEDULE_FAILURE_ESB_CLIENT),
             Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
-            Patcher(
-                target=GET_JOB_INSTANCE_LOG,
-                return_value={"result": False, "message": "message", "key": 12345, "log_content": "log_content failed"},
-            ),
         ],
     )
 
@@ -269,10 +277,24 @@ def SUCCESS_MULTI_CASE():
         {"result": True, "data": {"job_id": 456}},
         {"result": True, "data": {"job_id": 789}},
     ]
+    SUCCESS_QUERY_RETURN = {
+        "data": [
+            {
+                "status": 3,
+                "step_results": [
+                    {
+                        "ip_logs": [{"log_content": "log_content_success"}],
+                    }
+                ],
+            }
+        ],
+        "result": True,
+    }
+
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-
+    SUCCESS_ESB_CLIENT.job.get_job_instance_log = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 success case",
         inputs={
@@ -302,6 +324,7 @@ def SUCCESS_MULTI_CASE():
             outputs={
                 "requests_error": "Request Error:\n",
                 "job_instance_id_list": [123, 456, 789],
+                "job_id_of_batch_execute": [123, 456, 789],
                 "job_inst_url": ["url_token", "url_token", "url_token"],
                 "task_count": 3,
                 "request_success_count": 3,
@@ -314,6 +337,7 @@ def SUCCESS_MULTI_CASE():
             outputs={
                 "requests_error": "Request Error:\n",
                 "job_instance_id_list": [123, 456, 789],
+                "job_id_of_batch_execute": [],
                 "job_inst_url": ["url_token", "url_token", "url_token"],
                 "task_count": 3,
                 "request_success_count": 3,
@@ -362,13 +386,5 @@ def SUCCESS_MULTI_CASE():
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
             Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
-            Patcher(
-                target=GET_JOB_INSTANCE_LOG,
-                side_effect=[
-                    {"result": True, "message": "message", "key": 123, "log_content": "log_content success"},
-                    {"result": True, "message": "message", "key": 456, "log_content": "log_content success"},
-                    {"result": True, "message": "message", "key": 789, "log_content": "log_content success"},
-                ],
-            ),
         ],
     )
