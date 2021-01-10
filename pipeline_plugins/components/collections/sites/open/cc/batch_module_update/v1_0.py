@@ -41,7 +41,7 @@ class CCBatchModuleUpdateService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_tag_method", type="str", schema=StringItemSchema(description=_("填参方式")),
+                name=_("填参方式"), key="cc_tag_method", type="string", schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
                 name=_("拓扑模块属性修改"),
@@ -55,7 +55,7 @@ class CCBatchModuleUpdateService(Service):
             self.InputItem(
                 name=_("自动扩展分隔符"),
                 key="cc_template_break_line",
-                type="str",
+                type="string",
                 schema=StringItemSchema(description=_("批量修改模块属性参数")),
             ),
         ]
@@ -153,13 +153,13 @@ class CCBatchModuleUpdateService(Service):
             self.OutputItem(
                 name=_("更新成功的数据"),
                 key="module_update_success",
-                type="str",
+                type="string",
                 schema=StringItemSchema(description=_("更新成功的数据")),
             ),
             self.OutputItem(
                 name="更新失败的数据",
                 key="module_update_failed",
-                type="str",
+                type="string",
                 schema=StringItemSchema(description=_("更新失败的数据")),
             ),
         ]
