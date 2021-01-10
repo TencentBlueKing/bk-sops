@@ -57,6 +57,7 @@ class PauseComponent(Component):
     code = "pause_node"
     bound_service = PauseService
     form = settings.STATIC_URL + "components/atoms/bk/pause.js"
+    desc = _("该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据")
 
 
 class SleepTimerService(Service):
