@@ -32,6 +32,9 @@ class DummyIAM(object):
     def _do_policy_query(self, request, with_resources=True):
         return []
 
+    def _do_policy_query_with_cache(self, request):
+        return self._do_policy_query(request)
+
     def _do_policy_query_by_actions(self, request, with_resources=True):
         return []
 
