@@ -729,6 +729,50 @@ web_tree = json.loads(
                             "validation": "^.+$",
                             "value": "${int(v3) + 1}",
                             "version": "legacy"
+                        },
+                        "${v5}": {
+                            "custom_type": "set_module_ip_selector",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "ip",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${v5}",
+                            "name": "v5",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "set_module_ip_selector.ip_selector",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "${int(v3) + 1}",
+                            "version": "legacy"
+                        },
+                        "${v6}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "input",
+                                "attrs": {
+                                    "name": "输入框",
+                                    "hookable": true,
+                                    "validation": []
+                                }
+                            },
+                            "index": 5,
+                            "key": "${v6}",
+                            "name": "v6",
+                            "show_type": "hide",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "${v5}",
+                            "version": "legacy"
                         }
                     },
                     "end_event": {
@@ -1899,6 +1943,18 @@ pipeline_tree = json.loads(
                                 "type": "splice",
                                 "value": "${int(v3) + 1}",
                                 "is_param": false
+                            },
+                            "${v5}": {
+                                "custom_type": "set_module_ip_selector",
+                                "type": "lazy",
+                                "source_tag": "set_module_ip_selector.ip_selector",
+                                "value": "${int(v3) + 1}",
+                                "is_param": false
+                            },
+                            "${v6}": {
+                                "type": "splice",
+                                "value": "${v5}",
+                                "is_param": false
                             }
                         },
                         "outputs": []
@@ -2382,7 +2438,7 @@ pipeline_tree = json.loads(
 
 class FormatWebDataToPipelineTestCase(TestCase):
     def setUp(self):
-        self.maxDiff = 1
+        self.maxDiff = None
 
     def test_normal(self):
         """
