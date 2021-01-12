@@ -1,0 +1,2 @@
+optimization:
+  - http 1.0 插件 url 允许引用变量, 超时时间最大值改为 30s

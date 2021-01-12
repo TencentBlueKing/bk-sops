@@ -20,7 +20,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
-        name: 'audit',
+        name: 'functor',
         data () {
             return {
                 permissionLoading: true,

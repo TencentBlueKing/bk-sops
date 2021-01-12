@@ -48,8 +48,6 @@ DATABASES = {
         "TEST": {"NAME": "test_sops", "CHARSET": "utf8", "COLLATION": "utf8_general_ci"},
     },
 }
-# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
-BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 
 LOG_PERSISTENT_DAYS = 1
 

@@ -14,6 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.dispatch import Signal
 
 
-taskflow_started = Signal(providing_args=['username'])
-taskflow_finished = Signal(providing_args=['username'])
-taskflow_revoked = Signal(providing_args=['username'])
+taskflow_started = Signal(providing_args=["task_id"])
+taskflow_finished = Signal(providing_args=["task_id"])
+taskflow_revoked = Signal(providing_args=["task_id"])

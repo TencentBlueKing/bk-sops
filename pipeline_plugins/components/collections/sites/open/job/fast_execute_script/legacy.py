@@ -124,7 +124,7 @@ class JobFastExecuteScriptService(JobService):
             self.InputItem(
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
-                type="string",
+                type="boolean",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
         ]
@@ -134,7 +134,7 @@ class JobFastExecuteScriptService(JobService):
             self.OutputItem(
                 name=_("JOB全局变量"),
                 key="log_outputs",
-                type="dict",
+                type="object",
                 schema=ObjectItemSchema(
                     description=_("输出日志中提取的全局变量"),
                     property_schemas={

@@ -13,42 +13,46 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from pipeline.engine.signals import activity_failed
+from pipeline.models import PipelineInstance
+from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.tasks import send_taskflow_message
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
-from pipeline.models import PipelineInstance
 
-logger = logging.getLogger('celery')
-
-
-@receiver(post_save, sender=PipelineInstance)
-def pipeline_post_save_handler(sender, instance, created, **kwargs):
-    if not created:
-        try:
-            taskflow = TaskFlowInstance.objects.get(pipeline_instance=instance)
-        except TaskFlowInstance.DoesNotExist:
-            logger.error("pipeline finished handler get taskflow error, pipeline_instance_id=%s" % instance.id)
-            return
-
-        if taskflow.current_flow == 'finished':
-            return
-
-        if instance.is_finished:
-            taskflow.current_flow = 'finished'
-            taskflow.save()
-            taskflow_finished.send(sender=taskflow, username=taskflow.pipeline_instance.executor)
-
-        if instance.is_revoked:
-            taskflow.current_flow = 'finished'
-            taskflow.save()
-            taskflow_revoked.send(sender=taskflow, username=taskflow.pipeline_instance.executor)
+logger = logging.getLogger("celery")
 
 
-def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
+@receiver(post_pipeline_finish, sender=PipelineInstance)
+def pipeline_finish_handler(sender, instance_id, **kwargs):
+    _finish_taskflow_and_send_signal(instance_id, taskflow_finished)
+    taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=instance_id)
+    send_taskflow_message.delay(taskflow=taskflow, msg_type=TASK_FINISHED)
+
+
+@receiver(post_pipeline_revoke, sender=PipelineInstance)
+def pipeline_revoke_handler(sender, instance_id, **kwargs):
+    _finish_taskflow_and_send_signal(instance_id, taskflow_revoked)
+
+
+def _finish_taskflow_and_send_signal(instance_id, sig):
+    qs = TaskFlowInstance.objects.filter(pipeline_instance__instance_id=instance_id).only("id")
+    if not qs:
+        logger.error("pipeline archive handler get taskflow error, pipeline_instance_id={}".format(instance_id))
+        return
+
+    task_id = qs[0].id
+
+    TaskFlowInstance.objects.filter(id=task_id).update(current_flow="finished")
+    sig.send(TaskFlowInstance, task_id=task_id)
+
+
+@receiver(activity_failed)
+def pipeline_fail_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
     except TaskFlowInstance.DoesNotExist:
@@ -56,21 +60,8 @@ def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kw
         return
 
     try:
-        activity_name = taskflow.get_act_web_info(pipeline_activity_id)['name']
-        send_taskflow_message.delay(taskflow=taskflow,
-                                    msg_type=ATOM_FAILED,
-                                    node_name=activity_name)
+        activity_name = taskflow.get_act_web_info(pipeline_activity_id)["name"]
+        send_taskflow_message.delay(taskflow=taskflow, msg_type=ATOM_FAILED, node_name=activity_name)
     except Exception as e:
-        logger.exception('taskflow_node_failed_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
-    return
-
-
-@receiver(taskflow_finished)
-def taskflow_finished_handler(sender, username, **kwargs):
-    try:
-        taskflow = sender
-        send_taskflow_message.delay(taskflow=taskflow,
-                                    msg_type=TASK_FINISHED)
-    except Exception as e:
-        logger.exception('taskflow_finished_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
+        logger.exception("pipeline_fail_handler[taskflow_id=%s] send message error: %s" % (taskflow.id, e))
     return

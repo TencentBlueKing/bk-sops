@@ -1,0 +1,58 @@
+{
+  "system_id": "bk_sops",
+  "operations": [
+    {
+      "operation": "upsert_common_actions",
+      "data": [
+        {
+          "name": "使用流程创建任务",
+          "name_en": "Create task by flow",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "flow_view"
+            },
+            {
+              "id": "flow_create_task"
+            }
+          ]
+        },
+        {
+          "name": "使用轻应用",
+          "name_en": "Use mini app",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "flow_view"
+            },
+            {
+              "id": "mini_app_view"
+            },
+            {
+              "id": "mini_app_create_task"
+            }
+          ]
+        },
+        {
+          "name": "使用公共流程创建任务",
+          "name_en": "Create task by common flow",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "common_flow_view"
+            },
+            {
+              "id": "common_flow_create_task"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

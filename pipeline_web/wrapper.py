@@ -17,7 +17,7 @@ import copy
 from functools import cmp_to_key
 
 import ujson as json
-
+from django.db.models import Q
 
 from pipeline.utils.uniqid import uniqid
 from pipeline.parser.utils import replace_all_id
@@ -121,7 +121,7 @@ class PipelineTemplateWebWrapper(object):
         return _unfold_subprocess(pipeline_data, template_model)
 
     @classmethod
-    def _export_template(cls, template_id, subprocess, refs, root=True):
+    def _export_template(cls, template_obj, subprocess, refs, template_versions, root=True):
         """
         导出模板 wrapper 函数
         @param template_id: 需要导出的模板 id
@@ -130,7 +130,7 @@ class PipelineTemplateWebWrapper(object):
         @param root: 是否是根模板
         @return: 模板数据，模板引用的子流程数据，引用关系
         """
-        template_obj = PipelineTemplate.objects.get(template_id=template_id)
+        template_versions[template_obj.template_id] = template_obj.version
         if template_obj.subprocess_has_update:
             raise SubprocessExpiredError(
                 "template %s has expired subprocess, please update it before exporting." % template_obj.name
@@ -147,18 +147,13 @@ class PipelineTemplateWebWrapper(object):
         }
         tree = template_obj.data
 
-        # add nodes attr
-        pipeline_web_clean = PipelineWebTreeCleaner(tree)
-        nodes = NodeInTemplate.objects.filter(template_id=template_obj.template_id, version=template_obj.version)
-        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
-        pipeline_web_clean.to_web(nodes_attr)
-
         for act_id, act in list(tree[PWE.activities].items()):
             if act[PWE.type] == PWE.SubProcess:
                 # record referencer id
                 # referenced template -> referencer -> reference act
                 refs.setdefault(act["template_id"], {}).setdefault(template["template_id"], set()).add(act_id)
-                cls._export_template(act["template_id"], subprocess, refs, False)
+                subprocess_obj = PipelineTemplate.objects.get(template_id=act["template_id"])
+                cls._export_template(subprocess_obj, subprocess, refs, template_versions, False)
 
         template["tree"] = tree
         if not root:
@@ -175,13 +170,29 @@ class PipelineTemplateWebWrapper(object):
         @return: 模板数据
         """
         data = {"template": {}, "refs": {}}
-        for template_id in template_id_list:
-            template, subprocess, refs = cls._export_template(template_id, {}, {})
+        template_objs = PipelineTemplate.objects.filter(template_id__in=template_id_list).select_related("snapshot")
+        template_versions = {}
+        templates = []
+        for template_obj in template_objs:
+            template, subprocess, refs = cls._export_template(template_obj, {}, {}, template_versions)
+            templates.append(template)
+            templates += subprocess.values()
             data["template"][template["template_id"]] = template
             data["template"].update(subprocess)
             for be_ref, ref_info in list(refs.items()):
                 for tmp_key, nodes in list(ref_info.items()):
                     data["refs"].setdefault(be_ref, ref_info).setdefault(tmp_key, nodes).update(nodes)
+
+        # add nodes attr
+        node_conditions = Q()
+        for template_id, template_version in template_versions.items():
+            node_conditions = node_conditions | (Q(template_id=template_id) & Q(version=template_version))
+        nodes = NodeInTemplate.objects.filter(node_conditions)
+        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
+        for template in templates:
+            pipeline_web_clean = PipelineWebTreeCleaner(template["tree"])
+            pipeline_web_clean.to_web(nodes_attr)
+
         # convert set to list
         for be_ref, ref_info in list(data["refs"].items()):
             for tmp_key in ref_info:

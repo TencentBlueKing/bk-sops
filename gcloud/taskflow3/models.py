@@ -22,7 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.utils.handlers import handle_plain_log
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
-from pipeline.component_framework.constant import ConstantPool  # noqa
+from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions as engine_exceptions
 from pipeline.engine import api as pipeline_api
@@ -127,10 +127,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             constants = {}
         pipeline_tree = template.pipeline_tree
 
-        try:
-            TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
-        except Exception as e:
-            return False, e.message
+        TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
         # change constants
         for key, value in list(constants.items()):
@@ -140,7 +137,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         task_info["pipeline_tree"] = pipeline_tree
         pipeline_inst = TaskFlowInstanceManager.create_pipeline_instance(template, **task_info)
 
-        return True, pipeline_inst
+        return pipeline_inst
 
     @staticmethod
     def _replace_node_incoming(next_node, replaced_incoming, new_incoming):
@@ -218,21 +215,19 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         # get all referenced constants in flow
         constants = pipeline_tree[PE.constants]
 
-        # temporarily strategy: show all constants may be used
-        referenced_keys = list(constants.keys())
-        # referenced_keys = []
-        # while True:
-        #     last_count = len(referenced_keys)
-        #     cons_pool = ConstantPool(data, lazy=True)
-        #     refs = cons_pool.get_reference_info(strict=False)
-        #     for keys in list(refs.values()):
-        #         for key in keys:
-        #             # add outputs keys later
-        #             if key in constants and key not in referenced_keys:
-        #                 referenced_keys.append(key)
-        #                 data.update({key: constants[key]})
-        #     if len(referenced_keys) == last_count:
-        #         break
+        referenced_keys = []
+        while True:
+            last_count = len(referenced_keys)
+            cons_pool = ConstantPool(data, lazy=True)
+            refs = cons_pool.get_reference_info(strict=False)
+            for keys in list(refs.values()):
+                for key in keys:
+                    # add outputs keys later
+                    if key in constants and key not in referenced_keys:
+                        referenced_keys.append(key)
+                        data.update({key: constants[key]})
+            if len(referenced_keys) == last_count:
+                break
 
         # keep outputs constants
         outputs_keys = [key for key, value in list(constants.items()) if value["source_type"] == "component_outputs"]
@@ -830,7 +825,7 @@ class TaskFlowInstance(models.Model):
                 queue = self._get_task_celery_queue()
                 action_result = self.pipeline_instance.start(executor=username, queue=queue)
                 if action_result.result:
-                    taskflow_started.send(sender=self, username=username)
+                    taskflow_started.send(self, task_id=self.id)
                 return {
                     "result": action_result.result,
                     "message": action_result.message,

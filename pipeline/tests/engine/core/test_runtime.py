@@ -288,7 +288,13 @@ class RuntimeTestCase(TestCase):
 
             # 6.2. test should sleep
             for should_return in (False, True):
-                hdl.return_value = MockHandlerResult(should_return=should_return, should_sleep=True)
+                hdl.return_value = MockHandlerResult(
+                    should_return=should_return,
+                    should_sleep=True,
+                    after_sleep_call=MagicMock(),
+                    args=["token1", "token2"],
+                    kwargs={"kwargs": "token3"},
+                )
 
                 current_node = IdentifyObject()
                 process = MockPipelineProcess(
@@ -324,6 +330,8 @@ class RuntimeTestCase(TestCase):
                 hdl.assert_called_once_with(process, current_node, None)
 
                 process.sleep.assert_called_once_with(adjust_status=True)
+
+                hdl.return_value.after_sleep_call.assert_called_once_with("token1", "token2", kwargs="token3")
 
                 self.assertEqual(process.current_node_id, current_node.id)
 

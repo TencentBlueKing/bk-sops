@@ -29,4 +29,4 @@ class FunctionViewInterceptor(ViewInterceptor):
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FUNCTION_VIEW_ACTION)
         resources = []
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

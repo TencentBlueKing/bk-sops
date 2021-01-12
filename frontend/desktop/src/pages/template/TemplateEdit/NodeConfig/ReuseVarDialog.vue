@@ -23,7 +23,7 @@
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="reuse-variable-dialog">
-            <p v-if="createNew" class="new-var-notice">{{$t('已存在相同Key且版本不同的变量，请新建变量')}}</p>
+            <p v-if="createNew" class="new-var-notice">{{$t('已存在相同Key的变量，请新建变量')}}</p>
             <bk-form
                 ref="form"
                 :model="formData"
@@ -180,11 +180,11 @@
 </script>
 <style lang="scss" scoped>
     .reuse-variable-dialog {
-        padding: 30px;
+        padding: 20px 30px 30px;
         .new-var-notice {
             margin-bottom: 10px;
             font-size: 14px;
-            color: #ea3636;
+            color: #ff9c01;
         }
         .bk-form:not(.bk-form-vertical) {
             /deep/ .bk-form-content {

@@ -16,6 +16,7 @@ import base64
 import rsa
 from django.utils.translation import ugettext_lazy as _
 
+from api.collections.nodeman import BKNodeManClient
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.component_framework.component import Component
 from pipeline.utils.crypt import rsa_decrypt_password
@@ -31,7 +32,6 @@ from gcloud.utils.ip import get_ip_by_regex
 
 __group_name__ = _("节点管理(Nodeman)")
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDYvKQ/dAh499dXGDoQ2NWgwlev
 GWq03EqlvJt+RSaYD1STStM6vEvsPiQ0Nc1GqxvZfqyS6v6acIbhCa1qgYKM8IGk
@@ -54,7 +54,7 @@ class NodemanCreateTaskService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-        client = get_client_by_user(executor)
+        client = BKNodeManClient(username=executor)
 
         bk_biz_id = data.inputs.biz_cc_id
         bk_cloud_id = data.inputs.nodeman_bk_cloud_id
@@ -115,7 +115,7 @@ class NodemanCreateTaskService(Service):
             "hosts": hosts,
         }
 
-        agent_result = client.nodeman.create_task(agent_kwargs)
+        agent_result = client.create_task(**agent_kwargs)
         self.logger.info(
             "nodeman created task result: {result}, api_kwargs: {kwargs}".format(
                 result=agent_result, kwargs=agent_kwargs
@@ -132,12 +132,12 @@ class NodemanCreateTaskService(Service):
     def schedule(self, data, parent_data, callback_data=None):
         bk_biz_id = data.inputs.biz_cc_id
         executor = parent_data.inputs.executor
-        client = get_client_by_user(executor)
+        client = BKNodeManClient(username=executor)
 
         job_id = data.get_one_of_outputs("job_id")
 
         job_kwargs = {"bk_biz_id": bk_biz_id, "job_id": job_id}
-        job_result = client.nodeman.get_task_info(job_kwargs)
+        job_result = client.get_task_info(**job_kwargs)
 
         self.logger.info(
             "nodeman get task info result: {result}, api_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs)
@@ -178,7 +178,7 @@ class NodemanCreateTaskService(Service):
                         "host_id": fail_info["host_id"],
                         "bk_biz_id": bk_biz_id,
                     }
-                    result = client.nodeman.get_log(log_kwargs)
+                    result = client.get_log(**log_kwargs)
                     log_info = result["data"]["logs"]
                     error_log = "{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}".format(
                         error_log=error_log,
@@ -195,20 +195,32 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"),
+                key="job_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"),
+                key="success_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"),
+                key="fail_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="biz_cc_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("云区域 ID"),

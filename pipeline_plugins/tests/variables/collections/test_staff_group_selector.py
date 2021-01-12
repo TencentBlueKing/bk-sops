@@ -22,20 +22,24 @@ GET_CLIENT_BY_USER = "pipeline_plugins.variables.collections.common.get_client_b
 class MockClient(object):
     def __init__(self, search_business_return=None):
         self.cc = MagicMock()
-        self.cc.search_business = MagicMock(return_value={
-            "code": 0,
-            "result": True,
-            "message": "success",
-            "data": {
-                "count": 1,
-                "info": [
-                    {
-                        "bk_biz_developer": "developer",
-                        "bk_biz_maintainer": "maintainer",
-                        "bk_biz_tester": "tester",
-                        "bk_biz_productor": "productor",
-                    }, ]
-            }})
+        self.cc.search_business = MagicMock(
+            return_value={
+                "code": 0,
+                "result": True,
+                "message": "success",
+                "data": {
+                    "count": 1,
+                    "info": [
+                        {
+                            "bk_biz_developer": "developer",
+                            "bk_biz_maintainer": "maintainer",
+                            "bk_biz_tester": "tester",
+                            "bk_biz_productor": "productor",
+                        },
+                    ],
+                },
+            }
+        )
 
 
 mock_staff_group = MagicMock()
@@ -47,24 +51,23 @@ class StaffGroupSelectorTestCase(TestCase):
         self.internal_staff_group = ["bk_biz_maintainer", "bk_biz_productor", "bk_biz_developer", "bk_biz_tester"]
         self.custom_staff_group = ["1", "2", "3"]
         self.context = {}
-        self.pipeline_data = {}
+        self.pipeline_data = {"executor": "tester", "biz_cc_id": 2}
         self.supplier_account = "supplier_account_token"
 
-        self.values_list = MagicMock(values_list=MagicMock(return_value=["tester1,tester2", "tester2",
-                                                                         "tester3",
-                                                                         "tester4", ]))
+        self.values_list = MagicMock(
+            values_list=MagicMock(return_value=["tester1,tester2", "tester2", "tester3", "tester4"])
+        )
         self.filter = MagicMock(return_value=self.values_list)
         self.staff_group_patcher = patch(
-            "pipeline_plugins.variables.collections.common.StaffGroupSet.objects.filter",
-            self.filter)
+            "pipeline_plugins.variables.collections.common.StaffGroupSet.objects.filter", self.filter
+        )
 
         self.supplier_account_for_project_patcher = patch(
             "pipeline_plugins.variables.collections.common.supplier_account_for_business",
             MagicMock(return_value=self.supplier_account),
         )
 
-        self.client_patcher = patch("pipeline_plugins.variables.collections.common.get_client_by_user",
-                                    MockClient)
+        self.client_patcher = patch("pipeline_plugins.variables.collections.common.get_client_by_user", MockClient)
 
         self.client_patcher.start()
         self.staff_group_patcher.start()
@@ -79,5 +82,4 @@ class StaffGroupSelectorTestCase(TestCase):
         self.custom_staff_group.extend(self.internal_staff_group)
         staff_names = StaffGroupSelector(self.name, self.custom_staff_group, self.context, self.pipeline_data)
         value = staff_names.get_value()
-        print(value)
         self.assertEqual(value, "developer,maintainer,productor,tester,tester1,tester2,tester3,tester4")
