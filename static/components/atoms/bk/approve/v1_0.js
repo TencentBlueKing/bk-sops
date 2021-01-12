@@ -50,6 +50,24 @@
                     }
                 ]
             }
+        },
+        {
+            tag_code: "rejected_block",
+            type: "radio",
+            attrs: {
+                name: gettext("审核被拒绝后阻塞"),
+                hookable: true,
+                items: [
+                    {"name": gettext("是"), "value": true},
+                    {"name": gettext("否"), "value": false},
+                ],
+                default: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();

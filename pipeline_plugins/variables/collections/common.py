@@ -186,8 +186,10 @@ class StaffGroupSelector(LazyVariable):
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
 
     def get_value(self):
-        operator = self.pipeline_data.get("executor", "")
-        bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
+        if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
+            return ""
+        operator = self.pipeline_data["executor"]
+        bk_biz_id = int(self.pipeline_data["biz_cc_id"])
         supplier_account = supplier_account_for_business(bk_biz_id)
         client = get_client_by_user(operator)
 

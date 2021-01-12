@@ -26,6 +26,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.conf import settings
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.core.constants import PE
+from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from pipeline.engine.utils import ActionResult, calculate_elapsed_time
 from pipeline.exceptions import SubprocessRefError
 from pipeline.parser.context import get_pipeline_context
@@ -276,11 +277,11 @@ class PipelineTemplate(models.Model):
 
     template_id = models.CharField(_("模板ID"), max_length=32, unique=True)
     name = models.CharField(_("模板名称"), max_length=MAX_LEN_OF_NAME, default="default_template", db_index=True)
-    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
     creator = models.CharField(_("创建者"), max_length=32)
     description = models.TextField(_("描述"), null=True, blank=True)
     editor = models.CharField(_("修改者"), max_length=32, null=True, blank=True)
-    edit_time = models.DateTimeField(_("修改时间"), auto_now=True)
+    edit_time = models.DateTimeField(_("修改时间"), auto_now=True, db_index=True)
     snapshot = models.ForeignKey(
         Snapshot, verbose_name=_("模板结构数据"), related_name="snapshot_templates", on_delete=models.DO_NOTHING
     )
@@ -565,15 +566,7 @@ class InstanceManager(models.Manager):
         @param executor: 执行者
         @return:
         """
-        with transaction.atomic():
-            instance = self.select_for_update().get(instance_id=instance_id)
-            if instance.is_started:
-                return False
-            instance.start_time = timezone.now()
-            instance.is_started = True
-            instance.executor = executor
-            instance.save()
-        return True
+        self.filter(instance_id=instance_id).update(start_time=timezone.now(), is_started=True, executor=executor)
 
     def set_finished(self, instance_id):
         """
@@ -581,15 +574,8 @@ class InstanceManager(models.Manager):
         @param instance_id: 实例 ID
         @return:
         """
-        with transaction.atomic():
-            try:
-                instance = self.select_for_update().get(instance_id=instance_id)
-            except PipelineInstance.DoesNotExist:
-                return None
-            instance.finish_time = timezone.now()
-            instance.is_finished = True
-            instance.save()
-        return instance
+        self.filter(instance_id=instance_id).update(finish_time=timezone.now(), is_finished=True)
+        post_pipeline_finish.send(sender=PipelineInstance, instance_id=instance_id)
 
     def set_revoked(self, instance_id):
         """
@@ -597,15 +583,8 @@ class InstanceManager(models.Manager):
         @param instance_id: 实例 ID
         @return:
         """
-        with transaction.atomic():
-            try:
-                instance = self.select_for_update().get(instance_id=instance_id)
-            except PipelineInstance.DoesNotExist:
-                return None
-            instance.finish_time = timezone.now()
-            instance.is_revoked = True
-            instance.save()
-        return instance
+        self.filter(instance_id=instance_id).update(finish_time=timezone.now(), is_revoked=True)
+        post_pipeline_revoke.send(sender=PipelineInstance, instance_id=instance_id)
 
 
 class PipelineInstance(models.Model):

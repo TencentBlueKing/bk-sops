@@ -250,7 +250,7 @@ class NodemanCreateTaskService(Service):
             return True
 
         # 失败任务信息
-        if result_data["status"] == "FAILED":
+        if result_data["status"] in ["FAILED", "PART_FAILED"]:
             fail_infos = [
                 {"inner_ip": host["inner_ip"], "instance_id": host["instance_id"]}
                 for host in host_list
@@ -291,39 +291,27 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"),
-                key="job_id",
-                type="int",
-                schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"),
-                key="success_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"),
-                key="fail_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),
                 key="nodeman_op_target",
                 type="object",
                 schema=ObjectItemSchema(
-                    _("需要操作的对象"),
+                    description=_("需要操作的对象"),
                     property_schemas={
                         "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域 ID")),
                         "nodeman_node_type": StringItemSchema(
@@ -337,7 +325,7 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_op_info",
                 type="object",
                 schema=ObjectItemSchema(
-                    _("操作内容信息"),
+                    description=_("操作内容信息"),
                     property_schemas={
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(

@@ -18,7 +18,7 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -60,6 +60,12 @@ class CCReplaceFaultMachineService(Service):
                     ),
                 ),
             ),
+            self.InputItem(
+                name=_("复制故障机属性"),
+                key="copy_attributes",
+                type="bool",
+                schema=BooleanItemSchema(description=_("复制故障机属性")),
+            ),
         ]
 
     def outputs_format(self):
@@ -76,6 +82,7 @@ class CCReplaceFaultMachineService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_hosts = data.get_one_of_inputs("cc_host_replace_detail")
+        copy_attrs = data.get_one_of_inputs("copy_attributes", True)
 
         # 查询主机可编辑属性
         search_attr_kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account}
@@ -102,14 +109,14 @@ class CCReplaceFaultMachineService(Service):
         all_hosts.extend(list(fault_replace_ip_map.keys()))
         all_hosts.extend(list(fault_replace_ip_map.values()))
 
-        hosts_topo = cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, editable_attrs, all_hosts)
+        host_attrs = editable_attrs + ["bk_host_innerip"]
+        hosts_topo = cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, host_attrs, all_hosts)
 
         if not hosts_topo:
             data.outputs.ex_data = "fetch host topo for {} failed".format(all_hosts)
             return False
 
-        # 更新替换机信息
-
+        # 只有复制故障机属性时才用到
         batch_update_kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account, "update": []}
 
         host_dict = {host_info["host"]["bk_host_innerip"]: host_info["host"] for host_info in hosts_topo}
@@ -130,20 +137,22 @@ class CCReplaceFaultMachineService(Service):
                 data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
                 return False
 
-            update_item = {"properties": {}, "bk_host_id": new_host["bk_host_id"]}
-            for attr in [attr for attr in editable_attrs if attr in fault_host]:
-                update_item["properties"][attr] = fault_host[attr]
+            if copy_attrs:
+                update_item = {"properties": {}, "bk_host_id": new_host["bk_host_id"]}
+                for attr in [attr for attr in editable_attrs if attr in fault_host]:
+                    update_item["properties"][attr] = fault_host[attr]
+                batch_update_kwargs["update"].append(update_item)
 
-            batch_update_kwargs["update"].append(update_item)
             fault_replace_id_map[fault_host["bk_host_id"]] = new_host["bk_host_id"]
 
-        update_result = client.cc.batch_update_host(batch_update_kwargs)
-
-        if not update_result["result"]:
-            message = cc_handle_api_error("cc.batch_update_host", batch_update_kwargs, update_result)
-            self.logger.error(message)
-            data.outputs.ex_data = message
-            return False
+        # 更新替换机信息
+        if copy_attrs:
+            update_result = client.cc.batch_update_host(batch_update_kwargs)
+            if not update_result["result"]:
+                message = cc_handle_api_error("cc.batch_update_host", batch_update_kwargs, update_result)
+                self.logger.error(message)
+                data.outputs.ex_data = message
+                return False
 
         # 将主机上交至故障机模块
         fault_transfer_kwargs = {

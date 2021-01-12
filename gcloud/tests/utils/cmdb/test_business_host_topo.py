@@ -29,7 +29,7 @@ class GetBusinessHostTopoTestCase(TestCase):
         self.username = "user_token"
         self.bk_biz_id = "biz_id_token"
         self.supplier_account = "supplier_account_token"
-        self.host_fields = "host_fields_token"
+        self.host_fields = ["host_fields_token"]
         self.ip_list = "ip_list_token"
         self.list_biz_hosts_topo_return = [
             {

@@ -12,3 +12,4 @@ specific language governing permissions and limitations under the License.
 """
 
 from .collections.monitor import BKMonitorClient  # noqa
+from .collections.gse_kit import BKGseKitClient  # noqa

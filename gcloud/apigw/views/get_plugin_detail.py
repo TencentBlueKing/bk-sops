@@ -68,6 +68,7 @@ def get_plugin_detail(request, project_id):
         "name": component_info.name,
         "group_name": component_info.group_name,
         "version": component_info.version,
+        "form": component_info.form,
     }
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

@@ -12,11 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
-import os
 import logging
 
 from cryptography.fernet import Fernet
 
+import env
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
@@ -160,7 +160,7 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
 def get_node_callback_url(node_id):
     f = Fernet(settings.CALLBACK_KEY)
     return "%staskflow/api/nodes/callback/%s/" % (
-        os.getenv("BKAPP_INNER_CALLBACK_HOST", settings.BK_PAAS_INNER_HOST + settings.SITE_URL),
+        env.BKAPP_INNER_CALLBACK_HOST,
         f.encrypt(bytes(node_id, encoding="utf8")).decode(),
     )
 
@@ -179,3 +179,15 @@ def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_l
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
     return module_id_list
+
+
+def get_difference_ip_list(original_ip_list, ip_list):
+    """
+    @summary IP存在性校验
+    @param original_ip_list: 手动填写的IP列表
+    @param ip_list: 查询到的IP列表
+    @return:
+    """
+    input_ip_list = set(get_ip_by_regex(original_ip_list))
+    difference_ip_list = set(input_ip_list).difference(set(ip_list))
+    return difference_ip_list

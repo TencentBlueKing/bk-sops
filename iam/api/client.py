@@ -15,12 +15,12 @@ from __future__ import unicode_literals
 import time
 import json
 import logging
+import os
 
 from cachetools import cached, TTLCache
 from requests.models import PreparedRequest
 
 from .http import http_get, http_post, http_put, http_delete
-
 
 logger = logging.getLogger("iam")
 
@@ -38,15 +38,26 @@ class Client(object):
         self._host = bk_iam_host
         self._bk_paas_host = bk_paas_host
 
+        # will add ?debug=true in url, for debug api/policy, show the details
+        isApiDebugEnabled = os.environ.get("IAM_API_DEBUG") == "true" or os.environ.get("BKAPP_IAM_API_DEBUG") == "true"
+        # will add ?force=true in url, for api/policy run without cache(all data from database)
+        isApiForceEnabled = os.environ.get("IAM_API_FORCE") == "true" or os.environ.get("BKAPP_IAM_API_FORCE") == "true"
+
+        self._extra_url_params = {}
+        if isApiDebugEnabled:
+            self._extra_url_params["debug"] = "true"
+        if isApiForceEnabled:
+            self._extra_url_params["force"] = "true"
+
     def _call_api(self, http_func, host, path, data, headers, timeout=None):
         url = "{host}{path}".format(host=host, path=path)
 
         begin = time.time()
 
-        # if debug, add ?debug=True in url
-        if logger.isEnabledFor(logging.DEBUG):
+        # add extra params in url if not empty
+        if self._extra_url_params:
             preReq = PreparedRequest()
-            preReq.prepare_url(url, {"debug": "true"})
+            preReq.prepare_url(url, self._extra_url_params)
             url = preReq.url
 
         ok, _data = http_func(url, data, headers=headers, timeout=timeout)
@@ -294,9 +305,30 @@ class Client(object):
             return False, message, ""
         return True, "success", _data.get("token", "")
 
+    def batch_instance_authorization(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/batch_instance/"
+        ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message, ""
+        return True, "success", _data
+
     def path_authorization(self, bk_token, bk_username, data):
         path = "/api/c/compapi/v2/iam/authorization/path/"
         ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
         if not ok:
             return False, message, ""
         return True, "success", _data.get("token", "")
+
+    def batch_path_authorization(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/batch_path/"
+        ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message, ""
+        return True, "success", _data
+
+    def query_policies_with_action_id(self, system_id, data):
+        path = "/api/v1/systems/{system_id}/policies".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_get, path, data)
+        if not ok:
+            return False, message, ""
+        return True, message, data

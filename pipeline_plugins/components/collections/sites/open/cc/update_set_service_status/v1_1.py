@@ -17,7 +17,7 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
-from gcloud.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
@@ -77,11 +77,11 @@ class CCUpdateSetServiceStatusService(Service):
 
         bk_set_ids = []
         if set_select_method in ("name", "custom"):
-            for set_attr_val in cc_set_select:
+            for set_name in cc_set_select:
                 cc_search_set_kwargs = {
                     "bk_biz_id": int(bk_biz_id),
                     "fields": ["bk_set_id", set_attr_id],
-                    "condition": {set_attr_id: set_attr_val},
+                    "condition": {set_attr_id: set_name},
                 }
                 cc_search_set_result = batch_request(client.cc.search_set, cc_search_set_kwargs)
                 if not cc_search_set_result:
@@ -89,7 +89,7 @@ class CCUpdateSetServiceStatusService(Service):
                     data.set_outputs("ex_data", "batch_request client.cc.search_set error")
                     return False
                 for bk_set in cc_search_set_result:
-                    if bk_set[set_attr_id] == set_attr_val:
+                    if bk_set[set_attr_id] == set_name:
                         bk_set_ids.append(bk_set["bk_set_id"])
         elif set_select_method == "id":
             bk_set_ids = cc_set_select

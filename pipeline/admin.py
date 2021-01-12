@@ -29,4 +29,4 @@ class PipelineInstanceAdmin(admin.ModelAdmin):
     list_display = ["id", "template", "name", "instance_id", "create_time", "start_time", "finish_time", "is_deleted"]
     list_filter = ["is_started", "is_finished", "is_revoked", "is_deleted"]
     search_fields = ["name"]
-    raw_id_fields = ["template", "snapshot", "execution_snapshot"]
+    raw_id_fields = ["template", "snapshot", "execution_snapshot", "tree_info"]

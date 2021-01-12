@@ -17,14 +17,14 @@ from django.test import TestCase
 from files.factory import ManagerFactory
 
 
-def get_env_wrapper(not_exist_var):
-    def get_env(var):
-        if var == not_exist_var:
+class EnvPatcher:
+    def __init__(self, not_exist_var):
+        self.not_exist_var = not_exist_var
+
+    def __getattribute__(self, attr):
+        if super(EnvPatcher, self).__getattribute__("not_exist_var") == attr:
             return None
-
-        return var
-
-    return get_env
+        return attr
 
 
 class ManagerFactoryTestCase(TestCase):
@@ -36,10 +36,10 @@ class ManagerFactoryTestCase(TestCase):
             "BKAPP_NFS_CONTAINER_ROOT",
             "BKAPP_NFS_HOST_ROOT",
         ]:
-            with patch("files.factory.os.getenv", get_env_wrapper(lack_var)):
+            with patch("files.factory.env", EnvPatcher(lack_var)):
                 self.assertRaises(EnvironmentError, ManagerFactory.get_manager, "host_nfs")
 
-    @patch("files.factory.os.getenv", get_env_wrapper(None))
+    @patch("files.factory.env", EnvPatcher(None))
     def test_get_nfs_manager(self):
         manager = ManagerFactory.get_manager("host_nfs")
         self.assertEqual(manager.location, "BKAPP_NFS_CONTAINER_ROOT")

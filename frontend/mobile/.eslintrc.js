@@ -31,7 +31,8 @@ module.exports = {
         NODE_ENV: true,
         SITE_URL: true,
         AJAX_URL_PREFIX: true,
-        LOGIN_SERVICE_URL: true
+        LOGIN_SERVICE_URL: true,
+        '$': true
     },
     // add your custom rules hered
     rules: {
