@@ -147,7 +147,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
         service_logger.warning(message)
         return {"result": False, "message": message}
     # 根据每个步骤的IP（可能有多个），循环查询作业执行日志
-    log_text = ""
+    log_list = []
     for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
         for step_ip_result in step_instance["step_ip_result_list"]:
             get_job_instance_ip_log_kwargs = {
@@ -167,7 +167,8 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
                 )
                 service_logger.warning(message)
                 return {"result": False, "message": message}
-            log_text = "\n".join(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
+            log_list.append(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
+    log_text = "\n".join(log_list)
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
