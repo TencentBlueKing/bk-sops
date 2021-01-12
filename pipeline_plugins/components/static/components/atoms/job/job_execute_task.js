@@ -164,7 +164,7 @@
                     type: "init",
                     action: function () {
                         this.table_buttons = [{
-                    text: '刷新全局变量',
+                    text: gettext("刷新全局变量"),
                     callback: function() {
                         const job_id = this.get_parent().get_child("job_task_id").value;
                         var $this = this;
