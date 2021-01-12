@@ -119,16 +119,15 @@ class JobFastPushFileService(JobService):
         across_biz = data.get_one_of_inputs("job_across_biz", False)
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
+        job_timeout = data.get_one_of_inputs("job_timeout")
         file_source = []
         for item in original_source_files:
             if across_biz:
                 ip_info = {"ip_result": []}
                 ip_str = item["ip"]
                 if plat_ip_reg.match(ip_str):
-                    plat_ip = []
                     for match in plat_ip_reg.finditer(ip_str):
-                        plat_ip.append(match.group())
-                    for ip in plat_ip:
+                        ip = match.group()
                         cloud_id, inner_ip = ip.strip().split(":")
                         ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
                 else:
@@ -179,7 +178,7 @@ class JobFastPushFileService(JobService):
                 )
 
                 ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in target_ip_info["ip_result"]]
-                job_timeout = data.get_one_of_inputs("job_timeout")
+
                 job_kwargs = {
                     "bk_biz_id": biz_cc_id,
                     "file_source": file_source,
