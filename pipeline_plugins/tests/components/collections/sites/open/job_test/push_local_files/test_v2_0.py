@@ -23,7 +23,7 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0 import JobPushLocalFilesComponent
+from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0 import JobPushLocalFilesComponent
 
 
 class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
@@ -41,24 +41,24 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.get_client_by_user"
 CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.cc_get_ips_info_by_str"
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.cc_get_ips_info_by_str"
 )
 
 ENVIRONMENT_VAR_GET = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0."
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0."
     "EnvironmentVariables.objects.get_var"
 )
 FACTORY_GET_MANAGER = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.ManagerFactory.get_manager"
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.ManagerFactory.get_manager"
 )
 GET_JOB_INSTANCE_URL = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.get_job_instance_url"
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.get_job_instance_url"
 )
 
 JOB_HANDLE_API_ERROR = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0_0.job_handle_api_error"
+    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.job_handle_api_error"
 )
 
 
