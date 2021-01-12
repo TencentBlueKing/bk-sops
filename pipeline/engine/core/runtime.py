@@ -127,6 +127,8 @@ def run_loop(process):
             if result.should_return or result.should_sleep:
                 if result.should_sleep:
                     process.sleep(adjust_status=True)
+                    if result.after_sleep_call:
+                        result.after_sleep_call(*result.args, **result.kwargs)
                 return
 
             # store current node id

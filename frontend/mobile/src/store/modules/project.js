@@ -12,9 +12,11 @@ export default {
     state: {},
     mutations: {},
     actions: {
-        getBusinessList ({ commit, state, dispatch }, params) {
-            const url = `${global.getMobileUrlPrefix().business}?limit=${params.limit}&offset=${params.offset}`
-            return http.get(url, params).then(response => response)
+        getProjectList ({ commit }, params) {
+            const { limit, offset } = params
+            return http.get('api/v3/weixin_user_project/', {
+                params: { limit, offset }
+            }).then(response => response)
         }
     }
 }

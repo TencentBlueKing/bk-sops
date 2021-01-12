@@ -74,23 +74,28 @@
             <h2 class="bk-text-title">{{ i18n.paramInfo }}</h2>
             <div class="bk-text-list">
                 <template v-if="Object.keys(templateConstants).length">
-                    <template v-for="item in sortedConstants">
-                        <VantComponent
-                            v-if="!loadingConfig && item.show_type === 'show'"
-                            :source-code="item.source_tag"
-                            :custom-type="item.custom_type"
-                            :key="item.key"
-                            :label="item.name"
-                            :placeholder="i18n.paramInput"
-                            :value="item.value"
-                            :data="item"
-                            :render-config="item.renderConfig"
-                            @dataChange="onInputDataChange" />
+                    <template v-if="!loadingConfig">
+                        <template v-for="item in sortedConstants">
+                            <VantComponent
+                                v-if="!loadingConfig && item.show_type === 'show'"
+                                :source-code="item.source_tag"
+                                :custom-type="item.custom_type"
+                                :key="item.key"
+                                :label="item.name"
+                                :placeholder="i18n.paramInput"
+                                :value="item.value"
+                                :data="item"
+                                :render-config="item.renderConfig"
+                                @dataChange="onInputDataChange" />
+                        </template>
                     </template>
+                    <div v-else class="holder-wrap">
+                        <van-loading type="spinner" size="24" />
+                    </div>
                 </template>
-                <template v-else>
+                <div v-else class="holder-wrap">
                     <no-data />
-                </template>
+                </div>
             </div>
         </section>
         <div class="btn-group">
@@ -105,6 +110,7 @@
                 v-else
                 size="large"
                 type="info"
+                :disabled="loadingConfig"
                 @click="onCreateClick">{{ i18n.btnCreate }}</van-button>
         </div>
 
@@ -138,6 +144,7 @@
                 columns: [],
                 currentDate: new Date(),
                 currentRef: null,
+                collectedList: [],
                 collected: false,
                 collecting: false,
                 templateData: {
@@ -196,9 +203,10 @@
         },
         methods: {
             ...mapActions('template', [
-                'getTemplateList',
                 'getTemplate',
+                'getCollectedTemplate',
                 'collectTemplate',
+                'deleteCollect',
                 'createTask',
                 'getTemplateConstants',
                 'getSchemeList',
@@ -253,18 +261,20 @@
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
                     try {
                         const params = {
-                            template_id: this.templateId,
-                            exclude_task_nodes_id: JSON.stringify(this.excludeTaskNodes),
-                            template_source: 'business'
+                            template_id: Number(this.templateId),
+                            exclude_task_nodes_id: this.excludeTaskNodes,
+                            template_source: 'project'
                         }
                         const pipelineTree = await this.getPreviewTaskTree(params)
                         Object.keys(this.templateConstants).forEach(k => {
-                            pipelineTree.constants[k].value = this.templateConstants[k].value
+                            if (pipelineTree.constants[k]) { // 可能存在未引用变量
+                                pipelineTree.constants[k].value = this.templateConstants[k].value
+                            }
                         })
                         const data = {
                             'name': this.taskName,
                             'description': '',
-                            'exec_data': JSON.stringify(pipelineTree)
+                            'exec_data': pipelineTree
                         }
                         const response = await this.createTask(data)
                         if (response) {
@@ -321,20 +331,28 @@
                 // 防止重复提交
                 if (!this.collecting) {
                     this.collecting = true
-                    // 调用收藏是取消收藏方法
-                    const params = { template_id: this.templateId, method: this.collected ? 'delete' : 'add' }
                     try {
-                        const response = await this.collectTemplate(params)
-                        if (response.result) {
-                            this.collected = !this.collected
-                            if (this.collected) {
-                                this.$toast.success(this.i18n.collectSuccess)
-                            } else {
-                                this.$toast.success(this.i18n.cancelCollectSuccess)
-                            }
+                        if (this.collected) {
+                            const collected = this.collectedList.find(item => item.extra_info.id === Number(this.templateData.id))
+                            const collectId = collected.id
+                            await this.deleteCollect(collectId)
+                            this.collected = false
+                            this.$toast.success(this.i18n.cancelCollectSuccess)
                         } else {
-                            errorHandler(response, this)
+                            const list = [{
+                                extra_info: {
+                                    project_id: this.templateData.project.id,
+                                    template_id: this.templateData.id,
+                                    name: this.templateData.name,
+                                    id: this.templateData.id
+                                },
+                                category: 'flow'
+                            }]
+                            await this.collectTemplate(list)
+                            this.collected = true
+                            this.$toast.success(this.i18n.collectSuccess)
                         }
+                        this.isTemplateCollected()
                     } catch (e) {
                         errorHandler(e, this)
                     } finally {
@@ -343,21 +361,15 @@
                 }
             },
             async isTemplateCollected () {
-                let templateList = this.$store.state.collectedTemplateList
-                if (!templateList.length) {
-                    try {
-                        const response = await this.getTemplateList()
-                        templateList = response.objects
-                        templateList.forEach(template => {
-                            if (this.templateData.id === template.id) {
-                                this.templateData.is_add = template.is_add
-                            }
-                        })
-                    } catch (e) {
-                        errorHandler(e, this)
-                    }
+                try {
+                    const response = await this.getCollectedTemplate()
+                    this.collectedList = response.objects
+                    this.collected = this.collectedList.some(template => {
+                        return template.category === 'flow' && template.extra_info.id === Number(this.templateId)
+                    })
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                this.collected = Boolean(this.templateData.is_add)
             },
 
             onDateTimeConfirm (value) {
@@ -372,29 +384,95 @@
             },
 
             async loadAtomOrVariableConfig (constants) {
+                const schemes = []
+                const configMap = {}
                 this.loadingConfig = true
                 if (!global.$.context) {
-                    global.$.context = {}
-                }
-                for (const key of Object.keys(constants)) {
-                    const constant = constants[key]
-                    const [configKey] = constant.source_tag.split('.')
-                    if (!global.$.atoms || !global.$.atoms[configKey]) {
-                        try {
-                            if (constant.custom_type) {
-                                await this.getVariableConfig({ customType: constant.custom_type })
-                            } else {
-                                await this.getAtomConfig({ atomCode: configKey })
+                    const siteURL = window.SITE_URL
+                    const project = this.templateData.project
+                    global.$.context = {
+                        project: project || undefined,
+                        biz_cc_id: project ? (project.from_cmdb ? project.bk_biz_id : undefined) : undefined,
+                        site_url: siteURL,
+                        component: siteURL + 'api/v3/component/',
+                        variable: siteURL + 'api/v3/variable/',
+                        template: siteURL + 'api/v3/template/',
+                        instance: siteURL + 'api/v3/taskflow/',
+                        get (attr) { // 获取 $.context 对象上属性
+                            return $.context[attr]
+                        },
+                        getBkBizId () { // 项目来自 cmdb，则获取对应的业务 id
+                            if ($.context.project) {
+                                return $.context.project.from_cmdb ? $.context.project.bk_biz_id : ''
                             }
-                        } catch (e) {
-                            errorHandler(e, this)
+                            return ''
+                        },
+                        getProjectId () { // 获取项目 id
+                            if ($.context.project) {
+                                return $.context.project.id
+                            }
+                            return ''
+                        },
+                        canSelectBiz () { // 是否可以选择业务
+                            if ($.context.project) {
+                                return !$.context.project.from_cmdb
+                            }
+                            return true
+                        },
+                        getConstants () { // 获取流程模板下的全局变量
+                            return constants
                         }
                     }
-                    this.$set(constant, 'renderConfig', global.$.atoms[configKey])
                 }
+                await Promise.all(Object.keys(constants).map(async (key) => {
+                    const constant = constants[key]
+                    if (constant.show_type === 'show') {
+                        const [configKey] = constant.source_tag.split('.')
+                        const version = constant.version || 'legacy'
+                        let scheme
+
+                        if (!configMap[configKey] || !configMap[configKey][version]) {
+                            try {
+                                if (constant.custom_type) {
+                                    scheme = await this.getVariableConfig({ customType: constant.custom_type, configKey, version })
+                                } else {
+                                    scheme = await this.getAtomConfig({ atomCode: configKey, version })
+                                }
+                                if (!configMap[configKey]) {
+                                    configMap[configKey] = {
+                                        [version]: scheme
+                                    }
+                                } else {
+                                    configMap[configKey][version] = scheme
+                                }
+                            } catch (e) {
+                                errorHandler(e, this)
+                            }
+                        } else {
+                            scheme = configMap[configKey][version]
+                        }
+                        schemes.push({ key, scheme })
+                    }
+                }))
+                schemes.forEach(item => {
+                    const constant = constants[item.key]
+                    this.$set(constant, 'renderConfig', item.scheme)
+                })
                 this.loadingConfig = false
             }
 
         }
     }
 </script>
+<style lang="scss" scoped>
+    .holder-wrap {
+        height: 40px;
+        text-align: center;
+    }
+    .van-loading {
+        display: inline-block;
+    }
+    /deep/ .bk-text-list .van-cell__title {
+        min-width: 3.2rem;
+    }
+</style>

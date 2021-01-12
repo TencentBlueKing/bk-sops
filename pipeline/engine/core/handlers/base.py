@@ -12,11 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 from abc import abstractmethod
-from collections import namedtuple
 
 
 class FlowElementHandler(object):
-    HandleResult = namedtuple("HandleResult", "next_node should_return should_sleep")
+    class HandleResult(object):
+        def __init__(self, next_node, should_return, should_sleep, after_sleep_call=None, args=[], kwargs={}):
+            self.next_node = next_node
+            self.should_return = should_return
+            self.should_sleep = should_sleep
+            self.after_sleep_call = after_sleep_call
+            self.args = args
+            self.kwargs = kwargs
 
     @staticmethod
     @abstractmethod
