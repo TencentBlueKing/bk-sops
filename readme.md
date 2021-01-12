@@ -43,6 +43,7 @@
 - [正式环境上传部署](docs/install/upload_pack_deploy.md)
 - [移动端部署](docs/install/mobile_deploy.md)
 - [标准插件开发](docs/develop/dev_plugins.md)
+- [标准运维开发者工具包](docs/develop/bksops-developer-tools.md)
 
 
 ## Usage
