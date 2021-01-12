@@ -44,7 +44,9 @@ def cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value):
 
         result = client.cc.search_set(kwargs)
         if not result["result"]:
-            err_msg = "调用 cc.search_set 接口获取集群失败, kwargs={kwargs}, result={result}".format(kwargs=kwargs, result=result)
+            err_msg = _("调用 cc.search_set 接口获取集群失败, kwargs={kwargs}, result={result}").format(
+                kwargs=kwargs, result=result
+            )
             logger.error(err_msg)
             continue
         for bk_set in result["data"]["info"]:
