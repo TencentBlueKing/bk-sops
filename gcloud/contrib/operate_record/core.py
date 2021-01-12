@@ -17,14 +17,14 @@ import logging
 from django.http import JsonResponse
 from django.http.request import HttpRequest
 
+from pipeline.engine import api as pipeline_api
+
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance, TaskTemplate
 from gcloud.contrib.operate_record.models import TaskOperateRecord, TemplateOperateRecord
-
+from gcloud.contrib.operate_record.constants import OperateSource, RecordType, TEMPLATE_TYPE, INSTANCE_OBJECT_KEY
 
 logger = logging.getLogger("root")
-API = "api"
-TEMPLATE_TYPE = ["template", "common_template"]
 
 RECORD_MODEL = {
     "task": TaskOperateRecord,
@@ -37,8 +37,6 @@ OPERATE_MODEL = {
     "template": TaskTemplate,
     "common_template": CommonTemplate,
 }
-
-INSTANCE_OBJECT_KEY = ["new_instance_id", "instance_id", "task_id"]
 
 
 class Record(object):
@@ -66,7 +64,7 @@ class Record(object):
 
     def get_request_data_from_key(self, key):
         """获取指定值"""
-        default_res, source_data = "none", [self.kwargs]
+        default_res, source_data = "", [self.kwargs]
 
         # args 中数据
         if self.args:
@@ -79,7 +77,7 @@ class Record(object):
             source_data.append(result_key)
 
         for data in source_data:
-            if data.get(key, None):
+            if data.get(key):
                 return data[key]
 
         return default_res
@@ -87,9 +85,7 @@ class Record(object):
     @property
     def real_action(self):
         action = self.get_request_data_from_key("action")
-        if action == "none":
-            action = self.action
-        return action
+        return self.action if not action else action
 
     @property
     def operator(self):
@@ -115,7 +111,8 @@ class Record(object):
         return {
             "instance_id": instance_obj.id,
             "name": self.get_instance_name(instance_obj),
-            "project": "" if self.record_type == "common_template" else instance_obj.project.name,
+            "project": "" if self.record_type == RecordType.common_template.name else instance_obj.project.name,
+            "project_id": -1 if self.record_type == RecordType.common_template.name else instance_obj.project.id,
             "operator": self.operator,
             "operate_source": self.source,
             "operate_type": self.real_action,
@@ -128,34 +125,33 @@ class Record(object):
         is_operate_success, instance_id = False, None
 
         if bundle_or_request == "request":
-            is_operate_success = self.result_response.get("result", False)
+            is_operate_success = self.result_response.get("result")
             if is_operate_success:
                 for key in INSTANCE_OBJECT_KEY:
                     instance_id = self.get_request_data_from_key(key)
-                    if instance_id != "none" and instance_id:
+                    if instance_id:
                         break
+
                 if not instance_id:
-                    raise KeyError("get instance_id failed!")
+                    raise KeyError("func: get_data_by_bundle_or_request, error: get instance_id failed!")
+
         if bundle_or_request == "bundle":
             is_operate_success = hasattr(self.operate_result, "obj") and not self.operate_result.errors
 
         # 获取操作对象
         if is_operate_success:
             instance_obj = self.get_instance_obj(instance_id=instance_id)
-
             record_params = self.need_save_info(instance_obj)
+
+            # 记录节点信息
             if node_id:
-                record_params.update({"node_id": node_id})
-                node_data = instance_obj.get_node_detail(node_id, self.operator)
-                if node_data["result"]:
-                    node_name = node_data["data"]["name"]
-                    record_params.update({"node_name": node_name})
+                record_params.update({"node_id": node_id, "node_name": pipeline_api.get_status_tree(node_id)["name"]})
 
             return is_operate_success, record_params
         return is_operate_success, {}
 
     def _bundle_or_request(self, data):
-        return "request" if self.source == API else data
+        return "request" if self.source == OperateSource.api.name else data
 
     # 记录action
     def create(self):

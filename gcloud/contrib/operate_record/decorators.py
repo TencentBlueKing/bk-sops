@@ -17,12 +17,19 @@ from functools import wraps
 
 from django.utils.decorators import available_attrs
 from gcloud.contrib.operate_record.core import Record
+from gcloud.contrib.operate_record.constants import OperateSource
 
 logger = logging.getLogger("root")
 
 
-def record_operation(record_type, action, source="app"):
-    """记录操作日志"""
+def record_operation(record_type, action, source=OperateSource.app.name):
+    """
+    记录操作日志
+    :param record_type: .constant模块中 RecordType 内容
+    :param action: .constant模块中 OperateType 内容
+    :param source: .constant模块中 OperateSource 内容
+    :return:
+    """
 
     def wrapper(func):
         @wraps(func, assigned=available_attrs(func))

@@ -16,13 +16,13 @@ from django.contrib import admin
 from gcloud.contrib.operate_record import models
 
 
-@admin.register(models.TemplateOperateRecord)
-class BusinessAdmin(admin.ModelAdmin):
-    list_display = ["operate_date", "instance_id", "name", "operator", "operate_type"]
-    search_fields = ["instance_id", "project", "operator", "name", "operate_type"]
-
-
 @admin.register(models.TaskOperateRecord)
-class UserBusinessAdmin(admin.ModelAdmin):
+class TaskOperateRecordAdmin(admin.ModelAdmin):
+    list_display = ["operate_date", "instance_id", "name", "operator", "operate_type", "node_name", "node_id"]
+    search_fields = ["instance_id", "project", "project_id", "operator", "name", "operate_type", "node_name", "node_id"]
+
+
+@admin.register(models.TemplateOperateRecord)
+class TemplateOperateRecordAdmin(admin.ModelAdmin):
     list_display = ["operate_date", "instance_id", "name", "operator", "operate_type"]
-    search_fields = ["instance_id", "project", "operator", "name", "operate_type"]
+    search_fields = ["instance_id", "project", "project_id", "operator", "name", "operate_type"]

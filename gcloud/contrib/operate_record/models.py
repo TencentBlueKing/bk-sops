@@ -13,36 +13,43 @@ specific language governing permissions and limitations under the License.
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from .constant import TASK_OPERATE_TYPE, TASK_OPERATE_SOURCE, TEMPLATE_OPERATE_TYPE, TEMPLATE_SOURCE
+
+from .constants import OPERATE_TYPE, OPERATE_SOURCE
 
 
-class TaskOperateRecord(models.Model):
-    instance_id = models.IntegerField(_("任务实例ID"))
-    name = models.CharField(_("任务名"), max_length=255)
+class BaseOperateRecord(models.Model):
+    instance_id = models.IntegerField(_("记录对象实例ID"), db_index=True)
+    name = models.CharField(_("记录对象名称"), max_length=255)
+    project = models.CharField(_("所属业务"), max_length=128, blank=True, default="")
+    project_id = models.IntegerField(_("所属业务id"), blank=True, default=-1)
+    operator = models.CharField(_("操作人"), max_length=128)
+    operate_date = models.DateTimeField(_("操作时间"), auto_now_add=True)
+    operate_type = models.CharField(_("操作类型"), choices=OPERATE_TYPE, max_length=64)
+    operate_source = models.CharField(_("操作来源"), choices=OPERATE_SOURCE, max_length=64)
+
+    class Meta:
+        abstract = True
+
+
+class TaskOperateRecord(BaseOperateRecord):
+    """任务操作记录"""
+
     node_id = models.CharField(_("任务实例节点ID"), max_length=255, blank=True, default="")
     node_name = models.CharField(_("任务实例节点名称"), max_length=255, blank=True, default="")
-    project = models.CharField(_("所属业务"), max_length=128, blank=True, default="")
-    operator = models.CharField(_("操作人"), max_length=128)
-    operate_type = models.CharField(_("操作类型"), choices=TASK_OPERATE_TYPE, max_length=64)
-    operate_date = models.DateTimeField(_("操作时间"), auto_now_add=True)
-    operate_source = models.CharField(_("操作来源"), choices=TASK_OPERATE_SOURCE, max_length=64)
 
     class Meta:
         verbose_name = _("任务操作记录")
         verbose_name_plural = _("任务操作记录")
+        index_together = ["instance_id", "node_id"]
 
     def __str__(self):
         return "{}_{}_{}_{}".format(self.operate_date, self.operator, self.operate_type, self.instance_id)
 
 
-class TemplateOperateRecord(models.Model):
-    instance_id = models.IntegerField(_("模版ID"))
-    name = models.CharField(_("模版名称"), max_length=255)
-    project = models.CharField(_("所属业务"), max_length=128, blank=True, default="")
-    operator = models.CharField(_("操作人"), max_length=128)
-    operate_type = models.CharField(_("操作类型"), choices=TEMPLATE_OPERATE_TYPE, max_length=64)
-    operate_date = models.DateTimeField(_("操作时间"), auto_now_add=True)
-    operate_source = models.CharField(_("操作来源"), choices=TEMPLATE_SOURCE, max_length=64)
+class TemplateOperateRecord(BaseOperateRecord):
+    """模版操作记录"""
+
+    pass
 
     class Meta:
         verbose_name = _("模版操作记录")
