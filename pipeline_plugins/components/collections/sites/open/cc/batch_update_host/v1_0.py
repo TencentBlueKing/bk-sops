@@ -89,7 +89,7 @@ class CCBatchUpdateHostService(Service):
             self.InputItem(
                 name=_("自动扩展分隔符"),
                 key="gcs_template_break_line",
-                type="str",
+                type="string",
                 schema=StringItemSchema(description=_("凯丽开区参数")),
             ),
         ]
