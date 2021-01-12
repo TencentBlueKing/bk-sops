@@ -157,9 +157,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
                 "bk_cloud_id": step_ip_result["bk_cloud_id"],
                 "ip": step_ip_result["ip"],
             }
-            get_job_instance_ip_log_kwargs_return = client.jobv3.get_job_instance_ip_log_kwargs(
-                get_job_instance_ip_log_kwargs
-            )
+            get_job_instance_ip_log_kwargs_return = client.jobv3.get_job_instance_ip_log(get_job_instance_ip_log_kwargs)
             if not get_job_instance_ip_log_kwargs_return["result"]:
                 message = handle_api_error(
                     __group_name__,
@@ -169,7 +167,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
                 )
                 service_logger.warning(message)
                 return {"result": False, "message": message}
-            log_text += get_job_instance_ip_log_kwargs_return["data"]["log_content"]
+            log_text = "\n".join(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
