@@ -48,7 +48,7 @@ REQUESTS_POST = (
     "pipeline_plugins.components.collections.sites.open.wechat_work.wechat_work_send_message.v1_0.requests.post"  # noqa
 )
 
-# test cases
+# test  cases
 
 WEBHOOK_NOT_CONFIG_CASE = ComponentTestCase(
     name="webhook not config test case",
