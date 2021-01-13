@@ -15,26 +15,30 @@ from django.conf.urls import include, url
 from tastypie.api import Api
 
 from .resources import (
-    WxBusinessResource,
     WxTaskTemplateResource,
     WxTaskFlowInstanceResource,
     WxComponentModelResource,
     WxVariableModelResource,
-    WxTemplateSchemeResource
+    WxTemplateSchemeResource,
+    WxUserProjectResource,
+    WxProjectResource,
+    WxCollectionResource,
 )
 from . import views
 
-weixin_v3_api = Api(api_name='v3')
-weixin_v3_api.register(WxBusinessResource())
+weixin_v3_api = Api(api_name="v3")
+weixin_v3_api.register(WxUserProjectResource())
+weixin_v3_api.register(WxProjectResource())
 weixin_v3_api.register(WxTaskTemplateResource())
 weixin_v3_api.register(WxTemplateSchemeResource())
 weixin_v3_api.register(WxTaskFlowInstanceResource())
 weixin_v3_api.register(WxComponentModelResource())
 weixin_v3_api.register(WxVariableModelResource())
+weixin_v3_api.register(WxCollectionResource())
 
 urlpatterns = [
-    url(r'^$', views.home),
-    url(r'^taskflow/', include('gcloud.taskflow3.urls')),
-    url(r'^template/', include('gcloud.tasktmpl3.urls')),
-    url(r'^api/', include(weixin_v3_api.urls)),
+    url(r"^$", views.home),
+    url(r"^taskflow/", include("gcloud.taskflow3.urls")),
+    url(r"^template/", include("gcloud.tasktmpl3.urls")),
+    url(r"^api/", include(weixin_v3_api.urls)),
 ]

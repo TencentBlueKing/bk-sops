@@ -100,6 +100,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
             "template_id": ALL,
             "pipeline_instance": ALL_WITH_RELATIONS,
         }
+        ordering = ["pipeline_instance"]
         q_fields = ["id", "pipeline_instance__name"]
         creator_or_executor_fields = ["pipeline_instance__creator", "pipeline_instance__executor"]
         # iam config

@@ -171,6 +171,23 @@
                 placeholder: gettext("单位为秒，为空时使用JOB默认值"),
                 hookable: true,
             }
+        },
+        {
+            tag_code: "ip_is_exist",
+            type: "radio",
+            attrs: {
+                name: gettext("IP 存在性校验"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();

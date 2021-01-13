@@ -23,9 +23,7 @@ RUN_MODE = "STAGING"
 
 BK_IAM_SYNC_TEMPLATES = True
 
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
-# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
-BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
+BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
 LOGGING["loggers"]["iam"] = {
     "handlers": ["component"],

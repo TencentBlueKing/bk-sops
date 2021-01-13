@@ -12,6 +12,9 @@ npm install
 ## 修改配置文件  
 把 frontend/desktop/ 中的所有文件中的 {BK_PAAS_HOST} 换成你部署的蓝鲸社区版地址，如果你的应用 ID 修改过，请把所有文件中的 bk_sops 改成你的新应用 ID。
 
+在命令行的环境变量中加入 
+ BK_STATIC_URL=你的BK_PAAS_HOST
+ SITE_URL=前端的根地址(通常填写`/`即可)
 ## 启动前端工程  
 进入 bk_sops/src/frontend/desktop/，执行以下命令运行前端工程。默认启动的是 9000 端口，然后通过 http://dev.{BK_PAAS_HOST}:9000/ 访问前端应用，此时后端请求会自动转发到你启动的 django 工程，即 8000 端口。
 
@@ -24,13 +27,17 @@ npm run dev
 前端开发完成后，正式发布前需要先打包。还是在 frontend/desktop/ 目录下，执行如下命令打包，会自动在当前目录下生成 static/dist/ 目录，即打包好的前端资源。 
 
 ```bash
-npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
+npm run build
 ```
 
 ## 收集静态资源  
 前端打包后，需要在工程目录下运行如下命令收集静态资源到 static 下。
 ```bash
-rm -rf static/open static/images
-mv frontend/desktop/static/open static/
-mv frontend/desktop/static/images static/
+cd frontend/desktop
+npm run build
+cd ../..
+rm -rf ./static/bk_sops
+cp -r ./frontend/desktop/static ./static/bk_sops
+rm ./gcloud/core/templates/core/base_vue.html
+mv ./static/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
 ```

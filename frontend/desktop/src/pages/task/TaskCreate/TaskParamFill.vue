@@ -15,7 +15,7 @@
             <div class="task-info-title">
                 <span>{{ $t('任务信息') }}</span>
             </div>
-            <div>
+            <div class="task-basic-info">
                 <div class="common-form-item">
                     <label class="required">{{ $t('任务名称') }}</label>
                     <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
@@ -404,7 +404,28 @@
                         formValid = paramEditComp.validate()
                     }
 
-                    if (!result || !formValid) return
+                    if (!result) {
+                        const $basicInfo = document.querySelector('.task-basic-info')
+                        $basicInfo.scrollIntoView()
+                        return
+                    }
+
+                    if (!formValid) {
+                        const $renderform = document.querySelector('.render-form')
+                        const $tipsEl = Array.from($renderform.querySelectorAll('.common-error-tip'))
+                        let $tipInView = null
+                        $tipsEl.some(item => {
+                            console.log(item.style.display)
+                            if (item.style.display !== 'none') {
+                                $tipInView = item
+                                return true
+                            }
+                        })
+                        if ($tipInView) {
+                            $tipInView.scrollIntoView()
+                        }
+                        return
+                    }
 
                     this.isSubmit = true
                     let flowType

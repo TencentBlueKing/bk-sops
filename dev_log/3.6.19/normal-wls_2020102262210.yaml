@@ -1,0 +1,2 @@
+bugfix:
+    - "修复 故障机替换 插件 bk_host_innerip KeyError 问题，增加是否复制故障机属性选项"

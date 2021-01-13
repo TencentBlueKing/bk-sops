@@ -64,7 +64,8 @@ Get all plugins info for a business
             "code": "job_push_local_files",
             "name": "push local file",
             "group_name": "(JOB)",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "form": "/static/components/atoms/job/job_push_local_files.js"
         }
     ]
 }
@@ -88,7 +89,8 @@ Get all plugins info for a business
 |  code      |    string    |      plugin code    |
 |  name      |    string    |      plugin name    |
 |  group_name      |    string    |      plugin group name    |
-|  version      |    name    |      plugin version    |
+|  version      |  string  |  plugin version    |
+|  form         |    string    | plugin form url |
 
 ##### inputs
 

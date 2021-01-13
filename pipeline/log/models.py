@@ -44,7 +44,7 @@ class LogEntry(models.Model):
     level_name = models.SlugField(_("日志等级"), max_length=32)
     message = models.TextField(_("日志内容"), null=True)
     exception = models.TextField(_("异常信息"), null=True)
-    logged_at = models.DateTimeField(_("输出时间"), auto_now_add=True)
+    logged_at = models.DateTimeField(_("输出时间"), auto_now_add=True, db_index=True)
 
     node_id = models.CharField(_("节点 ID"), max_length=32, db_index=True)
     history_id = models.IntegerField(_("节点执行历史 ID"), default=-1)

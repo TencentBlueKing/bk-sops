@@ -181,7 +181,9 @@
                     return this.value
                 },
                 set (val) {
-                    this.updateForm(val)
+                    if (!this.hook) {
+                        this.updateForm(val)
+                    }
                 }
             },
             viewValue () {
@@ -235,7 +237,7 @@
                 }
 
                 const inputVal = val.split(',')
-                this.options = this.items.filter(option => inputVal.some(i => option.text.includes(i)))
+                this.options = this.items.filter(option => inputVal.some(i => option.text.toLowerCase().includes(i.toLowerCase())))
             },
             set_loading (loading) {
                 this.loading = loading

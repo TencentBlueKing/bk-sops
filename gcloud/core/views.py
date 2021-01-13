@@ -34,7 +34,9 @@ def page_not_found(request):
 
     # 未登录重定向到首页，跳到登录页面
     if not user:
-        return HttpResponseRedirect(settings.SITE_URL)
+        return HttpResponseRedirect(
+            settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, request.build_absolute_uri())
+        )
     request.user = user
     return render(request, "core/base_vue.html", {})
 

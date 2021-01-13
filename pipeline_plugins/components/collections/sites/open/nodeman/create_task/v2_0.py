@@ -15,6 +15,7 @@ import ujson as json
 
 from django.utils.translation import ugettext_lazy as _
 
+from api.collections.nodeman import BKNodeManClient
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.component_framework.component import Component
 from pipeline.utils.crypt import rsa_decrypt_password
@@ -32,8 +33,6 @@ from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("节点管理(Nodeman)")
 VERSION = "v2.0"
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 # 安装类任务(job_install)
 INSTALL_JOB = ["INSTALL_PROXY", "INSTALL_AGENT", "REINSTALL_PROXY", "REINSTALL_AGENT"]
@@ -57,7 +56,7 @@ def get_host_id_by_inner_ip(client, logger, bk_cloud_id: int, bk_biz_id: int, ip
         "pagesize": -1,
         "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
-    result = client.nodeman.search_host_plugin(kwargs)
+    result = client.search_host_plugin(**kwargs)
 
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
@@ -73,7 +72,7 @@ class NodemanCreateTaskService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
-        client = get_client_by_user(executor)
+        client = BKNodeManClient(username=executor)
         bk_biz_id = data.inputs.bk_biz_id
 
         nodeman_op_target = data.inputs.nodeman_op_target
@@ -194,7 +193,7 @@ class NodemanCreateTaskService(Service):
             return False
 
         action = kwargs.pop("action")
-        result = getattr(client.nodeman, action)(kwargs)
+        result = getattr(client, action)(**kwargs)
         if not result["result"]:
             # 接口失败详细日志都存在 data 中，需要打印出来
             try:
@@ -216,16 +215,14 @@ class NodemanCreateTaskService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
-        client = get_client_by_user(executor)
-
+        client = BKNodeManClient(username=executor)
         job_id = data.get_one_of_outputs("job_id", "")
-
         if not job_id:
             self.finish_schedule()
             return True
 
         job_kwargs = {"job_id": job_id}
-        job_result = client.nodeman.job_details(job_kwargs)
+        job_result = client.job_details(**job_kwargs)
         if not job_result["result"]:
             # 接口失败详细日志都存在 data 中，需要打印出来
             try:
@@ -253,7 +250,7 @@ class NodemanCreateTaskService(Service):
             return True
 
         # 失败任务信息
-        if result_data["status"] == "FAILED":
+        if result_data["status"] in ["FAILED", "PART_FAILED"]:
             fail_infos = [
                 {"inner_ip": host["inner_ip"], "instance_id": host["instance_id"]}
                 for host in host_list
@@ -267,7 +264,7 @@ class NodemanCreateTaskService(Service):
                     "job_id": job_id,
                     "instance_id": fail_info["instance_id"],
                 }
-                result = client.nodeman.get_job_log(log_kwargs)
+                result = client.get_job_log(**log_kwargs)
 
                 if not result["result"]:
                     result["message"] += json.dumps(result["data"], ensure_ascii=False)
@@ -294,39 +291,27 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"),
-                key="job_id",
-                type="int",
-                schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"),
-                key="success_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"),
-                key="fail_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),
                 key="nodeman_op_target",
                 type="object",
                 schema=ObjectItemSchema(
-                    _("需要操作的对象"),
+                    description=_("需要操作的对象"),
                     property_schemas={
                         "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域 ID")),
                         "nodeman_node_type": StringItemSchema(
@@ -340,7 +325,7 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_op_info",
                 type="object",
                 schema=ObjectItemSchema(
-                    _("操作内容信息"),
+                    description=_("操作内容信息"),
                     property_schemas={
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(

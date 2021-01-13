@@ -21,6 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from mako.template import Template
 
+from blueapps.account.decorators import login_exempt
 from gcloud.core import roles
 from gcloud.conf import settings
 from gcloud.core.footer import FOOTER
@@ -124,7 +125,9 @@ def get_footer(request):
     return JsonResponse(
         {
             "result": True,
-            "data": Template(FOOTER(language) if callable(FOOTER) else FOOTER).render(year=datetime.now().year),
+            "data": Template(FOOTER(language) if callable(FOOTER) else FOOTER).render(
+                year=datetime.now().year, desktop_link=settings.BK_PAAS_HOST
+            ),
         }
     )
 
@@ -134,3 +137,9 @@ def get_msg_types(request):
     client = get_client_by_user(request.user.username)
     result = client.cmsi.get_msg_type()
     return JsonResponse(result)
+
+
+@require_GET
+@login_exempt
+def healthz(request):
+    return JsonResponse({"result": True, "data": None, "message": "OK"})
