@@ -51,7 +51,7 @@ class JobPushLocalFilesService(Service):
             self.InputItem(
                 name=_("本地文件信息"),
                 key="job_local_files_info",
-                type="array",
+                type="object",
                 schema=ObjectItemSchema(
                     description=_("本地文件信息"),
                     property_schemas={
