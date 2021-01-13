@@ -299,6 +299,11 @@
             height: 34px;
             width: 34px;
             text-align: center;
+            &:hover {
+                .state-icon {
+                    display: block;
+                }
+            }
             &.failed {
                 @include gatewayStyle($redDark);
             }
@@ -316,6 +321,28 @@
                 border-radius: 3px;
                 transform: rotate(45deg);
                 z-index: -1;
+            }
+            .state-icon {
+                position: absolute;
+                right: 7px;
+                bottom: -80px;
+                display: none;
+                height: 80px;
+                .el-tooltip {
+                   font-size: 14px;
+                   color: #52699D;
+                   vertical-align: middle;
+                    &:hover {
+                        color: #4b85f7;
+                    }
+                    &.common-icon-play {
+                        font-size: 18px;
+                    }
+                }
+                &:hover {
+                    display: block;
+                    z-index: 999;
+                }
             }
         }
         .node-type-icon {
