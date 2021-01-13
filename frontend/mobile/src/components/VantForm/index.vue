@@ -102,7 +102,7 @@
                             this.placeholder = item.attrs.placeholder
                         }
                         if (item.type === 'select') {
-                            const defaultIndex = item.attrs.items.findIndex(o => o.text === this.value)
+                            const defaultIndex = item.attrs.items ? item.attrs.items.findIndex(o => o.text === this.value) : ''
                             this.domAttr.select = {
                                 multiple: item.attrs.multiple,
                                 columns: item.attrs.items,

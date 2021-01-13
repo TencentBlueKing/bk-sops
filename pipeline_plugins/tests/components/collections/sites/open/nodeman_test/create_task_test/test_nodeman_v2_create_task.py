@@ -49,17 +49,16 @@ class MockClient(object):
         self, install_return=None, operate_return=None, remove_host=None, details_return=None, get_job_log_return=None
     ):
         self.name = "name"
-        self.nodeman = MagicMock()
-        self.nodeman.job_install = MagicMock(return_value=install_return)
-        self.nodeman.job_operate = MagicMock(return_value=operate_return)
-        self.nodeman.job_operate = MagicMock(return_value=operate_return)
-        self.nodeman.remove_host = MagicMock(return_value=remove_host)
-        self.nodeman.job_details = MagicMock(return_value=details_return)
-        self.nodeman.get_job_log = MagicMock(return_value=get_job_log_return)
+        self.job_install = MagicMock(return_value=install_return)
+        self.job_operate = MagicMock(return_value=operate_return)
+        self.job_operate = MagicMock(return_value=operate_return)
+        self.remove_host = MagicMock(return_value=remove_host)
+        self.job_details = MagicMock(return_value=details_return)
+        self.get_job_log = MagicMock(return_value=get_job_log_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.BKNodeManClient"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.handle_api_error"
 GET_HOST_ID_BY_INNER_IP = (
@@ -209,10 +208,10 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_type": "INSTALL_AGENT",
                         "hosts": [
                             {
@@ -239,8 +238,8 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_details,
-            calls=[Call({"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
         ),
     ],
     patchers=[
@@ -297,10 +296,10 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_type": "REINSTALL_AGENT",
                         "hosts": [
                             {
@@ -362,8 +361,8 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_details,
-            calls=[Call({"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
         ),
     ],
     patchers=[
@@ -405,10 +404,10 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.nodeman.job_install,
+            func=DETAILS_FAIL_CLIENT.job_install,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_type": "REINSTALL_AGENT",
                         "hosts": [
                             {
@@ -449,14 +448,14 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     ),
     schedule_call_assertion=[
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.nodeman.job_details,
-            calls=[Call({"job_id": "1"})],
+            func=DETAILS_FAIL_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
         ),
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.nodeman.get_job_log,
+            func=DETAILS_FAIL_CLIENT.get_job_log,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_id": "1",
                         "instance_id": "host|instance|host|1.1.1.1-0-0",
                     }
@@ -496,10 +495,10 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_operate,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_operate,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_type": "UPGRADE_AGENT",
                         "bk_biz_id": ["1"],
                         "bk_host_id": [1],
@@ -510,8 +509,8 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_details,
-            calls=[Call({"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
         ),
     ],
     patchers=[
@@ -540,10 +539,10 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     schedule_assertion=[],
     execute_call_assertion=[
         CallAssertion(
-            func=CASE_FAIL_CLIENT.nodeman.job_operate,
+            func=CASE_FAIL_CLIENT.job_operate,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_type": "UPGRADE_AGENT",
                         "bk_biz_id": ["1"],
                         "bk_host_id": [1],
@@ -583,8 +582,8 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.remove_host,
-            calls=[Call({"bk_biz_id": ["1"], "bk_host_id": [1], "is_proxy": False})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.remove_host,
+            calls=[Call(**{"bk_biz_id": ["1"], "bk_host_id": [1], "is_proxy": False})],
         ),
     ],
     schedule_call_assertion=[],
@@ -623,7 +622,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                 {
                     "bk_biz_id": "1",
                     "bk_cloud_id": "1",
-                    "inner_ip": "10.10.10.10",
+                    "inner_ip": "127.0.0.1",
                     "os_type": "LINUX",
                     "port": "22",
                     "account": "test",
@@ -636,7 +635,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                 {
                     "bk_biz_id": "1",
                     "bk_cloud_id": "1",
-                    "inner_ip": "11.11.11.11",
+                    "inner_ip": "127.0.0.2",
                     "os_type": "LINUX",
                     "port": "22",
                     "account": "test",
@@ -653,10 +652,10 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.nodeman.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
             calls=[
                 Call(
-                    {
+                    **{
                         "job_type": "REINSTALL_AGENT",
                         "hosts": [
                             {
@@ -696,7 +695,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                             {
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "1",
-                                "inner_ip": "10.10.10.10",
+                                "inner_ip": "127.0.0.1",
                                 "os_type": "LINUX",
                                 "port": "22",
                                 "account": "test",
@@ -713,7 +712,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                             {
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "1",
-                                "inner_ip": "11.11.11.11",
+                                "inner_ip": "127.0.0.2",
                                 "os_type": "LINUX",
                                 "port": "22",
                                 "account": "test",
@@ -737,7 +736,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(
             target=GET_HOST_ID_BY_INNER_IP,
-            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "10.10.10.10": 1, "11.11.11.11": 1},
+            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
         ),
     ],
 )

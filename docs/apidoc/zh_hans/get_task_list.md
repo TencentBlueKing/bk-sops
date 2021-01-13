@@ -20,7 +20,7 @@
 |   keyword     |   string     |   否   |  根据任务名关键词过滤任务列表，默认不过滤 |
 |   is_started  |   bool       |   否   |  根据任务是否已开始过滤任务列表，默认不过滤 |
 |   is_finished |   bool       |   否   |  根据任务是否已结束过滤任务列表，默认不过滤 |
-|   limit       |   int        |   否   |  分页，返回任务列表任务数，默认为15 |
+|   limit       |   int        |   否   |  分页，返回任务列表任务数，默认为100 |
 |   offset      |   int        |   否   |  分页，返回任务列表起始任务下标，默认为0 |
 
 
@@ -135,7 +135,8 @@
             "bk_biz_id": 2,
             "bk_biz_name": "蓝鲸"
         }
-    ]
+    ],
+    "count": 5
 }
 ```
 
@@ -145,6 +146,7 @@
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    list    |      result=true 时成功数据，详细信息请见下面说明     |
 |  message     |    string  |      result=false 时错误信息     |
+|  count       |    int     |      data列表数量                |
 
 ##### data[item]
 |   名称   |  类型  |           说明             |
@@ -165,9 +167,3 @@
 |  project_name    |  string      | 项目名称   |
 |  bk_biz_id       |  int         | 业务ID    |
 |  bk_biz_name     |  string      | 业务名称   |
-
-
-
-
-
-

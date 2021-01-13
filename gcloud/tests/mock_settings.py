@@ -66,6 +66,8 @@ APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER = "gcloud.apigw.views.get_plugin_li
 APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS = (
     "gcloud.apigw.views.get_plugin_list.ComponentLibrary.get_component_class"  # noqa
 )
+APIGW_GET_PLUGIN_DETAIL_COMPONENT_MODEL_EXCLUDE = "gcloud.apigw.views.get_plugin_detail.ComponentModel.objects.exclude"
+APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST = "gcloud.apigw.views.get_user_project_list.get_user_projects"
 APIGW_GET_USER_PROJECT_LIST_GET_USER_BUSINESS_LIST = "gcloud.apigw.views.get_user_project_list.get_user_business_list"
 APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL = "gcloud.apigw.views.get_user_project_detail.get_business_detail"
 APIGW_PREVIEW_TASK_TREE_PREVIEW_TEMPLATE_TREE = "gcloud.apigw.views.preview_task_tree.preview_template_tree"

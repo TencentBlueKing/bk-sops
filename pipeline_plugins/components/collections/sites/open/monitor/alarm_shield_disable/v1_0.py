@@ -15,12 +15,12 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.default_settings import ESB_GET_OLD_CLIENT_BY_USER as get_client_by_user
+from api import BKMonitorClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
 
 __group_name__ = _("监控平台(Monitor)")
@@ -29,55 +29,54 @@ monitor_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class MonitorAlarmShieldDisableService(Service):
-
     def inputs_format(self):
-        return [self.InputItem(name=_('屏蔽 ID'),
-                               key='bk_alarm_shield_id_input',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作的屏蔽 ID')))
-                ]
+        return [
+            self.InputItem(
+                name=_("屏蔽 ID"),
+                key="bk_alarm_shield_id_input",
+                type="string",
+                schema=StringItemSchema(description=_("当前操作的屏蔽 ID")),
+            )
+        ]
 
     def execute(self, data, parent_data):
-        if parent_data.get_one_of_inputs('language'):
-            translation.activate(parent_data.get_one_of_inputs('language'))
+        if parent_data.get_one_of_inputs("language"):
+            translation.activate(parent_data.get_one_of_inputs("language"))
 
-        executor = parent_data.get_one_of_inputs('executor')
-        bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
-        shield_id = data.get_one_of_inputs('bk_alarm_shield_id_input')
+        executor = parent_data.get_one_of_inputs("executor")
+        shield_id = data.get_one_of_inputs("bk_alarm_shield_id_input")
 
-        client = get_client_by_user(executor)
-        request_body = {'bk_biz_id': bk_biz_id, 'id': shield_id}
-        response = client.monitor.disable_shield(request_body)
-        if not response['result']:
-            message = monitor_handle_api_error('monitor.disable_shield', request_body, response)
+        client = BKMonitorClient(username=executor)
+        request_body = {"id": shield_id}
+        response = client.disable_shield(**request_body)
+        if not response["result"]:
+            message = monitor_handle_api_error("monitor.disable_shield", request_body, response)
             self.logger.error(message)
             result = message
             ret_flag = False
         else:
-            result = response['data']
+            result = response["data"]
             ret_flag = True
 
-        data.set_outputs('data', {'result': result})
-        data.set_outputs('status_code', response['code'])
+        data.set_outputs("data", {"result": result})
+        data.set_outputs("status_code", response["code"])
         return ret_flag
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_('响应内容'),
-                            key='data',
-                            type='str',
-                            schema=StringItemSchema(description=_('解除告警屏蔽的响应内容'))),
-            self.OutputItem(name=_('状态码'),
-                            key='status_code',
-                            type='int',
-                            schema=StringItemSchema(description=_('解除告警屏蔽的响应状态码')))
+            self.OutputItem(
+                name=_("响应内容"), key="data", type="string", schema=StringItemSchema(description=_("解除告警屏蔽的响应内容"))
+            ),
+            self.OutputItem(
+                name=_("状态码"), key="status_code", type="int", schema=IntItemSchema(description=_("解除告警屏蔽的响应状态码"))
+            ),
         ]
 
 
 class MonitorAlarmShieldDisableComponent(Component):
-    name = _('解除告警屏蔽')
-    code = 'monitor_alarm_shield_disable'
+    name = _("解除告警屏蔽")
+    code = "monitor_alarm_shield_disable"
     desc = _("提示: 屏蔽id请从告警屏蔽或蓝鲸监控获取")
     bound_service = MonitorAlarmShieldDisableService
     version = "1.0"
-    form = '{static_url}components/atoms/monitor/alarm_shield_disable/v1_0.js'.format(static_url=settings.STATIC_URL)
+    form = "{static_url}components/atoms/monitor/alarm_shield_disable/v1_0.js".format(static_url=settings.STATIC_URL)

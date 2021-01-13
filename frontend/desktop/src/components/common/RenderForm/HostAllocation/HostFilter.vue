@@ -59,18 +59,16 @@
                                 :name="item.label">
                             </bk-option>
                         </template>
-                        <el-tree
+                        <bk-big-tree
                             ref="resourceTree"
-                            node-key="id"
-                            default-expand-all
                             show-checkbox
-                            check-strictly
-                            :props="{
-                                disabled: hostResourceDisabled
-                            }"
+                            :height="216"
+                            :check-strictly="false"
+                            :options="{ nameKey: 'label' }"
+                            :default-expanded-nodes="defaultExpandNodes"
                             :data="resourceList"
-                            @check="onResourceSelect">
-                        </el-tree>
+                            @check-change="onResourceSelect">
+                        </bk-big-tree>
                     </bk-select>
                 </bk-form-item>
                 <!--主机筛选条件-->
@@ -194,6 +192,7 @@
                     ]
                 },
                 resourceList: [], // 主机资源所属 tree
+                defaultExpandNodes: [],
                 conditions: [],
                 pending: {
                     scheme: false,
@@ -338,10 +337,18 @@
                     })
                     if (resp.result) {
                         this.resourceList = resp.data
-                        if (this.formData.resource.length > 0) {
-                            const keys = this.formData.resource.map(item => item.id)
-                            this.$refs.resourceTree && this.$refs.resourceTree.setCheckedKeys(keys)
+                        if (Array.isArray(resp.data) && resp.data.length > 0) {
+                            this.defaultExpandNodes = [resp.data[0].id]
                         }
+                        this.$nextTick(() => {
+                            if (this.formData.resource.length > 0) {
+                                const keys = this.formData.resource.map(item => item.id)
+                                if (this.$refs.resourceTree) {
+                                    this.$refs.resourceTree.setChecked(keys, { checked: true })
+                                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
+                                }
+                            }
+                        })
                     } else {
                         errorHandler(resp, this)
                     }
@@ -396,38 +403,81 @@
                     return false
                 }
             },
-            // 主机资源所属，选中父节点后取消所有子节点的选中态
-            unCheckChildrenNodes (current, checkedNodes) {
-                current.children.forEach(item => {
-                    const index = checkedNodes.findIndex(node => node.id === item.id)
-                    if (index > -1) {
-                        checkedNodes.splice(index, 1)
+            // 由集群ID递归查找集群名称
+            filterSetName (id, list) {
+                let name = ''
+                list.some(item => {
+                    if (item.id === id) {
+                        name = item.label
+                        return true
+                    } else if (item.children && item.children.length > 0) {
+                        const val = this.filterSetName(id, item.children)
+                        if (val) {
+                            name = val
+                            return true
+                        }
                     }
+                })
+                return name
+            },
+            /**
+             * 设置默认被禁用的节点
+             */
+            setNodesDefaultDisabled () {
+                let defaultDisabledIds = []
+                this.formData.resource.forEach(item => {
+                    const node = this.$refs.resourceTree.getNodeById(item.id)
+                    if (node.children && node.children.length > 0) {
+                        defaultDisabledIds = defaultDisabledIds.concat(this.traverseNodesToList(node.children))
+                    }
+                })
+                this.$refs.resourceTree.setDisabled(defaultDisabledIds, { disabled: true })
+            },
+            /**
+             * 遍历获取子节点列表
+             */
+            traverseNodesToList (nodes) {
+                let list = []
+                nodes.forEach(item => {
+                    list.push(item.id)
                     if (item.children && item.children.length > 0) {
-                        this.unCheckChildrenNodes(item, checkedNodes)
+                        list = list.concat(this.traverseNodesToList(item.children))
+                    }
+                })
+                return list
+            },
+            // 主机资源所属，选中父节点后取消所有子节点的选中态
+            changeChildrenNodeState (node, checkedList, isChecked) {
+                node.children.forEach(item => {
+                    const index = checkedList.findIndex(id => id === item.id)
+                    if (index > -1) {
+                        checkedList.splice(index, 1)
+                        this.$refs.resourceTree.setChecked(item.id, { checked: false })
+                    }
+                    this.$refs.resourceTree.setDisabled(item.id, { disabled: isChecked })
+                    if (item.children && item.children.length > 0) {
+                        this.changeChildrenNodeState(item, checkedList, isChecked)
                     }
                 })
             },
             // 清空所选主机资源
             onResourceClear () {
                 this.formData.resource = []
-                this.$refs.resourceTree.setCheckedNodes([])
+                this.$refs.resourceTree.setData(this.resourceList)
             },
             // 主机资源所属节点点击事件
-            onResourceSelect (checked, data) {
-                const checkedNodes = data.checkedNodes
-                if (checked.children && checked.children.length > 0) {
-                    this.unCheckChildrenNodes(checked, checkedNodes)
+            onResourceSelect (selectedNodes, node) {
+                const checkedList = selectedNodes.slice(0)
+                const isChecked = selectedNodes.includes(node.id)
+                if (node.children && node.children.length) {
+                    this.changeChildrenNodeState(node, checkedList, isChecked)
                 }
-                this.formData.resource = checkedNodes.map(item => {
-                    return {
-                        id: item.id,
-                        label: item.label
-                    }
+                this.formData.resource = checkedList.map(id => {
+                    const label = this.filterSetName(id, this.resourceList)
+                    return { id, label }
                 })
-                this.$refs.resourceTree.setCheckedNodes(checkedNodes)
+                this.$refs.resourceTree.setChecked(checkedList, { checked: true })
             },
-
             // 主机筛选条件change事件
             updateCondition (value) {
                 this.formData.host_filter_list = value
@@ -657,6 +707,9 @@
             font-size: 12px;
             color: #ffb400;
         }
+    }
+    /deep/ .bk-big-tree-node .node-content {
+        font-size: 12px;
     }
 </style>
 <style lang="scss">

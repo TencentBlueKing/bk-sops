@@ -14,15 +14,17 @@ specific language governing permissions and limitations under the License.
 from __future__ import unicode_literals
 import argparse
 import json
+import os
 
 import requests
 
 __version__ = "1.0.0"
 
-BK_IAM_HOST = "http://iam.service.consul"
+BK_IAM_HOST = os.getenv("BK_IAM_V3_INNER_HOST", "http://bkiam.service.consul:5001")
 
 APP_CODE = ""
 APP_SECRET = ""
+data_file = ""
 
 
 # =================== load json ===================
@@ -75,8 +77,8 @@ def _http_request(method, url, headers=None, data=None, timeout=None, verify=Fal
             )
         else:
             return False, None
-    except requests.exceptions.RequestException:
-        print("http request error! method: %s, url: %s, data: %s", method, url, data)
+    except requests.exceptions.RequestException as e:
+        print("http request error! method: %s, url: %s, data: %s! err=%s", method, url, data, e)
         return False, None
     else:
         if resp.status_code != 200:
@@ -147,7 +149,16 @@ class Client(object):
 
         if _data.get("code") != 0:
             message = _data.get("message", "iam api fail")
-            print("_call_iam_api fail.", "method:", http_func.__name__, "path:", path, "error:", message)
+
+            if not (
+                http_func.__name__ == "http_get"
+                and path.startswith("/api/v1/model/systems/")
+                and path.endswith("/query")
+                and message.startswith("not found:system(")
+                and message.endswith(") not exists")
+            ):
+                print("_call_iam_api fail.", "method:", http_func.__name__, "path:", path, "error:", message)
+
             return False, message, None
 
         _d = _data.get("data")
@@ -177,6 +188,12 @@ class Client(object):
         "add_resource_creator_actions": "add_resource_creator_actions",
         "update_resource_creator_actions": "update_resource_creator_actions",
         "upsert_resource_creator_actions": "update_resource_creator_actions",
+        "add_common_actions": "add_common_actions",
+        "update_common_actions": "update_common_actions",
+        "upsert_common_actions": "update_common_actions",
+        "add_feature_shield_rules": "add_feature_shield_rules",
+        "update_feature_shield_rules": "update_feature_shield_rules",
+        "upsert_feature_shield_rules": "update_feature_shield_rules",
     }
 
     """
@@ -284,6 +301,28 @@ class Client(object):
 
     def api_update_resource_creator_actions(self, system_id, data):
         path = "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_put, path, data)
+        return ok, message
+
+    # ---------- common_actions
+    def api_add_common_actions(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_post, path, data)
+        return ok, message
+
+    def api_update_common_actions(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/common_actions".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_put, path, data)
+        return ok, message
+
+    # ---------- feature_shield_rules
+    def api_add_feature_shield_rules(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_post, path, data)
+        return ok, message
+
+    def api_update_feature_shield_rules(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/feature_shield_rules".format(system_id=system_id)
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
@@ -396,11 +435,23 @@ class Client(object):
     def update_action_groups(self, system_id, data):
         return self.api_update_action_groups(system_id, data)
 
+    def add_common_actions(self, system_id, data):
+        return self.api_add_common_actions(system_id, data)
+
+    def update_common_actions(self, system_id, data):
+        return self.api_update_common_actions(system_id, data)
+
     def add_resource_creator_actions(self, system_id, data):
         return self.api_add_resource_creator_actions(system_id, data)
 
     def update_resource_creator_actions(self, system_id, data):
         return self.api_update_resource_creator_actions(system_id, data)
+
+    def add_feature_shield_rules(self, system_id, data):
+        return self.api_add_feature_shield_rules(system_id, data)
+
+    def update_feature_shield_rules(self, system_id, data):
+        return self.api_update_feature_shield_rules(system_id, data)
 
     def upsert_system(self, system_id, data):
         if system_id not in self.system_id_set:
@@ -437,7 +488,15 @@ class Client(object):
     def query_all_models(self, system_id):
         ok, message, data = self.api_query(system_id)
         if not ok:
-            print("do api_query fail", message)
+            # ignore the first migration do_migrate fail
+            if "0001_" in data_file:
+                pass
+            else:
+                print(
+                    "[Ignore this message if do_migrate the first file 0001_*.json, "
+                    "because the system is not registered yet] do api_query fail",
+                    message,
+                )
             return set(), set(), set(), set()
 
         system = data.get("base_info", {}) or {}
@@ -498,12 +557,14 @@ def do_migrate(data, bk_iam_host=BK_IAM_HOST, app_code=APP_CODE, app_secret=APP_
     for op in operations:
         operation = op.get("operation")
         if not operation:
-            print("")
-            return False
+            print("there got a empty `operation` in the json, will ignore and continue")
+            continue
+            # print("")
+            # return False
 
         data = op.get("data")
         if not data:
-            print("")
+            print("no `data` in the json body or the `data` is empty, operation=%s" % operation)
             return False
 
         op_data_id = ""

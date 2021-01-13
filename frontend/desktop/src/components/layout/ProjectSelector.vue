@@ -23,10 +23,11 @@
             v-else
             class="project-select"
             ext-popover-cls="project-select-comp-list"
-            v-model="currentProject"
-            :disabled="disabled || isLoading"
+            :value="crtProject"
+            :disabled="disabled"
             :clearable="false"
-            :searchable="true">
+            :searchable="true"
+            @selected="onProjectChange">
             <bk-option-group
                 v-for="(group, index) in projects"
                 :name="group.name"
@@ -40,15 +41,12 @@
                 </bk-option>
             </bk-option-group>
         </bk-select>
-        <div v-if="isLoading" class="local-loading">
-            <i class="common-icon-loading-ring"></i>
-        </div>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
+    import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'ProjectSelector',
@@ -60,26 +58,17 @@
             disabled: {
                 type: Boolean,
                 default: false
-            },
-            // 切换项目后是否重定向
-            redirect: {
-                type: Boolean,
-                default: true
             }
         },
         data () {
+            const id = Number(this.$store.state.project.project_id)
             return {
+                crtProject: isNaN(id) ? '' : id,
                 showList: false,
-                isLoading: false,
                 searchStr: ''
             }
         },
         computed: {
-            ...mapState({
-                site_url: state => state.site_url,
-                viewMode: state => state.view_mode
-                
-            }),
             ...mapState('project', {
                 projectList: state => state.userProjectList,
                 project_id: state => state.project_id,
@@ -106,7 +95,7 @@
                         projectsGroup[1].children.push(item)
                     }
                 })
-                
+
                 projectsGroup.forEach(group => {
                     if (group.children.length) {
                         projects.push(group)
@@ -114,82 +103,45 @@
                 })
 
                 return projects
-            },
-            currentProject: {
-                get () {
-                    const num = Number(this.project_id)
-                    return isNaN(num) ? '' : num
-                },
-                set (id) {
-                    this.onProjectChange(id)
-                }
             }
         },
+        created () {
+            bus.$on('resetProjectChange', (id) => {
+                this.crtProject = id
+            })
+        },
         methods: {
-            ...mapMutations('project', [
-                'setProjectId',
-                'setTimeZone',
-                'setProjectName',
-                'setProjectActions'
-            ]),
-            ...mapActions('project', [
-                'changeDefaultProject',
-                'loadProjectDetail'
-            ]),
             async onProjectChange (id) {
-                if (this.project_id === id) {
+                if (this.crtProject === id) {
                     return false
                 }
-                try {
-                    this.isLoading = true
-                    this.$emit('loading', true)
-
-                    this.setProjectId(id)
-                    await this.changeDefaultProject(id)
-                    const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
-                    this.setTimeZone(timeZone)
-
-                    const projectDetail = await this.loadProjectDetail(this.project_id)
-                    this.setProjectName(projectDetail.name)
-                    this.setProjectActions(projectDetail.auth_actions)
-                    $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
-                    if (!this.redirect) {
-                        this.isLoading = false
-                        this.$emit('loading', false)
-                        return
+                this.crtProject = id
+                const redirectMap = {
+                    '/template': {
+                        name: 'process',
+                        params: { project_id: id }
+                    },
+                    '/taskflow': {
+                        name: 'taskList',
+                        params: { project_id: id }
+                    },
+                    '/appmaker': {
+                        name: 'appMakerList',
+                        params: { project_id: id }
                     }
-                    // switch project go back this home list
-                    const redirectMap = {
-                        '/template': {
-                            name: 'process',
-                            params: { project_id: id }
-                        },
-                        '/taskflow': {
-                            name: 'taskList',
-                            params: { project_id: id }
-                        },
-                        '/appmaker': {
-                            name: 'appMakerList',
-                            params: { project_id: id }
-                        }
+                }
+                const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
+                if (key) {
+                    if (this.$route.name === redirectMap[key].name) {
+                        this.$router.push(redirectMap[key])
+                        this.$nextTick(() => {
+                            this.$emit('reloadHome')
+                        })
+                    } else {
+                        this.$router.push(redirectMap[key])
                     }
-                    const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
-                    if (key) {
-                        if (this.$route.name === redirectMap[key].name) {
-                            this.$router.push(redirectMap[key])
-                            this.$nextTick(() => {
-                                this.$emit('reloadHome')
-                            })
-                        } else {
-                            this.$router.push(redirectMap[key])
-                        }
-                    } else { // 默认跳转到项目流程页面
-                        this.$router.push(redirectMap['/template'])
-                    }
-                    this.isLoading = false
-                    this.$emit('loading', false)
-                } catch (err) {
-                    errorHandler(err, this)
+                } else { // 默认跳转到项目流程页面
+                    this.$router.push(redirectMap['/template'])
                 }
             }
         }

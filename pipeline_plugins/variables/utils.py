@@ -109,7 +109,7 @@ def get_service_template_list(username, bk_biz_id, bk_supplier_account):
     if not list_service_template_return["result"]:
         message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
         logger.error(message)
-        return JsonResponse({"result": False, "data": [], "message": message})
+        return []
     return list_service_template_return["data"]["info"]
 
 
@@ -138,6 +138,31 @@ def find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids
     return result
 
 
+def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
+    """
+    @summary: 根据业务ID获取业务空闲机, 故障机和待回收模块
+    @param bk_biz_id:
+    @param bk_supplier_account:
+    @return:
+    """
+    client = get_client_by_user(username)
+    params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+    get_biz_internal_module_return = client.cc.get_biz_internal_module(params)
+    if not get_biz_internal_module_return["result"]:
+        message = handle_api_error("cc", "cc.get_biz_internal_module", params, get_biz_internal_module_return)
+        logger.error(message)
+        return {"result": False, "data": [], "message": message}
+    result = []
+    for get_biz_internal_module_option in get_biz_internal_module_return["data"]["module"]:
+        result.append(
+            {
+                "id": get_biz_internal_module_option["bk_module_id"],
+                "name": get_biz_internal_module_option["bk_module_name"],
+            }
+        )
+    return result
+
+
 def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
     """
     @summary: 批量获取业务下主机
@@ -151,4 +176,15 @@ def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
     params = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
     if kwargs:
         params.update(kwargs)
-    return batch_request(client.cc.list_biz_hosts, params)
+    start = 0
+    step = 500
+    bk_module_ids = kwargs["bk_module_ids"]
+
+    result = []
+
+    while start < len(bk_module_ids):
+        params["bk_module_ids"] = bk_module_ids[start : start + step]
+        host_list_result = batch_request(client.cc.list_biz_hosts, params)
+        result.extend(host_list_result)
+        start += step
+    return result

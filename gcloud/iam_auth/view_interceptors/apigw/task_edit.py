@@ -31,4 +31,4 @@ class TaskEditInterceptor(ViewInterceptor):
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.TASK_EDIT_ACTION)
         resources = res_factory.resources_for_task(task_id)
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

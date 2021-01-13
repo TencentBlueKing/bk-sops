@@ -271,6 +271,7 @@
                     case 'datetime':
                     case 'password':
                     case 'memberSelector':
+                    case 'logDisplay':
                     case 'code_editor':
                     case 'section':
                         valueFormat = {
@@ -344,7 +345,7 @@
                                     module_detail: []
                                 },
                                 data: [],
-                                separetor: ','
+                                separator: ','
                             }
                         }
                         break
@@ -358,7 +359,8 @@
                                     host_resources: [],
                                     host_filter_detail: []
                                 },
-                                data: []
+                                data: [],
+                                separator: ','
                             }
                         }
                         break

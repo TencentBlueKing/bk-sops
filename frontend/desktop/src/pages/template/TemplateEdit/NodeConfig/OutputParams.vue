@@ -15,13 +15,14 @@
             <bk-table-column :label="$t('说明')" align="center">
                 <template slot-scope="props">
                     <span
-                        v-if="props.row.scheme && (description in props.row.scheme)"
-                        :title="props.row.scheme.description">
-                        {{ props.row.scheme.description }}
+                        v-if="props.row.description"
+                        :title="props.row.description">
+                        {{ props.row.description }}
                     </span>
                     <span v-else>--</span>
                 </template>
             </bk-table-column>
+            <bk-table-column label="type" :width="90" align="center" prop="type"></bk-table-column>
             <bk-table-column label="KEY" :width="180" align="center" prop="key"></bk-table-column>
             <bk-table-column :label="$t('引用')" :width="100" align="center">
                 <template slot-scope="props">
@@ -157,6 +158,8 @@
                     list.push({
                         key,
                         name: param.name,
+                        type: param.type || '--',
+                        description: param.schema ? param.schema.description : '--',
                         version: param.version,
                         hooked: isHooked
                     })

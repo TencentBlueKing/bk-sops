@@ -110,7 +110,9 @@ class CCTransferHostModuleService(Service):
         cc_is_increment = data.get_one_of_inputs("cc_is_increment")
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         if cc_module_select_method == SelectMethod.TOPO.value:
-            cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_module_select_topo"))
+            cc_module_select = data.get_one_of_inputs("cc_module_select_topo") or []
+            filtered_modules = [module for module in cc_module_select if module.startswith("module")]
+            cc_module_select = cc_format_tree_mode_id(filtered_modules)
         elif cc_module_select_method == SelectMethod.TEXT.value:
             cc_module_select_text = data.get_one_of_inputs("cc_module_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(

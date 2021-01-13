@@ -69,7 +69,7 @@
                     return Number(this.value)
                 },
                 set (val) {
-                    val = parseInt(val)
+                    val = val || 0
                     this.updateForm(val)
                 }
             }
