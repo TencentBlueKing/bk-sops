@@ -497,7 +497,7 @@
                 this.getTemplateList()
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
