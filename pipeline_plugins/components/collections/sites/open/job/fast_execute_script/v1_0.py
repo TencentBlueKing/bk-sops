@@ -154,11 +154,9 @@ class JobFastExecuteScriptService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
-
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
-
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         script_source = data.get_one_of_inputs("job_script_source")
         across_biz = data.get_one_of_inputs("job_across_biz", False)
@@ -178,14 +176,14 @@ class JobFastExecuteScriptService(JobService):
                 username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
             )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+
         if ip_is_exist and not across_biz:
             # 如果ip校验开关打开且不允许跨业务，校验通过的ip数量减少，返回错误
-            input_ip_list = get_ip_by_regex(original_ip_list)
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
+            input_ip_set = set(get_ip_by_regex(original_ip_list))
+            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
+            difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
 
-            difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
-
-            if len(ip_list) != len(input_ip_list):
+            if len(ip_list) != len(input_ip_set):
                 data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
                 return False
 
