@@ -244,6 +244,6 @@ def analysis_constants_ref(request):
             if k in defined_keys:
                 data["defined"][k] = v
             else:
-                data["undefined"][k] = v
+                data["nodefined"][k] = v
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
