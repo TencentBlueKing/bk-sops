@@ -100,5 +100,5 @@ class JobPushLocalFilesComponent(Component):
     name = _("分发本地文件")
     code = "job_push_local_files"
     bound_service = JobPushLocalFilesService
-    form = "%scomponents/atoms/job/job_push_local_files.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/job/job_push_local_files/v1_0_0.js" % settings.STATIC_URL
     version = "1.0.0"
