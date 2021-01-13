@@ -87,7 +87,7 @@
                                     class="table-link"
                                     target="_blank"
                                     :title="props.row.templateName"
-                                    :href="`${site_url}appmaker/home/${props.row.projectId}/`">
+                                    :href="`${site_url}taskflow/home/list/${props.row.projectId}/`">
                                     {{props.row.templateName}}
                                 </a>
                                 <template v-else>
