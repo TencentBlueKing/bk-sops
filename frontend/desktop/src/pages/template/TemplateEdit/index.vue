@@ -1083,10 +1083,26 @@
                 this.moveNodeToView(id)
                 this.showDotAnimation(id)
             },
-            // 全局变量引用节点点击回调
-            onCitedNodeClick (nodeId) {
-                this.activeSettingTab = ''
-                this.showConfigPanel(nodeId)
+            // 全局变量引用详情点击回调
+            onCitedNodeClick (data) {
+                const { group, id } = data
+                if (group === 'activities') {
+                    this.activeSettingTab = ''
+                    this.showConfigPanel(id)
+                } else if (group === 'conditions') {
+                    const nodeId = this.lines.find(line => line.id === id).source.id
+                    const lineCondition = this.gateways[nodeId].conditions[id]
+                    const { evaluate, name } = lineCondition
+                    const conditionData = {
+                        id,
+                        name,
+                        nodeId,
+                        overlayId: `condition${id}`,
+                        value: evaluate
+                    }
+                    this.activeSettingTab = ''
+                    this.onOpenConditionEdit(conditionData)
+                }
             },
             /**
              * 移动画布，将节点放到画布左上角
