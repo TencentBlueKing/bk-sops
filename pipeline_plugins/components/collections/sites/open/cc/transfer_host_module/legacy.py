@@ -88,7 +88,9 @@ class CCTransferHostModuleService(Service):
             data.set_outputs("ex_data", host_result["message"])
             return False
 
-        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_module_select"))
+        cc_module_select = data.get_one_of_inputs("cc_module_select") or []
+        filtered_modules = [module for module in cc_module_select if module.startswith("module")]
+        cc_module_select = cc_format_tree_mode_id(filtered_modules)
         cc_is_increment = data.get_one_of_inputs("cc_is_increment")
 
         cc_kwargs = {
