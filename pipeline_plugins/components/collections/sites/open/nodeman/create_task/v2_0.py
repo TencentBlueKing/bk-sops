@@ -27,11 +27,13 @@ from pipeline.core.flow.io import (
 
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
-from ..base import NodeManBaseService, get_host_id_by_inner_ip
+from pipeline_plugins.components.collections.sites.open.nodeman.base import (
+    NodeManBaseService,
+    get_host_id_by_inner_ip,
+)
 
 __group_name__ = _("节点管理(Nodeman)")
 VERSION = "v2.0"
-
 
 # 安装类任务(job_install)
 INSTALL_JOB = ["INSTALL_PROXY", "INSTALL_AGENT", "REINSTALL_PROXY", "REINSTALL_AGENT"]
