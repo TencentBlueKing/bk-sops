@@ -955,9 +955,11 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             },
             {
                 "func": CUSTOM_METHOD_SUC_CLIENT.cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5], bk_supplier_account='supplier_account_token',
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5],
+                               bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5], bk_supplier_account='supplier_account_token',
+                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5],
+                               bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
             }
         ])
