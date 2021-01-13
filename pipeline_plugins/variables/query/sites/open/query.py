@@ -155,6 +155,21 @@ def cc_get_set_group(request, biz_cc_id):
     return JsonResponse({"result": True, "data": group_data})
 
 
+def cc_get_set_attribute(request, biz_cc_id):
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "set",
+    }
+    client = get_client_by_user(request.user.username)
+    result = client.cc.search_object_attribute(kwargs)
+    if not result["result"]:
+        return JsonResponse({"result": False, "data": _("调用cc接口失败，message={}").format(result["message"])})
+    data = result["data"]
+    set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]
+
+    return JsonResponse({"result": True, "data": set_attribute})
+
+
 @supplier_account_inject
 def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     """
@@ -166,6 +181,7 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_object_attribute(kwargs)
+
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
@@ -188,4 +204,5 @@ urlpatterns += [
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
     url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
     url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
+    url(r"^cc_get_set_attributes/(?P<biz_cc_id>\d+)/$", cc_get_set_attribute),
 ]
