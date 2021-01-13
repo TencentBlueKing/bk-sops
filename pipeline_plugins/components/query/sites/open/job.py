@@ -167,6 +167,9 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                     for ip_item in var.get("ip_list", [])
                 ]
             )
+        else:
+            logger.warning("unknow type var: {}".format(var))
+            continue
 
         global_var.append(
             {
