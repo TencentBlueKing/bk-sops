@@ -325,9 +325,9 @@
             .state-icon {
                 position: absolute;
                 right: 7px;
-                bottom: -80px;
+                bottom: -20px;
                 display: none;
-                height: 80px;
+                z-index: 5;
                 .el-tooltip {
                    font-size: 14px;
                    color: #52699D;
@@ -338,10 +338,6 @@
                     &.common-icon-play {
                         font-size: 18px;
                     }
-                }
-                &:hover {
-                    display: block;
-                    z-index: 999;
                 }
             }
         }

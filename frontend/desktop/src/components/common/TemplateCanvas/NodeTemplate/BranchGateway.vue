@@ -17,7 +17,7 @@
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-branchgateway"></div>
-        <div class="state-icon">
+        <div class="state-icon" v-if="isOpenTooltip">
             <el-tooltip placement="bottom" :content="$t('跳过')">
                 <span
                     class="common-icon-skip"

@@ -1392,8 +1392,12 @@
                 left: 40px;
             }
         }
+        .task-management-page {
+            /deep/ .canvas-wrapper.jsflow .jtk-endpoint {
+                z-index: 2 !important;
+            }
+        }
     }
-
 }
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);
