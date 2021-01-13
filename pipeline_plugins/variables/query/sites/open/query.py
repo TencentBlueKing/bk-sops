@@ -168,8 +168,8 @@ def cc_get_set_attribute(request, biz_cc_id):
     set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]
 
     return JsonResponse({"result": True, "data": set_attribute})
-  
-  
+
+
 @supplier_account_inject
 def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     """
@@ -181,6 +181,7 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_object_attribute(kwargs)
+
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
