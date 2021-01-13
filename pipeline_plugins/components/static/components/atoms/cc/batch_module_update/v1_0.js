@@ -42,6 +42,7 @@
             tag_code: "cc_module_update_data",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("拓扑模块属性修改"),
                 table_buttons: [
                     {

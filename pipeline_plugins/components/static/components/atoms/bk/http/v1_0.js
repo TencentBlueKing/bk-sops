@@ -48,6 +48,7 @@
             tag_code: "bk_http_request_header",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: "Header",
                 hookable: true,
                 add_btn: true,

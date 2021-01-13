@@ -64,6 +64,7 @@
             tag_code: "job_source_files",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("源文件"),
                 editable: true,
                 add_btn: true,
