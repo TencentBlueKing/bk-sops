@@ -179,8 +179,8 @@ class JobFastExecuteScriptService(JobService):
 
         if ip_is_exist and not across_biz:
             # 如果ip校验开关打开且不允许跨业务，校验通过的ip数量减少，返回错误
-            input_ip_list = get_ip_by_regex(original_ip_list)
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
+            input_ip_set = set(get_ip_by_regex(original_ip_list))
+            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
             difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
 
             if len(ip_list) != len(input_ip_set):
