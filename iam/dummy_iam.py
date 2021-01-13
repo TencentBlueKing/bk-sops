@@ -120,6 +120,9 @@ class DummyIAM(object):
                 "resources_list should all with the same resource_type, but got %s" % resource_types.keys()
             )
 
+    def is_allowed_with_cache(self, request):
+        return self.is_allowed(request)
+
     def is_allowed(self, request):
         """
         单个资源是否有权限校验
