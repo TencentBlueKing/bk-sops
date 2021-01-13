@@ -33,10 +33,10 @@
                 <template v-if="!hasGroup">
                     <el-option
                         v-for="item in options"
-                        v-loading="loading"
                         :key="item.value"
                         :label="item.text"
                         :value="item.value">
+                        <span class="option-item">{{ item.text }}</span>
                     </el-option>
                 </template>
                 <template v-else>
@@ -46,10 +46,10 @@
                         :label="group.text">
                         <el-option
                             v-for="item in group.options"
-                            v-loading="loading"
                             :key="item.value"
                             :label="item.text"
                             :value="item.value">
+                            <span class="option-item">{{ item.text }}</span>
                         </el-option>
                     </el-option-group>
                 </template>
@@ -290,6 +290,14 @@
             left: auto;
             right: 34px;
         }
+        /deep/.el-tag.el-tag--info.el-tag--small.el-tag--light { // 解决已选多选项选项过长不换行问题
+            height: auto;
+            .el-select__tags-text {
+                white-space: normal;
+                word-break: break-all;
+                height: auto;
+            }
+        }
         .right-btn {
             display: flex;
             align-items: center;
@@ -303,12 +311,14 @@
     }
 </style>
 <style lang="scss">
-    .tag-component-popper.el-select-dropdown {
-        max-width: 500px;
-        .el-select-dropdown__item {
-            white-space: normal;
-            word-break: break-all;
-            height: auto;
+    .tag-component-popper {
+        .el-select-dropdown {
+            max-width: 500px;
+            .el-select-dropdown__item { // 解决选项过长问题
+                white-space: normal;
+                word-break: break-all;
+                height: auto;
+            }
         }
     }
 </style>

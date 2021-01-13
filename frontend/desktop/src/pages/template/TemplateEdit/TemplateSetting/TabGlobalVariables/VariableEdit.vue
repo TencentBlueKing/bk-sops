@@ -278,7 +278,8 @@
                 await this.getVarTypeList()
                 // 若当前编辑变量为元变量，则取meta_tag
                 if (is_meta) {
-                    this.varTypeList[1].children.some(item => {
+                    const metaList = this.varTypeList.find(item => item.type === 'meta')
+                    metaList.children.some(item => {
                         if (item.code === custom_type) {
                             this.metaTag = item.meta_tag
                             return true
@@ -318,14 +319,17 @@
                     const listData = [
                         {
                             name: i18n.t('普通变量'),
+                            type: 'general',
                             children: []
                         },
                         {
                             name: i18n.t('动态变量'),
+                            type: 'dynamic',
                             children: []
                         },
                         {
                             name: i18n.t('元变量'),
+                            type: 'meta',
                             children: []
                         }
                     ]
