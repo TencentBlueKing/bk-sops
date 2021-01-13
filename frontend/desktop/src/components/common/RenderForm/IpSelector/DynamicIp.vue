@@ -173,11 +173,11 @@
                 }
             },
             onTopoSearch (keyword) {
-                this.$refs.topoTree.filter(keyword)
+                this.$refs.topoTree.filter(String(keyword).toLowerCase())
             },
             filterNode (value, node) {
                 if (!value) return true
-                return node.data.label.indexOf(value) > -1
+                return String(node.data.label).toLowerCase().indexOf(value) > -1
             },
             onNodeCheckClick (selectedNodes, node) {
                 const checkedList = selectedNodes.slice(0)
