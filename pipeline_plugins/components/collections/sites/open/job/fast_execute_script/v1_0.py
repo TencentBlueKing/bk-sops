@@ -151,7 +151,6 @@ class JobFastExecuteScriptService(JobService):
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
-
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         script_source = data.get_one_of_inputs("job_script_source")
         original_ip_list = data.get_one_of_inputs("job_ip_list")
