@@ -557,7 +557,10 @@
                 return state
             },
             nodeState () {
+                // 如果整体任务未执行的话不展示描述
                 if (this.state === 'CREATED') return ''
+                // 如果整体任务执行完毕但有的节点没执行的话不展示描述
+                if (['FAILED', 'FINISHED'].includes(this.state) && this.executeInfo.state === 'READY') return ''
                 return this.executeInfo.state && TASK_STATE_DICT[this.executeInfo.state]
             },
             loopTimes () {
