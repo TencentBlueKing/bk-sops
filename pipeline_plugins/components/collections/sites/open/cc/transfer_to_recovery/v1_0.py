@@ -36,6 +36,7 @@ logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
+VERSION = "1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -110,4 +111,7 @@ class CCTransferHostToRecoveryComponent(Component):
     name = _("转移主机至待回收模块")
     code = "cc_transfer_to_recovery"
     bound_service = CCTransferHostToRecoveryService
-    form = "%scomponents/atoms/cc/cc_transfer_to_recovery.js" % settings.STATIC_URL
+    form = "{static_url}components/atoms/cc/cc_transfer_to_recovery/v{ver}.js".format(
+        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
+    )
+    version = VERSION
