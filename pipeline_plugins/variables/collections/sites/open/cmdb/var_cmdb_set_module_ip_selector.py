@@ -146,10 +146,11 @@ def get_module_id_list(
             for set_item in set_list
             if set_item["bk_set_name"] in filter_set_names and set_item["bk_set_name"] != BIZ_INTERNAL_SET
         ]
+
+    service_template_names = filter_service_template_names.split(",")
     if not filter_service_template_names:
         service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     else:
-        service_template_names = filter_service_template_names.split(",")
         service_template_ids = [
             service_template_item["id"]
             for service_template_item in service_template_list
@@ -157,7 +158,7 @@ def get_module_id_list(
         ]
 
     # 筛选规则与空闲机、待回收、故障机模块取交集
-    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names)
+    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(service_template_names)
 
     inner_module_id_list = []
     if BIZ_INTERNAL_SET in filter_set_names:
@@ -170,6 +171,19 @@ def get_module_id_list(
 
     # 用户输入空闲机，只取空闲机模块ID
     if biz_internal_module:
+        inner_module_id_list = [
+            {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
+            for biz_internal_module_item in service_template_list
+            if biz_internal_module_item["name"] in biz_internal_module
+        ]
+    # 筛选规则没有筛选空闲机的规则时，添加选择到的空闲机module id
+    if not biz_internal_module and BIZ_INTERNAL_SET not in filter_set_names:
+        # 获取选择到的空闲机内的模块名
+        select_biz_internal_module = [service_template_item["name"]
+                                      for service_template_item in service_template_list
+                                      if service_template_item["name"] in BIZ_INTERNAL_MODULE]
+
+        biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(select_biz_internal_module)
         inner_module_id_list = [
             {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
             for biz_internal_module_item in service_template_list
