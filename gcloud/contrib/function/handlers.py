@@ -20,35 +20,23 @@ from gcloud.contrib.function.models import FunctionTask
 
 
 @receiver(post_save, sender=TaskFlowInstance)
-def function_task_create_handler(sender, instance, created, **kwargs):
-    if created and instance.flow_type == 'common_func':
+def function_task_create_handler(instance, created, **kwargs):
+    if created and instance.flow_type == "common_func":
         FunctionTask.objects.create(
-            task=instance,
-            creator=instance.creator,
+            task=instance, creator=instance.creator,
         )
 
 
 @receiver(taskflow_started)
-def function_task_started_handler(sender, username, **kwargs):
-    if sender.flow_type == 'common_func':
-        FunctionTask.objects.filter(task=sender).update(status='executed')
+def function_task_started_handler(task_id, **kwargs):
+    FunctionTask.objects.filter(task_id=task_id).update(status="executed")
 
 
 @receiver(taskflow_finished)
-def function_task_finished_handler(sender, username, **kwargs):
-    if sender.flow_type == 'common_func':
-        FunctionTask.objects.filter(task=sender).update(status='finished')
+def function_task_finished_handler(task_id, **kwargs):
+    FunctionTask.objects.filter(task_id=task_id).update(status="finished")
 
 
 @receiver(taskflow_revoked)
-def function_task_revoked_handler(sender, username, **kwargs):
-    """任务撤销后把职能化单据改为结束状态"""
-    if sender.flow_type == 'common_func':
-        FunctionTask.objects.filter(task=sender).update(status='finished')
-
-
-@receiver(post_save, sender=FunctionTask)
-def function_task_post_save_handler(sender, instance, created, **kwargs):
-    if created:
-        # TODO send message to functors to claim task
-        pass
+def function_task_revoked_handler(task_id, **kwargs):
+    FunctionTask.objects.filter(task_id=task_id).update(status="finished")

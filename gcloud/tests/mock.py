@@ -177,14 +177,15 @@ class MockComponentModel(object):
 
 
 class MockComponent(object):
-    def __init__(self, inputs, outputs, desc, code, name, group_name):
+    def __init__(self, inputs, outputs, desc, code, name, group_name, version="version", form="form"):
         self.inputs = inputs
         self.outputs = outputs
         self.desc = desc
         self.code = code
         self.name = name
         self.group_name = group_name
-        self.version = "version"
+        self.version = version
+        self.form = form
 
     def inputs_format(self):
         return self.inputs

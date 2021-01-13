@@ -238,11 +238,6 @@
                     ],
                     stageName: [
                         {
-                            regex: NAME_REG,
-                            message: i18n.t('步骤名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
-                            trigger: 'blur'
-                        },
-                        {
                             max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
                             message: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'

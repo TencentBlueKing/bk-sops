@@ -64,7 +64,8 @@
             "code": "job_push_local_files",
             "name": "分发本地文件",
             "group_name": "作业平台(JOB)",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "form": "/static/components/atoms/job/job_push_local_files.js"
         }
     ]
 }
@@ -86,7 +87,8 @@
 |  code      |    string    |      插件代码    |
 |  name      |    string    |      插件名    |
 |  group_name      |    string    |      插件组名    |
-|  version      |    name    |      插件版本    |
+|  version      |    string    |      插件版本    |
+|  form         |    string    |      插件表单静态资源链接    |
 
 ##### inputs
 

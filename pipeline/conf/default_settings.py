@@ -55,11 +55,15 @@ COMPONENT_AUTO_DISCOVER_PATH = [
 
 COMPONENT_AUTO_DISCOVER_PATH += getattr(settings, "COMPONENT_PATH", [])
 
+AUTO_UPDATE_COMPONENT_MODELS = getattr(settings, "AUTO_UPDATE_COMPONENT_MODELS", True)
+
 VARIABLE_AUTO_DISCOVER_PATH = [
     "variables.collections",
 ]
 
 VARIABLE_AUTO_DISCOVER_PATH += getattr(settings, "VARIABLE_PATH", [])
+
+AUTO_UPDATE_VARIABLE_MODELS = getattr(settings, "AUTO_UPDATE_VARIABLE_MODELS", True)
 
 PIPELINE_PARSER_CLASS = getattr(settings, "PIPELINE_PARSER_CLASS", "pipeline.parser.pipeline_parser.PipelineParser")
 
@@ -80,3 +84,4 @@ ENGINE_ZOMBIE_PROCESS_HEAL_CRON = getattr(settings, "ENGINE_ZOMBIE_PROCESS_HEAL_
 # MAKO sandbox config
 MAKO_SANDBOX_SHIELD_WORDS = getattr(settings, "MAKO_SANDBOX_SHIELD_WORDS", [])
 MAKO_SANDBOX_IMPORT_MODULES = getattr(settings, "MAKO_SANDBOX_IMPORT_MODULES", {})
+MAKO_SAFETY_CHECK = getattr(settings, "MAKO_SAFETY_CHECK", True)
