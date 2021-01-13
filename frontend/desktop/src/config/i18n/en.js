@@ -632,7 +632,7 @@ const en = {
     '输出表单': 'Output Form',
     '参数名': 'Name',
     '执行记录': 'Execution History',
-    '节点日志': 'Node logs',
+    '节点日志': 'Node Logs',
     '日志': 'Logs',
     '第': ' ',
     '次执行': 'Execution',
@@ -646,7 +646,7 @@ const en = {
     '修改成功': 'Updated successfully',
     '重试成功': 'Retried successfully',
     '任务流程预览': 'Preview Task Flow',
-    '任务执行信息': 'Execution info',
+    '任务执行信息': 'Execution Info',
     '上下文数据': 'Context data',
     '任务模型数据': 'Task model',
     '执行': 'Execution',
@@ -661,7 +661,7 @@ const en = {
     '查看参数': 'Parameters',
     '修改参数': 'Modify Parameters',
     '查看流程': 'View Flow',
-    '流程信息': 'Flow info',
+    '流程信息': 'Flow Info',
     '查看标准插件参数': 'View parameters of Standard Plugins',
     '请点击标准插件节点查看参数': 'Please click Standard Plugins node to view parameters',
     '是否撤销该任务？': 'Whether to revoke the task?',
@@ -1054,7 +1054,9 @@ const en = {
     '备注': 'Description',
     '请输入流程模板备注信息': 'please enter process template description',
     '预览值': 'Preview Value',
-    '动态分组': 'Dynamic Group'
+    '动态分组': 'Dynamic Group',
+    '全屏': 'Full Screen',
+    '退出': 'Quit'
 }
 
 export default en
