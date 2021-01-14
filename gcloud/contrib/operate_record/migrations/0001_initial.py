@@ -10,13 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 from __future__ import unicode_literals
 
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -26,10 +26,10 @@ class Migration(migrations.Migration):
             name="TaskOperateRecord",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("instance_id", models.IntegerField(db_index=True, verbose_name="记录对象实例ID")),
+                ("instance_id", models.IntegerField(verbose_name="记录对象实例ID")),
                 ("name", models.CharField(max_length=255, verbose_name="记录对象名称")),
-                ("project", models.CharField(blank=True, default="", max_length=128, verbose_name="所属业务")),
-                ("project_id", models.IntegerField(blank=True, default=-1, verbose_name="所属业务id")),
+                ("project", models.CharField(blank=True, default="", max_length=128, verbose_name="所属项目")),
+                ("project_id", models.IntegerField(blank=True, default=-1, verbose_name="所属项目id")),
                 ("operator", models.CharField(max_length=128, verbose_name="操作人")),
                 ("operate_date", models.DateTimeField(auto_now_add=True, verbose_name="操作时间")),
                 (
@@ -85,10 +85,10 @@ class Migration(migrations.Migration):
             name="TemplateOperateRecord",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("instance_id", models.IntegerField(db_index=True, verbose_name="记录对象实例ID")),
+                ("instance_id", models.IntegerField(verbose_name="记录对象实例ID")),
                 ("name", models.CharField(max_length=255, verbose_name="记录对象名称")),
-                ("project", models.CharField(blank=True, default="", max_length=128, verbose_name="所属业务")),
-                ("project_id", models.IntegerField(blank=True, default=-1, verbose_name="所属业务id")),
+                ("project", models.CharField(blank=True, default="", max_length=128, verbose_name="所属项目")),
+                ("project_id", models.IntegerField(blank=True, default=-1, verbose_name="所属项目id")),
                 ("operator", models.CharField(max_length=128, verbose_name="操作人")),
                 ("operate_date", models.DateTimeField(auto_now_add=True, verbose_name="操作时间")),
                 (
@@ -138,8 +138,12 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "模版操作记录",
             },
         ),
-        migrations.AlterIndexTogether(
-            name="taskoperaterecord",
-            index_together=set([("instance_id", "node_id")]),
+        migrations.AddIndex(
+            model_name="templateoperaterecord",
+            index=models.Index(fields=["instance_id"], name="operate_rec_instanc_39f580_idx"),
+        ),
+        migrations.AddIndex(
+            model_name="taskoperaterecord",
+            index=models.Index(fields=["instance_id", "node_id"], name="operate_rec_instanc_d0dfad_idx"),
         ),
     ]

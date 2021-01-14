@@ -38,6 +38,12 @@ OPERATE_MODEL = {
     "common_template": CommonTemplate,
 }
 
+INSTANCE_NAME = {
+    "task": "pipeline_instance__name",
+    "template": "pipeline_template__name",
+    "common_template": "pipeline_template__name",
+}
+
 
 class Record(object):
     def __init__(self, record_type, action, source, result, args, kwargs):
@@ -60,7 +66,13 @@ class Record(object):
         if hasattr(self.operate_result, "obj"):
             return self.operate_result.obj
         if instance_id:
-            return OPERATE_MODEL[self.record_type].objects.get(pk=instance_id)
+            name = INSTANCE_NAME[self.record_type]
+            return (
+                OPERATE_MODEL[self.record_type]
+                .objects.filter(pk=instance_id)
+                .only(name, "project__name", "project__id")
+                .first()
+            )
 
     def get_request_data_from_key(self, key):
         """获取指定值"""
@@ -135,7 +147,7 @@ class Record(object):
                 if not instance_id:
                     raise KeyError("func: get_data_by_bundle_or_request, error: get instance_id failed!")
 
-        if bundle_or_request == "bundle":
+        elif bundle_or_request == "bundle":
             is_operate_success = hasattr(self.operate_result, "obj") and not self.operate_result.errors
 
         # 获取操作对象
