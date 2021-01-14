@@ -468,9 +468,6 @@
             },
             // 分支条件点击回调
             branchConditionEditHandler (e, overlayId) {
-                if (!this.editable) {
-                    return false
-                }
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
@@ -485,7 +482,9 @@
                         overlayId
                     })
                 }
-                this.$emit('templateDataChanged')
+                if (this.editable) {
+                    this.$emit('templateDataChanged')
+                }
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
