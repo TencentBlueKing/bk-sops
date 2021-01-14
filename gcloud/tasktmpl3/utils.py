@@ -15,6 +15,8 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.core.data.expression import ConstantTemplate
+
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.core.data import var
 from pipeline.core.data.context import Context
@@ -83,3 +85,42 @@ def get_constant_values(constants, extra_data):
             var_value = _("预览值为空，需要业务相关信息的变量不支持预览")
         constant_values[key] = str(var_value)
     return constant_values
+
+
+def analysis_pipeline_constants_ref(pipeline_tree):
+
+    result = {key: {"activities": [], "conditions": [], "constants": []} for key in pipeline_tree.get("constants", {})}
+
+    def ref_counter(key):
+        return result.setdefault("${%s}" % key, {"activities": [], "conditions": [], "constants": []})
+
+    for act_id, act in pipeline_tree.get("activities", {}).items():
+        if act["type"] == "SubProcess":
+            subproc_consts = act.get("constants", {})
+            for key, info in subproc_consts.items():
+                refs = ConstantTemplate(info["value"]).get_reference()
+                for r in refs:
+                    ref_counter(r)["activities"].append(act_id)
+
+        elif act["type"] == "ServiceActivity":
+            act_data = act.get("component", {}).get("data", {})
+            for data_item in act_data.values():
+                refs = ConstantTemplate(data_item["value"]).get_reference()
+                for r in refs:
+                    ref_counter(r)["activities"].append(act_id)
+
+    for gateway in pipeline_tree.get("gateways", {}).values():
+        if gateway["type"] != "ExclusiveGateway":
+            continue
+
+        for condition_id, condition in gateway.get("conditions", {}).items():
+            refs = ConstantTemplate(condition["evaluate"]).get_reference()
+            for r in refs:
+                ref_counter(r)["conditions"].append(condition_id)
+
+    for key, const in pipeline_tree.get("constants", {}).items():
+        refs = ConstantTemplate(const.get("value")).get_reference()
+        for r in refs:
+            ref_counter(r)["constants"].append(key)
+
+    return result

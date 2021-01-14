@@ -604,7 +604,7 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('closeEditingPanel')
+                    this.$emit('onSaveEditing')
                     return true
                 })
             }
