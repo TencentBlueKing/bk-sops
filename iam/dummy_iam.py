@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from django.db.models import Q
 
-from iam.api.client import Client
-from iam.eval.object import ObjectSet
-from iam.contrib.converter.queryset import DjangoQuerySetConverter
-from iam.auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest
-from iam.exceptions import AuthAPIError, AuthInvalidRequest, AuthInvalidParam
-from iam.apply.models import Application
+from .api.client import Client
+from .eval.object import ObjectSet
+from .contrib.converter.queryset import DjangoQuerySetConverter
+from .auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest
+from .exceptions import AuthAPIError, AuthInvalidRequest, AuthInvalidParam
+from .apply.models import Application
 
 
 class DummyIAM(object):
@@ -31,6 +31,9 @@ class DummyIAM(object):
 
     def _do_policy_query(self, request, with_resources=True):
         return []
+
+    def _do_policy_query_with_cache(self, request):
+        return self._do_policy_query(request)
 
     def _do_policy_query_by_actions(self, request, with_resources=True):
         return []
@@ -116,6 +119,9 @@ class DummyIAM(object):
             raise AuthInvalidParam(
                 "resources_list should all with the same resource_type, but got %s" % resource_types.keys()
             )
+
+    def is_allowed_with_cache(self, request):
+        return self.is_allowed(request)
 
     def is_allowed(self, request):
         """

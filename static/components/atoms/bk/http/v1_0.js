@@ -40,22 +40,6 @@
                 validation: [
                     {
                         type: "required"
-                    },
-                    {
-                        type: "custom",
-                        args: function (value) {
-                            var result = {
-                                result: true,
-                                error_message: ""
-                            }
-                            var strRegex = '^https?:\/\/[-a-z0-9_.:]+\/?[-a-z0-9_:@&?=+,.!/~*%$]*';
-                            var re = new RegExp(strRegex, 'i')
-                            if (!re.test(value)) {
-                                result.result = false
-                                result.error_message = gettext("请输入正确的 URL")
-                            }
-                            return result
-                        }
                     }
                 ]
             }
@@ -64,6 +48,7 @@
             tag_code: "bk_http_request_header",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: "Header",
                 hookable: true,
                 add_btn: true,
@@ -102,7 +87,7 @@
                 hookable: true,
                 placeholder: gettext("请求超时时间"),
                 min: 0,
-                max: 10,
+                max: 30,
                 default: 0
             }
         },

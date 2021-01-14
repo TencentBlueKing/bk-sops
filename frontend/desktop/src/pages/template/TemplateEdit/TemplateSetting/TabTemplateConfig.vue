@@ -71,7 +71,7 @@
                     </bk-checkbox-group>
                 </bk-form-item>
                 <bk-form-item :label="$t('通知分组')">
-                    <bk-checkbox-group v-model="formData.receiverGroup">
+                    <bk-checkbox-group v-model="formData.receiverGroup" v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1 }">
                         <bk-checkbox
                             v-for="item in notifyGroup"
                             :key="item.id"
@@ -92,7 +92,7 @@
                 </bk-form-item>
             </bk-form>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" :disabled="notifyTypeLoading" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button class="save-btn" theme="primary" :disabled="notifyTypeLoading || notifyGroupLoading" @click="onConfirm">{{ $t('保存') }}</bk-button>
                 <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
         </div>
@@ -113,7 +113,8 @@
         props: {
             projectInfoLoading: Boolean,
             isTemplateConfigValid: Boolean,
-            isShow: Boolean
+            isShow: Boolean,
+            common: [String, Number]
         },
         data () {
             const { category, notify_type, notify_receivers, description, executor_proxy, template_labels } = this.$store.state.template
@@ -142,9 +143,11 @@
                     //     }
                     // ]
                 },
-                notifyTypeList: [],
                 templateLabels: [],
+                notifyTypeList: [],
+                projectNotifyGroup: [],
                 notifyTypeLoading: false,
+                notifyGroupLoading: false,
                 templateLabelLoading: false
             }
         },
@@ -154,15 +157,17 @@
                 'timeout': state => state.template.time_out
             }),
             notifyGroup () {
+                let list = []
                 if (this.projectBaseInfo.notify_group) {
-                    return this.projectBaseInfo.notify_group.map(item => {
+                    const defaultList = list.concat(this.projectBaseInfo.notify_group.map(item => {
                         return {
                             id: item.value,
                             name: item.text
                         }
-                    })
+                    }))
+                    list = defaultList.concat(this.projectNotifyGroup)
                 }
-                return []
+                return list
             },
             taskCategories () {
                 if (this.projectBaseInfo.task_categories) {
@@ -179,6 +184,9 @@
         created () {
             this.getNotifyTypeList()
             this.getTemplateLabelList()
+            if (!this.common) {
+                this.getProjectNotifyGroup()
+            }
         },
         mounted () {
             if (!this.isTemplateConfigValid) {
@@ -190,7 +198,8 @@
                 'setTplConfig'
             ]),
             ...mapActions([
-                'getNotifyTypes'
+                'getNotifyTypes',
+                'getNotifyGroup'
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault'
@@ -219,6 +228,17 @@
             },
             onEditLabel () {
                 this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+            },
+            async getProjectNotifyGroup () {
+                try {
+                    this.notifyGroupLoading = true
+                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
+                    this.projectNotifyGroup = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.notifyGroupLoading = false
+                }
             },
             onConfirm () {
                 this.$refs.configForm.validate().then(result => {

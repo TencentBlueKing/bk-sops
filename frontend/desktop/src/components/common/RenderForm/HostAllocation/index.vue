@@ -21,9 +21,11 @@
             :cols="tbCols"
             :config="localConfig"
             :urls="urls"
+            :separator="localSeparator"
             :value="localValue"
             @importData="importData"
-            @update="updateValue">
+            @update="updateValue"
+            @update:separator="updateSeparator">
         </resource-list>
         <host-filter
             v-else
@@ -39,6 +41,7 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import HostFilter from './HostFilter.vue'
     import ResourceList from '../SetAllocation/ResourceList.vue'
@@ -69,6 +72,10 @@
                 type: Boolean,
                 default: false
             },
+            separator: {
+                type: String,
+                default: ','
+            },
             value: {
                 type: Array,
                 default () {
@@ -87,6 +94,7 @@
                 showFilter: false,
                 localConfig: tools.deepClone(this.config),
                 localValue: this.tranformPropsValueData(this.value),
+                localSeparator: this.separator,
                 colsLoading: false,
                 originalCols: [], // 表格列原始配置项
                 tbCols: [], // 增加模块列后的表格配置项
@@ -105,6 +113,9 @@
                     this.localValue = this.tranformPropsValueData(val)
                 },
                 deep: true
+            },
+            separator (val) {
+                this.localSeparator = val
             }
         },
         mounted () {
@@ -248,8 +259,10 @@
                                         [tagCode]: rowData[tagCode]
                                     }
                                 } else {
-                                    valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
-                                        [tagCode]: ''
+                                    // renderForm 组件 value 需要接受 object 类型数据, 优先取标准插件配置项默认值
+                                    const val = atomFilter.getFormItemDefaultValue([item.config])
+                                    valItem[tagCode] = {
+                                        [tagCode]: val
                                     }
                                 }
                             }
@@ -283,11 +296,16 @@
                 this.localValue = val
                 this.updatePropsData()
             },
+            updateSeparator (val) {
+                this.localSeparator = val
+                this.updatePropsData()
+            },
             // 同步本地组件数据到父组件
             updatePropsData () {
                 const propsData = {
                     config: tools.deepClone(this.localConfig),
-                    data: this.transformLocalValueData(this.localValue)
+                    data: this.transformLocalValueData(this.localValue),
+                    separator: this.localSeparator
                 }
                 this.$emit('update', propsData)
             },

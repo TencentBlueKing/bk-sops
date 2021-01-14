@@ -11,7 +11,12 @@
 */
 <template>
     <div class="ip-log-content" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="detail-ip-log" v-html="logContent"></div>
+        <div class="detail-ip-log">
+            <log-display
+                :log-content="logContent"
+                :height="350">
+            </log-display>
+        </div>
         <el-input
             :placeholder="$t('请输入 IP')"
             v-model="search"
@@ -49,8 +54,12 @@
 <script>
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions } from 'vuex'
+    import LogDisplay from './LogDisplay.vue'
     export default {
         name: 'IpLogContent',
+        components: {
+            LogDisplay
+        },
         props: {
             nodeInfo: {
                 type: Object,

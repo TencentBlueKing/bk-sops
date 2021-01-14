@@ -15,10 +15,10 @@ context_processor for common(setting)
 """
 
 import logging
-import os
 
 from django.utils.translation import ugettext_lazy as _
 
+import env
 from gcloud.conf import settings
 from gcloud.core.api_adapter import is_user_auditor, is_user_functor
 from gcloud.core.models import EnvironmentVariables
@@ -96,9 +96,16 @@ def mysetting(request):
         "IS_AUDITOR": is_auditor,
         "PROJECT_TIMEZONE": project_timezone,
         "DEFAULT_PROJECT_ID": default_project.id if default_project else "",
-        "FILE_UPLOAD_ENTRY": os.getenv("BKAPP_FILE_UPLOAD_ENTRY", ""),
+        "FILE_UPLOAD_ENTRY": env.BKAPP_FILE_UPLOAD_ENTRY,
         "MEMBER_SELECTOR_DATA_HOST": settings.BK_MEMBER_SELECTOR_DATA_HOST,
         "BK_STATIC_URL": frontend_entry_url,
+        "BK_DOC_URL": settings.BK_DOC_URL,
+        "FEEDBACK_URL": settings.FEEDBACK_URL,
     }
+
+    # custom context config
+    custom_context = getattr(settings, "CUSTOM_HOME_RENDER_CONTEXT", {})
+    if isinstance(custom_context, dict):
+        ctx.update(custom_context)
 
     return ctx

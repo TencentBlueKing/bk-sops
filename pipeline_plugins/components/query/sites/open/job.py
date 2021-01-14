@@ -27,18 +27,12 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 JOB_VAR_CATEGORY_CLOUD = 1
 JOB_VAR_CATEGORY_CONTEXT = 2
-JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT}
+JOB_VAR_CATEGORY_PASSWORD = 4
+JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT, JOB_VAR_CATEGORY_PASSWORD}
 JOB_VAR_CATEGORY_IP = 3
 
 
-def job_get_script_list(request, biz_cc_id):
-    """
-    查询业务脚本列表
-    :param request:
-    :param biz_cc_id:
-    :return:
-    """
-    # 查询脚本列表
+def _job_get_scripts_data(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     source_type = request.GET.get("type")
     script_type = request.GET.get("script_type")
@@ -60,8 +54,32 @@ def job_get_script_list(request, biz_cc_id):
         message = handle_api_error("job", api_name, kwargs, script_result)
         logger.error(message)
         result = {"result": False, "message": message}
-        return JsonResponse(result)
+        return result
 
+    return script_result
+
+
+def job_get_script_name_list(request, biz_cc_id):
+    script_result = _job_get_scripts_data(request, biz_cc_id)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
+    script_names = []
+    for script in script_result["data"]["data"]:
+        script_names.append({"text": script["name"], "value": script["name"]})
+    return JsonResponse({"result": True, "data": script_names})
+
+
+def job_get_script_list(request, biz_cc_id):
+    """
+    查询业务脚本列表
+    :param request:
+    :param biz_cc_id:
+    :return:
+    """
+    # 查询脚本列表
+    script_result = _job_get_scripts_data(request, biz_cc_id)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
     script_dict = {}
     for script in script_result["data"]["data"]:
         script_dict.setdefault(script["name"], []).append(script["id"])
@@ -133,6 +151,11 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     task_detail = job_result["data"]
     global_var = []
     steps = []
+    if not task_detail:
+        message = "请求作业平台执行方案详情返回数据为空: {}".format(job_result)
+        logger.error(message)
+        return JsonResponse({"result": False, "message": message})
+
     for var in task_detail.get("global_vars", []):
         # 1-字符串, 2-IP, 3-索引数组, 4-关联数组
         if var["category"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
@@ -144,6 +167,10 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                     for ip_item in var.get("ip_list", [])
                 ]
             )
+        else:
+            logger.warning("unknow type var: {}".format(var))
+            continue
+
         global_var.append(
             {
                 "id": var["id"],
@@ -170,9 +197,47 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     return JsonResponse({"result": True, "data": {"global_var": global_var, "steps": steps}})
 
 
+def job_get_instance_detail(request, biz_cc_id, task_id):
+    client = get_client_by_user(request.user.username)
+    log_kwargs = {"bk_biz_id": biz_cc_id, "job_instance_id": task_id}
+    job_result = client.job.get_job_instance_log(log_kwargs)
+    if not job_result["result"]:
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+
+        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise RawAuthFailedException(permissions=job_result.get("permission", []))
+
+        logger.error(message)
+
+    if not job_result["result"]:
+        return JsonResponse(
+            {"result": False, "message": "job instance log fetch error: {}".format(job_result["message"])}
+        )
+
+    ip_details = {}
+    for step in job_result["data"]:
+        for step_result in step["step_results"]:
+            for ip_log in step_result["ip_logs"]:
+                detail = ip_details.setdefault(ip_log["ip"], {})
+
+                detail.setdefault("log", []).extend(
+                    ["step: {}\n".format(step["step_instance_id"]), ip_log["log_content"]]
+                )
+                detail["exit_code"] = ip_log["exit_code"]
+
+    data = []
+    for ip, detail in ip_details.items():
+        data.append({"ip": ip, "log": "".join(detail["log"]), "exit_code": detail["exit_code"]})
+
+    return JsonResponse({"result": True, "data": data})
+
+
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
+    url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
     url(r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$", job_get_own_db_account_list,),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
     url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
+    url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
 ]

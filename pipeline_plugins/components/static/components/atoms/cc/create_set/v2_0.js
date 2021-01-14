@@ -95,11 +95,14 @@
                                 result: true,
                                 error_message: ""
                             };
-                            console.log(result);
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child("cc_select_set_parent_method")) {
                                 if (self.get_parent().get_child("cc_select_set_parent_method").value === "topo" && !value.length) {
+                                    if (value.length === 1){
+                                        result.result = false;
+                                        result.error_message = gettext("请选择包含子实例的父实例");
+                                    }
                                     result.result = false;
                                     result.error_message = gettext("请选择父实例");
                                 }
@@ -205,6 +208,7 @@
             tag_code: "cc_set_info",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("集群信息"),
                 remote_url: function () {
                     const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';

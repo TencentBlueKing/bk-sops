@@ -67,6 +67,7 @@
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
+                    :state="state"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
@@ -284,7 +285,8 @@
                 isNodeResumeDialogShow: false,
                 nodeResumeId: undefined,
                 operateLoading: false,
-                retrievedCovergeGateways: [] // 遍历过的汇聚节点
+                retrievedCovergeGateways: [], // 遍历过的汇聚节点
+                pollErrorTimes: 0 // 任务状态查询异常连续三次后，停止轮询
             }
         },
         computed: {
@@ -410,7 +412,7 @@
                 try {
                     this.$emit('taskStatusLoadChange', true)
                     let instanceStatus = {}
-                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus) { // 总任务：完成/撤销时,取实例缓存数据
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
                     } else if (
                         this.instanceStatus.state
@@ -439,6 +441,8 @@
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
+                        this.pollErrorTimes = 0
+
                         if (
                             !this.cacheStatus
                             && ['FINISHED', 'REVOKED'].includes(this.state)
@@ -451,7 +455,12 @@
                         }
                         this.updateNodeInfo()
                     } else {
-                        this.cancelTaskStatusTimer()
+                        this.pollErrorTimes += 1
+                        if (this.pollErrorTimes > 2) {
+                            this.cancelTaskStatusTimer()
+                        } else {
+                            this.setTaskStatusTimer()
+                        }
                         errorHandler(instanceStatus, this)
                     }
                 } catch (e) {
@@ -995,7 +1004,7 @@
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
                 this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
                     this.quickClose = false
                 }
             },
@@ -1084,7 +1093,6 @@
                     nodeId: nodeActivities.id,
                     type: 'SubProcess'
                 })
-                
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },

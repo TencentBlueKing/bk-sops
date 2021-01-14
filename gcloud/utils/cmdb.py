@@ -15,67 +15,14 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
+from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
-
-from .thread import ThreadPool
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
-
-def batch_request(
-    func, params, get_data=lambda x: x["data"]["info"], get_count=lambda x: x["data"]["count"], limit=500
-):
-    """
-    并发请求接口
-    :param func: 请求方法
-    :param params: 请求参数
-    :param get_data: 获取数据函数
-    :param get_count: 获取总数函数
-    :param limit: 一次请求数量
-    :return: 请求结果
-    """
-    # 请求第一次获取总数
-    result = func(page={"start": 0, "limit": 1}, **params)
-
-    if not result["result"]:
-        logger.error("[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result))
-        return []
-
-    count = get_count(result)
-    data = []
-    start = 0
-
-    # 根据请求总数并发请求
-    pool = ThreadPool()
-    params_and_future_list = []
-    while start < count:
-        request_params = {"page": {"limit": limit, "start": start}}
-        request_params.update(params)
-        params_and_future_list.append({"params": request_params, "future": pool.apply_async(func, kwds=request_params)})
-
-        start += limit
-
-    pool.close()
-    pool.join()
-
-    # 取值
-    for params_and_future in params_and_future_list:
-        result = params_and_future["future"].get()
-
-        if not result:
-            logger.error(
-                "[batch_request] {api} request error, params: {params}, result: {result}".format(
-                    api=func.__name__, params=params_and_future["params"], result=result
-                )
-            )
-            return []
-
-        data.extend(get_data(result))
-
-    return data
 
 
 def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, ip_list=None):
@@ -117,7 +64,7 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     :rtype: list
     """
     client = get_client_by_user(username)
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": host_fields or []}
+    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if ip_list:
         kwargs["host_property_filter"] = {
@@ -167,7 +114,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     ]
     :rtype: [type]
     """
-    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": host_fields or []}
+    kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
     if ip_list:
         kwargs["host_property_filter"] = {
@@ -218,13 +165,23 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         return result
 
     biz_data = cc_result["data"]["info"][0]
+    staff_groups = []
     receivers = []
 
     if isinstance(receiver_group, str):
         receiver_group = receiver_group.split(",")
 
     for group in receiver_group:
-        receivers.extend(biz_data[group].split(","))
+        # 原通知分组
+        if group in biz_data:
+            if biz_data[group]:
+                receivers.extend(biz_data[group].split(","))
+        # 自定义人员分组
+        else:
+            staff_groups.append(group)
+    staff_groups = StaffGroupSet.objects.filter(is_deleted=False, id__in=staff_groups).values_list("members", flat=True)
+    for group in staff_groups:
+        receivers.extend(group.split(","))
 
     if more_receiver:
         receivers.extend(more_receivers)

@@ -16,6 +16,7 @@ import traceback
 
 from django.utils.translation import ugettext_lazy as _
 
+from api.collections.itsm import BKItsmClient
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
@@ -26,7 +27,6 @@ from pipeline_plugins.components.utils import get_node_callback_url
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 class ApproveService(Service):
@@ -58,7 +58,7 @@ class ApproveService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        client = BKItsmClient(username=executor)
 
         verifier = data.get_one_of_inputs("bk_verifier")
         title = data.get_one_of_inputs("bk_approve_title")
@@ -73,7 +73,7 @@ class ApproveService(Service):
             "fast_approval": True,
             "meta": {"callback_url": get_node_callback_url(self.id)},
         }
-        result = client.itsm.create_ticket(kwargs)
+        result = client.create_ticket(**kwargs)
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)
@@ -85,8 +85,12 @@ class ApproveService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
         try:
+            rejected_block = data.get_one_of_inputs("rejected_block", True)
             approve_result = callback_data["approve_result"]
             data.outputs.approve_result = _("通过") if approve_result else _("拒绝")
+            # 审核拒绝不阻塞
+            if not approve_result and not rejected_block:
+                return True
             return approve_result
         except Exception as e:
             err_msg = "get Approve Component result failed: {}, err: {}"

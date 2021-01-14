@@ -16,7 +16,7 @@ import logging
 from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.cmdb import batch_request
+from api.utils.request import batch_request
 from pipeline.core.data.var import LazyVariable
 
 logger = logging.getLogger("root")
@@ -49,11 +49,7 @@ def cc_execute_dynamic_group(operator, bk_biz_id, bk_group_id, set_field):
     """
     client = get_client_by_user(operator)
     set_data_dir = {}
-    kwargs = {
-        "bk_biz_id": bk_biz_id,
-        "id": bk_group_id,
-        "fields": set_field
-    }
+    kwargs = {"bk_biz_id": bk_biz_id, "id": bk_group_id, "fields": set_field}
     group_info = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
     for _field in set_field:
         set_data_dir[_field] = []
@@ -76,6 +72,10 @@ class SetGroupInfo(object):
             flat_field_name = "flat__{}".format(_field)
             setattr(self, _field, data[_field])
             setattr(self, "flat__{}".format(_field), data[flat_field_name])
+        self._pipeline_var_str_value = "set_field_data: {}".format(data)
+
+    def __repr__(self):
+        return self._pipeline_var_str_value
 
 
 class VarSetGroupSelector(LazyVariable):
@@ -89,6 +89,8 @@ class VarSetGroupSelector(LazyVariable):
         """
         获取该变量中对应属性值
         """
+        if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
+            return SetGroupInfo({}, [])
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_group_id = self.value

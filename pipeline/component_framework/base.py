@@ -19,6 +19,7 @@ from django.db.utils import ProgrammingError
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
+from pipeline.component_framework import context
 from pipeline.core.flow.activity import Service
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,9 @@ class ComponentMeta(type):
         if not getattr(new_class, "form", None):
             setattr(new_class, "form", None)
 
+        if not getattr(new_class, "output_form", None):
+            setattr(new_class, "output_form", None)
+
         if not getattr(new_class, "version", None):
             setattr(new_class, "version", LEGACY_PLUGINS_VERSION)
 
@@ -73,7 +77,12 @@ class ComponentMeta(type):
             ComponentLibrary.register_component(
                 component_code=new_class.code, version=new_class.version, component_cls=new_class
             )
+
+            if context.skip_update_comp_models():
+                return new_class
+
             try:
+                print("update {} component model".format(new_class.code))
                 ComponentModel.objects.update_or_create(
                     code=new_class.code, version=new_class.version, defaults={"name": new_name, "status": __debug__}
                 )

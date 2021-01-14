@@ -18,6 +18,7 @@ from django.db.utils import OperationalError, ProgrammingError
 
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
+from pipeline.variable_framework import context
 
 logger = logging.getLogger("root")
 
@@ -36,11 +37,16 @@ class VariableFrameworkConfig(AppConfig):
         for path in settings.VARIABLE_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)
 
+        if context.skip_update_var_models():
+            return
+
         from pipeline.variable_framework.models import VariableModel
         from pipeline.core.data.library import VariableLibrary
 
         try:
+            print("update variable models")
             VariableModel.objects.exclude(code__in=list(VariableLibrary.variables.keys())).update(status=False)
+            print("update variable models finish")
         except (ProgrammingError, OperationalError) as e:
             # first migrate
             logger.exception(e)

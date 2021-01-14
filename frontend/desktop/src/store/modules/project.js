@@ -15,6 +15,7 @@ const project = {
     namespaced: true,
     state: {
         project_id: window.DEFAULT_PROJECT_ID,
+        bizId: '',
         projectName: '',
         projectList: [],
         userProjectList: [], // 用户有权限的项目列表
@@ -33,6 +34,9 @@ const project = {
                 id = isNaN(Number(id)) || id === '' ? '' : Number(id)
             }
             state.project_id = id
+        },
+        setBizId (state, id) {
+            state.bizId = id
         },
         setTimeZone (state, data) {
             state.timeZone = data

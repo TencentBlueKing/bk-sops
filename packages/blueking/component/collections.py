@@ -17,6 +17,7 @@ from .apis.cc import CollectionsCC
 from .apis.cmsi import CollectionsCMSI
 from .apis.gse import CollectionsGSE
 from .apis.job import CollectionsJOB
+from .apis.jobv3 import CollectionsJOBV3
 from .apis.sops import CollectionsSOPS
 from .apis.esb import CollectionsEsb
 from .apis.usermanage import CollectionsUserManage
@@ -33,10 +34,11 @@ AVAILABLE_COLLECTIONS = {
     "cmsi": CollectionsCMSI,
     "gse": CollectionsGSE,
     "job": CollectionsJOB,
+    "jobv3": CollectionsJOBV3,
     "sops": CollectionsSOPS,
     "esb": CollectionsEsb,
     "usermanage": CollectionsUserManage,
     "nodeman": CollectionsNodeMan,
     "itsm": CollectionsItsm,
-    "monitor": CollectionsMonitor
+    "monitor": CollectionsMonitor,
 }

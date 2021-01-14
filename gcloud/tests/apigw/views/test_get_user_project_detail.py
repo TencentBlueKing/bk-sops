@@ -10,10 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
-import ujson as json
-
 from pipeline.utils.collections import FancyDict
 
 from gcloud.tests.mock import *  # noqa
@@ -23,6 +19,7 @@ from gcloud import err_code
 from .utils import APITest
 
 TEST_PROJECT_ID = "1"
+TEST_PROJECT_ID_2 = "2"
 TEST_PROJECT_NAME = "name"
 TEST_BIZ_CC_ID = "2"
 TEST_BIZ_NAME = "biz_name"
@@ -40,16 +37,12 @@ class GetUserProjectDetailAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
     @patch(
-        APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL,
-        MagicMock(side_effect=Exception()),
+        APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL, MagicMock(side_effect=Exception()),
     )
     def test_get_user_project_detail__get_business_detail_raise(self):
         response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
@@ -64,10 +57,7 @@ class GetUserProjectDetailAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID_2, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -85,7 +75,7 @@ class GetUserProjectDetailAPITest(APITest):
         ),
     )
     def test_get_user_project_detail__success(self):
-        response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+        response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID_2))
 
         data = json.loads(response.content)
 
@@ -94,7 +84,7 @@ class GetUserProjectDetailAPITest(APITest):
         self.assertEqual(
             data["data"],
             {
-                "project_id": TEST_PROJECT_ID,
+                "project_id": TEST_PROJECT_ID_2,
                 "project_name": TEST_PROJECT_NAME,
                 "from_cmdb": True,
                 "bk_biz_id": TEST_BIZ_CC_ID,

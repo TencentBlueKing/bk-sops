@@ -60,7 +60,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         PWE.SubProcess: activity_size[0] * 1.3,
         PWE.EmptyStartEvent: event_size[0] * 2,
         PWE.EmptyEndEvent: event_size[0] * 2,
-        PWE.ExclusiveGateway: gateway_size[0] * 2,
+        PWE.ExclusiveGateway: gateway_size[0] * 6,
         PWE.ParallelGateway: gateway_size[0] * 2,
         PWE.ConvergeGateway: gateway_size[0] * 2,
     }

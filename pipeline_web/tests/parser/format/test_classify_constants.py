@@ -17,6 +17,9 @@ from pipeline_web.parser.format import classify_constants
 
 
 class ClassifyConstantsTestCase(TestCase):
+    def setUp(self):
+        self.maxDiff = None
+
     def test_normal(self):
         """
         正常情况的一种测试用例
@@ -76,61 +79,94 @@ class ClassifyConstantsTestCase(TestCase):
             },
         }
         expect_outputs = {
-            "constant_pool": {
-                "${bk_timing}": {
-                    "name": "定时时间",
-                    "key": "${bk_timing}",
-                    "desc": "",
-                    "custom_type": "",
-                    "source_info": {"node38f09be9ba7402ec05186c562c0e": ["bk_timing"]},
-                    "source_tag": "sleep_timer.bk_timing",
-                    "value": "",
-                    "show_type": "show",
-                    "source_type": "component_inputs",
-                    "validation": "",
-                    "index": 0,
-                    "version": "legacy",
-                    "form_schema": {
-                        "type": "input",
-                        "attrs": {
-                            "name": "定时时间",
-                            "placeholder": "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)",
-                            "hookable": True,
-                            "validation": [{"type": "required"}, {"type": "custom"}],
-                        },
-                    },
-                    "is_param": True,
-                },
-                "${custom}": {
-                    "custom_type": "input",
-                    "desc": "",
-                    "form_schema": {"type": "input", "attrs": {"name": "输入框", "hookable": True, "validation": []}},
-                    "index": 3,
-                    "key": "${custom}",
-                    "name": "custom",
-                    "show_type": "show",
-                    "source_info": {},
-                    "source_tag": "input.input",
-                    "source_type": "custom",
-                    "validation": "^.+$",
-                    "value": "${bk_timing}",
-                    "version": "legacy",
-                    "is_param": True,
-                },
-            },
             "data_inputs": {
+                "${custom}": {"type": "splice", "value": "${bk_timing}", "is_param": False},
+                "${bk_timing}": {"type": "plain", "value": "", "is_param": False},
                 "${_result}": {
                     "type": "splice",
                     "source_act": "node38f09be9ba7402ec05186c562c0e",
                     "source_key": "_result",
                     "value": "",
                     "is_param": False,
-                }
+                },
             },
             "acts_outputs": {"node38f09be9ba7402ec05186c562c0e": {"_result": "${_result}"}},
-            "params": {},
         }
         self.assertEqual(classify_constants(constants, False), expect_outputs)
+
+    def test_is_param_case(self):
+        """
+        测试子流程暴露变量的情况
+        """
+        constants = {
+            "${bk_timing}": {
+                "name": "定时时间",
+                "key": "${bk_timing}",
+                "desc": "",
+                "custom_type": "",
+                "source_info": {"node38f09be9ba7402ec05186c562c0e": ["bk_timing"]},
+                "source_tag": "sleep_timer.bk_timing",
+                "value": "",
+                "show_type": "hide",
+                "source_type": "component_inputs",
+                "validation": "",
+                "index": 0,
+                "version": "legacy",
+                "form_schema": {
+                    "type": "input",
+                    "attrs": {
+                        "name": "定时时间",
+                        "placeholder": "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)",
+                        "hookable": True,
+                        "validation": [{"type": "required"}, {"type": "custom"}],
+                    },
+                },
+            },
+            "${_result}": {
+                "name": "执行结果",
+                "key": "${_result}",
+                "desc": "",
+                "custom_type": "",
+                "source_info": {"node38f09be9ba7402ec05186c562c0e": ["_result"]},
+                "source_tag": "",
+                "value": "",
+                "show_type": "hide",
+                "source_type": "component_outputs",
+                "validation": "",
+                "index": 1,
+                "version": "legacy",
+            },
+            "${custom}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {"type": "input", "attrs": {"name": "输入框", "hookable": True, "validation": []}},
+                "index": 3,
+                "key": "${custom}",
+                "name": "custom",
+                "show_type": "show",
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "value": "${bk_timing}",
+                "version": "legacy",
+            },
+        }
+        expect_outputs = {
+            "data_inputs": {
+                "${custom}": {"type": "splice", "value": "${bk_timing}", "is_param": True},
+                "${bk_timing}": {"type": "plain", "value": "", "is_param": False},
+                "${_result}": {
+                    "type": "splice",
+                    "source_act": "node38f09be9ba7402ec05186c562c0e",
+                    "source_key": "_result",
+                    "value": "",
+                    "is_param": False,
+                },
+            },
+            "acts_outputs": {"node38f09be9ba7402ec05186c562c0e": {"_result": "${_result}"}},
+        }
+        self.assertEqual(classify_constants(constants, True), expect_outputs)
 
     def test_outputs_node_cancel(self):
         """
@@ -191,50 +227,10 @@ class ClassifyConstantsTestCase(TestCase):
             },
         }
         expect_outputs = {
-            "constant_pool": {
-                "${bk_timing}": {
-                    "name": "定时时间",
-                    "key": "${bk_timing}",
-                    "desc": "",
-                    "custom_type": "",
-                    "source_info": {"node38f09be9ba7402ec05186c562c0e": ["bk_timing"]},
-                    "source_tag": "sleep_timer.bk_timing",
-                    "value": "",
-                    "show_type": "show",
-                    "source_type": "component_inputs",
-                    "validation": "",
-                    "index": 0,
-                    "version": "legacy",
-                    "form_schema": {
-                        "type": "input",
-                        "attrs": {
-                            "name": "定时时间",
-                            "placeholder": "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)",
-                            "hookable": True,
-                            "validation": [{"type": "required"}, {"type": "custom"}],
-                        },
-                    },
-                    "is_param": True,
-                },
-                "${custom}": {
-                    "custom_type": "input",
-                    "desc": "",
-                    "form_schema": {"type": "input", "attrs": {"name": "输入框", "hookable": True, "validation": []}},
-                    "index": 3,
-                    "key": "${custom}",
-                    "name": "custom",
-                    "show_type": "show",
-                    "source_info": {},
-                    "source_tag": "input.input",
-                    "source_type": "custom",
-                    "validation": "^.+$",
-                    "value": "${bk_timing}",
-                    "version": "legacy",
-                    "is_param": True,
-                },
+            "data_inputs": {
+                "${custom}": {"type": "splice", "value": "${bk_timing}", "is_param": False},
+                "${bk_timing}": {"type": "plain", "value": "", "is_param": False},
             },
-            "data_inputs": {},
             "acts_outputs": {},
-            "params": {},
         }
         self.assertEqual(classify_constants(constants, False), expect_outputs)

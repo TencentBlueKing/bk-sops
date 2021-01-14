@@ -65,7 +65,7 @@ function generateInitActivities (location, line) {
             incoming: [line[0].id],
             loop: null,
             name: '',
-            optional: false,
+            optional: true,
             outgoing: line[1].id,
             stage_name: '',
             type: 'ServiceActivity',
@@ -309,7 +309,6 @@ const template = {
             const activities = generateInitActivities(location, line)
             const start_event = generateStartNode(location[0], line[0])
             const end_event = generateEndNode(location[2], line[1])
-
             state.name = ''
             state.activities = activities
             state.end_event = end_event
@@ -612,7 +611,7 @@ const template = {
                             incoming: [],
                             loop: null,
                             name: location.name || '',
-                            optional: false,
+                            optional: true,
                             outgoing: '',
                             stage_name: '',
                             type: 'ServiceActivity',
@@ -627,7 +626,7 @@ const template = {
                             incoming: [],
                             loop: null,
                             name: location.name || '',
-                            optional: false,
+                            optional: true,
                             outgoing: '',
                             stage_name: '',
                             template_id: location.atomId,
@@ -898,6 +897,10 @@ const template = {
         // 获取节点标签列表
         getLabels ({ commit }, data) {
             return axios.get('api/v3/label/', { params: data }).then(response => response.data)
+        },
+        // 获取变量预览值
+        getConstantsPreviewResult ({ commit }, data) {
+            return axios.post('/template/api/get_constant_preview_result/', data).then(response => response.data)
         }
     },
     getters: {

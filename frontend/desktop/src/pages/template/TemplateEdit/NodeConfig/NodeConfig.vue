@@ -39,10 +39,10 @@
                         ext-cls="variable-popover"
                         placement="bottom-end">
                         <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
-                        <div class="variable-list" slot="content">
+                        <div :class="['variable-list', { 'list-change': isChange }]" slot="content">
                             <bk-table :data="variableList" :max-height="400">
                                 <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
-                                <bk-table-column label="KEY" :show-overflow-tooltip="true">
+                                <bk-table-column label="KEY" :show-overflow-tooltip="true" :width="isChange ? '165' : ''">
                                     <template slot-scope="props" width="165">
                                         <div class="key">{{ props.row.key }}</div>
                                         <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
@@ -219,7 +219,9 @@
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
                 isSelectorPanelShow, // 是否显示选择插件(子流程)面板
-                localConstants: {} // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                isChange: false, // 输入、输出参数勾选状态是否有变化
+                pluginOrTplChangeVal: {} // 选择插件的信息
             }
         },
         computed: {
@@ -233,7 +235,7 @@
             }),
             variableList () {
                 const systemVars = Object.keys(this.systemConstants).map(key => this.systemConstants[key])
-                const userVars = Object.keys(this.constants).map(key => this.constants[key])
+                const userVars = Object.keys(this.localConstants).map(key => this.localConstants[key])
                 return [...systemVars, ...userVars]
             },
             isSubflow () {
@@ -602,9 +604,10 @@
                     this.isSelectorPanelShow = false
                 }
             },
-            
+
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
+                this.pluginOrTplChangeVal = val
                 this.isSelectorPanelShow = false
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
@@ -634,7 +637,7 @@
                     ignorable: false,
                     skippable: true,
                     retryable: true,
-                    selectable: false
+                    selectable: true
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
@@ -663,10 +666,7 @@
                     name,
                     version,
                     tpl: id,
-                    nodeName: name,
-                    stageName: '',
-                    nodeLabel: [],
-                    selectable: false
+                    nodeName: name
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)
@@ -683,6 +683,18 @@
              */
             updateBasicInfo (data) {
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
+                // 获取当前接口的不同版本的描述
+                const { component } = this.$store.state.template.activities[this.nodeId]
+                const code = component.code || this.pluginOrTplChangeVal.code
+                if (code) {
+                    const atom = this.atomList.find(item => item.code === code)
+                    const { desc } = atom.list.find(item => item.version === this.basicInfo.version)
+                    this.basicInfo.desc = desc
+                    if (desc.includes('\n')) {
+                        const descList = desc.split('\n')
+                        this.basicInfo.desc = descList.join('<p></p>')
+                    }
+                }
             },
             // 输入参数表单值更新
             updateInputsValue (val) {
@@ -810,6 +822,8 @@
             // 输入、输出参数勾选状态变化
             onHookChange (type, data) {
                 if (type === 'create') {
+                    // 如果全局变量数据有变，需要修改tip样式
+                    this.isChange = true
                     this.$set(this.localConstants, data.key, data)
                 } else {
                     this.setVariableSourceInfo(data)
@@ -970,6 +984,23 @@
                 })
                 return phase
             },
+            isOutputsChanged () {
+                const localOutputs = []
+                const outputs = []
+                Object.keys(this.localConstants).forEach(key => {
+                    const item = this.localConstants[key]
+                    if (item.source_type === 'component_outputs') {
+                        localOutputs.push(item)
+                    }
+                })
+                Object.keys(this.constants).forEach(key => {
+                    const item = this.constants[key]
+                    if (item.source_type === 'component_outputs') {
+                        outputs.push(item)
+                    }
+                })
+                return !tools.isDataEqual(localOutputs, outputs)
+            },
             beforeClose () {
                 if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
                     if (!(this.isSubflow ? this.basicInfo.tpl : this.basicInfo.plugin)) {
@@ -978,7 +1009,7 @@
                     }
                 }
                 const config = this.getNodeFullConfig()
-                if (tools.isDataEqual(config, this.nodeConfig)) {
+                if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
                     this.$emit('update:isShow', false)
                     return true
                 } else {
@@ -1088,6 +1119,12 @@
                 .color-org {
                     color: #de9524;
                 }
+            }
+        }
+        .list-change {
+            /deep/ .bk-table-body-wrapper {
+                overflow-y: scroll;
+                padding-bottom: 27px;
             }
         }
         td {

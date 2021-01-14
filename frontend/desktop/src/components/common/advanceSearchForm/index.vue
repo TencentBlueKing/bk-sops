@@ -165,7 +165,8 @@
                 })
                 const list = this.records.map(recordItem => {
                     const id = recordItem.id
-                    let data = Object.keys(recordItem.form).map(key => {
+                    let data = []
+                    Object.keys(recordItem.form).forEach(key => {
                         const form = searchObj[key]
                         if (!form) {
                             return
@@ -196,7 +197,7 @@
                         } else {
                             value = recordItem.form[key] ? recordItem.form[key] : '--'
                         }
-                        return { label, value, type }
+                        data.push({ label, value, type })
                     })
 
                     const datetimeIndex = data.findIndex(i => i.type === 'dateRange')
