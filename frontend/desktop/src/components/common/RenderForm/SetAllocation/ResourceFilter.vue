@@ -118,6 +118,9 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
+                <bk-form-item :label="i18n.filterLock" property="filterLock">
+                    <bk-switcher theme="primary" size="small" v-model="formData.filterLock"></bk-switcher>
+                </bk-form-item>
             </bk-form>
             <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1 }">
                 <bk-tab
@@ -252,6 +255,7 @@
                         set_count: 0,
                         set_template_id: '',
                         host_resources: [],
+                        filter_lock: false,
                         module_detail: []
                     }
                 }
@@ -264,7 +268,7 @@
             }
         },
         data () {
-            const { set_count, host_resources, mute_attribute = '', module_detail } = tools.deepClone(this.config)
+            const { set_count, host_resources, mute_attribute = '', filter_lock = false, module_detail } = tools.deepClone(this.config)
             const $this = this
             return {
                 formData: {
@@ -273,6 +277,7 @@
                     set: [],
                     resource: host_resources,
                     muteAttribute: mute_attribute,
+                    filterLock: filter_lock,
                     modules: module_detail
                 },
                 schemeData: {
@@ -396,7 +401,8 @@
                     moduleMute: gettext('模块间互斥'),
                     muteModuleTips: gettext('如果互斥模块复用本模块，则该互斥约束失效'),
                     muteModule: gettext('互斥模块'),
-                    condition: gettext('筛选条件和排除条件')
+                    condition: gettext('筛选条件和排除条件'),
+                    filterLock: gettext('过滤加锁主机')
                 }
             }
         },
@@ -480,7 +486,8 @@
                 'getCCSearchTopoSet',
                 'getCCSearchTopoResource',
                 'getCCSearchModule',
-                'getCCSearchObjAttrHost'
+                'getCCSearchObjAttrHost',
+                'getCCHostCount'
             ]),
             async gitResourceSchemes () {
                 try {
@@ -578,6 +585,17 @@
                     }
                     const resp = await this.getCCSearchModule(params)
                     if (resp.result) {
+                        if (resp.data.info.length > 0) {
+                            const ids = resp.data.info.map(item => item.bk_module_id)
+                            const respCount = await this.getCCHostCount({
+                                url: this.urls['cc_find_host_by_topo'],
+                                ids: ids.join(',')
+                            })
+                            resp.data.info.forEach(md => {
+                                const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
+                                md.count = mdInfo ? mdInfo.host_count : 0
+                            })
+                        }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
                     } else {
@@ -616,7 +634,7 @@
             },
             async onSchemeSelect (id) {
                 const scheme = this.schemes.find(item => item.id === id)
-                const { module_detail, mute_attribute, set_count, host_resources, set_template_id, set_template_name } = JSON.parse(scheme.data)
+                const { module_detail, mute_attribute, set_count, host_resources, set_template_id, set_template_name, filter_lock = false } = JSON.parse(scheme.data)
                 const modules = module_detail.map(item => {
                     const { custom_ip_list, host_count, host_filter_list, id, mute_method, mute_modules, name, reuse_module, select_method } = item
                     return {
@@ -637,6 +655,7 @@
                     set: [{ id: set_template_id, label: set_template_name }],
                     resource: host_resources,
                     muteAttribute: mute_attribute,
+                    filterLock: filter_lock,
                     modules
                 }
                 this.schemeData.name = scheme.name
@@ -702,7 +721,7 @@
                 await this.getModule(checked.id)
                 this.moduleList.forEach((item, index) => {
                     this.$set(this.formData.modules, index, {
-                        count: 0,
+                        count: item.count || 0,
                         name: item.bk_module_name,
                         id: item.bk_module_id,
                         isReuse: false,
@@ -890,6 +909,10 @@
                         fields,
                         topo
                     })
+                    if (this.formData.filterLock) { // 过滤已经加锁主机
+                        hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
+                    }
+
                     const moduleHosts = this.filterModuleHost(hostData.data)
                     const configData = this.getConfigData()
                     this.$emit('update', configData, moduleHosts)
@@ -1070,7 +1093,7 @@
             },
             // 将本地表单编辑数据格式转换为接口所需数据格式
             getConfigData () {
-                const { clusterCount, modules, resource, set, muteAttribute } = this.formData
+                const { clusterCount, modules, resource, set, muteAttribute, filterLock } = this.formData
                 const moduleDetail = []
                 modules.forEach(md => { // 取出所有模块的筛选、排除条件字段，并模块详情数据转换为接口保存格式
                     const { id, name, count, selectMethod, reuse, customIpList, muteMethod, muteModules, hostFilterList } = md
@@ -1102,6 +1125,7 @@
                     set_template_name: set[0].label,
                     host_resources: resource,
                     mute_attribute: muteAttribute,
+                    filter_lock: filterLock,
                     module_detail: moduleDetail
                 }
             }
