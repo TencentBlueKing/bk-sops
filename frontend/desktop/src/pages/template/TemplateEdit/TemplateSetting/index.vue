@@ -22,7 +22,7 @@
             v-if="activeTab === 'templateConfigTab'"
             :is-template-config-valid="isTemplateConfigValid"
             :project-info-loading="projectInfoLoading"
-            @templateDataChanged="$emit('templateDataChanged')"
+            @templateDataChanged="$emit('templateDataChanged', true)"
             @closeTab="closeTab">
         </TabTemplateConfig>
         <TabTemplateSnapshoot

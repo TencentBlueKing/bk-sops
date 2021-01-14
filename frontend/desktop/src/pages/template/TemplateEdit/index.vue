@@ -642,8 +642,11 @@
             /**
              * 设置流程模板为修改状态
              */
-            templateDataChanged () {
+            templateDataChanged (val) {
                 this.isTemplateDataChanged = true
+                if (val) {
+                    this.isTemplateConfigValid = true
+                }
             },
             /**
              * 任务节点校验

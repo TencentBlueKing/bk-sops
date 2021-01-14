@@ -124,6 +124,11 @@
                 return []
             }
         },
+        watch: {
+            isTemplateConfigValid (val) {
+                this.isCategoryEmpty = !val
+            }
+        },
         created () {
             this.getNotifyTypeList()
         },
