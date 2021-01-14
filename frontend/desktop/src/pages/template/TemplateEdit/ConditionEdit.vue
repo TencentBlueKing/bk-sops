@@ -60,7 +60,7 @@
             </div>
             <div class="btn-wrap">
                 <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="close">{{ $t('取消') }}</bk-button>
+                <bk-button theme="default" @click="close">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-sideslider>
