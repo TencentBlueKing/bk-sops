@@ -109,6 +109,7 @@
                 <!-- 变量编辑面板 -->
                 <div v-else-if="isVariablePanelShow" class="variable-edit-panel">
                     <variable-edit
+                        ref="variableEdit"
                         :variable-data="variableData"
                         :common="common"
                         @closeEditingPanel="isVariablePanelShow = false">
@@ -1052,6 +1053,10 @@
                         this.$emit('update:isShow', false)
                         return true
                     }
+                }
+                if (this.isVariablePanelShow) { // 变量编辑时，点击遮罩需要确认是否保存变量
+                    this.$refs.variableEdit.handleMaskClick()
+                    return false
                 }
                 const config = this.getNodeFullConfig()
                 if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
