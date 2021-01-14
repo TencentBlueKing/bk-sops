@@ -137,6 +137,12 @@ class TaskTemplateResource(GCloudModelResource):
         return bundle
 
     def obj_create(self, bundle, **kwargs):
+        label_ids = bundle.data.get("template_labels")
+        if label_ids and len(label_ids) > 0 and bundle.obj:
+            label_ids = list(set(label_ids))
+            if not Label.objects.check_label_ids(label_ids):
+                raise BadRequest("Containing template label not exist, please check.")
+
         with transaction.atomic():
             model = bundle.obj.__class__
             try:
@@ -168,11 +174,7 @@ class TaskTemplateResource(GCloudModelResource):
             kwargs["pipeline_template_id"] = pipeline_template.template_id
 
             bundle = super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
-            label_ids = bundle.data.get("template_labels")
-            if label_ids and len(label_ids) > 0 and bundle.obj:
-                label_ids = list(set(label_ids))
-                if not Label.objects.check_label_ids(label_ids):
-                    raise BadRequest("Containing template label not exist, please check.")
+            if isinstance(label_ids, list) and len(label_ids) > 0:
                 try:
                     TemplateLabelRelation.objects.set_labels_for_template(bundle.obj.id, label_ids)
                 except Exception as e:
