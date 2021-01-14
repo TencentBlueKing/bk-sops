@@ -42,6 +42,8 @@ class VarIpPickerVariable(LazyVariable):
     form = "%svariables/cmdb/var_ip_picker.js" % settings.STATIC_URL
 
     def get_value(self):
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         var_ip_picker = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
@@ -98,6 +100,8 @@ class VarCmdbIpSelector(LazyVariable):
     form = "%svariables/cmdb/var_cmdb_ip_selector.js" % settings.STATIC_URL
 
     def get_value(self):
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -188,6 +192,8 @@ class VarCmdbAttributeQuery(LazyVariable):
         @note: 引用127.0.0.1的bk_host_id属性，如 ${value["127.0.0.1"]["bk_host_id"]} -> 999
         @return:
         """
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)

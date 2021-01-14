@@ -135,16 +135,40 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_log_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
-    get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
-    if not get_job_instance_log_return["result"]:
+    get_job_instance_status_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
+    get_job_instance_status_return = client.jobv3.get_job_instance_status(get_job_instance_status_kwargs)
+    if not get_job_instance_status_return["result"]:
         message = handle_api_error(
-            __group_name__, "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            get_job_instance_status_kwargs,
+            get_job_instance_status_return,
         )
         service_logger.warning(message)
         return {"result": False, "message": message}
-    job_logs = get_job_instance_log_return["data"]
-    log_text = "\n".join([job_log["step_results"][0]["ip_logs"][0]["log_content"] for job_log in job_logs])
+    # 根据每个步骤的IP（可能有多个），循环查询作业执行日志
+    log_list = []
+    for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
+        for step_ip_result in step_instance["step_ip_result_list"]:
+            get_job_instance_ip_log_kwargs = {
+                "job_instance_id": job_instance_id,
+                "bk_biz_id": bk_biz_id,
+                "step_instance_id": step_instance["step_instance_id"],
+                "bk_cloud_id": step_ip_result["bk_cloud_id"],
+                "ip": step_ip_result["ip"],
+            }
+            get_job_instance_ip_log_kwargs_return = client.jobv3.get_job_instance_ip_log(get_job_instance_ip_log_kwargs)
+            if not get_job_instance_ip_log_kwargs_return["result"]:
+                message = handle_api_error(
+                    __group_name__,
+                    "jobv3.get_job_instance_ip_log_kwargs",
+                    get_job_instance_ip_log_kwargs,
+                    get_job_instance_ip_log_kwargs_return,
+                )
+                service_logger.warning(message)
+                return {"result": False, "message": message}
+            log_list.append(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
+    log_text = "\n".join(log_list)
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 

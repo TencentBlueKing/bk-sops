@@ -166,12 +166,11 @@ def cc_get_name_id_from_combine_value(combine_value):
     :return name -> str, id -> int
         错误返回 None, None
     """
-    name_id_combine = str(combine_value).split("_")
-    if len(name_id_combine) != 2:
-        return None, None
     try:
-        return name_id_combine[0], int(name_id_combine[1])
-    except KeyError:
+        value_name, _, value_id = str(combine_value).rpartition("_")
+        return value_name, int(value_id)
+    except Exception as e:
+        logger.error("cc_get_name_id_from_combine_value error: {}".format(e))
         return None, None
 
 

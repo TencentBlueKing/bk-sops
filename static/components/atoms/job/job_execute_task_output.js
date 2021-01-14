@@ -31,6 +31,7 @@
             tag_code: "job_task_ip_exit_codes",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("IP 执行状态"),
                 editable: false,
                 columns: [

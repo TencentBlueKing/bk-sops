@@ -33,7 +33,7 @@ class FastCreateTaskInterceptor(ViewInterceptor):
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION)
         resources = res_factory.resources_for_project_obj(project)
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
 
         params = request.params_json
         has_common_subprocess = params.get("has_common_subprocess", False)

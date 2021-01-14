@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import traceback
+from copy import deepcopy
 
 from pipeline.core.data.hydration import hydrate_data
 from pipeline.core.flow.gateway import ExclusiveGateway
@@ -34,9 +35,10 @@ class ExclusiveGatewayHandler(FlowElementHandler):
     def handle(self, process, element, status):
         if status.loop > 1:
             process.top_pipeline.context.recover_variable()
-
         try:
-            hydrate_context = hydrate_data(process.top_pipeline.context.variables)
+            # use temp variables instead of real variables to prevent output pre extract error
+            temp_variables = deepcopy(process.top_pipeline.context.variables)
+            hydrate_context = hydrate_data(temp_variables)
             next_node = element.next(hydrate_context)
         except PipelineException as e:
             logger.error(traceback.format_exc())

@@ -78,26 +78,26 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
         auth_allowed = self.iam.is_basic_auth_allowed(self.system, auth)
 
         if not auth_allowed:
-            logger.info("resource request({}) auth failed with auth param: {}".format(request_id, auth))
+            logger.error("resource request({}) auth failed with auth param: {}".format(request_id, auth))
             return fail_response(401, "basic auth failed", request_id)
 
         # load json data
         try:
             data = json.loads(request.body)
         except Exception:
-            logger.info("resource request({}) failed with invalid body: {}".format(request_id, request.body))
+            logger.error("resource request({}) failed with invalid body: {}".format(request_id, request.body))
             return fail_response(400, "reqeust body is not a valid json", request_id)
 
         # check basic params
         method = data.get("method")
         resource_type = data.get("type")
         if not (method and resource_type):
-            logger.info("resource request({}) failed with invalid data: {}".format(request_id, data))
+            logger.error("resource request({}) failed with invalid data: {}".format(request_id, data))
             return fail_response(400, "method and type is required field", request_id)
 
         # check resource type
         if resource_type not in self._provider:
-            logger.info(
+            logger.error(
                 "resource request({}) failed with unsupport resource type: {}".format(request_id, resource_type)
             )
             return fail_response(404, "unsupport resource type: {}".format(resource_type), request_id)
@@ -105,7 +105,7 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
         # check method and process
         processor = getattr(self, "_dispatch_{}".format(method), None)
         if not processor:
-            logger.info("resource request({}) failed with unsupport method: {}".format(request_id, method))
+            logger.error("resource request({}) failed with unsupport method: {}".format(request_id, method))
             return fail_response(404, "unsupport method: {}".format(method), request_id)
 
         logger.info(

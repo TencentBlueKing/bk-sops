@@ -64,6 +64,7 @@ class GetPluginListAPITest(APITest):
                         "name": comp.name,
                         "group_name": comp.group_name,
                         "version": comp.version,
+                        "form": comp.form,
                     }
                 ]
 

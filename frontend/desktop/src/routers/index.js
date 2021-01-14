@@ -140,11 +140,7 @@ const routers = new VueRouter({
                     pathToRegexpOptions: { strict: true },
                     component: TemplateList,
                     props: (route) => ({
-                        project_id: route.params.project_id,
-                        common: route.query.common,
-                        common_template: route.query.common_template,
-                        page: route.query.page,
-                        limit: route.query.limit
+                        project_id: route.params.project_id
                     }),
                     meta: { project: true }
                 },
@@ -181,10 +177,7 @@ const routers = new VueRouter({
                             name: 'taskList',
                             pathToRegexpOptions: { strict: true },
                             props: (route) => ({
-                                project_id: route.params.project_id,
-                                template_source: route.query.template_source,
-                                create_method: route.query.create_method,
-                                create_info: route.query.create_info
+                                project_id: route.params.project_id
                             }),
                             meta: { project: true }
                         },

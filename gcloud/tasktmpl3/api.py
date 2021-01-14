@@ -20,9 +20,9 @@ import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 
+from gcloud.tasktmpl3.utils import get_constant_values
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
-
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
@@ -115,8 +115,8 @@ def import_templates(request, project_id):
 
     try:
         result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
-    except Exception as e:
-        logger.error(traceback.format_exc(e))
+    except Exception:
+        logger.error(traceback.format_exc())
         return JsonResponse(
             {
                 "result": False,
@@ -218,3 +218,14 @@ def get_templates_with_expired_subprocess(request, project_id):
             "message": "",
         }
     )
+
+
+@require_POST
+def get_constant_preview_result(request):
+    params = json.loads(request.body)
+    constants = params.get("constants", {})
+    extra_data = params.get("extra_data", {})
+
+    preview_results = get_constant_values(constants, extra_data)
+
+    return JsonResponse({"result": True, "data": preview_results, "code": err_code.SUCCESS.code, "message": ""})

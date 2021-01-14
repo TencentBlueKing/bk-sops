@@ -14,7 +14,6 @@ import store from './store'
 import Exception from './components/exception'
 import VeeValidate, { Validator } from 'vee-validate'
 import { bus } from './common/bus'
-import { getMobileUrlSetting } from './api/urls.js'
 import {
     NavBar,
     Button,
@@ -38,14 +37,18 @@ import {
     Checkbox,
     CheckboxGroup,
     Radio,
-    RadioGroup
+    RadioGroup,
+    Loading
 } from 'vant'
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
 import 'amfe-flexible'
+// import Vconsole from 'vconsole'
 
 import '../static/style/app.scss'
 
+// const vconsole = new Vconsole()
+// console.log(vconsole)
 Vue.use(NavBar)
     .use(Search)
     .use(Button)
@@ -68,6 +71,7 @@ Vue.use(NavBar)
     .use(CheckboxGroup)
     .use(Radio)
     .use(RadioGroup)
+    .use(Loading)
 
 Vue.use(VeeValidate)
 Vue.component('app-exception', Exception)
@@ -76,10 +80,6 @@ Vue.config.devtools = true
 global.$ = $
 global.$.atoms = {}
 global.bus = bus
-global.getMobileUrlPrefix = (bizId) => {
-    const ajaxUrlPrefix = `${global.SITE_URL || '/'}`
-    return getMobileUrlSetting(ajaxUrlPrefix, bizId)
-}
 
 global.mainComponent = new Vue({
     el: '#app',

@@ -10,8 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
+from cachetools import TTLCache, cached
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
@@ -19,6 +18,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.utils import api_hash_key
 from gcloud.core.models import ProjectBasedComponent
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -34,10 +34,11 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
+@cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_plugin_list(request, project_id):
     project_id = request.project.id
 
-    exclude_component_codes = ProjectBasedComponent.objects.get_components_with_project(project_id)
+    exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
     components = ComponentModel.objects.filter(status=True).exclude(code__in=exclude_component_codes)
 
     data = []
@@ -52,6 +53,7 @@ def get_plugin_list(request, project_id):
                 "name": comp.name,
                 "group_name": comp.group_name,
                 "version": comp.version,
+                "form": comp.form,
             }
         )
 

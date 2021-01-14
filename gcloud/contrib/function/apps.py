@@ -21,7 +21,6 @@ class FunctionConfig(AppConfig):
     def ready(self):
         from gcloud.contrib.function.handlers import (  # noqa
             function_task_create_handler,
-            function_task_post_save_handler,
             function_task_started_handler,
             function_task_finished_handler,
         )

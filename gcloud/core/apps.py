@@ -18,6 +18,8 @@ import traceback
 from django.apps import AppConfig
 from django.conf import settings
 
+import env
+
 logger = logging.getLogger("root")
 
 
@@ -46,11 +48,11 @@ class CoreConfig(AppConfig):
                 # first migrate, database may not have been migrated, so try get BKAPP_REDIS from env
                 if "BKAPP_REDIS_HOST" in os.environ:
                     settings.REDIS = {
-                        "host": os.getenv("BKAPP_REDIS_HOST"),
-                        "port": os.getenv("BKAPP_REDIS_PORT"),
-                        "password": os.getenv("BKAPP_REDIS_PASSWORD"),
-                        "service_name": os.getenv("BKAPP_REDIS_SERVICE_NAME"),
-                        "mode": os.getenv("BKAPP_REDIS_MODE"),
-                        "db": os.getenv("BKAPP_REDIS_DB"),
-                        "sentinel_password": os.getenv("BKAPP_REDIS_SENTINEL_PASSWORD"),
+                        "host": env.BKAPP_REDIS_HOST,
+                        "port": env.BKAPP_REDIS_PORT,
+                        "password": env.BKAPP_REDIS_PASSWORD,
+                        "service_name": env.BKAPP_REDIS_SERVICE_NAME,
+                        "mode": env.BKAPP_REDIS_MODE,
+                        "db": env.BKAPP_REDIS_DB,
+                        "sentinel_password": env.BKAPP_REDIS_SENTINEL_PASSWORD,
                     }

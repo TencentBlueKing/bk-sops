@@ -109,28 +109,49 @@
             /**
              * 勾选表单
              *
-             * 判断全局变量中是否有相同 key，有则显示复用弹窗，没有直接创建新变量
-             *
-             * 新建全局变量时，勾选表单项已有的表单值需要同步到全局变量中，注意带上后来版本加上的 version、fromScheme 字段
+             * 判断全局变量中是否有相同的 tag_code，有则显示复用弹窗，没有则判断是否有相同 key 的变量，有则提示手动创建，没有则自动创建
              */
             hookForm (form) {
                 const reuseList = []
-                const variableKey = this.isSubflow ? form : `\${${form}}`
+                let variableKey, formCode
+
+                if (this.isSubflow) {
+                    const variable = this.subflowForms[form]
+                    variableKey = form
+                    formCode = variable.source_tag.split('.')[1]
+                } else {
+                    variableKey = `\${${form}}`
+                    formCode = form
+                }
+
+                let isKeyInVariables = false
                 this.hookingVarForm = form
                 this.hooked[form] = true
 
                 Object.keys(this.constants).forEach(keyItem => {
                     const constant = this.constants[keyItem]
+                    const sourceTag = constant.source_tag
+                    if (sourceTag) { // 判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
+                        const tagCode = sourceTag.split('.')[1]
+                        if (tagCode === formCode) {
+                            reuseList.push({
+                                name: `${constant.name}(${constant.key})`,
+                                id: constant.key
+                            })
+                        }
+                    }
+
                     if (keyItem === variableKey) {
-                        reuseList.push({
-                            name: `${constant.name}(${constant.key})`,
-                            id: constant.key
-                        })
+                        isKeyInVariables = true
                     }
                 })
 
                 if (reuseList.length > 0) { // 复用变量
                     this.reuseableVarList = reuseList
+                    this.isKeyExist = false
+                    this.isReuseDialogShow = true
+                } else if (isKeyInVariables) { // 已存在相同 key，手动创建新变量
+                    this.isKeyExist = true
                     this.isReuseDialogShow = true
                 } else { // 自动创建新变量
                     const formConfig = this.scheme.find(item => item.tag_code === form)
