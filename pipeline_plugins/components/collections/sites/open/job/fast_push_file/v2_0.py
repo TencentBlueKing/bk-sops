@@ -25,6 +25,7 @@ from pipeline_plugins.components.utils import (
     get_node_callback_url,
     loose_strip,
     chunk_table_data,
+    batch_execute_func,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
@@ -216,10 +217,75 @@ class JobFastPushFileService(JobService):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
+        params_list = [
+            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_instance_id}
+            for job_instance_id in data.outputs.job_inst_id
+        ]
+
+        client = get_client_by_user(parent_data.inputs.executor)
+
+        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
+        batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
+
+        # 重置查询 job_id
+        data.outputs.job_inst_id = []
+
+        # 解析查询结果
+        running_task_list = []
+
+        for job_result in batch_result_list:
+            result = job_result["result"]
+            job_id_str = job_result["params"]["job_instance_id"]
+            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
+            job_detail_url = job_urls[0] if job_urls else ""
+            if result["result"]:
+                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
+                job_status = result["data"][0]["status"]
+                # 成功状态
+                if job_status == 3:
+                    data.outputs.success_count += 1
+                # 失败状态
+                elif job_status > 3:
+                    data.outputs.ex_data += (
+                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                        "\n错误信息:{}\n".format(job_detail_url, log_content)
+                    )
+                else:
+                    running_task_list.append(job_id_str)
+            else:
+                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                    job_detail_url
+                )
+
+        # 需要继续轮询的任务
+        data.outputs.job_inst_id = running_task_list
+        # 结束调度
+        if not data.outputs.job_id_of_batch_execute:
+            self.finish_schedule()
+
+            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
 
     def outputs_format(self):
-        return super(JobFastPushFileService, self).outputs_format()
+        return [
+            self.OutputItem(
+                name=_("总任务数"), key="task_count", type="string", schema=StringItemSchema(description=_("总任务数"))
+            ),
+            self.OutputItem(
+                name=_("分发请求成功数"),
+                key="request_success_count",
+                type="string",
+                schema=StringItemSchema(description=_("分发请求成功数")),
+            ),
+            self.OutputItem(
+                name=_("分发成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
+            ),
+            self.OutputItem(
+                name=_("任务id"), key="job_inst_id", type="string", schema=StringItemSchema(description=_("任务id")),
+            ),
+            self.OutputItem(
+                name=_("任务url"), key="job_inst_url", type="string", schema=StringItemSchema(description=_("任务url"))
+            ),
+        ]
 
 
 class JobFastPushFileComponent(Component):
