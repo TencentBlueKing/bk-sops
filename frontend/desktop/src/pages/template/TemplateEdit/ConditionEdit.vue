@@ -25,6 +25,7 @@
                         <span class="required">*</span>
                     </label>
                     <bk-input
+                        :readonly="isReadonly"
                         v-model.trim="conditionName"
                         v-validate="conditionRule"
                         name="conditionName">
@@ -50,7 +51,7 @@
                             v-validate="expressionRule"
                             name="expression"
                             :value="expression"
-                            :options="{ language: 'python' }"
+                            :options="{ language: 'python', readOnly: isReadonly }"
                             @input="onDataChange">
                         </code-editor>
                     </div>
@@ -58,8 +59,8 @@
                 </div>
             </div>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="close">{{ $t('取消') }}</bk-button>
+                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="close">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-sideslider>
@@ -77,7 +78,11 @@
         },
         props: {
             isShow: Boolean,
-            conditionData: Object
+            conditionData: Object,
+            isReadonly: {
+                type: Boolean,
+                default: false
+            }
         },
         data () {
             const { name, value } = this.conditionData
