@@ -11,12 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import itertools
-import ujson as json
 
 from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.component_framework.component import Component
 from pipeline.utils.crypt import rsa_decrypt_password
 
@@ -29,7 +27,10 @@ from pipeline.core.flow.io import (
 
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
-from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.nodeman.base import (
+    NodeManBaseService,
+    get_host_id_by_inner_ip,
+)
 
 __group_name__ = _("节点管理(Nodeman)")
 VERSION = "v2.0"
@@ -47,29 +48,7 @@ REMOVE_JOB = ["REMOVE_AGENT", "REMOVE_PROXY"]
 HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip"]
 
 
-def get_host_id_by_inner_ip(client, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
-    """
-    根据inner_ip获取bk_host_id 对应关系dict
-    """
-    kwargs = {
-        "bk_biz_id": [bk_biz_id],
-        "pagesize": -1,
-        "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
-    }
-    result = client.search_host_plugin(**kwargs)
-
-    if not result["result"]:
-        error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
-        logger.error(error)
-        return {}
-
-    return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
-
-
-class NodemanCreateTaskService(Service):
-    __need_schedule__ = True
-    interval = StaticIntervalGenerator(5)
-
+class NodemanCreateTaskService(NodeManBaseService):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
@@ -94,7 +73,7 @@ class NodemanCreateTaskService(Service):
 
             # 获取bk_host_id
             ip_list = get_ip_by_regex(ip_str)
-            bk_host_id_dict = get_host_id_by_inner_ip(client, self.logger, bk_cloud_id, bk_biz_id, ip_list)
+            bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
             bk_host_ids = [bk_host_id for bk_host_id in bk_host_id_dict.values()]
             # 操作类任务（升级、卸载等）
             if job_name in OPERATE_JOB:
@@ -160,7 +139,7 @@ class NodemanCreateTaskService(Service):
                     # 重装必须要bk_host_id
                     if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
                         bk_host_id_dict = get_host_id_by_inner_ip(
-                            client, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                            executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
                         )
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
@@ -194,117 +173,16 @@ class NodemanCreateTaskService(Service):
 
         action = kwargs.pop("action")
         result = getattr(client, action)(**kwargs)
-        if not result["result"]:
-            # 接口失败详细日志都存在 data 中，需要打印出来
-            try:
-                message = json.dumps(result.get("data", ""), ensure_ascii=False)
-            except TypeError:
-                message = ""
-            result["message"] += message
 
-            error = handle_api_error(
-                system=__group_name__, api_name="nodeman.%s" % action, params=kwargs, result=result
-            )
-            data.set_outputs("ex_data", error)
-            self.logger.error(error)
-            return False
-
-        job_id = result["data"].get("job_id", None)
-        data.set_outputs("job_id", job_id)
-        return True
-
-    def schedule(self, data, parent_data, callback_data=None):
-        executor = parent_data.inputs.executor
-        client = BKNodeManClient(username=executor)
-        job_id = data.get_one_of_outputs("job_id", "")
-        if not job_id:
-            self.finish_schedule()
-            return True
-
-        job_kwargs = {"job_id": job_id}
-        job_result = client.job_details(**job_kwargs)
-        if not job_result["result"]:
-            # 接口失败详细日志都存在 data 中，需要打印出来
-            try:
-                message = json.dumps(job_result.get("data", ""), ensure_ascii=False)
-            except TypeError:
-                message = ""
-            job_result["message"] += message
-
-            error = handle_api_error(__group_name__, "nodeman.job_details", job_kwargs, job_result)
-            data.set_outputs("ex_data", error)
-            self.finish_schedule()
-            return False
-
-        result_data = job_result["data"]
-        job_statistics = result_data["statistics"]
-        success_num = job_statistics["success_count"]
-        fail_num = job_statistics["failed_count"]
-        host_list = result_data["list"]
-
-        data.set_outputs("success_num", success_num)
-        data.set_outputs("fail_num", fail_num)
-
-        if result_data["status"] == "SUCCESS":
-            self.finish_schedule()
-            return True
-
-        # 失败任务信息
-        if result_data["status"] in ["FAILED", "PART_FAILED"]:
-            fail_infos = [
-                {"inner_ip": host["inner_ip"], "instance_id": host["instance_id"]}
-                for host in host_list
-                if host["status"] == "FAILED"
-            ]
-
-            # 查询失败任务日志
-            error_log = "<br>{mes}</br>".format(mes=_("日志信息为："))
-            for fail_info in fail_infos:
-                log_kwargs = {
-                    "job_id": job_id,
-                    "instance_id": fail_info["instance_id"],
-                }
-                result = client.get_job_log(**log_kwargs)
-
-                if not result["result"]:
-                    result["message"] += json.dumps(result["data"], ensure_ascii=False)
-                    error = handle_api_error(__group_name__, "nodeman.get_job_log", log_kwargs, result)
-                    data.set_outputs("ex_data", error)
-                    self.finish_schedule()
-                    return False
-
-                # 提取出错步骤日志
-                log_info = [_log for _log in result["data"] if _log["status"] == "FAILED"]
-
-                error_log = "{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}".format(
-                    error_log=error_log,
-                    host=_("主机："),
-                    fail_host=fail_info["inner_ip"],
-                    log=_("日志："),
-                    log_info=json.dumps(log_info[0], ensure_ascii=False),
-                )
-
-            data.set_outputs("ex_data", error_log)
-            self.finish_schedule()
-            return False
-
-    def outputs_format(self):
-        return [
-            self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
-            ),
-            self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
-            ),
-            self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
-            ),
-        ]
+        return self.get_job_result(result, data, action, kwargs)
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),
