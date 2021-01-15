@@ -58,6 +58,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.collection",
     "gcloud.apigw",
     "gcloud.commons.template",
+    "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
@@ -84,6 +85,7 @@ INSTALLED_APPS += (
     "files",
     "corsheaders",
     "rest_framework",
+    "django_filters",
     "iam",
     "iam.contrib.iam_migration",
 )

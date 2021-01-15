@@ -10,25 +10,20 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import status
-from rest_framework.exceptions import APIException
 
-from gcloud import err_code
+from django.contrib import admin
 
-
-class RestApiException(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = err_code.UNKNOWN_ERROR.description
-    default_code = err_code.UNKNOWN_ERROR.code
+from gcloud.label import models
 
 
-class ObjectDoesNotExistException(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = err_code.CONTENT_NOT_EXIST.description
-    default_code = err_code.CONTENT_NOT_EXIST.code
+@admin.register(models.Label)
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "project_id"]
+    list_filter = ["project_id", "is_default", "color", "creator"]
+    search_fields = ["name", "project_id", "creator"]
 
 
-class ValidationException(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = err_code.VALIDATION_ERROR.description
-    default_code = err_code.VALIDATION_ERROR.code
+@admin.register(models.TemplateLabelRelation)
+class TemplateLabelRelation(admin.ModelAdmin):
+    list_display = ["id", "label_id", "template_id"]
+    search_fields = ["label_id", "template_id"]

@@ -10,25 +10,18 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import status
-from rest_framework.exceptions import APIException
 
-from gcloud import err_code
+from rest_framework import serializers
 
-
-class RestApiException(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = err_code.UNKNOWN_ERROR.description
-    default_code = err_code.UNKNOWN_ERROR.code
+from gcloud.label.models import Label
 
 
-class ObjectDoesNotExistException(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = err_code.CONTENT_NOT_EXIST.description
-    default_code = err_code.CONTENT_NOT_EXIST.code
+class LabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Label
+        fields = "__all__"
 
-
-class ValidationException(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = err_code.VALIDATION_ERROR.description
-    default_code = err_code.VALIDATION_ERROR.code
+    def validate_is_default(self, value):
+        if value is True:
+            raise serializers.ValidationError("is_default should be False")
+        return value

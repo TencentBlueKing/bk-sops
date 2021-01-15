@@ -60,7 +60,8 @@
                     @onOpenFrameSelect="onOpenFrameSelect"
                     @onFormatPosition="onFormatPosition"
                     @onToggleAllNode="onToggleAllNode"
-                    @onToggleHotKeyInfo="onToggleHotKeyInfo">
+                    @onToggleHotKeyInfo="onToggleHotKeyInfo"
+                    @onDownloadCanvas="onDownloadCanvas">
                 </tool-panel>
             </template>
             <template v-slot:nodeTemplate="{ node }">
@@ -99,11 +100,6 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
-        <div class="picture-download-btn" @click="onDownloadCanvas">
-            <div class="btn-wrapper" v-bkloading="{ isLoading: canvasImgDownloading, size: 'mini', opacity: 1 }">
-                <i class="bk-icon icon-download"></i>
-            </div>
-        </div>
         <div class="small-map" ref="smallMap" v-if="showSmallMap">
             <img :src="smallMapImg" alt="">
             <div
@@ -468,9 +464,6 @@
             },
             // 分支条件点击回调
             branchConditionEditHandler (e, overlayId) {
-                if (!this.editable) {
-                    return false
-                }
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
@@ -485,7 +478,9 @@
                         overlayId
                     })
                 }
-                this.$emit('templateDataChanged')
+                if (this.editable) {
+                    this.$emit('templateDataChanged')
+                }
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
@@ -1453,21 +1448,6 @@
             border-top: 4px solid transparent;
             border-left: 8px solid #979ba5;
             border-bottom: 4px solid transparent;
-        }
-    }
-    .picture-download-btn {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        font-size: 16px;
-        background: #ffffff;
-        border-radius: 2px;
-        cursor: pointer;
-        .btn-wrapper {
-            padding: 8px 10px;
-        }
-        &:hover {
-            color: #3a84ff;
         }
     }
     .small-map {
