@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import time
+import gevent
 
 from mock import MagicMock, patch
 
@@ -18,7 +19,7 @@ from django.test import TestCase
 
 from gcloud.tests.mock import MockTaskOperationTimesConfig
 from gcloud.tests.mock_settings import TASK_OPERATION_TIMES_CONFIG_GET
-from gcloud.utils.thread import ThreadPool
+from api.utils.thread import ThreadPool
 from gcloud.utils.throttle import check_task_operation_throttle
 
 
@@ -57,4 +58,11 @@ class CheckTaskOperationThrottleTestCase(TestCase):
             pool.close()
             pool.join()
             success_num = len([result for result in result_list if result.get() is True])
+            self.assertEqual(success_num, self.times_config.times)
+
+    def test__task_operation_throttle_gevent(self):
+        with patch(TASK_OPERATION_TIMES_CONFIG_GET, MagicMock(return_value=self.times_config)):
+            jobs = [gevent.spawn(check_task_operation_throttle, 1, "test_gevent") for _ in range(20)]
+            gevent.joinall(jobs)
+            success_num = len([job.value for job in jobs if job.value is True])
             self.assertEqual(success_num, self.times_config.times)
