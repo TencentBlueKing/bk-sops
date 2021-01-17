@@ -248,10 +248,13 @@ class MockActionResult(object):
 
 
 class MockHandlerResult(object):
-    def __init__(self, should_return, should_sleep, next_node=None):
+    def __init__(self, should_return, should_sleep, next_node=None, after_sleep_call=None, args=[], kwargs={}):
         self.should_return = should_return
         self.should_sleep = should_sleep
         self.next_node = next_node or IdentifyObject()
+        self.after_sleep_call = after_sleep_call
+        self.args = args
+        self.kwargs = kwargs
 
 
 class MockScheduleService(object):

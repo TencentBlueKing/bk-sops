@@ -149,18 +149,30 @@ class TestPipelineInstance(TestCase):
         Status.objects.create(id=self.data["start_event"]["id"], state=states.FINISHED)
         NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data["end_event"]["id"])
         Status.objects.create(id=self.data["end_event"]["id"], state=states.FINISHED)
-        PipelineInstance.objects.set_finished(self.instance.instance_id)
+
+        post_pipeline_finish = MagicMock()
+        with patch(PIPELINE_MODELS_POST_PIPELINE_FINISH, post_pipeline_finish):
+            PipelineInstance.objects.set_finished(self.instance.instance_id)
 
         self.instance.refresh_from_db()
         self.assertTrue(self.instance.is_finished)
+        post_pipeline_finish.send.assert_called_once_with(
+            sender=PipelineInstance, instance_id=self.instance.instance_id
+        )
 
     def test_set_revoked(self):
         NodeRelationship.objects.build_relationship(self.instance.instance_id, self.instance.instance_id)
         Status.objects.create(id=self.instance.instance_id, state=states.REVOKED)
-        PipelineInstance.objects.set_revoked(self.instance.instance_id)
+
+        post_pipeline_revoke = MagicMock()
+        with patch(PIPELINE_MODELS_POST_PIPELINE_REVOKE, post_pipeline_revoke):
+            PipelineInstance.objects.set_revoked(self.instance.instance_id)
 
         self.instance.refresh_from_db()
         self.assertTrue(self.instance.is_revoked)
+        post_pipeline_revoke.send.assert_called_once_with(
+            sender=PipelineInstance, instance_id=self.instance.instance_id
+        )
 
     def test_delete_instance(self):
         PipelineInstance.objects.delete_model(self.instance.instance_id)
@@ -176,9 +188,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__success(self):
-        instance, no_use = PipelineInstance.objects.create_instance(self.template,
-                                                                    exec_data=self.data,
-                                                                    creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator
+        )
         executor = "token_1"
         instance.start(executor)
 
@@ -194,9 +206,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     def test_start__already_started(self):
-        instance, no_use = PipelineInstance.objects.create_instance(self.template,
-                                                                    exec_data=self.data,
-                                                                    creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator
+        )
         instance.is_started = True
         instance.save()
         executor = "token_1"
@@ -210,9 +222,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(side_effect=ImportError()))
     def test_start__parser_cls_error(self):
-        instance, no_use = PipelineInstance.objects.create_instance(self.template,
-                                                                    exec_data=self.data,
-                                                                    creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator
+        )
         executor = "token_1"
 
         instance.start(executor)
@@ -230,9 +242,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__task_service_call_fail(self):
-        instance, no_use = PipelineInstance.objects.create_instance(self.template,
-                                                                    exec_data=self.data,
-                                                                    creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator
+        )
         executor = "token_1"
         instance.start(executor)
 
@@ -248,9 +260,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock(side_effect=Exception()))
     def test_start__error_occurred_before_task_service_call(self):
-        instance, no_use = PipelineInstance.objects.create_instance(self.template,
-                                                                    exec_data=self.data,
-                                                                    creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator
+        )
         executor = "token_1"
 
         try:

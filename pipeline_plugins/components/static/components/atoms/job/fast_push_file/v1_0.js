@@ -64,6 +64,7 @@
             tag_code: "job_source_files",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("源文件"),
                 editable: true,
                 add_btn: true,
@@ -156,6 +157,32 @@
                 name: gettext("目标路径"),
                 placeholder: gettext("请输入绝对路径"),
                 hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "job_timeout",
+            type: "input",
+            attrs: {
+                name: gettext("超时时间"),
+                placeholder: gettext("单位为秒，为空时使用JOB默认值"),
+                hookable: true,
+            }
+        },
+        {
+            tag_code: "ip_is_exist",
+            type: "radio",
+            attrs: {
+                name: gettext("IP 存在性校验"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: true,
                 validation: [
                     {
                         type: "required"

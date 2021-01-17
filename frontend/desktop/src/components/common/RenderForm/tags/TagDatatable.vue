@@ -50,10 +50,11 @@
         <template v-if="Array.isArray(value) && !loading">
             <el-table
                 style="width: 100%; font-size: 12px"
+                border
                 :data="dataList"
                 :empty-text="empty_text"
                 :fit="true"
-                border>
+                @row-click="onRowClick">
                 <template v-for="(item, cIndex) in cellColumns">
                     <el-table-column
                         v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
@@ -66,7 +67,7 @@
                         <template slot-scope="scope">
                             <component
                                 :is="item.type === 'combine' ? 'form-group' : 'form-item'"
-                                :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
+                                :ref="`row_${(pagination ? (currentPage - 1) * page_size + scope.$index : scope.$index)}_${cIndex}_${item.tag_code}`"
                                 :scheme="item"
                                 :key="`${item.tag_code}_${cIndex}`"
                                 :option="getColumnOptions(scope.$index)"
@@ -85,7 +86,7 @@
                     width="100"
                     :label="i18n.operate_text">
                     <template slot-scope="scope">
-                        <div v-if="scope.$index === editRowNumber">
+                        <div v-if="(pagination ? (currentPage - 1) * page_size + scope.$index : scope.$index) === editRowNumber">
                             <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
                             <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
                         </div>
@@ -219,8 +220,14 @@
         page_size: {
             type: Number,
             required: false,
-            default: 10,
+            default: 3,
             desc: 'number of items displayed per page'
+        },
+        row_click_handler: {
+            type: Function,
+            require: false,
+            default: function () {},
+            desc: 'on table row click callback function'
         }
     }
     export default {
@@ -254,6 +261,9 @@
                     operate_text: gettext('操作'),
                     delete_text: gettext('删除'),
                     add_text: gettext('添加')
+                },
+                pagination: {
+                    current: 1
                 }
             }
         },
@@ -400,6 +410,7 @@
                 return isValid
             },
             getColumnOptions (index) {
+                index = this.pagination ? (this.currentPage - 1) * this.page_size + index : index
                 return {
                     showHook: false,
                     showGroup: false,
@@ -502,6 +513,7 @@
                 })
                 this.editRowNumber = this.tableValue.length
                 this.tableValue.push(originData)
+                this.currentPage = Math.ceil(this.tableValue.length / this.page_size)
             },
             remoteMethod () {
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
@@ -536,6 +548,9 @@
              */
             setOutputParams (val, oldVal) {
                 bus.$emit('jobExecuteTaskOutputs', { val, oldVal })
+            },
+            onRowClick (row, column, event) {
+                typeof this.row_click_handler && this.row_click_handler(row, column, event)
             }
         }
     }

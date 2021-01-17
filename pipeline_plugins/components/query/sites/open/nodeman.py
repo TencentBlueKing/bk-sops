@@ -16,16 +16,15 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
-from gcloud.conf import settings
+from api.collections.nodeman import BKNodeManClient
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def nodeman_get_cloud_area(request):
-    client = get_client_by_user(request.user.username)
-    cloud_area_result = client.nodeman.cloud_list()
+    client = BKNodeManClient(username=request.user.username)
+    cloud_area_result = client.cloud_list()
     if not cloud_area_result["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
         logger.error(message)
@@ -42,8 +41,8 @@ def nodeman_get_cloud_area(request):
 
 
 def nodeman_get_ap_list(request):
-    client = get_client_by_user(request.user.username)
-    ap_list = client.nodeman.ap_list()
+    client = BKNodeManClient(username=request.user.username)
+    ap_list = client.ap_list()
     if not ap_list["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.ap_list", {}, ap_list)
         logger.error(message)
@@ -57,7 +56,50 @@ def nodeman_get_ap_list(request):
     return JsonResponse(ap_list)
 
 
+def nodeman_get_plugin_list(request, category):
+    """获取插件列表"""
+    client = BKNodeManClient(username=request.user.username)
+    plugin_list = client.plugin_process(category)
+
+    if not plugin_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_process", {}, plugin_list)
+        logger.error(message)
+        return JsonResponse(
+            {"result": plugin_list["result"], "code": plugin_list.get("code", "-1"), "message": message}
+        )
+
+    data = plugin_list["data"]
+
+    result = [{"text": ap["name"], "value": ap["id"]} for ap in data]
+
+    plugin_list["data"] = result
+    return JsonResponse(plugin_list)
+
+
+def nodeman_get_plugin_version(request, plugin, os_type):
+    """根据系统获取插件版本"""
+    client = BKNodeManClient(username=request.user.username)
+    kwargs = {"name": plugin, "os": os_type.upper()}
+    plugin_version_list = client.plugin_package(**kwargs)
+
+    if not plugin_version_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_package", {}, plugin_version_list)
+        logger.error(message)
+        return JsonResponse(
+            {"result": plugin_version_list["result"], "code": plugin_version_list.get("code", "-1"), "message": message}
+        )
+
+    data = plugin_version_list["data"]
+
+    result = [{"text": version["version"], "value": version["version"]} for version in data]
+
+    plugin_version_list["data"] = result
+    return JsonResponse(plugin_version_list)
+
+
 nodeman_urlpatterns = [
     url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
     url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
+    url(r"^nodeman_get_plugin_list/(?P<category>\w+)/$", nodeman_get_plugin_list),
+    url(r"^nodeman_get_plugin_version/(?P<plugin>\w+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
 ]

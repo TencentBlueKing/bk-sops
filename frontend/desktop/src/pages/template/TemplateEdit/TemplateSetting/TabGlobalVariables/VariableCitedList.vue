@@ -71,7 +71,7 @@
         content: '';
         position: absolute;
         top: -5px;
-        right: 100px;
+        right: 93px;
         width: 8px;
         height: 8px;
         background: #f0f1f5;

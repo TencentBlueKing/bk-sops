@@ -17,6 +17,7 @@
 |-----------------|-------------|---------|------------------|
 |   template_data    |   string     |   是   |  项目流程数据，即从标准运维 - 项目流程 - 导出功能下载的文件的内容 |
 |   project_id    |   string     |   是   |  项目 ID |
+|   scope       |   string     |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
 
 ### 请求参数示例
 

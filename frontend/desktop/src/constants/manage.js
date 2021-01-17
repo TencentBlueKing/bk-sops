@@ -42,6 +42,10 @@ const SOURCE_TYPE = [
                 name: i18n.t('Bucket'),
                 placeholder: i18n.t('请输入')
             },
+            source_dir: {
+                name: i18n.t('子目录'),
+                placeholder: i18n.t('请输入')
+            },
             access_key: {
                 name: i18n.t('Access Key'),
                 placeholder: i18n.t('请输入')

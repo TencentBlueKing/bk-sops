@@ -46,6 +46,7 @@
             tag_code: "job_source_files",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("源文件"),
                 editable: true,
                 add_btn: true,
@@ -142,6 +143,15 @@
                         type: "required"
                     }
                 ]
+            }
+        },
+        {
+            tag_code: "job_timeout",
+            type: "input",
+            attrs: {
+                name: gettext("超时时间"),
+                placeholder: gettext("单位为秒，为空时使用JOB默认值"),
+                hookable: true,
             }
         }
     ]

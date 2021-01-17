@@ -59,6 +59,16 @@
                     }
                     return resp.data;
                 },
+                showRightBtn: true,
+                rightBtnCb: function () {
+                    if (!this.value) {
+                        return;
+                    }
+                    let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                    let bk_job_host = window.BK_JOB_HOST;
+                    let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" + this.value;
+                    window.open(url, '_blank')
+                },
                 validation: [
                     {
                         type: "required"
@@ -71,6 +81,17 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "button_refresh",
+                    type: "click",
+                    action: function (value) {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
@@ -110,6 +131,7 @@
             tag_code: "job_global_var",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("全局变量"),
                 hookable: true,
                 deleteable: false,
@@ -145,9 +167,58 @@
                             name: gettext("描述")
                         }
                     }
-                ]
+                ],
             },
             events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        this.table_buttons = [{
+                            text: gettext("刷新全局变量"),
+                            callback: function () {
+                                const job_id = this.get_parent().get_child("job_task_id").value;
+                                var $this = this;
+                                this.changeHook(false);
+                                if (job_id === '') {
+                                    this._set_value([]);
+                                    return;
+                                }
+                                this.set_loading(true);
+                                const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                                $.ajax({
+                                    url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + job_id + '/',
+                                    type: 'GET',
+                                    dataType: 'json',
+                                    success: function (resp) {
+                                        var global_var = $this._get_value()
+                                        if (global_var) {
+                                            var new_global_var = resp.data.global_var.map(function (item) {
+                                                var target = global_var.find(function (old_item) {
+                                                    return old_item.name === item.name;
+                                                });
+                                                if (target) {
+                                                    item.value = target.value;
+                                                }
+                                                return item;
+                                            })
+                                            $this._set_value(new_global_var);
+                                        }
+                                        $this.set_loading(false);
+                                        if (resp.result === false) {
+                                            show_msg(resp.message, 'error');
+                                        }
+                                    },
+                                    error: function () {
+                                        $this._set_value([]);
+                                        $this.set_loading(false);
+                                        show_msg('request job detail error', 'error');
+                                    }
+                                });
+                            }
+                        }]
+                    }
+                },
                 {
                     source: "job_task_id",
                     type: "change",
@@ -180,50 +251,6 @@
                             }
                         });
                     }
-                },
-                {
-                    source: "button_refresh",
-                    type: "click",
-                    action: function (value) {
-                        const job_id = this.get_parent().get_child("job_task_id").value;
-                        var $this = this;
-                        this.changeHook(false);
-                        if (job_id === '') {
-                            this._set_value([]);
-                            return;
-                        }
-                        this.set_loading(true);
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + job_id + '/',
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function (resp) {
-                                var global_var = $this._get_value()
-                                if (global_var) {
-                                    var new_global_var = resp.data.global_var.map(function (item) {
-                                        var target = global_var.find(function (old_item) {
-                                            return old_item.name === item.name;
-                                        });
-                                        if (target) {
-                                            item.value = target.value;
-                                        }
-                                        return item;
-                                    })
-                                    $this._set_value(new_global_var);
-                                }
-                                $this.set_loading(false);
-                                if (resp.result === false) {
-                                    show_msg(resp.message, 'error');
-                                }
-                            },
-                            error: function () {
-                                $this._set_value([]);
-                                $this.set_loading(false);
-                                show_msg('request job detail error', 'error');
-                            }
-                        });
-                    }
                 }
             ]
         },
@@ -236,7 +263,7 @@
                     {value: true, name: gettext("是")},
                     {value: false, name: gettext("否")},
                 ],
-                default: false,
+                default: true,
                 validation: [
                     {
                         type: "required"

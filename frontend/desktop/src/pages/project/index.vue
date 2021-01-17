@@ -11,7 +11,7 @@
 */
 <template>
     <div class="project-container">
-        <div class="list-wrapper" v-if="!isMandateView">
+        <div class="list-wrapper">
             <base-title :title="$t('项目管理')"></base-title>
             <div class="list-header">
                 <!-- <bk-button
@@ -80,7 +80,6 @@
                 </bk-table>
             </div>
         </div>
-        <Mandate v-else :id="mandateId" @go-back="isMandateView = false"></Mandate>
         <CopyrightFooter></CopyrightFooter>
         <bk-dialog
             width="600"
@@ -165,7 +164,6 @@
     import NoData from '@/components/common/base/NoData.vue'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import Mandate from './mandate.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
@@ -202,8 +200,7 @@
         components: {
             NoData,
             BaseTitle,
-            CopyrightFooter,
-            Mandate
+            CopyrightFooter
         },
         mixins: [permission],
         data () {
@@ -221,7 +218,6 @@
                 projectDetailLoading: false,
                 addPengding: false,
                 updatePending: false,
-                mandateId: '',
                 isMandateView: false,
                 projectDetail: {
                     name: '',
@@ -265,6 +261,9 @@
         methods: {
             ...mapMutations('project', [
                 'setTimeZone'
+            ]),
+            ...mapMutations('atomForm', [
+                'clearAtomForm'
             ]),
             ...mapActions([
                 'queryUserPermission'
@@ -425,7 +424,7 @@
                 await this.changeDefaultProject(id)
                 const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                 this.setTimeZone(timeZone)
-                $.atoms = {}
+                this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
 
                 this.$router.push({
                     name: 'process',
@@ -505,7 +504,7 @@
                 if (isDisable) {
                     return name === 'start'
                 } else {
-                    return ['view', 'edit', 'stop', 'mandate'].includes(name)
+                    return ['view', 'stop', 'mandate'].includes(name)
                 }
             },
             /**
@@ -518,12 +517,11 @@
                     case 'view':
                         this.onViewProject(item)
                         break
-                    case 'edit':
-                        this.onEditProject(item)
-                        break
+                    // case 'edit':
+                    //     this.onEditProject(item)
+                    //     break
                     case 'mandate':
-                        this.mandateId = item.id
-                        this.isMandateView = true
+                        this.$router.push({ name: 'projectConfig', params: { id: item.id } })
                         break
                     default:
                         this.onChangeProjectStatus(item, name)

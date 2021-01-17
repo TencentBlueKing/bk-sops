@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
 from pipeline.celery.queues import ScalableQueues
+import env
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -35,12 +36,11 @@ from pipeline.celery.queues import ScalableQueues
 # )
 
 APP_NAME = _("标准运维")
-DEFAULT_OPEN_VER = "community"
-OPEN_VER = os.environ.get("RUN_VER", "open")
+OPEN_VER = env.RUN_VER
 
-# 区分社区版和企业版
+# 区分社区版和其他open版本
 if OPEN_VER == "open":
-    OPEN_VER = os.environ.get("OPEN_VER", DEFAULT_OPEN_VER)
+    OPEN_VER = env.OPEN_VER
     if not OPEN_VER:
         raise Exception("OPEN_VER is not set when RUN_VER is open")
 
@@ -58,6 +58,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.collection",
     "gcloud.apigw",
     "gcloud.commons.template",
+    "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
@@ -84,6 +85,7 @@ INSTALLED_APPS += (
     "files",
     "corsheaders",
     "rest_framework",
+    "django_filters",
     "iam",
     "iam.contrib.iam_migration",
 )
@@ -124,14 +126,14 @@ MIDDLEWARE += (
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
-if os.getenv("BKAPP_CORS_ALLOW", None):
+if env.BKAPP_CORS_ALLOW:
     MIDDLEWARE = ("corsheaders.middleware.CorsMiddleware",) + MIDDLEWARE
     CORS_ALLOW_CREDENTIALS = True
-    CORS_ORIGIN_WHITELIST = os.getenv("BKAPP_CORS_WHITELIST", "").split(",")
+    CORS_ORIGIN_WHITELIST = env.BKAPP_CORS_WHITELIST.split(",")
 else:
     CORS_ALLOW_CREDENTIALS = False
 
-if os.getenv("BKAPP_PYINSTRUMENT_ENABLE", None):
+if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = ("weixin.core.middlewares.WeixinProxyPatchMiddleware",) + MIDDLEWARE
@@ -147,7 +149,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.18"
+STATIC_VERSION = "3.6.27"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -158,7 +160,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 IS_USE_CELERY = True
 
 # CELERY 并发数，默认为 2，可以通过环境变量或者 Procfile 设置
-CELERYD_CONCURRENCY = os.getenv("BK_CELERYD_CONCURRENCY", 2)
+CELERYD_CONCURRENCY = env.BK_CELERYD_CONCURRENCY
 
 # CELERY 配置，申明任务的文件路径，即包含有 @task 装饰器的函数文件
 CELERY_IMPORTS = ()
@@ -172,6 +174,10 @@ if IS_USE_CELERY:
     djcelery.setup_loader()
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+
+TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
+OLD_COMMUNITY_TEMPLATE_DATA_SALT = "e5483c1ccde63392bd439775bba6a7ae"
+
 
 LOGGING["loggers"]["pipeline"] = {
     "handlers": ["root"],
@@ -215,7 +221,7 @@ HAYSTACK_CONNECTIONS = {
 }
 
 # 通知公告域名
-PUSH_URL = os.environ.get("BK_PUSH_URL", "")
+PUSH_URL = env.BK_PUSH_URL
 
 # remove disabled apps
 if locals().get("DISABLED_APPS"):
@@ -261,10 +267,10 @@ DEFAULT_CACHE_TIME_FOR_USER_UPDATE = 5
 DEFAULT_CACHE_TIME_FOR_AUTH = 5
 
 # 蓝鲸PASS平台URL
-BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
+BK_PAAS_HOST = env.BK_PAAS_HOST
 
 # 用于 用户认证、用户信息获取 的蓝鲸主机
-BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
+BK_PAAS_INNER_HOST = env.BK_PAAS_INNER_HOST
 
 # AJAX 请求弹窗续期登陆设置
 IS_AJAX_PLAIN_MODE = True
@@ -273,23 +279,25 @@ IS_AJAX_PLAIN_MODE = True
 INIT_SUPERUSER = ["admin"]
 
 # cc、job、iam域名
-BK_CC_HOST = os.environ.get("BK_CC_HOST")
-BK_JOB_HOST = os.environ.get("BK_JOB_HOST")
+BK_CC_HOST = env.BK_CC_HOST
+BK_JOB_HOST = env.BK_JOB_HOST
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"
 # ESB 域名配置
-BK_PAAS_ESB_HOST = os.getenv("BKAPP_SOPS_PAAS_ESB_HOST", BK_PAAS_INNER_HOST)
+BK_PAAS_ESB_HOST = env.BKAPP_SOPS_PAAS_ESB_HOST
 
 # IAM权限中心配置
-BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
-BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
-BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
-BK_IAM_SKIP = os.getenv("BK_IAM_SKIP")
+BK_IAM_SYSTEM_ID = env.BKAPP_BK_IAM_SYSTEM_ID
+BK_IAM_SYSTEM_NAME = env.BKAPP_BK_IAM_SYSTEM_NAME
+BK_IAM_APP_CODE = env.BK_IAM_V3_APP_CODE
+BK_IAM_SKIP = env.BK_IAM_SKIP
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
-BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
+BK_IAM_INNER_HOST = env.BK_IAM_INNER_HOST
 # 权限中心 SaaS host
-BK_IAM_SAAS_HOST = os.environ.get("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_APP_CODE))
+BK_IAM_SAAS_HOST = env.BK_IAM_SAAS_HOST
+# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
+BK_IAM_API_PREFIX = env.BK_IAM_API_PREFIX
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
@@ -297,7 +305,7 @@ AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic
 BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
 
 # 人员选择数据来源
-BK_MEMBER_SELECTOR_DATA_HOST = os.getenv("BKAPP_MEMBER_SELECTOR_DATA_HOST", BK_PAAS_HOST)
+BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ["json"]
@@ -317,27 +325,79 @@ PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
-PIPELINE_RERUN_MAX_TIMES = int(os.getenv("BKAPP_PIPELINE_RERUN_MAX_TIMES", 50))
+PIPELINE_RERUN_MAX_TIMES = int(env.BKAPP_PIPELINE_RERUN_MAX_TIMES)
 
 PIPELINE_RERUN_INDEX_OFFSET = 0
 
 # 是否只允许加载远程 https 仓库的插件
-EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = env.BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE == "0"
 
-PIPELINE_DATA_BACKEND = os.getenv(
-    "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
-)
-PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
-    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
-)
+PIPELINE_DATA_BACKEND = env.BKAPP_PIPELINE_DATA_BACKEND
+
+PIPELINE_DATA_CANDIDATE_BACKEND = env.BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 # pipeline mako render settings
-MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+MAKO_SANDBOX_SHIELD_WORDS = [
+    "ascii",
+    "bytearray",
+    "bytes",
+    "callable",
+    "chr",
+    "classmethod",
+    "compile",
+    "delattr",
+    "dir",
+    "divmod",
+    "exec",
+    "eval",
+    "filter",
+    "frozenset",
+    "getattr",
+    "globals",
+    "hasattr",
+    "hash",
+    "help",
+    "id",
+    "input",
+    "isinstance",
+    "issubclass",
+    "iter",
+    "locals",
+    "map",
+    "memoryview",
+    "next",
+    "object",
+    "open",
+    "print",
+    "property",
+    "repr",
+    "setattr",
+    "staticmethod",
+    "super",
+    "type",
+    "vars",
+    "__import__",
+]
 
-MAKO_SANDBOX_IMPORT_MODULES = {"datetime": "datetime", "re": "re", "hashlib": "hashlib", "random": "random"}
+MAKO_SANDBOX_IMPORT_MODULES = {
+    "datetime": "datetime",
+    "re": "re",
+    "hashlib": "hashlib",
+    "random": "random",
+    "time": "time",
+}
 
+if env.SOPS_MAKO_IMPORT_MODULES:
+    for module_name in env.SOPS_MAKO_IMPORT_MODULES.split(","):
+        try:
+            __import__(module_name)
+        except ImportError as e:
+            err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(module_name, e)
+            print(err)
+            raise ImportError(err)
+        MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
@@ -368,10 +428,11 @@ for _setting in dir(ver_settings):
 VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
 
 # migrate api token
-MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48001122")
+MIGRATE_TOKEN = env.MIGRATE_TOKEN
 
 # keywords to shield in node log
-LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + os.getenv("BKAPP_LOG_SHIELDING_KEYWORDS", "")
+LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + env.BKAPP_LOG_SHIELDING_KEYWORDS
 LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if LOG_SHIELDING_KEYWORDS else []
 
-TASK_OPERATION_THROTTLE = os.getenv("BKAPP_TASK_OPERATION_THROTTLE", True)
+AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
+AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"

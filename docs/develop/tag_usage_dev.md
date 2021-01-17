@@ -197,6 +197,10 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `empty_text`：无数据提示
   - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
+  - `row_click_handler`: 单行点击回调函数，回调参数如下：
+    + row, eg: { key1:'value1',key2:'value2' }
+    + column, eg: { label: 'name', property: 'key1' }
+    + event
   - `pagination`：表格数据分页展示，默认不展示（false）
   - `page_size`：表格分页展示时，每页显示的条数(Number)，默认 10 条每页
   - `value`：表格的值
@@ -331,6 +335,9 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `hasGroup`：选项是否分组
   - `clearable`：是否显示右侧清除表单值icon
   - `allowCreate`：是否支持输入框创建选项
+  - `showRightBtn`：是否显示选择框右侧按钮，默认 false
+  - `rightBtnIcon`：选择框右侧按钮icon，默认 'bk-icon icon-chain'
+  - `rightBtnCb`：选择框右侧按钮点击回调函数，默认为空
   - `disabled`：设置是否禁用组件
   - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 
@@ -447,6 +454,16 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
   - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
+
+**方法**
+
+### 17. TagLogDisplay
+
+日志展示
+
+**属性**
+
+  - `value`：日志内容， \n 表示换行
 
 **方法**
 

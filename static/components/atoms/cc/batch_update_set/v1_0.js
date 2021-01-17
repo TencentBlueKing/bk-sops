@@ -42,6 +42,7 @@
             tag_code: "cc_set_update_data",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("集群修改参数"),
                 table_buttons: [
                     {

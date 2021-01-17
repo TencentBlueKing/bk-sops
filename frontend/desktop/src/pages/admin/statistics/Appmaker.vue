@@ -82,14 +82,14 @@
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
-                                <a
+                                <router-link
                                     v-if="item.prop === 'templateName'"
                                     class="table-link"
                                     target="_blank"
                                     :title="props.row.templateName"
-                                    :href="`${site_url}appmaker/home/${props.row.projectId}/`">
+                                    :to="getExecuteHistoryUrl(props.row)">
                                     {{props.row.templateName}}
-                                </a>
+                                </router-link>
                                 <template v-else>
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
                                 </template>
@@ -326,6 +326,13 @@
                     this.appmakerSort = ''
                 }
                 this.getAppmakerData()
+            },
+            getExecuteHistoryUrl (val) {
+                return {
+                    name: 'taskList',
+                    params: { project_id: val.projectId },
+                    query: { template_id: val.templateId, create_method: 'app_maker', create_info: val.appmakerId, template_source: 'project' }
+                }
             },
             handlePageChange (val) {
                 this.pagination.current = val

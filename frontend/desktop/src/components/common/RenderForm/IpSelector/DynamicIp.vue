@@ -19,18 +19,18 @@
                     @search="onTopoSearch">
                 </ip-search-input>
                 <div class="tree-wrap">
-                    <el-tree
+                    <bk-big-tree
                         v-if="topoList.length"
                         ref="topoTree"
-                        default-expand-all
                         show-checkbox
-                        check-strictly
-                        node-key="uniqueId"
+                        :height="360"
+                        :check-strictly="false"
+                        :options="{ idKey: 'uniqueId', nameKey: 'label' }"
                         :data="topoList"
-                        :default-checked-keys="selectedIps"
-                        :filter-node-method="filterNode"
-                        @check="onNodeCheckClick">
-                    </el-tree>
+                        :default-checked-nodes="selectedIps"
+                        :filter-method="filterNode"
+                        @check-change="onNodeCheckClick">
+                    </bk-big-tree>
                     <div v-else class="dynamic-ip-empty">{{i18n.noData}}</div>
                 </div>
             </div>
@@ -43,6 +43,7 @@
                     <div
                         class="ip-item"
                         v-for="item in selectedIpsPath"
+                        v-bk-overflow-tips
                         :key="item.key">
                         {{ item.namePath }}
                         <i class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
@@ -84,14 +85,16 @@
             }
         },
         watch: {
-            dynamicIpList (val) {
+            dynamicIpList (val, old) {
                 this.topoList = this.transPrimaryToTree(val)
                 this.setSelectedIpsPath()
+                this.$nextTick(() => {
+                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
+                })
             },
             dynamicIps (val) {
                 this.selectedList = val.slice(0)
                 this.selectedIps = val.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`)
-                this.topoList = this.transPrimaryToTree(this.dynamicIpList)
                 this.setSelectedIpsPath()
                 if (val.length !== 0) {
                     this.dataError = false
@@ -99,42 +102,69 @@
             }
         },
         methods: {
-            transPrimaryToTree (data, isParentDisabled = false) {
+            /**
+             * 原始拓扑树结构转换为 tree 组件结构
+             */
+            transPrimaryToTree (data, isParentChecked = false) {
                 const list = []
                 data.map(d => {
-                    const disabled = !this.editable || isParentDisabled
-                    const checked = this.dynamicIps.findIndex(item => {
-                        return item.bk_inst_id === d.bk_inst_id && item.bk_obj_id === d.bk_obj_id
-                    }) > -1
-
+                    const checked = !!this.dynamicIps.find(item => item.bk_inst_id === d.bk_inst_id && item.bk_obj_id === d.bk_obj_id)
                     const item = {
                         label: d.bk_inst_name,
                         bk_inst_id: d.bk_inst_id,
                         uniqueId: `${d.bk_inst_id}_${d.bk_obj_id}`,
                         bk_obj_id: d.bk_obj_id,
-                        disabled
+                        disabled: isParentChecked // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                     }
                     if (Array.isArray(d.child)) {
-                        item.children = this.transPrimaryToTree(d.child, isParentDisabled || checked)
+                        item.children = this.transPrimaryToTree(d.child, checked)
                     }
                     list.push(item)
                 })
                 return list
             },
-            getNodeNamePath (node, name = '') {
-                const label = node.data.label
-                if (node.parent) {
-                    const nameStr = name ? `/${name}` : name
-                    return this.getNodeNamePath(node.parent, label) + nameStr
+            /**
+             * 设置默认被禁用的节点
+             */
+            setNodesDefaultDisabled () {
+                if (this.selectedIps && this.$refs.topoTree) {
+                    let defaultDisabledIds = []
+                    this.selectedIps.forEach(id => {
+                        const node = this.$refs.topoTree.getNodeById(id)
+                        if (node.children && node.children.length > 0) {
+                            defaultDisabledIds = defaultDisabledIds.concat(this.traverseNodesToList(node.children))
+                        }
+                    })
+                    this.$refs.topoTree.setDisabled(defaultDisabledIds, { disabled: true })
                 }
-                return name
+            },
+            /**
+             * 遍历获取子节点列表
+             */
+            traverseNodesToList (nodes) {
+                let list = []
+                nodes.forEach(item => {
+                    list.push(item.id)
+                    if (item.children && item.children.length > 0) {
+                        list = list.concat(this.traverseNodesToList(item.children))
+                    }
+                })
+                return list
+            },
+            getNodeNamePath (node) {
+                let namePath = node.data.label
+                if (node.parent) {
+                    const parentName = this.getNodeNamePath(node.parent)
+                    namePath = parentName + '/' + namePath
+                }
+                return namePath
             },
             setSelectedIpsPath () {
                 if (this.dynamicIpList.length > 0) {
                     this.$nextTick(() => {
                         const selectedIpsPath = []
                         this.selectedIps.forEach(key => {
-                            const selectedNode = this.$refs.topoTree.getNode(key)
+                            const selectedNode = this.$refs.topoTree.getNodeById(key)
                             const namePath = this.getNodeNamePath(selectedNode)
                             selectedIpsPath.push({ key, namePath })
                         })
@@ -143,38 +173,39 @@
                 }
             },
             onTopoSearch (keyword) {
-                this.$refs.topoTree.filter(keyword)
+                this.$refs.topoTree.filter(String(keyword).toLowerCase())
             },
-            filterNode (value, data) {
+            filterNode (value, node) {
                 if (!value) return true
-                return data.label.indexOf(value) > -1
+                return String(node.data.label).toLowerCase().indexOf(value) > -1
             },
-            onNodeCheckClick (node, checkData) {
-                const checkedNodes = checkData.checkedNodes.slice(0)
-                const nodeChecking = checkData.checkedKeys.indexOf(node.uniqueId) > -1
-                if (node.children && node.children.length && nodeChecking) {
-                    this.unCheckChildrenNode(node, checkedNodes)
+            onNodeCheckClick (selectedNodes, node) {
+                const checkedList = selectedNodes.slice(0)
+                const isChecked = selectedNodes.includes(node.id)
+                if (node.children && node.children.length) {
+                    this.changeChildrenNodeState(node, checkedList, isChecked)
                 }
 
-                const selectedList = checkedNodes.map(node => {
-                    return {
-                        bk_inst_id: node.bk_inst_id,
-                        bk_obj_id: node.bk_obj_id
-                    }
+                const selectedList = checkedList.map(uniqueId => {
+                    const [bk_inst_id, bk_obj_id] = uniqueId.split('_')
+                    return { bk_inst_id: Number(bk_inst_id), bk_obj_id }
                 })
-
+                this.$refs.topoTree.setChecked(checkedList, { checked: true })
                 this.$emit('change', selectedList)
                 this.validate()
             },
-            unCheckChildrenNode (node, checkedNodes) {
+            changeChildrenNodeState (node, checkedList, isChecked) {
                 node.children.forEach(item => {
-                    const index = this.selectedIps.indexOf(item.uniqueId)
-                    if (index > -1) {
-                        const checkedIndex = checkedNodes.findIndex(n => item.uniqueId === n.uniqueId)
-                        checkedNodes.splice(checkedIndex, 1)
+                    if (isChecked) {
+                        const index = checkedList.findIndex(id => id === item.id)
+                        if (index > -1) {
+                            checkedList.splice(index, 1)
+                            this.$refs.topoTree.setChecked(item.id, { checked: false })
+                        }
                     }
+                    this.$refs.topoTree.setDisabled(item.id, { disabled: isChecked })
                     if (item.children && item.children.length) {
-                        this.unCheckChildrenNode(item, checkedNodes)
+                        this.changeChildrenNodeState(item, checkedList, isChecked)
                     }
                 })
             },
@@ -225,6 +256,9 @@
         position: relative;
         padding: 0 28px 0 8px;
         line-height: 32px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
     .common-icon-dark-circle-close {
         position: absolute;
@@ -265,6 +299,9 @@
     /deep/ .el-tree-node__label {
         padding-left: 4px;
     }
+}
+/deep/ .bk-big-tree-node .node-content {
+    font-size: 12px;
 }
 .dynamic-ip-empty {
     height: 360px;

@@ -127,10 +127,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             constants = {}
         pipeline_tree = template.pipeline_tree
 
-        try:
-            TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
-        except Exception as e:
-            return False, e.message
+        TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
         # change constants
         for key, value in list(constants.items()):
@@ -140,7 +137,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         task_info["pipeline_tree"] = pipeline_tree
         pipeline_inst = TaskFlowInstanceManager.create_pipeline_instance(template, **task_info)
 
-        return True, pipeline_inst
+        return pipeline_inst
 
     @staticmethod
     def _replace_node_incoming(next_node, replaced_incoming, new_incoming):
@@ -217,6 +214,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         # get all referenced constants in flow
         constants = pipeline_tree[PE.constants]
+
         referenced_keys = []
         while True:
             last_count = len(referenced_keys)
@@ -827,7 +825,7 @@ class TaskFlowInstance(models.Model):
                 queue = self._get_task_celery_queue()
                 action_result = self.pipeline_instance.start(executor=username, queue=queue)
                 if action_result.result:
-                    taskflow_started.send(sender=self, username=username)
+                    taskflow_started.send(self, task_id=self.id)
                 return {
                     "result": action_result.result,
                     "message": action_result.message,

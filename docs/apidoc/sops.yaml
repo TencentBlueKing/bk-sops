@@ -210,6 +210,16 @@
   dest_path: /o/bk_sops/apigw/get_plugin_list/{bk_biz_id}/
   dest_http_method: GET
 
+- path: /v2/sops/get_plugin_detail/
+  name: get_plugin_detail
+  label: 根据插件code获取某个业务下对应插件信息
+  label_en: Get plugin info based on plugin code for a business
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_plugin_detail/{bk_biz_id}/
+  dest_http_method: GET
+
 - path: /v2/sops/get_task_node_data/
   name: get_task_node_data
   label: 获取节点执行数据
@@ -290,6 +300,16 @@
   dest_path: /o/bk_sops/apigw/preview_task_tree/{bk_biz_id}/{template_id}/
   dest_http_method: POST
 
+- path: /v2/sops/preview_common_task_tree/
+  name: preview_common_task_tree
+  label: 获取节点选择后新的任务树（针对公共流程）
+  label_en: Get task tree after node exclude (used for common template)
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/preview_common_task_tree/{bk_biz_id}/{template_id}/
+  dest_http_method: POST
+
 - path: /v2/sops/get_tasks_manual_intervention_state/
   name: get_tasks_manual_intervention_state
   label: 获取一批任务的是否需要人工干预的判断状态
@@ -328,4 +348,14 @@
   api_type: query
   comp_codename: generic.v2.sops.sops_component
   dest_path: /o/bk_sops/apigw/get_task_list/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_functionalization_task_list/
+  name: get_functionalization_task_list
+  label: 获取职能化任务列表
+  label_en: Get functionalization task list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_functionalization_task_list/
   dest_http_method: GET

@@ -109,6 +109,9 @@ class MockTaskFlowInstance(object):
         self.create_time = now()
         self.start_time = now()
         self.finish_time = now()
+        self.flow_type = kwargs.get("flow_type", "flow_type")
+        self.current_flow = kwargs.get("current_flow", "current_flow")
+        self.is_deleted = True
 
 
 class MockPeriodicTask(object):
@@ -174,14 +177,15 @@ class MockComponentModel(object):
 
 
 class MockComponent(object):
-    def __init__(self, inputs, outputs, desc, code, name, group_name):
+    def __init__(self, inputs, outputs, desc, code, name, group_name, version="version", form="form"):
         self.inputs = inputs
         self.outputs = outputs
         self.desc = desc
         self.code = code
         self.name = name
         self.group_name = group_name
-        self.version = "version"
+        self.version = version
+        self.form = form
 
     def inputs_format(self):
         return self.inputs

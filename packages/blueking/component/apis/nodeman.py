@@ -81,3 +81,21 @@ class CollectionsNodeMan(object):
         self.cloud_list = ComponentAPI(
             client=self.client, method="GET", path="/api/c/compapi{bk_api_ver}/nodeman/api/cloud/", description="查询云区域"
         )
+        self.plugin_operate = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/nodeman/api/plugin/operate/",
+            description="插件操作类任务",
+        )
+        self.plugin_process = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/nodeman/api/plugin/process/",
+            description="查询插件列表",
+        )
+        self.plugin_package = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/nodeman/api/plugin/package/",
+            description="查询进程包列表(插件版本)",
+        )

@@ -66,18 +66,17 @@
                                 :name="item.label">
                             </bk-option>
                         </template>
-                        <el-tree
+                        <bk-big-tree
                             ref="setTree"
-                            node-key="id"
                             default-expand-all
                             show-checkbox
-                            check-strictly
+                            :height="216"
+                            :check-strictly="false"
+                            :disable-strictly="false"
                             :data="setList"
-                            :props="{
-                                disabled: setLeafDisabled
-                            }"
-                            @check="onSetSelect">
-                        </el-tree>
+                            :options="{ nameKey: 'label' }"
+                            @check-change="onSetSelect">
+                        </bk-big-tree>
                     </bk-select>
                 </bk-form-item>
                 <!-- 主机资源所属 -->
@@ -96,18 +95,16 @@
                                 :name="item.label">
                             </bk-option>
                         </template>
-                        <el-tree
+                        <bk-big-tree
                             ref="resourceTree"
-                            node-key="id"
-                            default-expand-all
                             show-checkbox
-                            check-strictly
-                            :props="{
-                                disabled: setResourceDisabled
-                            }"
+                            :height="216"
+                            :check-strictly="false"
+                            :options="{ nameKey: 'label' }"
+                            :default-expanded-nodes="defaultExpandNodes"
                             :data="resourceList"
-                            @check="onResourceSelect">
-                        </el-tree>
+                            @check-change="onResourceSelect">
+                        </bk-big-tree>
                     </bk-select>
                 </bk-form-item>
                 <!-- 互斥属性 -->
@@ -359,6 +356,7 @@
                 schemes: [], // 筛选方案列表
                 setList: [], // 集群模板 tree
                 resourceList: [], // 主机资源所属 tree
+                defaultExpandNodes: [],
                 moduleList: [], // 集群下模块列表
                 activeTab: '',
                 conditions: [],
@@ -513,13 +511,19 @@
                     if (resp.result) {
                         this.setList = resp.data
                         if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
-                            this.$refs.setTree && this.$refs.setTree.setCheckedKeys([this.config.set_template_id])
                             const checkedName = this.filterSetName(this.config.set_template_id, resp.data)
                             this.formData.set = [{
                                 id: this.config.set_template_id,
                                 label: checkedName
                             }]
                         }
+                        this.$nextTick(() => { // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
+                            if (this.$refs.setTree) {
+                                const bizNodes = this.setList.map(item => item.id)
+                                this.$refs.setTree.setDisabled(bizNodes, { disabled: true })
+                                this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
+                            }
+                        })
                     } else {
                         errorHandler(resp, this)
                     }
@@ -540,10 +544,18 @@
                     })
                     if (resp.result) {
                         this.resourceList = resp.data
-                        if (this.formData.resource.length > 0) {
-                            const keys = this.formData.resource.map(item => item.id)
-                            this.$refs.resourceTree && this.$refs.resourceTree.setCheckedKeys(keys)
+                        if (Array.isArray(resp.data) && resp.data.length > 0) {
+                            this.defaultExpandNodes = [resp.data[0].id]
                         }
+                        this.$nextTick(() => {
+                            if (this.formData.resource.length > 0) {
+                                const keys = this.formData.resource.map(item => item.id)
+                                if (this.$refs.resourceTree) {
+                                    this.$refs.resourceTree.setChecked(keys, { checked: true })
+                                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
+                                }
+                            }
+                        })
                     } else {
                         errorHandler(resp, this)
                     }
@@ -682,10 +694,11 @@
                     }
                 })
             },
-            async onSetSelect (checked) {
-                this.formData.set = [checked]
-                this.$refs.setTree.setCheckedKeys([checked.id])
+            async onSetSelect (ids, checked) {
+                this.formData.set = [{ ...checked.data }]
                 this.$refs.setSelect.close()
+                this.$refs.setTree.removeChecked({ emitEvent: false })
+                this.$refs.setTree.setChecked(checked.id, { checked: true })
                 await this.getModule(checked.id)
                 this.moduleList.forEach((item, index) => {
                     this.$set(this.formData.modules, index, {
@@ -719,58 +732,62 @@
                 })
                 return name
             },
-            // 集群模板只有 id 以 "set_" 开头的节点可选
-            setLeafDisabled (data) {
-                return !data.id.startsWith('set_')
-            },
-            // 主机资源所属，选中父节点后子节点不可选
-            setResourceDisabled (data, node) {
-                if (this.formData.resource.length > 0) {
-                    let parentNode = node.parent
-                    let isParentChecked = false
-                    while (parentNode) {
-                        const index = this.formData.resource.findIndex(item => item.id === parentNode.data.id)
-                        if (index > -1) {
-                            isParentChecked = true
-                            break
-                        } else {
-                            parentNode = parentNode.parent
-                        }
+            /**
+             * 设置默认被禁用的节点
+             */
+            setNodesDefaultDisabled () {
+                let defaultDisabledIds = []
+                this.formData.resource.forEach(item => {
+                    const node = this.$refs.resourceTree.getNodeById(item.id)
+                    if (node.children && node.children.length > 0) {
+                        defaultDisabledIds = defaultDisabledIds.concat(this.traverseNodesToList(node.children))
                     }
-                    return isParentChecked
-                } else {
-                    return false
-                }
+                })
+                this.$refs.resourceTree.setDisabled(defaultDisabledIds, { disabled: true })
+            },
+            /**
+             * 遍历获取子节点列表
+             */
+            traverseNodesToList (nodes) {
+                let list = []
+                nodes.forEach(item => {
+                    list.push(item.id)
+                    if (item.children && item.children.length > 0) {
+                        list = list.concat(this.traverseNodesToList(item.children))
+                    }
+                })
+                return list
             },
             // 主机资源所属，选中父节点后取消所有子节点的选中态
-            unCheckChildrenNodes (current, checkedNodes) {
-                current.children.forEach(item => {
-                    const index = checkedNodes.findIndex(node => node.id === item.id)
+            changeChildrenNodeState (node, checkedList, isChecked) {
+                node.children.forEach(item => {
+                    const index = checkedList.findIndex(id => id === item.id)
                     if (index > -1) {
-                        checkedNodes.splice(index, 1)
+                        checkedList.splice(index, 1)
+                        this.$refs.resourceTree.setChecked(item.id, { checked: false })
                     }
+                    this.$refs.resourceTree.setDisabled(item.id, { disabled: isChecked })
                     if (item.children && item.children.length > 0) {
-                        this.unCheckChildrenNodes(item, checkedNodes)
+                        this.changeChildrenNodeState(item, checkedList, isChecked)
                     }
                 })
             },
             // 清空所选主机资源
             onResourceClear () {
                 this.formData.resource = []
-                this.$refs.resourceTree.setCheckedNodes([])
+                this.$refs.resourceTree.setData(this.resourceList)
             },
-            onResourceSelect (checked, data) {
-                const checkedNodes = data.checkedNodes
-                if (checked.children && checked.children.length > 0) {
-                    this.unCheckChildrenNodes(checked, checkedNodes)
+            onResourceSelect (selectedNodes, node) {
+                const checkedList = selectedNodes.slice(0)
+                const isChecked = selectedNodes.includes(node.id)
+                if (node.children && node.children.length) {
+                    this.changeChildrenNodeState(node, checkedList, isChecked)
                 }
-                this.formData.resource = checkedNodes.map(item => {
-                    return {
-                        id: item.id,
-                        label: item.label
-                    }
+                this.formData.resource = checkedList.map(id => {
+                    const label = this.filterSetName(id, this.resourceList)
+                    return { id, label }
                 })
-                this.$refs.resourceTree.setCheckedNodes(checkedNodes)
+                this.$refs.resourceTree.setChecked(checkedList, { checked: true })
             },
             // 清除互斥属性后，所有模板默认的互斥方法置为不互斥
             onMuteAttributeClear () {
@@ -888,18 +905,18 @@
              * host 值需要同时满足筛选条件和排除条件
              * 非复用模块间主机不能重复，先分别计算所有满足模块条件的主机，再计算模块所需主机数与满足条件主机的比值，值大的模块优先在主机里取值
              * 模块复用时，取其复用的模块主机数据
-             * 每个模块的 host 数量不能超过 moudule.count 设置
+             * 每个模块的 host 数量不能超过 module.count 设置
              *
              * @param {Array} data 全量的 host 数据
              *
              * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [xx.xx.x.x, x.x.x.xxx], ...}
              */
             filterModuleHost (data) {
-                let fullMdHosts = [] // 所有满足各模块的主机数据
                 const hosts = [] // 模块实际的主机数据，去重、按照实际数量配置截取
                 const reuseOthers = []
                 const usedHosts = []
                 for (let i = 0; i < this.formData.clusterCount; i++) {
+                    let fullMdHosts = [] // 所有满足各模块的主机数据
                     const moduleHosts = {}
                     this.formData.modules.forEach(md => {
                         const { id, selectMethod, customIpList, muteMethod, muteModules, hostFilterList } = md
@@ -983,7 +1000,7 @@
 
                         if (md.count > 0) {
                             item.list.some(h => {
-                                if (moduleHosts[md.name].length === md.count) {
+                                if (moduleHosts[md.name].length === Number(md.count)) {
                                     return true
                                 }
                                 if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
@@ -1007,7 +1024,6 @@
                     })
                     hosts.push(moduleHosts)
                 }
-
                 return hosts
             },
             /**
@@ -1155,6 +1171,9 @@
             font-size: 12px;
             color: #ffb400;
         }
+    }
+    /deep/ .bk-big-tree-node .node-content {
+        font-size: 12px;
     }
 </style>
 <style lang="scss">

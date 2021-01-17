@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
-        <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading || subAtomListLoading }">
+        <div v-if="!templateDataLoading && !singleAtomListLoading && !subAtomListLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -42,8 +42,6 @@
             <TemplateCanvas
                 ref="templateCanvas"
                 class="template-canvas"
-                :single-atom-list-loading="singleAtomListLoading"
-                :sub-atom-list-loading="subAtomListLoading"
                 :atom-type-list="atomTypeList"
                 :name="name"
                 :type="type"
@@ -134,6 +132,7 @@
     import moment from 'moment-timezone'
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
+    import bus from '@/utils/bus.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import validatePipeline from '@/utils/validatePipeline.js'
@@ -483,7 +482,7 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, $.atoms[code])
+                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -851,7 +850,7 @@
                         start: START_POSITION
                     })
                     if (res.result) {
-                        this.onCreateSnapshoot()
+                        this.onCreateSnapshoot('isFormatPosition')
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
@@ -1024,6 +1023,7 @@
                 this.allowLeave = false
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
+                bus.$emit('resetProjectChange', this.project_id)
             },
             // 修改line和location
             onReplaceLineAndLocation (data) {
@@ -1125,13 +1125,15 @@
                 })
             },
             // 本地快照面板新增快照
-            onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
+            onCreateSnapshoot (type) {
                 this.snapshootTimer && clearTimeout(this.snapshootTimer)
                 this.setTplSnapshoot()
-                this.$bkMessage({
-                    message,
-                    theme: 'success'
-                })
+                if (!type) {
+                    this.$bkMessage({
+                        message: i18n.t('新增流程本地快照成功'),
+                        theme: 'success'
+                    })
+                }
                 this.snapshoots = this.getTplSnapshoots()
                 this.openSnapshootTimer()
             },
@@ -1246,7 +1248,7 @@
     .update-tips {
         position: absolute;
         top: 76px;
-        left: 450px;
+        left: 495px;
         min-height: 40px;
         overflow: hidden;
         z-index: 4;

@@ -27,6 +27,7 @@ from gcloud.core.resources import (
     UserProjectResource,
 )
 from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
+from gcloud.label.viewsets import LabelViewSet
 from gcloud.tasktmpl3.resources import (
     TaskTemplateResource,
     TemplateSchemeResource,
@@ -63,6 +64,7 @@ drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
 drf_router.register(r"resource_config", ResourceConfigViewSet)
 drf_router.register(r"staff_group", StaffGroupSetViewSet)
+drf_router.register(r"new_label", LabelViewSet)
 
 # Standard bits...
 urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]

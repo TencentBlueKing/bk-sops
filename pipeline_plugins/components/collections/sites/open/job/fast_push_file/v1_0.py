@@ -26,10 +26,9 @@ from pipeline_plugins.components.utils import (
     loose_strip,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
+from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg, get_difference_ip_list
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -78,6 +77,9 @@ class JobFastPushFileService(JobService):
                 type="string",
                 schema=StringItemSchema(description=_("文件分发目标路径")),
             ),
+            self.InputItem(
+                name=_("超时时间"), key="job_timeout", type="string", schema=StringItemSchema(description=_("超时时间"))
+            ),
         ]
 
     def execute(self, data, parent_data):
@@ -91,6 +93,8 @@ class JobFastPushFileService(JobService):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
         across_biz = data.get_one_of_inputs("job_across_biz", False)
+        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
+
         file_source = []
         for item in original_source_files:
             if across_biz:
@@ -123,6 +127,13 @@ class JobFastPushFileService(JobService):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+        job_timeout = data.get_one_of_inputs("job_timeout")
+
+        if ip_is_exist:
+            difference_ip_list = get_difference_ip_list(original_ip_list, [ip_item["ip"] for ip_item in ip_list])
+            if difference_ip_list:
+                data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
+                return False
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -132,6 +143,8 @@ class JobFastPushFileService(JobService):
             "file_target_path": data.get_one_of_inputs("job_target_path"),
             "bk_callback_url": get_node_callback_url(self.id),
         }
+        if job_timeout:
+            job_kwargs["timeout"] = int(job_timeout)
 
         job_result = client.job.fast_push_file(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))

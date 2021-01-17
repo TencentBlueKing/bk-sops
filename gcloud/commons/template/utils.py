@@ -21,6 +21,7 @@ from pipeline.core.constants import PE
 
 from gcloud import err_code
 from gcloud.conf import settings
+from functools import partial
 
 logger = logging.getLogger("root")
 
@@ -33,14 +34,22 @@ def read_encoded_template_data(content):
 
     # check the validation of file
     templates_data = data["template_data"]
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
+    check_digest = partial(check_template_digest, templates_data=templates_data, data_digest=data["digest"])
+
+    if not check_digest(salt=settings.TEMPLATE_DATA_SALT):
+        if not check_digest(salt=settings.OLD_COMMUNITY_TEMPLATE_DATA_SALT):
+            return {"result": False, "message": "Invalid template data", "code": err_code.VALIDATION_ERROR.code}
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
+
+
+def check_template_digest(templates_data, data_digest, salt):
+    data_string = (json.dumps(templates_data, sort_keys=True) + salt).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
 
-    is_data_valid = digest == data["digest"]
+    is_data_valid = digest == data_digest
     if not is_data_valid:
-        return {"result": False, "message": "Invalid template data", "code": err_code.VALIDATION_ERROR.code}
-
-    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
+        return False
+    return True
 
 
 def read_template_data_file(f):

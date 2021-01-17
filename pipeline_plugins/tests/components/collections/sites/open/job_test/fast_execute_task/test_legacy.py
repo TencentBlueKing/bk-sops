@@ -35,10 +35,9 @@ class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         # return your component test cases here
         return [
-            FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
-            FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE,
-            FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE,
             IP_IS_EXIST_FAIL_CASE,
+            FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE,
+            FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
         ]
 
 
@@ -48,11 +47,16 @@ class MockClient(object):
         fast_execute_script_return=None,
         get_job_instance_global_var_value_return=None,
         get_job_instance_log_return=None,
+        get_job_instance_ip_log_return=None,
+        get_job_instance_status=None,
     ):
         self.job = MagicMock()
+        self.jobv3 = MagicMock()
         self.job.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
         self.job.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
         self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
 # mock path
@@ -127,6 +131,68 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
     ],
 }
 
+EXECUTE_SUCCESS_GET_STATUS_RETURN = {
+    "result": True,
+    "code": 0,
+    "message": "",
+    "data": {
+        "finished": True,
+        "job_instance": {
+            "job_instance_id": 100,
+            "bk_biz_id": 1,
+            "name": "API Quick execution script1521089795887",
+            "create_time": 1605064271000,
+            "status": 4,
+            "start_time": 1605064271000,
+            "end_time": 1605064272000,
+            "total_time": 1000,
+        },
+        "step_instance_list": [
+            {
+                "status": 4,
+                "total_time": 1000,
+                "name": "API Quick execution scriptxxx",
+                "step_instance_id": 75,
+                "execute_count": 0,
+                "create_time": 1605064271000,
+                "end_time": 1605064272000,
+                "type": 1,
+                "start_time": 1605064271000,
+                "step_ip_result_list": [
+                    {
+                        "ip": "1.1.1.1",
+                        "bk_cloud_id": 0,
+                        "status": 9,
+                        "tag": "",
+                        "exit_code": 0,
+                        "error_code": 0,
+                        "start_time": 1605064271000,
+                        "end_time": 1605064272000,
+                        "total_time": 1000,
+                    },
+                    {
+                        "ip": "1.1.1.2",
+                        "bk_cloud_id": 0,
+                        "status": 9,
+                        "tag": "",
+                        "exit_code": 0,
+                        "error_code": 0,
+                        "start_time": 1605064271000,
+                        "end_time": 1605064272000,
+                        "total_time": 1000,
+                    },
+                ],
+            }
+        ],
+    },
+}
+
+EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
+    "result": True,
+    "code": 0,
+    "message": "",
+    "data": {"ip": "10.0.0.1", "bk_cloud_id": 0, "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"},
+}
 
 # mock clients
 FAST_EXECUTE_SCRIPT_FAIL_CLIENT = MockClient(
@@ -145,11 +211,12 @@ FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
         "result": True,
     },
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
+    get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
+    get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
 
 # mock GET_NODE_CALLBACK_URL
 GET_NODE_CALLBACK_URL_MOCK = MagicMock(return_value="callback_url")
-
 
 # parent_data
 PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
@@ -163,7 +230,6 @@ BASE_INPUTS = {
     "job_script_list_public": "",
     "job_script_list_general": "",
 }
-
 
 # manual inputs
 MANUAL_INPUTS = BASE_INPUTS
@@ -213,12 +279,17 @@ MANUAL_SUCCESS_OUTPUTS = {
     "job_inst_url": "instance_url_token",
     "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
+MANUAL_SUCCESS_OUTPUTS2 = {
+    "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
+    "job_inst_name": "API Quick execution script1521100521303",
+    "job_inst_url": "instance_url_token",
+    "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
+}
 
 # 异步回调函数参数错误返回
 SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS = {"ex_data": "invalid callback_data, job_instance_id: None, status: None"}
 # 异步回调函数成功输出
 SCHEDULE_SUCCESS_OUTPUTS = {"name": "value"}
-
 
 # 手动输入脚本成功异步执行失败样例
 FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCase(
@@ -250,13 +321,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=MANUAL_SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        outputs=dict(
-            list(MANUAL_SUCCESS_OUTPUTS.items())
-            + list(SCHEDULE_SUCCESS_OUTPUTS.items())
-            + [("log_outputs", {"key1": "value1", "key2": "value2", "key3": "value3"})]
-        ),
-        callback_data={"job_instance_id": 10000, "status": 3},
+        success=True, outputs={}, callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
         CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.job.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
@@ -288,7 +353,6 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
     ],
 )
-
 
 # ip 校验
 IP_IS_EXIST_FAIL_CASE = ComponentTestCase(

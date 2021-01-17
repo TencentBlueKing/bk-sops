@@ -77,3 +77,5 @@ class PipelineElement(object):
 
 
 PE = PipelineElement()
+
+ESCAPED_CHARS = {"\n": r"\n", "\r": r"\r", "\t": r"\t"}

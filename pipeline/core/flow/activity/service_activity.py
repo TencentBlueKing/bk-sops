@@ -29,7 +29,12 @@ class Service(object, metaclass=ABCMeta):
     OutputItem = OutputItem
     interval = None
     default_outputs = [
-        OutputItem(name=_("执行结果"), key="_result", type="bool", schema=BooleanItemSchema(description=_("是否执行成功"))),
+        OutputItem(
+            name=_("执行结果"),
+            key="_result",
+            type="boolean",
+            schema=BooleanItemSchema(description=_("执行结果的布尔值，True or False")),
+        ),
         OutputItem(name=_("循环次数"), key="_loop", type="int", schema=IntItemSchema(description=_("循环执行次数"))),
     ]
 
