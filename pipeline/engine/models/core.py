@@ -1352,39 +1352,43 @@ class CeleryTaskRecord(models.Model):
         return json.loads(self.extra_kwargs)
 
     def resend(self):
-        try:
-            task = current_app.tasks[self.name]
+        self.resend_task(self.name, self.type, self.kwargs_dict, self.extra_kwargs_dict)
 
-            if self.type == self.TASK_TYPE_EMPTY:
-                task.apply_async(**self.kwargs_dict)
-            elif self.type == self.TASK_TYPE_PROCESS:
+    @staticmethod
+    def resend_task(task_name, task_type, kwargs_dict, extra_kwargs_dict):
+        try:
+            task = current_app.tasks[task_name]
+
+            if task_type == CeleryTaskRecord.TASK_TYPE_EMPTY:
+                task.apply_async(**kwargs_dict)
+            elif task_type == CeleryTaskRecord.TASK_TYPE_PROCESS:
                 ProcessCeleryTask.objects.start_task(
-                    process_id=self.extra_kwargs_dict["process_id"],
+                    process_id=extra_kwargs_dict["process_id"],
                     task=task,
-                    kwargs=self.kwargs_dict,
+                    kwargs=kwargs_dict,
                     record_error=False,
                     is_retry=True,
                 )
-            elif self.type == self.TASK_TYPE_NODE:
+            elif task_type == CeleryTaskRecord.TASK_TYPE_NODE:
                 NodeCeleryTask.objects.start_task(
-                    node_id=self.extra_kwargs_dict["node_id"],
+                    node_id=extra_kwargs_dict["node_id"],
                     task=task,
-                    kwargs=self.kwargs_dict,
+                    kwargs=kwargs_dict,
                     record_error=False,
                     is_retry=True,
                 )
-            elif self.type == self.TASK_TYPE_SCHEDULE:
+            elif task_type == CeleryTaskRecord.TASK_TYPE_SCHEDULE:
                 ScheduleCeleryTask.objects.start_task(
-                    schedule_id=self.extra_kwargs_dict["schedule_id"],
+                    schedule_id=extra_kwargs_dict["schedule_id"],
                     task=task,
-                    kwargs=self.kwargs_dict,
+                    kwargs=kwargs_dict,
                     record_error=False,
                     is_retry=True,
                 )
             else:
-                raise TypeError("unsupport type: {}.".format(self.type))
+                raise TypeError("unsupport type: {}.".format(task_type))
         except Exception as e:
-            logger.exception("fail task send replay error.")
+            logger.exception("task send replay error.")
             raise e
 
 
@@ -1406,30 +1410,6 @@ class ResendCeleryTaskManager(models.Manager):
             extra_kwargs=save_extra_kwargs,
             bind_resource_id=bind_resource_id,
         )
-
-    def resend(self, task_type, task_name, **kwargs):
-        """
-        当task_type为 empty 时，必须传 record_id 参数；
-        当task_type为其他类型时，则必须传 bind_resource_id 参数
-        """
-        task_type_mappings = {"process": 1, "node": 2, "schedule": 3}
-        if task_type == "empty" and "record_id" in kwargs:
-            return self.get(id=kwargs["record_id"]).resend()
-        elif task_type in task_type_mappings and "bind_resource_id" in kwargs:
-            task_records = self.filter(
-                type=task_type_mappings[task_type], bind_resource_id=kwargs["bind_resource_id"], name=task_name
-            )
-            if len(task_records) == 1:
-                task_record = task_records[0]
-            else:
-                raise Exception(
-                    "task record is not unique or not found with task_type: {}, task_name: {} and params: {}.".format(
-                        task_type, task_name, kwargs
-                    )
-                )
-            return task_record.resend()
-        else:
-            raise TypeError("unsupport type: {} with params: {}.".format(task_type, kwargs))
 
 
 class ResendCeleryTask(CeleryTaskRecord):

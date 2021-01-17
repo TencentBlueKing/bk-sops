@@ -62,13 +62,14 @@ def resend_celery_tasks(request):
     for task_params in params:
         task_type = task_params.pop("task_type")
         task_name = task_params.pop("task_name")
-        task_kwargs = task_params
-        if task_type is None or task_name is None or len(task_kwargs) < 1:
+        kwargs_dict = task_params.pop("kwargs_dict") or {}
+        extra_kwargs_dict = task_params.pop("extra_kwargs_dict") or {}
+        if task_type is None or task_name is None:
             return JsonResponse({"result": False, "message": "命令参数有误", "code": err_code.REQUEST_PARAM_INVALID.code})
         try:
-            pipeline_api.resend_celery_task(task_type, task_name, **task_kwargs)
+            pipeline_api.resend_celery_task(task_name, task_type, kwargs_dict, extra_kwargs_dict)
         except Exception as e:
-            resend_failed_tasks["{}-{}".format(task_type, task_name)] = str(e)
+            resend_failed_tasks["{}-{}".format(task_name, task_type)] = str(e)
     if len(resend_failed_tasks) > 0:
         message = ";".join(["{}:{}".format(key, value) for key, value in resend_failed_tasks.items()])
         return JsonResponse(

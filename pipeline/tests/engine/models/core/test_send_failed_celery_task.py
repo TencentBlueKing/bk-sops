@@ -50,7 +50,11 @@ class SendFailedCeleryTaskTestCase(TestCase):
 
     def test_resend__type_error(self):
         task = SendFailedCeleryTask(
-            name="name", kwargs="kwargs_token", type=-1, extra_kwargs="extra_kwargs_token", exec_trace="trace_token",
+            name="name",
+            kwargs=json.dumps({"kwargs_token": "token"}),
+            type=-1,
+            extra_kwargs=json.dumps({"extra_kwargs_token": "token"}),
+            exec_trace="trace_token",
         )
         task.delete = MagicMock()
 
@@ -69,7 +73,7 @@ class SendFailedCeleryTaskTestCase(TestCase):
             name="name",
             kwargs=json.dumps({"task_kargs": "token"}),
             type=SendFailedCeleryTask.TASK_TYPE_EMPTY,
-            extra_kwargs="extra_kwargs_token",
+            extra_kwargs=json.dumps({"extra_kwargs_token": "token"}),
             exec_trace="trace_token",
         )
         task.delete = MagicMock()
@@ -170,7 +174,7 @@ class SendFailedCeleryTaskTestCase(TestCase):
             name="name",
             kwargs=json.dumps({"task_kargs": "token"}),
             type=SendFailedCeleryTask.TASK_TYPE_EMPTY,
-            extra_kwargs="extra_kwargs_token",
+            extra_kwargs=json.dumps({"extra_kwargs_token": "token"}),
             exec_trace="trace_token",
         )
         task.delete = MagicMock()
