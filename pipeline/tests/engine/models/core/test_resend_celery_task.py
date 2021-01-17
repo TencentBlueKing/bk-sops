@@ -154,7 +154,7 @@ class ResendCeleryTaskTestCase(TestCase):
             name="name",
             kwargs=json.dumps({"task_kargs": "token"}),
             type=ResendCeleryTask.TASK_TYPE_EMPTY,
-            extra_kwargs="extra_kwargs_token",
+            extra_kwargs=json.dumps({"extra_kwargs_token": "token"}),
         )
 
         mock_task = MagicMock()
