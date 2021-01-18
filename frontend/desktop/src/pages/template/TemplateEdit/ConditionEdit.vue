@@ -13,6 +13,7 @@
     <bk-sideslider
         :width="800"
         :is-show="isShow"
+        :quick-close="isReadonly"
         :before-close="onBeforeClose">
         <div slot="header">
             <span>{{ $t('分支条件') }}</span>
