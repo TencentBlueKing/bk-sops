@@ -248,7 +248,7 @@ def analysis_constants_ref(request):
     except Exception:
         logger.exception("[analysis_constants_ref] error")
 
-    data = {"defined": {}, "undefined": {}}
+    data = {"defined": {}, "nodefined": {}}
     defined_keys = tree.get("constants", {}).keys()
     if result:
         for k, v in result.items():
