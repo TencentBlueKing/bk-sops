@@ -164,7 +164,7 @@ class JobFastPushFileService(JobService):
                 # 非单行扩展的情况无需处理
                 attr_list.append(attr)
         # 循环请求接口
-        job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
+        params_list = []
         for source in file_source:
             for attr in attr_list:
                 original_ip_list = attr["job_ip_list"]
@@ -182,7 +182,7 @@ class JobFastPushFileService(JobService):
 
                 job_kwargs = {
                     "bk_biz_id": biz_cc_id,
-                    "file_source": file_source,
+                    "file_source": source,
                     "ip_list": ip_list,
                     "account": job_account,
                     "file_target_path": job_target_path,
@@ -194,19 +194,19 @@ class JobFastPushFileService(JobService):
                     job_kwargs["download_speed_limit"] = int(download_speed_limit)
                 if job_timeout:
                     job_kwargs["timeout"] = int(job_timeout)
-
-                job_result = client.job.fast_push_file(job_kwargs)
-                self.logger.info(
-                    "job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs)
-                )
-                if job_result["result"]:
-                    job_instance_id.append(job_result["data"]["job_instance_id"])
-                    job_inst_name.append(job_result["data"]["job_instance_name"])
-                    job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
-                else:
-                    message = job_handle_api_error("job.fast_push_file", job_kwargs, job_result)
-                    self.logger.error(message)
-                    ex_data.append(message)
+                params_list.append(job_kwargs)
+        # 并发请求接口
+        job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
+        job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
+        for index, job_result in enumerate(job_result_list):
+            if job_result["result"]:
+                job_instance_id.append(job_result["data"]["job_instance_id"])
+                job_inst_name.append(job_result["data"]["job_instance_name"])
+                job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
+            else:
+                message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
+                self.logger.error(message)
+                ex_data.append(message)
         data.outputs.job_inst_id = job_instance_id
         data.outputs.job_inst_name = job_inst_name
         data.outputs.job_inst_url = job_inst_url
