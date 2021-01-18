@@ -91,19 +91,20 @@ class WechatWorkSendMessageService(Service):
                     timeout=5,
                 )
             elif msgtype == "markdown":
+                mentioned_str = ""
+                for mentioned in mentioned_list:
+                    mentioned_str += " <@{}>".format(mentioned)
                 resp = requests.post(
                     url=url,
                     json={
                         "chatid": "|".join(chat_id_list),
                         "msgtype": msgtype,
-                        "markdown": {
-                            "content": str(content) + " @".join(mentioned_list),
-                            "mentioned_list": mentioned_list,
-                        },
+                        "markdown": {"content": str(content) + mentioned_str},
                         "at_short_name": True,
                     },
                     timeout=5,
                 )
+
             else:
                 err = _("msgtype 不存在")
                 self.logger.error(err)
