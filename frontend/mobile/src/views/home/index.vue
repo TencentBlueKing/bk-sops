@@ -9,6 +9,7 @@
     <div class="page-view">
         <van-list
             v-model="loading"
+            :immediate-check="false"
             :finished="finished"
             :finished-text="i18n.finishedText"
             :error.sync="error"
@@ -54,6 +55,9 @@
                 limit: 10,
                 total: 0
             }
+        },
+        created () {
+            this.loadData()
         },
         methods: {
             ...mapActions('project', [
