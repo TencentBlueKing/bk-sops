@@ -56,6 +56,7 @@
                     :data="commonTemplateData"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @sort-change="handleSortChange"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
@@ -78,8 +79,8 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" sortable="custom" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('更新时间')" prop="edit_time" sortable="custom" width="200"></bk-table-column>
                     <bk-table-column width="120" :label="$t('子流程更新')">
                         <template slot-scope="props">
                             <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
@@ -328,7 +329,8 @@
                 permissionLoading: false,
                 hasCreateTaskPerm: true,
                 selectedProject: {},
-                selectedTpl: {}
+                selectedTpl: {},
+                ordering: null // 排序参数
             }
         },
         computed: {
@@ -421,7 +423,8 @@
                         pipeline_template__creator__contains: creator || undefined,
                         category: category || undefined,
                         subprocess_has_update,
-                        has_subprocess
+                        has_subprocess,
+                        order_by: this.ordering || undefined
                     }
                     if (queryTime[0] && queryTime[1]) {
                         data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
@@ -546,6 +549,18 @@
                 this.theDeleteTemplateId = template.id
                 this.deleteTemplateName = template.name
                 this.isDeleteDialogShow = true
+            },
+            handleSortChange ({ prop, order }) {
+                const params = 'pipeline_template__' + prop
+                if (order === 'ascending') {
+                    this.ordering = params
+                } else if (order === 'descending') {
+                    this.ordering = '-' + params
+                } else {
+                    this.ordering = ''
+                }
+                this.pagination.current = 1
+                this.getTemplateList()
             },
             onPageChange (page) {
                 this.pagination.current = page

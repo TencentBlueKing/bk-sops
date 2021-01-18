@@ -56,6 +56,7 @@
                     :data="templateList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @sort-change="handleSortChange"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
                     <bk-table-column label="ID" prop="id" width="100"></bk-table-column>
@@ -90,8 +91,8 @@
                         </div>
                     </bk-table-column>
                     <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('创建时间')" prop="create_time" sortable="custom" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('更新时间')" prop="edit_time" sortable="custom" width="200"></bk-table-column>
                     <bk-table-column
                         width="160"
                         :label="$t('子流程更新')">
@@ -352,7 +353,8 @@
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
-                collectionList: []
+                collectionList: [],
+                ordering: null // 排序参数
             }
         },
         computed: {
@@ -439,7 +441,8 @@
                         category: category || undefined,
                         label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
                         subprocess_has_update,
-                        has_subprocess
+                        has_subprocess,
+                        order_by: this.ordering || undefined
                     }
 
                     if (queryTime[0] && queryTime[1]) {
@@ -579,6 +582,18 @@
                 this.theDeleteTemplateId = template.id
                 this.deleteTemplateName = template.name
                 this.isDeleteDialogShow = true
+            },
+            handleSortChange ({ prop, order }) {
+                const params = 'pipeline_template__' + prop
+                if (order === 'ascending') {
+                    this.ordering = params
+                } else if (order === 'descending') {
+                    this.ordering = '-' + params
+                } else {
+                    this.ordering = ''
+                }
+                this.pagination.current = 1
+                this.getTemplateList()
             },
             onPageChange (page) {
                 this.pagination.current = page
