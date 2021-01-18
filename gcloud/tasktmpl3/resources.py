@@ -125,7 +125,7 @@ class TaskTemplateResource(GCloudModelResource):
                 bundle.data["is_add"] = 1
             else:
                 bundle.data["is_add"] = 0
-            bundle.data["labels"] = templates_labels.get(bundle.obj.id, [])
+            bundle.data["template_labels"] = templates_labels.get(bundle.obj.id, [])
 
         return data
 
