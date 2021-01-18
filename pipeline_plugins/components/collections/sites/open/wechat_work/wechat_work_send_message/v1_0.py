@@ -96,7 +96,10 @@ class WechatWorkSendMessageService(Service):
                     json={
                         "chatid": "|".join(chat_id_list),
                         "msgtype": msgtype,
-                        "markdown": {"content": str(content), "mentioned_list": mentioned_list},
+                        "markdown": {
+                            "content": str(content) + "@".join(mentioned_list),
+                            "mentioned_list": mentioned_list,
+                        },
                         "at_short_name": True,
                     },
                     timeout=5,
