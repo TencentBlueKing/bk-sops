@@ -133,3 +133,29 @@ class BKNodeManClient(BKComponentClient):
             url=_get_nodeman_api_v2("ap"),
             data={},
         )
+
+    def plugin_operate(self, params: dict):
+        return self._request(
+            method="post",
+            url=_get_nodeman_api_v2("plugin/operate"),
+            data=params,
+        )
+
+    def plugin_process(self, category):
+        return self._request(
+            method="post",
+            url=_get_nodeman_api_v2("plugin/process"),
+            data={
+                "category": category,
+            },
+        )
+
+    def plugin_package(self, name, os):
+        return self._request(
+            method="post",
+            url=_get_nodeman_api_v2("plugin/package"),
+            data={
+                "name": name,
+                "os": os,
+            },
+        )

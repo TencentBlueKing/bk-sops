@@ -321,6 +321,7 @@
             display: inline-block;
             width: 14px;
             height: 14px;
+            border-radius: 2px;
         }
         .bk-option-icon {
             display: none;

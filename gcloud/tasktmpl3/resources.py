@@ -284,6 +284,12 @@ class TemplateSchemeResource(GCloudModelResource):
                 )
                 logger.error(message)
                 raise InvalidFilterError(message)
+            except Exception as e:
+                message = "Error on getting template[id={template_id}] in project[id={project_id}]: {error}".format(
+                    template_id=template_id, project_id=project_id, error=e
+                )
+                logger.error(message)
+                raise InvalidFilterError(message)
             orm_filters.update({"template__template_id": template.pipeline_template.template_id})
         elif "pk" not in filters:
             # 不允许请求全部执行方案

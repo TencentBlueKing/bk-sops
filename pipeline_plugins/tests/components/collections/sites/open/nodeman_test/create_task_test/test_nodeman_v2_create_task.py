@@ -51,7 +51,6 @@ class MockClient(object):
         self.name = "name"
         self.job_install = MagicMock(return_value=install_return)
         self.job_operate = MagicMock(return_value=operate_return)
-        self.job_operate = MagicMock(return_value=operate_return)
         self.remove_host = MagicMock(return_value=remove_host)
         self.job_details = MagicMock(return_value=details_return)
         self.get_job_log = MagicMock(return_value=get_job_log_return)
@@ -59,8 +58,9 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.BKNodeManClient"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
 
-HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.handle_api_error"
+HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_host_id_by_inner_ip"
 )
@@ -244,6 +244,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
     ],
 )
 
@@ -367,6 +368,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
     ],
 )
@@ -465,6 +467,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
@@ -515,6 +518,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
     ],
 )
@@ -553,6 +557,7 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
@@ -589,6 +594,7 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     schedule_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
     ],
 )
@@ -734,6 +740,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
     schedule_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(
             target=GET_HOST_ID_BY_INNER_IP,
             return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
