@@ -129,7 +129,7 @@ const templateList = {
                     fileDownload(res.data, filename)
                     return { result: true }
                 } else { // 处理json格式数据
-                    const text = Buffer.from(res.data).toString('utf8')
+                    const text = Buffer.from(JSON.stringify(res.data)).toString('utf8')
                     return JSON.parse(text)
                 }
             })
