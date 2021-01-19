@@ -108,10 +108,15 @@
                         {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
                     </template>
                 </bk-table-column>
+                <bk-table-column :label="$t('系统默认标签')" :width="300">
+                    <template slot-scope="props">
+                        {{ props.row.is_default ? $t('是') : $t('否') }}
+                    </template>
+                </bk-table-column>
                 <bk-table-column :label="$t('操作')" :width="300">
                     <template slot-scope="props">
-                        <bk-button :text="true" @click="onEditLabel('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                        <bk-button :text="true" @click="onDelLabel(props.row)">{{ $t('删除') }}</bk-button>
+                        <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">{{ $t('编辑') }}</bk-button>
+                        <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">{{ $t('删除') }}</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
