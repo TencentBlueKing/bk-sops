@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+# 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
 from blueapps.conf.default_settings import *  # noqa
 
 
