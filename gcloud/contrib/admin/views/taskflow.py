@@ -163,7 +163,7 @@ def get_taskflow_node_detail(request):
     # collect execution info
     data["execution_info"] = {
         "name": status.name,
-        "start_time": status.started_time.strftime(SERIALIZE_DATE_FORMAT),
+        "start_time": status.started_time.strftime(SERIALIZE_DATE_FORMAT) if status.started_time else None,
         "archive_time": status.archived_time.strftime(SERIALIZE_DATE_FORMAT) if status.archived_time else None,
         "elapsed_time": calculate_elapsed_time(status.started_time, status.archived_time),
         "skip": status.skip,
