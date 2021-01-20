@@ -1222,12 +1222,13 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                          set_module_ip_selector.get_value())
         call_assert([
             {
-                "func": SELECT_METHOD_BIZ_INNERIP_NO_FILTER_SET_MODULE_SELECT_MODULE_SUC_CLIENT.
-                    cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
+                "func": SELECT_METHOD_BIZ_INNERIP_NO_FILTER_SET_MODULE_SELECT_MODULE_SUC_CLIENT.cc.find_module_with_relation, # noqa
+                "calls": [
+                    call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
+                         page={'start': 0, 'limit': 1}),
+                    call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
+                         page={'limit': 500, 'start': 0})
+                ]
             },
             {
                 "func": SELECT_METHOD_BIZ_INNERIP_NO_FILTER_SET_MODULE_SELECT_MODULE_SUC_CLIENT.cc.list_biz_hosts,
