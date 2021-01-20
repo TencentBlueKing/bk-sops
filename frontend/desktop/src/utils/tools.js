@@ -148,6 +148,28 @@ const tools = {
             timeStr = '--'
         }
         return timeStr
+    },
+    /**
+     * 按ASCII字符顺序排序
+     * @param {String} property 排序的表格行属性
+     */
+    sortByASCII (property) {
+        return function (a, b) {
+            try {
+                const x = a[property].toUpperCase()
+                const y = b[property].toUpperCase()
+                if (x < y) {
+                    return -1
+                } else if (x > y) {
+                    return 1
+                } else {
+                    return 0
+                }
+            } catch (e) {
+                console.warn(e)
+                return 0
+            }
+        }
     }
 }
 

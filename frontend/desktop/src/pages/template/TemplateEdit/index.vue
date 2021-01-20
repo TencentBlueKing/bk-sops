@@ -386,7 +386,7 @@
                         if (atom) {
                             atom.list.push(item)
                         } else {
-                            const { code, desc, name, group_name, group_icon } = item
+                            const { code, desc, name, group_name, group_icon, sort_key_group_en } = item
                             atomList.push({
                                 code,
                                 desc,
@@ -394,7 +394,8 @@
                                 group_name,
                                 group_icon,
                                 type: group_name,
-                                list: [item]
+                                list: [item],
+                                sort_key_group_en
                             })
                         }
                     })
@@ -615,12 +616,13 @@
                     if (group) {
                         group.list.push(item)
                     } else {
-                        const { type, group_name, group_icon } = item
+                        const { type, group_name, group_icon, sort_key_group_en } = item
                         grouped.push({
                             group_name: group_name,
                             group_icon: group_icon,
                             type: type,
-                            list: [item]
+                            list: [item],
+                            sort_key_group_en
                         })
                     }
                 })

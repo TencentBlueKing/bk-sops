@@ -89,10 +89,9 @@
             common: [String, Number]
         },
         data () {
-            const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
             return {
-                listData,
-                listInPanel: listData,
+                listData: [],
+                listInPanel: [],
                 searchStr: '',
                 searchResult: [],
                 activeGroup: this.getDefaultActiveGroup()
@@ -105,6 +104,9 @@
             }
         },
         created () {
+            const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
+            this.listData = listData
+            this.listInPanel = listData.sort(toolsUtils.sortByASCII('sort_key_group_en'))
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
