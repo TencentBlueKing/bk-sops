@@ -722,7 +722,7 @@
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
                 // 获取当前接口的不同版本的描述
                 const { component } = this.$store.state.template.activities[this.nodeId]
-                const code = this.pluginOrTplChangeVal.code || component.code
+                const code = this.pluginOrTplChangeVal.code || component.code // 先判断选择插件的code
                 if (code) {
                     const atom = this.atomList.find(item => item.code === code)
                     const { desc } = atom.list.find(item => item.version === this.basicInfo.version)
