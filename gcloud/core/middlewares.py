@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import traceback
+import uuid
 
 import pytz
 from django.http import JsonResponse
@@ -22,6 +23,7 @@ from django.db.models import ObjectDoesNotExist
 
 from gcloud import err_code
 from gcloud.core.models import Project
+from pipeline.engine.core.context import local
 
 logger = logging.getLogger("root")
 
@@ -65,3 +67,13 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }
             )
+
+
+class TraceIDInjectMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        request.trace_id = uuid.uuid4().hex
+        local.trace_id = request.trace_id
+
+    def process_response(self, request, response):
+        delattr(local, "trace_id")
+        return response
