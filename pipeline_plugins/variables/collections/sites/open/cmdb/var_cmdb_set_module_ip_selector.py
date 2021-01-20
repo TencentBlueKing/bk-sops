@@ -70,8 +70,9 @@ class SetModuleIpSelector(LazyVariable):
 
             # 根据输入获取空闲机module id
             service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
+            # 如果勾选的set中有空闲机池，则会将所有空闲机module id添加进去
             service_template_list.extend(
-                get_biz_inner_module_list(var_ip_selector, username, bk_biz_id, bk_supplier_account, produce_method,)
+                get_biz_inner_module_list(var_ip_selector, username, bk_biz_id, bk_supplier_account, produce_method, )
             )
 
             # 通过集群模块筛选的ip
@@ -82,6 +83,7 @@ class SetModuleIpSelector(LazyVariable):
                 service_template_list,
                 filter_set,
                 filter_service_template,
+                bk_supplier_account
             )
             set_module_filter_ip_list = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
             # 获取在集群模块筛选的ip列表中的自定义输入ip
@@ -126,9 +128,26 @@ class SetModuleIpSelector(LazyVariable):
 
 
 def get_module_id_list(
-    bk_biz_id, username, set_list, service_template_list, filter_set_names, filter_service_template_names
+        bk_biz_id, username, set_list, service_template_list, filter_set_names, filter_service_template_names,
+        bk_supplier_account
 ):
     """
+    筛选总体流程
+        1. set_list中的是选择到的集群，与筛选规则中的filter_set_names取交集得到set_list
+        2. service_template_list中是选择到的服务模版module id，会与与筛选规则中的filter_service_template_names取交集得到service_template_ids
+        3. 调用find_module_with_relation传入set_list和service_template_ids得到module id
+
+    针对空闲机模块的筛选规则特殊处理
+        - 自定义输入ip、选择集群模块、手动输入集群模块后如果用户在筛选的集群中有 "空闲机池"，
+          需要添加一个接口去获取相应模块的模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
+        - 自定义输入ip、选择集群模块、手动输入集群模块后如果用户在筛选的模块中有 "空闲机"、"待回收"、"故障机"等，
+          需要添加一个接口去获取相应模块的模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
+        - 如果用户筛选规则中输入了 空闲机池 + 空闲机 则只取空闲机 模块id，
+          与用 find_module_with_relation得到的module_id合并在一起去获取ip
+        - 如果用户筛选规则中输入了 空闲机 则只取空闲机 模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
+        - 如果用户筛选规则中输入了 空闲机池 取空闲机池下 所有模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
+        - 如果筛选规则中没有输入空闲机池或空闲机模块id，则将使用选择到的空闲机模块id获取ip
+        - 空闲机池setid会被去掉，不能传到find_module_with_relation接口中，由于空闲机池下没有使用服务模板创建的模块
     @summary 根据集群模块筛选规则筛选出符合条件的模块id
     @param username: 执行用户名
     @param bk_biz_id: 业务id
@@ -138,10 +157,14 @@ def get_module_id_list(
     @param filter_service_template_names: 需要筛选的服务模板名称，多个用英文分隔
     @return:
     """
+    # 排除空闲机池set id
     if not filter_set_names:
-        set_ids = [set_item["bk_set_id"] for set_item in set_list]
+        set_ids = [
+            set_item["bk_set_id"]
+            for set_item in set_list
+            if set_item["bk_set_name"] != BIZ_INTERNAL_SET
+        ]
     else:
-        # 如果筛选规则中有空闲机池，排除空闲机池set id
         filter_set_names = filter_set_names.split(",")
         set_ids = [
             set_item["bk_set_id"]
@@ -149,25 +172,26 @@ def get_module_id_list(
             if set_item["bk_set_name"] in filter_set_names and set_item["bk_set_name"] != BIZ_INTERNAL_SET
         ]
 
-    service_template_names = filter_service_template_names.split(",")
+    filter_service_template_names_list = filter_service_template_names.split(",")
     if not filter_service_template_names:
         service_template_ids = [service_template_item["id"] for service_template_item in service_template_list]
     else:
+        # 过滤筛选规则中的model id
         service_template_ids = [
             service_template_item["id"]
             for service_template_item in service_template_list
-            if service_template_item["name"] in service_template_names
+            if service_template_item["name"] in filter_service_template_names_list
         ]
 
     # 筛选规则与空闲机、待回收、故障机模块取交集
-    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(service_template_names)
+    biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names_list)
 
     inner_module_id_list = []
     if BIZ_INTERNAL_SET in filter_set_names:
         # 取空闲机池下所有模块ID
         inner_module_id_list = [
             {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
-            for biz_internal_module_item in service_template_list
+            for biz_internal_module_item in get_biz_internal_module(username, bk_biz_id, bk_supplier_account)
             if biz_internal_module_item["name"] in BIZ_INTERNAL_MODULE
         ]
 
@@ -180,12 +204,10 @@ def get_module_id_list(
         ]
     # 筛选规则没有筛选空闲机的规则时，添加选择到的空闲机module id
     if not biz_internal_module and BIZ_INTERNAL_SET not in filter_set_names:
-        # 获取选择到的空闲机内的模块名
-        select_biz_internal_module = [service_template_item["name"]
-                                      for service_template_item in service_template_list
-                                      if service_template_item["name"] in BIZ_INTERNAL_MODULE]
-
-        biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(select_biz_internal_module)
+        # 获取service_template_list的空闲模块名
+        biz_internal_module = [service_template_item["name"]
+                               for service_template_item in service_template_list
+                               if service_template_item["name"] in BIZ_INTERNAL_MODULE]
         inner_module_id_list = [
             {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
             for biz_internal_module_item in service_template_list
@@ -216,16 +238,16 @@ def get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_id
 
 
 def get_ip_result_by_input_method(
-    set_input_method,
-    module_input_method,
-    var_ip_selector,
-    username,
-    bk_biz_id,
-    bk_supplier_account,
-    filter_set,
-    filter_service_template,
-    produce_method,
-    var_module_name="",
+        set_input_method,
+        module_input_method,
+        var_ip_selector,
+        username,
+        bk_biz_id,
+        bk_supplier_account,
+        filter_set,
+        filter_service_template,
+        produce_method,
+        var_module_name="",
 ):
     """
     @summary 根据输入方式获取ip
@@ -275,7 +297,7 @@ def get_ip_result_by_input_method(
 
     # 获取模块id列表
     module_ids = get_module_id_list(
-        bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template
+        bk_biz_id, username, set_list, service_template_list, filter_set, filter_service_template, bk_supplier_account
     )
     if not var_module_name or var_module_name == "ip":
         # 根据模块 id 列表获取 ip 并返回
@@ -288,13 +310,13 @@ def get_ip_result_by_input_method(
 
 
 def get_biz_inner_module_list(
-    var_ip_selector,
-    username,
-    bk_biz_id,
-    bk_supplier_account,
-    produce_method,
-    set_input_method=None,
-    module_input_method=None,
+        var_ip_selector,
+        username,
+        bk_biz_id,
+        bk_supplier_account,
+        produce_method,
+        set_input_method=None,
+        module_input_method=None,
 ):
     """
     @summary 根据输入获取空闲机module id
