@@ -1066,6 +1066,7 @@ const en = {
     '标签描述': 'Label Desc',
     '标签引用': 'Label Cited',
     '系统默认标签': 'System default label',
+    '默认标签不支持编辑删除': 'The default label does not support editing and deleting',
     '颜色': 'Color',
     '个流程在引用': 'template in reference',
     '预览值': 'Preview Value',
