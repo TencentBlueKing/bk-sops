@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
@@ -27,7 +28,6 @@ from pipeline_plugins.components.utils import (
     chunk_table_data,
     batch_execute_func,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -39,7 +39,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFastPushFileService(JobService):
+class JobFastPushFileService(JobScheduleService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -162,7 +162,7 @@ class JobFastPushFileService(JobService):
             else:
                 # 非单行扩展的情况无需处理
                 attr_list.append(attr)
-        # 循环请求接口
+        # 拼装参数列表
         params_list = []
         for source in file_source:
             for attr in attr_list:
@@ -194,11 +194,13 @@ class JobFastPushFileService(JobService):
                 if job_timeout:
                     job_kwargs["timeout"] = int(job_timeout)
                 params_list.append(job_kwargs)
+        task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
         job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
-        for index, job_result in enumerate(job_result_list):
-            if job_result["result"]:
+        for index, res in enumerate(job_result_list):
+            job_result = res["result"]
+            if job_result:
                 job_instance_id.append(job_result["data"]["job_instance_id"])
                 job_inst_name.append(job_result["data"]["job_instance_name"])
                 job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
@@ -206,63 +208,23 @@ class JobFastPushFileService(JobService):
                 message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
                 self.logger.error(message)
                 ex_data.append(message)
-        data.outputs.job_inst_id = job_instance_id
-        data.outputs.job_inst_name = job_inst_name
-        data.outputs.job_inst_url = job_inst_url
-        data.outputs.client = client
-        if ex_data:
-            data.outputs.ex_data = ex_data
+
+        data.outputs.job_instance_id_list = job_instance_id
+        # 批量请求使用
+        data.outputs.job_id_of_batch_execute = job_instance_id
+        # 请求成功数
+        data.outputs.request_success_count = len(job_result_list)
+        # 执行成功数
+        data.outputs.success_count = 0
+        # 所有请求都失败，则返回
+        if not data.outputs.request_success_count:
+            data.outputs.ex_data = data.outputs.requests_error
             return False
+        data.outputs.final_res = task_count == len(job_result_list)
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        params_list = [
-            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_instance_id}
-            for job_instance_id in data.outputs.job_inst_id
-        ]
-
-        client = get_client_by_user(parent_data.inputs.executor)
-
-        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
-        batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
-
-        # 重置查询 job_id
-        data.outputs.job_inst_id = []
-
-        # 解析查询结果
-        running_task_list = []
-
-        for job_result in batch_result_list:
-            result = job_result["result"]
-            job_id_str = job_result["params"]["job_instance_id"]
-            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
-            job_detail_url = job_urls[0] if job_urls else ""
-            if result["result"]:
-                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
-                job_status = result["data"][0]["status"]
-                # 成功状态
-                if job_status == 3:
-                    data.outputs.success_count += 1
-                # 失败状态
-                elif job_status > 3:
-                    data.outputs.ex_data += (
-                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                        "\n错误信息:{}\n".format(job_detail_url, log_content)
-                    )
-                else:
-                    running_task_list.append(job_id_str)
-            else:
-                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                    job_detail_url
-                )
-
-        # 需要继续轮询的任务
-        data.outputs.job_inst_id = running_task_list
-        # 结束调度
-        if not data.outputs.job_id_of_batch_execute:
-            self.finish_schedule()
-
-            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+        return super(JobScheduleService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [
@@ -279,7 +241,10 @@ class JobFastPushFileService(JobService):
                 name=_("分发成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
             ),
             self.OutputItem(
-                name=_("任务id"), key="job_inst_id", type="string", schema=StringItemSchema(description=_("任务id")),
+                name=_("任务id"),
+                key="job_instance_id_list",
+                type="string",
+                schema=StringItemSchema(description=_("任务id")),
             ),
             self.OutputItem(
                 name=_("任务url"), key="job_inst_url", type="string", schema=StringItemSchema(description=_("任务url"))
