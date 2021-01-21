@@ -15,21 +15,18 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
-from pipeline.component_framework.component import Component
-
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.utils import chunk_table_data
-
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
     cc_list_select_node_inst_id
 )
-
+from pipeline_plugins.components.utils import chunk_table_data
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -111,16 +108,19 @@ class CCBatchTransferHostModule(Service):
             # 获取主机id列表
             host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
             if not host_result["result"]:
-                data.set_outputs("ex_data", host_result["message"])
-                failed_update.append(attr)
+                message = _("无法获取主机id列表，主机属性={}, message={}".format(attr, host_result["message"]))
+                data.set_outputs("ex_data", message)
+                failed_update.append(message)
                 continue
             # 获取 bk module id
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
                 executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_path
             )
             if not cc_list_select_node_inst_id_return["result"]:
-                data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
-                failed_update.append(attr)
+                message = _("无法获取bk module id，"
+                            "主机属性={}, message={}".format(attr, cc_list_select_node_inst_id_return["message"]))
+                data.set_outputs("ex_data", message)
+                failed_update.append(message)
                 continue
             cc_module_select = cc_list_select_node_inst_id_return["data"]
 
@@ -137,8 +137,11 @@ class CCBatchTransferHostModule(Service):
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))
                 success_update.append(attr)
             else:
-                self.logger.info("主机所属业务模块更新失败, data={}".format(cc_kwargs))
-                failed_update.append(attr)
+                message = _(
+                    "主机所属业务模块更新失败，"
+                    "主机属性={}, kwargs={} message={}".format(attr, cc_kwargs, update_result["message"]))
+                self.logger.info(message)
+                failed_update.append(message)
 
         data.set_outputs("transfer_host_module_success", success_update)
         data.set_outputs("transfer_host_module_failed", failed_update)
