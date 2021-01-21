@@ -44,6 +44,10 @@ def get_user_project_list(request):
             }
         )
 
-    data = [{"project_id": proj.id, "bk_biz_id": proj.bk_biz_id, "name": proj.name} for proj in projects]
+    data = [
+        {"project_id": proj.id, "bk_biz_id": proj.bk_biz_id, "name": proj.name}
+        for proj in projects
+        if not proj.is_disable
+    ]
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
