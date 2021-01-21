@@ -91,7 +91,7 @@ class WechatWorkSendMessageService(Service):
                     timeout=5,
                 )
             elif msgtype == "markdown":
-                mentioned_str = " ".join([" <@{}>".format(mentioned) for mentioned in mentioned_list])
+                mentioned_str = " ".join(["<@{}>".format(mentioned) for mentioned in mentioned_list])
                 content = "{}\n{}".format(str(content), mentioned_str)
                 resp = requests.post(
                     url=url,
