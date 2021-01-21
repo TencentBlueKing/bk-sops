@@ -115,8 +115,16 @@
                 </bk-table-column>
                 <bk-table-column :label="$t('操作')" :width="300">
                     <template slot-scope="props">
-                        <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                        <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">{{ $t('删除') }}</bk-button>
+                        <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
+                            <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">
+                                {{ $t('编辑') }}
+                            </bk-button>
+                        </bk-popover>
+                        <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
+                            <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
+                                {{ $t('删除') }}
+                            </bk-button>
+                        </bk-popover>
                     </template>
                 </bk-table-column>
             </bk-table>
@@ -371,7 +379,7 @@
                 'createProjectStaffGroup',
                 'updateProjectStaffGroup',
                 'delProjectStaffGroup',
-                'getProjectLabels',
+                'getProjectLabelsWithDefault',
                 'updateTemplateLabel',
                 'createTemplateLabel',
                 'delTemplateLabel',
@@ -570,8 +578,13 @@
                 this.labelLoading = true
                 this.labelCount = {}
                 try {
-                    const resp = await this.getProjectLabels(this.id)
-                    this.labelList = resp.data
+                    const resp = await this.getProjectLabelsWithDefault(this.id)
+                    const defaultList = []
+                    const normalList = []
+                    resp.data.forEach(item => {
+                        item.is_default ? defaultList.push(item) : normalList.push(item)
+                    })
+                    this.labelList = [...normalList, ...defaultList]
                     if (resp.data.length > 0) {
                         const ids = resp.data.map(item => item.id).join(',')
                         const labelData = await this.getlabelsCitedCount(ids)
