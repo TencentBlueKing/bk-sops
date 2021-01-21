@@ -135,7 +135,11 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_status_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
+    get_job_instance_status_kwargs = {
+        "job_instance_id": job_instance_id,
+        "bk_biz_id": bk_biz_id,
+        "return_ip_result": True,
+    }
     get_job_instance_status_return = client.jobv3.get_job_instance_status(get_job_instance_status_kwargs)
     if not get_job_instance_status_return["result"]:
         message = handle_api_error(
