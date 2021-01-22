@@ -130,7 +130,8 @@
                     v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
                         content: $t('版本更新'),
-                        placements: ['bottom-end'] }"
+                        placements: ['bottom-end']
+                    }"
                     @click="onUpdateSubflowVersion">
                 </i>
             </bk-form-item>

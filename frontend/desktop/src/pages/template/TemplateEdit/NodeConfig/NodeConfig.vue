@@ -745,9 +745,11 @@
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
-                this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                this.setSubprocessUpdated({
-                    subprocess_node_id: this.nodeConfig.id
+                this.$nextTick(() => {
+                    this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                    this.setSubprocessUpdated({
+                        subprocess_node_id: this.nodeConfig.id
+                    })
                 })
             },
             /**
