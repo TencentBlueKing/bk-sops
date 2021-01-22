@@ -27,7 +27,7 @@
                         </div>
                     </template>
                 </bk-input>
-                <p v-if="formData.desc" class="plugin-info-desc">{{ formData.desc }}</p>
+                <p v-if="formData.desc" class="plugin-info-desc" v-html="formData.desc"></p>
             </bk-form-item>
             <bk-form-item :label="$t('插件版本')" :required="true" property="version">
                 <bk-select

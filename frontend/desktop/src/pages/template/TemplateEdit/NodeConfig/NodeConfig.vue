@@ -519,7 +519,14 @@
                         const atom = this.atomList.find(item => item.code === component.code)
                         basicInfoName = `${atom.group_name}-${atom.name}`
                         version = component.hasOwnProperty('version') ? component.version : 'legacy'
-                        desc = atom.desc
+                        // 获取不同版本的描述
+                        const { desc: description } = atom.list.find(item => item.version === version)
+                        if (description && description.includes('\n')) {
+                            const descList = description.split('\n')
+                            desc = descList.join('<br>')
+                        } else {
+                            desc = description
+                        }
                     }
 
                     return {
@@ -661,8 +668,15 @@
              * - 校验基础信息
              */
             async pluginChange (atomGroup) {
-                const { code, group_name, name, desc, list } = atomGroup
+                const { code, group_name, name, list } = atomGroup
                 this.versionList = this.getAtomVersions(code)
+                // 获取不同版本的描述
+                const atom = this.atomList.find(item => item.code === code)
+                let { desc } = atom.list.find(item => item.version === list[list.length - 1].version)
+                if (desc && desc.includes('\n')) {
+                    const descList = desc.split('\n')
+                    desc = descList.join('<br>')
+                }
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,
@@ -685,7 +699,16 @@
              * 标准插件版本切换
              */
             versionChange (val) {
-                this.updateBasicInfo({ version: val })
+                // 获取不同版本的描述
+                const { component } = this.$store.state.template.activities[this.nodeId]
+                const code = this.pluginOrTplChangeVal.code || component.code // 先判断选择插件的code
+                const atom = this.atomList.find(item => item.code === code)
+                let { desc } = atom.list.find(item => item.version === val)
+                if (desc && desc.includes('\n')) {
+                    const descList = desc.split('\n')
+                    desc = descList.join('<br>')
+                }
+                this.updateBasicInfo({ version: val, desc })
                 this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 this.getPluginDetail()
@@ -720,18 +743,6 @@
              */
             updateBasicInfo (data) {
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
-                // 获取当前接口的不同版本的描述
-                const { component } = this.$store.state.template.activities[this.nodeId]
-                const code = this.pluginOrTplChangeVal.code || component.code // 先判断选择插件的code
-                if (code) {
-                    const atom = this.atomList.find(item => item.code === code)
-                    const { desc } = atom.list.find(item => item.version === this.basicInfo.version)
-                    this.basicInfo.desc = desc
-                    if (desc.includes('\n')) {
-                        const descList = desc.split('\n')
-                        this.basicInfo.desc = descList.join('<p></p>')
-                    }
-                }
             },
             // 输入参数表单值更新
             updateInputsValue (val) {
