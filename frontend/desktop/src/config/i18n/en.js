@@ -1,4 +1,5 @@
 const en = {
+    '集群数据接口不兼容': 'Incompatible cluster data interface',
     '任务数据': 'Task data',
     '继续执行': 'Continue Execution',
     '保存筛选方案': 'Save the filter scheme',

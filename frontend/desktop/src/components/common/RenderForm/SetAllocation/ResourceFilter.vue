@@ -57,6 +57,8 @@
                         :value="formData.set[0] && formData.set[0].id"
                         :clearable="false"
                         :loading="pending.set"
+                        :disabled="isSetLevelBeyond"
+                        :placeholder="isSetLevelBeyond ? i18n.setPlaceholder : i18n.pleaseSelect "
                         ext-popover-cls="common-bk-select-hide-option">
                         <template v-if="formData.set.length > 0">
                             <bk-option
@@ -415,8 +417,12 @@
                     muteModuleTips: gettext('如果互斥模块复用本模块，则该互斥约束失效'),
                     muteModule: gettext('互斥模块'),
                     condition: gettext('筛选条件和排除条件'),
-                    filterLock: gettext('过滤加锁主机')
-                }
+                    filterLock: gettext('过滤加锁主机'),
+                    setPlaceholder: gettext('集群数据接口不兼容'),
+                    pleaseSelect: gettext('请选择')
+                },
+                levelInfo: [], // 集群模板层数
+                isSetLevelBeyond: false // 集群模板是否大于等于三层
             }
         },
         computed: {
@@ -529,6 +535,10 @@
                         url: this.urls['cc_search_topo_set']
                     })
                     if (resp.result) {
+                        this.getLevelCount(resp.data)
+                        const levelList = this.levelInfo.map(item => item.level)
+                        this.isSetLevelBeyond = Math.max(levelList) >= 3
+                        if (this.isSetLevelBeyond) return
                         this.setList = resp.data
                         if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
                             const checkedName = this.filterSetName(this.config.set_template_id, resp.data)
@@ -552,6 +562,35 @@
                 } finally {
                     this.pending.set = false
                 }
+            },
+            /**
+             * 获取集群模板层数
+             * @param data 模板数据
+             * @param id 第一层id
+             * @param level 上一层
+             */
+            getLevelCount (data, id = null, level = 0) {
+                data.forEach(item => {
+                    const children = item.children || []
+                    if (!id) {
+                        this.levelInfo.push({
+                            id: item.id,
+                            level: 1
+                        })
+                        if (children.length) {
+                            this.getLevelCount(children, item.id, 1)
+                        }
+                    } else {
+                        const info = this.levelInfo.find(val => val.id === id)
+                        if (level === info.level) {
+                            info.level++
+                        }
+                        if (children.length) {
+                            if (info.level >= 3) return
+                            this.getLevelCount(children, info.id, level + 1)
+                        }
+                    }
+                })
             },
             async getResource () {
                 try {
