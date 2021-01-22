@@ -1,0 +1,16 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_create_task",
+                "related_actions": [
+                    "project_view",
+                    "mini_app_view",
+                    "flow_view"
+                ]
+            }
+        }
+    ]
+}
