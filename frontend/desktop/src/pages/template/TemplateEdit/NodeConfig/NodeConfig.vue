@@ -257,8 +257,7 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                isChange: false, // 输入、输出参数勾选状态是否有变化
-                pluginOrTplChangeVal: {} // 选择插件的信息
+                isChange: false // 输入、输出参数勾选状态是否有变化
             }
         },
         computed: {
@@ -519,7 +518,14 @@
                         const atom = this.atomList.find(item => item.code === component.code)
                         basicInfoName = `${atom.group_name}-${atom.name}`
                         version = component.hasOwnProperty('version') ? component.version : 'legacy'
-                        desc = atom.desc
+                        // 获取不同版本的描述
+                        const { desc: description } = atom.list.find(item => item.version === version)
+                        if (description && description.includes('\n')) {
+                            const descList = description.split('\n')
+                            desc = descList.join('<br>')
+                        } else {
+                            desc = description
+                        }
                     }
 
                     return {
@@ -644,7 +650,6 @@
 
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
-                this.pluginOrTplChangeVal = val
                 this.isSelectorPanelShow = false
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
@@ -661,8 +666,15 @@
              * - 校验基础信息
              */
             async pluginChange (atomGroup) {
-                const { code, group_name, name, desc, list } = atomGroup
+                const { code, group_name, name, list } = atomGroup
                 this.versionList = this.getAtomVersions(code)
+                // 获取不同版本的描述
+                const atom = this.atomList.find(item => item.code === code)
+                let { desc } = atom.list.find(item => item.version === list[list.length - 1].version)
+                if (desc && desc.includes('\n')) {
+                    const descList = desc.split('\n')
+                    desc = descList.join('<br>')
+                }
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,
@@ -685,7 +697,14 @@
              * 标准插件版本切换
              */
             versionChange (val) {
-                this.updateBasicInfo({ version: val })
+                // 获取不同版本的描述
+                const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                let { desc } = atom.list.find(item => item.version === val)
+                if (desc && desc.includes('\n')) {
+                    const descList = desc.split('\n')
+                    desc = descList.join('<br>')
+                }
+                this.updateBasicInfo({ version: val, desc })
                 this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 this.getPluginDetail()
@@ -720,18 +739,6 @@
              */
             updateBasicInfo (data) {
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
-                // 获取当前接口的不同版本的描述
-                const { component } = this.$store.state.template.activities[this.nodeId]
-                const code = component.code || this.pluginOrTplChangeVal.code
-                if (code) {
-                    const atom = this.atomList.find(item => item.code === code)
-                    const { desc } = atom.list.find(item => item.version === this.basicInfo.version)
-                    this.basicInfo.desc = desc
-                    if (desc.includes('\n')) {
-                        const descList = desc.split('\n')
-                        this.basicInfo.desc = descList.join('<p></p>')
-                    }
-                }
             },
             // 输入参数表单值更新
             updateInputsValue (val) {
@@ -745,9 +752,11 @@
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
-                this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                this.setSubprocessUpdated({
-                    subprocess_node_id: this.nodeConfig.id
+                this.$nextTick(() => {
+                    this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                    this.setSubprocessUpdated({
+                        subprocess_node_id: this.nodeConfig.id
+                    })
                 })
             },
             /**
