@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.translation import ugettext_lazy as _
 
+import env
 from blueapps.account.decorators import login_exempt
 from gcloud.utils.throttle import check_task_operation_throttle
 
@@ -181,7 +182,7 @@ def task_action(request, action, project_id):
     username = request.user.username
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    if settings.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project_id, action):
+    if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project_id, action):
         return JsonResponse(
             {
                 "result": False,

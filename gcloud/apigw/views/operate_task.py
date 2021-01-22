@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
@@ -51,7 +51,7 @@ def operate_task(request, task_id, project_id):
     username = request.user.username
     project = request.project
 
-    if settings.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, action):
+    if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, action):
         return JsonResponse(
             {
                 "result": False,

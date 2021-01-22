@@ -10,11 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
@@ -41,7 +41,7 @@ def start_task(request, task_id, project_id):
     username = request.user.username
     project = request.project
 
-    if settings.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, "start"):
+    if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, "start"):
         return JsonResponse(
             {
                 "result": False,
