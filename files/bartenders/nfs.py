@@ -54,7 +54,7 @@ class HostNFSBartender(UploadRequestBartender):
 
         try:
             file_tag = self.manager.save(name=file_name, content=file_obj, shims=shims)
-        except Exception as e:
+        except Exception:
             logger.error("file upload save err: {}".format(traceback.format_exc()))
             response = JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
             response.status_code = 500
