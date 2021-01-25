@@ -535,9 +535,7 @@
                         url: this.urls['cc_search_topo_set']
                     })
                     if (resp.result) {
-                        this.getLevelCount(resp.data)
-                        const levelList = this.levelInfo.map(item => item.level)
-                        this.setSelectDisable = Math.max(levelList) >= 3
+                        this.setSelectDisable = this.isSetSelectDisable(resp.data)
                         if (this.setSelectDisable) return
                         this.setList = resp.data
                         if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
@@ -563,32 +561,13 @@
                     this.pending.set = false
                 }
             },
-            /**
-             * 获取集群模板层数
-             * @param data 模板数据
-             * @param id 第一层id
-             * @param level 上一层
-             */
-            getLevelCount (data, id = null, level = 0) {
-                data.forEach(item => {
-                    const children = item.children || []
-                    if (!id) {
-                        this.levelInfo.push({
-                            id: item.id,
-                            level: 1
-                        })
-                        if (children.length) {
-                            this.getLevelCount(children, item.id, 1)
-                        }
-                    } else {
-                        const info = this.levelInfo.find(val => val.id === id)
-                        if (level === info.level) {
-                            info.level++
-                        }
-                        if (children.length) {
-                            if (info.level >= 3) return
-                            this.getLevelCount(children, info.id, level + 1)
-                        }
+            isSetSelectDisable (data, level = 1) {
+                if (level > 2) {
+                    return true
+                }
+                return data.some(item => {
+                    if (item.children) {
+                        return this.isSetSelectDisable(item.children, level + 1)
                     }
                 })
             },
