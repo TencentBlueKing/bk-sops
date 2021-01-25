@@ -112,7 +112,8 @@
                         ref="variableEdit"
                         :variable-data="variableData"
                         :common="common"
-                        @closeEditingPanel="isVariablePanelShow = false">
+                        @closeEditingPanel="isVariablePanelShow = false"
+                        @onSaveEditing="isVariablePanelShow = false">
                     </variable-edit>
                 </div>
                 <!-- 插件/子流程表单面板 -->
