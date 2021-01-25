@@ -120,6 +120,22 @@
                         </bk-select>
                     </div>
                 </li>
+                <!-- 模板预渲染 -->
+                <li class="form-item clearfix" v-if="!isSystemVar">
+                    <label class="form-label">{{ $t('模板预渲染')}}</label>
+                    <div class="form-content">
+                        <bk-select
+                            v-model="theEditingData.pre_render_mako"
+                            :clearable="false">
+                            <bk-option
+                                v-for="(option, index) in preRenderList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </div>
+                </li>
             </ul>
         </div>
         <div class="btn-wrap">
@@ -179,6 +195,10 @@
                 showTypeList: [
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
+                ],
+                preRenderList: [
+                    { id: 'yes', name: i18n.t('是') },
+                    { id: 'no', name: i18n.t('否') }
                 ],
                 metaTag: undefined, // 元变量tag名称
                 renderData: {},
@@ -267,6 +287,11 @@
             }
         },
         async created () {
+            // 设置模板预渲染默认值（兼容以前存在的模板）
+            const variableData = this.variableData
+            if (!variableData.hasOwnProperty('pre_render_mako') && variableData.show_type === 'hide') {
+                this.theEditingData.pre_render_mako = 'yes'
+            }
             this.extendFormValidate()
         },
         async mounted () {
