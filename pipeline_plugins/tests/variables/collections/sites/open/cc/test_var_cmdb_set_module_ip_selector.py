@@ -133,6 +133,807 @@ SELECT_METHOD_SUC_CLIENT = MockClient(
         }
     }
 )
+
+IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_HAS_FILTER_SET_MODULUE_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_SET_MODULE_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_NO_INNER_MODULE_SUCCESS_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_SUCCESS_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_MODULE_SUCCESS_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
+IP_SELECTOR_SELECT_METHOD_ALL_SELECT_MODULE_SUCCESS_CLIENT = MockClient(
+    list_biz_hosts_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "count": 2,
+            "info": [
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 1,
+                    "bk_host_innerip": "192.168.15.18",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+                {
+                    "bk_cloud_id": 0,
+                    "bk_host_id": 2,
+                    "bk_host_innerip": "192.168.15.4",
+                    "bk_mac": "",
+                    "bk_os_type": None,
+                },
+            ],
+        },
+    },
+    list_service_template_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "permission": None,
+        "data": {"count": 2, "info": [{"id": 51, "name": "test3"}, {"id": 50, "name": "test2"}]},
+    },
+    search_set_return={
+        "result": True,
+        "code": 0,
+        "message": "",
+        "data": {
+            "count": 1,
+            "info": [
+                {"default": 1, "bk_set_id": 30, "bk_set_name": "空闲机池"},
+                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                {"default": 0, "bk_set_id": 33, "bk_set_name": "集群3"},
+                {"default": 0, "bk_set_id": 34, "bk_set_name": "集群4"},
+                {"default": 0, "bk_set_id": 38, "bk_set_name": "集群5"},
+                {"default": 0, "bk_set_id": 39, "bk_set_name": "集群6"},
+            ],
+        },
+    },
+    find_module_with_relation_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {"count": 2, "info": [{"bk_module_id": 60}, {"bk_module_id": 61}]},
+    },
+    get_biz_internal_module_return={
+        "result": True,
+        "code": 0,
+        "message": "success",
+        "data": {
+            "bk_set_id": 2,
+            "bk_set_name": "空闲机池",
+            "module": [
+                {
+                    "bk_module_id": 3,
+                    "bk_module_name": "空闲机"
+                },
+                {
+                    "bk_module_id": 4,
+                    "bk_module_name": "故障机"
+                },
+                {
+                    "bk_module_id": 5,
+                    "bk_module_name": "待回收"
+                }
+            ]
+        }
+    }
+)
+
 MANUAL_METHOD_SUC_CLIENT = MockClient(
     list_biz_hosts_return={
         "result": True,
@@ -786,15 +1587,99 @@ CC_GET_IPS_INFO_BY_STR_RETURN = {
 IP_SELECTOR_SELECT_METHOD_SUC_VALUE = {
     "var_ip_method": "select",
     "var_ip_custom_value": "",
-    "var_ip_select_value": {"var_set": ["空闲机", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
     "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
     "var_filter_set": "集群1,集群2",
     "var_filter_module": "ls",
 }
+IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_HAS_FILTER_SET_MODULUE_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "空闲机池",
+    "var_filter_module": "",
+}
+IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_SET_MODULE_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "空闲机池",
+    "var_filter_module": "空闲机",
+}
+IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "集群1,空闲机池",
+    "var_filter_module": "",
+}
+IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "集群1,空闲机池",
+    "var_filter_module": "空闲机",
+}
+IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "",
+    "var_filter_module": "",
+}
+IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "",
+    "var_filter_module": "",
+}
+IP_SELECTOR_SELECT_METHOD_NO_INNER_MODULE_SUCCESS_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["空闲机", "集群1"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "集群1,集群2",
+    "var_filter_module": "ls",
+}
+
+IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_SUCCESS_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["all"], "var_module": ["空闲机", "db"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "集群1,集群2",
+    "var_filter_module": "空闲机",
+}
+
+IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_MODULE_SUCCESS_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["all"], "var_module": ["all"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "集群1,集群2",
+    "var_filter_module": "空闲机",
+}
+
+IP_SELECTOR_SELECT_METHOD_ALL_SELECT_MODULE_SUCCESS_VALUE = {
+    "var_ip_method": "select",
+    "var_ip_custom_value": "",
+    "var_ip_select_value": {"var_set": ["集群1"], "var_module": ["all"], "var_module_name": "ip"},
+    "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+    "var_filter_set": "集群1,集群2",
+    "var_filter_module": "空闲机",
+}
+
 IP_SELECTOR_SELECT_METHOD_FAIL_VALUE = {
     "var_ip_method": "select",
     "var_ip_custom_value": "",
-    "var_ip_select_value": {"var_set": ["空闲机", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
     "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
     "var_filter_set": "集群1,集群2",
     "var_filter_module": "ls",
@@ -802,7 +1687,7 @@ IP_SELECTOR_SELECT_METHOD_FAIL_VALUE = {
 IP_SELECTOR_MANUAL_METHOD_SUC_VALUE = {
     "var_ip_method": "manual",
     "var_ip_custom_value": "",
-    "var_ip_select_value": {"var_set": ["空闲机", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
     "var_ip_manual_value": {"var_manual_set": "空闲机,集群1", "var_manual_module": "all,db", "var_module_name": ""},
     "var_filter_set": "集群1,集群2",
     "var_filter_module": "ls",
@@ -810,7 +1695,7 @@ IP_SELECTOR_MANUAL_METHOD_SUC_VALUE = {
 IP_SELECTOR_MANUAL_METHOD_FAIL_VALUE = {
     "var_ip_method": "manual",
     "var_ip_custom_value": "",
-    "var_ip_select_value": {"var_set": ["空闲机", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
+    "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
     "var_ip_manual_value": {"var_manual_set": "空闲机,集群1", "var_manual_module": "all,db", "var_module_name": ""},
     "var_filter_set": "集群1,集群2",
     "var_filter_module": "ls",
@@ -922,7 +1807,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         self.custom_method_biz_input_inner_module_success_case_return = "192.168.15.18,192.168.15.4"
         self.custom_method_biz_input_inner_set_success_case_return = "192.168.15.18,192.168.15.4"
         self.select_method_biz_input_inner_module_success_case_return = "192.168.15.18,192.168.15.4"
-        self.select_method_biz_input_inner_set_success_case_return = "192.168.15.18,192.168.15.4"
+        self.select_method_biz_input_inner_set_success_case_return = ""
         self.select_method_no_filter_set_module_success_case_return = "192.168.15.18,192.168.15.4"
         self.select_method_no_filter_set_module_select_module_success_case_return = "192.168.15.18,192.168.15.4"
 
@@ -950,6 +1835,269 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             },
             {
                 "func": SELECT_METHOD_SUC_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_HAS_FILTER_SET_MODULUE_CLIENT)
+    def test_ip_selector_select_method_suc_no_filter_has_filter_set_modulue_success_case(self,
+                                                                                         mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_HAS_FILTER_SET_MODULUE_VALUE,
+            name="test_ip_selector_select_method_suc_no_filter_has_filter_set_modulue_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_HAS_FILTER_SET_MODULUE_CLIENT.cc.find_module_with_relation,
+                "calls": []
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_HAS_FILTER_SET_MODULUE_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_SET_MODULE_CLIENT)
+    def test_ip_selector_select_method_suc_has_filter_set_module_success_case(self, mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_SET_MODULE_VALUE,
+            name="test_ip_selector_select_method_suc_has_filter_set_module_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_SET_MODULE_CLIENT.cc.find_module_with_relation,
+                "calls": []
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_SET_MODULE_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_CLIENT)
+    def test_ip_selector_select_method_suc_has_filter_other_set_success_case(self, mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_VALUE,
+            name="test_ip_selector_select_method_suc_has_filter_other_set_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_CLIENT)
+    def test_ip_selector_select_method_suc_has_filter_other_set_module_success_case(self,
+                                                                                    mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_VALUE,
+            name="test_ip_selector_select_method_suc_has_filter_other_set_module_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_CLIENT)
+    def test_ip_selector_select_method_suc_has_filter_other_set_module_success_case(self,
+                                                                                    mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_VALUE,
+            name="test_ip_selector_select_method_suc_has_filter_other_set_module_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_CLIENT.cc.list_biz_hosts,
+                "calls": [
+                    call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5], bk_supplier_account='supplier_account_token',
+                         fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                    call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5], bk_supplier_account='supplier_account_token',
+                         fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_CLIENT)
+    def test_ip_selector_select_method_suc_no_filter_success_case(self,
+                                                                  mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_VALUE,
+            name="test_ip_selector_select_method_suc_no_filter_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_NO_INNER_MODULE_SUCCESS_CLIENT)
+    def test_ip_selector_select_method_no_inner_module_success_case(self,
+                                                                    mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_NO_INNER_MODULE_SUCCESS_VALUE,
+            name="test_ip_selector_select_method_no_inner_module_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_NO_INNER_MODULE_SUCCESS_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_NO_INNER_MODULE_SUCCESS_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_SUCCESS_CLIENT)
+    def test_ip_selector_select_method_all_select_set_success__case(self,
+                                                                    mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_SUCCESS_VALUE,
+            name="test_ip_selector_select_method_all_select_set_success__case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_SUCCESS_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31, 32], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31, 32], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_SUCCESS_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_MODULE_SUCCESS_CLIENT)
+    def test_ip_selector_select_method_all_select_set_module_success__case(self,
+                                                                           mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_MODULE_SUCCESS_VALUE,
+            name="test_ip_selector_select_method_all_select_set_module_success__case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_MODULE_SUCCESS_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31, 32], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31, 32], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_ALL_SELECT_SET_MODULE_SUCCESS_CLIENT.cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
+    @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_ALL_SELECT_MODULE_SUCCESS_CLIENT)
+    def test_ip_selector_select_method_all_select_module_success_case(self,
+                                                                      mock_get_client_by_user_return):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value=IP_SELECTOR_SELECT_METHOD_ALL_SELECT_MODULE_SUCCESS_VALUE,
+            name="test_ip_selector_select_method_all_select_module_success_case",
+            context={},
+        )
+        self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_ALL_SELECT_MODULE_SUCCESS_CLIENT.cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
+                               page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": IP_SELECTOR_SELECT_METHOD_ALL_SELECT_MODULE_SUCCESS_CLIENT.cc.list_biz_hosts,
                 "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
                           call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
@@ -1042,11 +2190,9 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             },
             {
                 "func": CUSTOM_METHOD_SUC_CLIENT.cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5],
-                               bk_supplier_account='supplier_account_token',
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5],
-                               bk_supplier_account='supplier_account_token',
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
             }
         ])
@@ -1091,16 +2237,10 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             },
             {
                 "func": CUSTOM_METHOD_BIZ_INNERIP_SUC_CLIENT.cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0}),
-                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5],
-                               bk_supplier_account='supplier_account_token', fields=['bk_host_innerip'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3, 4, 5],
-                               bk_supplier_account='supplier_account_token', fields=['bk_host_innerip'],
-                               page={'limit': 500, 'start': 0})]
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
             }
         ])
 
@@ -1150,9 +2290,9 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             },
             {
                 "func": SELECT_METHOD_BIZ_INNERIP_SUC_CLIENT.cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[60, 61, 3], bk_supplier_account='supplier_account_token',
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
                                fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
             }
         ])
@@ -1173,11 +2313,10 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             },
             {
                 "func": SELECT_METHOD_BIZ_INNERIP_SUC_CLIENT.cc.list_biz_hosts,
-                "calls": [
-                    call(bk_biz_id=1, bk_module_ids=[3, 4, 5], bk_supplier_account='supplier_account_token',
-                         fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                    call(bk_biz_id=1, bk_module_ids=[3, 4, 5], bk_supplier_account='supplier_account_token',
-                         fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+                "calls": [call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[60, 61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
             }
         ])
 
@@ -1224,7 +2363,8 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                          set_module_ip_selector.get_value())
         call_assert([
             {
-                "func": SELECT_METHOD_BIZ_INNERIP_NO_FILTER_SET_MODULE_SELECT_MODULE_SUC_CLIENT.cc.find_module_with_relation, # noqa
+                "func": SELECT_METHOD_BIZ_INNERIP_NO_FILTER_SET_MODULE_SELECT_MODULE_SUC_CLIENT.cc.find_module_with_relation,
+                # noqa
                 "calls": [
                     call(bk_biz_id=1, bk_service_template_ids=[3, 4, 5], bk_set_ids=[31], fields=['bk_module_id'],
                          page={'start': 0, 'limit': 1}),
