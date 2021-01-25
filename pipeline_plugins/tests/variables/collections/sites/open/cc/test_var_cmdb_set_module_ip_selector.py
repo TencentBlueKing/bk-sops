@@ -1943,12 +1943,12 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         ])
 
     @patch(GET_CLIENT_BY_USER, return_value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_CLIENT)
-    def test_ip_selector_select_method_suc_has_filter_other_set_module_success_case(self,
+    def test_ip_selector_select_method_suc_no_filter_no_modulue_success_case(self,
                                                                                     mock_get_client_by_user_return):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value=IP_SELECTOR_SELECT_METHOD_SUC_NO_FILTER_NO_MODULUE_VALUE,
-            name="test_ip_selector_select_method_suc_has_filter_other_set_module_success_case",
+            name="test_ip_selector_select_method_suc_no_filter_no_modulue_success_case",
             context={},
         )
         self.assertEqual(self.select_method_success_return, set_module_ip_selector.get_value())
