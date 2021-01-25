@@ -57,8 +57,8 @@
                         :value="formData.set[0] && formData.set[0].id"
                         :clearable="false"
                         :loading="pending.set"
-                        :disabled="isSetLevelBeyond"
-                        :placeholder="isSetLevelBeyond ? i18n.setPlaceholder : i18n.pleaseSelect "
+                        :disabled="setSelectDisable"
+                        :placeholder="setSelectDisable ? i18n.setPlaceholder : i18n.pleaseSelect "
                         ext-popover-cls="common-bk-select-hide-option">
                         <template v-if="formData.set.length > 0">
                             <bk-option
@@ -418,11 +418,11 @@
                     muteModule: gettext('互斥模块'),
                     condition: gettext('筛选条件和排除条件'),
                     filterLock: gettext('过滤加锁主机'),
-                    setPlaceholder: gettext('集群数据接口不兼容'),
+                    setPlaceholder: gettext('暂不支持分层层级大于 业务-集群 两层的集群模版'),
                     pleaseSelect: gettext('请选择')
                 },
                 levelInfo: [], // 集群模板层数
-                isSetLevelBeyond: false // 集群模板是否大于等于三层
+                setSelectDisable: false // 集群模板是否大于等于三层
             }
         },
         computed: {
@@ -537,8 +537,8 @@
                     if (resp.result) {
                         this.getLevelCount(resp.data)
                         const levelList = this.levelInfo.map(item => item.level)
-                        this.isSetLevelBeyond = Math.max(levelList) >= 3
-                        if (this.isSetLevelBeyond) return
+                        this.setSelectDisable = Math.max(levelList) >= 3
+                        if (this.setSelectDisable) return
                         this.setList = resp.data
                         if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
                             const checkedName = this.filterSetName(this.config.set_template_id, resp.data)
