@@ -21,6 +21,7 @@
                 <advance-search-form
                     ref="advanceSearch"
                     id="templateList"
+                    :open="isSearchFormOpen"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -242,7 +243,7 @@
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('分类'),
@@ -309,17 +310,30 @@
                 page = 1,
                 limit = 15,
                 category = '',
-                start_time = '',
-                end_time = '',
+                queryTime = '',
                 subprocessUpdateVal = '',
                 creator = '',
-                keyword = ''
+                keyword = '',
+                label_ids = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        const value = this.$route.query[item.key].split(',')
+                        item.value = item.key === 'label_ids' ? value.map(v => Number(v)) : value
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                searchForm: tools.deepClone(searchForm),
+                searchForm,
+                isSearchFormOpen, // 高级搜索表单默认展开
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
@@ -340,7 +354,8 @@
                     category,
                     creator,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
-                    queryTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    label_ids: label_ids ? label_ids.split(',') : [],
                     flowName: keyword
                 },
                 totalPage: 1,
@@ -593,15 +608,15 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, subprocessUpdateVal, creator, flowName } = this.requestData
+                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName } = this.requestData
                 const filterObj = {
                     limit,
                     category,
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    start_time: queryTime[0],
-                    end_time: queryTime[1],
+                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
+                    label_ids: label_ids.length ? label_ids.join(',') : '',
                     keyword: flowName
                 }
                 const query = {}
@@ -690,14 +705,14 @@
             handleSubflowFilter () {
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
                 searchComp.submit()
             },
             // 筛选包含当前标签的模板
             onSearchLabel (id) {
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem([id], searchForm[4].key)
+                searchComp.onChangeFormItem([id], 'label_ids')
                 searchComp.submit()
             },
             // 添加/取消收藏模板
