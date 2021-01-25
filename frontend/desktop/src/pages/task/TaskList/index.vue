@@ -15,6 +15,7 @@
             <div class="operation-area">
                 <advance-search-form
                     id="taskList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -183,7 +184,7 @@
     import TaskCloneDialog from './TaskCloneDialog.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'dateRange',
             key: 'executeTime',
@@ -195,7 +196,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -204,7 +205,7 @@
             type: 'select',
             label: i18n.t('创建方式'),
             key: 'createMethod',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择创建方式'),
             list: [],
             value: ''
@@ -261,19 +262,31 @@
                 template_source = '',
                 create_info = '',
                 category = '',
-                start_time = '',
-                end_time = '',
-                create_method = '',
+                executeTime = '',
+                createMethod = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
                 keyword = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 templateId: this.$route.query.template_id,
                 taskCategory: [],
                 searchStr: '',
+                searchForm,
+                isSearchFormOpen, // 高级搜索表单默认展开
                 executeStatus: [], // 任务执行状态
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -291,16 +304,16 @@
                 },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
-                createMethod: create_method,
+                createMethod,
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    executeTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
                     category,
                     creator,
                     executor,
                     statusSync,
-                    createMethod: create_method,
+                    createMethod,
                     taskName: keyword
                 },
                 pagination: {
@@ -318,18 +331,7 @@
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                // 任务执行
-                value[1].list = this.taskCategory
-                value[1].loading = this.taskBasicInfoLoading
-                // 创建方式
-                value[2].list = this.taskCreateMethodList
-                value[2].value = this.create_method || ''
-                value[5].loading = this.taskBasicInfoLoading
-                return searchForm
-            }
+            })
         },
         created () {
             this.getData()
@@ -431,6 +433,9 @@
                     this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -575,10 +580,9 @@
                     creator,
                     executor,
                     statusSync,
+                    createMethod,
                     page: current,
-                    create_method: createMethod,
-                    start_time: executeTime[0],
-                    end_time: executeTime[1],
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
                     keyword: taskName
                 }
                 const query = {}
@@ -594,7 +598,9 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data.map(m => ({ value: m.value, name: m.name }))
-                    this.createMethod = this.create_method || ''
+                    const form = this.searchForm.find(item => item.key === 'createMethod')
+                    form.list = this.taskCreateMethodList
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
