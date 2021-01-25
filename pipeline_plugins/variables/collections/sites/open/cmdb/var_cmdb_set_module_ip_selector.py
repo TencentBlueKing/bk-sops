@@ -142,7 +142,6 @@ def get_module_id_list(
           需要添加一个接口去获取相应模块的模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
         - 如果用户筛选规则中输入了 空闲机池 + 空闲机 则只取空闲机 模块id，
           与用 find_module_with_relation得到的module_id合并在一起去获取ip
-        - 如果用户筛选规则中输入了 空闲机 则只取空闲机 模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
         - 如果用户筛选规则中输入了 空闲机池 取空闲机池下 所有模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
         - 如果筛选规则中没有输入空闲机池或空闲机模块id，则将使用选择到的空闲机模块id获取ip
         - 空闲机池setid会被去掉，不能传到find_module_with_relation接口中，由于空闲机池下没有使用服务模板创建的模块
@@ -184,24 +183,47 @@ def get_module_id_list(
     # 筛选规则与空闲机、待回收、故障机模块取交集
     biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(filter_service_template_names_list)
 
+    selected_inner_module_id_set = set([
+        service_template_item["id"]
+        for service_template_item in service_template_list
+        if service_template_item["name"] in BIZ_INTERNAL_MODULE
+    ])
+
     inner_module_id_list = []
     if BIZ_INTERNAL_SET in filter_set_names:
-        # 取空闲机池下所有模块ID
-        inner_module_id_list = [
-            {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
-            for biz_internal_module_item in get_biz_internal_module(username, bk_biz_id, bk_supplier_account)
-            if biz_internal_module_item["name"] in BIZ_INTERNAL_MODULE
-        ]
-
-    # 用户输入空闲机，只取空闲机模块ID
-    if biz_internal_module:
+        # 判断是否有选择到空闲机模块ID，如果有取选择到的空闲机模块ID，没有则取空闲机池下所有模块ID
+        if selected_inner_module_id_set:
+            inner_module_id_list = [
+                {"default": 0, "bk_module_id": service_template_item["id"]}
+                for service_template_item in service_template_list
+                if service_template_item["name"] in BIZ_INTERNAL_MODULE
+            ]
+        else:
+            inner_module_id_list = [
+                {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
+                for biz_internal_module_item in get_biz_internal_module(username, bk_biz_id, bk_supplier_account)
+                if biz_internal_module_item["name"] in BIZ_INTERNAL_MODULE
+            ]
+        # 用户输入空闲机，只取空闲机模块ID
+        if biz_internal_module:
+            inner_module_id_list = [
+                {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
+                for biz_internal_module_item in service_template_list
+                if biz_internal_module_item["name"] in biz_internal_module
+            ]
+        # 如果用户筛选规则中有空闲机池，模块ID中不包含空闲机模块，获取到的模块ID为空
+        elif filter_service_template_names:
+            inner_module_id_list = []
+    # 筛选规则没有set name但是有module name，选择筛选规则中的module name
+    elif not filter_set_names and biz_internal_module:
         inner_module_id_list = [
             {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
             for biz_internal_module_item in service_template_list
             if biz_internal_module_item["name"] in biz_internal_module
         ]
-    # 筛选规则没有筛选空闲机的规则时，添加选择到的空闲机module id
-    if not biz_internal_module and BIZ_INTERNAL_SET not in filter_set_names:
+
+    # 没有筛选规则时，添加选择到的空闲机module id
+    if not filter_set_names and not filter_service_template_names:
         # 获取service_template_list的空闲模块名
         biz_internal_module = [service_template_item["name"]
                                for service_template_item in service_template_list
@@ -336,10 +358,14 @@ def get_biz_inner_module_list(
 
     # 勾选的模块与空闲机、待回收、故障机模块取交集
     select_method = var_ip_selector[produce_method]
-    select_biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(select_method[module_input_method])
+    if ALL_SELECTED_STR in select_method[module_input_method]:
+        select_biz_internal_module = BIZ_INTERNAL_MODULE
+    else:
+        select_biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(select_method[module_input_method])
 
-    # 用户输入空闲机池，取空闲机池下所有模块ID
-    if BIZ_INTERNAL_SET in select_method[set_input_method] and not select_biz_internal_module:
+    # 用户输入空闲机池或all，取空闲机池下所有模块ID,
+    if (BIZ_INTERNAL_SET in select_method[set_input_method] or ALL_SELECTED_STR in select_method[set_input_method]) \
+            and (not select_biz_internal_module or select_biz_internal_module == BIZ_INTERNAL_MODULE):
         return biz_internal_module_list
 
     biz_internal_module_option_list = []
