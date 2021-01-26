@@ -1,4 +1,5 @@
 const en = {
+    '类别': 'Category',
     '任务数据': 'Task data',
     '继续执行': 'Continue Execution',
     '保存筛选方案': 'Save the filter scheme',

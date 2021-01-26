@@ -253,6 +253,7 @@
                     formData.append('id', id)
                     formData.append('template_id', app.appTemplate)
                     formData.append('name', app.appName)
+                    formData.append('category', app.appCategory)
                     formData.append('template_scheme_id', app.appScheme)
                     formData.append('desc', app.appDesc)
                     formData.append('logo', app.appLogo)
@@ -275,6 +276,7 @@
                 this.currentAppData = {
                     template_id: '',
                     name: '',
+                    category: '',
                     template_scheme_id: '',
                     desc: '',
                     logo_url: undefined

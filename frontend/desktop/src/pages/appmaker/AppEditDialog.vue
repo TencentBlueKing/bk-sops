@@ -57,6 +57,17 @@
                 </div>
             </div>
             <div class="common-form-item">
+                <label>{{$t('类别')}}</label>
+                <div class="common-form-content">
+                    <bk-input
+                        v-model="appData.appCategory"
+                        name="appCategory"
+                        class="ui-form-item"
+                        :clearable="true">
+                    </bk-input>
+                </div>
+            </div>
+            <div class="common-form-item">
                 <label>{{$t('执行方案')}}</label>
                 <div class="common-form-content">
                     <bk-select
@@ -193,6 +204,7 @@
                     return {
                         template_id: '',
                         name: '',
+                        category: '',
                         template_scheme_id: '',
                         desc: '',
                         logo_url: undefined,
@@ -214,6 +226,7 @@
                 appData: {
                     appTemplate: '',
                     appName: '',
+                    appCategory: '',
                     appScheme: '',
                     appDesc: '',
                     appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
@@ -268,11 +281,12 @@
             },
             currentAppData: {
                 handler (val) {
-                    const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
+                    const { template_id, name, template_scheme_id, desc, logo_url, auth_actions, category } = val
                     this.appData = {
                         appActions: auth_actions,
                         appTemplate: template_id ? Number(template_id) : '',
                         appName: name,
+                        appCategory: category,
                         appScheme: template_scheme_id ? Number(template_scheme_id) : '',
                         appDesc: desc,
                         appLogo: undefined
@@ -326,6 +340,7 @@
                 const template = this.templateList.find(item => item.id === id)
                 this.appData.appTemplate = id
                 this.appData.appName = template.name
+                this.appData.appCategory = template.category
                 this.appTemplateEmpty = false
                 this.appData.appScheme = ''
                 this.appData.appActions = template.auth_actions
@@ -395,6 +410,7 @@
                 this.appData = {
                     appTemplate: '',
                     appName: '',
+                    appCategory: '',
                     appScheme: '',
                     appDesc: '',
                     appActions: [],
