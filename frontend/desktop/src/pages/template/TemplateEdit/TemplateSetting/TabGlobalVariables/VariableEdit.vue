@@ -125,7 +125,7 @@
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
-                            v-model="theEditingData.pre_render_mako"
+                            v-model="theEditingData.preRenderMako"
                             :clearable="false">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
@@ -197,8 +197,8 @@
                     { id: 'hide', name: i18n.t('隐藏') }
                 ],
                 preRenderList: [
-                    { id: 'yes', name: i18n.t('是') },
-                    { id: 'no', name: i18n.t('否') }
+                    { id: 'true', name: i18n.t('是') },
+                    { id: 'false', name: i18n.t('否') }
                 ],
                 metaTag: undefined, // 元变量tag名称
                 renderData: {},
@@ -289,8 +289,10 @@
         async created () {
             // 设置模板预渲染默认值（兼容以前存在的模板）
             const variableData = this.variableData
-            if (!variableData.hasOwnProperty('pre_render_mako') && variableData.show_type === 'hide') {
-                this.theEditingData.pre_render_mako = 'yes'
+            if (variableData.hasOwnProperty('pre_render_mako')) {
+                this.theEditingData.preRenderMako = String(variableData.pre_render_mako)
+            } else if (variableData.show_type === 'hide') {
+                this.theEditingData.preRenderMako = 'true'
             }
             this.extendFormValidate()
         },
@@ -593,6 +595,9 @@
                         return false
                     }
 
+                    if (this.theEditingData.preRenderMako) {
+                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.preRenderMako)
+                    }
                     const variable = this.theEditingData
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
                         const tagCode = this.renderConfig[0].tag_code
