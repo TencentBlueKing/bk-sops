@@ -81,7 +81,7 @@
 </script>
 <style lang="scss" scoped>
 .error-content-dialog {
-    z-index: 2501; // 导入临时方案侧滑层级2500
+    z-index: 2501;
     .error-content {
         padding-bottom: 40px;
         /deep/ .error-title {
