@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.28
+
+- improvement
+  - 将最大请求体限制改为25MB
+
 ## 3.6.27
 
 - bugfix
