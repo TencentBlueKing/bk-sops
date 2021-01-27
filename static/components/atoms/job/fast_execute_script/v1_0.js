@@ -408,7 +408,7 @@
                         if (value === true) {
                             this.placeholder = gettext("格式为【云区域ID:IP】，多个用换行分隔");
                         } else {
-                            this.placeholder = gettext("格式为【IP】，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的");
+                            this.placeholder = gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的");
                         }
                     }
                 },
