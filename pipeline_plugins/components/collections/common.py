@@ -75,7 +75,7 @@ class HttpRequestService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         method = data.get_one_of_inputs("bk_http_request_method")
-        url = data.get_one_of_inputs("bk_http_request_url")
+        url = data.get_one_of_inputs("bk_http_request_url").strip()
         body = data.get_one_of_inputs("bk_http_request_body")
         other = {}
 
