@@ -17,7 +17,7 @@ import logging
 from django.db.models import Count, Avg
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils.managermixins import ClassificationCountMixin
+from gcloud.utils.managermixins import ClassificationCountMixin
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentExecuteData, InstanceInPipeline
 from pipeline.engine.utils import calculate_elapsed_time

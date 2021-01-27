@@ -49,6 +49,8 @@ DATABASES = {
     },
 }
 
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
+
 LOG_PERSISTENT_DAYS = 1
 
 LOGGING["loggers"]["iam"] = {
