@@ -145,7 +145,6 @@ def get_module_id_list(
         - 如果用户筛选规则中输入了 空闲机池 + 空闲机 则只取空闲机 模块id，
           与用 find_module_with_relation得到的module_id合并在一起去获取ip
         - 如果用户筛选规则中输入了 空闲机池 取空闲机池下 所有模块id，与用 find_module_with_relation得到的module_id合并在一起去获取ip
-        - 如果筛选规则中没有输入空闲机池或空闲机模块id，则将使用选择到的空闲机模块id获取ip
         - 空闲机池setid会被去掉，不能传到find_module_with_relation接口中，由于空闲机池下没有使用服务模板创建的模块
     @summary 根据集群模块筛选规则筛选出符合条件的模块id
     @param username: 执行用户名
