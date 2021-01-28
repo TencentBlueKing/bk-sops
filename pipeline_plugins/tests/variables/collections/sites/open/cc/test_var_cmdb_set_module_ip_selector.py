@@ -68,9 +68,7 @@ def list_biz_hosts_func(*args, **kwargs):
         "count": 0,
         "info": [],
     }
-    bk_module_ids = kwargs["bk_module_ids"]
-    bk_module_ids = sorted(set(bk_module_ids), key=bk_module_ids.index)
-    for module_id in bk_module_ids:
+    for module_id in kwargs["bk_module_ids"]:
         data["info"].append((module_ip_map[module_id]))
     data["count"] = len(data["info"])
     return {"result": True, "code": 0, "message": "success", "data": data}
