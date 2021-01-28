@@ -1,7 +1,6 @@
 
 **master 不是稳定分支，请使用 `v` 前缀的版本分支**
 
-[3.x 版本升级说明](./docs/user_guide_3.x_upgrade.md)
 ## pipeline
 
 pipeline 是标准运维 v3 内部使用的任务调度引擎，其主要职责是解析，执行，管理由用户创建的流程任务，并提供了如暂停，撤销，跳过和重试等灵活的控制能力和并行、子流程等进阶特性，并可通过水平扩展来进一步提升任务的并发处理能力。
@@ -10,7 +9,6 @@ python 版本支持：
 
 | pipeline | python |
 | --- | --- |
-| 3.x | 3.6.x |
 | 2.x | 3.6.x |
 | 1.x | 2.x |
 
@@ -19,9 +17,6 @@ python 版本支持：
 ### 1. 初始化
 
 由于 pipeline 依赖 Django ORM，所以必须作为一个 Django APP 嵌入到 Django 项目中使用。
-#### 配置 INSTALLED_APPS
-
-#### 配置 INSTALLED_APPS
 
 首先将 pipeline 项目拷贝到当前 Django 目录下，并在 Django 工程的 `INSTALLED_APPS` 中添加以下 APP:
 
@@ -37,20 +32,6 @@ python 版本支持：
     "django_celery_results",
      ...
 )
-```
-
-#### 导入 Celery 配置
-
-在 Django 工程的 `settings.py` 文件下添加以下代码导入 celery 配置：
-
-```
-from pipeline.celery.settings import *  # noqa
-
-from celery import Celery
-
-app = Celery("proj")
-
-app.config_from_object("django.conf:settings")
 ```
 
 安装依赖包：`pip install -r pipeline/requirements.txt`
@@ -150,6 +131,5 @@ task_service.run_pipeline(pipeline)
 - [自定义配置](./docs/user_guide_config.md)
 - [卡死任务检测](./docs/user_guide_zombie_process.md)
 - [内部消息传递保障](./docs/user_guide_engine_message_lost.md)
-- [3.x 版本升级说明](./docs/user_guide_3.x_upgrade.md)
 - API Reference
   - [pipeline.service.task_service](./docs/api_reference/pipeline.service.task_service.md)
