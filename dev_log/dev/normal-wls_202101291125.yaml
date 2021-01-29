@@ -1,0 +1,2 @@
+feature:
+  - 升级 django/pipeline/celery 核心依赖版本
