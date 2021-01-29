@@ -19,6 +19,11 @@
             </span>
             <span class="col-item col-key">
                 {{ variableData.key }}
+                <i
+                    class="common-icon-double-paper-2 copy-icon"
+                    v-bk-tooltips.bottom="$t('复制')"
+                    @click.stop="onCopyKey(variableData.key)">
+                </i>
             </span>
             <span class="col-item col-attributes">
                 <span class="icon-wrap">
@@ -78,16 +83,21 @@
                 {{ citedList.length }}
             </span>
             <span class="col-item col-operation">
-                <span class="col-operation-item"
-                    @click.stop="onCopyKey(variableData.key)">
-                    {{ $t('复制') }}
-                </span>
                 <span
-                    v-if="!isSystemVar"
+                    v-if="isSystemVar"
                     class="col-operation-item"
-                    @click.stop="onDeleteVariable(variableData.key)">
-                    {{ $t('删除') }}
+                    @click.stop="onEditVariable(variableData.key, variableData.index)">
+                    {{ $t('查看') }}
                 </span>
+                <template v-else>
+                    <span
+                        v-if="!isSystemVar"
+                        class="col-operation-item"
+                        @click.stop="onPreviewValue(variableData.key)">
+                        {{ $t('预览值') }}
+                    </span>
+                    <i class="bk-icon icon-close delete-icon" @click.stop="onDeleteVariable(variableData.key)"></i>
+                </template>
             </span>
         </div>
         <VariableCitedList
@@ -95,31 +105,45 @@
             :cited-list="citedList"
             @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
         </VariableCitedList>
+        <VariablePreviewValue
+            v-if="showPreviewValue"
+            :keyid="variableData.key"
+            :params="previewParams">
+        </VariablePreviewValue>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import VariableCitedList from './VariableCitedList.vue'
+    import VariablePreviewValue from './VariablePreviewValue.vue'
 
     export default {
         name: 'VariableItem',
         components: {
-            VariableCitedList
+            VariableCitedList,
+            VariablePreviewValue
         },
         props: {
             outputed: Boolean,
-            variableData: Object
+            variableData: Object,
+            common: [String, Number]
         },
         data () {
             return {
                 showCitedList: false,
-                copyText: ''
+                showPreviewValue: false,
+                copyText: '',
+                previewParams: {}
             }
         },
         computed: {
             ...mapState({
-                'activities': state => state.template.activities
+                'username': state => state.username,
+                'activities': state => state.template.activities,
+                'constants': state => state.template.constants,
+                'project_id': state => state.project.project_id,
+                'bizId': state => state.project.bizId
             }),
             isSystemVar () {
                 return this.variableData.source_type === 'system'
@@ -227,6 +251,7 @@
             },
             // 查看引用节点信息
             onViewCitedList () {
+                this.showPreviewValue = false
                 if (this.citedList.length > 0 && !this.showCitedList) {
                     this.showCitedList = true
                 } else {
@@ -235,6 +260,23 @@
             },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
+            },
+            // 查看变量预览值
+            onPreviewValue () {
+                this.showCitedList = false
+                if (this.showPreviewValue) {
+                    this.showPreviewValue = false
+                } else {
+                    this.previewParams = {
+                        constants: this.constants,
+                        extra_data: {
+                            executor: this.username,
+                            project_id: this.common ? undefined : this.project_id,
+                            biz_cc_id: this.common ? undefined : this.bizId
+                        }
+                    }
+                    this.showPreviewValue = true
+                }
             },
             onDeleteVariable (key) {
                 this.$emit('onDeleteVariable', key)
@@ -258,6 +300,11 @@ $localBorderColor: #d8e2e7;
     &:not(:last-child) {
         border-bottom: 1px solid #ebebeb;
     }
+    &:hover {
+        .col-operation .delete-icon {
+            display: inline-block;
+        }
+    }
     .variable-content {
         position: relative;
         padding-left: 50px;
@@ -276,7 +323,22 @@ $localBorderColor: #d8e2e7;
         width: 242px;
     }
     .col-key {
-        width: 174px;
+        position: relative;
+        padding-right: 30px;
+        width: 180px;
+        .copy-icon {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 14px;
+            font-size: 14px;
+            color: #3a84ff;
+        }
+        &:hover {
+            .copy-icon {
+                display: inline-block;
+            }
+        }
     }
     .col-attributes {
         width: 77px;
@@ -354,11 +416,22 @@ $localBorderColor: #d8e2e7;
     }
 }
 .col-operation {
+    display: flex;
+    align-items: center;
     .col-operation-item {
         color: #3a84ff;
         cursor: pointer;
         &:not(:first-child) {
             margin-left: 10px;
+        }
+    }
+    .delete-icon {
+        display: none;
+        margin-left: 4px;
+        font-size: 20px;
+        color: #979ba5;
+        &:hover {
+            color: #3a84ff;
         }
     }
 }

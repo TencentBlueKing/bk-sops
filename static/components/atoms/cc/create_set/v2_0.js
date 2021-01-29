@@ -205,6 +205,7 @@
             tag_code: "cc_set_info",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("集群信息"),
                 remote_url: function () {
                     const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';

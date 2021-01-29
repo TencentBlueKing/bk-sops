@@ -39,9 +39,10 @@
             ]
         },
         {
-            tag_code: "host_transfer_detail",
+            tag_code: "cc_host_transfer_detail",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("主机所属模块修改详情"),
                 table_buttons: [
                     {
@@ -121,6 +122,5 @@
                 }
             ],
         },
-
     ]
 })();

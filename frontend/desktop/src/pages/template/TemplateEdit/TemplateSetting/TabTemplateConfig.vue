@@ -31,6 +31,32 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
+                <bk-form-item :label="$t('标签')">
+                    <bk-select
+                        v-model="formData.labels"
+                        class="label-select"
+                        :display-tag="true"
+                        :multiple="true">
+                        <bk-option
+                            v-for="(item, index) in templateLabels"
+                            :key="index"
+                            :id="item.id"
+                            :name="item.name">
+                            <div class="label-select-option">
+                                <span
+                                    class="label-select-color"
+                                    :style="{ background: item.color }">
+                                </span>
+                                <span>{{item.name}}</span>
+                                <i class="bk-option-icon bk-icon icon-check-1"></i>
+                            </div>
+                        </bk-option>
+                        <div slot="extension" @click="onEditLabel" class="label-select-extension">
+                            <i class="common-icon-edit"></i>
+                            <span>{{ $t('编辑标签') }}</span>
+                        </div>
+                    </bk-select>
+                </bk-form-item>
                 <bk-form-item :label="$t('通知方式')">
                     <bk-checkbox-group v-model="formData.notifyType" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
                         <template v-for="item in notifyTypeList">
@@ -91,14 +117,15 @@
             common: [String, Number]
         },
         data () {
-            const { category, notify_type, notify_receivers, description, executor_proxy } = this.$store.state.template
+            const { category, notify_type, notify_receivers, description, executor_proxy, template_labels } = this.$store.state.template
             return {
                 formData: {
                     category,
                     description,
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
-                    notifyType: notify_type.slice(0)
+                    notifyType: notify_type.slice(0),
+                    labels: template_labels
                 },
                 rules: {
                     category: [
@@ -116,10 +143,12 @@
                     //     }
                     // ]
                 },
+                templateLabels: [],
                 notifyTypeList: [],
                 projectNotifyGroup: [],
                 notifyTypeLoading: false,
-                notifyGroupLoading: false
+                notifyGroupLoading: false,
+                templateLabelLoading: false
             }
         },
         computed: {
@@ -154,6 +183,7 @@
         },
         created () {
             this.getNotifyTypeList()
+            this.getTemplateLabelList()
             if (!this.common) {
                 this.getProjectNotifyGroup()
             }
@@ -171,6 +201,9 @@
                 'getNotifyTypes',
                 'getNotifyGroup'
             ]),
+            ...mapActions('project/', [
+                'getProjectLabelsWithDefault'
+            ]),
             async getNotifyTypeList () {
                 try {
                     this.notifyTypeLoading = true
@@ -181,6 +214,20 @@
                 } finally {
                     this.notifyTypeLoading = false
                 }
+            },
+            async getTemplateLabelList () {
+                try {
+                    this.templateLabelLoading = true
+                    const res = await this.getProjectLabelsWithDefault(this.$route.params.project_id)
+                    this.templateLabels = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.templateLabelLoading = false
+                }
+            },
+            onEditLabel () {
+                this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
             },
             async getProjectNotifyGroup () {
                 try {
@@ -196,10 +243,11 @@
             onConfirm () {
                 this.$refs.configForm.validate().then(result => {
                     if (result) {
-                        const { category, description, executorProxy, receiverGroup, notifyType } = this.formData
+                        const { category, description, executorProxy, receiverGroup, notifyType, labels } = this.formData
                         const data = {
                             category,
                             description,
+                            template_labels: labels,
                             executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                             receiver_group: receiverGroup,
                             notify_type: notifyType
@@ -263,4 +311,33 @@
         display: block;
     }
 }
+</style>
+<style lang="scss">
+    .label-select-option {
+        display: flex;
+        align-items: center;
+        .label-select-color {
+            margin-right: 4px;
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+        }
+        .bk-option-icon {
+            display: none;
+        }
+    }
+    .bk-option.is-selected .bk-option-icon{
+        display: inline-block;
+    }
+    .label-select-extension {
+        cursor: pointer;
+        & > .common-icon-edit {
+            font-size: 14px;
+            color: #979ba5;
+        }
+        & > span {
+            font-size: 12px;
+        }
+    }
 </style>

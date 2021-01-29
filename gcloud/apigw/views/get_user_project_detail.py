@@ -10,8 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
+from cachetools import cached, TTLCache
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
@@ -19,6 +18,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.utils import api_hash_key
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
@@ -36,6 +36,7 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())
+@cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)

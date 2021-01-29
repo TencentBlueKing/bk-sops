@@ -46,12 +46,22 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, execute_job_return, get_global_var_return=None, get_job_instance_log_return=None):
+    def __init__(
+        self,
+        execute_job_return,
+        get_global_var_return=None,
+        get_job_instance_log_return=None,
+        get_job_instance_ip_log_return=None,
+        get_job_instance_status=None,
+    ):
         self.set_bk_api_ver = MagicMock()
         self.job = MagicMock()
+        self.jobv3 = MagicMock()
         self.job.execute_job = MagicMock(return_value=execute_job_return)
         self.job.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
         self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
+        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
 
 # mock path
@@ -112,6 +122,69 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
 
+EXECUTE_SUCCESS_GET_STATUS_RETURN = {
+    "result": True,
+    "code": 0,
+    "message": "",
+    "data": {
+        "finished": True,
+        "job_instance": {
+            "job_instance_id": 100,
+            "bk_biz_id": 1,
+            "name": "API Quick execution script1521089795887",
+            "create_time": 1605064271000,
+            "status": 4,
+            "start_time": 1605064271000,
+            "end_time": 1605064272000,
+            "total_time": 1000,
+        },
+        "step_instance_list": [
+            {
+                "status": 4,
+                "total_time": 1000,
+                "name": "API Quick execution scriptxxx",
+                "step_instance_id": 75,
+                "execute_count": 0,
+                "create_time": 1605064271000,
+                "end_time": 1605064272000,
+                "type": 1,
+                "start_time": 1605064271000,
+                "step_ip_result_list": [
+                    {
+                        "ip": "1.1.1.1",
+                        "bk_cloud_id": 0,
+                        "status": 9,
+                        "tag": "",
+                        "exit_code": 0,
+                        "error_code": 0,
+                        "start_time": 1605064271000,
+                        "end_time": 1605064272000,
+                        "total_time": 1000,
+                    },
+                    {
+                        "ip": "1.1.1.2",
+                        "bk_cloud_id": 0,
+                        "status": 9,
+                        "tag": "",
+                        "exit_code": 0,
+                        "error_code": 0,
+                        "start_time": 1605064271000,
+                        "end_time": 1605064272000,
+                        "total_time": 1000,
+                    },
+                ],
+            }
+        ],
+    },
+}
+
+EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
+    "result": True,
+    "code": 0,
+    "message": "",
+    "data": {"ip": "10.0.0.1", "bk_cloud_id": 0, "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"},
+}
+
 # mock clients
 EXECUTE_JOB_CALL_FAIL_CLIENT = MockClient(execute_job_return={"result": False, "message": "message token"})
 INVALID_CALLBACK_DATA_CLIENT = MockClient(
@@ -140,7 +213,10 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
         },
     },
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
+    get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
+    get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
+
 
 GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
     execute_job_return={"result": True, "data": {"job_instance_id": 56789, "job_instance_name": "job_name_token"}},
@@ -158,6 +234,8 @@ GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
         },
     },
     get_job_instance_log_return=GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN,
+    get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
+    get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
 
 # test cases
@@ -482,16 +560,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "client": EXECUTE_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
-            "log_outputs": {
-                "key1": "value1",
-                "key2": "value2",
-                "key3": "value3",
-                "key4": "   v   ",
-                "k": " v  ",
-                "key5": "  ",
-                "key6": "v:v",
-                "k1": " :v  ",
-            },
+            "log_outputs": {},
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),

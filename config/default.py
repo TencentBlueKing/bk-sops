@@ -58,6 +58,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.collection",
     "gcloud.apigw",
     "gcloud.commons.template",
+    "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
@@ -84,6 +85,7 @@ INSTALLED_APPS += (
     "files",
     "corsheaders",
     "rest_framework",
+    "django_filters",
     "iam",
     "iam.contrib.iam_migration",
 )
@@ -147,7 +149,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.18"
+STATIC_VERSION = "3.6.27"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -337,7 +339,47 @@ PIPELINE_DATA_CANDIDATE_BACKEND = env.BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 # pipeline mako render settings
-MAKO_SANDBOX_SHIELD_WORDS = ["compile", "exec", "eval"]
+MAKO_SANDBOX_SHIELD_WORDS = [
+    "ascii",
+    "bytearray",
+    "bytes",
+    "callable",
+    "chr",
+    "classmethod",
+    "compile",
+    "delattr",
+    "dir",
+    "divmod",
+    "exec",
+    "eval",
+    "filter",
+    "frozenset",
+    "getattr",
+    "globals",
+    "hasattr",
+    "hash",
+    "help",
+    "id",
+    "input",
+    "isinstance",
+    "issubclass",
+    "iter",
+    "locals",
+    "map",
+    "memoryview",
+    "next",
+    "object",
+    "open",
+    "print",
+    "property",
+    "repr",
+    "setattr",
+    "staticmethod",
+    "super",
+    "type",
+    "vars",
+    "__import__",
+]
 
 MAKO_SANDBOX_IMPORT_MODULES = {
     "datetime": "datetime",
@@ -391,3 +433,6 @@ MIGRATE_TOKEN = env.MIGRATE_TOKEN
 # keywords to shield in node log
 LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + env.BKAPP_LOG_SHIELDING_KEYWORDS
 LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if LOG_SHIELDING_KEYWORDS else []
+
+AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
+AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"

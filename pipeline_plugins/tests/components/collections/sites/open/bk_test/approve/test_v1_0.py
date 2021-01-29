@@ -34,6 +34,7 @@ class BkApproveComponentTest(TestCase, ComponentTestMixin):
         return [
             CREATE_APPROVE_TICKET_FAIL_CASE,
             CREATE_APPROVE_TICKET_SUCCESS_CASE,
+            REJECTED_BLOCK_SUCCESS_CASE,
         ]
 
 
@@ -64,6 +65,16 @@ CALLBACK_URL_SUCCESS_RETURN = {
     "approve_result": True,
 }
 
+CALLBACK_URL_REJECT_RETURN = {
+    "sn": "REQ20200831000005",
+    "title": "this is a test",
+    "ticket_url": "https://xxx.xx.com",
+    "current_status": "FINISHED",
+    "updated_by": "admin,hongsong",
+    "update_at": "2020-08-31 20:57:22",
+    "approve_result": False,
+}
+
 CREAT_TICKET_SUCCESS_CLIENT = MockClient(create_ticket=CREAT_TICKET_SUCCESS_RETURN)
 CREAT_TICKET_FAIL_RETURN_CLIENT = MockClient(create_ticket=CREAT_TICKET_FAIL_RETURN)
 
@@ -90,10 +101,7 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "create ticket fail"}),
     execute_call_assertion=[
-        CallAssertion(
-            func=CREAT_TICKET_FAIL_RETURN_CLIENT.create_ticket,
-            calls=[Call(**CREAT_TICKET_CALL)],
-        )
+        CallAssertion(func=CREAT_TICKET_FAIL_RETURN_CLIENT.create_ticket, calls=[Call(**CREAT_TICKET_CALL)],)
     ],
     schedule_assertion=None,
     patchers=[
@@ -109,15 +117,39 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
     execute_call_assertion=[
-        CallAssertion(
-            func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket,
-            calls=[Call(**CREAT_TICKET_CALL)],
-        )
+        CallAssertion(func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket, calls=[Call(**CREAT_TICKET_CALL)],)
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
         outputs={"approve_result": "通过", "sn": "NO2019090519542603"},
         callback_data=CALLBACK_URL_SUCCESS_RETURN,
+    ),
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_SUCCESS_CLIENT),
+        Patcher(target=BK_HANDLE_API_ERROR, return_value=""),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
+    ],
+)
+BLOCKED_INPUTS = {
+    "bk_verifier": "tester, tester1",
+    "bk_approve_title": "this is a test",
+    "bk_notify_title": "title",
+    "bk_approve_content": "test content",
+    "rejected_block": False,
+}
+
+REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
+    name="rejected_block success case",
+    inputs=BLOCKED_INPUTS,
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
+    execute_call_assertion=[
+        CallAssertion(func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket, calls=[Call(**CREAT_TICKET_CALL)],)
+    ],
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        outputs={"approve_result": "拒绝", "sn": "NO2019090519542603"},
+        callback_data=CALLBACK_URL_REJECT_RETURN,
     ),
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_SUCCESS_CLIENT),

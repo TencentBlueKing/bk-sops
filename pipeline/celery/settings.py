@@ -30,6 +30,9 @@ SCHEDULE_DEFAULT_ROUTING_KEY = "schedule_service_priority"
 ADDITIONAL_DEFAULT_QUEUE_NAME = "pipeline_additional_task_priority"
 ADDITIONAL_DEFAULT_ROUTING_KEY = "additional_task_priority"
 
+STATISTICS_PRIORITY_QUEUE_NAME = "pipeline_statistics_priority"
+STATISTICS_PRIORITY_ROUTING_KEY = "pipeline_statistics_priority"
+
 SCALABLE_QUEUES_CONFIG = {
     PUSH_DEFAULT_QUEUE_NAME: {"name": PUSH_DEFAULT_QUEUE_NAME, "routing_key": PUSH_DEFAULT_ROUTING_KEY},
     SCHEDULE_DEFAULT_QUEUE_NAME: {"name": SCHEDULE_DEFAULT_QUEUE_NAME, "routing_key": SCHEDULE_DEFAULT_ROUTING_KEY},
@@ -42,6 +45,11 @@ PIPELINE_SCHEDULE_PRIORITY_ROUTING = {"queue": SCHEDULE_DEFAULT_QUEUE_NAME, "rou
 PIPELINE_ADDITIONAL_PRIORITY_ROUTING = {
     "queue": ADDITIONAL_DEFAULT_QUEUE_NAME,
     "routing_key": ADDITIONAL_DEFAULT_ROUTING_KEY,
+}
+
+PIPELINE_STATISTICS_PRIORITY_ROUTING = {
+    "queue": STATISTICS_PRIORITY_QUEUE_NAME,
+    "routing_key": STATISTICS_PRIORITY_ROUTING_KEY,
 }
 
 CELERY_ROUTES = {
@@ -60,6 +68,9 @@ CELERY_ROUTES = {
     "pipeline.engine.tasks.node_timeout_check": PIPELINE_ADDITIONAL_PRIORITY_ROUTING,
     "pipeline.contrib.periodic_task.tasks.periodic_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING,
     "pipeline.engine.tasks.heal_zombie_process": PIPELINE_ADDITIONAL_PRIORITY_ROUTING,
+    # statistics
+    "pipeline.contrib.statistics.tasks.pipeline_post_save_statistics_task": PIPELINE_STATISTICS_PRIORITY_ROUTING,
+    "pipeline.contrib.statistics.tasks.pipeline_archive_statistics_task": PIPELINE_STATISTICS_PRIORITY_ROUTING,
 }
 
 
@@ -137,6 +148,12 @@ CELERY_QUEUES = (
         ADDITIONAL_DEFAULT_QUEUE_NAME,
         default_exchange,
         routing_key=ADDITIONAL_DEFAULT_ROUTING_KEY,
+        queue_arguments={"x-max-priority": PIPELINE_MAX_PRIORITY},
+    ),
+    Queue(
+        STATISTICS_PRIORITY_QUEUE_NAME,
+        default_exchange,
+        routing_key=STATISTICS_PRIORITY_ROUTING_KEY,
         queue_arguments={"x-max-priority": PIPELINE_MAX_PRIORITY},
     ),
 )

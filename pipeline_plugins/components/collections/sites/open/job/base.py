@@ -45,6 +45,8 @@ from gcloud.utils.handlers import handle_api_error
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
+from pipeline_plugins.components.utils import batch_execute_func
+
 JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
@@ -135,16 +137,40 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_log_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
-    get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
-    if not get_job_instance_log_return["result"]:
+    get_job_instance_status_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
+    get_job_instance_status_return = client.jobv3.get_job_instance_status(get_job_instance_status_kwargs)
+    if not get_job_instance_status_return["result"]:
         message = handle_api_error(
-            __group_name__, "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            get_job_instance_status_kwargs,
+            get_job_instance_status_return,
         )
         service_logger.warning(message)
         return {"result": False, "message": message}
-    job_logs = get_job_instance_log_return["data"]
-    log_text = "\n".join([job_log["step_results"][0]["ip_logs"][0]["log_content"] for job_log in job_logs])
+    # 根据每个步骤的IP（可能有多个），循环查询作业执行日志
+    log_list = []
+    for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
+        for step_ip_result in step_instance["step_ip_result_list"]:
+            get_job_instance_ip_log_kwargs = {
+                "job_instance_id": job_instance_id,
+                "bk_biz_id": bk_biz_id,
+                "step_instance_id": step_instance["step_instance_id"],
+                "bk_cloud_id": step_ip_result["bk_cloud_id"],
+                "ip": step_ip_result["ip"],
+            }
+            get_job_instance_ip_log_kwargs_return = client.jobv3.get_job_instance_ip_log(get_job_instance_ip_log_kwargs)
+            if not get_job_instance_ip_log_kwargs_return["result"]:
+                message = handle_api_error(
+                    __group_name__,
+                    "jobv3.get_job_instance_ip_log_kwargs",
+                    get_job_instance_ip_log_kwargs,
+                    get_job_instance_ip_log_kwargs_return,
+                )
+                service_logger.warning(message)
+                return {"result": False, "message": message}
+            log_list.append(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
+    log_text = "\n".join(log_list)
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
@@ -264,3 +290,54 @@ class JobService(Service):
                 schema=StringItemSchema(description=_("提交的任务在 JOB 平台的 URL")),
             ),
         ]
+
+
+class JobScheduleService(JobService):
+    def schedule(self, data, parent_data, callback_data=None):
+        params_list = [
+            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
+            for job_id in data.outputs.job_id_of_batch_execute
+        ]
+
+        client = get_client_by_user(parent_data.inputs.executor)
+
+        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
+        batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
+
+        # 重置查询 job_id
+        data.outputs.job_id_of_batch_execute = []
+
+        # 解析查询结果
+        running_task_list = []
+
+        for job_result in batch_result_list:
+            result = job_result["result"]
+            job_id_str = job_result["params"]["job_instance_id"]
+            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
+            job_detail_url = job_urls[0] if job_urls else ""
+            if result["result"]:
+                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
+                job_status = result["data"][0]["status"]
+                # 成功状态
+                if job_status == 3:
+                    data.outputs.success_count += 1
+                # 失败状态
+                elif job_status > 3:
+                    data.outputs.ex_data += (
+                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                        "\n错误信息:{}\n".format(job_detail_url, log_content)
+                    )
+                else:
+                    running_task_list.append(job_id_str)
+            else:
+                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                    job_detail_url
+                )
+
+        # 需要继续轮询的任务
+        data.outputs.job_id_of_batch_execute = running_task_list
+        # 结束调度
+        if not data.outputs.job_id_of_batch_execute:
+            self.finish_schedule()
+
+            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count

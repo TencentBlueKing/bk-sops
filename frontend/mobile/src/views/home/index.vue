@@ -16,13 +16,13 @@
             @load="onLoad">
             <div class="panel-list">
                 <van-cell
-                    v-for="item in businessList"
-                    :key="item.cc_id"
-                    :title="item.cc_name"
-                    @click="onClickBusiness(item.cc_id)">
+                    v-for="item in projectList"
+                    :key="item.id"
+                    :title="item.name"
+                    @click="onClickProject(item.id)">
                     <template slot="title">
                         <van-tag color="false" :class="item.tagColor">{{ item.tag }}</van-tag>
-                        <span class="title">{{ item.cc_name }}</span>
+                        <span class="title">{{ item.name }}</span>
                     </template>
                 </van-cell>
             </div>
@@ -41,7 +41,7 @@
 
         data () {
             return {
-                businessList: [],
+                projectList: [],
                 i18n: {
                     errorText: window.gettext('请求失败，点击重新加载'),
                     finishedText: window.gettext('没有更多了')
@@ -50,13 +50,14 @@
                 error: false,
                 finished: false,
                 offset: 0,
+                page: 0,
                 limit: 10,
                 total: 0
             }
         },
         methods: {
-            ...mapActions('business', [
-                'getBusinessList'
+            ...mapActions('project', [
+                'getProjectList'
             ]),
 
             onLoad () {
@@ -65,16 +66,17 @@
 
             async loadData () {
                 try {
-                    const response = await this.getBusinessList({ offset: this.offset, limit: this.limit })
+                    this.page += 1
+                    const response = await this.getProjectList({ offset: this.offset, limit: this.limit })
                     this.total = response.meta.total_count
                     const totalPage = Math.ceil(this.total / this.limit)
-                    if (this.offset + 1 >= totalPage) {
+                    if (this.page === totalPage) {
                         this.finished = true
                     } else {
-                        this.offset = this.offset + 1
+                        this.offset = this.page * this.limit
                     }
-                    this.businessList = [...this.businessList, ...response.objects]
-                    this.businessList.map(item => {
+                    this.projectList = [...this.projectList, ...response.objects]
+                    this.projectList.map(item => {
                         ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
                     })
                 } catch (e) {
@@ -85,23 +87,23 @@
                 }
             },
 
-            getTagColor (biz) {
+            getTagColor (project) {
                 // tag颜色分布 1-5号色值，保存在cookie里面
-                const tagColor = this.$cookies.get(biz.cc_id)
-                const [tag] = biz.cc_name
+                const tagColor = this.$cookies.get(project.id)
+                const [tag] = project.name
                 if (tagColor) {
                     return { tagColor: tagColor, tag: tag }
                 } else {
                     const color = parseInt(Math.random() * 4, 10) + 1
                     const tagColor = `tag-${BIZ_TAG_COLORS[color]}`
-                    this.$cookies.set(biz.cc_id, tagColor)
+                    this.$cookies.set(project.id, tagColor)
                     return { tagColor: tagColor, tag: tag }
                 }
             },
 
-            onClickBusiness (bizId) {
-                this.$store.commit('setBizId', bizId)
-                this.$router.push({ path: `/template/${bizId}` })
+            onClickProject (id) {
+                this.$store.commit('setBizId', id)
+                this.$router.push({ path: `/template/${id}` })
             }
         }
     }

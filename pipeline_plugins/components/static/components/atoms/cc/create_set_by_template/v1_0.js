@@ -244,6 +244,7 @@
             tag_code: "cc_set_attr",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("集群属性"),
                 delete_btn: true,
                 add_btn: true,

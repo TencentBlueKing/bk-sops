@@ -290,7 +290,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         project__id: selectedProject || undefined,
                         category: category || undefined,
-                        audit__pipeline_instance__name__icontains: taskName || undefined,
+                        pipeline_instance__name__contains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
@@ -403,7 +403,7 @@
                 }
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 this.updateUrl()
                 this.loadAuditTask()

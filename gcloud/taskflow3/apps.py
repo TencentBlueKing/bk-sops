@@ -19,7 +19,6 @@ class Taskflow3Config(AppConfig):
     verbose_name = "GcloudTaskflow3"
 
     def ready(self):
-        from gcloud.taskflow3.signals.handlers import pipeline_post_save_handler  # noqa
-        from gcloud.taskflow3.signals.dispatch import dispatch_activity_failed
-
-        dispatch_activity_failed()
+        from gcloud.taskflow3.signals.handlers import pipeline_finish_handler  # noqa
+        from gcloud.taskflow3.signals.handlers import pipeline_revoke_handler  # noqa
+        from gcloud.taskflow3.signals.handlers import pipeline_fail_handler  # noqa

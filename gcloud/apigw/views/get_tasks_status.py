@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+from cachetools import cached, TTLCache
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -19,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.apigw.utils import api_hash_key
 from gcloud.utils.dates import format_datetime
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
@@ -39,8 +41,8 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())
+@cached(cache=TTLCache(maxsize=1024, ttl=10), key=api_hash_key)
 def get_tasks_status(request, project_id):
-
     try:
         params = json.loads(request.body)
     except Exception:
