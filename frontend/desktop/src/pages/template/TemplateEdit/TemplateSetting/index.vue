@@ -51,7 +51,7 @@
             :value="isShowDialog"
             @cancel="isShowDialog = false">
             <div class="template-setting-dialog-content">
-                <div class="leave-tips">{{ '保存已修改的基础信息吗？' }}</div>
+                <div class="leave-tips">{{ $t('保存已修改的基础信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
                     <bk-button theme="default" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
