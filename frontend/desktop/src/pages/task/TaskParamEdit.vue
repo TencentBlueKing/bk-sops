@@ -65,7 +65,8 @@
                 metaConfig: {},
                 renderData: {},
                 isConfigLoading: true,
-                isNoData: false
+                isNoData: false,
+                isInitial: true
             }
         },
         computed: {
@@ -77,6 +78,20 @@
             })
         },
         watch: {
+            renderData: {
+                handler () {
+                    if (!this.isInitial) {
+                        this.$nextTick(() => {
+                            const formValid = this.$refs.renderForm.validate()
+                            if (formValid) {
+                                this.$emit('handeleRenderDataChange')
+                            }
+                        })
+                    }
+                    this.isInitial = false
+                },
+                deep: true
+            },
             constants (val) {
                 this.variables = tools.deepClone(val)
                 this.getFormData()

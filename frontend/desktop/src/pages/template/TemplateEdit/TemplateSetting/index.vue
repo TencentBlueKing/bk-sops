@@ -20,9 +20,12 @@
         </TabGlobalVariables>
         <TabTemplateConfig
             v-if="activeTab === 'templateConfigTab'"
+            ref="templateConfigTab"
             :common="common"
             :is-template-config-valid="isTemplateConfigValid"
             :project-info-loading="projectInfoLoading"
+            @handlerFormChange="handlerFormChange"
+            @onBeforeClose="onBeforeClose"
             @templateDataChanged="$emit('templateDataChanged')"
             @closeTab="closeTab">
         </TabTemplateConfig>
@@ -39,6 +42,22 @@
             @modifyTemplateData="$emit('modifyTemplateData', $event)"
             @closeTab="closeTab">
         </TabPipelineTreeEdit>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="template-setting-dialog-content">
+                <div class="leave-tips">{{ '保存已修改的基础信息吗？' }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -62,11 +81,50 @@
             snapshoots: Array,
             common: [String, Number]
         },
+        data () {
+            return {
+                isFormChange: false,
+                isShowDialog: false
+            }
+        },
         methods: {
             // 关闭面板
             closeTab () {
                 this.$emit('update:activeTab', '')
+            },
+            handlerFormChange () {
+                this.isFormChange = true
+            },
+            onBeforeClose () {
+                if (this.isFormChange) {
+                    this.isShowDialog = this.isFormChange
+                } else {
+                    this.closeTab()
+                }
+            },
+            onConfirmClick () {
+                this.$refs.templateConfigTab.onConfirm()
+                this.isShowDialog = false
+                this.isFormChange = false
+            },
+            onCancelClick () {
+                this.closeTab()
+                this.isShowDialog = false
+                this.isFormChange = false
             }
         }
     }
 </script>
+<style lang="scss">
+    .template-setting-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        .leave-tips {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
+        }
+    }
+</style>

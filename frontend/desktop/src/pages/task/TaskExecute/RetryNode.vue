@@ -53,7 +53,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                isInitial: true
             }
         },
         computed: {
@@ -65,6 +66,17 @@
             }),
             isEmptyParams () {
                 return this.renderConfig.length === 0
+            }
+        },
+        watch: {
+            renderData: {
+                handler () {
+                    if (!this.isInitial) {
+                        this.$emit('handeleRenderDataChange', 'retryNode')
+                    }
+                    this.isInitial = false
+                },
+                deep: true
             }
         },
         mounted () {

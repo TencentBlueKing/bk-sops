@@ -55,15 +55,17 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
+                    ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
+                    @handeleRenderDataChange="handeleRenderDataChange"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -83,14 +85,18 @@
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
+                    ref="retryNode"
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
+                    @handeleRenderDataChange="handeleRenderDataChange"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
                 <ModifyTime
+                    ref="modifyTime"
                     v-if="nodeInfoType === 'modifyTime'"
                     :node-detail-config="nodeDetailConfig"
+                    @handeleRenderDataChange="handeleRenderDataChange"
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
@@ -161,6 +167,22 @@
             :is-show.sync="isShowConditionEdit"
             :condition-data="conditionData">
         </condition-edit>
+        <bk-dialog
+            width="400"
+            ext-cls="task-operation-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-operation-confirm-dialog-content">
+                <div class="leave-tips">{{ '保存已修改的信息吗？' }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -297,7 +319,9 @@
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
                 isShowConditionEdit: false, // 条件分支侧栏
-                conditionData: {}
+                conditionData: {},
+                isShowDialog: false,
+                nodeType: ''
             }
         },
         computed: {
@@ -1014,10 +1038,6 @@
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
-                this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    this.quickClose = false
-                }
             },
             
             onToggleNodeInfoPanel () {
@@ -1265,6 +1285,9 @@
                 this.isNodeInfoPanelShow = false
                 this.updateNodeActived(id, false)
             },
+            handeleRenderDataChange (val) {
+                this.nodeType = val
+            },
             onModifyTimeSuccess (id) {
                 this.isNodeInfoPanelShow = false
                 this.setTaskStatusTimer()
@@ -1308,6 +1331,29 @@
             onHiddenSideslider () {
                 this.nodeInfoType = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+            },
+            onBeforeClose () {
+                if (this.nodeType) {
+                    this.isShowDialog = true
+                } else {
+                    this.isNodeInfoPanelShow = false
+                }
+            },
+            onConfirmClick () {
+                this.isShowDialog = false
+                if (this.nodeType === 'modifyTime') {
+                    this.$refs.modifyTime.onModifyTime()
+                } else if (this.nodeType === 'retryNode') {
+                    this.$refs.retryNode.onRetryTask()
+                } else if (this.nodeType === 'modifyParams') {
+                    this.$refs.modifyParams.onModifyParams()
+                }
+                this.nodeType = ''
+            },
+            onCancelClick () {
+                this.isShowDialog = false
+                this.nodeType = ''
+                this.isNodeInfoPanelShow = false
             }
         }
     }
@@ -1418,6 +1464,17 @@
 }
 .node-info-panel {
     height: 100%;
+}
+.task-operation-confirm-dialog-content {
+    padding: 40px 0;
+    text-align: center;
+    .leave-tips {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    .action-wrapper .bk-button {
+        margin-right: 6px;
+    }
 }
 
 </style>

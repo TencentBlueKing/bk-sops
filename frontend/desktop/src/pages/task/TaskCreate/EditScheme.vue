@@ -59,6 +59,15 @@
                 errorMsg: ''
             }
         },
+        watch: {
+            schemeText () {
+                this.updateSelected()
+                if (!this.errorMsg) {
+                    const selectedNodes = this.orderedNodeData.filter(item => !this.excludeNodes.includes(item.id)).map(item => item.id)
+                    this.$emit('handlerFormChange', selectedNodes)
+                }
+            }
+        },
         methods: {
             transformToText (nodes, excludeNodes = []) {
                 let text = ''

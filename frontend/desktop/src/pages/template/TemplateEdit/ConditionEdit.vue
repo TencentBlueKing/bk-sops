@@ -10,61 +10,80 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <bk-sideslider
-        :width="800"
-        :is-show="isShow"
-        :quick-close="isReadonly"
-        :before-close="onBeforeClose">
-        <div slot="header">
-            <span>{{ $t('分支条件') }}</span>
-        </div>
-        <div class="condition-form" slot="content">
-            <div class="form-wrap">
-                <div class="form-item">
-                    <label class="label">
-                        {{ $t('分支名称') }}
-                        <span class="required">*</span>
-                    </label>
-                    <bk-input
-                        :readonly="isReadonly"
-                        v-model.trim="conditionName"
-                        v-validate="conditionRule"
-                        name="conditionName">
-                    </bk-input>
-                    <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
-                </div>
-                <div class="form-item">
-                    <label class="label">
-                        {{ $t('表达式')}}
-                        <span class="required">*</span>
-                        <i
-                            class="common-icon-info expression-tips"
-                            v-bk-tooltips="{
-                                content: i18n.tips,
-                                placement: 'right-end',
-                                duration: 0,
-                                width: 240
-                            }">
-                        </i>
-                    </label>
-                    <div class="code-wrapper">
-                        <code-editor
-                            v-validate="expressionRule"
-                            name="expression"
-                            :value="expression"
-                            :options="{ language: 'python', readOnly: isReadonly }"
-                            @input="onDataChange">
-                        </code-editor>
+    <div class="condition-edit">
+        <bk-sideslider
+            :width="800"
+            :is-show="isShow"
+            :quick-close="true"
+            :before-close="onBeforeClose">
+            <div slot="header">
+                <span>{{ $t('分支条件') }}</span>
+            </div>
+            <div class="condition-form" slot="content">
+                <div class="form-wrap">
+                    <div class="form-item">
+                        <label class="label">
+                            {{ $t('分支名称') }}
+                            <span class="required">*</span>
+                        </label>
+                        <bk-input
+                            :readonly="isReadonly"
+                            v-model.trim="conditionName"
+                            v-validate="conditionRule"
+                            name="conditionName">
+                        </bk-input>
+                        <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
                     </div>
-                    <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+                    <div class="form-item">
+                        <label class="label">
+                            {{ $t('表达式')}}
+                            <span class="required">*</span>
+                            <i
+                                class="common-icon-info expression-tips"
+                                v-bk-tooltips="{
+                                    content: i18n.tips,
+                                    placement: 'right-end',
+                                    duration: 0,
+                                    width: 240
+                                }">
+                            </i>
+                        </label>
+                        <div class="code-wrapper">
+                            <code-editor
+                                v-validate="expressionRule"
+                                name="expression"
+                                :value="expression"
+                                :options="{ language: 'python', readOnly: isReadonly }"
+                                @input="onDataChange">
+                            </code-editor>
+                        </div>
+                        <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+                    </div>
+                </div>
+                <div class="btn-wrap">
+                    <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="close">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
                 </div>
             </div>
-            <div class="btn-wrap">
-                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="close">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
+        </bk-sideslider>
+        <bk-dialog
+            width="400"
+            ext-cls="condition-edit-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="condition-edit-confirm-dialog-content">
+                <div class="leave-tips">{{ '保存已修改的分支信息吗？' }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
             </div>
-        </div>
-    </bk-sideslider>
+        </bk-dialog>
+    </div>
+    
 </template>
 
 <script>
@@ -100,7 +119,8 @@
                 },
                 expressionRule: {
                     required: true
-                }
+                },
+                isShowDialog: false
             }
         },
         watch: {
@@ -119,8 +139,13 @@
             },
             // 关闭配置面板
             onBeforeClose () {
-                this.close()
-                return true
+                const { name, value } = this.conditionData
+                if (this.conditionName !== name || this.expression.trim() !== value) {
+                    this.isShowDialog = true
+                } else {
+                    this.close()
+                    return true
+                }
             },
             confirm () {
                 this.$validator.validateAll().then(result => {
@@ -141,6 +166,14 @@
             },
             close () {
                 this.$emit('update:isShow', false)
+            },
+            onConfirmClick () {
+                this.confirm()
+                this.isShowDialog = false
+            },
+            onCancelClick () {
+                this.close()
+                this.isShowDialog = false
             }
         }
     }
@@ -185,6 +218,17 @@
         .btn-wrap {
             padding: 8px 20px;
             border-top: 1px solid #cacedb;
+        }
+    }
+    .condition-edit-confirm-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        .leave-tips {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
         }
     }
 </style>

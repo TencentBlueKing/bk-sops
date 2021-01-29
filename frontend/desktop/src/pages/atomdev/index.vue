@@ -51,7 +51,7 @@
         </div>
         <bk-sideslider
             :is-show="showAtomSetting"
-            :quick-close="false"
+            :quick-close="true"
             :width="600"
             :title="$t('插件配置')"
             :before-close="closeSettingPanel">

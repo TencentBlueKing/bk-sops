@@ -26,6 +26,7 @@
                 ref="TaskParamEdit"
                 :constants="constants"
                 :editable="paramsCanBeModify"
+                @handeleRenderDataChange="$emit('handeleRenderDataChange', 'modifyParams')"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
             <NoData v-else></NoData>

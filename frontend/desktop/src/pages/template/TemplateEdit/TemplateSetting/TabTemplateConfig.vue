@@ -13,9 +13,9 @@
     <bk-sideslider
         :title="$t('基础信息')"
         :is-show="true"
-        :quick-close="false"
+        :quick-close="true"
         :width="800"
-        :before-close="closeTab">
+        :before-close="onBeforeClose">
         <div class="config-wrapper" slot="content">
             <bk-form class="form-area" :model="formData" :label-width="140" :rules="rules" ref="configForm">
                 <bk-form-item property="category" :label="$t('分类')" :required="true">
@@ -181,6 +181,14 @@
                 return []
             }
         },
+        watch: {
+            formData: {
+                handler () {
+                    this.$emit('handlerFormChange', true)
+                },
+                deep: true
+            }
+        },
         created () {
             this.getNotifyTypeList()
             this.getTemplateLabelList()
@@ -260,6 +268,9 @@
             },
             closeTab () {
                 this.$emit('closeTab')
+            },
+            onBeforeClose () {
+                this.$emit('onBeforeClose')
             }
         }
     }

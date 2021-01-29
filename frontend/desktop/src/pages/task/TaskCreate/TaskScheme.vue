@@ -59,8 +59,8 @@
                 v-else
                 :is-show="isEditSchemeShow"
                 :width="800"
-                :quick-close="false"
-                :before-close="onCloseEditScheme">
+                :quick-close="true"
+                :before-close="onBeforeClose">
                 <div slot="header">
                     <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
                     >
@@ -70,10 +70,27 @@
                     slot="content"
                     :is-show.sync="isEditSchemeShow"
                     :ordered-node-data="orderedNodeData"
+                    @handlerFormChange="handlerFormChange"
                     @importTextScheme="$emit('importTextScheme', $event)">
                 </edit-scheme>
             </bk-sideslider>
         </div>
+        <bk-dialog
+            width="400"
+            ext-cls="task-scheme-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-scheme-confirm-dialog-content">
+                <div class="leave-tips">{{ '保存已修改的基础信息吗？' }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -151,7 +168,9 @@
                 schemaList: [],
                 deleting: false,
                 isEditSchemeShow: false,
-                isPreview: false
+                isPreview: false,
+                isFromChangeData: null, // 方案是否更改且合理
+                isShowDialog: false
             }
         },
         computed: {
@@ -309,6 +328,27 @@
             },
             onCloseEditScheme () {
                 this.isEditSchemeShow = false
+            },
+            onBeforeClose () {
+                if (this.isFromChangeData) {
+                    this.isShowDialog = true
+                } else {
+                    this.isEditSchemeShow = false
+                }
+            },
+            handlerFormChange (e) {
+                this.isFromChangeData = e
+            },
+            onConfirmClick () {
+                this.$emit('importTextScheme', this.isFromChangeData)
+                this.isShowDialog = false
+                this.isEditSchemeShow = false
+                this.isFromChangeData = null
+            },
+            onCancelClick () {
+                this.isShowDialog = false
+                this.isEditSchemeShow = false
+                this.isFromChangeData = null
             }
         }
     }
@@ -520,5 +560,21 @@
     .bk-input-inline {
         display: inline-block;
         width: 200px;
+    }
+</style>
+<style lang="scss">
+    .task-scheme-dialog {
+        z-index: 2500 !important;
+        .task-scheme-confirm-dialog-content {
+            padding: 40px 0;
+            text-align: center;
+            .leave-tips {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            .action-wrapper .bk-button {
+                margin-right: 6px;
+            }
+        }
     }
 </style>
