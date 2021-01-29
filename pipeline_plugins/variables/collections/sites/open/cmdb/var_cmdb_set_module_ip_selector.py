@@ -362,9 +362,9 @@ def get_biz_inner_module_list(
     else:
         select_biz_internal_module = set(BIZ_INTERNAL_MODULE) & set(select_method[module_input_method])
 
-    # 用户输入空闲机池或all，取空闲机池下所有模块ID,
+    # 用户输入空闲机池或all，选择到模块为空或all，取空闲机池下所有模块ID
     if (BIZ_INTERNAL_SET in select_method[set_input_method] or ALL_SELECTED_STR in select_method[set_input_method]) \
-            and (not select_biz_internal_module or select_biz_internal_module == BIZ_INTERNAL_MODULE):
+            and (not select_method[module_input_method] or ALL_SELECTED_STR in select_method[module_input_method]):
         return biz_internal_module_list
 
     biz_internal_module_option_list = []
