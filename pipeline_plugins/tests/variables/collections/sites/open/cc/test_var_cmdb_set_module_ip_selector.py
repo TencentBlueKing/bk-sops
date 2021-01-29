@@ -409,7 +409,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
         call_assert([
             {
-                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_SUCCESS_CLIENT.cc.find_module_with_relation,
+                "func": IP_SELECTOR_SELECT_METHOD_SUC_HAS_FILTER_OTHER_SET_MODULE_SUCCESS_CLIENT.cc.find_module_with_relation, # noqa
                 # noqa
                 # noqa
                 "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
