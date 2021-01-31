@@ -209,19 +209,30 @@ class JobFastExecuteScriptService(JobService):
             else:
                 scripts = client.job.get_public_script_list(kwargs)
 
-            if scripts["result"] is False or len(scripts["data"]["data"]) != 1:
+            if scripts["result"] is False:
                 api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
                 message = job_handle_api_error(api_name, job_kwargs, scripts)
-                # 防止出现某个名字出现多个脚本版本或重名脚本的情况
-                if len(scripts["data"]["data"]) != 1:
-                    message += "Data validation error: the number of script named {} should be exactly one.".format(
-                        script_name
-                    )
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
 
-            script_id = scripts["data"]["data"][0]["id"]
+            # job V2接口使用的是模糊匹配，这里需要做一次精确匹配
+            script_list = scripts["data"]["data"]
+            selected_script = None
+            for script in script_list:
+                if script["name"] == script_name:
+                    selected_script = script
+                    break
+
+            if not selected_script:
+                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, scripts)
+                message += "Data validation error: can not find a script exactly named {}".format(script_name)
+                self.logger.error(message)
+                data.outputs.ex_data = message
+                return False
+
+            script_id = selected_script["id"]
             job_kwargs.update({"script_id": script_id})
         else:
             job_kwargs.update(
