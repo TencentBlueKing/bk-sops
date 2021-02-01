@@ -83,7 +83,7 @@
                                     v-for="label in props.row.template_labels"
                                     class="label-name"
                                     :key="label.id"
-                                    :style="{ background: label.color }"
+                                    :style="{ background: label.color, color: label.font_color }"
                                     @click="onSearchLabel(label.label_id)">
                                     {{ label.name }}
                                 </span>
