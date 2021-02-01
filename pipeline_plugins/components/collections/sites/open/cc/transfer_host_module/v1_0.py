@@ -155,3 +155,4 @@ class CCTransferHostModuleComponent(Component):
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION
+    desc = _("注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n" "转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块")

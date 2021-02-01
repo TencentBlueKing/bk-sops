@@ -25,7 +25,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
 )
 
 from gcloud.conf import settings
@@ -93,7 +93,7 @@ class CCTransferHostToRecoveryService(Service):
             "bk_supplier_account": supplier_account,
             "bk_biz_id": biz_cc_id,
             "bk_host_id": [int(host_id) for host_id in host_result["data"]],
-            "bk_module_id": cc_module_select
+            "bk_module_id": cc_module_select,
         }
 
         transfer_result = client.cc.transfer_host_module(transfer_kwargs)
@@ -111,7 +111,7 @@ class CCTransferHostToRecoveryComponent(Component):
     name = _("转移主机至待回收模块")
     code = "cc_transfer_to_recovery"
     bound_service = CCTransferHostToRecoveryService
-    form = "{static_url}components/atoms/cc/cc_transfer_to_recovery/v{ver}.js".format(
+    form = "{static_url}components/atoms/cc/transfer_to_recovery/v{ver}.js".format(
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION
