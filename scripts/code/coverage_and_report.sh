@@ -6,8 +6,8 @@ if [[ -d .cover ]]; then
     rm -rf .cover
 fi
 
-INCLUDE_PATH="gcloud/*,auth_backend/*"
-OMIT_PATH="*/migrations/*,*/tests/*"
+INCLUDE_PATH="gcloud/*,pipeline_plugins/*,pipeline_web/*,auth_backend/*"
+OMIT_PATH="*/migrations/*,*/tests/*,pipeline/tests/*"
 
 exclude_tag=''
 module=''
