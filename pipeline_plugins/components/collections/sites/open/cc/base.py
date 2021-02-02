@@ -12,15 +12,21 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from abc import ABCMeta
 from enum import Enum
 from functools import partial
 from collections import Counter
 
+from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.activity import Service
 
 from gcloud.utils import cmdb
 from gcloud.conf import settings
+from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.handlers import handle_api_error
+
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -85,7 +91,11 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
 
     host_list = cmdb.get_business_host(
-        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip"], ip_list,
+        executor,
+        bk_biz_id,
+        supplier_account,
+        ["bk_host_id", "bk_host_innerip"],
+        ip_list,
     )
 
     if not host_list:
@@ -334,3 +344,57 @@ def cc_list_select_node_inst_id(executor, biz_cc_id, supplier_account, bk_obj_ty
     if not cc_list_match_node_inst_id_return["result"]:
         return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}
     return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}
+
+
+class BaseTransferHostToModuleService(Service, metaclass=ABCMeta):
+    def inputs_format(self):
+        return [
+            self.InputItem(
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="string",
+                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("主机 IP"),
+                key="cc_host_ip",
+                type="string",
+                schema=StringItemSchema(description=_("转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔")),
+            ),
+        ]
+
+    def outputs_format(self):
+        return []
+
+    def exec_transfer_host_module(self, data, parent_data, transfer_cmd):
+        executor = parent_data.get_one_of_inputs("executor")
+        supplier_account = parent_data.get_one_of_inputs("biz_supplier_account")
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs("language"):
+            setattr(client, "language", parent_data.get_one_of_inputs("language"))
+            translation.activate(parent_data.get_one_of_inputs("language"))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs("cc_host_ip"))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result["result"]:
+            data.set_outputs("ex_data", host_result["message"])
+            return False
+
+        transfer_kwargs = {
+            "bk_supplier_account": supplier_account,
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result["data"]],
+        }
+
+        transfer_result = getattr(client.cc, transfer_cmd)(transfer_kwargs)
+
+        if transfer_result["result"]:
+            return True
+        else:
+            message = cc_handle_api_error("cc.{}".format(transfer_cmd), transfer_kwargs, transfer_result)
+            self.logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
