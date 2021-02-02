@@ -45,6 +45,7 @@
                             name: gettext("本地文件"),
                             hookable: true,
                             auto_upload: true,
+                            multiple: true,
                             url: window.FILE_UPLOAD_ENTRY || $.context.get('site_url') + 'pipeline/file_upload/',
                             placeholder: $.context.getProjectId() == '' ? gettext("公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传") : gettext("文件名不能包含中文和特殊字符且大小不能超过2G"),
                             disabled: $.context.getProjectId() == '',
