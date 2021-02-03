@@ -48,7 +48,6 @@ class WxTaskTemplateResource(TaskTemplateResource):
 
     class Meta(TaskTemplateResource.Meta):
         resource_name = "weixin_template"
-        authorization = ReadOnlyAuthorization()
 
 
 class WxTaskFlowInstanceResource(TaskFlowInstanceResource):

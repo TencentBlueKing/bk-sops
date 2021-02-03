@@ -54,6 +54,10 @@ class TaskSingleActionGetInterceptor(TaskSingleActionInterceptor):
         return request.GET["instance_id"]
 
 
+class StatusViewInterceptor(TaskSingleActionGetInterceptor):
+    action = IAMMeta.TASK_VIEW_ACTION
+
+
 class DataViewInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION
 
