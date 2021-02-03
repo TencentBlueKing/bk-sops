@@ -95,7 +95,9 @@
             <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1 }">
                 <bk-table-column :label="$t('标签名称')" property="name" :width="150">
                     <template slot-scope="props">
-                        <span class="label-name" :style="{ background: props.row.color }">{{ props.row.name }}</span>
+                        <span class="label-name"
+                            :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
+                            {{ props.row.name }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('标签描述')" :width="300">
@@ -294,9 +296,14 @@
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
                 colorDropdownShow: false,
                 colorList: [
-                    '#c4c6cc', '#ffd695', '#ffdddd', '#e1ecff', '#dcffe2',
-                    '#c4c6cc', '#ffd695', '#fd9c9c', '#a3c5fd', '#94f5a4',
-                    '#979ba5', '#ffb848', '#ff5656', '#699df4', '#45e35f'
+                    '#f8d8d4', '#fff2c9', '#f4f8d4', '#d8edd9', '#c8e8e6',
+                    '#cde8fb', '#d0d6cc', '#dbd4ed', '#e3dddb', '#dedede',
+                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
+                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
+                ],
+                darkColorList: [
+                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
+                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
                 ],
                 descRules: {
                     value: [{
@@ -799,7 +806,7 @@
             height: 20px;
         }
         .color-list {
-            width: 148px;
+            width: 268px;
             padding: 6px 16px 6px;
             overflow: hidden;
             .tip {
@@ -813,7 +820,7 @@
                 margin-right: 4px;
                 margin-bottom: 4px;
                 cursor: pointer;
-                &:nth-child(5n) {
+                &:nth-child(10n) {
                     margin-right: 0;
                 }
             }
