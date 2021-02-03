@@ -48,9 +48,9 @@
                             v-for="item in schemaList"
                             class="scheme-item"
                             :key="item.id">
-                            <bk-checkbox @change="onCheckChange($event, item.id)"></bk-checkbox>
+                            <bk-checkbox @change="onCheckChange($event, item)"></bk-checkbox>
                             <span class="scheme-name" :title="item.name">{{item.name}}</span>
-                            <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
+                            <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item)"></i>
                         </li>
                     </ul>
                 </div>
@@ -119,6 +119,10 @@
                 type: Boolean,
                 default: false
             },
+            isDefaultCanvas: {
+                type: Boolean,
+                default: true
+            },
             selectedNodes: {
                 type: Array,
                 default () {
@@ -175,8 +179,8 @@
                 'deleteTaskScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
-            onCheckChange (e, id) {
-                this.$emit('selectScheme', id, e)
+            onCheckChange (e, val) {
+                this.$emit('selectScheme', val, e)
             },
             // 获取方案列表
             async loadSchemeList () {
@@ -230,6 +234,20 @@
                     }
                     this.schemaName = this.schemaName.trim()
                     const selectedNodes = this.selectedNodes.slice()
+                    if (!this.isDefaultCanvas) {
+                        this.schemaList.push({
+                            data: JSON.stringify(selectedNodes),
+                            name: this.schemaName
+                        })
+                        this.$bkMessage({
+                            message: i18n.t('方案添加成功'),
+                            theme: 'success'
+                        })
+                        this.$emit('getTaskSchemeList', this.schemaList)
+                        this.schemaName = ''
+                        this.nameEditing = false
+                        return
+                    }
                     const scheme = {
                         project_id: this.project_id,
                         template_id: this.template_id,
@@ -255,13 +273,23 @@
             /**
              * 删除方案
              */
-            async onDeleteScheme (id) {
+            async onDeleteScheme (val) {
                 const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
 
                 if (this.deleting || !hasPermission) return
+                if (!this.isDefaultCanvas) {
+                    const index = this.schemaList.findIndex(item => item.name === val.name)
+                    this.schemaList.splice(index, 1)
+                    this.$bkMessage({
+                        message: i18n.t('方案删除成功'),
+                        theme: 'success'
+                    })
+                    this.$emit('getTaskSchemeList', this.schemaList)
+                    return
+                }
                 this.deleting = true
                 try {
-                    await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
+                    await this.deleteTaskScheme({ id: val.id, isCommon: this.isCommonProcess })
                     this.loadSchemeList()
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),

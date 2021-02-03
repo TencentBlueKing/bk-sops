@@ -11,11 +11,11 @@
 */
 <template>
     <div class="template-header-wrapper">
-        <base-title class="template-title" :title="title"></base-title>
+        <base-title class="template-title" :title="isDefaultCanvas ? title : '编辑执行方案'"></base-title>
         <div class="template-name-input">
             <div class="name-show-mode" v-if="isShowMode">
                 <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                <span class="common-icon-edit" @click="onNameEditing"></span>
+                <span v-if="isDefaultCanvas" class="common-icon-edit" @click="onNameEditing"></span>
             </div>
             <template v-else>
                 <bk-input
@@ -37,8 +37,15 @@
                     v-bk-tooltips="errors.first('templateName')">
                 </i>
             </template>
+            <!-- 执行方案图标 -->
+            <span
+                v-if="isDefaultCanvas"
+                class="common-icon-paper execute-plan-icon"
+                title="执行方案"
+                @click="onOpenExecutePlan">
+            </span>
         </div>
-        <div class="button-area">
+        <div class="button-area" v-if="isDefaultCanvas">
             <div class="setting-tab-wrap">
                 <span
                     v-for="tab in settingTabs"
@@ -73,6 +80,23 @@
                 {{createTaskBtnText}}
             </bk-button>
             <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
+        </div>
+        <div class="button-area execute-plan" v-if="!isDefaultCanvas && !isPreviewMode">
+            <bk-button
+                theme="primary"
+                :class="[
+                    'save-execute-plan',
+                    'task-btn',
+                    { 'btn-permission-disable': !saveBtnActive }]"
+                :loading="templateSaving"
+                v-cursor="{ active: !saveBtnActive }"
+                @click.stop="onSaveExecutePlanClick">
+                {{$t('保存')}}
+            </bk-button>
+            <bk-button theme="default" @click="goDefaultCanvas">{{$t('返回')}}</bk-button>
+        </div>
+        <div class="button-area preview" v-if="!isDefaultCanvas && isPreviewMode">
+            <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
         </div>
         <SelectProjectModal
             :title="$t('创建任务')"
@@ -114,6 +138,8 @@
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
             isFromTplListRoute: Boolean,
+            isDefaultCanvas: Boolean,
+            isPreviewMode: Boolean,
             tplActions: {
                 type: Array,
                 default () {
@@ -243,6 +269,7 @@
                         }
                     }
                 }
+                this.$emit('onOpenExecutePlan', false)
             },
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
@@ -279,6 +306,15 @@
                     actions = this.tplActions
                 }
                 return { resourceData, actions }
+            },
+            onSaveExecutePlanClick () {
+                this.$emit('onSaveExecutePlanClick')
+            },
+            goDefaultCanvas () {
+                this.$emit('goDefaultCanvas')
+            },
+            onClosePreview () {
+                this.$emit('onClosePreview')
             },
             getHomeUrl () {
                 if (this.isFromTplListRoute) {
@@ -436,6 +472,10 @@
                     }]
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
+            },
+            onOpenExecutePlan () {
+                this.saveTemplate()
+                this.$emit('onOpenExecutePlan', true)
             }
         }
     }
@@ -456,6 +496,9 @@
             transform: translateX(-50%);
             width: 354px;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .name-show-mode {
             display: flex;
@@ -493,6 +536,11 @@
             &:hover {
                 color: #3480ff;
             }
+        }
+        .execute-plan-icon {
+            margin-left: 20px;
+            font-size: 14px;
+            cursor: pointer;
         }
         .setting-tab-wrap {
             display: inline-block;

@@ -66,6 +66,18 @@ const task = {
             return axios.get(`${url}${id}/`).then(response => response.data)
         },
         /**
+         * 保存所有执行方案
+         * @param {String} payload 方案参数
+         */
+        saveTaskSchemList ({ commit }, payload) {
+            const { project_id, template_id, schemes } = payload
+            return axios.post('api/v3/scheme/batch_operate/', {
+                project_id,
+                template_id,
+                schemes
+            }).then(response => response.data)
+        },
+        /**
          * 获取任务节点预览数据
          * @param {Object} payload 筛选条件
          */

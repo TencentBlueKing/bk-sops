@@ -26,6 +26,12 @@
                 :create-task-saving="createTaskSaving"
                 :active-tab="activeSettingTab"
                 :tpl-actions="tplActions"
+                :is-default-canvas="isDefaultCanvas"
+                :is-preview-mode="isPreviewMode"
+                @onSaveExecutePlanClick="onSaveExecutePlanClick"
+                @goDefaultCanvas="goDefaultCanvas"
+                @onClosePreview="onClosePreview"
+                @onOpenExecutePlan="onOpenExecutePlan"
                 @onChangeName="onChangeName"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
@@ -40,6 +46,7 @@
                 @foldClick="clearDotAnimation">
             </SubflowUpdateTips>
             <TemplateCanvas
+                v-if="isDefaultCanvas"
                 ref="templateCanvas"
                 class="template-canvas"
                 :atom-type-list="atomTypeList"
@@ -58,6 +65,19 @@
                 @onReplaceLineAndLocation="onReplaceLineAndLocation"
                 @onShowNodeConfig="onShowNodeConfig">
             </TemplateCanvas>
+            <TaskSelectNode
+                v-else
+                ref="taskSelectNode"
+                :project_id="project_id"
+                :common="common"
+                :entrance="entrance"
+                :template_id="template_id"
+                :exclude-node="excludeNode"
+                :is-default-canvas="isDefaultCanvas"
+                @getTaskSchemeList="getTaskSchemeList"
+                @togglePreviewMode="togglePreviewMode"
+                @setExcludeNode="setExcludeNode">
+            </TaskSelectNode>
             <div class="side-content">
                 <node-config
                     ref="nodeConfig"
@@ -122,6 +142,21 @@
                     </div>
                 </div>
             </bk-dialog>
+            <bk-dialog
+                ext-cls="template-edit-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :show-footer="false"
+                :value="isShowDialog"
+                @cancel="isShowDialog = false">
+                <div class="template-edit-dialog-content">
+                    <div class="leave-tips">{{ '确定保存并去设置执行方案吗？' }}</div>
+                    <div class="action-wrapper">
+                        <bk-button theme="primary" :loading="templateSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" :disabled="templateSaving" @click="isShowDialog = false">{{ $t('取消') }}</bk-button>
+                    </div>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -148,21 +183,29 @@
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
+    import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
 
     export default {
         name: 'TemplateEdit',
         components: {
             TemplateHeader,
             TemplateCanvas,
+            TaskSelectNode,
             NodeConfig,
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips
         },
         mixins: [permission],
-        props: ['template_id', 'type', 'common'],
+        props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
+                taskSchemeList: [],
+                isPreviewMode: false,
+                isShowDialog: false,
+                isExecutePlan: false, // 是否为执行方案
+                isDefaultCanvas: true,
+                excludeNode: [],
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -368,6 +411,9 @@
             ...mapGetters('template/', [
                 'getLocalTemplateData',
                 'getPipelineTree'
+            ]),
+            ...mapActions('task/', [
+                'saveTaskSchemList'
             ]),
             /**
              * 加载标准插件列表
@@ -941,6 +987,35 @@
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
+            async onSaveExecutePlanClick () {
+                try {
+                    const schemes = this.taskSchemeList.map(item => {
+                        return {
+                            data: item.data,
+                            name: item.name
+                        }
+                    })
+                    this.schemaList = await this.saveTaskSchemList({
+                        project__id: this.project_id,
+                        template_id: this.template_id,
+                        schemes
+                    })
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            goDefaultCanvas () {
+                this.isDefaultCanvas = true
+            },
+            getTaskSchemeList (val) {
+                this.taskSchemeList = val
+            },
+            onClosePreview () {
+                this.$refs.taskSelectNode.togglePreviewMode(false)
+            },
+            onOpenExecutePlan (val) {
+                this.isExecutePlan = val
+            },
             // 流程名称修改
             onChangeName (name) {
                 this.templateDataChanged()
@@ -973,7 +1048,9 @@
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
                 if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
-                    this.multipleTabDialogShow = true
+                    if (!this.isExecutePlan) {
+                        this.multipleTabDialogShow = true
+                    }
                 } else {
                     this.checkBasicProperty() // 基础属性是否合法
                 }
@@ -1011,7 +1088,11 @@
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
-                        this.saveTemplate()
+                        if (this.isExecutePlan) {
+                            this.isShowDialog = true
+                        } else {
+                            this.saveTemplate()
+                        }
                     }
                 }
             },
@@ -1222,6 +1303,17 @@
                     id: this.common ? 'common' : this.project_id,
                     tpl: this.template_id
                 }
+            },
+            togglePreviewMode (isPreview) {
+                this.isPreviewMode = isPreview
+            },
+            setExcludeNode (excludeNode) {
+                this.excludeNode = excludeNode
+            },
+            async onConfirmSave () {
+                await this.saveTemplate()
+                this.isShowDialog = false
+                this.isDefaultCanvas = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1288,6 +1380,25 @@
         }
         .action-wrapper .bk-button {
             margin-right: 6px;
+        }
+    }
+</style>
+<style lang="scss">
+    .template-edit-dialog {
+        .bk-dialog-body {
+            padding: 0;
+        }
+        .template-edit-dialog-content {
+            padding: 20px 0 40px 0;
+            text-align: center;
+            .leave-tips {
+                font-size: 24px;
+                margin-bottom: 30px;
+                padding: 0;
+            }
+            .action-wrapper .bk-button {
+                margin-right: 6px;
+            }
         }
     }
 </style>

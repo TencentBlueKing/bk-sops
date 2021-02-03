@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'is-default-canvas': !isDefaultCanvas }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -31,10 +31,12 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
+                :is-default-canvas="isDefaultCanvas"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <task-scheme
+                v-if="!isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
@@ -45,12 +47,15 @@
                 :selected-nodes="selectedNodes"
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
+                :is-default-canvas="isDefaultCanvas"
+                @getTaskSchemeList="getTaskSchemeList"
+                @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
                 @importTextScheme="importTextScheme"
                 @togglePreviewMode="togglePreviewMode">
             </task-scheme>
         </div>
-        <div class="action-wrapper" slot="action-wrapper">
+        <div class="action-wrapper" slot="action-wrapper" v-if="isDefaultCanvas">
             <bk-button
                 theme="primary"
                 class="next-button"
@@ -75,7 +80,17 @@
             TemplateCanvas,
             NodePreview
         },
-        props: ['project_id', 'template_id', 'common', 'excludeNode', 'entrance'],
+        props: {
+            project_id: Number,
+            template_id: [String, Number],
+            common: String,
+            excludeNode: Array,
+            entrance: String,
+            isDefaultCanvas: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 selectedNodes: [], // 已选中节点
@@ -393,7 +408,7 @@
                 // 取消已选择方案
                 if (e === false) {
                     selectNodeArr = []
-                    this.$delete(this.planDataObj, scheme)
+                    this.$delete(this.planDataObj, scheme.name)
                     if (Object.keys(this.planDataObj).length) {
                         for (const key in this.planDataObj) {
                             allNodeId = this.planDataObj[key]
@@ -406,9 +421,9 @@
                     }
                 } else {
                     try {
-                        const data = await this.getSchemeDetail({ id: scheme, isCommon: this.isCommonProcess })
+                        const data = this.isDefaultCanvas ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
                         allNodeId = JSON.parse(data.data)
-                        this.planDataObj[scheme] = allNodeId
+                        this.planDataObj[scheme.name] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
                             selectNodeArr.push(...planNodeId)
@@ -444,6 +459,9 @@
                     this.getPreviewNodeData(this.template_id)
                 }
             },
+            getTaskSchemeList (val) {
+                this.$emit('getTaskSchemeList', val)
+            },
             // 导出当前方案
             onExportScheme () {
                 const text = []
@@ -469,6 +487,7 @@
                 } else {
                     this.previewBread = []
                 }
+                this.$emit('togglePreviewMode', isPreview)
             },
             updateExcludeNodes () {
                 const excludeNodes = this.getExcludeNode()
@@ -482,6 +501,12 @@
 
 .select-node-wrapper {
     height: calc(100% - 90px);
+}
+.is-default-canvas {
+    height: 100%;
+    .canvas-content {
+        height: 100%;
+    }
 }
 .canvas-content {
     position: relative;
