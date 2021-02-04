@@ -82,7 +82,7 @@
             NodePreview
         },
         props: {
-            project_id: Number,
+            project_id: [String, Number],
             template_id: [String, Number],
             common: String,
             excludeNode: Array,
@@ -405,7 +405,7 @@
              */
             async selectScheme (scheme, e) {
                 const planDataKey = scheme.name || scheme
-                const schemeId = scheme.name || scheme
+                const schemeId = scheme.id || scheme
                 let allNodeId = []
                 let selectNodeArr = []
                 // 取消已选择方案
