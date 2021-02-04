@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'scheme-plan-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'executescheme-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -404,14 +404,14 @@
              * 选择执行方案
              */
             async selectScheme (scheme, e) {
-                const planDataKey = scheme.name || scheme
+                const schemeDataKey = scheme.name || scheme
                 const schemeId = scheme.id || scheme
                 let allNodeId = []
                 let selectNodeArr = []
                 // 取消已选择方案
                 if (e === false) {
                     selectNodeArr = []
-                    this.$delete(this.planDataObj, planDataKey)
+                    this.$delete(this.planDataObj, schemeDataKey)
                     if (Object.keys(this.planDataObj).length) {
                         for (const key in this.planDataObj) {
                             allNodeId = this.planDataObj[key]
@@ -426,7 +426,7 @@
                     try {
                         const data = this.isEditProcessPage ? await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess }) : scheme
                         allNodeId = JSON.parse(data.data)
-                        this.planDataObj[planDataKey] = allNodeId
+                        this.planDataObj[schemeDataKey] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
                             selectNodeArr.push(...planNodeId)
@@ -505,7 +505,7 @@
 .select-node-wrapper {
     height: calc(100% - 90px);
 }
-.scheme-plan-page {
+.executescheme-page {
     height: 100%;
     .canvas-content {
         height: 100%;

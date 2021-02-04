@@ -40,9 +40,9 @@
             <!-- 执行方案图标 -->
             <span
                 v-if="isEditProcessPage"
-                class="common-icon-paper execute-plan-icon"
+                class="common-icon-paper execute-scheme-icon"
                 :title="$t('执行方案')"
-                @click="onOpenExecutePlan">
+                @click="onOpenExecuteScheme">
             </span>
         </div>
         <div class="button-area" v-if="isEditProcessPage">
@@ -81,19 +81,19 @@
             </bk-button>
             <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
-        <div class="button-area execute-plan" v-if="!isEditProcessPage && !isPreviewMode">
+        <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
             <bk-button
                 theme="primary"
                 :class="[
-                    'save-execute-plan',
+                    'save-execute-scheme',
                     'task-btn',
                     { 'btn-permission-disable': !saveBtnActive }]"
-                :loading="schemePlanSaving"
+                :loading="executeSchemeSaving"
                 v-cursor="{ active: !saveBtnActive }"
-                @click.stop="onSaveExecutePlanClick">
+                @click.stop="onSaveExecuteSchemeClick">
                 {{$t('保存')}}
             </bk-button>
-            <bk-button theme="default" @click="goDefaultCanvas">{{$t('返回')}}</bk-button>
+            <bk-button theme="default" @click="goEditProcessPage">{{$t('返回')}}</bk-button>
         </div>
         <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
             <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
@@ -140,7 +140,7 @@
             isFromTplListRoute: Boolean,
             isEditProcessPage: Boolean,
             isPreviewMode: Boolean,
-            schemePlanSaving: Boolean,
+            executeSchemeSaving: Boolean,
             tplActions: {
                 type: Array,
                 default () {
@@ -270,7 +270,7 @@
                         }
                     }
                 }
-                this.$emit('onOpenExecutePlan', false)
+                this.$emit('onOpenExecuteScheme', false)
             },
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
@@ -308,11 +308,11 @@
                 }
                 return { resourceData, actions }
             },
-            onSaveExecutePlanClick () {
-                this.$emit('onSaveExecutePlanClick')
+            onSaveExecuteSchemeClick () {
+                this.$emit('onSaveExecuteSchemeClick')
             },
-            goDefaultCanvas () {
-                this.$emit('goDefaultCanvas')
+            goEditProcessPage () {
+                this.$emit('goEditProcessPage')
             },
             onClosePreview () {
                 this.$emit('onClosePreview')
@@ -474,9 +474,9 @@
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
             },
-            onOpenExecutePlan () {
+            onOpenExecuteScheme () {
                 this.saveTemplate()
-                this.$emit('onOpenExecutePlan', true)
+                this.$emit('onOpenExecuteScheme', true)
             }
         }
     }
@@ -538,7 +538,7 @@
                 color: #3480ff;
             }
         }
-        .execute-plan-icon {
+        .execute-scheme-icon {
             margin-left: 20px;
             font-size: 14px;
             cursor: pointer;

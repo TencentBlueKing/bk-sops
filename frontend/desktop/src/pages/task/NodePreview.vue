@@ -11,7 +11,7 @@
 */
 <template>
     <div class="node-preview-wrapper">
-        <div class="operation-header clearfix" :class="{ 'scheme-plan-page': !isEditProcessPage }">
+        <div class="operation-header clearfix" :class="{ 'execute-scheme-page': !isEditProcessPage }">
             <div class="bread-crumbs-wrapper">
                 <div
                     :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
@@ -188,7 +188,7 @@
         }
     }
 }
-.scheme-plan-page {
+.execute-scheme-page {
     display: none;
 }
 </style>

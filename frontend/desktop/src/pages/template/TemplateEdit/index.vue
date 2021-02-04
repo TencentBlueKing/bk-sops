@@ -28,11 +28,11 @@
                 :tpl-actions="tplActions"
                 :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
-                :scheme-plan-saving="schemePlanSaving"
-                @onSaveExecutePlanClick="onSaveExecutePlanClick"
-                @goDefaultCanvas="goDefaultCanvas"
+                :execute-scheme-saving="executeSchemeSaving"
+                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
+                @goEditProcessPage="goEditProcessPage"
                 @onClosePreview="onClosePreview"
-                @onOpenExecutePlan="onOpenExecutePlan"
+                @onOpenExecuteScheme="onOpenExecuteScheme"
                 @onChangeName="onChangeName"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
@@ -149,13 +149,13 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :show-footer="false"
-                :value="isSchemePlanDialog"
-                @cancel="isSchemePlanDialog = false">
+                :value="isExectueSchemeDialog"
+                @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="leave-tips">{{ isEditProcessPage ? $t('确定保存并去设置执行方案吗？') : $t('确定保存修改的内容？') }}</div>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" :loading="templateSaving || schemePlanSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
-                        <bk-button theme="default" :disabled="templateSaving || schemePlanSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
+                        <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>
@@ -203,11 +203,11 @@
         data () {
             return {
                 isSchemaListChange: false,
-                schemePlanSaving: false,
+                executeSchemeSaving: false,
                 taskSchemeList: [],
                 isPreviewMode: false,
-                isSchemePlanDialog: false,
-                isExecutePlan: false, // 是否为执行方案
+                isExectueSchemeDialog: false,
+                isExecuteExecute: false, // 是否为执行方案
                 isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
@@ -991,9 +991,9 @@
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async onSaveExecutePlanClick () {
+            async onSaveExecuteSchemeClick () {
                 try {
-                    this.schemePlanSaving = true
+                    this.executeSchemeSaving = true
                     const schemes = this.taskSchemeList.map(item => {
                         return {
                             data: item.data,
@@ -1006,7 +1006,7 @@
                         template_id: this.template_id,
                         schemes
                     })
-                    this.isSchemePlanDialog = false
+                    this.isExectueSchemeDialog = false
                     if (!resp.result) {
                         this.$bkMessage({
                             message: resp.message,
@@ -1025,12 +1025,12 @@
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
-                    this.schemePlanSaving = false
+                    this.executeSchemeSaving = false
                 }
             },
-            goDefaultCanvas () {
+            goEditProcessPage () {
                 if (this.isSchemaListChange) {
-                    this.isSchemePlanDialog = true
+                    this.isExectueSchemeDialog = true
                 } else {
                     this.isEditProcessPage = true
                 }
@@ -1046,8 +1046,8 @@
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)
             },
-            onOpenExecutePlan (val) {
-                this.isExecutePlan = val
+            onOpenExecuteScheme (val) {
+                this.isExecuteExecute = val
             },
             // 流程名称修改
             onChangeName (name) {
@@ -1081,7 +1081,7 @@
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
                 if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
-                    if (!this.isExecutePlan) {
+                    if (!this.isExecuteExecute) {
                         this.multipleTabDialogShow = true
                     }
                 } else {
@@ -1121,8 +1121,8 @@
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
-                        if (this.isExecutePlan) {
-                            this.isSchemePlanDialog = true
+                        if (this.isExecuteExecute) {
+                            this.isExectueSchemeDialog = true
                         } else {
                             this.saveTemplate()
                         }
@@ -1346,14 +1346,14 @@
             async onConfirmSave () {
                 if (this.isEditProcessPage) {
                     await this.saveTemplate()
-                    this.isSchemePlanDialog = false
+                    this.isExectueSchemeDialog = false
                     this.isEditProcessPage = false
                 } else {
-                    this.onSaveExecutePlanClick()
+                    this.onSaveExecuteSchemeClick()
                 }
             },
             onCancelSave () {
-                this.isSchemePlanDialog = false
+                this.isExectueSchemeDialog = false
                 this.isEditProcessPage = true
             }
         },
@@ -1426,6 +1426,7 @@
 </style>
 <style lang="scss">
     .template-edit-dialog {
+        z-index: 5000 !important;
         .bk-dialog-body {
             padding: 0;
         }
