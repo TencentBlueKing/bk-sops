@@ -63,7 +63,7 @@ const task = {
             const { isCommon, id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.get(`${url}${id}/`).then(response => response.data)
+            return axios.get(`${url}${id}/`).then(response => response.data.data)
         },
         /**
          * 保存所有执行方案
