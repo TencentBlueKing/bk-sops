@@ -20,15 +20,15 @@ const task = {
          * @param {Object} data 筛选条件
          */
         loadTaskScheme ({ commit }, payload) {
-            const { isCommon, project__id, template_id } = payload
+            const { isCommon, project_id, template_id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
             return axios.get(url, {
                 params: {
                     template_id,
-                    project__id: project__id
+                    project_id
                 }
-            }).then(response => response.data.objects)
+            }).then(response => response.data.data)
         },
         /**
          * 创建任务可选节点的选择方案
@@ -39,7 +39,7 @@ const task = {
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
             return axios.post(url, {
-                project__id: project_id,
+                project_id,
                 template_id,
                 data,
                 name

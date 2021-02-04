@@ -36,7 +36,7 @@
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <task-scheme
-                v-if="!isPreviewMode"
+                v-show="isDefaultCanvas || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
@@ -48,6 +48,7 @@
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
                 :is-default-canvas="isDefaultCanvas"
+                @onSchemaListChange="$emit('onSchemaListChange')"
                 @getTaskSchemeList="getTaskSchemeList"
                 @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
@@ -403,12 +404,14 @@
              * 选择执行方案
              */
             async selectScheme (scheme, e) {
+                const planDataKey = scheme.name || scheme
+                const schemeId = scheme.name || scheme
                 let allNodeId = []
                 let selectNodeArr = []
                 // 取消已选择方案
                 if (e === false) {
                     selectNodeArr = []
-                    this.$delete(this.planDataObj, scheme.name)
+                    this.$delete(this.planDataObj, planDataKey)
                     if (Object.keys(this.planDataObj).length) {
                         for (const key in this.planDataObj) {
                             allNodeId = this.planDataObj[key]
@@ -421,9 +424,9 @@
                     }
                 } else {
                     try {
-                        const data = this.isDefaultCanvas ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
+                        const data = this.isDefaultCanvas ? await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess }) : scheme
                         allNodeId = JSON.parse(data.data)
-                        this.planDataObj[scheme.name] = allNodeId
+                        this.planDataObj[planDataKey] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
                             selectNodeArr.push(...planNodeId)

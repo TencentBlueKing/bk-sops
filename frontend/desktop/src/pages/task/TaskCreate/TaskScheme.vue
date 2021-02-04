@@ -47,7 +47,7 @@
                         <li
                             v-for="item in schemaList"
                             class="scheme-item"
-                            :key="item.id">
+                            :key="item.name">
                             <bk-checkbox @change="onCheckChange($event, item)"></bk-checkbox>
                             <span class="scheme-name" :title="item.name">{{item.name}}</span>
                             <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item)"></i>
@@ -167,6 +167,9 @@
         watch: {
             isPreviewMode (val) {
                 this.isPreview = val
+            },
+            schemaList (val) {
+                this.$emit('getTaskSchemeList', val)
             }
         },
         created () {
@@ -186,7 +189,7 @@
             async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
-                        project__id: this.project_id,
+                        project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     })
@@ -243,7 +246,7 @@
                             message: i18n.t('方案添加成功'),
                             theme: 'success'
                         })
-                        this.$emit('getTaskSchemeList', this.schemaList)
+                        this.$emit('onSchemaListChange')
                         this.schemaName = ''
                         this.nameEditing = false
                         return
@@ -284,7 +287,7 @@
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
-                    this.$emit('getTaskSchemeList', this.schemaList)
+                    this.$emit('onSchemaListChange')
                     return
                 }
                 this.deleting = true
@@ -364,7 +367,7 @@
         background: $whiteDefault;
         border-left: 1px solid $commonBorderColor;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-        z-index: 2500;
+        z-index: 2000;
         transition: right 0.5s ease-in-out;
         .scheme-title {
             display: flex;

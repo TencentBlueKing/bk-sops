@@ -28,6 +28,7 @@
                 :tpl-actions="tplActions"
                 :is-default-canvas="isDefaultCanvas"
                 :is-preview-mode="isPreviewMode"
+                :scheme-plan-saving="schemePlanSaving"
                 @onSaveExecutePlanClick="onSaveExecutePlanClick"
                 @goDefaultCanvas="goDefaultCanvas"
                 @onClosePreview="onClosePreview"
@@ -74,6 +75,7 @@
                 :template_id="template_id"
                 :exclude-node="excludeNode"
                 :is-default-canvas="isDefaultCanvas"
+                @onSchemaListChange="onSchemaListChange"
                 @getTaskSchemeList="getTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
                 @setExcludeNode="setExcludeNode">
@@ -147,13 +149,13 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :show-footer="false"
-                :value="isShowDialog"
-                @cancel="isShowDialog = false">
+                :value="isSchemePlanDialog"
+                @cancel="isSchemePlanDialog = false">
                 <div class="template-edit-dialog-content">
-                    <div class="leave-tips">{{ '确定保存并去设置执行方案吗？' }}</div>
+                    <div class="leave-tips">{{ isDefaultCanvas ? '确定保存并去设置执行方案吗？' : '确定保存修改的内容？' }}</div>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" :loading="templateSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
-                        <bk-button theme="default" :disabled="templateSaving" @click="isShowDialog = false">{{ $t('取消') }}</bk-button>
+                        <bk-button theme="primary" :loading="templateSaving || schemePlanSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" :disabled="templateSaving || schemePlanSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>
@@ -200,9 +202,11 @@
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
+                isSchemaListChange: false,
+                schemePlanSaving: false,
                 taskSchemeList: [],
                 isPreviewMode: false,
-                isShowDialog: false,
+                isSchemePlanDialog: false,
                 isExecutePlan: false, // 是否为执行方案
                 isDefaultCanvas: true,
                 excludeNode: [],
@@ -989,23 +993,52 @@
             },
             async onSaveExecutePlanClick () {
                 try {
+                    this.schemePlanSaving = true
                     const schemes = this.taskSchemeList.map(item => {
                         return {
                             data: item.data,
-                            name: item.name
+                            name: item.name,
+                            id: item.id
                         }
                     })
-                    this.schemaList = await this.saveTaskSchemList({
-                        project__id: this.project_id,
+                    const resp = await this.saveTaskSchemList({
+                        project_id: this.project_id,
                         template_id: this.template_id,
                         schemes
                     })
+                    this.isSchemePlanDialog = false
+                    if (!resp.result) {
+                        this.$bkMessage({
+                            message: resp.message,
+                            theme: 'error'
+                        })
+                        return
+                    }
+                    this.$bkMessage({
+                        message: '方案保存成功',
+                        theme: 'success'
+                    })
+                    this.allowLeave = true
+                    this.isTemplateDataChanged = false
+                    this.isDefaultCanvas = true
+                    this.isSchemaListChange = false
                 } catch (error) {
                     errorHandler(error, this)
+                } finally {
+                    this.schemePlanSaving = false
                 }
             },
             goDefaultCanvas () {
-                this.isDefaultCanvas = true
+                if (this.isSchemaListChange) {
+                    this.isSchemePlanDialog = true
+                } else {
+                    this.isDefaultCanvas = true
+                }
+            },
+            onSchemaListChange () {
+                this.allowLeave = false
+                this.isTemplateDataChanged = true
+                this.isSchemaListChange = true
             },
             getTaskSchemeList (val) {
                 this.taskSchemeList = val
@@ -1089,7 +1122,7 @@
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
                         if (this.isExecutePlan) {
-                            this.isShowDialog = true
+                            this.isSchemePlanDialog = true
                         } else {
                             this.saveTemplate()
                         }
@@ -1307,13 +1340,21 @@
             togglePreviewMode (isPreview) {
                 this.isPreviewMode = isPreview
             },
-            setExcludeNode (excludeNode) {
-                this.excludeNode = excludeNode
+            setExcludeNode (val) {
+                this.excludeNode = val
             },
             async onConfirmSave () {
-                await this.saveTemplate()
-                this.isShowDialog = false
-                this.isDefaultCanvas = false
+                if (this.isDefaultCanvas) {
+                    await this.saveTemplate()
+                    this.isSchemePlanDialog = false
+                    this.isDefaultCanvas = false
+                } else {
+                    this.onSaveExecutePlanClick()
+                }
+            },
+            onCancelSave () {
+                this.isSchemePlanDialog = false
+                this.isDefaultCanvas = true
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

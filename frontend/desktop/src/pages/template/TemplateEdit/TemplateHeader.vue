@@ -88,7 +88,7 @@
                     'save-execute-plan',
                     'task-btn',
                     { 'btn-permission-disable': !saveBtnActive }]"
-                :loading="templateSaving"
+                :loading="schemePlanSaving"
                 v-cursor="{ active: !saveBtnActive }"
                 @click.stop="onSaveExecutePlanClick">
                 {{$t('保存')}}
@@ -140,6 +140,7 @@
             isFromTplListRoute: Boolean,
             isDefaultCanvas: Boolean,
             isPreviewMode: Boolean,
+            schemePlanSaving: Boolean,
             tplActions: {
                 type: Array,
                 default () {
