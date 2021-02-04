@@ -262,8 +262,9 @@
                 this.ipSortActive = way
             },
             onPageChange (page) {
+                const list = this.isSearchMode ? this.searchResult : this.list
                 this.currentPage = page
-                this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                this.listInPage = list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             onAddIpConfirm () {
                 const selectedIp = this.selectedIp.slice(0)
