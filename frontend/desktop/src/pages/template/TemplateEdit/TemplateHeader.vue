@@ -11,11 +11,11 @@
 */
 <template>
     <div class="template-header-wrapper">
-        <base-title class="template-title" :title="isDefaultCanvas ? title : '编辑执行方案'"></base-title>
+        <base-title class="template-title" :title="isEditProcessPage ? title : $t('编辑执行方案')"></base-title>
         <div class="template-name-input">
             <div class="name-show-mode" v-if="isShowMode">
                 <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                <span v-if="isDefaultCanvas" class="common-icon-edit" @click="onNameEditing"></span>
+                <span v-if="isEditProcessPage" class="common-icon-edit" @click="onNameEditing"></span>
             </div>
             <template v-else>
                 <bk-input
@@ -39,13 +39,13 @@
             </template>
             <!-- 执行方案图标 -->
             <span
-                v-if="isDefaultCanvas"
+                v-if="isEditProcessPage"
                 class="common-icon-paper execute-plan-icon"
-                title="执行方案"
+                :title="$t('执行方案')"
                 @click="onOpenExecutePlan">
             </span>
         </div>
-        <div class="button-area" v-if="isDefaultCanvas">
+        <div class="button-area" v-if="isEditProcessPage">
             <div class="setting-tab-wrap">
                 <span
                     v-for="tab in settingTabs"
@@ -81,7 +81,7 @@
             </bk-button>
             <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
-        <div class="button-area execute-plan" v-if="!isDefaultCanvas && !isPreviewMode">
+        <div class="button-area execute-plan" v-if="!isEditProcessPage && !isPreviewMode">
             <bk-button
                 theme="primary"
                 :class="[
@@ -95,7 +95,7 @@
             </bk-button>
             <bk-button theme="default" @click="goDefaultCanvas">{{$t('返回')}}</bk-button>
         </div>
-        <div class="button-area preview" v-if="!isDefaultCanvas && isPreviewMode">
+        <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
             <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
         </div>
         <SelectProjectModal
@@ -138,7 +138,7 @@
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
             isFromTplListRoute: Boolean,
-            isDefaultCanvas: Boolean,
+            isEditProcessPage: Boolean,
             isPreviewMode: Boolean,
             schemePlanSaving: Boolean,
             tplActions: {

@@ -26,7 +26,7 @@
                 :create-task-saving="createTaskSaving"
                 :active-tab="activeSettingTab"
                 :tpl-actions="tplActions"
-                :is-default-canvas="isDefaultCanvas"
+                :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
                 :scheme-plan-saving="schemePlanSaving"
                 @onSaveExecutePlanClick="onSaveExecutePlanClick"
@@ -47,7 +47,7 @@
                 @foldClick="clearDotAnimation">
             </SubflowUpdateTips>
             <TemplateCanvas
-                v-if="isDefaultCanvas"
+                v-if="isEditProcessPage"
                 ref="templateCanvas"
                 class="template-canvas"
                 :atom-type-list="atomTypeList"
@@ -74,7 +74,7 @@
                 :entrance="entrance"
                 :template_id="template_id"
                 :exclude-node="excludeNode"
-                :is-default-canvas="isDefaultCanvas"
+                :is-edit-process-page="isEditProcessPage"
                 @onSchemaListChange="onSchemaListChange"
                 @getTaskSchemeList="getTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
@@ -152,7 +152,7 @@
                 :value="isSchemePlanDialog"
                 @cancel="isSchemePlanDialog = false">
                 <div class="template-edit-dialog-content">
-                    <div class="leave-tips">{{ isDefaultCanvas ? '确定保存并去设置执行方案吗？' : '确定保存修改的内容？' }}</div>
+                    <div class="leave-tips">{{ isEditProcessPage ? $t('确定保存并去设置执行方案吗？') : $t('确定保存修改的内容？') }}</div>
                     <div class="action-wrapper">
                         <bk-button theme="primary" :loading="templateSaving || schemePlanSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" :disabled="templateSaving || schemePlanSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
@@ -208,7 +208,7 @@
                 isPreviewMode: false,
                 isSchemePlanDialog: false,
                 isExecutePlan: false, // 是否为执行方案
-                isDefaultCanvas: true,
+                isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
@@ -1015,12 +1015,12 @@
                         return
                     }
                     this.$bkMessage({
-                        message: '方案保存成功',
+                        message: i18n.t('方案保存成功'),
                         theme: 'success'
                     })
                     this.allowLeave = true
                     this.isTemplateDataChanged = false
-                    this.isDefaultCanvas = true
+                    this.isEditProcessPage = true
                     this.isSchemaListChange = false
                 } catch (error) {
                     errorHandler(error, this)
@@ -1032,7 +1032,7 @@
                 if (this.isSchemaListChange) {
                     this.isSchemePlanDialog = true
                 } else {
-                    this.isDefaultCanvas = true
+                    this.isEditProcessPage = true
                 }
             },
             onSchemaListChange () {
@@ -1344,17 +1344,17 @@
                 this.excludeNode = val
             },
             async onConfirmSave () {
-                if (this.isDefaultCanvas) {
+                if (this.isEditProcessPage) {
                     await this.saveTemplate()
                     this.isSchemePlanDialog = false
-                    this.isDefaultCanvas = false
+                    this.isEditProcessPage = false
                 } else {
                     this.onSaveExecutePlanClick()
                 }
             },
             onCancelSave () {
                 this.isSchemePlanDialog = false
-                this.isDefaultCanvas = true
+                this.isEditProcessPage = true
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

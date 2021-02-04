@@ -11,7 +11,7 @@
 */
 <template>
     <div class="node-preview-wrapper">
-        <div class="operation-header clearfix" :class="{ 'is-default-canvas': !isDefaultCanvas }">
+        <div class="operation-header clearfix" :class="{ 'scheme-plan-page': !isEditProcessPage }">
             <div class="bread-crumbs-wrapper">
                 <div
                     :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
@@ -64,7 +64,7 @@
             isAllSelected: Boolean,
             isSelectAllToolDisabled: Boolean,
             isShowSelectAllTool: Boolean,
-            isDefaultCanvas: {
+            isEditProcessPage: {
                 type: Boolean,
                 default: true
             }
@@ -188,7 +188,7 @@
         }
     }
 }
-.is-default-canvas {
+.scheme-plan-page {
     display: none;
 }
 </style>

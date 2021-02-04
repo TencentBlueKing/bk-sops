@@ -119,7 +119,7 @@
                 type: Boolean,
                 default: false
             },
-            isDefaultCanvas: {
+            isEditProcessPage: {
                 type: Boolean,
                 default: true
             },
@@ -237,7 +237,7 @@
                     }
                     this.schemaName = this.schemaName.trim()
                     const selectedNodes = this.selectedNodes.slice()
-                    if (!this.isDefaultCanvas) {
+                    if (!this.isEditProcessPage) {
                         this.schemaList.push({
                             data: JSON.stringify(selectedNodes),
                             name: this.schemaName
@@ -280,7 +280,7 @@
                 const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
 
                 if (this.deleting || !hasPermission) return
-                if (!this.isDefaultCanvas) {
+                if (!this.isEditProcessPage) {
                     const index = this.schemaList.findIndex(item => item.name === val.name)
                     this.schemaList.splice(index, 1)
                     this.$bkMessage({

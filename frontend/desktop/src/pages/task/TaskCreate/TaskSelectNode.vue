@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'is-default-canvas': !isDefaultCanvas }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'scheme-plan-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -31,12 +31,12 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
-                :is-default-canvas="isDefaultCanvas"
+                :is-edit-process-page="isEditProcessPage"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <task-scheme
-                v-show="isDefaultCanvas || !isPreviewMode"
+                v-show="isEditProcessPage || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
@@ -47,7 +47,7 @@
                 :selected-nodes="selectedNodes"
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
-                :is-default-canvas="isDefaultCanvas"
+                :is-edit-process-page="isEditProcessPage"
                 @onSchemaListChange="$emit('onSchemaListChange')"
                 @getTaskSchemeList="getTaskSchemeList"
                 @onExportScheme="onExportScheme"
@@ -56,7 +56,7 @@
                 @togglePreviewMode="togglePreviewMode">
             </task-scheme>
         </div>
-        <div class="action-wrapper" slot="action-wrapper" v-if="isDefaultCanvas">
+        <div class="action-wrapper" slot="action-wrapper" v-if="isEditProcessPage">
             <bk-button
                 theme="primary"
                 class="next-button"
@@ -87,7 +87,7 @@
             common: String,
             excludeNode: Array,
             entrance: String,
-            isDefaultCanvas: {
+            isEditProcessPage: {
                 type: Boolean,
                 default: true
             }
@@ -424,7 +424,7 @@
                     }
                 } else {
                     try {
-                        const data = this.isDefaultCanvas ? await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess }) : scheme
+                        const data = this.isEditProcessPage ? await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess }) : scheme
                         allNodeId = JSON.parse(data.data)
                         this.planDataObj[planDataKey] = allNodeId
                         for (const key in this.planDataObj) {
@@ -505,7 +505,7 @@
 .select-node-wrapper {
     height: calc(100% - 90px);
 }
-.is-default-canvas {
+.scheme-plan-page {
     height: 100%;
     .canvas-content {
         height: 100%;
