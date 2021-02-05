@@ -88,7 +88,7 @@
                 placeholder: gettext("请求超时时间"),
                 min: 0,
                 max: 30,
-                default: 0
+                default: 5
             }
         },
         {
