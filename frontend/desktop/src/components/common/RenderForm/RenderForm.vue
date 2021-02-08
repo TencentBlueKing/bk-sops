@@ -12,6 +12,7 @@
 <template>
     <div class="render-form">
         <component
+            :ref="atom.tag_code"
             :is="atom.type === 'combine' ? 'FormGroup' : 'FormItem'"
             v-for="(atom, index) in scheme"
             :key="`${atom.tag_code}_${index}`"
@@ -299,6 +300,10 @@
                     })
                 }
                 return childComponent
+            },
+            getEditRow () {
+                const ref = this.$refs.set_allocation[0]
+                return ref.getEditRow()
             },
             /**
              * 表单校验函数
