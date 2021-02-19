@@ -263,7 +263,7 @@
                 create_info = '',
                 category = '',
                 executeTime = '',
-                createMethod = '',
+                create_method = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
@@ -304,7 +304,7 @@
                 },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
-                createMethod,
+                createMethod: create_method,
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
@@ -313,7 +313,7 @@
                     creator,
                     executor,
                     statusSync,
-                    createMethod,
+                    createMethod: create_method,
                     taskName: keyword
                 },
                 pagination: {
