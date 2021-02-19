@@ -116,7 +116,7 @@ class JobFastExecuteScriptService(JobService):
                 name=_("是否允许跨业务"),
                 key="job_across_biz",
                 type="bool",
-                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+                schema=BooleanItemSchema(description=_("是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【云区域ID:IP】")),
             ),
             self.InputItem(
                 name=_("目标 IP"),
