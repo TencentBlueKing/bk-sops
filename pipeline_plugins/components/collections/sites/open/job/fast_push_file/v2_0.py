@@ -181,7 +181,7 @@ class JobFastPushFileService(JobScheduleService):
 
                 job_kwargs = {
                     "bk_biz_id": biz_cc_id,
-                    "file_source": source,
+                    "file_source": [source],
                     "ip_list": ip_list,
                     "account": job_account,
                     "file_target_path": job_target_path,
