@@ -84,7 +84,7 @@
                                     v-for="label in props.row.template_labels"
                                     class="label-name"
                                     :key="label.id"
-                                    :style="{ background: label.color }"
+                                    :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
                                     @click="onSearchLabel(label.label_id)">
                                     {{ label.name }}
                                 </span>
@@ -369,7 +369,11 @@
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
                 collectionList: [],
-                ordering: null // 排序参数
+                ordering: null, // 排序参数
+                darkColorList: [
+                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
+                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
+                ]
             }
         },
         computed: {
