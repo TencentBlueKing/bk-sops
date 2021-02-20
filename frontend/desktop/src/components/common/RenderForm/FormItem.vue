@@ -393,6 +393,9 @@
             onHookForm (val) {
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
+            getEditRow () {
+                return this.$refs.tagComponent.getEditRow()
+            },
             validate (combineValue) {
                 if (!this.hook) {
                     return this.$refs.tagComponent.validate(combineValue)

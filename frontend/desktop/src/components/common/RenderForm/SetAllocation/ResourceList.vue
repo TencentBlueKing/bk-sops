@@ -246,6 +246,7 @@
                 this.editRow = data.$index
             },
             rowDelClick (row) {
+                this.editRow = ''
                 this.tableData.splice(row.$index, 1)
                 this.$emit('update', tools.deepClone(this.tableData))
             },
