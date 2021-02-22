@@ -463,6 +463,7 @@ const en = {
     '应用名称': 'App Name',
     '执行方案': 'Execution Scheme',
     '当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。': 'You can add schemes when creating a task if the flow contains optional nodes.After selecting a scheme, you can only create tasks according to the fixed execution scheme with this Mini-APP.',
+    '如果轻应用选择了执行方案，更新模板后需要同步更新执行方案。': 'If light application chooses the execution scheme, it needs to update the execution scheme synchronously after updating the template.',
     '应用LOGO': 'LOGO',
     '点击更换': 'Change',
     '只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K': 'Only JPG/PNG type files can be uploaded. The recommended size is 100px*100px, which cannot exceed 100K',
