@@ -25,4 +25,4 @@ BK_IAM_SYNC_TEMPLATES = True
 
 BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
-logging_addition_settings(LOGGING)
+logging_addition_settings(LOGGING, environment="prod")

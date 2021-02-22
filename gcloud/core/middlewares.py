@@ -23,7 +23,7 @@ from django.db.models import ObjectDoesNotExist
 
 from gcloud import err_code
 from gcloud.core.models import Project
-from pipeline.engine.core.context import local
+from gcloud.core.logging import local
 
 logger = logging.getLogger("root")
 

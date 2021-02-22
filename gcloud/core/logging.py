@@ -12,7 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from pipeline.engine.core.context import local
+from werkzeug.local import Local
+
+local = Local()
 
 
 class TraceIDInjectFilter(logging.Filter):

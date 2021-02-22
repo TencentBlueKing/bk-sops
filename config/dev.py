@@ -51,7 +51,7 @@ DATABASES = {
 
 LOG_PERSISTENT_DAYS = 1
 
-logging_addition_settings(LOGGING)
+logging_addition_settings(LOGGING, environment="dev")
 
 # CELERY_ALWAYS_EAGER = True
 # TEST_RUNNER = 'djcelery.contrib.test_runner.' \

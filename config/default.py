@@ -442,10 +442,10 @@ AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "
 
 
 # SaaS统一日志配置
-def logging_addition_settings(logging_dict):
+def logging_addition_settings(logging_dict, environment="prod"):
     logging_dict["loggers"]["iam"] = {
         "handlers": ["component"],
-        "level": "DEBUG",
+        "level": "INFO" if environment == "prod" else "DEBUG",
         "propagate": True,
     }
 
