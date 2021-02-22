@@ -200,8 +200,8 @@ class JobFastPushFileService(JobScheduleService):
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
         job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
         for index, res in enumerate(job_result_list):
-            job_result = res["result"]["result"]
-            if job_result:
+            job_result = res["result"]
+            if job_result["result"]:
                 job_instance_id.append(job_result["data"]["job_instance_id"])
                 job_inst_name.append(job_result["data"]["job_instance_name"])
                 job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
