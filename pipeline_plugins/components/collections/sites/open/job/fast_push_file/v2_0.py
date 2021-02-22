@@ -187,6 +187,7 @@ class JobFastPushFileService(JobScheduleService):
                     "file_target_path": job_target_path,
                     "bk_callback_url": get_node_callback_url(self.id),
                 }
+                print(job_kwargs)
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
                 if download_speed_limit:
@@ -200,7 +201,7 @@ class JobFastPushFileService(JobScheduleService):
         job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
         for index, res in enumerate(job_result_list):
             job_result = res["result"]
-            if job_result:
+            if job_result["result"]:
                 job_instance_id.append(job_result["data"]["job_instance_id"])
                 job_inst_name.append(job_result["data"]["job_instance_name"])
                 job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
@@ -258,3 +259,4 @@ class JobFastPushFileComponent(Component):
     bound_service = JobFastPushFileService
     form = "%scomponents/atoms/job/fast_push_file/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
+    desc = "跨业务分发文件时需要在作业平台添加白名单"
