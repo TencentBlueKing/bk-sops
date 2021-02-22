@@ -38,6 +38,7 @@ def page_not_found(request):
             settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, request.build_absolute_uri())
         )
     request.user = user
+    user_enter.send(username=user.username, sender=user.username)
     return render(request, "core/base_vue.html", {})
 
 
