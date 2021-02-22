@@ -186,18 +186,16 @@
                 const checkedList = selectedNodes.slice(0)
                 if (checkedList.length > this.lastSelectedNodes.length) {
                     this.selectedNodeList.push(node.id)
+                    if (node.children && node.children.length) {
+                        this.setSelectedNodeList(node.children)
+                    }
                 } else {
                     const index = this.selectedNodeList.findIndex(item => item === node.id)
                     if (index > -1) {
                         this.selectedNodeList.splice(index, 1)
                     } else {
-                        this.getCheckedNodeInfo(this.topoList, node.id)
-                        if (this.checkedNode && this.checkedNode.children) {
-                            const childrenList = this.checkedNode.children.map(item => item.uniqueId) || []
-                            childrenList.forEach(item => {
-                                const idx = this.selectedNodeList.findIndex(val => val === item)
-                                this.selectedNodeList.splice(idx, 1)
-                            })
+                        if (node.children && node.children.length) {
+                            this.setSelectedNodeList(node.children)
                         }
                     }
                 }
@@ -264,6 +262,20 @@
                     this.$refs.topoTree.setDisabled(item.uniqueId, { disabled: false })
                     if (item.children && item.children.length) {
                         this.setChildrenNodeState(item.children)
+                    }
+                })
+            },
+            setSelectedNodeList (data) {
+                data.forEach(item => {
+                    const uniqueId = item.data.uniqueId
+                    if (uniqueId) {
+                        const idx = this.selectedNodeList.findIndex(val => val === uniqueId)
+                        if (idx > -1) {
+                            this.selectedNodeList.splice(idx, 1)
+                        }
+                    }
+                    if (item.children && item.children.length) {
+                        this.setSelectedNodeList(item.children)
                     }
                 })
             },
