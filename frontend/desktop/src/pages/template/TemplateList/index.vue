@@ -391,6 +391,13 @@
             })
         },
         watch: {
+            $route (val) {
+                if (!Object.keys(val.query).length) {
+                    const searchComp = this.$refs.advanceSearch
+                    searchComp.onAdvanceOpen(false)
+                    searchComp.onResetForm()
+                }
+            },
             page (val, oldVal) {
                 if (val !== oldVal) {
                     this.pagination.current = Number(val) || 1
