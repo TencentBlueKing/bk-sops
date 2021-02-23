@@ -86,7 +86,7 @@ class NodemanPluginOperateService(NodeManBaseService):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
-        bk_biz_id = data.inputs.bk_biz_id
+        bk_biz_id = data.inputs.biz_cc_id
 
         nodeman_op_target = data.inputs.nodeman_plugin_operate
         op_type = nodeman_op_target.get("nodeman_op_type", "")
