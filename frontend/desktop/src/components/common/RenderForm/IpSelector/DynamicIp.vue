@@ -92,6 +92,15 @@
                 this.topoList = this.transPrimaryToTree(val)
                 this.setSelectedIpsPath()
                 this.$nextTick(() => {
+                    this.selectedIps.forEach(item => {
+                        // 清除默认选中 改为通过点击的方式选中
+                        this.$refs.topoTree.setChecked(item, { checked: false })
+                        this.getCheckedNodeInfo(this.topoList, item)
+                        this.checkedNode.id = this.checkedNode.uniqueId
+                        this.onNodeCheckClick(this.selectedIps, this.checkedNode)
+                    })
+                })
+                this.$nextTick(() => {
                     this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                 })
             },
@@ -184,7 +193,7 @@
             },
             onNodeCheckClick (selectedNodes, node) {
                 const checkedList = selectedNodes.slice(0)
-                if (checkedList.length > this.lastSelectedNodes.length) {
+                if (checkedList.length >= this.lastSelectedNodes.length) {
                     this.selectedNodeList.push(node.id)
                     if (node.children && node.children.length) {
                         this.setSelectedNodeList(node.children)
@@ -216,14 +225,15 @@
             },
             changeChildrenNodeState (node, checkedList, isChecked) {
                 node.children.forEach(item => {
+                    const nodeId = item.uniqueId || item.id
                     if (isChecked) {
-                        const index = checkedList.findIndex(id => id === item.id)
+                        const index = checkedList.findIndex(id => id === nodeId)
                         if (index > -1) {
                             checkedList.splice(index, 1)
-                            this.$refs.topoTree.setChecked(item.id, { checked: false })
+                            this.$refs.topoTree.setChecked(nodeId, { checked: false })
                         }
                     }
-                    this.$refs.topoTree.setDisabled(item.id, { disabled: isChecked })
+                    this.$refs.topoTree.setDisabled(nodeId, { disabled: isChecked })
                     if (item.children && item.children.length) {
                         this.changeChildrenNodeState(item, checkedList, isChecked)
                     }
@@ -238,6 +248,8 @@
                     const [bk_inst_id, bk_obj_id] = uniqueId.split('_')
                     return { bk_inst_id: Number(bk_inst_id), bk_obj_id }
                 })
+                this.lastSelectedNodes = []
+                this.checkedNode = null
                 this.getCheckedNodeInfo(this.topoList, key)
                 if (this.checkedNode && this.checkedNode.children && this.checkedNode.children.length) {
                     this.setChildrenNodeState(this.checkedNode.children)
@@ -267,7 +279,7 @@
             },
             setSelectedNodeList (data) {
                 data.forEach(item => {
-                    const uniqueId = item.data.uniqueId
+                    const uniqueId = item.uniqueId || item.data.uniqueId
                     if (uniqueId) {
                         const idx = this.selectedNodeList.findIndex(val => val === uniqueId)
                         if (idx > -1) {
