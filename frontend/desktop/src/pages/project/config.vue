@@ -257,6 +257,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import BkUserSelector from '@blueking/user-selector'
+    import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
@@ -295,16 +296,8 @@
                 labelCount: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
                 colorDropdownShow: false,
-                colorList: [
-                    '#f8d8d4', '#fff2c9', '#f4f8d4', '#d8edd9', '#c8e8e6',
-                    '#cde8fb', '#d0d6cc', '#dbd4ed', '#e3dddb', '#dedede',
-                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
-                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
-                ],
-                darkColorList: [
-                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
-                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
-                ],
+                colorList: LABEL_COLOR_LIST,
+                darkColorList: DARK_COLOR_LIST,
                 descRules: {
                     value: [{
                         max: 512,

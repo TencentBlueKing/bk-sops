@@ -232,6 +232,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
@@ -355,10 +356,7 @@
                 collectListLoading: false,
                 collectionList: [],
                 ordering: null, // 排序参数
-                darkColorList: [
-                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
-                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
-                ]
+                darkColorList: DARK_COLOR_LIST
             }
         },
         computed: {
