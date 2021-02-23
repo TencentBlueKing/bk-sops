@@ -103,6 +103,7 @@
                 if (val !== null) {
                     if (val) {
                         this.hasViewPerm = true
+                        this.getProjectList()
                         this.getCategorys()
                     } else {
                         this.showPermissionApplyPage()
