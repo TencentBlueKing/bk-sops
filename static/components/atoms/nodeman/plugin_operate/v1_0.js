@@ -320,9 +320,12 @@
                                 source: "nodeman_plugin",
                                 type: "init",
                                 action: function (value) {
-                                    let os = this.get_parent().get_parent().get_child("nodeman_host_os_type").value
-                                    this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_version/' + value + '/' + os + '/';
-                                    this.remoteMethod()
+                                    if (value) {
+                                        let os = this.get_parent().get_parent().get_child("nodeman_host_os_type").value
+                                        this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_version/' + value + '/' + os + '/';
+                                        this.remoteMethod()
+                                    }
+
                                 }
                             },
                             {

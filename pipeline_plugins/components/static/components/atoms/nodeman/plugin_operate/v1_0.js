@@ -13,7 +13,7 @@
 (function () {
     $.atoms.nodeman_plugin_operate = [
         {
-            tag_code: "bk_biz_id",
+            tag_code: "biz_cc_id",
             type: "select",
             attrs: {
                 name: gettext("业务"),
