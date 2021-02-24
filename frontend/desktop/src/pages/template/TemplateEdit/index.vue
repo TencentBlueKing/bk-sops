@@ -74,6 +74,7 @@
                 :entrance="entrance"
                 :template_id="template_id"
                 :exclude-node="excludeNode"
+                :init-template-id="initTemplateId"
                 :is-edit-process-page="isEditProcessPage"
                 @onSchemaListChange="onSchemaListChange"
                 @getTaskSchemeList="getTaskSchemeList"
@@ -262,7 +263,8 @@
                             val: i18n.t('可以快捷打开节点配置面板')
                         }
                     ]
-                }
+                },
+                initTemplateId: this.template_id // 初始模板id
             }
         },
         computed: {
@@ -998,7 +1000,7 @@
                         return {
                             data: item.data,
                             name: item.name,
-                            id: item.id
+                            id: this.initTemplateId === this.template_id ? item.id : undefined // 克隆执行方案时不需要传id
                         }
                     })
                     const resp = await this.saveTaskSchemList({
@@ -1018,6 +1020,8 @@
                         message: i18n.t('方案保存成功'),
                         theme: 'success'
                     })
+                    // 将初始模板id替换为当前模板id，此时不再是克隆执行方案而是正常保存执行方案了
+                    this.initTemplateId = this.template_id
                     this.allowLeave = true
                     this.isTemplateDataChanged = false
                     this.isEditProcessPage = true
