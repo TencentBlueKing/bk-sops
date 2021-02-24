@@ -380,9 +380,6 @@
                 this.joinValue(rowCount, data)
                 this.updatePropsData()
             },
-            getEditRow () {
-                return this.$refs.resourceList.editRow
-            },
             validate () {
                 return this.$refs.resourceList.validate()
             }

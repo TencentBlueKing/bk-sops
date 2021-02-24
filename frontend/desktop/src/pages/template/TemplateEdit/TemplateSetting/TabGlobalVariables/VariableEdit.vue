@@ -567,14 +567,6 @@
                     if (!result || !formValid) {
                         return false
                     }
-                    const renderForm = this.$refs.renderForm
-                    if (renderForm && renderForm.getEditRow() !== '') {
-                        this.$bkMessage({
-                            message: i18n.t('请先保存已修改的信息'),
-                            theme: 'warning'
-                        })
-                        return
-                    }
 
                     const variable = this.theEditingData
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值

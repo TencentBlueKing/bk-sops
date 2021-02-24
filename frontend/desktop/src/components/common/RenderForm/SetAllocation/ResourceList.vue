@@ -262,6 +262,9 @@
                 this.tableData = tools.deepClone(this.value)
             },
             validate () {
+                if (typeof this.editRow === 'number') {
+                    this.$emit('update', tools.deepClone(this.tableData))
+                }
                 return this.validateRow(`row_`)
             }
         }
