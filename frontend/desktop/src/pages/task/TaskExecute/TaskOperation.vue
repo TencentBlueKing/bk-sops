@@ -44,6 +44,7 @@
                     :has-admin-perm="adminView"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
+                    @onConditionClick="onOpenConditionEdit"
                     @onRetryClick="onRetryClick"
                     @onForceFail="onForceFailClick"
                     @onSkipClick="onSkipClick"
@@ -67,6 +68,7 @@
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
+                    :state="state"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
@@ -153,6 +155,12 @@
             @cancel="onTaskNodeResumeCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
         </bk-dialog>
+        <condition-edit
+            ref="conditionEdit"
+            :is-readonly="true"
+            :is-show.sync="isShowConditionEdit"
+            :condition-data="conditionData">
+        </condition-edit>
     </div>
 </template>
 <script>
@@ -173,6 +181,7 @@
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
+    import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -218,7 +227,8 @@
             gatewaySelectDialog,
             revokeDialog,
             TaskOperationHeader,
-            TemplateData
+            TemplateData,
+            ConditionEdit
         },
         mixins: [permission],
         props: {
@@ -285,7 +295,9 @@
                 nodeResumeId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
-                pollErrorTimes: 0 // 任务状态查询异常连续三次后，停止轮询
+                pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
+                isShowConditionEdit: false, // 条件分支侧栏
+                conditionData: {}
             }
         },
         computed: {
@@ -1003,7 +1015,7 @@
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
                 this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
                     this.quickClose = false
                 }
             },
@@ -1081,6 +1093,10 @@
                         this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     }
                 }
+            },
+            onOpenConditionEdit (data) {
+                this.isShowConditionEdit = true
+                this.conditionData = { ...data }
             },
             handleSubflowAtomClick (id) {
                 this.cancelTaskStatusTimer()
@@ -1390,8 +1406,12 @@
                 left: 40px;
             }
         }
+        .task-management-page {
+            /deep/ .canvas-wrapper.jsflow .jtk-endpoint {
+                z-index: 2 !important;
+            }
+        }
     }
-
 }
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);

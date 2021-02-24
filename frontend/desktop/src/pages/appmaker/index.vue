@@ -17,6 +17,7 @@
                 <div class="operation-wrapper">
                     <advance-search-form
                         id="appmakerList"
+                        :open="isSearchFormOpen"
                         :search-form="searchForm"
                         :search-config="{ placeholder: $t('请输入轻应用名称') }"
                         @onSearchInput="onSearchInput"
@@ -98,7 +99,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'input',
             key: 'editor',
@@ -125,6 +126,18 @@
         },
         props: ['project_id', 'common'],
         data () {
+            const { editor = '', updateTime = '', keyword = '' } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 loading: true,
                 collectedLoading: false,
@@ -140,11 +153,12 @@
                     edit: false,
                     delete: false
                 },
-                searchForm: searchForm,
+                searchForm,
+                isSearchFormOpen,
                 requestData: {
-                    updateTime: [],
-                    editor: '',
-                    flowName: ''
+                    updateTime: updateTime ? updateTime.split(',') : ['', ''],
+                    editor,
+                    flowName: keyword
                 }
             }
         },
@@ -281,8 +295,25 @@
                 }
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
+                this.updateUrl()
                 this.loadData()
+            },
+            updateUrl () {
+                const { updateTime, editor, flowName } = this.requestData
+                const filterObj = {
+                    editor,
+                    updateTime: updateTime.every(item => item) ? updateTime.join(',') : '',
+                    keyword: flowName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'appMakerList', query })
             }
         }
     }

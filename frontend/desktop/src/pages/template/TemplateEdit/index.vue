@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
-        <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading || subAtomListLoading }">
+        <div v-if="!templateDataLoading && !singleAtomListLoading && !subAtomListLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -42,8 +42,6 @@
             <TemplateCanvas
                 ref="templateCanvas"
                 class="template-canvas"
-                :single-atom-list-loading="singleAtomListLoading"
-                :sub-atom-list-loading="subAtomListLoading"
                 :atom-type-list="atomTypeList"
                 :name="name"
                 :type="type"
@@ -388,7 +386,7 @@
                         if (atom) {
                             atom.list.push(item)
                         } else {
-                            const { code, desc, name, group_name, group_icon } = item
+                            const { code, desc, name, group_name, group_icon, sort_key_group_en } = item
                             atomList.push({
                                 code,
                                 desc,
@@ -396,7 +394,8 @@
                                 group_name,
                                 group_icon,
                                 type: group_name,
-                                list: [item]
+                                list: [item],
+                                sort_key_group_en
                             })
                         }
                     })
@@ -617,14 +616,24 @@
                     if (group) {
                         group.list.push(item)
                     } else {
-                        const { type, group_name, group_icon } = item
+                        const { type, group_name, group_icon, sort_key_group_en } = item
                         grouped.push({
-                            group_name: group_name,
-                            group_icon: group_icon,
-                            type: type,
+                            group_name,
+                            group_icon,
+                            type,
+                            sort_key_group_en,
                             list: [item]
                         })
                     }
+                })
+                grouped.sort((g1, g2) => {
+                    if (g1.sort_key_group_en < g2.sort_key_group_en) {
+                        return -1
+                    }
+                    if (g1.sort_key_group_en > g2.sort_key_group_en) {
+                        return 1
+                    }
+                    return 0
                 })
                 this.atomTypeList.tasknode = grouped
             },
@@ -852,7 +861,7 @@
                         start: START_POSITION
                     })
                     if (res.result) {
-                        this.onCreateSnapshoot()
+                        this.onCreateSnapshoot('isFormatPosition')
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
@@ -1085,10 +1094,26 @@
                 this.moveNodeToView(id)
                 this.showDotAnimation(id)
             },
-            // 全局变量引用节点点击回调
-            onCitedNodeClick (nodeId) {
-                this.activeSettingTab = ''
-                this.showConfigPanel(nodeId)
+            // 全局变量引用详情点击回调
+            onCitedNodeClick (data) {
+                const { group, id } = data
+                if (group === 'activities') {
+                    this.activeSettingTab = ''
+                    this.showConfigPanel(id)
+                } else if (group === 'conditions') {
+                    const nodeId = this.lines.find(line => line.id === id).source.id
+                    const lineCondition = this.gateways[nodeId].conditions[id]
+                    const { evaluate, name } = lineCondition
+                    const conditionData = {
+                        id,
+                        name,
+                        nodeId,
+                        overlayId: `condition${id}`,
+                        value: evaluate
+                    }
+                    this.activeSettingTab = ''
+                    this.onOpenConditionEdit(conditionData)
+                }
             },
             /**
              * 移动画布，将节点放到画布左上角
@@ -1127,13 +1152,15 @@
                 })
             },
             // 本地快照面板新增快照
-            onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
+            onCreateSnapshoot (type) {
                 this.snapshootTimer && clearTimeout(this.snapshootTimer)
                 this.setTplSnapshoot()
-                this.$bkMessage({
-                    message,
-                    theme: 'success'
-                })
+                if (!type) {
+                    this.$bkMessage({
+                        message: i18n.t('新增流程本地快照成功'),
+                        theme: 'success'
+                    })
+                }
                 this.snapshoots = this.getTplSnapshoots()
                 this.openSnapshootTimer()
             },
@@ -1248,7 +1275,7 @@
     .update-tips {
         position: absolute;
         top: 76px;
-        left: 450px;
+        left: 495px;
         min-height: 40px;
         overflow: hidden;
         z-index: 4;

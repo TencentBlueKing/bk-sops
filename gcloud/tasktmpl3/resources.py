@@ -21,6 +21,7 @@ from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 
+from gcloud.label.models import TemplateLabelRelation, Label
 from pipeline.exceptions import PipelineException
 from pipeline.models import TemplateScheme
 from pipeline.validators.base import validate_pipeline_tree
@@ -75,6 +76,7 @@ class TaskTemplateResource(GCloudModelResource):
             "subprocess_has_update": ALL,
             "has_subprocess": ALL,
         }
+        ordering = ["pipeline_template"]
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
         # iam config
@@ -116,44 +118,69 @@ class TaskTemplateResource(GCloudModelResource):
         collected_templates = (
             user_model.objects.get(username=user.username).tasktemplate_set.all().values_list("id", flat=True)
         )
+        template_ids = [bundle.obj.id for bundle in data["objects"]]
+        templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for bundle in data["objects"]:
             if bundle.obj.id in collected_templates:
                 bundle.data["is_add"] = 1
             else:
                 bundle.data["is_add"] = 0
+            bundle.data["template_labels"] = templates_labels.get(bundle.obj.id, [])
 
         return data
 
+    def alter_detail_data_to_serialize(self, request, data):
+        bundle = super(TaskTemplateResource, self).alter_detail_data_to_serialize(request, data)
+        template_id = bundle.obj.id
+        labels = TemplateLabelRelation.objects.fetch_templates_labels([template_id]).get(template_id, [])
+        bundle.data["template_labels"] = [label["label_id"] for label in labels]
+        return bundle
+
     def obj_create(self, bundle, **kwargs):
-        model = bundle.obj.__class__
-        try:
-            pipeline_template_kwargs = {
-                "name": bundle.data.pop("name"),
-                "creator": bundle.request.user.username,
-                "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
-                "description": bundle.data.pop("description", ""),
-            }
-        except (KeyError, ValueError) as e:
-            raise BadRequest(str(e))
-        # XSS handle
-        self.handle_template_name_attr(pipeline_template_kwargs)
+        label_ids = bundle.data.get("template_labels")
+        if label_ids and len(label_ids) > 0 and bundle.obj:
+            label_ids = list(set(label_ids))
+            if not Label.objects.check_label_ids(label_ids):
+                raise BadRequest("Containing template label not exist, please check.")
 
-        # validate pipeline tree
-        try:
-            validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
-            validate_pipeline_tree(pipeline_template_kwargs["pipeline_tree"], cycle_tolerate=True)
-        except PipelineException as e:
-            raise BadRequest(str(e))
+        with transaction.atomic():
+            model = bundle.obj.__class__
+            try:
+                pipeline_template_kwargs = {
+                    "name": bundle.data.pop("name"),
+                    "creator": bundle.request.user.username,
+                    "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
+                    "description": bundle.data.pop("description", ""),
+                }
+            except (KeyError, ValueError) as e:
+                raise BadRequest(str(e))
+            # XSS handle
+            self.handle_template_name_attr(pipeline_template_kwargs)
 
-        # Note: tastypie won't use model's create method
-        try:
-            pipeline_template = model.objects.create_pipeline_template(**pipeline_template_kwargs)
-        except PipelineException as e:
-            raise BadRequest(str(e))
-        except TaskTemplate.DoesNotExist:
-            raise BadRequest("flow template referred as SubProcess does not exist")
-        kwargs["pipeline_template_id"] = pipeline_template.template_id
-        return super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
+            # validate pipeline tree
+            try:
+                validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
+                validate_pipeline_tree(pipeline_template_kwargs["pipeline_tree"], cycle_tolerate=True)
+            except PipelineException as e:
+                raise BadRequest(str(e))
+
+            # Note: tastypie won't use model's create method
+            try:
+                pipeline_template = model.objects.create_pipeline_template(**pipeline_template_kwargs)
+            except PipelineException as e:
+                raise BadRequest(str(e))
+            except TaskTemplate.DoesNotExist:
+                raise BadRequest("flow template referred as SubProcess does not exist")
+            kwargs["pipeline_template_id"] = pipeline_template.template_id
+
+            bundle = super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
+            if isinstance(label_ids, list) and len(label_ids) > 0:
+                try:
+                    TemplateLabelRelation.objects.set_labels_for_template(bundle.obj.id, label_ids)
+                except Exception as e:
+                    raise BadRequest(str(e))
+
+            return bundle
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         with transaction.atomic():
@@ -176,6 +203,16 @@ class TaskTemplateResource(GCloudModelResource):
                 validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
             except PipelineException as e:
                 raise BadRequest(str(e))
+
+            label_ids = bundle.data.get("template_labels")
+            if label_ids is not None and len(label_ids) > 0:
+                label_ids = list(set(label_ids))
+                if not Label.objects.check_label_ids(label_ids):
+                    raise BadRequest("Containing template label not exist, please check.")
+                try:
+                    TemplateLabelRelation.objects.set_labels_for_template(obj.id, label_ids)
+                except Exception as e:
+                    raise BadRequest(str(e))
 
             try:
                 obj.update_pipeline_template(**pipeline_template_kwargs)
@@ -205,10 +242,16 @@ class TaskTemplateResource(GCloudModelResource):
         return result
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
+        label_ids = filters.get("label_ids")
+
         filters = super(TaskTemplateResource, self).build_filters(
             filters=filters, ignore_bad_filters=ignore_bad_filters
         )
 
+        if label_ids:
+            label_ids = [int(label_id) for label_id in label_ids.strip().split(",")]
+            template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids))
+            filters.update({"id__in": template_ids})
         if "subprocess_has_update__exact" in filters:
             filters.pop("subprocess_has_update__exact")
         if "has_subprocess__exact" in filters:
@@ -218,7 +261,7 @@ class TaskTemplateResource(GCloudModelResource):
 
 
 class TemplateSchemeResource(GCloudModelResource):
-    data = fields.CharField(attribute="data", use_in="detail",)
+    data = fields.CharField(attribute="data", use_in="detail")
 
     class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()
@@ -238,6 +281,12 @@ class TemplateSchemeResource(GCloudModelResource):
             except TaskTemplate.DoesNotExist:
                 message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
                     template_id=template_id, project_id=project_id
+                )
+                logger.error(message)
+                raise InvalidFilterError(message)
+            except Exception as e:
+                message = "Error on getting template[id={template_id}] in project[id={project_id}]: {error}".format(
+                    template_id=template_id, project_id=project_id, error=e
                 )
                 logger.error(message)
                 raise InvalidFilterError(message)

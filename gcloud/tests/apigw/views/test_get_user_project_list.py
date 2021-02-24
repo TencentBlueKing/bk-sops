@@ -20,8 +20,6 @@ from gcloud import err_code
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-from gcloud.apigw.views import get_user_project_list
-
 from .utils import APITest
 
 
@@ -30,8 +28,7 @@ class GetUserProjectListAPITest(APITest):
         return "/apigw/get_user_project_list/"
 
     @patch(
-        APIGW_GET_USER_PROJECT_LIST_GET_USER_BUSINESS_LIST,
-        MagicMock(side_effect=Exception()),
+        APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST, MagicMock(side_effect=Exception()),
     )
     def test_get_user_project_list__raise(self):
         response = self.client.get(path=self.url())
@@ -44,36 +41,25 @@ class GetUserProjectListAPITest(APITest):
 
     def test_get_user_project_list__success(self):
 
-        biz_list = [{"bk_biz_id": 1}, {"bk_biz_id": 2}, {"bk_biz_id": 3}]
-
         project_list = [
-            FancyDict(id=1, bk_biz_id=1, name="name1"),
-            FancyDict(id=2, bk_biz_id=2, name="name2"),
-            FancyDict(id=3, bk_biz_id=3, name="name3"),
+            FancyDict(id=1, bk_biz_id=1, name="name1", is_disable=False),
+            FancyDict(id=2, bk_biz_id=2, name="name2", is_disable=False),
+            FancyDict(id=3, bk_biz_id=3, name="name3", is_disable=True),
         ]
 
         with patch(
-            APIGW_GET_USER_PROJECT_LIST_GET_USER_BUSINESS_LIST,
-            MagicMock(return_value=biz_list),
+            APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST, MagicMock(return_value=project_list),
         ):
-            with patch(
-                PROJECT_FILTER, MagicMock(return_value=project_list),
-            ):
-                response = self.client.get(path=self.url())
+            response = self.client.get(path=self.url(), data={"bk_username": "text"})
 
-                data = json.loads(response.content)
+            data = json.loads(response.content)
 
-                self.assertTrue(data["result"])
-                self.assertEqual(data["code"], err_code.SUCCESS.code)
-                self.assertEqual(
-                    data["data"],
-                    [
-                        {"project_id": 1, "bk_biz_id": 1, "name": "name1"},
-                        {"project_id": 2, "bk_biz_id": 2, "name": "name2"},
-                        {"project_id": 3, "bk_biz_id": 3, "name": "name3"},
-                    ],
-                )
-
-                get_user_project_list.Project.objects.filter.assert_called_once_with(
-                    bk_biz_id__in=[1, 2, 3], is_disable=False
-                )
+            self.assertTrue(data["result"])
+            self.assertEqual(data["code"], err_code.SUCCESS.code)
+            self.assertEqual(
+                data["data"],
+                [
+                    {"project_id": 1, "bk_biz_id": 1, "name": "name1"},
+                    {"project_id": 2, "bk_biz_id": 2, "name": "name2"},
+                ],
+            )

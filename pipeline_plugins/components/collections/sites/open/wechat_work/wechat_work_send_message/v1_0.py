@@ -45,12 +45,19 @@ class WechatWorkSendMessageService(Service):
                 type="string",
                 schema=StringItemSchema(description=_("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")),
             ),
+            self.InputItem(
+                name=_("消息格式"),
+                key="msgtype",
+                type="string",
+                schema=StringItemSchema(description=_("文本(text)或Markdown")),
+            ),
         ]
 
     def execute(self, data, parent_data):
         chat_id = data.inputs.wechat_work_chat_id
         content = data.inputs.message_content
         mentioned_members = data.inputs.wechat_work_mentioned_members
+        msgtype = data.inputs.msgtype
 
         chat_id_list = chat_id.split("\n")
 
@@ -73,15 +80,35 @@ class WechatWorkSendMessageService(Service):
             mentioned_list = str(mentioned_members).split(",")
 
         try:
-            resp = requests.post(
-                url=url,
-                json={
-                    "chatid": "|".join(chat_id_list),
-                    "msgtype": "text",
-                    "text": {"content": str(content), "mentioned_list": mentioned_list},
-                },
-                timeout=5,
-            )
+            if msgtype == "text":
+                resp = requests.post(
+                    url=url,
+                    json={
+                        "chatid": "|".join(chat_id_list),
+                        "msgtype": msgtype,
+                        "text": {"content": str(content), "mentioned_list": mentioned_list},
+                    },
+                    timeout=5,
+                )
+            elif msgtype == "markdown":
+                mentioned_str = " ".join(["<@{}>".format(mentioned) for mentioned in mentioned_list])
+                content = "{}\n{}\n".format(str(content), mentioned_str)
+                resp = requests.post(
+                    url=url,
+                    json={
+                        "chatid": "|".join(chat_id_list),
+                        "msgtype": msgtype,
+                        "markdown": {"content": content},
+                        "at_short_name": True,
+                    },
+                    timeout=5,
+                )
+
+            else:
+                err = _("msgtype 不存在")
+                self.logger.error(err)
+                data.outputs.ex_data = err.format(err)
+                return False
         except Exception as e:
             err = _("企业微信发送消息请求失败，详细信息: {}")
             self.logger.error(err.format(traceback.format_exc()))

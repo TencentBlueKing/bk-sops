@@ -99,6 +99,7 @@
             tag_code: "nodeman_hosts",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("主机"),
                 editable: true,
                 add_btn: true,

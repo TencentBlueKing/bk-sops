@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import re
 import logging
 
 from django import forms
@@ -42,6 +43,7 @@ from gcloud.iam_auth.authorization_helpers import ProjectIAMAuthorizationHelper
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
+group_en_pattern = re.compile(r"(?:\()(.*)(?:\))")
 
 
 class BusinessResource(GCloudModelResource):
@@ -190,7 +192,7 @@ class ComponentModelResource(GCloudModelResource):
             project_id = filters.pop("project_id")
             # 处理list接口和detail接口获取到project_id形式不同的情况
             project_id = project_id[0] if type(project_id) is list else project_id
-            exclude_component_codes = ProjectBasedComponent.objects.get_components_with_project(project_id)
+            exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
         else:
             exclude_component_codes = ProjectBasedComponent.objects.get_components()
         query_set = ~Q(code__in=exclude_component_codes)
@@ -234,6 +236,8 @@ class ComponentModelResource(GCloudModelResource):
             bundle.data["phase"] = component_phase_dict.get(bundle.data["code"], {}).get(
                 bundle.data["version"], DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
             )
+            group_name_en = group_en_pattern.findall(name[0] or "")
+            bundle.data["sort_key_group_en"] = group_name_en[0] if len(group_name_en) else "#"
             altered_objects.append(bundle)
 
         data["objects"] = altered_objects

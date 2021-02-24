@@ -15,6 +15,7 @@
             <div class="operation-area">
                 <advance-search-form
                     id="taskList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -37,7 +38,7 @@
                     @page-limit-change="onPageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
+                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="240">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['task_view'], props.row.auth_actions)"
@@ -183,7 +184,7 @@
     import TaskCloneDialog from './TaskCloneDialog.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'dateRange',
             key: 'executeTime',
@@ -195,7 +196,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -204,7 +205,7 @@
             type: 'select',
             label: i18n.t('创建方式'),
             key: 'createMethod',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择创建方式'),
             list: [],
             value: ''
@@ -252,26 +253,40 @@
             project_id: {
                 type: [String, Number],
                 default: ''
-            },
-            template_source: {
-                type: String,
-                default: ''
-            },
-            create_method: {
-                type: String,
-                default: ''
-            },
-            create_info: {
-                type: [String, Number],
-                default: ''
             }
         },
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                template_source = '',
+                create_info = '',
+                category = '',
+                executeTime = '',
+                create_method = '',
+                creator = '',
+                executor = '',
+                statusSync = '',
+                keyword = ''
+            } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 templateId: this.$route.query.template_id,
                 taskCategory: [],
                 searchStr: '',
+                searchForm,
+                isSearchFormOpen, // 高级搜索表单默认展开
                 executeStatus: [], // 任务执行状态
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -289,22 +304,22 @@
                 },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
-                createMethod: this.create_method || '',
-                createInfo: this.create_info || '',
-                templateSource: this.template_source || '',
+                createMethod: create_method,
+                createInfo: create_info,
+                templateSource: template_source,
                 requestData: {
-                    executeTime: [],
-                    category: '',
-                    createMethod: this.create_method || '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    createMethod: create_method,
+                    taskName: keyword
                 },
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 }
             }
@@ -316,18 +331,7 @@
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                // 任务执行
-                value[1].list = this.taskCategory
-                value[1].loading = this.taskBasicInfoLoading
-                // 创建方式
-                value[2].list = this.taskCreateMethodList
-                value[2].value = this.create_method || ''
-                value[5].loading = this.taskBasicInfoLoading
-                return searchForm
-            }
+            })
         },
         created () {
             this.getData()
@@ -357,7 +361,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { executeTime, category, createMethod, creator, executor, statusSync, flowName } = this.requestData
+                    const { executeTime, category, createMethod, creator, executor, statusSync, taskName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -385,7 +389,7 @@
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
-                        pipeline_instance__name__icontains: flowName || undefined,
+                        pipeline_instance__name__icontains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
@@ -429,12 +433,15 @@
                     this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
             },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
                 this.getTaskList()
             },
@@ -555,18 +562,45 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.getTaskList()
             },
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTaskList()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { category, executeTime, createMethod, creator, executor, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    createMethod,
+                    page: current,
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'taskList', params: { project_id: this.project_id }, query })
             },
             async getCreateMethod () {
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data.map(m => ({ value: m.value, name: m.name }))
-                    this.createMethod = this.create_method || ''
+                    const form = this.searchForm.find(item => item.key === 'createMethod')
+                    form.list = this.taskCreateMethodList
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -594,13 +628,13 @@
                 this.isNewTaskDialogShow = false
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 // 高级搜索手动点击时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
                 this.templateId = ''
                 this.templateSource = ''
-                this.$router.push({ name: 'taskList', params: { project_id: this.project_id } })
+                this.updateUrl()
                 this.getTaskList()
             }
         }

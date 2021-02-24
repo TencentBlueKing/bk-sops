@@ -11,20 +11,22 @@
 */
 <template>
     <div class="variable-cited-wrap">
-        <div class="variable-cited-list">
-            <p class="num">{{$t('引用变量的节点')}}{{$t('（')}}{{list.length}}{{$t('）')}}</p>
-            <div
-                v-for="item in list"
-                :key="item.id"
-                class="variable-cited-item">
-                <span
-                    :class="['cited-name', { 'name-error': !item.name }]"
-                    :title="item.name"
-                    @click.stop="onCitedNodeClick(item.id)">
-                    {{ item.name }}
-                </span>
+        <template v-for="group in list">
+            <div v-if="group.data.length > 0" class="variable-cited-list" :key="group.key">
+                <p class="group-title">{{$t('引用变量的')}}{{ $t(`${group.title}`) }}{{$t('（')}}{{group.data.length}}{{$t('）')}}</p>
+                <div
+                    v-for="item in group.data"
+                    :key="item.id"
+                    class="variable-cited-item">
+                    <span
+                        :class="['cited-name', { 'name-error': !item.name }]"
+                        :title="item.name"
+                        @click.stop="onCitedNodeClick(group.key, item.id)">
+                        {{ item.name }}
+                    </span>
+                </div>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 <script>
@@ -32,38 +34,71 @@
     export default {
         name: 'VariableCitedList',
         props: {
-            citedList: Array
+            citedList: Object
+        },
+        data () {
+            return {
+                groups: [
+                    {
+                        id: 'activities',
+                        name: '任务节点'
+                    },
+                    {
+                        id: 'conditions',
+                        name: '分支条件'
+                    },
+                    {
+                        id: 'constants',
+                        name: '全局变量'
+                    }
+                ]
+            }
         },
         computed: {
             ...mapState({
-                'activities': state => state.template.activities
+                'activities': state => state.template.activities,
+                'lines': state => state.template.line,
+                'gateways': state => state.template.gateways,
+                'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants
             }),
-            list () {
-                return this.citedList.map(id => {
-                    return {
-                        id,
-                        name: this.activities[id].name
-                    }
+            variableList () {
+                return { ...this.systemConstants, ...this.constants }
+            },
+            list () { // 变量被引用数据
+                return this.groups.map(group => {
+                    const key = group.id
+                    const data = this.citedList[key].map(item => {
+                        const id = item
+                        let name = ''
+                        if (key === 'activities') {
+                            name = this.activities[item].name
+                        } else if (key === 'conditions') {
+                            const nodeId = this.lines.find(line => line.id === item).source.id
+                            name = this.gateways[nodeId].conditions[id].name
+                        } else {
+                            name = this.variableList[item].name
+                        }
+                        return { id, name }
+                    })
+                    return { title: group.name, key, data }
                 })
             }
         },
         methods: {
-            // 引用节点点击
-            onCitedNodeClick (nodeId) {
-                this.$emit('onCitedNodeClick', nodeId)
+            // 引用详情点击
+            onCitedNodeClick (group, id) {
+                this.$emit('onCitedNodeClick', { group, id })
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.num {
-    margin: 0 0 10px;
-}
-.variable-cited-list {
+.variable-cited-wrap {
     position: relative;
     margin: 10px 30px;
-    padding: 16px;
+    padding: 0 16px 16px;
     background: #f0f1f5;
     border: 1px solid #dcdee5;
     border-radius: 2px;
@@ -71,7 +106,7 @@
         content: '';
         position: absolute;
         top: -5px;
-        right: 100px;
+        right: 93px;
         width: 8px;
         height: 8px;
         background: #f0f1f5;
@@ -81,6 +116,11 @@
         transform: rotate(-45deg);
         border-radius: 1px;
     }
+}
+.group-title {
+    margin: 16px 0 4px;
+}
+.variable-cited-list {
     .variable-cited-item {
         position: relative;
         padding: 0 18px;

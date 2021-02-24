@@ -187,6 +187,43 @@ class TestContext(TestCase):
             [call("key1", "val1"), call("key2", "val2"), call("key3", "key3")]
         )
 
+    def test_sync_change_with_splice_vars(self):
+        from pipeline.core.data.var import SpliceVariable
+
+        child_context = context.Context({})
+        self.context.update_global_var(
+            {
+                "key_1": "test_val1",
+                "key_2": "test_val2",
+                "key_3": "value3",  # not splice
+                "key_4": SpliceVariable("key_4", "val3", self.context),  # splice sync success
+                "key_5": SpliceVariable("key_5", "val5", self.context),  # splice parent not none
+                "key_6": SpliceVariable("key_5", "val6", self.context),  # splice child none
+            }
+        )
+        self.context.variables["key_5"]._value = "old_val5"
+        self.context.clear_change_keys()
+
+        child_context.variables = deepcopy(self.context.variables)
+        child_context.set_global_var("key_1", "new_val_1")
+        child_context.set_global_var("key_0", "new_val_0")
+        child_context.variables["key_3"] = SpliceVariable("key_3", "val3", child_context)
+        child_context.variables["key_4"] = SpliceVariable("key_4", "val4", child_context)
+        child_context.variables["key_5"] = SpliceVariable("key_5", "val5", child_context)
+        child_context.variables["key_6"] = SpliceVariable("key_6", "val6", child_context)
+        child_context.variables["key_4"]._value = "val4"
+        child_context.variables["key_5"]._value = "val5"
+
+        self.assertIsNone(self.context.variables["key_4"]._value)
+        self.context.sync_change(child_context)
+        self.assertEqual(self.context.variables["key_0"], "new_val_0")
+        self.assertEqual(self.context.variables["key_1"], "new_val_1")
+        self.assertEqual(self.context.variables["key_2"], "test_val2")
+        self.assertEqual(self.context.variables["key_3"], "value3")
+        self.assertEqual(self.context.variables["key_4"]._value, "val4")
+        self.assertEqual(self.context.variables["key_5"]._value, "old_val5")
+        self.assertEqual(self.context.variables["key_6"]._value, None)
+
 
 class TestOutputRef(TestCase):
     def setUp(self):

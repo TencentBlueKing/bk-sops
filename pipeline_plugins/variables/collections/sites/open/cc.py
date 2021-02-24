@@ -36,12 +36,14 @@ logger = logging.getLogger("root")
 
 class VarIpPickerVariable(LazyVariable):
     code = "ip"
-    name = _("IP选择器(即将下线，请用新版)")
-    type = "general"
+    name = _("IP选择器(已废弃)")
+    type = "dynamic"
     tag = "var_ip_picker.ip_picker"
     form = "%svariables/cmdb/var_ip_picker.js" % settings.STATIC_URL
 
     def get_value(self):
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         var_ip_picker = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
@@ -93,11 +95,13 @@ class VarIpPickerVariable(LazyVariable):
 class VarCmdbIpSelector(LazyVariable):
     code = "ip_selector"
     name = _("IP选择器")
-    type = "general"
+    type = "dynamic"
     tag = "var_cmdb_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_cmdb_ip_selector.js" % settings.STATIC_URL
 
     def get_value(self):
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -177,7 +181,7 @@ class VarCmdbSetAllocation(LazyVariable):
 class VarCmdbAttributeQuery(LazyVariable):
     code = "attribute_query"
     name = _("主机属性查询器")
-    type = "general"
+    type = "dynamic"
     tag = "var_cmdb_attr_query.attr_query"
     form = "%svariables/cmdb/var_cmdb_attribute_query.js" % settings.STATIC_URL
 
@@ -188,6 +192,8 @@ class VarCmdbAttributeQuery(LazyVariable):
         @note: 引用127.0.0.1的bk_host_id属性，如 ${value["127.0.0.1"]["bk_host_id"]} -> 999
         @return:
         """
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return ""
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)

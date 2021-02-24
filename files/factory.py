@@ -11,8 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
-
+from . import env
 from .managers.nfs import HostNFSManager
 from .managers.upload_module import UploadModuleManager
 from .bartenders.nfs import HostNFSBartender
@@ -30,8 +29,8 @@ class ManagerFactory(object):
 
     @classmethod
     def _create_host_nfs_manager(cls):
-        location = os.getenv("BKAPP_NFS_CONTAINER_ROOT")
-        server_location = os.getenv("BKAPP_NFS_HOST_ROOT")
+        location = env.BKAPP_NFS_CONTAINER_ROOT
+        server_location = env.BKAPP_NFS_HOST_ROOT
 
         if not location:
             raise EnvironmentError("nfs file manager BKAPP_NFS_CONTAINER_ROOT are not config at envs")

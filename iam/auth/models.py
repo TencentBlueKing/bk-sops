@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import abc
 import six
+import json
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -124,7 +125,6 @@ class ApiAuthResourceWithId(Resource):
         self.type = type
         self.id = id
         self.name = name
-        # allow to be empty or none
 
     def to_dict(self):
         return {
@@ -135,6 +135,39 @@ class ApiAuthResourceWithId(Resource):
         }
 
 
+class ApiBatchAuthResourceWithId(Resource):
+    __slots__ = ("system", "type", "instances")
+
+    def __init__(self, system, type, instances):
+        self.system = system
+        self.type = type
+        self.instances = instances or []
+
+    def validate(self):
+        # Type check
+        if not isinstance(self.system, six.string_types):
+            raise TypeError("system should be a string")
+
+        if not isinstance(self.type, six.string_types):
+            raise TypeError("type should be a string")
+
+        if not isinstance(self.instances, list):
+            raise TypeError("instances should be a list")
+        # Value check
+        if not self.system:
+            raise ValueError("ApiBatchAuthResourceWithId.system should not be empty")
+
+        if not self.type:
+            raise ValueError("ApiBatchAuthResourceWithId.type should not be empty")
+
+    def to_dict(self):
+        return {
+            "system": self.system,
+            "type": self.type,
+            "instances": self.instances,
+        }
+
+
 class ApiAuthResourceWithPath(Resource):
     __slots__ = ("system", "path", "type")
 
@@ -142,7 +175,6 @@ class ApiAuthResourceWithPath(Resource):
         self.system = system
         self.type = type
         self.path = path or []
-        # allow to be empty or none
 
     def validate(self):
         # Type check
@@ -154,16 +186,50 @@ class ApiAuthResourceWithPath(Resource):
 
         # Value check
         if not self.system:
-            raise ValueError("Resource.system should not be empty")
+            raise ValueError("ApiAuthResourceWithPath.system should not be empty")
 
         if not self.type:
-            raise ValueError("Resource.type should not be empty")
+            raise ValueError("ApiAuthResourceWithPath.type should not be empty")
 
     def to_dict(self):
         return {
             "system": self.system,
             "type": self.type,
             "path": self.path,
+        }
+
+
+class ApiBatchAuthResourceWithPath(Resource):
+    __slots__ = ("system", "paths", "type")
+
+    def __init__(self, system, type, paths):
+        self.system = system
+        self.type = type
+        self.paths = paths or []
+
+    def validate(self):
+        # Type check
+        if not isinstance(self.system, six.string_types):
+            raise TypeError("system should be a string")
+
+        if not isinstance(self.type, six.string_types):
+            raise TypeError("type should be a string")
+
+        if not isinstance(self.paths, list):
+            raise TypeError("paths should be a list")
+
+        # Value check
+        if not self.system:
+            raise ValueError("ApiBatchAuthResourceWithPath.system should not be empty")
+
+        if not self.type:
+            raise ValueError("ApiBatchAuthResourceWithPath.type should not be empty")
+
+    def to_dict(self):
+        return {
+            "system": self.system,
+            "type": self.type,
+            "paths": self.paths,
         }
 
 
@@ -249,6 +315,10 @@ class Request(BaseRequest):
             "environment": self.environment or {},
         }
 
+    def __hash__(self):
+        data = json.dumps(self.to_dict(), sort_keys=True)
+        return hash(data)
+
 
 class MultiActionRequest(BaseRequest):
     __slots__ = ("system", "subject", "actions", "resources", "environment")
@@ -323,7 +393,7 @@ class ApiAuthRequest(Request):
         try:
             self.action.validate()
         except Exception as e:
-            raise ValueError("Request.action invalid: %s" % e)
+            raise ValueError("ApiAuthRequest.action invalid: %s" % e)
         if not self.operate:
             raise ValueError("ApiAuthRequest.operate should not be empty")
 
@@ -334,6 +404,52 @@ class ApiAuthRequest(Request):
             "action": self.action.to_dict(),
             "resources": [r.to_dict() for r in self.resources] if self.resources else [],
             "environment": self.environment or {},
+            "operate": self.operate,
+        }
+
+        if self.asynchronous is not None:
+            request_dict["asynchronous"] = self.asynchronous
+
+        return request_dict
+
+
+class ApiBatchAuthRequest(Request):
+    __slots__ = ("system", "subject", "actions", "resources", "operate")
+
+    def __init__(self, system, subject, actions, resources, operate, asynchronous=None):
+        self.system = system
+        self.subject = subject
+        self.actions = actions
+        self.resources = resources
+        self.operate = operate
+        self.asynchronous = asynchronous
+
+    def _validate_type(self):
+        if not isinstance(self.operate, six.string_types):
+            raise TypeError("operate should be a string")
+        if not isinstance(self.actions, list):
+            raise TypeError("actions should be a list")
+
+    def _validate_value(self):
+        # Value check
+        for action in self.actions:
+            try:
+                action.validate()
+            except Exception as e:
+                raise ValueError("ApiBatchAuthRequest.action invalid: %s" % e)
+        if not self.operate:
+            raise ValueError("ApiBatchAuthRequest.operate should not be empty")
+
+    def validate(self):
+        self._validate_type()
+        self._validate_value()
+
+    def to_dict(self):
+        request_dict = {
+            "system": self.system,
+            "subject": self.subject.to_dict() if self.subject else {},
+            "actions": [action.to_dict() for action in self.actions] if self.actions else [],
+            "resources": [r.to_dict() for r in self.resources] if self.resources else [],
             "operate": self.operate,
         }
 

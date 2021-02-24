@@ -15,9 +15,9 @@ import copy
 
 from pipeline import exceptions
 from pipeline.core.data import library, var
-from pipeline.component_framework.constant import ConstantPool
 from pipeline.core.data.expression import ConstantTemplate
 from pipeline.validators.utils import format_node_io_to_list
+from pipeline.component_framework.constant import ConstantPool
 
 from pipeline_web.constants import PWE
 
@@ -31,13 +31,20 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     """
     pipeline_tree = copy.deepcopy(web_pipeline)
     constants = pipeline_tree.pop("constants")
+    # classify inputs and outputs
     classification = classify_constants(constants, is_subprocess)
-    # 解析隐藏全局变量互引用
-    pool_obj = ConstantPool(classification["constant_pool"])
-    pre_resolved_constants = pool_obj.pool
-    # 将解析完的变量添加到 pipeline inputs 中
-    classification["data_inputs"] = calculate_constants_type(pre_resolved_constants, classification["data_inputs"])
-    classification["data_inputs"] = calculate_constants_type(classification["params"], classification["data_inputs"])
+    # pre render mako for some vars
+    pre_render_keys = get_pre_render_mako_keys(constants)
+    pre_render_pool = ConstantPool(
+        pool={
+            k: {"value": info["value"]}
+            for k, info in classification["data_inputs"].items()
+            if (k in pre_render_keys and info["type"] != "lazy")
+        }
+    )
+    for k, v in pre_render_pool.pool.items():
+        classification["data_inputs"][k]["value"] = v["value"]
+
     pipeline_tree["data"] = {
         "inputs": classification["data_inputs"],
         "outputs": [key for key in pipeline_tree.pop("outputs")],
@@ -82,15 +89,19 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     return pipeline_tree
 
 
+def get_pre_render_mako_keys(constants):
+    pre_render_inputs_keys = set()
+    for key, info in list(constants.items()):
+        if info["source_type"] != "component_outputs" and info["show_type"] != "show":
+            pre_render_inputs_keys.add(key)
+    return pre_render_inputs_keys
+
+
 def classify_constants(constants, is_subprocess):
-    # 可以预解析的变量
-    constant_pool = {}
-    # 不能预解析的变量
+    # pipeline tree inputs
     data_inputs = {}
-    # 节点输出的变量
+    # pipeline act outputs
     acts_outputs = {}
-    # 需要在父流程中解析的变量
-    params = {}
     for key, info in list(constants.items()):
         # 显示的变量可以引用父流程 context，通过 param 传参
         if info["show_type"] == "show":
@@ -126,36 +137,27 @@ def classify_constants(constants, is_subprocess):
                 "is_param": info["is_param"],
             }
         else:
-            if info["show_type"] == "show" and is_subprocess:
-                params[key] = info
-            # 只有隐藏的变量才需要预先解析
-            else:
-                constant_pool[key] = info
-    result = {
-        "constant_pool": constant_pool,
-        "data_inputs": data_inputs,
-        "acts_outputs": acts_outputs,
-        "params": params,
-    }
+            ref = ConstantTemplate(info["value"]).get_reference()
+            constant_type = "splice" if ref else "plain"
+            is_param = info["show_type"] == "show" and is_subprocess
+            data_inputs[key] = {"type": constant_type, "value": info["value"], "is_param": is_param}
+
+    result = {"data_inputs": data_inputs, "acts_outputs": acts_outputs}
     return result
 
 
-def calculate_constants_type(to_calculate, calculated):
+def calculate_constants_type(to_calculate, calculated, change_calculated=False):
     """
     @summary:
     @param to_calculate: 待计算的变量
     @param calculated: 变量类型确定的，直接放入结果
+    @param change_calculated: 是否直接修改calculated并作为结果返回
     @return:
     """
-    data = copy.deepcopy(calculated)
+    data = copy.deepcopy(calculated) if not change_calculated else calculated
     for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info["value"]).get_reference()
-        if ref:
-            constant_type = "splice"
-        elif info.get("type", "plain") != "plain":
-            constant_type = info["type"]
-        else:
-            constant_type = "plain"
+        constant_type = "splice" if ref else "plain"
         data.setdefault(key, {"type": constant_type, "value": info["value"], "is_param": info.get("is_param", False)})
 
     return data

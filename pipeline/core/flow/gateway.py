@@ -10,11 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 from abc import ABCMeta
 
 import ujson as json
 
+from pipeline.core.constants import ESCAPED_CHARS
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
 from pipeline.core.flow.base import FlowNode
 from pipeline.exceptions import ConditionExhaustedException, EvaluationException, InvalidOperationException
@@ -52,12 +52,29 @@ class ExclusiveGateway(Gateway):
             raise InvalidOperationException("sequence flow(%s) does not exist." % flow_id)
         return flow_to_target[flow_id]
 
+    @staticmethod
+    def _transform_escape_char(string):
+        """
+        对未转义的字符串进行转义，现有的转义字符包括\n, \r, \t
+        """
+        if not isinstance(string, str):
+            return string
+        # 已转义的情况
+        if len([c for c in ESCAPED_CHARS.values() if c in string]) > 0:
+            return string
+        for key, value in ESCAPED_CHARS.items():
+            if key in string:
+                string = string.replace(key, value)
+        return string
+
     def _determine_next_flow_with_boolrule(self, data):
         """
         根据当前传入的数据判断下一个应该流向的 flow （ 不使用 eval 的版本）
         :param data:
         :return:
         """
+        for key, value in data.items():
+            data[key] = self._transform_escape_char(value)
         for condition in self.conditions:
             deformatted_data = {deformat_constant_key(key): value for key, value in list(data.items())}
             try:

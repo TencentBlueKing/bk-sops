@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import copy
 
 import jsonschema
 import ujson as json
@@ -119,6 +119,9 @@ def create_task(request, template_id, project_id):
             pipeline_tree = params["pipeline_tree"]
             for key, value in params["constants"].items():
                 if key in pipeline_tree["constants"]:
+                    if pipeline_tree["constants"][key].get("is_meta", False):
+                        meta = copy.deepcopy(pipeline_tree["constants"][key])
+                        pipeline_tree["constants"][key]["meta"] = meta
                     pipeline_tree["constants"][key]["value"] = value
             pipeline_node_name_handle(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
@@ -137,13 +140,11 @@ def create_task(request, template_id, project_id):
             return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
     else:
         try:
-            (result, data,) = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
+            data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"],
             )
-        except PipelineException as e:
+        except Exception as e:
             return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
-        if not result:
-            return JsonResponse({"result": False, "message": data, "code": err_code.UNKNOWN_ERROR.code})
 
     task = TaskFlowInstance.objects.create(
         project=project,

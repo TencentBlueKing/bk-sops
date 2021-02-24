@@ -67,7 +67,7 @@ class JobLocalContentUploadService(Service):
             self.OutputItem(
                 name=_("JOB全局变量"),
                 key="log_outputs",
-                type="dict",
+                type="object",
                 schema=ObjectItemSchema(
                     description=_("输出日志中提取的全局变量"),
                     property_schemas={
@@ -113,7 +113,7 @@ class JobLocalContentUploadService(Service):
                     ),
                 }
             ],
-            "ip_list": ip_list
+            "ip_list": ip_list,
         }
 
         job_result = client.job.push_config_file(job_kwargs)
@@ -135,14 +135,12 @@ class JobLocalContentUploadService(Service):
         client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
         get_job_instance_log_kwargs = {
             "job_instance_id": data.outputs.job_inst_id,
-            "bk_biz_id": parent_data.get_one_of_inputs("biz_cc_id")
+            "bk_biz_id": parent_data.get_one_of_inputs("biz_cc_id"),
         }
         get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
         if not get_job_instance_log_return["result"]:
             err_message = handle_api_error(
-                "JOB", "job.get_job_instance_log",
-                get_job_instance_log_kwargs,
-                get_job_instance_log_return
+                "JOB", "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
             )
             data.set_outputs("ex_data", err_message)
             return False
@@ -153,9 +151,7 @@ class JobLocalContentUploadService(Service):
                 return True
             elif job_status > 3:
                 err_message = handle_api_error(
-                    "JOB", "job.get_job_instance_log",
-                    get_job_instance_log_kwargs,
-                    get_job_instance_log_return
+                    "JOB", "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
                 )
                 data.set_outputs("ex_data", err_message)
                 return False

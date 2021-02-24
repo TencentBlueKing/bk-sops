@@ -46,7 +46,12 @@ def get_job_content(remote_files, operator, biz_cc_id):
     job_execute_fail_records = []
 
     ip_str = ",".join([remote_file["ip"] for remote_file in remote_files])
-    ip_info = cc_get_ips_info_by_str(username=operator, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False,)
+    ip_info = cc_get_ips_info_by_str(
+        username=operator,
+        biz_cc_id=biz_cc_id,
+        ip_str=ip_str,
+        use_cache=False,
+    )
     ip_list_result = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
     _ip_list_result = [_ip["InnerIP"] for _ip in ip_info["ip_result"]]
 

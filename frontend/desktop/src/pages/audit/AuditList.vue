@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="auditList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -123,12 +124,12 @@
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('所属项目'),
             key: 'selectedProject',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择所属项目'),
             list: [],
             value: ''
@@ -144,7 +145,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -188,6 +189,28 @@
         },
         mixins: [permission, task],
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                selectedProject = '',
+                category = '',
+                executeTime = '',
+                creator = '',
+                executor = '',
+                statusSync = '',
+                keyword = ''
+            } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = item.key === 'selectedProject' ? Number(this.$route.query[item.key]) : this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 taskBasicInfoLoading: true,
                 listLoading: true,
@@ -199,22 +222,24 @@
                     searchable: true,
                     empty: false
                 },
+                searchForm,
+                isSearchFormOpen,
                 auditList: [],
                 taskCategory: [],
                 executeStatus: [], // 任务执行态
                 requestData: {
-                    selectedProject: '',
-                    executeTime: [],
-                    category: '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
+                    selectedProject,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
+                    taskName: keyword
                 },
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 }
             }
@@ -222,13 +247,7 @@
         computed: {
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                value[2].list = this.taskCategory
-                return searchForm
-            }
+            })
         },
         created () {
             this.loadAuditTask()
@@ -252,7 +271,7 @@
             async loadAuditTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    const { selectedProject, executeTime, category, creator, executor, statusSync, taskName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -278,7 +297,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         project__id: selectedProject || undefined,
                         category: category || undefined,
-                        audit__pipeline_instance__name__icontains: flowName || undefined,
+                        pipeline_instance__name__contains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
@@ -309,15 +328,40 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.loadAuditTask()
             },
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.loadAuditTask()
             },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { selectedProject, category, executeTime, creator, executor, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    selectedProject,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    page: current,
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'auditHome', query })
+            },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
                 this.loadAuditTask()
             },
@@ -326,6 +370,9 @@
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0 })
                     this.business.list = businessData.objects
+                    const form = this.searchForm.find(item => item.key === 'selectedProject')
+                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -337,6 +384,9 @@
                 try {
                     const res = await this.loadProjectBaseInfo()
                     this.taskCategory = res.data.task_categories.map(m => ({ name: m.name, value: m.value }))
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -365,8 +415,9 @@
                 }
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
+                this.updateUrl()
                 this.loadAuditTask()
             }
         }

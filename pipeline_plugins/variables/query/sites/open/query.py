@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
+from gcloud.constants import BIZ_INTERNAL_MODULE
 from gcloud.core.models import StaffGroupSet
 from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
@@ -116,15 +117,24 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     service_templates_untreated = get_service_template_list(request.user.username, biz_cc_id, supplier_account)
     service_templates = []
     for template_untreated in service_templates_untreated:
-        template = {
-            "value": template_untreated["name"],
-            "text": template_untreated["name"],
-        }
-        service_templates.append(template)
+        if template_untreated["name"] not in BIZ_INTERNAL_MODULE:
+            template = {
+                "value": template_untreated["name"],
+                "text": template_untreated["name"],
+            }
+            service_templates.append(template)
     # 为服务模板列表添加一个all选项
     if request.GET.get("all"):
         service_templates.insert(0, {"value": "all", "text": _("所有模块(all)")})
 
+    # 添加空闲机, 故障机和待回收模块选项
+    service_templates.extend(
+        [
+            {"value": _("空闲机"), "text": _("空闲机")},
+            {"value": _("待回收"), "text": _("待回收")},
+            {"value": _("故障机"), "text": _("故障机")},
+        ]
+    )
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 
@@ -145,6 +155,21 @@ def cc_get_set_group(request, biz_cc_id):
     return JsonResponse({"result": True, "data": group_data})
 
 
+def cc_get_set_attribute(request, biz_cc_id):
+    kwargs = {
+        "bk_biz_id": int(biz_cc_id),
+        "bk_obj_id": "set",
+    }
+    client = get_client_by_user(request.user.username)
+    result = client.cc.search_object_attribute(kwargs)
+    if not result["result"]:
+        return JsonResponse({"result": False, "data": _("调用cc接口失败，message={}").format(result["message"])})
+    data = result["data"]
+    set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]
+
+    return JsonResponse({"result": True, "data": set_attribute})
+
+
 @supplier_account_inject
 def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     """
@@ -156,6 +181,7 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_object_attribute(kwargs)
+
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
@@ -171,11 +197,12 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
 
 
 urlpatterns += [
-    url(r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_get_set_env, ),
+    url(r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_get_set_env,),
     url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
     url(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),
     url(r"^cc_get_service_template_list/(?P<biz_cc_id>\d+)/$", cc_list_service_template),
     url(r"^cc_get_set_group/(?P<biz_cc_id>\d+)/$", cc_get_set_group),
     url(r"^get_staff_groups/(?P<project_id>\d+)/$", get_staff_groups),
+    url(r"^cc_get_set_attributes/(?P<biz_cc_id>\d+)/$", cc_get_set_attribute),
 ]
