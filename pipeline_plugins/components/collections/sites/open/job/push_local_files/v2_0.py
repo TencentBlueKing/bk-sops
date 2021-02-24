@@ -23,6 +23,7 @@ from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     batch_execute_func,
     get_job_instance_url,
+    plat_ip_reg,
 )
 from files.factory import ManagerFactory
 from gcloud.conf import settings
@@ -128,7 +129,7 @@ class JobPushLocalFilesService(Service):
         local_files_and_target_path = data.inputs.job_local_files_info["job_push_multi_local_files_table"]
         target_ip_list = data.inputs.job_target_ip_list
         target_account = data.inputs.job_target_account
-
+        across_biz = data.get_one_of_inputs("job_across_biz", False)
         task_count = len(local_files_and_target_path)
 
         file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
@@ -146,8 +147,22 @@ class JobPushLocalFilesService(Service):
 
         client = get_client_by_user(executor)
 
-        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
+        # 跨业务
+        if across_biz:
+            ip_info = {"ip_result": []}
+            for match in plat_ip_reg.finditer(target_ip_list):
+                if not match:
+                    continue
+                ip_str = match.group()
+                cloud_id, inner_ip = ip_str.split(":")
+                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
+        else:
+            ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
+
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+        if not ip_list:
+            data.outputs.ex_data = _("目标ip为空，请确认是否为当前业务IP。如需跨业务上传，请选择'允许跨业务'选项")
+            return False
         params_list = [
             {
                 "esb_client": client,
