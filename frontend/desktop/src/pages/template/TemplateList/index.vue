@@ -83,7 +83,7 @@
                                     v-for="label in props.row.template_labels"
                                     class="label-name"
                                     :key="label.id"
-                                    :style="{ background: label.color }"
+                                    :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
                                     @click="onSearchLabel(label.label_id)">
                                     {{ label.name }}
                                 </span>
@@ -232,6 +232,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
@@ -354,7 +355,8 @@
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
                 collectionList: [],
-                ordering: null // 排序参数
+                ordering: null, // 排序参数
+                darkColorList: DARK_COLOR_LIST
             }
         },
         computed: {

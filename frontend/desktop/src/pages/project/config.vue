@@ -95,7 +95,9 @@
             <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1 }">
                 <bk-table-column :label="$t('标签名称')" property="name" :width="150">
                     <template slot-scope="props">
-                        <span class="label-name" :style="{ background: props.row.color }">{{ props.row.name }}</span>
+                        <span class="label-name"
+                            :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
+                            {{ props.row.name }}</span>
                     </template>
                 </bk-table-column>
                 <bk-table-column :label="$t('标签描述')" :width="300">
@@ -255,6 +257,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import BkUserSelector from '@blueking/user-selector'
+    import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
@@ -293,11 +296,8 @@
                 labelCount: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
                 colorDropdownShow: false,
-                colorList: [
-                    '#c4c6cc', '#ffd695', '#ffdddd', '#e1ecff', '#dcffe2',
-                    '#c4c6cc', '#ffd695', '#fd9c9c', '#a3c5fd', '#94f5a4',
-                    '#979ba5', '#ffb848', '#ff5656', '#699df4', '#45e35f'
-                ],
+                colorList: LABEL_COLOR_LIST,
+                darkColorList: DARK_COLOR_LIST,
                 descRules: {
                     value: [{
                         max: 512,
@@ -799,7 +799,7 @@
             height: 20px;
         }
         .color-list {
-            width: 148px;
+            width: 268px;
             padding: 6px 16px 6px;
             overflow: hidden;
             .tip {
@@ -813,7 +813,7 @@
                 margin-right: 4px;
                 margin-bottom: 4px;
                 cursor: pointer;
-                &:nth-child(5n) {
+                &:nth-child(10n) {
                     margin-right: 0;
                 }
             }
