@@ -82,9 +82,6 @@
             }
         },
         methods: {
-            getEditRow () {
-                return this.$refs.setAllocation.getEditRow()
-            },
             update (val) {
                 this.setValue = val
             },

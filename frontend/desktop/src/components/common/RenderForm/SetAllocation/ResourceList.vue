@@ -262,6 +262,10 @@
                 this.tableData = tools.deepClone(this.value)
             },
             validate () {
+                // 当前正在编辑行时，自动触发保存
+                if (typeof this.editRow === 'number') {
+                    this.rowSaveClick({ '$index': this.editRow })
+                }
                 return this.validateRow(`row_`)
             }
         }
