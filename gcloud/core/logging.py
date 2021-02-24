@@ -10,19 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 
-from config import RUN_VER
+from werkzeug.local import Local
 
-if RUN_VER == "open":
-    from blueapps.patch.settings_open_saas import *  # noqa
-else:
-    from blueapps.patch.settings_paas_services import *  # noqaJobExecuteTaskComponent
+local = Local()
 
-# 预发布环境
-RUN_MODE = "STAGING"
 
-BK_IAM_SYNC_TEMPLATES = True
-
-BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
-
-logging_addition_settings(LOGGING, environment="stag")
+class TraceIDInjectFilter(logging.Filter):
+    def filter(self, record):
+        record.trace_id = getattr(local, "trace_id", None)
+        return True

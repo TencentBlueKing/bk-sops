@@ -136,7 +136,10 @@ else:
 if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
-MIDDLEWARE = ("weixin.core.middlewares.WeixinProxyPatchMiddleware",) + MIDDLEWARE
+MIDDLEWARE = (
+    "gcloud.core.middlewares.TraceIDInjectMiddleware",
+    "weixin.core.middlewares.WeixinProxyPatchMiddleware",
+) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
 LOG_LEVEL = "INFO"
@@ -436,3 +439,51 @@ LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if
 
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
+
+
+# SaaS统一日志配置
+def logging_addition_settings(logging_dict, environment="prod"):
+    logging_dict["loggers"]["iam"] = {
+        "handlers": ["component"],
+        "level": "INFO" if environment == "prod" else "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["handlers"]["engine_component"] = {
+        "class": "pipeline.log.handlers.EngineContextLogHandler",
+        "formatter": "verbose",
+    }
+
+    logging_dict["loggers"]["component"] = {
+        "handlers": ["component", "engine_component"],
+        "level": "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["formatters"]["light"] = {"format": "%(message)s"}
+
+    logging_dict["handlers"]["engine"] = {
+        "class": "pipeline.log.handlers.EngineLogHandler",
+        "formatter": "light",
+    }
+
+    logging_dict["loggers"]["pipeline.logging"] = {
+        "handlers": ["engine"],
+        "level": "INFO",
+        "propagate": True,
+    }
+
+    # 多环境需要，celery的handler需要动态获取
+    logging_dict["loggers"]["celery_and_engine_component"] = {
+        "handlers": ["engine_component", logging_dict["loggers"]["celery"]["handlers"][0]],
+        "level": "INFO",
+        "propagate": True,
+    }
+
+    # 日志中添加trace_id
+    logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
+    for _, logging_handler in logging_dict["handlers"].items():
+        logging_handler.update({"filters": ["trace_id_inject_filter"]})
+    for formatter_name, logging_formatter in logging_dict["formatters"].items():
+        if formatter_name != "simple":
+            logging_formatter.update({"format": logging_formatter["format"].strip() + " [trace_id]: %(trace_id)s\n"})
