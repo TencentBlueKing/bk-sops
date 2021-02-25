@@ -223,7 +223,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -347,6 +349,8 @@ class JobScheduleService(JobService):
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
         if not data.outputs.job_id_of_batch_execute:
-            self.finish_schedule()
+            if data.outputs.ex_data == "Request Error:\n\n Get Result Error:\n":
+                del data.outputs.ex_data
 
+            self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
