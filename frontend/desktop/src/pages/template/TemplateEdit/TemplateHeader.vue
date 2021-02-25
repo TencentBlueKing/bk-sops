@@ -40,7 +40,7 @@
             <!-- 执行方案图标 -->
             <span
                 v-if="isEditProcessPage"
-                class="common-icon-paper execute-scheme-icon"
+                class="common-icon-file-setting execute-scheme-icon"
                 :title="$t('执行方案')"
                 @click="onOpenExecuteScheme">
             </span>
@@ -93,7 +93,7 @@
                 @click.stop="onSaveExecuteSchemeClick">
                 {{$t('保存')}}
             </bk-button>
-            <bk-button theme="default" @click="goEditProcessPage">{{$t('返回')}}</bk-button>
+            <bk-button theme="default" @click="goBackToTplEdit">{{$t('返回')}}</bk-button>
         </div>
         <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
             <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
@@ -311,8 +311,8 @@
             onSaveExecuteSchemeClick () {
                 this.$emit('onSaveExecuteSchemeClick')
             },
-            goEditProcessPage () {
-                this.$emit('goEditProcessPage')
+            goBackToTplEdit () {
+                this.$emit('goBackToTplEdit')
             },
             onClosePreview () {
                 this.$emit('onClosePreview')
@@ -523,7 +523,7 @@
         }
         .error-tip-icon {
             position: absolute;
-            right: 10px;
+            right: 15px;
             top: 8px;
             font-size: 16px;
             color: #ea3636;
@@ -541,6 +541,7 @@
         .execute-scheme-icon {
             margin-left: 20px;
             font-size: 14px;
+            color: #546a9e;
             cursor: pointer;
         }
         .setting-tab-wrap {

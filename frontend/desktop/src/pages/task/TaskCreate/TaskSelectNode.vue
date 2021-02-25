@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'executescheme-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -49,8 +49,7 @@
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
                 :is-edit-process-page="isEditProcessPage"
-                @onSchemaListChange="$emit('onSchemaListChange')"
-                @getTaskSchemeList="getTaskSchemeList"
+                @updateTaskSchemeList="updateTaskSchemeList"
                 @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
                 @importTextScheme="importTextScheme"
@@ -192,7 +191,7 @@
                             this.isAppmakerHasScheme = false
                             await this.getPreviewNodeData(this.template_id)
                         } else {
-                            this.selectScheme(schemeId)
+                            this.selectScheme({ id: schemeId })
                         }
                     }
                     this.setTemplateData(templateData)
@@ -405,15 +404,13 @@
             /**
              * 选择执行方案
              */
-            async selectScheme (scheme, e) {
-                const schemeDataKey = scheme.name || scheme
-                const schemeId = scheme.id || scheme
+            async selectScheme (scheme, isChecked) {
                 let allNodeId = []
                 let selectNodeArr = []
                 // 取消已选择方案
-                if (e === false) {
+                if (isChecked === false) {
                     selectNodeArr = []
-                    this.$delete(this.planDataObj, schemeDataKey)
+                    this.$delete(this.planDataObj, scheme.id)
                     if (Object.keys(this.planDataObj).length) {
                         for (const key in this.planDataObj) {
                             allNodeId = this.planDataObj[key]
@@ -426,9 +423,9 @@
                     }
                 } else {
                     try {
-                        const data = this.isEditProcessPage ? await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess }) : scheme
+                        const data = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
                         allNodeId = JSON.parse(data.data)
-                        this.planDataObj[schemeDataKey] = allNodeId
+                        this.planDataObj[scheme.id] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
                             selectNodeArr.push(...planNodeId)
@@ -464,8 +461,8 @@
                     this.getPreviewNodeData(this.template_id)
                 }
             },
-            getTaskSchemeList (val) {
-                this.$emit('getTaskSchemeList', val)
+            updateTaskSchemeList (val) {
+                this.$emit('updateTaskSchemeList', val)
             },
             // 导出当前方案
             onExportScheme () {
@@ -507,7 +504,7 @@
 .select-node-wrapper {
     height: calc(100% - 90px);
 }
-.executescheme-page {
+.task-create-page {
     height: 100%;
     .canvas-content {
         height: 100%;

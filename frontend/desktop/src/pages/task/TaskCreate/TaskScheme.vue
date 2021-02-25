@@ -47,7 +47,7 @@
                         <li
                             v-for="item in schemaList"
                             class="scheme-item"
-                            :key="item.name">
+                            :key="item.id">
                             <bk-checkbox @change="onCheckChange($event, item)"></bk-checkbox>
                             <span class="scheme-name" :title="item.name">{{item.name}}</span>
                             <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item)"></i>
@@ -78,6 +78,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import { uuid } from '@/utils/uuid.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -171,9 +172,6 @@
         watch: {
             isPreviewMode (val) {
                 this.isPreview = val
-            },
-            schemaList (val) {
-                this.$emit('getTaskSchemeList', val)
             }
         },
         created () {
@@ -186,15 +184,15 @@
                 'deleteTaskScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
-            onCheckChange (e, val) {
-                this.$emit('selectScheme', val, e)
+            onCheckChange (e, scheme) {
+                this.$emit('selectScheme', scheme, e)
             },
             // 获取方案列表
             async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
                         project_id: this.project_id,
-                        template_id: this.initTemplateId,
+                        template_id: this.initTemplateId || this.template_id,
                         isCommon: this.isCommonProcess
                     })
                 } catch (error) {
@@ -244,13 +242,14 @@
                     if (!this.isEditProcessPage) {
                         this.schemaList.push({
                             data: JSON.stringify(selectedNodes),
-                            name: this.schemaName
+                            name: this.schemaName,
+                            id: uuid()
                         })
                         this.$bkMessage({
                             message: i18n.t('方案添加成功'),
                             theme: 'success'
                         })
-                        this.$emit('onSchemaListChange')
+                        this.$emit('updateTaskSchemeList', this.schemaList)
                         this.schemaName = ''
                         this.nameEditing = false
                         return
@@ -280,23 +279,23 @@
             /**
              * 删除方案
              */
-            async onDeleteScheme (val) {
+            async onDeleteScheme (scheme) {
                 const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
 
                 if (this.deleting || !hasPermission) return
                 if (!this.isEditProcessPage) {
-                    const index = this.schemaList.findIndex(item => item.name === val.name)
+                    const index = this.schemaList.findIndex(item => item.id === scheme.id)
                     this.schemaList.splice(index, 1)
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
-                    this.$emit('onSchemaListChange')
+                    this.$emit('updateTaskSchemeList', this.schemaList)
                     return
                 }
                 this.deleting = true
                 try {
-                    await this.deleteTaskScheme({ id: val.id, isCommon: this.isCommonProcess })
+                    await this.deleteTaskScheme({ id: scheme.id, isCommon: this.isCommonProcess })
                     this.loadSchemeList()
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
@@ -371,7 +370,7 @@
         background: $whiteDefault;
         border-left: 1px solid $commonBorderColor;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-        // z-index: 2500;
+        z-index: 5;
         transition: right 0.5s ease-in-out;
         .scheme-title {
             display: flex;

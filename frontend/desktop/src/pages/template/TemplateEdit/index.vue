@@ -30,7 +30,7 @@
                 :is-preview-mode="isPreviewMode"
                 :execute-scheme-saving="executeSchemeSaving"
                 @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
-                @goEditProcessPage="goEditProcessPage"
+                @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
                 @onChangeName="onChangeName"
@@ -76,8 +76,7 @@
                 :exclude-node="excludeNode"
                 :init-template-id="initTemplateId"
                 :is-edit-process-page="isEditProcessPage"
-                @onSchemaListChange="onSchemaListChange"
-                @getTaskSchemeList="getTaskSchemeList"
+                @updateTaskSchemeList="updateTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
                 @setExcludeNode="setExcludeNode">
             </TaskSelectNode>
@@ -208,7 +207,7 @@
                 taskSchemeList: [],
                 isPreviewMode: false,
                 isExectueSchemeDialog: false,
-                isExecuteExecute: false, // 是否为执行方案
+                isExecuteScheme: false, // 是否为执行方案
                 isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
@@ -1032,26 +1031,24 @@
                     this.executeSchemeSaving = false
                 }
             },
-            goEditProcessPage () {
+            goBackToTplEdit () {
                 if (this.isSchemaListChange) {
                     this.isExectueSchemeDialog = true
                 } else {
                     this.isEditProcessPage = true
                 }
             },
-            onSchemaListChange () {
+            updateTaskSchemeList (val) {
+                this.taskSchemeList = val
                 this.allowLeave = false
                 this.isTemplateDataChanged = true
                 this.isSchemaListChange = true
-            },
-            getTaskSchemeList (val) {
-                this.taskSchemeList = val
             },
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)
             },
             onOpenExecuteScheme (val) {
-                this.isExecuteExecute = val
+                this.isExecuteScheme = val
             },
             // 流程名称修改
             onChangeName (name) {
@@ -1085,7 +1082,7 @@
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
                 if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
-                    if (!this.isExecuteExecute) {
+                    if (!this.isExecuteScheme) {
                         this.multipleTabDialogShow = true
                     }
                 } else {
@@ -1125,7 +1122,7 @@
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
-                        if (this.isExecuteExecute) {
+                        if (this.isExecuteScheme) {
                             this.isExectueSchemeDialog = true
                         } else {
                             this.saveTemplate()
@@ -1347,6 +1344,7 @@
             setExcludeNode (val) {
                 this.excludeNode = val
             },
+            // 编辑执行方案弹框 确定事件
             async onConfirmSave () {
                 if (this.isEditProcessPage) {
                     await this.saveTemplate()
@@ -1356,6 +1354,7 @@
                     this.onSaveExecuteSchemeClick()
                 }
             },
+            // 编辑执行方案弹框 取消事件
             onCancelSave () {
                 this.isExectueSchemeDialog = false
                 this.isEditProcessPage = true
@@ -1430,7 +1429,6 @@
 </style>
 <style lang="scss">
     .template-edit-dialog {
-        z-index: 5000 !important;
         .bk-dialog-body {
             padding: 0;
         }
