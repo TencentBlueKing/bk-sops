@@ -187,7 +187,6 @@ class JobFastPushFileService(JobScheduleService):
                     "file_target_path": job_target_path,
                     "bk_callback_url": get_node_callback_url(self.id),
                 }
-                print(job_kwargs)
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
                 if download_speed_limit:
@@ -198,7 +197,8 @@ class JobFastPushFileService(JobScheduleService):
         task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
-        job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
+        job_instance_id, job_inst_name, job_inst_url = [], [], []
+        data.outputs.requests_error = "Request Error:\n"
         for index, res in enumerate(job_result_list):
             job_result = res["result"]
             if job_result["result"]:
@@ -208,11 +208,12 @@ class JobFastPushFileService(JobScheduleService):
             else:
                 message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
                 self.logger.error(message)
-                ex_data.append(message)
+                data.outputs.requests_error += "{}\n".format(message)
 
         data.outputs.job_instance_id_list = job_instance_id
         # 批量请求使用
         data.outputs.job_id_of_batch_execute = job_instance_id
+        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id]
         # 请求成功数
         data.outputs.request_success_count = len(job_result_list)
         # 执行成功数
@@ -225,7 +226,7 @@ class JobFastPushFileService(JobScheduleService):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobScheduleService, self).schedule(data, parent_data, callback_data)
+        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [

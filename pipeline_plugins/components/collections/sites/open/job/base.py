@@ -35,6 +35,7 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import (
     StringItemSchema,
@@ -299,12 +300,14 @@ class JobService(Service):
 
 
 class JobScheduleService(JobService):
+    __need_schedule__ = True
+    interval = StaticIntervalGenerator(5)
+
     def schedule(self, data, parent_data, callback_data=None):
         params_list = [
             {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
             for job_id in data.outputs.job_id_of_batch_execute
         ]
-
         client = get_client_by_user(parent_data.inputs.executor)
 
         data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
