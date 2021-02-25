@@ -225,7 +225,7 @@ class JobFastPushFileService(JobScheduleService):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super().schedule(data, parent_data, callback_data)
+        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [
