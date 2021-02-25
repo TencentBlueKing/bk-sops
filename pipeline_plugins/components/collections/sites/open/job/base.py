@@ -304,6 +304,7 @@ class JobScheduleService(JobService):
         ]
         client = get_client_by_user(parent_data.inputs.executor)
 
+        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
 
         # 重置查询 job_id
@@ -312,7 +313,6 @@ class JobScheduleService(JobService):
         # 解析查询结果
         running_task_list = []
 
-        has_ex_data = False
         for job_result in batch_result_list:
             result = job_result["result"]
             job_id_str = job_result["params"]["job_instance_id"]
@@ -326,9 +326,6 @@ class JobScheduleService(JobService):
                     data.outputs.success_count += 1
                 # 失败状态
                 elif job_status > 3:
-                    if not has_ex_data:
-                        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
-                        has_ex_data = True
                     data.outputs.ex_data += (
                         "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
                         "\n错误信息:{}\n".format(job_detail_url, log_content)
@@ -336,9 +333,6 @@ class JobScheduleService(JobService):
                 else:
                     running_task_list.append(job_id_str)
             else:
-                if not has_ex_data:
-                    data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
-                    has_ex_data = True
                 data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                     job_detail_url
                 )
