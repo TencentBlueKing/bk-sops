@@ -17,7 +17,6 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
@@ -41,9 +40,6 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobFastPushFileService(JobScheduleService):
-    __need_schedule__ = True
-    interval = StaticIntervalGenerator(1)
-
     def inputs_format(self):
         return [
             self.InputItem(
