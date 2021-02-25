@@ -104,8 +104,25 @@
                             },
                             validation: [
                                 {
-                                    type: "required",
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('nodeman_host_input_type')) {
+                                            if (self.get_parent().get_child('nodeman_host_input_type').value === "host_ip" && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("请选云区域");
+                                            }
+                                        }
+                                        return result
+                                    }
                                 }
+
                             ],
 
                         },
