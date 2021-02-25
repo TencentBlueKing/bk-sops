@@ -169,7 +169,7 @@ class JobPushLocalFilesService(JobScheduleService):
             return False
         # 校验请求结果
         job_instance_id_list = []
-        data.outputs.requests_error = "Request Error:\n"
+        data.outputs.requests_error = ""
         for push_object in push_results:
             push_result = push_object["result"]
             if not push_result["result"]:
@@ -180,6 +180,9 @@ class JobPushLocalFilesService(JobScheduleService):
                 data.outputs.requests_error += "{}\n".format(err_message)
             else:
                 job_instance_id_list.append(push_result["data"]["job_id"])
+
+        if data.outputs.requests_error:
+            data.outputs.requests_error = "Request Error:\n{}".format(data.outputs.requests_error)
 
         data.outputs.job_instance_id_list = job_instance_id_list
 
@@ -201,6 +204,9 @@ class JobPushLocalFilesService(JobScheduleService):
         # 任务结果
         data.outputs.final_res = task_count == len(job_instance_id_list)
         return True
+
+    def schedule(self, data, parent_data, callback_data=None):
+        return super(JobPushLocalFilesService, self).schedule(data, parent_data, callback_data)
 
 
 class JobPushLocalFilesComponent(Component):

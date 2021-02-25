@@ -219,7 +219,7 @@ def SCHEDULE_FAILURE_CASE():
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [12345],
                 "job_id_of_batch_execute": [12345],
                 "job_inst_url": ["url_token"],
@@ -232,7 +232,7 @@ def SCHEDULE_FAILURE_CASE():
         schedule_assertion=ScheduleAssertion(
             success=False,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [12345],
                 "job_id_of_batch_execute": [],
                 "job_inst_url": ["url_token"],
@@ -240,8 +240,7 @@ def SCHEDULE_FAILURE_CASE():
                 "request_success_count": 1,
                 "success_count": 0,
                 "final_res": True,
-                "ex_data": "Request Error:\n\n Get Result Error:\n任务执行失败，"
-                "<a href='' target='_blank'>前往作业平台(JOB)查看详情</a>\n",
+                "ex_data": "任务执行失败，<a href='' target='_blank'>前往作业平台(JOB)查看详情</a>\n",
             },
             schedule_finished=True,
         ),
@@ -323,7 +322,7 @@ def SUCCESS_MULTI_CASE():
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [123, 456, 789],
                 "job_id_of_batch_execute": [123, 456, 789],
                 "job_inst_url": ["url_token", "url_token", "url_token"],
@@ -336,7 +335,7 @@ def SUCCESS_MULTI_CASE():
         schedule_assertion=ScheduleAssertion(
             success=True,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [123, 456, 789],
                 "job_id_of_batch_execute": [],
                 "job_inst_url": ["url_token", "url_token", "url_token"],
