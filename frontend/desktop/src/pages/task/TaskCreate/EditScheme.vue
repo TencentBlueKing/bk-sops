@@ -17,7 +17,7 @@
         <div class="form-content">
             <bk-form form-type="vertical">
                 <bk-form-item :label="$t('方案内容')" :required="true">
-                    <bk-input type="textarea" :rows="16" v-model="schemeText" @blur="updateSelected"></bk-input>
+                    <bk-input type="textarea" :rows="16" v-model="schemeText"></bk-input>
                     <div class="content-tips">{{ $t('参考格式：步骤：节点名 标识位(0：不选择；1：选择；2：非可选节点)，并以换行符分隔。') }}</div>
                 </bk-form-item>
                 <bk-form-item :label="$t('变更节点对比')">
@@ -61,11 +61,7 @@
         },
         watch: {
             schemeText () {
-                this.updateSelected()
-                if (!this.errorMsg) {
-                    const selectedNodes = this.orderedNodeData.filter(item => !this.excludeNodes.includes(item.id)).map(item => item.id)
-                    this.$emit('handlerFormChange', selectedNodes)
-                }
+                this.$emit('handlerFormChange')
             }
         },
         methods: {

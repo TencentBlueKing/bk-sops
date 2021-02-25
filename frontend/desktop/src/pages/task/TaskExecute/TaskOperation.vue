@@ -65,7 +65,7 @@
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
-                    @handeleRenderDataChange="handeleRenderDataChange"
+                    @handlerRenderDataChange="handlerRenderDataChange"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -88,7 +88,7 @@
                     ref="retryNode"
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
-                    @handeleRenderDataChange="handeleRenderDataChange"
+                    @handlerRenderDataChange="handlerRenderDataChange"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
@@ -96,7 +96,7 @@
                     ref="modifyTime"
                     v-if="nodeInfoType === 'modifyTime'"
                     :node-detail-config="nodeDetailConfig"
-                    @handeleRenderDataChange="handeleRenderDataChange"
+                    @handlerRenderDataChange="handlerRenderDataChange"
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
@@ -1285,7 +1285,7 @@
                 this.isNodeInfoPanelShow = false
                 this.updateNodeActived(id, false)
             },
-            handeleRenderDataChange (val) {
+            handlerRenderDataChange (val) {
                 this.nodeType = val
             },
             onModifyTimeSuccess (id) {

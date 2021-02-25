@@ -72,7 +72,7 @@
             renderData: {
                 handler () {
                     if (!this.isInitial) {
-                        this.$emit('handeleRenderDataChange', 'retryNode')
+                        this.$emit('handlerRenderDataChange', 'retryNode')
                     }
                     this.isInitial = false
                 },

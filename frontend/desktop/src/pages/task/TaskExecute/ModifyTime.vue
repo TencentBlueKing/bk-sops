@@ -72,7 +72,7 @@
             renderData: {
                 handler () {
                     if (!this.isInitial) {
-                        this.$emit('handeleRenderDataChange', 'modifyTime')
+                        this.$emit('handlerRenderDataChange', 'modifyTime')
                     }
                     this.isInitial = false
                 },

@@ -84,7 +84,7 @@
                         this.$nextTick(() => {
                             const formValid = this.$refs.renderForm.validate()
                             if (formValid) {
-                                this.$emit('handeleRenderDataChange')
+                                this.$emit('handerRenderDataChange')
                             }
                         })
                     }

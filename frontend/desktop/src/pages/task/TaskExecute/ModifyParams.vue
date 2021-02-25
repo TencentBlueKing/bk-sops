@@ -26,7 +26,7 @@
                 ref="TaskParamEdit"
                 :constants="constants"
                 :editable="paramsCanBeModify"
-                @handeleRenderDataChange="$emit('handeleRenderDataChange', 'modifyParams')"
+                @handlerRenderDataChange="$emit('handlerRenderDataChange', 'modifyParams')"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
             <NoData v-else></NoData>
