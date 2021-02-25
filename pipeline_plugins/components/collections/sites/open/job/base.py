@@ -304,7 +304,7 @@ class JobScheduleService(JobService):
         ]
         client = get_client_by_user(parent_data.inputs.executor)
 
-        data.outputs.ex_data = "Get Result Error:\n"
+        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
 
         # 重置查询 job_id

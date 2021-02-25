@@ -198,6 +198,7 @@ class JobFastPushFileService(JobScheduleService):
         # 并发请求接口
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
         job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
+        data.outputs.requests_error = "Request Error:\n"
         for index, res in enumerate(job_result_list):
             job_result = res["result"]
             if job_result["result"]:
@@ -208,6 +209,7 @@ class JobFastPushFileService(JobScheduleService):
                 message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
                 self.logger.error(message)
                 ex_data.append(message)
+                data.outputs.requests_error += "{}\n".format(message)
 
         data.outputs.job_instance_id_list = job_instance_id
         # 批量请求使用
