@@ -42,6 +42,7 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.get_client_by_user"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
 CC_GET_IPS_INFO_BY_STR = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.cc_get_ips_info_by_str"
 )
@@ -218,7 +219,7 @@ def SCHEDULE_FAILURE_CASE():
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [12345],
                 "job_id_of_batch_execute": [12345],
                 "job_inst_url": ["url_token"],
@@ -231,7 +232,7 @@ def SCHEDULE_FAILURE_CASE():
         schedule_assertion=ScheduleAssertion(
             success=False,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [12345],
                 "job_id_of_batch_execute": [],
                 "job_inst_url": ["url_token"],
@@ -239,8 +240,7 @@ def SCHEDULE_FAILURE_CASE():
                 "request_success_count": 1,
                 "success_count": 0,
                 "final_res": True,
-                "ex_data": "Request Error:\n\n Get Result Error:\n任务执行失败，"
-                "<a href='' target='_blank'>前往作业平台(JOB)查看详情</a>\n",
+                "ex_data": "任务执行失败，<a href='' target='_blank'>前往作业平台(JOB)查看详情</a>\n",
             },
             schedule_finished=True,
         ),
@@ -322,7 +322,7 @@ def SUCCESS_MULTI_CASE():
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [123, 456, 789],
                 "job_id_of_batch_execute": [123, 456, 789],
                 "job_inst_url": ["url_token", "url_token", "url_token"],
@@ -335,7 +335,7 @@ def SUCCESS_MULTI_CASE():
         schedule_assertion=ScheduleAssertion(
             success=True,
             outputs={
-                "requests_error": "Request Error:\n",
+                "requests_error": "",
                 "job_instance_id_list": [123, 456, 789],
                 "job_id_of_batch_execute": [],
                 "job_inst_url": ["url_token", "url_token", "url_token"],
@@ -343,7 +343,6 @@ def SUCCESS_MULTI_CASE():
                 "request_success_count": 3,
                 "success_count": 3,
                 "final_res": True,
-                "ex_data": "Request Error:\n\n Get Result Error:\n",
             },
             schedule_finished=True,
         ),
@@ -384,6 +383,7 @@ def SUCCESS_MULTI_CASE():
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SUCCESS_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
+            Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
             Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
         ],

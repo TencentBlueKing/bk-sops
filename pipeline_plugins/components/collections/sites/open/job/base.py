@@ -223,7 +223,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -304,13 +306,17 @@ class JobScheduleService(JobService):
     interval = StaticIntervalGenerator(5)
 
     def schedule(self, data, parent_data, callback_data=None):
+        if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
+            data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
+        else:
+            data.outputs.ex_data = ""
+
         params_list = [
             {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
             for job_id in data.outputs.job_id_of_batch_execute
         ]
         client = get_client_by_user(parent_data.inputs.executor)
 
-        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
 
         # 重置查询 job_id
@@ -347,6 +353,9 @@ class JobScheduleService(JobService):
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
         if not data.outputs.job_id_of_batch_execute:
-            self.finish_schedule()
+            # 没有报错信息
+            if not data.outputs.ex_data:
+                del data.outputs.ex_data
 
+            self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
