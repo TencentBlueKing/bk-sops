@@ -17,6 +17,7 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
@@ -40,6 +41,9 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobFastPushFileService(JobScheduleService):
+    __need_schedule__ = True
+    interval = StaticIntervalGenerator(1)
+
     def inputs_format(self):
         return [
             self.InputItem(
@@ -187,7 +191,6 @@ class JobFastPushFileService(JobScheduleService):
                     "file_target_path": job_target_path,
                     "bk_callback_url": get_node_callback_url(self.id),
                 }
-                print(job_kwargs)
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
                 if download_speed_limit:
@@ -213,6 +216,7 @@ class JobFastPushFileService(JobScheduleService):
         data.outputs.job_instance_id_list = job_instance_id
         # 批量请求使用
         data.outputs.job_id_of_batch_execute = job_instance_id
+        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id]
         # 请求成功数
         data.outputs.request_success_count = len(job_result_list)
         # 执行成功数
@@ -225,7 +229,7 @@ class JobFastPushFileService(JobScheduleService):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobScheduleService, self).schedule(data, parent_data, callback_data)
+        return super().schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [
