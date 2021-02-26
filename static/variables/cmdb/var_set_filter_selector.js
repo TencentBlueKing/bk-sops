@@ -15,7 +15,7 @@
             tag_code: "set_filter_selector",
             type: "combine",
             attrs: {
-                name: gettext("集群筛选选择器"),
+                name: gettext("集群选择器"),
                 hookable: true,
                 children: [
                     {

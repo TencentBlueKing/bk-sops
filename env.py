@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+# 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
 from blueapps.conf.default_settings import *  # noqa
 
 
@@ -25,6 +26,20 @@ BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
+
+# paas v2 open
+if RUN_VER == "open":
+    # SITE_URL,STATIC_URL,,FORCE_SCRIPT_NAME
+    # 测试环境
+    if os.getenv("BK_ENV") == "testing":
+        BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
+        SITE_URL = os.environ.get("BK_SITE_URL", "/t/%s/" % APP_CODE)
+        STATIC_URL = "%sstatic/" % SITE_URL
+    # 正式环境
+    if os.getenv("BK_ENV") == "production":
+        BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
+        SITE_URL = os.environ.get("BK_SITE_URL", "/o/%s/" % APP_CODE)
+        STATIC_URL = "%sstatic/" % SITE_URL
 
 BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
 BK_ITSM_API_ENTRY = os.getenv("BK_ITSM_API_ENTRY")

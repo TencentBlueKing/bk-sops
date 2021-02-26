@@ -218,12 +218,7 @@
                     if (resp.result === false) {
                         show_msg(resp.message, 'error');
                     }
-                    
-                    const data = resp.data;
-                    data.forEach(function (column) {
-                        column.type = 'textarea'
-                    });
-                    return data;
+                    return resp.data;
                 },
                 hookable: true,
                 add_btn: true,

@@ -21,6 +21,7 @@
                 <advance-search-form
                     ref="advanceSearch"
                     id="commonTplList"
+                    :open="isSearchFormOpen"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -226,12 +227,12 @@
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -280,16 +281,27 @@
                 page = 1,
                 limit = 15,
                 category = '',
-                start_time = '',
-                end_time = '',
+                queryTime = '',
                 subprocessUpdateVal = '',
                 creator = '',
                 keyword = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
-                searchStr: '',
+                searchForm,
+                isSearchFormOpen,
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
@@ -314,7 +326,7 @@
                     category,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
                     creator,
-                    queryTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
                     flowName: keyword
                 },
                 totalPage: 1,
@@ -346,13 +358,7 @@
                 'timeZone': state => state.timezone,
                 'projectName': state => state.projectName,
                 'project_id': state => state.project_id
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.templateCategoryList
-                value[0].loading = this.categoryLoading
-                return searchForm
-            }
+            })
         },
         watch: {
             page (val, oldVal) {
@@ -454,6 +460,9 @@
                     const res = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(res.data)
                     this.templateCategoryList = res.data.task_categories
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.templateCategoryList
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -582,8 +591,7 @@
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    start_time: queryTime[0],
-                    end_time: queryTime[1],
+                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
                     keyword: flowName
                 }
                 const query = {}
@@ -677,7 +685,7 @@
             handleSubflowFilter () {
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
                 searchComp.submit()
             },
             // 添加/取消收藏模板

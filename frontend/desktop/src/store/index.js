@@ -176,6 +176,9 @@ const store = new Vuex.Store({
         getCCSearchColAttrSet ({ commit }, data) {
             return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
+        getCCHostCount ({ commit }, data) {
+            return axios.get(data.url, { baseURL: '/' }, { params: { bk_inst_id: data.ids } }).then(response => response.data)
+        },
         // <--- 开区资源选择器接口 end
         /**
          * 获取权限相关元数据
