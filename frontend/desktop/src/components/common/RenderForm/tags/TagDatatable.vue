@@ -220,7 +220,7 @@
         page_size: {
             type: Number,
             required: false,
-            default: 3,
+            default: 10,
             desc: 'number of items displayed per page'
         },
         row_click_handler: {

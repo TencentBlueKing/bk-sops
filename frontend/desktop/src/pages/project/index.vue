@@ -270,7 +270,6 @@
             ]),
             ...mapActions('project', [
                 'loadUserProjectList',
-                'loadUserProjectList',
                 'createProject',
                 'loadProjectDetail',
                 'updateProject',

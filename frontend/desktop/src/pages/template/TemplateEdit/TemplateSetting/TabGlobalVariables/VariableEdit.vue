@@ -604,7 +604,7 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('closeEditingPanel')
+                    this.$emit('onSaveEditing')
                     return true
                 })
             }
@@ -686,8 +686,12 @@
         }
     }
     .btn-wrap {
-        padding: 8px 20px;
+        padding: 8px 30px;
         border-top: 1px solid #cacedb;
+        .bk-button {
+            margin-right: 10px;
+            padding: 0 25px;
+        }
     }
     /deep/ .variable-confirm-dialog-content {
         padding: 40px 0;

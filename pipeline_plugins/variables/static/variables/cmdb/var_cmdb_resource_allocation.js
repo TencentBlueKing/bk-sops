@@ -30,7 +30,8 @@
                             "cc_search_topo_module": $.context.get("site_url") + "pipeline/cc_search_topo/module/normal/" + $.context.getBkBizId() + "/",
                             "cc_search_module": $.context.get("site_url") + "pipeline/cc_search_module/" + $.context.getBkBizId() + "/",
                             "cc_search_object_attribute_host": $.context.get("site_url") + "pipeline/cc_search_object_attribute/host/" + $.context.getBkBizId() + "/",
-                            "cc_search_create_object_attribute_set": $.context.get("site_url") + "pipeline/cc_search_create_object_attribute/set/" + $.context.getBkBizId() + "/"
+                            "cc_search_create_object_attribute_set": $.context.get("site_url") + "pipeline/cc_search_create_object_attribute/set/" + $.context.getBkBizId() + "/",
+                            "cc_find_host_by_topo": $.context.get("site_url") + "pipeline/cc_find_host_by_topo/" + $.context.getBkBizId() + "/"
                         }
                     } else {
                         show_msg(gettext("该变量只能在关联CMDB业务的项目下使用"), "error");
@@ -40,7 +41,8 @@
                             "cc_search_topo_module": "",
                             "cc_search_module": "",
                             "cc_search_object_attribute_host": "",
-                            "cc_search_create_object_attribute_set": ""
+                            "cc_search_create_object_attribute_set": "",
+                            "cc_find_host_by_topo": ""
                         }
                     }
                 }

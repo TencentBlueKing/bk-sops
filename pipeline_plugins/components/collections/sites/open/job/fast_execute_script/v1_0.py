@@ -116,7 +116,7 @@ class JobFastExecuteScriptService(JobService):
                 name=_("是否允许跨业务"),
                 key="job_across_biz",
                 type="bool",
-                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+                schema=BooleanItemSchema(description=_("是否允许跨业务(跨业务需在作业平台添加白名单)，允许时，源文件IP格式需为【云区域ID:IP】")),
             ),
             self.InputItem(
                 name=_("目标 IP"),
@@ -257,4 +257,8 @@ class JobFastExecuteScriptComponent(Component):
     bound_service = JobFastExecuteScriptService
     version = "v1.0"
     form = "%scomponents/atoms/job/fast_execute_script/v1_0.js" % settings.STATIC_URL
-    desc = "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n插件版本v1.0会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。"
+    desc = (
+        "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
+        "插件版本v1.0会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
+        "注：插件版本v1.0中跨业务执行脚本时需要在作业平台添加白名单"
+    )

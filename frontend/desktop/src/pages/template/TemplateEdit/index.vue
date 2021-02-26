@@ -386,7 +386,7 @@
                         if (atom) {
                             atom.list.push(item)
                         } else {
-                            const { code, desc, name, group_name, group_icon } = item
+                            const { code, desc, name, group_name, group_icon, sort_key_group_en } = item
                             atomList.push({
                                 code,
                                 desc,
@@ -394,7 +394,8 @@
                                 group_name,
                                 group_icon,
                                 type: group_name,
-                                list: [item]
+                                list: [item],
+                                sort_key_group_en
                             })
                         }
                     })
@@ -615,14 +616,24 @@
                     if (group) {
                         group.list.push(item)
                     } else {
-                        const { type, group_name, group_icon } = item
+                        const { type, group_name, group_icon, sort_key_group_en } = item
                         grouped.push({
-                            group_name: group_name,
-                            group_icon: group_icon,
-                            type: type,
+                            group_name,
+                            group_icon,
+                            type,
+                            sort_key_group_en,
                             list: [item]
                         })
                     }
+                })
+                grouped.sort((g1, g2) => {
+                    if (g1.sort_key_group_en < g2.sort_key_group_en) {
+                        return -1
+                    }
+                    if (g1.sort_key_group_en > g2.sort_key_group_en) {
+                        return 1
+                    }
+                    return 0
                 })
                 this.atomTypeList.tasknode = grouped
             },
@@ -1083,10 +1094,26 @@
                 this.moveNodeToView(id)
                 this.showDotAnimation(id)
             },
-            // 全局变量引用节点点击回调
-            onCitedNodeClick (nodeId) {
-                this.activeSettingTab = ''
-                this.showConfigPanel(nodeId)
+            // 全局变量引用详情点击回调
+            onCitedNodeClick (data) {
+                const { group, id } = data
+                if (group === 'activities') {
+                    this.activeSettingTab = ''
+                    this.showConfigPanel(id)
+                } else if (group === 'conditions') {
+                    const nodeId = this.lines.find(line => line.id === id).source.id
+                    const lineCondition = this.gateways[nodeId].conditions[id]
+                    const { evaluate, name } = lineCondition
+                    const conditionData = {
+                        id,
+                        name,
+                        nodeId,
+                        overlayId: `condition${id}`,
+                        value: evaluate
+                    }
+                    this.activeSettingTab = ''
+                    this.onOpenConditionEdit(conditionData)
+                }
             },
             /**
              * 移动画布，将节点放到画布左上角

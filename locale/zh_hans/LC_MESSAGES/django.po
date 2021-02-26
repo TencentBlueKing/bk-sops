@@ -2227,8 +2227,8 @@ msgstr "HTTP 请求"
 
 #: pipeline_plugins/components/collections/common.py:127
 #: pipeline_plugins/components/collections/http/v1_0.py:180
-msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功"
-msgstr "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功"
+msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功"
+msgstr "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功"
 
 #: pipeline_plugins/components/collections/controller.py:47
 #: pipeline_plugins/components/collections/sites/open/job/cron_task/legacy.py:102
