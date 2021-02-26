@@ -124,6 +124,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                     "category": category_dict[data.get("task_template__category")],
                     # 需要将 code 转为字符型
                     "instanceTotal": total_dict.get(str(appmaker_id), 0),
+                    "appmakerId": data.get("id"),
                 }
             )
         if order_by.startswith("-"):

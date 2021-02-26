@@ -15,16 +15,13 @@ const project = {
     namespaced: true,
     state: {
         project_id: window.DEFAULT_PROJECT_ID,
+        bizId: '',
         projectName: '',
-        projectList: [],
         userProjectList: [], // 用户有权限的项目列表
         timeZone: window.TIMEZONE,
         authActions: []
     },
     mutations: {
-        setProjectList (state, data) {
-            state.projectList = data
-        },
         setUserProjectList (state, data) {
             state.userProjectList = data
         },
@@ -33,6 +30,9 @@ const project = {
                 id = isNaN(Number(id)) || id === '' ? '' : Number(id)
             }
             state.project_id = id
+        },
+        setBizId (state, id) {
+            state.bizId = id
         },
         setTimeZone (state, data) {
             state.timeZone = data
@@ -49,23 +49,12 @@ const project = {
         changeDefaultProject ({ state }, id) {
             return axios.post(`core/api/change_default_project/${id}/`).then(response => response.data)
         },
-        loadProjectList ({ commit }, data) {
-            const { limit, offset, is_disable = false, q } = data
-            return axios.get(`api/v3/project/`, {
-                params: {
-                    limit,
-                    offset,
-                    is_disable,
-                    q
-                }
-            }).then(response => {
-                return response.data
-            })
-        },
         // 加载用户有权限的项目列表
         loadUserProjectList ({ commit }, params) {
             return axios.get(`api/v3/user_project/`, { params }).then(response => {
-                commit('setUserProjectList', response.data.objects)
+                if (params.limit === 0) { // 拉全量项目时更新项目列表，区分项目管理页面的分页数据
+                    commit('setUserProjectList', response.data.objects)
+                }
                 return response.data
             })
         },
@@ -128,6 +117,38 @@ const project = {
             return axios.delete(`api/v3/staff_group/${id}/`).then(
                 response => response.data
             )
+        },
+        // 查询项目下用户可编辑的模板标签
+        getProjectLabels ({ commit }, id) {
+            return axios.get('api/v3/new_label/', {
+                params: { project_id: id }
+            }).then(response => response.data)
+        },
+        // 查询项目下支持的模板标签（包含默认标签）
+        getProjectLabelsWithDefault ({ commit }, id) {
+            return axios.get('api/v3/new_label/list_with_default_labels/', {
+                params: { project_id: id }
+            }).then(response => response.data)
+        },
+        createTemplateLabel ({ commit }, data) {
+            return axios.post(`api/v3/new_label/`, data).then(
+                response => response.data
+            )
+        },
+        updateTemplateLabel ({ commit }, data) {
+            return axios.put(`api/v3/new_label/${data.id}/`, data).then(
+                response => response.data
+            )
+        },
+        delTemplateLabel ({ commit }, id) {
+            return axios.delete(`api/v3/new_label/${id}/`).then(
+                response => response.data
+            )
+        },
+        getlabelsCitedCount ({ commit }, ids) {
+            return axios.get('api/v3/new_label/get_label_template_ids/', {
+                params: { label_ids: ids }
+            }).then(response => response.data)
         }
     }
 }

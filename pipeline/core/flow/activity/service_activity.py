@@ -32,7 +32,7 @@ class Service(object, metaclass=ABCMeta):
         OutputItem(
             name=_("执行结果"),
             key="_result",
-            type="bool",
+            type="boolean",
             schema=BooleanItemSchema(description=_("执行结果的布尔值，True or False")),
         ),
         OutputItem(name=_("循环次数"), key="_loop", type="int", schema=IntItemSchema(description=_("循环执行次数"))),

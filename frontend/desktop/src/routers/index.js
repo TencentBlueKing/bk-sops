@@ -35,6 +35,7 @@ const AppMaker = () => import('@/pages/appmaker/index.vue')
 const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
 
 const ProjectHome = () => import('@/pages/project/index.vue')
+const ProjectConfig = () => import('@/pages/project/config.vue')
 
 const ErrorPage = () => import('@/pages/error/index.vue')
 
@@ -140,11 +141,7 @@ const routers = new VueRouter({
                     pathToRegexpOptions: { strict: true },
                     component: TemplateList,
                     props: (route) => ({
-                        project_id: route.params.project_id,
-                        common: route.query.common,
-                        common_template: route.query.common_template,
-                        page: route.query.page,
-                        limit: route.query.limit
+                        project_id: route.params.project_id
                     }),
                     meta: { project: true }
                 },
@@ -181,10 +178,7 @@ const routers = new VueRouter({
                             name: 'taskList',
                             pathToRegexpOptions: { strict: true },
                             props: (route) => ({
-                                project_id: route.params.project_id,
-                                template_source: route.query.template_source,
-                                create_method: route.query.create_method,
-                                create_info: route.query.create_info
+                                project_id: route.params.project_id
                             }),
                             meta: { project: true }
                         },
@@ -277,6 +271,15 @@ const routers = new VueRouter({
             name: 'projectHome',
             pathToRegexpOptions: { strict: true },
             component: ProjectHome
+        },
+        {
+            path: '/project/config/:id/',
+            name: 'projectConfig',
+            pathToRegexpOptions: { strict: true },
+            component: ProjectConfig,
+            props: (route) => ({
+                id: route.params.id
+            })
         },
         {
             path: '/function',

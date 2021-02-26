@@ -152,10 +152,11 @@
                 'clearAtomForm'
             ]),
             ...mapMutations('project', [
-                'setProjectId',
                 'setTimeZone',
                 'setProjectName',
-                'setProjectActions'
+                'setProjectActions',
+                'setProjectId',
+                'setBizId'
             ]),
             ...mapMutations([
                 'setPageFooter',
@@ -178,11 +179,13 @@
                 try {
                     this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
+                    const { name, id, bk_biz_id, auth_actions } = projectDetail
+                    this.setProjectId(id)
+                    this.setBizId(bk_biz_id)
+                    this.setProjectName(name)
+                    this.setProjectActions(auth_actions)
                     this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
-                    this.setProjectId(this.project_id)
                     this.setTimeZone(projectDetail.timeZone)
-                    this.setProjectName(projectDetail.name)
-                    this.setProjectActions(projectDetail.auth_actions)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
                         setConfigContext(this.site_url)
                     } else {

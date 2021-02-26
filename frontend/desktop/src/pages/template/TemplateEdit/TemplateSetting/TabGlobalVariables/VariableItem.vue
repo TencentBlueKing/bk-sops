@@ -19,6 +19,11 @@
             </span>
             <span class="col-item col-key">
                 {{ variableData.key }}
+                <i
+                    class="common-icon-double-paper-2 copy-icon"
+                    v-bk-tooltips.bottom="$t('复制')"
+                    @click.stop="onCopyKey(variableData.key)">
+                </i>
             </span>
             <span class="col-item col-attributes">
                 <span class="icon-wrap">
@@ -71,23 +76,28 @@
                     'col-item',
                     'col-cited',
                     {
-                        'disabled': citedList.length === 0
+                        'disabled': citedNum === 0
                     }
                 ]"
                 @click.stop="onViewCitedList">
-                {{ citedList.length }}
+                {{ citedNum }}
             </span>
             <span class="col-item col-operation">
-                <span class="col-operation-item"
-                    @click.stop="onCopyKey(variableData.key)">
-                    {{ $t('复制') }}
-                </span>
                 <span
-                    v-if="!isSystemVar"
+                    v-if="isSystemVar"
                     class="col-operation-item"
-                    @click.stop="onDeleteVariable(variableData.key)">
-                    {{ $t('删除') }}
+                    @click.stop="onEditVariable(variableData.key, variableData.index)">
+                    {{ $t('查看') }}
                 </span>
+                <template v-else>
+                    <span
+                        v-if="!isSystemVar"
+                        class="col-operation-item"
+                        @click.stop="onPreviewValue(variableData.key)">
+                        {{ $t('预览值') }}
+                    </span>
+                    <i class="bk-icon icon-close delete-icon" @click.stop="onDeleteVariable(variableData.key)"></i>
+                </template>
             </span>
         </div>
         <VariableCitedList
@@ -95,74 +105,61 @@
             :cited-list="citedList"
             @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
         </VariableCitedList>
+        <VariablePreviewValue
+            v-if="showPreviewValue"
+            :keyid="variableData.key"
+            :params="previewParams">
+        </VariablePreviewValue>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import VariableCitedList from './VariableCitedList.vue'
+    import VariablePreviewValue from './VariablePreviewValue.vue'
 
     export default {
         name: 'VariableItem',
         components: {
-            VariableCitedList
+            VariableCitedList,
+            VariablePreviewValue
         },
         props: {
             outputed: Boolean,
-            variableData: Object
+            variableData: Object,
+            common: [String, Number],
+            variableCited: Object
         },
         data () {
             return {
                 showCitedList: false,
-                copyText: ''
+                showPreviewValue: false,
+                copyText: '',
+                previewParams: {}
             }
         },
         computed: {
             ...mapState({
-                'activities': state => state.template.activities
+                'username': state => state.username,
+                'activities': state => state.template.activities,
+                'constants': state => state.template.constants,
+                'project_id': state => state.project.project_id,
+                'bizId': state => state.project.bizId
             }),
             isSystemVar () {
                 return this.variableData.source_type === 'system'
             },
             citedList () {
-                const sourceInfo = this.variableData.source_info
-                // 该全局变量被哪些节点勾选的集合
-                const nodes = Object.keys(sourceInfo).map(id => id)
-                // 输入参数表单直接填写变量key的情况
-                Object.keys(this.activities).forEach(id => {
-                    // 节点已在引用节点列表中需要去重
-                    if (nodes.includes(id)) {
-                        return
-                    }
-                    const activity = this.activities[id]
-                    if (activity.type === 'SubProcess') { // 子流程任务节点
-                        Object.keys(activity.constants).forEach(key => {
-                            const varItem = activity.constants[key]
-                            // 隐藏类型变量不考虑
-                            if (varItem.show_type === 'hide') {
-                                return
-                            }
-                            // 表单已勾选到全局变量
-                            const isExist = sourceInfo[id] && sourceInfo[id].includes(varItem.key)
-                            if (isExist) {
-                                return
-                            }
-                            // 匹配表单项的值是否包含变量的key
-                            this.setCitingVarNodes(varItem.value, nodes, id)
-                        })
-                    } else { // 标准插件任务节点
-                        const component = activity.component
-                        Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
-                            const val = component.data[form].value
-                            const isExist = sourceInfo[id] && sourceInfo[id].includes(form)
-                            if (isExist) {
-                                return
-                            }
-                            this.setCitingVarNodes(val, nodes, id)
-                        })
-                    }
-                })
-                return nodes
+                const defaultCiteData = {
+                    activities: [],
+                    conditions: [],
+                    constants: []
+                }
+                return this.variableCited[this.variableData.key] || defaultCiteData
+            },
+            citedNum () {
+                const { activities, conditions, constants } = this.citedList
+                return activities.length + conditions.length + constants.length
             }
         },
         methods: {
@@ -227,7 +224,8 @@
             },
             // 查看引用节点信息
             onViewCitedList () {
-                if (this.citedList.length > 0 && !this.showCitedList) {
+                this.showPreviewValue = false
+                if (this.citedNum > 0 && !this.showCitedList) {
                     this.showCitedList = true
                 } else {
                     this.showCitedList = false
@@ -235,6 +233,23 @@
             },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
+            },
+            // 查看变量预览值
+            onPreviewValue () {
+                this.showCitedList = false
+                if (this.showPreviewValue) {
+                    this.showPreviewValue = false
+                } else {
+                    this.previewParams = {
+                        constants: this.constants,
+                        extra_data: {
+                            executor: this.username,
+                            project_id: this.common ? undefined : this.project_id,
+                            biz_cc_id: this.common ? undefined : this.bizId
+                        }
+                    }
+                    this.showPreviewValue = true
+                }
             },
             onDeleteVariable (key) {
                 this.$emit('onDeleteVariable', key)
@@ -258,6 +273,11 @@ $localBorderColor: #d8e2e7;
     &:not(:last-child) {
         border-bottom: 1px solid #ebebeb;
     }
+    &:hover {
+        .col-operation .delete-icon {
+            display: inline-block;
+        }
+    }
     .variable-content {
         position: relative;
         padding-left: 50px;
@@ -276,7 +296,22 @@ $localBorderColor: #d8e2e7;
         width: 242px;
     }
     .col-key {
-        width: 174px;
+        position: relative;
+        padding-right: 30px;
+        width: 180px;
+        .copy-icon {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 14px;
+            font-size: 14px;
+            color: #3a84ff;
+        }
+        &:hover {
+            .copy-icon {
+                display: inline-block;
+            }
+        }
     }
     .col-attributes {
         width: 77px;
@@ -354,11 +389,22 @@ $localBorderColor: #d8e2e7;
     }
 }
 .col-operation {
+    display: flex;
+    align-items: center;
     .col-operation-item {
         color: #3a84ff;
         cursor: pointer;
         &:not(:first-child) {
             margin-left: 10px;
+        }
+    }
+    .delete-icon {
+        display: none;
+        margin-left: 4px;
+        font-size: 20px;
+        color: #979ba5;
+        &:hover {
+            color: #3a84ff;
         }
     }
 }

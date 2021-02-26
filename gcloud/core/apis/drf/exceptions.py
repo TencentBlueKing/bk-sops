@@ -26,3 +26,9 @@ class ObjectDoesNotExistException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = err_code.CONTENT_NOT_EXIST.description
     default_code = err_code.CONTENT_NOT_EXIST.code
+
+
+class ValidationException(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = err_code.VALIDATION_ERROR.description
+    default_code = err_code.VALIDATION_ERROR.code

@@ -42,7 +42,7 @@ class CreateTaskAPITest(APITest):
     def url(self):
         return "/apigw/create_task/{template_id}/{project_id}/"
 
-    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=(True, TEST_DATA)))
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
     @mock.patch(
         TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
     )
@@ -150,7 +150,7 @@ class CreateTaskAPITest(APITest):
                 self.assertTrue(data["result"], msg=data)
                 self.assertEqual(data["data"], assert_data)
 
-    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=(True, TEST_DATA)))
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
     @mock.patch(
         TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
     )
@@ -230,7 +230,7 @@ class CreateTaskAPITest(APITest):
     def test_create_task__validate_fail(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id", }),
+            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
             content_type="application/json",
         )
 
@@ -267,11 +267,12 @@ class CreateTaskAPITest(APITest):
     )
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=""))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__without_app_code(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"constants": {}, "name": "test", "exclude_task_node_id": "exclude_task_node_id", }),
+            data=json.dumps({"constants": {}, "name": "test", "exclude_task_node_id": "exclude_task_node_id"}),
             content_type="application/json",
         )
 
@@ -318,7 +319,7 @@ class CreateTaskAPITest(APITest):
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-                data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id", }),
+                data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
             )
@@ -362,7 +363,7 @@ class CreateTaskAPITest(APITest):
             )
         ),
     )
-    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=(False, "")))
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=""))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__create_pipeline_fail(self):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
@@ -374,7 +375,7 @@ class CreateTaskAPITest(APITest):
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-                data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id", }),
+                data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
             )

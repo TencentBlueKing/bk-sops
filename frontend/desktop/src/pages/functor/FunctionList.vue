@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="functionList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -238,12 +239,12 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('所属项目'),
             key: 'selectedProject',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择项目'),
             list: [],
             value: ''
@@ -288,10 +289,31 @@
         mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                selectedProject = '',
+                executeTime = '',
+                creator = '',
+                statusSync = '',
+                keyword = ''
+            } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = item.key === 'selectedProject' ? Number(this.$route.query[item.key]) : this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 functorSync: 0,
-                searchStr: undefined,
+                searchForm,
+                isSearchFormOpen,
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
                 functorList: [],
@@ -328,16 +350,16 @@
                 status: undefined,
                 functorCategory: [],
                 requestData: {
-                    selectedProject: '',
-                    executeTime: [],
-                    creator: '',
-                    statusSync: '',
-                    flowName: ''
+                    selectedProject,
+                    creator,
+                    statusSync,
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
+                    taskName: keyword
                 },
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
                 permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
@@ -352,12 +374,7 @@
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                return value
-            }
+            })
         },
         created () {
             this.loadFunctionTask()
@@ -386,11 +403,11 @@
             async loadFunctionTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, creator, statusSync, flowName } = this.requestData
+                    const { selectedProject, executeTime, creator, statusSync, taskName } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        task__pipeline_instance__name__contains: flowName || undefined,
+                        task__pipeline_instance__name__contains: taskName || undefined,
                         creator: creator || undefined,
                         task__project__id: selectedProject || undefined,
                         status: statusSync || undefined
@@ -419,6 +436,7 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.loadFunctionTask()
                 // 重置自动刷新时间
                 this.onOpenAutoRedraw()
@@ -426,11 +444,34 @@
             onPageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
-                this.onOpenAutoRedraw() // 重置自动刷新时间
+                this.updateUrl()
                 this.loadFunctionTask()
+                // 重置自动刷新时间
+                this.onOpenAutoRedraw()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { selectedProject, executeTime, creator, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    selectedProject,
+                    creator,
+                    statusSync,
+                    page: current,
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'functionHome', query })
             },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
                 this.loadFunctionTask()
             },
@@ -476,6 +517,9 @@
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0 })
                     this.business.list = businessData.objects
+                    const form = this.searchForm.find(item => item.key === 'selectedProject')
+                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -679,8 +723,9 @@
                 this.applyForPermission(required, data.auth_actions, permissionData)
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
+                this.updateUrl()
                 this.loadFunctionTask()
             },
             onAutoRedrawChange (val) {

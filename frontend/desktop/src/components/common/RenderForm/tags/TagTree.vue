@@ -11,24 +11,28 @@
 */
 <template>
     <div class="tag-tree" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <bk-big-tree
-            v-if="Array.isArray(value)"
-            ref="tree"
-            :options="{ nameKey: 'label' }"
-            :show-checkbox="editable && formMode && show_checkbox"
-            :default-expand-all="default_expand_all"
-            :default-checked-nodes="value"
-            :default-expanded-nodes="expanded_keys"
-            :height="570"
-            :data="items"
-            @check-change="nodeCheckChange">
-        </bk-big-tree>
-        <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
+        <no-data v-if="items.length === 0"></no-data>
+        <template v-else>
+            <bk-big-tree
+                v-if="Array.isArray(value)"
+                ref="tree"
+                :options="{ nameKey: 'label' }"
+                :show-checkbox="editable && formMode && show_checkbox"
+                :default-expand-all="default_expand_all"
+                :default-checked-nodes="value"
+                :default-expanded-nodes="expanded_keys"
+                :height="570"
+                :data="items"
+                @check-change="nodeCheckChange">
+            </bk-big-tree>
+            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
+        </template>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export const attrs = {
         value: {
@@ -88,6 +92,7 @@
     }
     export default {
         name: 'TagTree',
+        components: { NoData },
         mixins: [getFormMixins(attrs)],
         data () {
             return {
@@ -157,7 +162,6 @@
     padding: 10px 0 20px 10px;
     border: 1px solid #ececec;
     border-radius: 2px;
-    height: 600px;
     overflow: hidden;
     /deep/ .bk-big-tree-node .node-content {
         font-size: 12px;

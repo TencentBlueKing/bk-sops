@@ -95,6 +95,16 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
+                    content: $t('下载'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
+                @click="onDownloadCanvas">
+                <i class="bk-icon icon-download"></i>
+            </div>
+            <div
+                class="tool-icon"
+                v-bk-tooltips="{
                     content: $t('快捷键'),
                     delay: 300,
                     placements: ['bottom']
@@ -170,6 +180,9 @@
             },
             onToggleHotKeyInfo () {
                 this.$emit('onToggleHotKeyInfo')
+            },
+            onDownloadCanvas () {
+                this.$emit('onDownloadCanvas')
             }
         }
     }

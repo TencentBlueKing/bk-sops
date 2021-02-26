@@ -208,6 +208,7 @@
             tag_code: "cc_set_info",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("集群信息"),
                 remote_url: function () {
                     const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';
@@ -217,12 +218,7 @@
                     if (resp.result === false) {
                         show_msg(resp.message, 'error');
                     }
-                    
-                    const data = resp.data;
-                    data.forEach(function (column) {
-                        column.type = 'textarea'
-                    });
-                    return data;
+                    return resp.data;
                 },
                 hookable: true,
                 add_btn: true,

@@ -20,9 +20,9 @@ import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 
+from gcloud.tasktmpl3.utils import get_constant_values
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
-
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
@@ -39,7 +39,9 @@ from gcloud.tasktmpl3.validators import (
     CheckBeforeImportValidator,
     GetTemplateCountValidator,
     DrawPipelineValidator,
+    AnalysisConstantsRefValidator,
 )
+from gcloud.tasktmpl3.utils import analysis_pipeline_constants_ref
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
@@ -218,3 +220,41 @@ def get_templates_with_expired_subprocess(request, project_id):
             "message": "",
         }
     )
+
+
+@require_POST
+def get_constant_preview_result(request):
+    params = json.loads(request.body)
+    constants = params.get("constants", {})
+    extra_data = params.get("extra_data", {})
+
+    preview_results = get_constant_values(constants, extra_data)
+
+    return JsonResponse({"result": True, "data": preview_results, "code": err_code.SUCCESS.code, "message": ""})
+
+
+@require_POST
+@request_validate(AnalysisConstantsRefValidator)
+def analysis_constants_ref(request):
+    """
+    @summary：计算模板中的变量引用
+    @param request:
+    @return:
+    """
+    tree = json.loads(request.body)
+    result = None
+    try:
+        result = analysis_pipeline_constants_ref(tree)
+    except Exception:
+        logger.exception("[analysis_constants_ref] error")
+
+    data = {"defined": {}, "nodefined": {}}
+    defined_keys = tree.get("constants", {}).keys()
+    if result:
+        for k, v in result.items():
+            if k in defined_keys:
+                data["defined"][k] = v
+            else:
+                data["nodefined"][k] = v
+
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})

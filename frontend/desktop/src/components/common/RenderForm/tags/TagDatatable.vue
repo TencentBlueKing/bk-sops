@@ -67,7 +67,7 @@
                         <template slot-scope="scope">
                             <component
                                 :is="item.type === 'combine' ? 'form-group' : 'form-item'"
-                                :ref="`row_${scope.$index}_${cIndex}_${item.tag_code}`"
+                                :ref="`row_${(pagination ? (currentPage - 1) * page_size + scope.$index : scope.$index)}_${cIndex}_${item.tag_code}`"
                                 :scheme="item"
                                 :key="`${item.tag_code}_${cIndex}`"
                                 :option="getColumnOptions(scope.$index)"
@@ -86,7 +86,7 @@
                     width="100"
                     :label="i18n.operate_text">
                     <template slot-scope="scope">
-                        <div v-if="scope.$index === editRowNumber">
+                        <div v-if="(pagination ? (currentPage - 1) * page_size + scope.$index : scope.$index) === editRowNumber">
                             <a class="operate-btn" @click="onSave(scope.$index, scope.row)">{{ i18n.save_text }}</a>
                             <a class="operate-btn" @click="onCancel(scope.$index, scope.row)">{{ i18n.cancel_text }}</a>
                         </div>
@@ -410,6 +410,7 @@
                 return isValid
             },
             getColumnOptions (index) {
+                index = this.pagination ? (this.currentPage - 1) * this.page_size + index : index
                 return {
                     showHook: false,
                     showGroup: false,
@@ -512,6 +513,7 @@
                 })
                 this.editRowNumber = this.tableValue.length
                 this.tableValue.push(originData)
+                this.currentPage = Math.ceil(this.tableValue.length / this.page_size)
             },
             remoteMethod () {
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url

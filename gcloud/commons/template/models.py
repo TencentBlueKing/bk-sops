@@ -195,7 +195,9 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         # compare
         subproc_expired_templ = set()
         for info in subproc_infos:
-            if info.version != tmpl_version_map[info.descendant_template_id]:
+            if info.descendant_template_id not in tmpl_version_map:
+                continue
+            if info.version != tmpl_version_map.get(info.descendant_template_id):
                 subproc_expired_templ.add(info.ancestor_template_id)
 
         return [tmpl_id_map[pid] for pid in subproc_expired_templ]

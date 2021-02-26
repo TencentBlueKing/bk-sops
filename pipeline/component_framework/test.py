@@ -19,6 +19,7 @@ from contextlib import contextmanager
 from mock import MagicMock, call, patch
 
 from pipeline.core.data.base import DataObject
+from pipeline.core.flow.io import SimpleItemSchema, ArrayItemSchema, ObjectItemSchema, ItemSchema
 from pipeline.utils.uniqid import uniqid
 
 
@@ -40,6 +41,14 @@ class ComponentTestMixin(object):
     def cases(self):
         raise NotImplementedError()
 
+    def input_output_format_valid(self):
+        component = self._component_cls({})
+        bound_service = component.service()
+        inputs_format = bound_service.inputs()
+        self._format_valid(inputs_format, ["name", "key", "type", "schema", "required"])
+        outputs_format = bound_service.outputs()
+        self._format_valid(outputs_format, ["name", "key", "type", "schema"])
+
     @property
     def _cases(self):
         return self.cases()
@@ -55,6 +64,43 @@ class ComponentTestMixin(object):
     @property
     def _failed_cases(self):
         return getattr(self, "__failed_cases", None)
+
+    def _format_valid(self, component_format, format_keys):
+        assert isinstance(component_format, list)
+        for item in component_format:
+            assert set(item.as_dict().keys()) == set(
+                format_keys
+            ), "item {} is expected to contain attributes {} but {} obtained".format(
+                item.key, str(format_keys), str(item.as_dict().keys())
+            )
+            if item.schema is not None:
+                assert item.type == item.schema.type, "type of {} is expected to be {} but {} obtained".format(
+                    item.key, item.schema.type, item.type
+                )
+                self._item_schema_valid(item.schema)
+
+    def _item_schema_valid(self, item_schema):
+        common_keys = {"type", "description", "enum"}
+        assert common_keys.issubset(
+            set(item_schema.as_dict().keys())
+        ), "ItemSchema should contain attributes type, description and enum"
+
+        if isinstance(item_schema, SimpleItemSchema):
+            return
+        if isinstance(item_schema, ArrayItemSchema):
+            assert hasattr(item_schema, "item_schema") and isinstance(
+                item_schema.item_schema, ItemSchema
+            ), "ArrayItemSchema should contain attribute item_schema"
+            self._item_schema_valid(item_schema.item_schema)
+            return
+        if isinstance(item_schema, ObjectItemSchema):
+            assert hasattr(item_schema, "property_schemas") and isinstance(
+                item_schema.property_schemas, dict
+            ), "ObjectItemSchema should contain attribute property_schemas with type dict"
+            for child_item_schema in item_schema.property_schemas.values():
+                self._item_schema_valid(child_item_schema)
+            return
+        raise AssertionError("item_schema type error: {}".format(item_schema.description))
 
     def _format_failure_message(self, no, name, msg):
         return "[{component_cls} case {no}] - [{name}] fail: {msg}".format(
@@ -128,6 +174,8 @@ class ComponentTestMixin(object):
         raise AssertionError("{} cases fail".format([case.name for case in self._failed_cases]))
 
     def test_component(self):
+        self.input_output_format_valid()
+
         component = self._component_cls({})
 
         for no, case in enumerate(self._cases):

@@ -46,7 +46,7 @@ class CCBatchTransferHostModule(Service):
             self.InputItem(
                 name=_("填参方式"),
                 key="cc_transfer_select_method_method",
-                type="str",
+                type="string",
                 schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
@@ -61,26 +61,26 @@ class CCBatchTransferHostModule(Service):
             self.InputItem(
                 name=_("自动扩展分隔符"),
                 key="cc_transfer_host_template_break_line",
-                type="str",
+                type="string",
                 schema=StringItemSchema(description=_("在自动填参时使用的扩展分割符")),
             ),
         ]
 
     def outputs_format(self):
-        self.OutputItem(
-            name=_("更新成功的主机"),
-            key="set_update_success",
-            type="object",
-            schema=ObjectItemSchema(description=_("更新成功的主机"), property_schemas={}),
-        ),
-        self.OutputItem(
-            name=_("更新失败的主机"),
-            key="set_update_failed",
-            type="object",
-            schema=ObjectItemSchema(description=_("更新失败的主机"), property_schemas={}),
-        ),
-
-        return []
+        return [
+            self.OutputItem(
+                name=_("更新成功的主机"),
+                key="set_update_success",
+                type="object",
+                schema=ObjectItemSchema(description=_("更新成功的主机"), property_schemas={}),
+            ),
+            self.OutputItem(
+                name=_("更新失败的主机"),
+                key="set_update_failed",
+                type="object",
+                schema=ObjectItemSchema(description=_("更新失败的主机"), property_schemas={}),
+            ),
+        ]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")

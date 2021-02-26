@@ -92,11 +92,7 @@
                             </RenderForm>
                             <NoData v-else></NoData>
                         </div>
-                        <code-editor
-                            v-else
-                            :value="inputsInfo"
-                            :options="{ readOnly: readOnly, language: 'json' }">
-                        </code-editor>
+                        <full-code-editor v-else :value="inputsInfo"></full-code-editor>
                     </div>
                     <div class="code-block-wrap" v-else>
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
@@ -130,13 +126,8 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <code-editor
-                            v-else
-                            :value="outputsInfo"
-                            :options="{ readOnly: readOnly, language: 'json' }">
-                        </code-editor>
+                        <full-code-editor v-else :value="outputsInfo"></full-code-editor>
                     </div>
-                    
                     <div class="code-block-wrap" v-else>
                         <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
                         <NoData v-else></NoData>
@@ -164,11 +155,7 @@
                 <section class="info-section">
                     <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
-                        <code-editor
-                            v-if="logInfo"
-                            :value="logInfo"
-                            :options="{ readOnly: readOnly, language: 'javascript' }">
-                        </code-editor>
+                        <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
                         <NoData v-else></NoData>
                     </div>
                 </section>
@@ -178,7 +165,7 @@
                         class="retry-table"
                         :data="historyInfo"
                         @expand-change="onHistoyExpand">
-                        <bk-table-column type="expand" :width="60">
+                        <bk-table-column type="expand" :width="30">
                             <template slot-scope="props">
                                 <div class="common-form-item">
                                     <label>{{ $t('输入参数') }}</label>
@@ -209,11 +196,7 @@
                                             <div class="code-block-wrap" v-if="adminView">
                                                 <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
                                             </div>
-                                            <code-editor
-                                                v-else
-                                                :value="historyLog[props.row.history_id]"
-                                                :options="{ readOnly: readOnly, language: 'javascript' }">
-                                            </code-editor>
+                                            <full-code-editor v-else :value="historyLog[props.row.history_id]"></full-code-editor>
                                         </div>
                                         <NoData v-else></NoData>
                                     </div>
@@ -221,7 +204,7 @@
                                 </div>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('序号')" :width="70">
+                        <bk-table-column :label="$t('序号')" :width="60">
                             <template slot-scope="props">
                                 {{props.$index + 1}}
                             </template>
@@ -229,6 +212,7 @@
                         <bk-table-column :label="$t('执行次数')" :width="100" prop="loop"></bk-table-column>
                         <bk-table-column
                             v-for="col in historyCols"
+                            show-overflow-tooltip
                             :key="col.id"
                             :label="col.title"
                             :prop="col.id">
@@ -283,7 +267,7 @@
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import NodeTree from './NodeTree'
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from './FullCodeEditor.vue'
 
     const EXECUTE_INFO_COL = [
         {
@@ -441,7 +425,7 @@
             NoData,
             IpLogContent,
             NodeTree,
-            CodeEditor
+            FullCodeEditor
         },
         props: {
             adminView: {
@@ -473,6 +457,10 @@
                 default () {
                     return {}
                 }
+            },
+            state: { // 总任务状态
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -549,6 +537,10 @@
                 return state
             },
             nodeState () {
+                // 如果整体任务未执行的话不展示描述
+                if (this.state === 'CREATED') return ''
+                // 如果整体任务执行完毕但有的节点没执行的话不展示描述
+                if (['FAILED', 'FINISHED'].includes(this.state) && this.executeInfo.state === 'READY') return ''
                 return this.executeInfo.state && TASK_STATE_DICT[this.executeInfo.state]
             },
             loopTimes () {
@@ -885,6 +877,7 @@
     display: flex;
     flex-direction: column;
     padding-bottom: 0;
+    width: 500px;
     height: 100%;
     color: #313238;
     &.loading {
@@ -960,9 +953,6 @@
         /deep/ a {
             color: #4b9aff;
         }
-    }
-    .perform-log {
-        height: 300px;
     }
     .common-section-title {
         color: #313238;
@@ -1046,7 +1036,7 @@
     /deep/ .bk-table .bk-table-expanded-cell {
         padding: 20px;
     }
-    /deep/ .code-editor {
+    /deep/ .primary-value.code-editor {
         height: 300px;
     }
     .action-wrapper {

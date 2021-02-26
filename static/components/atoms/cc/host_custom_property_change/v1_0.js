@@ -39,6 +39,7 @@
             tag_code: "cc_hostname_rule",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: "规则定义(主机属性)",
                 add_btn: true,
                 empty_text: gettext("没有数据"),
@@ -142,6 +143,7 @@
             tag_code: "cc_custom_rule",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: "规则定义(自定义属性)",
                 add_btn: true,
                 empty_text: gettext("没有数据"),

@@ -42,6 +42,7 @@
             tag_code: "cc_host_property_custom",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("主机属性修改"),
                 remote_data_init: function (resp) {
                     if (resp.result === false) {

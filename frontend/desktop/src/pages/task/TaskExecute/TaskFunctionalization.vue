@@ -68,7 +68,8 @@
             :has-footer="false"
             :ext-cls="'common-dialog'"
             :title="$t('任务流程预览')"
-            width="1000">
+            width="1000"
+            @cancel="onClose">
             <NodePreview
                 v-if="canvasShow"
                 ref="nodePreviewRef"
