@@ -17,12 +17,10 @@ import logging
 from django.http import JsonResponse
 from django.http.request import HttpRequest
 
-from pipeline.engine import api as pipeline_api
-
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance, TaskTemplate
 from gcloud.contrib.operate_record.models import TaskOperateRecord, TemplateOperateRecord
-from gcloud.contrib.operate_record.constants import OperateSource, RecordType, TEMPLATE_TYPE, INSTANCE_OBJECT_KEY
+from gcloud.contrib.operate_record.constants import OperateSource, RecordType, INSTANCE_OBJECT_KEY
 
 logger = logging.getLogger("root")
 
@@ -36,12 +34,6 @@ OPERATE_MODEL = {
     "task": TaskFlowInstance,
     "template": TaskTemplate,
     "common_template": CommonTemplate,
-}
-
-INSTANCE_NAME = {
-    "task": "pipeline_instance__name",
-    "template": "pipeline_template__name",
-    "common_template": "pipeline_template__name",
 }
 
 
@@ -66,13 +58,7 @@ class Record(object):
         if hasattr(self.operate_result, "obj"):
             return self.operate_result.obj
         if instance_id:
-            name = INSTANCE_NAME[self.record_type]
-            return (
-                OPERATE_MODEL[self.record_type]
-                .objects.filter(pk=instance_id)
-                .only(name, "project__name", "project__id")
-                .first()
-            )
+            return OPERATE_MODEL[self.record_type].objects.filter(pk=instance_id).only("project__id").first()
 
     def get_request_data_from_key(self, key):
         """获取指定值"""
@@ -109,9 +95,6 @@ class Record(object):
             return self.kwargs["bundle"].request.user.username
         return ""
 
-    def get_instance_name(self, instance_obj):
-        return instance_obj.name if self.record_type in TEMPLATE_TYPE else instance_obj.pipeline_instance.name
-
     @property
     def result_response(self):
         if isinstance(self.operate_result, JsonResponse):
@@ -122,8 +105,6 @@ class Record(object):
         """需要记录的信息"""
         return {
             "instance_id": instance_obj.id,
-            "name": self.get_instance_name(instance_obj),
-            "project": "" if self.record_type == RecordType.common_template.name else instance_obj.project.name,
             "project_id": -1 if self.record_type == RecordType.common_template.name else instance_obj.project.id,
             "operator": self.operator,
             "operate_source": self.source,
@@ -155,9 +136,9 @@ class Record(object):
             instance_obj = self.get_instance_obj(instance_id=instance_id)
             record_params = self.need_save_info(instance_obj)
 
-            # 记录节点信息
+            # 记录节点ID
             if node_id:
-                record_params.update({"node_id": node_id, "node_name": pipeline_api.get_status_tree(node_id)["name"]})
+                record_params.update({"node_id": node_id})
 
             return is_operate_success, record_params
         return is_operate_success, {}

@@ -18,14 +18,12 @@ from .constants import OPERATE_TYPE, OPERATE_SOURCE
 
 
 class BaseOperateRecord(models.Model):
-    instance_id = models.IntegerField(_("记录对象实例ID"))
-    name = models.CharField(_("记录对象名称"), max_length=255)
-    project = models.CharField(_("所属项目"), max_length=128, blank=True, default="")
-    project_id = models.IntegerField(_("所属项目id"), blank=True, default=-1)
     operator = models.CharField(_("操作人"), max_length=128)
-    operate_date = models.DateTimeField(_("操作时间"), auto_now_add=True)
     operate_type = models.CharField(_("操作类型"), choices=OPERATE_TYPE, max_length=64)
     operate_source = models.CharField(_("操作来源"), choices=OPERATE_SOURCE, max_length=64)
+    instance_id = models.IntegerField(_("记录对象实例ID"))
+    project_id = models.IntegerField(_("所属项目id"), blank=True, default=-1)
+    operate_date = models.DateTimeField(_("操作时间"), auto_now_add=True)
 
     class Meta:
         abstract = True
@@ -35,7 +33,6 @@ class TaskOperateRecord(BaseOperateRecord):
     """任务操作记录"""
 
     node_id = models.CharField(_("任务实例节点ID"), max_length=255, blank=True, default="")
-    node_name = models.CharField(_("任务实例节点名称"), max_length=255, blank=True, default="")
 
     class Meta:
         verbose_name = _("任务操作记录")
@@ -43,7 +40,12 @@ class TaskOperateRecord(BaseOperateRecord):
         indexes = [models.Index(fields=["instance_id", "node_id"])]
 
     def __str__(self):
-        return "{}_{}_{}_{}".format(self.operate_date, self.operator, self.operate_type, self.instance_id)
+        return "{}_{}_{}_{}".format(
+            self.operator,
+            self.operate_type,
+            self.instance_id,
+            self.operate_date,
+        )
 
 
 class TemplateOperateRecord(BaseOperateRecord):
@@ -57,4 +59,9 @@ class TemplateOperateRecord(BaseOperateRecord):
         indexes = [models.Index(fields=["instance_id"])]
 
     def __str__(self):
-        return "{}_{}_{}_{}".format(self.operate_date, self.operator, self.operate_type, self.instance_id)
+        return "{}_{}_{}_{}".format(
+            self.operator,
+            self.operate_type,
+            self.instance_id,
+            self.operate_date,
+        )

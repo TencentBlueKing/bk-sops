@@ -18,11 +18,19 @@ from gcloud.contrib.operate_record import models
 
 @admin.register(models.TaskOperateRecord)
 class TaskOperateRecordAdmin(admin.ModelAdmin):
-    list_display = ["operate_date", "instance_id", "name", "operator", "operate_type", "node_name", "node_id"]
-    search_fields = ["instance_id", "project", "project_id", "operator", "name", "operate_type", "node_name", "node_id"]
+    list_display = [
+        "operator",
+        "operate_type",
+        "operate_source",
+        "project_id",
+        "instance_id",
+        "node_id",
+        "operate_date",
+    ]
+    search_fields = ["operator", "operate_type", "operate_source", "project_id", "instance_id", "node_id"]
 
 
 @admin.register(models.TemplateOperateRecord)
 class TemplateOperateRecordAdmin(admin.ModelAdmin):
-    list_display = ["operate_date", "instance_id", "name", "operator", "operate_type"]
-    search_fields = ["instance_id", "project", "project_id", "operator", "name", "operate_type"]
+    list_display = ["operator", "operate_type", "operate_source", "project_id", "instance_id", "operate_date"]
+    search_fields = ["operator", "operate_type", "operate_source", "project_id", "instance_id"]
