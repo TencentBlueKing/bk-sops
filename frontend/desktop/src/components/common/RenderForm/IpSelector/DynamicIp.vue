@@ -24,7 +24,7 @@
                         ref="topoTree"
                         show-checkbox
                         :height="360"
-                        :check-strictly="false"
+                        :check-strictly="true"
                         :options="{ idKey: 'uniqueId', nameKey: 'label' }"
                         :data="topoList"
                         :default-checked-nodes="selectedIps"
@@ -75,6 +75,9 @@
         props: ['editable', 'dynamicIpList', 'dynamicIps'],
         data () {
             return {
+                lastSelectedNodes: [],
+                selectedNodeList: [],
+                checkedNode: null,
                 topoList: this.transPrimaryToTree(this.dynamicIpList),
                 searchWord: '',
                 selectedList: this.dynamicIps.slice(0),
@@ -88,6 +91,15 @@
             dynamicIpList (val, old) {
                 this.topoList = this.transPrimaryToTree(val)
                 this.setSelectedIpsPath()
+                this.$nextTick(() => {
+                    this.selectedIps.forEach(item => {
+                        // 清除默认选中 改为通过点击的方式选中
+                        this.$refs.topoTree.setChecked(item, { checked: false })
+                        this.getCheckedNodeInfo(this.topoList, item)
+                        this.checkedNode.id = this.checkedNode.uniqueId
+                        this.onNodeCheckClick(this.selectedIps, this.checkedNode)
+                    })
+                })
                 this.$nextTick(() => {
                     this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                 })
@@ -181,12 +193,29 @@
             },
             onNodeCheckClick (selectedNodes, node) {
                 const checkedList = selectedNodes.slice(0)
+                if (checkedList.length >= this.lastSelectedNodes.length) {
+                    this.selectedNodeList.push(node.id)
+                    if (node.children && node.children.length) {
+                        this.setSelectedNodeList(node.children)
+                    }
+                } else {
+                    const index = this.selectedNodeList.findIndex(item => item === node.id)
+                    if (index > -1) {
+                        this.selectedNodeList.splice(index, 1)
+                    } else {
+                        if (node.children && node.children.length) {
+                            this.setSelectedNodeList(node.children)
+                        }
+                    }
+                }
+                this.lastSelectedNodes = checkedList
+
                 const isChecked = selectedNodes.includes(node.id)
                 if (node.children && node.children.length) {
                     this.changeChildrenNodeState(node, checkedList, isChecked)
                 }
 
-                const selectedList = checkedList.map(uniqueId => {
+                const selectedList = this.selectedNodeList.map(uniqueId => {
                     const [bk_inst_id, bk_obj_id] = uniqueId.split('_')
                     return { bk_inst_id: Number(bk_inst_id), bk_obj_id }
                 })
@@ -196,25 +225,71 @@
             },
             changeChildrenNodeState (node, checkedList, isChecked) {
                 node.children.forEach(item => {
+                    const nodeId = item.uniqueId || item.id
                     if (isChecked) {
-                        const index = checkedList.findIndex(id => id === item.id)
+                        const index = checkedList.findIndex(id => id === nodeId)
                         if (index > -1) {
                             checkedList.splice(index, 1)
-                            this.$refs.topoTree.setChecked(item.id, { checked: false })
+                            this.$refs.topoTree.setChecked(nodeId, { checked: false })
                         }
                     }
-                    this.$refs.topoTree.setDisabled(item.id, { disabled: isChecked })
+                    this.$refs.topoTree.setDisabled(nodeId, { disabled: isChecked })
                     if (item.children && item.children.length) {
                         this.changeChildrenNodeState(item, checkedList, isChecked)
                     }
                 })
             },
             onDeleteSelected (key) {
-                const selectedList = this.selectedList.filter(item => {
-                    return `${item.bk_inst_id}_${item.bk_obj_id}` !== key
+                const index = this.selectedNodeList.findIndex(item => item === key)
+                if (index > -1) {
+                    this.selectedNodeList.splice(index, 1)
+                }
+                const selectedList = this.selectedNodeList.map(uniqueId => {
+                    const [bk_inst_id, bk_obj_id] = uniqueId.split('_')
+                    return { bk_inst_id: Number(bk_inst_id), bk_obj_id }
                 })
+                this.lastSelectedNodes = []
+                this.checkedNode = null
+                this.getCheckedNodeInfo(this.topoList, key)
+                if (this.checkedNode && this.checkedNode.children && this.checkedNode.children.length) {
+                    this.setChildrenNodeState(this.checkedNode.children)
+                }
+                this.$refs.topoTree.setChecked(key, { checked: false })
                 this.$emit('change', selectedList)
                 this.validate()
+            },
+            getCheckedNodeInfo (data, id) {
+                for (let i = 0; i < data.length; i++) {
+                    const item = data[i]
+                    if (item.uniqueId === id) {
+                        this.checkedNode = item
+                        return
+                    } else if (item.children && item.children.length) {
+                        this.getCheckedNodeInfo(item.children, id)
+                    }
+                }
+            },
+            setChildrenNodeState (data) {
+                data.forEach(item => {
+                    this.$refs.topoTree.setDisabled(item.uniqueId, { disabled: false })
+                    if (item.children && item.children.length) {
+                        this.setChildrenNodeState(item.children)
+                    }
+                })
+            },
+            setSelectedNodeList (data) {
+                data.forEach(item => {
+                    const uniqueId = item.uniqueId || item.data.uniqueId
+                    if (uniqueId) {
+                        const idx = this.selectedNodeList.findIndex(val => val === uniqueId)
+                        if (idx > -1) {
+                            this.selectedNodeList.splice(idx, 1)
+                        }
+                    }
+                    if (item.children && item.children.length) {
+                        this.setSelectedNodeList(item.children)
+                    }
+                })
             },
             validate () {
                 if (this.dynamicIps.length) {

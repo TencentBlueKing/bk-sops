@@ -135,7 +135,7 @@ DETAILS_FAIL_CLIENT = MockClient(
 OPERATE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v1.0 operate plugin success case",
     inputs={
-        "bk_biz_id": "1",
+        "biz_cc_id": "1",
         "nodeman_plugin_operate": {
             "nodeman_op_type": "MAIN_INSTALL_PLUGIN",
             "nodeman_plugin": "plugin",
@@ -187,7 +187,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
 OPERATE_FAIL_CASE = ComponentTestCase(
     name="nodeman v1.0 operate plugin failed case",
     inputs={
-        "bk_biz_id": "1",
+        "biz_cc_id": "1",
         "nodeman_plugin_operate": {
             "nodeman_op_type": "MAIN_INSTALL_PLUGIN",
             "nodeman_plugin": "plugin",

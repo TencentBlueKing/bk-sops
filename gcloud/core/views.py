@@ -38,12 +38,15 @@ def page_not_found(request):
             settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, request.build_absolute_uri())
         )
     request.user = user
+    # not home url enter
+    user_enter.send(username=user.username, sender=user.username)
     return render(request, "core/base_vue.html", {})
 
 
 def home(request):
     try:
         username = request.user.username
+        # home url enter
         user_enter.send(username=username, sender=username)
     except Exception:
         logger.exception("user_enter signal send failed.")

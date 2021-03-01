@@ -92,7 +92,7 @@ class WechatWorkSendMessageService(Service):
                 )
             elif msgtype == "markdown":
                 mentioned_str = " ".join(["<@{}>".format(mentioned) for mentioned in mentioned_list])
-                content = "{}\n{}".format(str(content), mentioned_str)
+                content = "{}\n{}\n".format(str(content), mentioned_str)
                 resp = requests.post(
                     url=url,
                     json={

@@ -15,6 +15,7 @@
             <div class="operation-area">
                 <advance-search-form
                     id="periodicList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -213,7 +214,7 @@
     import BootRecordDialog from './BootRecordDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'input',
             key: 'creator',
@@ -257,6 +258,17 @@
         },
         data () {
             const { page = 1, limit = 15, creator = '', enabled = '', keyword = '' } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
@@ -277,7 +289,8 @@
                 selectedTemplateName: undefined,
                 periodEntrance: '',
                 taskCategory: [],
-                searchForm: searchForm,
+                searchForm,
+                isSearchFormOpen,
                 requestData: {
                     creator,
                     enabled,
