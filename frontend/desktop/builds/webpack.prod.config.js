@@ -18,7 +18,7 @@ const TerserPlugin = require('terser-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
 
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 module.exports = merge(webpackBaseConfig, {
     mode: 'production',
@@ -59,8 +59,8 @@ module.exports = merge(webpackBaseConfig, {
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
             filename: 'css/[name].[contenthash:10].css'
-        })
-        // new BundleAnalyzerPlugin()
+        }),
+        new BundleAnalyzerPlugin()
     ],
     optimization: {
         minimizer: [
