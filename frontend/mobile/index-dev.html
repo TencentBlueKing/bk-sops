@@ -9,7 +9,7 @@
     <script>
         /* 全局变量 */
         var RUN_VER = '{{RUN_VER}}';
-        var SITE_URL = '{{SITE_URL}}';
+        var SITE_URL = '/o/bk_sops/';
         var USERNAME = '{{USERNAME}}';
         var BK_CC_HOST = '{{BK_CC_HOST}}';
         // 用户身份：管理员
@@ -19,7 +19,7 @@
         // 用户身份： 审计员
         var IS_AUDITOR = Number('{{IS_AUDITOR}}');
         var RSA_PUB_KEY = '{{RSA_PUB_KEY}}';
-        var APP_CODE = '{{APP_CODE}}';
+        var APP_CODE = 'bk_sops';
         function getCookie(name) {
             var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
             return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;
