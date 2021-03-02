@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.32
+
+- bugfix
+  - 处理jobv3.get_job_instance_ip_log接口日志内容返回None时报错问题
+
 ## 3.6.31
 
 - improvement
