@@ -20,15 +20,15 @@ const task = {
          * @param {Object} data 筛选条件
          */
         loadTaskScheme ({ commit }, payload) {
-            const { isCommon, project__id, template_id } = payload
+            const { isCommon, project_id, template_id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
             return axios.get(url, {
                 params: {
                     template_id,
-                    project__id: project__id
+                    project_id
                 }
-            }).then(response => response.data.objects)
+            }).then(response => response.data.data)
         },
         /**
          * 创建任务可选节点的选择方案
@@ -39,7 +39,7 @@ const task = {
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
             return axios.post(url, {
-                project__id: project_id,
+                project_id,
                 template_id,
                 data,
                 name
@@ -63,7 +63,19 @@ const task = {
             const { isCommon, id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.get(`${url}${id}/`).then(response => response.data)
+            return axios.get(`${url}${id}/`).then(response => response.data.data)
+        },
+        /**
+         * 保存所有执行方案
+         * @param {String} payload 方案参数
+         */
+        saveTaskSchemList ({ commit }, payload) {
+            const { project_id, template_id, schemes } = payload
+            return axios.post('api/v3/scheme/batch_operate/', {
+                project_id,
+                template_id,
+                schemes
+            }).then(response => response.data)
         },
         /**
          * 获取任务节点预览数据
