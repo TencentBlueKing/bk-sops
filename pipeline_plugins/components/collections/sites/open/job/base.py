@@ -176,7 +176,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
                 )
                 service_logger.warning(message)
                 return {"result": False, "message": message}
-            log_list.append(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
+            log_content = get_job_instance_ip_log_kwargs_return["data"]["log_content"]
+            if log_content:
+                log_list.append(str(log_content))
     log_text = "\n".join(log_list)
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
@@ -223,9 +225,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
