@@ -34,66 +34,53 @@
                 <bk-table
                     :data="taskList"
                     :pagination="pagination"
+                    :size="setting.size"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="240">
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width">
                         <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.name"
-                                @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="template-operate-btn"
-                                :title="props.row.name"
-                                :to="{
-                                    name: 'taskExecute',
-                                    params: { project_id: project_id },
-                                    query: { instance_id: props.row.id }
-                                }">
-                                {{props.row.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行开始')" prop="start_time" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.start_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.finish_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="100"></bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120">
-                        <template slot-scope="props">
-                            <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行人')" width="120">
-                        <template slot-scope="props">
-                            <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('创建方式')" width="100">
-                        <template slot-scope="props">
-                            {{ transformCreateMethod(props.row.create_method) }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="120">
-                        <template slot-scope="props">
-                            <div class="task-status">
+                            <!--任务名称-->
+                            <div v-if="item.id === 'name'">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.name"
+                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="template-operate-btn"
+                                    :title="props.row.name"
+                                    :to="{
+                                        name: 'taskExecute',
+                                        params: { project_id: project_id },
+                                        query: { instance_id: props.row.id }
+                                    }">
+                                    {{props.row.name}}
+                                </router-link>
+                            </div>
+                            <!--创建方式-->
+                            <div v-else-if="item.id === 'create_method'">
+                                {{ transformCreateMethod(props.row.create_method) }}
+                            </div>
+                            <!--状态-->
+                            <div v-else-if="item.id === 'task_status'" class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                 <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                             </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('操作')" width="190">
@@ -134,6 +121,14 @@
                                 </a>
                             </div>
                         </template>
+                    </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
@@ -239,6 +234,51 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 100
+        }, {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 240
+        }, {
+            id: 'start_time',
+            label: i18n.t('执行开始'),
+            width: 180
+        }, {
+            id: 'finish_time',
+            label: i18n.t('执行结束'),
+            width: 200
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            width: 200
+        }, {
+            id: 'category_name',
+            label: i18n.t('任务类型'),
+            width: 100
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 120
+        }, {
+            id: 'executor_name',
+            label: i18n.t('执行人'),
+            width: 120
+        }, {
+            id: 'create_method',
+            label: i18n.t('创建方式'),
+            width: 100
+        }, {
+            id: 'task_status',
+            label: i18n.t('状态'),
+            width: 120
+        }
+    ]
     export default {
         name: 'TaskList',
         components: {
@@ -321,6 +361,12 @@
                     count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 }
             }
         },
@@ -334,6 +380,7 @@
             })
         },
         created () {
+            this.getFields()
             this.getData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
@@ -438,6 +485,15 @@
                     form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
+                }
+            },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('TaskList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
                 }
             },
             searchInputhandler (data) {
@@ -559,6 +615,16 @@
             onClearStatus () {
                 this.isStarted = undefined
                 this.isFinished = undefined
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('TaskList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
             },
             onPageChange (page) {
                 this.pagination.current = page
