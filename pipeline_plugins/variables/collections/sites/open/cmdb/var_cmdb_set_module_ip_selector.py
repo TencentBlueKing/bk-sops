@@ -227,7 +227,7 @@ def get_module_id_list(
         set_item["bk_set_name"]
         for set_item in set_list
     ]
-    # 没有筛选规则时，添加选择到的空闲机module id
+    # 没有筛选规则时，并且选择到空闲机池，添加选择到的空闲机module id
     if not filter_set_names and not filter_service_template_names and BIZ_INTERNAL_SET in all_selected_set_names_list:
         # 获取service_template_list的空闲模块名
         biz_internal_module = [service_template_item["name"]
