@@ -40,6 +40,8 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -124,6 +126,7 @@ class TaskTemplateResource(GCloudModelResource):
 
         return data
 
+    @record_operation(RecordType.template.name, OperateType.create.name, OperateSource.project.name)
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
@@ -155,6 +158,7 @@ class TaskTemplateResource(GCloudModelResource):
         kwargs["pipeline_template_id"] = pipeline_template.template_id
         return super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
 
+    @record_operation(RecordType.template.name, OperateType.update.name, OperateSource.project.name)
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         with transaction.atomic():
             obj = bundle.obj
@@ -184,6 +188,7 @@ class TaskTemplateResource(GCloudModelResource):
             bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % obj.pipeline_template.pk
             return super(TaskTemplateResource, self).obj_update(bundle, **kwargs)
 
+    @record_operation(RecordType.template.name, OperateType.delete.name, OperateSource.project.name)
     def obj_delete(self, bundle, **kwargs):
         try:
             task_tmpl = TaskTemplate.objects.get(id=kwargs["pk"])
@@ -218,7 +223,7 @@ class TaskTemplateResource(GCloudModelResource):
 
 
 class TemplateSchemeResource(GCloudModelResource):
-    data = fields.CharField(attribute="data", use_in="detail",)
+    data = fields.CharField(attribute="data", use_in="detail")
 
     class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()

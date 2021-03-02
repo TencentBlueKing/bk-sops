@@ -58,6 +58,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.audit",
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
+    "gcloud.contrib.operate_record",
     "gcloud.apigw",
     "gcloud.commons.template",
     "gcloud.periodictask",

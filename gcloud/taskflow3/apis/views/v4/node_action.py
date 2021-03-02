@@ -21,11 +21,14 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.validators import NodeActionV2Validator
 from gcloud.iam_auth.view_interceptors.taskflow import NodeActionV2Inpterceptor
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 
 
 @require_POST
 @request_validate(NodeActionV2Validator)
 @iam_intercept(NodeActionV2Inpterceptor())
+@record_operation(RecordType.task.name, OperateType.nodes_action.name)
 def node_action(request, project_id, task_id, node_id):
     data = json.loads(request.body)
 

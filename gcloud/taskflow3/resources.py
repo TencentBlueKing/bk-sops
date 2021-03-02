@@ -44,6 +44,8 @@ from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -152,7 +154,9 @@ class TaskFlowInstanceResource(GCloudModelResource):
             if bundle.obj.template_id and bundle.obj.template_source == "common"
         }
         common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], common_templates_id,
+            request.user.username,
+            [IAMMeta.COMMON_FLOW_VIEW_ACTION],
+            common_templates_id,
         )
         common_template_info = CommonTemplate.objects.filter(id__in=common_templates_id).values(
             "id", "pipeline_template__name", "is_deleted"
@@ -224,6 +228,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
 
+    @record_operation(RecordType.task.name, OperateType.create.name)
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
@@ -319,6 +324,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
 
+    @record_operation(RecordType.task.name, OperateType.delete.name)
     def obj_delete(self, bundle, **kwargs):
         try:
             taskflow = TaskFlowInstance.objects.get(id=kwargs["pk"])
