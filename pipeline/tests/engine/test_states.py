@@ -29,8 +29,11 @@ class StatesTestCase(TestCase):
         self.assertEqual(FINISHED, "FINISHED")
         self.assertEqual(FAILED, "FAILED")
         self.assertEqual(REVOKED, "REVOKED")
+        self.assertEqual(EXPIRED, "EXPIRED")
 
-        self.assertEqual(ALL_STATES, frozenset([READY, RUNNING, SUSPENDED, BLOCKED, FINISHED, FAILED, REVOKED]))
+        self.assertEqual(
+            ALL_STATES, frozenset([READY, RUNNING, SUSPENDED, BLOCKED, FINISHED, FAILED, REVOKED, EXPIRED])
+        )
         self.assertEqual(SLEEP_STATES, frozenset([SUSPENDED, REVOKED]))
         self.assertEqual(CHILDREN_IGNORE_STATES, frozenset([BLOCKED]))
         self.assertEqual(
