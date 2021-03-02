@@ -27,61 +27,53 @@
                 <bk-table
                     :data="auditList"
                     :pagination="pagination"
+                    :size="setting.size"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('所属项目')" width="120">
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width">
                         <template slot-scope="props">
-                            <span :title="props.row.project.name">{{ props.row.project.name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.name"
-                                @click="onTemplatePermissonCheck(props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="task-name"
-                                :title="props.row.name"
-                                :to="{
-                                    name: 'auditTaskExecute',
-                                    params: { project_id: props.row.project.id },
-                                    query: { instance_id: props.row.id }
-                                }">
-                                {{props.row.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行开始')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.start_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.finish_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('执行人')" width="140">
-                        <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="120">
-                        <template slot-scope="props">
-                            <div class="audit-status">
+                            <!--所属项目-->
+                            <div v-if="item.id === 'project'">
+                                <span :title="props.row.project.name">{{ props.row.project.name }}</span>
+                            </div>
+                            <!--任务名称-->
+                            <div v-else-if="item.id === 'name'">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.name"
+                                    @click="onTemplatePermissonCheck(props.row)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-name"
+                                    :title="props.row.name"
+                                    :to="{
+                                        name: 'auditTaskExecute',
+                                        params: { project_id: props.row.project.id },
+                                        query: { instance_id: props.row.id }
+                                    }">
+                                    {{props.row.name}}
+                                </router-link>
+                            </div>
+                            <!--状态-->
+                            <div v-else-if="item.id === 'audit_status'" class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                 <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
                             </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('操作')" width="100">
@@ -104,6 +96,14 @@
                                 {{ $t('查看') }}
                             </router-link>
                         </template>
+                    </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData /></div>
                 </bk-table>
@@ -179,6 +179,48 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 80
+        }, {
+            id: 'project',
+            label: i18n.t('所属项目'),
+            disabled: true,
+            width: 120
+        }, {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 200
+        }, {
+            id: 'start_time',
+            label: i18n.t('执行开始'),
+            width: 200
+        }, {
+            id: 'finish_time',
+            label: i18n.t('执行结束'),
+            width: 200
+        }, {
+            id: 'category_name',
+            label: i18n.t('任务类型'),
+            width: 140
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 140
+        }, {
+            id: 'executor_name',
+            label: i18n.t('执行人'),
+            width: 140
+        }, {
+            id: 'audit_status',
+            label: i18n.t('状态'),
+            width: 120
+        }
+    ]
     export default {
         name: 'auditHome',
         components: {
@@ -241,6 +283,12 @@
                     count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 }
             }
         },
@@ -250,6 +298,7 @@
             })
         },
         created () {
+            this.getFields()
             this.loadAuditTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
@@ -325,6 +374,25 @@
                 } finally {
                     this.listLoading = false
                 }
+            },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('AuditList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                }
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('AuditList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
             },
             onPageChange (page) {
                 this.pagination.current = page
