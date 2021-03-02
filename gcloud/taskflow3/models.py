@@ -466,6 +466,10 @@ class TaskFlowInstance(models.Model):
         return tree
 
     @property
+    def is_expired(self):
+        return self.pipeline_instance.is_expired
+
+    @property
     def name(self):
         return self.pipeline_instance.name
 

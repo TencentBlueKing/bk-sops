@@ -598,7 +598,7 @@ class PipelineInstance(models.Model):
     )
     name = models.CharField(_("实例名称"), max_length=MAX_LEN_OF_NAME, default="default_instance")
     creator = models.CharField(_("创建者"), max_length=32, blank=True)
-    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
     executor = models.CharField(_("执行者"), max_length=32, blank=True)
     start_time = models.DateTimeField(_("启动时间"), null=True, blank=True)
     finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
@@ -607,6 +607,7 @@ class PipelineInstance(models.Model):
     is_finished = models.BooleanField(_("是否已经完成"), default=False)
     is_revoked = models.BooleanField(_("是否已经撤销"), default=False)
     is_deleted = models.BooleanField(_("是否已经删除"), default=False, help_text=_("表示当前实例是否删除"))
+    is_expired = models.BooleanField(_("是否已经过期"), default=False, help_text=_("运行时被定期清理即为过期"))
     snapshot = models.ForeignKey(
         Snapshot,
         blank=True,

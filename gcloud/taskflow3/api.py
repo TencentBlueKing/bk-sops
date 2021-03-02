@@ -87,6 +87,11 @@ def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
 
+    task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
+    if task.is_expired:
+        ctx = {"result": True, "data": {"state": states.EXPIRED}, "message": "", "code": err_code.SUCCESS.code}
+        return JsonResponse(ctx)
+
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)

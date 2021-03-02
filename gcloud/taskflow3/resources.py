@@ -81,6 +81,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     is_started = fields.BooleanField(attribute="is_started", readonly=True, null=True)
     is_finished = fields.BooleanField(attribute="is_finished", readonly=True, null=True)
     is_revoked = fields.BooleanField(attribute="is_revoked", readonly=True, null=True)
+    is_expired = fields.BooleanField(attribute="is_expired", readonly=True, null=True)
     creator_name = fields.CharField(attribute="creator_name", readonly=True, null=True)
     executor_name = fields.CharField(attribute="executor_name", readonly=True, null=True)
     pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
