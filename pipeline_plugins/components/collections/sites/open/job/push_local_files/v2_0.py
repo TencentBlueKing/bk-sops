@@ -153,7 +153,11 @@ class JobPushLocalFilesService(JobScheduleService):
             {
                 "esb_client": client,
                 "bk_biz_id": biz_cc_id,
-                "file_tags": [_file["tag"] for _file in push_files_info["file_info"]],
+                "file_tags": [
+                    _file["response"]["tag"]
+                    for _file in push_files_info["file_info"]
+                    if _file["response"]["result"] is True
+                ],
                 "target_path": push_files_info["target_path"],
                 "ips": ip_list,
                 "account": target_account,
