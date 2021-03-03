@@ -170,6 +170,7 @@
         },
         computed: {
             ...mapState({
+                'locations': state => state.template.location,
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
@@ -182,6 +183,9 @@
             ...mapState('appmaker', {
                 'appmakerDetail': state => state.appmakerDetail
             }),
+            isCommonProcess () {
+                return Number(this.$route.query.common) === 1
+            },
             isTaskTypeShow () {
                 return this.entrance !== 'function' && this.isStartNow
             },
@@ -223,7 +227,11 @@
             ...mapActions('template/', [
                 'loadTemplateData'
             ]),
+            ...mapActions('appmaker/', [
+                'loadAppmakerDetail'
+            ]),
             ...mapActions('task/', [
+                'getSchemeDetail',
                 'loadPreviewNodeData',
                 'createTask'
             ]),
@@ -279,9 +287,27 @@
 
                     this.tplActions = templateData.auth_actions
                     this.setTemplateData(templateData)
+
+                    let schemeId = ''
+                    const excludeNodeIdList = []
+                    if (this.viewMode === 'appmaker') {
+                        await this.loadAppmakerDetail(this.app_id).then(res => {
+                            schemeId = res.template_scheme_id
+                        })
+                        if (schemeId) {
+                            const schemeDetail = await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess })
+                            const allNodeId = JSON.parse(schemeDetail.data)
+                            this.locations.filter(item => {
+                                if (allNodeId.indexOf(item.id) === -1 && item.optional) {
+                                    excludeNodeIdList.push(item.id)
+                                }
+                            })
+                        }
+                    }
+                    const excludeTaskNodesId = this.excludeNode.length ? this.excludeNode : excludeNodeIdList
                     const params = {
                         templateId: this.template_id,
-                        excludeTaskNodesId: this.excludeNode,
+                        excludeTaskNodesId,
                         common: this.common,
                         project_id: this.project_id,
                         template_source: templateSource,
