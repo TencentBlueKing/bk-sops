@@ -16,6 +16,7 @@ from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
+from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import (
     BusinessResource,
     ProjectResource,
@@ -63,6 +64,8 @@ drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
 drf_router.register(r"resource_config", ResourceConfigViewSet)
 drf_router.register(r"staff_group", StaffGroupSetViewSet)
+drf_router.register(r"operate_record_task", TaskOperateRecordSetViewSet)
+drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 
 # Standard bits...
 urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]
