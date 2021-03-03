@@ -79,8 +79,8 @@
                                 fileList.splice(i, 1)
                             }
                         }
-                        this._set_value(fileList)
                     }
+                    this._set_value(fileList)
                 },
                 handleError: function (err, file, fileList) {
                     var result = JSON.parse(err.message)
