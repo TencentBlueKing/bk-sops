@@ -96,7 +96,7 @@ class MockCMDB(object):
                 },
             ],
         }
-        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-1]]}
+        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-2]]}
 
 
 def mock_get_client_by_user(username):
