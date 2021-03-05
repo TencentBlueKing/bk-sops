@@ -495,7 +495,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 354px;
+            width: 300px; // 354
             text-align: center;
             display: flex;
             align-items: center;

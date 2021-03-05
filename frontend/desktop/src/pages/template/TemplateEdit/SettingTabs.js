@@ -13,6 +13,11 @@ import i18n from '@/config/i18n/index.js'
 
 const SETTING_TABS = [
     {
+        id: 'operationFlowTab',
+        icon: 'common-icon-branchs',
+        title: i18n.t('操作流水')
+    },
+    {
         id: 'globalVariableTab',
         icon: 'common-icon-square-code',
         title: i18n.t('全局变量'),
@@ -26,7 +31,7 @@ const SETTING_TABS = [
     {
         id: 'tplSnapshootTab',
         icon: 'common-icon-clock-reload',
-        title: i18n.t('本地快照'),
+        title: i18n.t('历史记录'),
         desc: i18n.t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。')
     },
     {

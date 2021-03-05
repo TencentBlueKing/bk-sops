@@ -16,7 +16,7 @@
         :width="800"
         :before-close="closeTab">
         <div class="setting-header" slot="header">
-            <span>{{ $t('本地快照') }}</span>
+            <span>{{ $t('历史记录') }}</span>
             <i
                 class="common-icon-info"
                 v-bk-tooltips="{
@@ -27,8 +27,16 @@
                 }">
             </i>
         </div>
-        <div class="template-snapshoot-panel" slot="content">
-            <table class="snapshoot-table">
+        <div class="template-panel" slot="content">
+            <bk-tab :active.sync="active" type="unborder-card">
+                <bk-tab-panel
+                    v-for="panel in tabPanels"
+                    :label="panel.label"
+                    :name="panel.id"
+                    :key="panel.id">
+                </bk-tab-panel>
+            </bk-tab>
+            <table class="snapshoot-table" v-if="active === 'snapshoot'">
                 <thead>
                     <tr>
                         <th class="col-number">{{ $t('序号') }}</th>
@@ -89,12 +97,22 @@
                     </tr>
                 </tbody>
             </table>
+            <bk-table
+                v-if="active === 'operateFlow'"
+                ext-cls="operate-flow-table"
+                :data="operateFlowData">
+                <bk-table-column :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+                <bk-table-column :label="$t('操作名称')" prop="operate_type_name"></bk-table-column>
+                <bk-table-column :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
+                <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
+            </bk-table>
         </div>
     </bk-sideslider>
 </template>
 
 <script>
     import moment from 'moment'
+    import { mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -122,10 +140,28 @@
                     required: true,
                     max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
                     regex: NAME_REG
-                }
+                },
+                active: 'snapshoot',
+                tabPanels: [
+                    {
+                        id: 'snapshoot',
+                        label: '本地快照'
+                    },
+                    {
+                        id: 'operateFlow',
+                        label: '操作流水'
+                    }
+                ],
+                operateFlowData: []
             }
         },
+        mounted () {
+            this.getOperationTemplateData()
+        },
         methods: {
+            ...mapActions('task/', [
+                'getOperationRecordTemplate'
+            ]),
             // 新建快照
             onCreateSnapshoot () {
                 this.$emit('createSnapshoot')
@@ -157,6 +193,14 @@
                     await this.onSaveName(snapshoot)
                 }
                 this.$emit('closeTab')
+            },
+            async getOperationTemplateData () {
+                const { params, query } = this.$route
+                const resp = await this.getOperationRecordTemplate({
+                    project_id: params.project_id,
+                    instance_id: query.template_id
+                })
+                this.operateFlowData = resp.data
             }
         }
     }
@@ -177,8 +221,8 @@
         }
     }
 }
-.template-snapshoot-panel {
-    padding: 20px 30px;
+.template-panel {
+    padding: 5px 30px 20px;
     background: #ffffff;
     overflow: hidden;
     .snapshoot-tooltip {
@@ -189,6 +233,12 @@
         cursor: pointer;
         &:hover {
             color: #f4aa1a;
+        }
+    }
+    /deep/ .bk-tab {
+        margin-bottom: 16px;
+        .bk-tab-section {
+            padding: 0;
         }
     }
     .snapshoot-table {
@@ -224,7 +274,7 @@
         tbody {
             display: block;
             min-height: 400px;
-            max-height: calc(100vh - 150px);
+            max-height: calc(100vh - 188px);
             color: #63656e;
             overflow: auto;
             @include scrollbar;
@@ -287,6 +337,14 @@
         }
         .common-icon-dark-circle-close:hover {
             color: #cecece;
+        }
+    }
+    /deep/ .operate-flow-table {
+        .bk-table-body-wrapper {
+            max-height: calc(100vh - 188px);
+            color: #63656e;
+            overflow-y: auto;
+            @include scrollbar;
         }
     }
 }
