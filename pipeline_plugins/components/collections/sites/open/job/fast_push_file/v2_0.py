@@ -20,13 +20,12 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
-    get_node_callback_url,
     loose_strip,
     chunk_table_data,
-    batch_execute_func,
 )
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
@@ -194,7 +193,6 @@ class JobFastPushFileService(JobScheduleService):
                     "ip_list": ip_list,
                     "account": job_account,
                     "file_target_path": job_target_path,
-                    "bk_callback_url": get_node_callback_url(self.id),
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
