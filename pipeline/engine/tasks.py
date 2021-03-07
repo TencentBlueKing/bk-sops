@@ -191,13 +191,17 @@ def expired_tasks_clean():
 
     try:
         expired_create_time = datetime.date.today() - relativedelta(months=default_settings.TASK_EXPIRED_MONTH)
-        logger.info("Clean expired tasks before {}".format(expired_create_time))
-
         pipeline_instance_ids = list(
             PipelineInstance.objects.filter(
-                create_time__lte=expired_create_time, is_finished=True, is_revoked=False
+                create_time__lte=expired_create_time, is_finished=True, is_revoked=False, is_expired=False
             ).values_list("instance_id", flat=True)[: default_settings.EXPIRED_TASK_CLEAN_NUM_LIMIT]
         )
+        logger.info(
+            "Clean expired tasks before {} with tasks number: {}, instance ids: {}".format(
+                expired_create_time, len(pipeline_instance_ids), ",".join(pipeline_instance_ids)
+            )
+        )
+
         total_process_nodes = []
         for instance_id in pipeline_instance_ids:
             process_nodes = NodeRelationship.objects.filter(ancestor_id=instance_id).values_list(
