@@ -188,7 +188,7 @@ const en = {
     '分支网关：': 'Exclusive Gateway: ',
     '执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。': 'Execute first branch which condtion evaluate success',
     '汇聚网关：': 'Converge Gateway: ',
-    '所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。': 'Converge gateway will be executed only when all incoming branch execute to it',
+    '当汇聚网关用于汇聚并行网关时，所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。': 'Convergence gateway used to converge parallel gateways, Converge gateway will be executed only when all incoming branch execute to it',
     '复位': 'Reset zoom',
     '节点框选': 'Selection',
     '排版': 'Layout',
