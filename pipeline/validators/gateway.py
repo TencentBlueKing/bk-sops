@@ -333,52 +333,36 @@ def validate_gateways(tree):
                 converge_positive_in[t] = converge_positive_in.setdefault(t, 0) + 1
 
     process_order.sort(key=lambda gid: distances[gid])
+    end_event_id = tree[PE.end_event][PE.id]
     converged = {}
+    block_nodes = {}
+    visited = set()
 
     # process in distance order
-    if process_order:
-        start = process_order[0]
-        end_event_id = tree[PE.end_event][PE.id]
-        block_nodes = {start: set()}
+    # if process_order:
+    for gw in process_order:
+        if gw in visited or "match" in gw:
+            continue
+        visited.add(gw)
+
+        block_nodes[gw] = set()
 
         converge_id, __ = match_converge(
             converges=converges,
             gateways=gateways,
-            cur_index=start,
+            cur_index=gw,
             end_event_id=end_event_id,
             converged=converged,
-            block_start=start,
+            block_start=gw,
             block_nodes=block_nodes,
             dist_from_start=distances,
             converge_in_len=converge_positive_in,
         )
 
-        if converge_id:
-            next_node_of_converge = converges[converge_id][PE.target][0]
-
-            while next_node_of_converge != end_event_id:
-                start = converges[converge_id][PE.target][0]
-                block_nodes[start] = set()
-                converge_id, __ = match_converge(
-                    converges=converges,
-                    gateways=gateways,
-                    cur_index=start,
-                    end_event_id=end_event_id,
-                    converged=converged,
-                    block_start=start,
-                    block_nodes=block_nodes,
-                    dist_from_start=distances,
-                    converge_in_len=converge_positive_in,
-                )
-                if converge_id is None:
-                    break
-
-                next_node_of_converge = converges[converge_id][PE.target][0]
-
-        # set converge gateway
-        for i in gateways:
-            if gateways[i]["match"]:
-                tree[PE.gateways][i][PE.converge_gateway_id] = gateways[i]["match"]
+    # set converge gateway
+    for i in gateways:
+        if gateways[i]["match"]:
+            tree[PE.gateways][i][PE.converge_gateway_id] = gateways[i]["match"]
 
     return converged
 
