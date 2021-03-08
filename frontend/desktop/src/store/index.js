@@ -177,7 +177,6 @@ const store = new Vuex.Store({
             return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCHostCount ({ commit }, data) {
-            debugger
             return axios.get(data.url, { baseURL: '/', params: { bk_inst_id: data.ids } }).then(response => response.data)
         },
         // <--- 开区资源选择器接口 end
