@@ -346,7 +346,7 @@ def validate_gateways(tree):
 
         block_nodes[gw] = set()
 
-        converge_id, __ = match_converge(
+        match_converge(
             converges=converges,
             gateways=gateways,
             cur_index=gw,
