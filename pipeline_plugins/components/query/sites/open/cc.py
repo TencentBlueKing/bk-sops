@@ -269,6 +269,27 @@ def cc_format_topo_data(data, obj_id, category):
     return tree_data
 
 
+def insert_inter_result_to_topo_data(inter_result_data, topo_data):
+    formatted_inter_result = {
+        "bk_inst_id": inter_result_data["bk_set_id"],
+        "bk_inst_name": inter_result_data["bk_set_name"],
+        "bk_obj_id": "set",
+        "bk_obj_name": "set",
+        "child": [
+            {
+                "bk_inst_id": internal_module["bk_module_id"],
+                "bk_inst_name": internal_module["bk_module_name"],
+                "bk_obj_id": "module",
+                "bk_obj_name": "module",
+                "child": [],
+            }
+            for internal_module in inter_result_data["module"]
+        ],
+    }
+    topo_data[0]["child"].insert(0, formatted_inter_result)
+    return topo_data
+
+
 @supplier_account_inject
 def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     """
@@ -277,6 +298,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
+    with_internal_module = request.GET.get("with_internal_module", False)
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_biz_inst_topo(kwargs)
@@ -285,6 +307,15 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
+
+    if with_internal_module:
+        inter_result = client.cc.get_biz_internal_module(kwargs)
+        if not inter_result["result"]:
+            message = handle_api_error("cc", "cc.get_biz_internal_module", kwargs, inter_result)
+            logger.error(message)
+            result = {"result": False, "data": [], "message": message}
+            return JsonResponse(result)
+        cc_result["data"] = insert_inter_result_to_topo_data(inter_result["data"], cc_result["data"])
 
     if category in ["normal", "prev"]:
         cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category)
@@ -458,10 +489,7 @@ def cc_find_host_by_topo(request, biz_cc_id, bk_inst_id):
         request_params = {"bk_inst_id": int(inst_id)}
         request_params.update(params)
         host_info = batch_request(client.cc.find_host_by_topo, request_params)
-        data.append({
-            "bk_inst_id": request_params["bk_inst_id"],
-            "host_count": len(host_info)
-        })
+        data.append({"bk_inst_id": request_params["bk_inst_id"], "host_count": len(host_info)})
 
     return {"result": True, "data": data}
 
