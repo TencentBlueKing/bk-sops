@@ -480,4 +480,11 @@ routers.beforeEach((to, from, next) => {
     }
 })
 
+// js chunk 静态资源加载失败重新刷新页面
+routers.onError(error => {
+    if (/Loading chunk (\d*) failed/.test(error.message)) {
+        window.location.reload(true)
+    }
+})
+
 export default routers
