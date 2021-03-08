@@ -339,7 +339,6 @@ def validate_gateways(tree):
     visited = set()
 
     # process in distance order
-    # if process_order:
     for gw in process_order:
         if gw in visited or "match" in gw:
             continue
