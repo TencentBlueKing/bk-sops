@@ -31,7 +31,7 @@ const SETTING_TABS = [
     {
         id: 'tplSnapshootTab',
         icon: 'common-icon-clock-reload',
-        title: i18n.t('历史记录'),
+        title: i18n.t('本地快照'),
         desc: i18n.t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。')
     },
     {

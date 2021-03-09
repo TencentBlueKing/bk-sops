@@ -28,19 +28,23 @@
             }
         },
         mounted () {
-            this.getOperationTaskData()
+            this.getOperationTemplateData()
         },
         methods: {
             ...mapActions('task/', [
                 'getOperationRecordTemplate'
             ]),
-            async getOperationTaskData () {
+            async getOperationTemplateData () {
                 const { params, query } = this.$route
-                const resp = await this.getOperationRecordTemplate({
-                    project_id: params.project_id,
-                    instance_id: query.template_id
-                })
-                this.operateFlowData = resp.data
+                try {
+                    const resp = await this.getOperationRecordTemplate({
+                        project_id: params.project_id,
+                        instance_id: query.template_id
+                    })
+                    this.operateFlowData = resp.data || []
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             closeTab () {
                 this.$emit('closeTab')
