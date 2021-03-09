@@ -11,6 +11,7 @@
 */
 import i18n from '@/config/i18n/index.js'
 const TASK_STATE_DICT = {
+    'EXPIRED': i18n.t('已过期，任务运行时数据已清理'),
     'CREATED': i18n.t('未执行'),
     'RUNNING': i18n.t('执行中'),
     'READY': i18n.t('排队中'),

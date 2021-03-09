@@ -1329,6 +1329,14 @@
         border-right: 1px solid #d2d4dd;
         text-align: center;
         background-color: #dcdee5;
+        &.EXPIRED {
+            background-color: #f2d0d3;
+            border-top: 1px solid #efb9be;
+            border-bottom: 1px solid #efb9be;
+            .task-status-name {
+                color: #63656e;
+            }
+        }
         &.CREATED {
             border-top: 1px solid #d2d4dd;
             border-bottom: 1px solid #d2d4dd;
