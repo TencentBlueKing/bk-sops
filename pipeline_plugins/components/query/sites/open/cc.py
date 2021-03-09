@@ -17,7 +17,6 @@ import traceback
 from django.http import JsonResponse
 from django.conf.urls import url
 
-from gcloud.utils.cmdb import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
@@ -36,6 +35,7 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from gcloud.exceptions import APIError
 from gcloud.core.utils import get_user_business_list
+from pipeline_plugins.components.utils import batch_execute_func
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -269,6 +269,27 @@ def cc_format_topo_data(data, obj_id, category):
     return tree_data
 
 
+def insert_inter_result_to_topo_data(inter_result_data, topo_data):
+    formatted_inter_result = {
+        "bk_inst_id": inter_result_data["bk_set_id"],
+        "bk_inst_name": inter_result_data["bk_set_name"],
+        "bk_obj_id": "set",
+        "bk_obj_name": "set",
+        "child": [
+            {
+                "bk_inst_id": internal_module["bk_module_id"],
+                "bk_inst_name": internal_module["bk_module_name"],
+                "bk_obj_id": "module",
+                "bk_obj_name": "module",
+                "child": [],
+            }
+            for internal_module in inter_result_data["module"]
+        ],
+    }
+    topo_data[0]["child"].insert(0, formatted_inter_result)
+    return topo_data
+
+
 @supplier_account_inject
 def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     """
@@ -277,6 +298,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
+    with_internal_module = request.GET.get("with_internal_module", False)
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_biz_inst_topo(kwargs)
@@ -285,6 +307,15 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
+
+    if with_internal_module:
+        inter_result = client.cc.get_biz_internal_module(kwargs)
+        if not inter_result["result"]:
+            message = handle_api_error("cc", "cc.get_biz_internal_module", kwargs, inter_result)
+            logger.error(message)
+            result = {"result": False, "data": [], "message": message}
+            return JsonResponse(result)
+        cc_result["data"] = insert_inter_result_to_topo_data(inter_result["data"], cc_result["data"])
 
     if category in ["normal", "prev"]:
         cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category)
@@ -435,35 +466,39 @@ def cc_search_status_options(request, biz_cc_id):
     return JsonResponse({"result": True, "data": options})
 
 
-def cc_find_host_by_topo(request, biz_cc_id, bk_inst_id):
+def cc_find_host_by_topo(request, biz_cc_id):
     """
-    批量查询拓扑节点下的主机
+    批量查询拓扑节点下的主机数量
     @param request:
     @param biz_cc_id: cc id
-    @param bk_inst_id: 模块ID列表，以 , 分割，例如 123,234,345
     @return:
     """
+    # 模块ID列表，以 , 分割，例如 123,234,345
+    bk_inst_id = request.GET.get("bk_inst_id", "")
+
     client = get_client_by_user(request.user.username)
 
     # 去除split后的空字符串
     bk_inst_id = filter(lambda x: x, bk_inst_id.split(","))
-    params = {
-        "bk_biz_id": int(biz_cc_id),
-        "bk_obj_id": "module",
-        "fields": ["bk_host_id", "bk_cloud_id"],
-    }
+    params_list = [
+        {
+            "bk_biz_id": int(biz_cc_id),
+            "bk_inst_id": int(inst_id),
+            "bk_obj_id": "module",
+            "fields": ["bk_host_id"],
+            "page": {"start": 0, "limit": 1},
+        }
+        for inst_id in bk_inst_id
+    ]
 
-    data = []
-    for inst_id in bk_inst_id:
-        request_params = {"bk_inst_id": int(inst_id)}
-        request_params.update(params)
-        host_info = batch_request(client.cc.find_host_by_topo, request_params)
-        data.append({
-            "bk_inst_id": request_params["bk_inst_id"],
-            "host_count": len(host_info)
-        })
+    result_list = batch_execute_func(client.cc.find_host_by_topo, params_list)
+    data = [
+        {"bk_inst_id": result["params"]["bk_inst_id"], "host_count": result["result"]["data"]["count"]}
+        for result in result_list
+        if result["result"]["result"]
+    ]
 
-    return {"result": True, "data": data}
+    return JsonResponse({"result": True, "data": data})
 
 
 cc_urlpatterns = [
@@ -490,5 +525,5 @@ cc_urlpatterns = [
     # 获取可更改的set属性
     url(r"^cc_get_set_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_set_attribute),
     # 批量查询拓扑节点下的主机
-    url(r"^cc_find_host_by_topo/(?P<biz_cc_id>\d+)/(?P<bk_inst_id>\d+)/$", cc_find_host_by_topo),
+    url(r"^cc_find_host_by_topo/(?P<biz_cc_id>\d+)/$", cc_find_host_by_topo),
 ]
