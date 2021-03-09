@@ -111,7 +111,7 @@ def _replace_front_end_data_id(pipeline_data, node_map, flow_map):
         for location in pipeline_data["location"]:
             location[PE.id] = node_map[location[PE.id]]
     if "constants" in pipeline_data:
-        for key, constant in list(pipeline_data[PE.constants].items()):
+        for _, constant in list(pipeline_data[PE.constants].items()):
             source_info = constant.get("source_info", None)
             if source_info:
                 replaced_constant = {}
