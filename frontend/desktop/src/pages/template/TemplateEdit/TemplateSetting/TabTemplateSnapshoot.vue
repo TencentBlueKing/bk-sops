@@ -122,8 +122,7 @@
                     required: true,
                     max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
                     regex: NAME_REG
-                },
-                active: 'snapshoot'
+                }
             }
         },
         methods: {
@@ -190,12 +189,6 @@
         cursor: pointer;
         &:hover {
             color: #f4aa1a;
-        }
-    }
-    /deep/ .bk-tab {
-        margin-bottom: 16px;
-        .bk-tab-section {
-            padding: 0;
         }
     }
     .snapshoot-table {
