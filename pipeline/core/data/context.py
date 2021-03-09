@@ -151,5 +151,5 @@ class OutputRef(object):
     def value(self):
         return self.context.get(self.key)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict=None):
         return self

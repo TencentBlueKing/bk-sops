@@ -332,7 +332,7 @@ class PipelineTemplateWebWrapper(object):
                                 .get(act_id, act_id)
                             )
                             constant_dict = template[referencer_id]["tree"][PWE.activities][act_id].get("constants", {})
-                            for key, constant in list(constant_dict.items()):
+                            for _, constant in list(constant_dict.items()):
                                 source_info = constant["source_info"]
                                 source_id_list = list(source_info.keys())
                                 for old_source_id in source_id_list:
@@ -414,9 +414,7 @@ class PipelineTemplateWebWrapper(object):
             # override
             for tid, template_dict in list(template.items()):
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=False)
-                pipeline_template, no_use = PipelineTemplate.objects.update_or_create(
-                    template_id=tid, defaults=defaults
-                )
+                pipeline_template, _ = PipelineTemplate.objects.update_or_create(template_id=tid, defaults=defaults)
                 temp_id_old_to_new[template_dict.get("old_id", tid)] = tid
 
                 # create node in template

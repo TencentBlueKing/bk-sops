@@ -11,17 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import requests
 import traceback
 
+import requests
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
-
 from pipeline.conf import settings
 from pipeline.core.flow.io import StringItemSchema
-
 from gcloud.core.models import EnvironmentVariables
 
 __group_name__ = _("企业微信(WechatWork)")
