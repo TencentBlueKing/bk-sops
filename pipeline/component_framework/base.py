@@ -42,6 +42,7 @@ class ComponentMeta(type):
 
         # Add all attributes to the class
         attrs.setdefault("desc", "")
+        attrs.setdefault("base", "")
         for obj_name, obj in list(attrs.items()):
             setattr(new_class, obj_name, obj)
 
