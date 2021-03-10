@@ -1,4 +1,10 @@
 const en = {
+    '操作名称': 'Operation name',
+    '操作时间': 'Operating time',
+    '操作来源': 'Operation source',
+    '历史记录': 'History record',
+    '流水操作记录': 'Pipeline operation record',
+    '操作流水': 'Operation flow',
     '编辑执行方案': 'Edit execution plan',
     '确定保存并去设置执行方案吗？': 'Are you sure to save and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',
