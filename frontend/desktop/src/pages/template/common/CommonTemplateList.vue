@@ -56,40 +56,47 @@
                     class="template-table"
                     :data="commonTemplateData"
                     :pagination="pagination"
+                    :size="setting.size"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @sort-change="handleSortChange"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('流程名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <a
-                                v-else
-                                class="template-name"
-                                :title="props.row.name"
-                                @click.prevent="getJumpUrl('edit', props.row.id)">
-                                {{props.row.name}}
-                            </a>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" sortable="custom" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('更新时间')" prop="edit_time" sortable="custom" width="200"></bk-table-column>
-                    <bk-table-column width="120" :label="$t('子流程更新')">
-                        <template slot-scope="props">
-                            <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
-                                {{getSubflowContent(props.row)}}
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width"
+                        :sortable="item.sortable">
+                        <template slot-scope="{ row }">
+                            <!--流程名称-->
+                            <div v-if="item.id === 'name'" class="name-column">
+                                <a
+                                    v-if="!hasPermission(['common_flow_view'], row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTemplatePermissonCheck(['common_flow_view'], row)">
+                                    {{row.name}}
+                                </a>
+                                <a
+                                    v-else
+                                    class="template-name"
+                                    :title="row.name"
+                                    @click.prevent="getJumpUrl('edit', row.id)">
+                                    {{row.name}}
+                                </a>
                             </div>
+                            <!--子流程更新-->
+                            <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
+                                {{getSubflowContent(row)}}
+                            </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120"></bk-table-column>
                     <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
@@ -166,6 +173,14 @@
                                 </template>
                             </div>
                         </template>
+                    </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
@@ -264,6 +279,37 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 100
+        }, {
+            id: 'name',
+            label: i18n.t('流程名称'),
+            disabled: true,
+            min_width: 400
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            sortable: 'custom',
+            width: 180
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            sortable: 'custom',
+            width: 200
+        }, {
+            id: 'subprocess_has_update',
+            label: i18n.t('子流程更新'),
+            width: 200
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 160
+        }
+    ]
     export default {
         name: 'TemplateList',
         components: {
@@ -342,7 +388,13 @@
                 hasCreateTaskPerm: true,
                 selectedProject: {},
                 selectedTpl: {},
-                ordering: null // 排序参数
+                ordering: null, // 排序参数
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
+                }
             }
         },
         computed: {
@@ -369,6 +421,7 @@
             }
         },
         created () {
+            this.getFields()
             this.getTemplateList()
             this.getCollectList()
             this.getProjectBaseInfo()
@@ -468,6 +521,15 @@
                 } finally {
                     this.projectInfoLoading = false
                     this.categoryLoading = false
+                }
+            },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('commonTemplateList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
                 }
             },
             async getExpiredSubflowData () {
@@ -581,6 +643,16 @@
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('commonTemplateList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
             },
             updateUrl () {
                 const { current, limit } = this.pagination

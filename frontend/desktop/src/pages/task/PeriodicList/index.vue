@@ -36,56 +36,56 @@
                 <bk-table
                     :data="periodicList"
                     :pagination="pagination"
+                    :size="setting.size"
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
-                        <template slot-scope="props">
-                            <span :title="props.row.name">{{props.row.name}}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('流程模板')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['periodic_task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                @click="onPeriodicPermissonCheck(['periodic_task_view'], props.row, $event)">
-                                {{props.row.task_template_name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="periodic-name"
-                                :title="props.row.task_template_name"
-                                :to="templateNameUrl(props.row)">
-                                {{props.row.task_template_name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column v-if="adminView" :label="$t('项目')" width="140">
-                        <template slot-scope="props">
-                            <span :title="props.row.project.name">{{ props.row.project.name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('周期规则')" width="150">
-                        <template slot-scope="props">
-                            <div :title="splitPeriodicCron(props.row.cron)">{{ splitPeriodicCron(props.row.cron) }}</div>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('上次运行时间')" width="200">
-                        <template slot-scope="props">
-                            <div>{{ props.row.last_run_at || '--' }}</div>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="$t('运行次数')" prop="total_run_count" width="100"></bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="100">
-                        <template slot-scope="props" class="periodic-status">
-                            <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
-                            {{props.row.enabled ? $t('启动') : $t('暂停')}}
-                        </template>
-                    </bk-table-column>
+                    <template v-for="item in setting.selectedFields">
+                        <bk-table-column
+                            v-if="item.isShow ? adminView : true"
+                            :key="item.id"
+                            :label="item.label"
+                            :prop="item.id"
+                            :width="item.width"
+                            :min-width="item.min_width">
+                            <template slot-scope="{ row }">
+                                <!--流程模板-->
+                                <div v-if="item.id === 'process_template'">
+                                    <a
+                                        v-if="!hasPermission(['periodic_task_view'], row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onPeriodicPermissonCheck(['periodic_task_view'], row, $event)">
+                                        {{row.task_template_name}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="periodic-name"
+                                        :title="row.task_template_name"
+                                        :to="templateNameUrl(row)">
+                                        {{row.task_template_name}}
+                                    </router-link>
+                                </div>
+                                <!--项目-->
+                                <div v-else-if="item.id === 'project'">
+                                    <span :title="row.project.name">{{ row.project.name }}</span>
+                                </div>
+                                <!--周期规则-->
+                                <div v-else-if="item.id === 'cron'">
+                                    <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
+                                </div>
+                                <!--状态-->
+                                <div v-else-if="item.id === 'periodic_status'" class="periodic-status">
+                                    <span :class="row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
+                                    {{row.enabled ? $t('启动') : $t('暂停')}}
+                                </div>
+                                <!-- 其他 -->
+                                <template v-else>
+                                    <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
+                                </template>
+                            </template>
+                        </bk-table-column>
+                    </template>
                     <bk-table-column :label="$t('操作')" width="240">
                         <template slot-scope="props">
                             <div class="periodic-operation">
@@ -164,6 +164,14 @@
                             </div>
                         </template>
                     </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
+                    </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
@@ -235,6 +243,48 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 80
+        }, {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 200
+        }, {
+            id: 'process_template',
+            label: i18n.t('流程模板'),
+            width: 200
+        }, {
+            id: 'project',
+            label: i18n.t('项目'),
+            isShow: true,
+            width: 140
+        }, {
+            id: 'cron',
+            label: i18n.t('周期规则'),
+            width: 150
+        }, {
+            id: 'last_run_at',
+            label: i18n.t('上次运行时间'),
+            width: 200
+        }, {
+            id: 'creator',
+            label: i18n.t('创建人'),
+            width: 120
+        }, {
+            id: 'total_run_count',
+            label: i18n.t('运行次数'),
+            width: 100
+        }, {
+            id: 'periodic_status',
+            label: i18n.t('状态'),
+            width: 100
+        }
+    ]
     export default {
         name: 'PeriodicList',
         components: {
@@ -301,6 +351,12 @@
                     count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 }
             }
         },
@@ -313,6 +369,7 @@
             }
         },
         created () {
+            this.getFields()
             this.getPeriodicList()
             this.getBizBaseInfo()
             this.getCollectList()
@@ -373,6 +430,15 @@
                     errorHandler(e, this)
                 }
             },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('PeriodicList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                }
+            },
             async getCollectList () {
                 try {
                     this.collectListLoading = true
@@ -417,6 +483,16 @@
                 this.isDeleteDialogShow = true
                 this.selectedDeleteTaskId = periodic.id
                 this.selectedTemplateName = periodic.name
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('PeriodicList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
             },
             onPageChange (page) {
                 this.pagination.current = page
