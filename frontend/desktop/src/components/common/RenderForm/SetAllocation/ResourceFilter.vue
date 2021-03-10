@@ -622,10 +622,14 @@
                                 url: this.urls['cc_find_host_by_topo'],
                                 ids: ids.join(',')
                             })
-                            resp.data.info.forEach(md => {
-                                const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
-                                md.count = mdInfo ? mdInfo.host_count : 0
-                            })
+                            if (respCount.result) {
+                                resp.data.info.forEach(md => {
+                                    const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
+                                    md.count = mdInfo ? mdInfo.host_count : 0
+                                })
+                            } else {
+                                errorHandler(respCount, this)
+                            }
                         }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
