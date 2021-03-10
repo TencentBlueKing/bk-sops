@@ -1330,9 +1330,8 @@
         text-align: center;
         background-color: #dcdee5;
         &.EXPIRED {
-            background-color: #f2d0d3;
-            border-top: 1px solid #efb9be;
-            border-bottom: 1px solid #efb9be;
+            border-top: 1px solid #d2d4dd;
+            border-bottom: 1px solid #d2d4dd;
             .task-status-name {
                 color: #63656e;
             }
