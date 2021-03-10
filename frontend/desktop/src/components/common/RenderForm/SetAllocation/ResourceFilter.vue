@@ -942,7 +942,8 @@
                     const hostData = await this.getHostInCC({ // 加载所有主机列表
                         url: this.urls['cc_search_host'],
                         fields,
-                        topo
+                        topo,
+                        search_host_lock: this.formData.filterLock || undefined
                     })
                     if (this.formData.filterLock) { // 过滤已经加锁主机
                         hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
