@@ -57,7 +57,7 @@ class WechatWorkSendMessageService(Service):
         chat_id = data.inputs.wechat_work_chat_id
         content = data.inputs.message_content
         mentioned_members = data.inputs.wechat_work_mentioned_members
-        msgtype = data.inputs.msgtype
+        msgtype = data.get_one_of_inputs("msgtype", "text")
 
         chat_id_list = chat_id.split("\n")
 
