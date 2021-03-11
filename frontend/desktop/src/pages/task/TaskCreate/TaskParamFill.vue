@@ -25,7 +25,7 @@
                             class="step-form-content-size"
                             name="taskName">
                         </bk-input>
-                        <span v-show="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                        <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                     </div>
                 </div>
                 <div
@@ -141,7 +141,6 @@
                 isSubmit: false,
                 isSelectFunctionalType: false,
                 taskName: '',
-                appmakerTaskName: '',
                 pipelineData: {},
                 unreferenced: {},
                 taskNameRule: {
@@ -293,7 +292,6 @@
                     const excludeNodeIdList = []
                     if (this.viewMode === 'appmaker') {
                         await this.loadAppmakerDetail(this.app_id).then(res => {
-                            this.appmakerTaskName = res.name
                             schemeId = res.template_scheme_id
                         })
                         if (schemeId) {
@@ -340,9 +338,6 @@
                     nowTime = moment().format('YYYYMMDDHHmmss')
                 } else {
                     nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
-                }
-                if (this.viewMode) {
-                    return this.appmakerTaskName + '_' + nowTime
                 }
                 return this.templateName + '_' + nowTime
             },

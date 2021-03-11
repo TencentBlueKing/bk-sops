@@ -32,7 +32,7 @@
                             @keyup.enter.native="onAddScheme"
                             :placeholder="$t('方案名称')">
                         </bk-input>
-                        <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
+                        <span v-if="veeErrors.has('schemaName')" class="common-error-tip error-msg">{{ veeErrors.first('schemaName') }}</span>
                     </div>
                     <div
                         v-else
