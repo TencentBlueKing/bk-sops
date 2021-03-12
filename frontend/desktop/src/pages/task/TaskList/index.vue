@@ -139,7 +139,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :entrance="'taskflow'"
             :project_id="project_id"
@@ -177,7 +176,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
@@ -242,7 +240,6 @@
     export default {
         name: 'TaskList',
         components: {
-            CopyrightFooter,
             NoData,
             TaskCreateDialog,
             TaskCloneDialog,

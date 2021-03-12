@@ -168,7 +168,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :entrance="'periodicTask'"
             :project_id="project_id"
@@ -207,7 +206,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
@@ -238,7 +236,6 @@
     export default {
         name: 'PeriodicList',
         components: {
-            CopyrightFooter,
             AdvanceSearchForm,
             NoData,
             TaskCreateDialog,

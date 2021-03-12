@@ -12,7 +12,6 @@
 <template>
     <div class="audit-container">
         <div class="list-wrapper">
-            <base-title :title="$t('审计中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="auditList"
@@ -109,7 +108,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
     </div>
 </template>
 <script>
@@ -117,9 +115,7 @@
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
@@ -183,8 +179,6 @@
         name: 'auditHome',
         components: {
             AdvanceSearchForm,
-            CopyrightFooter,
-            BaseTitle,
             NoData
         },
         mixins: [permission, task],
@@ -430,13 +424,7 @@
     display: inline-block;
     width: 260px;
 }
-.audit-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-}
 .list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 0;
     }

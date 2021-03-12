@@ -12,7 +12,6 @@
 <template>
     <div class="project-container">
         <div class="list-wrapper">
-            <base-title :title="$t('项目管理')"></base-title>
             <div class="list-header">
                 <!-- <bk-button
                     v-cursor="{ active: !hasPermission(['project_create'], projectActions) }"
@@ -80,7 +79,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <bk-dialog
             width="600"
             padding="30px 20px"
@@ -162,8 +160,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
@@ -198,9 +194,7 @@
     export default {
         name: 'ProjectHome',
         components: {
-            NoData,
-            BaseTitle,
-            CopyrightFooter
+            NoData
         },
         mixins: [permission],
         data () {

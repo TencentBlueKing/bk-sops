@@ -12,7 +12,7 @@
 <template>
     <div class="page-statistics" v-bkloading="{ isLoading: hasStatisticsPerm === null, opacity: 0 }">
         <template v-if="hasViewPerm">
-            <base-title :title="$t('运营数据')" :tab-list="routers">
+            <base-title :tab-list="routers">
                 <template v-slot:expand>
                     <div class="date-picker">
                         <bk-form form-type="inline">
@@ -169,8 +169,6 @@
 </script>
 <style lang="scss" scoped>
     .page-statistics {
-        padding: 0 60px;
-        min-width: 1320px;
         height: 100%;
         background: #f4f7fa;
         .header-wrapper {

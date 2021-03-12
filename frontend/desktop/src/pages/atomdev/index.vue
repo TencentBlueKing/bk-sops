@@ -12,7 +12,6 @@
 <template>
     <div class="atomdev-page">
         <div class="page-header">
-            <page-title :title="$t('插件开发')"></page-title>
             <div class="operate-area">
                 <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ $t('下载') }}</bk-button>
                 <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ $t('预览') }}</bk-button>
@@ -115,7 +114,6 @@
 <script>
     import JSZip from 'jszip'
     import { saveAs } from 'file-saver'
-    import PageTitle from './PageTitle.vue'
     import TagPanel from './TagPanel.vue'
     import FormPanel from './formPanel/FormPanel.vue'
     import ConfigPanel from './configPanel/ConfigPanel.vue'
@@ -140,7 +138,6 @@
     export default {
         name: 'AtomDev',
         components: {
-            PageTitle,
             TagPanel,
             FormPanel,
             AtomSetting,
@@ -451,7 +448,6 @@
     @import '@/scss/mixins/scrollbar.scss';
 
     .atomdev-page {
-        min-width: 1320px;
         height: 100%;
     }
     .page-header {

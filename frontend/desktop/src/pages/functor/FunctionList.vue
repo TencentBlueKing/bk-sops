@@ -12,7 +12,6 @@
 <template>
     <div class="functor-container">
         <div class="list-wrapper">
-            <base-title :title="$t('职能化中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="functionList"
@@ -144,7 +143,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <bk-dialog
             width="600"
             ext-cls="common-dialog"
@@ -231,9 +229,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapMutations, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
@@ -281,9 +277,7 @@
     export default {
         name: 'functionHome',
         components: {
-            CopyrightFooter,
             AdvanceSearchForm,
-            BaseTitle,
             NoData
         },
         mixins: [permission, task],
@@ -765,10 +759,6 @@
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #f4f7fa;
-}
-.list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
 }
 .operation-area {
     margin: 20px 0;

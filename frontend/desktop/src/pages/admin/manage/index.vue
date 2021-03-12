@@ -14,8 +14,7 @@
         <template v-if="hasViewPerm">
             <base-title
                 class="title"
-                :tab-list="routers"
-                :title="title">
+                :tab-list="routers">
             </base-title>
             <router-view :has-edit-perm="hasEditPerm" :edit-perm-loading="editPermLoading"></router-view>
         </template>
@@ -131,8 +130,6 @@
 </script>
 <style lang="scss" scoped>
     .page-manage {
-        padding: 0 60px;
-        min-width: 1320px;
         height: 100%;
         background: #f4f7fa;
         .header-wrapper {

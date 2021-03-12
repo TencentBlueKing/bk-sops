@@ -13,7 +13,6 @@
     <div class="appmaker-page">
         <div class="page-content">
             <div class="appmaker-table-content">
-                <base-title :title="$t('轻应用')"></base-title>
                 <div class="operation-wrapper">
                     <advance-search-form
                         id="appmakerList"
@@ -92,7 +91,6 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
@@ -119,7 +117,6 @@
         name: 'AppMaker',
         components: {
             NoData,
-            BaseTitle,
             AppCard,
             AppEditDialog,
             AdvanceSearchForm
@@ -327,9 +324,6 @@
     width: 260px;
 }
 .appmaker-page {
-    .page-content {
-        padding: 0 60px 40px 60px;
-    }
     @media screen and (max-width: 1560px) {
         .card-wrapper {
             width: 32.5%;

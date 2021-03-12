@@ -13,7 +13,6 @@
     <div class="template-container">
         <div class="list-wrapper">
             <list-page-tips-title
-                :title="$t('项目流程')"
                 :num="expiredSubflowTplList.length"
                 @viewClick="handleSubflowFilter">
             </list-page-tips-title>
@@ -198,7 +197,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
             :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
@@ -235,7 +233,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -294,7 +291,6 @@
     export default {
         name: 'TemplateList',
         components: {
-            CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
             ListPageTipsTitle,
@@ -803,10 +799,6 @@
 .dialog-content {
     padding: 30px;
     word-break: break-all;
-}
-.list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
 }
 .operation-area {
     margin: 20px 0;

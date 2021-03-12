@@ -38,10 +38,3 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-@import '@/scss/config.scss';
-.home-page {
-    padding: 0px 60px 0 60px;
-    min-width: 1320px;
-}
-</style>

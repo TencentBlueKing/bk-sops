@@ -12,11 +12,6 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <list-page-tips-title
-                :title="$t('公共流程')"
-                :num="expiredSubflowTplList.length"
-                @viewClick="handleSubflowFilter">
-            </list-page-tips-title>
             <div class="operation-area clearfix">
                 <advance-search-form
                     ref="advanceSearch"
@@ -171,7 +166,6 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
             common="1"
             :has-create-common-tpl-perm="hasCreateCommonTplPerm"
@@ -216,7 +210,6 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from '../TemplateList/ImportTemplateDialog.vue'
     import ExportTemplateDialog from '../TemplateList/ExportTemplateDialog.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
@@ -225,7 +218,6 @@
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
-    import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
     const SEARCH_FORM = [
         {
@@ -267,11 +259,9 @@
     export default {
         name: 'TemplateList',
         components: {
-            CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
             SelectProjectModal,
-            ListPageTipsTitle,
             AdvanceSearchForm,
             NoData
         },
@@ -373,7 +363,6 @@
             this.getCollectList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
-            // this.getExpiredSubflowData() 公共流程暂时不显示子流程更新提示
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -390,8 +379,7 @@
                 'loadTemplateList',
                 'deleteTemplate',
                 'templateImport',
-                'templateExport',
-                'getExpiredSubProcess'
+                'templateExport'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -468,18 +456,6 @@
                 } finally {
                     this.projectInfoLoading = false
                     this.categoryLoading = false
-                }
-            },
-            async getExpiredSubflowData () {
-                try {
-                    const resp = await this.getExpiredSubProcess()
-                    if (resp.result) {
-                        this.expiredSubflowTplList = resp.data
-                    } else {
-                        errorHandler(resp, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
                 }
             },
             async getCollectList () {
@@ -681,13 +657,6 @@
                 }
                 return item.subprocess_has_update ? i18n.t('是') : i18n.t('否')
             },
-            // 标题提示信息，查看子流程更新
-            handleSubflowFilter () {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
-                searchComp.submit()
-            },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {
                 if (!this.hasPermission(['common_flow_view'], template.auth_actions)) {
@@ -805,10 +774,6 @@ a {
 .dialog-content {
     padding: 30px;
     word-break: break-all;
-}
-.list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
 }
 .operation-area {
     margin: 20px 0;

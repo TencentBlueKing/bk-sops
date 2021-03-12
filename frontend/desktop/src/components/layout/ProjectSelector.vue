@@ -175,10 +175,6 @@
             }
         }
     }
-    .project-select {
-        border-color: #445060;
-        color: #c4c6cc;
-    }
     .local-loading {
         position: absolute;
         left: 0;
