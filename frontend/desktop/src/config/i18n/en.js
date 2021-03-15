@@ -5,6 +5,7 @@ const en = {
     '历史记录': 'History record',
     '流水操作记录': 'Pipeline operation record',
     '操作流水': 'Operation flow',
+    '已过期': 'Expired',
     '编辑执行方案': 'Edit execution plan',
     '确定保存流程并去设置执行方案？': 'Are you sure to save template and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',

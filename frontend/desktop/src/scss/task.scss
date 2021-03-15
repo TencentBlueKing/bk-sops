@@ -6,6 +6,9 @@
 }
 @mixin ui-task-status {
     text-align: left;
+    .icon-clock-shape {
+        @include status-icon-style(#979BA5);
+    }
     .common-icon-dark-circle-shape {
         @include status-icon-style(#979BA5);
     }
