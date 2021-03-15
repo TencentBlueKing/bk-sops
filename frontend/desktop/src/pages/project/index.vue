@@ -114,7 +114,7 @@
                             data-vv-validate-on=" "
                             v-validate="nameRule">
                         </bk-input>
-                        <span v-show="errors.has('projectName')" class="common-error-tip error-msg">{{ errors.first('projectName') }}</span>
+                        <span v-show="veeErrors.has('projectName')" class="common-error-tip error-msg">{{ veeErrors.first('projectName') }}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -145,7 +145,7 @@
                             data-vv-validate-on=" "
                             v-validate="descRule">
                         </textarea>
-                        <span v-show="errors.has('projectDesc')" class="common-error-tip error-msg">{{ errors.first('projectDesc') }}</span>
+                        <span v-show="veeErrors.has('projectDesc')" class="common-error-tip error-msg">{{ veeErrors.first('projectDesc') }}</span>
                     </div>
                 </div>
             </div>

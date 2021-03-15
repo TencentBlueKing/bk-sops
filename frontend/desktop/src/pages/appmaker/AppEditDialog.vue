@@ -53,7 +53,7 @@
                         class="ui-form-item"
                         :clearable="true">
                     </bk-input>
-                    <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
+                    <span v-show="veeErrors.has('appName')" class="common-error-tip error-msg">{{ veeErrors.first('appName') }}</span>
                 </div>
             </div>
             <div class="common-form-item">
@@ -165,7 +165,7 @@
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
                     </bk-input>
-                    <span v-show="errors.has('appDesc')" class="common-error-tip error-msg">{{ errors.first('appDesc') }}</span>
+                    <span v-show="veeErrors.has('appDesc')" class="common-error-tip error-msg">{{ veeErrors.first('appDesc') }}</span>
                 </div>
             </div>
         </div>
@@ -403,7 +403,7 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
-                this.errors.clear()
+                this.veeErrors.clear()
                 this.appTemplateEmpty = false
             },
             resetAppData () {
