@@ -32,12 +32,12 @@ let currentUser = {
  *
  * @return {Object} 结果
  */
-const transformUserData = data => {
+const transformUserData = (data) => {
     const user = {}
     Object.keys(data).forEach((key, index) => {
         const value = data[key]
-        key = _.camelCase(key)
-        user[key] = value
+        const camelCaseKey = _.camelCase(key)
+        user[camelCaseKey] = value
     })
     return user
 }
@@ -85,7 +85,7 @@ export default {
             if (!store.state.user || !Object.keys(store.state.user).length) {
                 const req = store.dispatch('userInfo')
                 promise = new Promise((resolve, reject) => {
-                    req.then(resp => {
+                    req.then((resp) => {
                         const user = transformUserData(resp)
                         if (user.code && user.code === 'Unauthorized') {
                             user.isAuthenticated = false
@@ -96,7 +96,7 @@ export default {
                         // 存储当前用户信息(全局)
                         currentUser = store.getters.user
                         resolve(user)
-                    }, err => {
+                    }, (err) => {
                         if (err.response.status === this.HTTP_STATUS_UNAUTHORIZED || err.crossDomain) {
                             resolve({ ...ANONYMOUS_USER })
                         } else {

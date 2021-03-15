@@ -19,9 +19,8 @@ const tools = {
             } else {
                 return parseFloat(val / 86400).toFixed(1) + window.gettext(' 天')
             }
-        } else {
-            return '--'
         }
+        return '--'
     }
 }
 

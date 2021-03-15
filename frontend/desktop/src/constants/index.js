@@ -86,7 +86,7 @@ const DARK_COLOR_LIST = [
     '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
 ]
 
-const NAME_REG = /^[^'"‘’“”\$<>]+$/
+const NAME_REG = /^[^'"‘’“”$<>]+$/
 const PACKAGE_NAME_REG = /^[^\d][\w]*?$/
 // celery的crontab时间表达式正则表达式（分钟 小时 星期 日 月）（以空格分割）
 // 例子请见图片assets/images/task-zh.png

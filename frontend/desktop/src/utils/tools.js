@@ -26,14 +26,13 @@ const tools = {
     debounce (fn, delay) {
         let timer
 
-        return function () {
+        return function (...args) {
             const context = this
-            const args = arguments
 
             clearTimeout(timer)
 
-            timer = setTimeout(function () {
-                fn.apply(context, args)
+            timer = setTimeout(() => {
+                fn.apply(context, ...args)
             }, delay)
         }
     },
@@ -42,14 +41,12 @@ const tools = {
      * @param {Function} fn 回调函数
      * @param {*} threshhold 时间间隔
      */
-    throttle (fn, threshhold) {
-        let last, timer
+    throttle (fn, threshhold = 250) {
+        let last
+        let timer
 
-        threshhold || (threshhold = 250)
-
-        return function () {
+        return function (...args) {
             const context = this
-            const args = arguments
             const now = +new Date()
 
             if (last && now < last + threshhold) {
@@ -57,11 +54,11 @@ const tools = {
 
                 timer = setTimeout(function () {
                     last = now
-                    fn.apply(context, args)
+                    fn.apply(context, ...args)
                 }, threshhold)
             } else {
                 last = now
-                fn.apply(context, args)
+                fn.apply(context, ...args)
             }
         }
     },

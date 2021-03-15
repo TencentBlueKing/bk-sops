@@ -18,11 +18,15 @@ import i18n from '@/config/i18n/index.js'
  * @param {String} site_url
  * @param {Object} project
  */
-export function setConfigContext (site_url, project) {
+export const setConfigContext = (site_url, project) => {
+    let biz_cc_id
+    if (project && project.from_cmdb) {
+        biz_cc_id = project.bk_biz_id
+    }
     $.context = {
         project: project || undefined,
-        biz_cc_id: project ? (project.from_cmdb ? project.bk_biz_id : undefined) : undefined,
-        site_url: site_url,
+        biz_cc_id,
+        site_url,
         component: site_url + 'api/v3/component/',
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
@@ -59,7 +63,7 @@ export function setConfigContext (site_url, project) {
             return store.state.template.constants
         },
         getOutput (key) { // 输出表单渲染-根据提供的 key 从节点的输出中获取相应的值，若不存在则返回 null
-            const outputs = $.context.output_form.outputs
+            const { outputs } = $.context.output_form
             if (outputs && Array.isArray(outputs)) {
                 const v = $.context.output_form.outputs.find(item => item.key === key)
                 if (v) {
@@ -76,7 +80,7 @@ export function setConfigContext (site_url, project) {
             return null
         },
         getNodeStatus () { // 输出表单渲染-获取当前节点的执行状态
-            const state = $.context.output_form.state
+            const { state } = $.context.output_form
             if (state) {
                 return state
             }
@@ -89,11 +93,11 @@ export function setConfigContext (site_url, project) {
  * ajax全局设置
  */
 // 在这里对ajax请求做一些统一公用处理
-export function setJqueryAjaxConfig () {
-    $(document).ajaxError(function (event, xhr, setting) {
+export const setJqueryAjaxConfig = () => {
+    $(document).ajaxError((event, xhr, setting) => {
         const code = xhr.status
         switch (code) {
-            case 400:
+            case 400: {
                 const message = xhr.responseText
                 const info = {
                     theme: 'error',
@@ -102,17 +106,20 @@ export function setJqueryAjaxConfig () {
                 }
                 bus.$emit('showMessage', info)
                 break
-            case 401:
+            }
+            case 401: {
                 const { has_plain, login_url, width, height } = xhr.responseJSON
                 const method = setting.type
                 bus.$emit('showLoginModal', { has_plain, login_url, width, height, method })
                 break
-            case 402:
+            }
+            case 402: {
                 // 功能开关
                 const src = xhr.responseText
                 const ajaxContent = '<iframe name="403_iframe" frameborder="0" src="' + src + '" style="width:570px;height:400px;"></iframe>'
                 bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
                 break
+            }
             case 403:
                 bus.$emit('showErrorModal', '403')
                 break

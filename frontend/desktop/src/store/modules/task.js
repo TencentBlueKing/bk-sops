@@ -91,7 +91,7 @@ const task = {
                 template_source: 'project'
             }
             if (common) {
-                dataJson['template_source'] = 'common'
+                dataJson.template_source = 'common'
             }
 
             return axios.post(`taskflow/api/preview_task_tree/${project_id}/`, dataJson).then(response => response.data)
@@ -125,11 +125,11 @@ const task = {
             const { project_id } = store.state.project
             const { templateId, name, description, execData, flowType, common } = data
             const requestData = {
+                name,
+                description,
                 'project': `api/v3/project/${project_id}/`,
                 'template_id': templateId,
                 'creator': username,
-                'name': name,
-                'description': description,
                 'pipeline_tree': execData,
                 'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
                 'create_info': app_id,
@@ -138,7 +138,7 @@ const task = {
                 test: 1
             }
             if (common) {
-                requestData['template_source'] = 'common'
+                requestData.template_source = 'common'
             }
 
             return axios.post('api/v3/taskflow/', requestData).then(response => response.data)
@@ -215,7 +215,7 @@ const task = {
         subInstancePause ({ commit }, data) {
             const { instance_id, node_id } = data
             const { project_id } = store.state.project
-            const qsData = { instance_id: instance_id, node_id: node_id }
+            const qsData = { instance_id, node_id }
             return axios.post(`taskflow/api/nodes/action/pause_subproc/${project_id}/`, qsData).then(response => response.data)
         },
         /**
@@ -225,7 +225,7 @@ const task = {
         subInstanceResume ({ commit }, data) {
             const { instance_id, node_id } = data
             const { project_id } = store.state.project
-            const qsData = { instance_id: instance_id, node_id: node_id }
+            const qsData = { instance_id, node_id }
             return axios.post(`taskflow/api/nodes/action/resume_subproc/${project_id}/`, qsData).then(response => response.data)
         },
         /**

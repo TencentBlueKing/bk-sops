@@ -27,7 +27,7 @@ const ATOM_TYPE_DICT = {
     convergegateway: 'ConvergeGateway'
 }
 // 默认流程模板，默认节点
-function generateInitLocation () {
+const generateInitLocation = () => {
     return [
         {
             id: 'node' + uuid(),
@@ -52,7 +52,7 @@ function generateInitLocation () {
     ]
 }
 // 默认流程模板，activities 字段
-function generateInitActivities (location, line) {
+const generateInitActivities = (location, line) => {
     return {
         [location[1].id]: {
             component: {
@@ -75,7 +75,7 @@ function generateInitActivities (location, line) {
     }
 }
 // 默认流程模板，开始节点
-function generateStartNode (location, line) {
+const generateStartNode = (location, line) => {
     return {
         id: location.id,
         incoming: '',
@@ -85,7 +85,7 @@ function generateStartNode (location, line) {
     }
 }
 // 默认流程模板，结束节点
-function generateEndNode (location, line) {
+const generateEndNode = (location, line) => {
     return {
         id: location.id,
         incoming: [line.id],
@@ -95,7 +95,7 @@ function generateEndNode (location, line) {
     }
 }
 // 默认流程模板，初始化 line 字段
-function generateInitLine (location) {
+const generateInitLine = (location) => {
     const line = []
     const locationLength = location.length
     if (locationLength < 2) {
@@ -121,9 +121,9 @@ function generateInitLine (location) {
     return line
 }
 // 默认流程模板，初始化 flows 字段
-function generateInitFlow (line) {
+const generateInitFlow = (line) => {
     const flow = {}
-    line.forEach(item => {
+    line.forEach((item) => {
         flow[item.id] = {
             id: item.id,
             is_default: false,
@@ -140,7 +140,7 @@ function generateInitFlow (line) {
  * @param {String} id 待新增或删除数据
  * @param {String} type 操作类型，新增(add)或删除(delete)
  */
-function updateIncoming (incoming, id, type) {
+const updateIncoming = (incoming, id, type) => {
     let data = Array.isArray(incoming) ? incoming.slice(0) : incoming
     if (type === 'add') {
         if (Array.isArray(data)) {
@@ -215,7 +215,7 @@ const template = {
             state.template_labels = template_labels
         },
         setSubprocessUpdated (state, subflow) {
-            state.subprocess_info.details.some(item => {
+            state.subprocess_info.details.some((item) => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
                     if (subflow.version) {
@@ -223,6 +223,7 @@ const template = {
                     }
                     return true
                 }
+                return false
             })
         },
         setPipelineTree (state, data) {
@@ -230,7 +231,7 @@ const template = {
                 'activities', 'constants', 'end_event', 'flows', 'gateways',
                 'line', 'location', 'outputs', 'start_event'
             ]
-            pipelineTreeOrder.forEach(key => {
+            pipelineTreeOrder.forEach((key) => {
                 let val = data[key]
 
                 if (key === 'constants') {
@@ -245,18 +246,19 @@ const template = {
                     // 3.1版本之前节点和连线的 id 可能存在以数字开头的情况，导致使用 docuement.getElementById 等查找DOM节点失败
                     val = nodeFilter.convertInvalidIdData(key, val)
                     if (key === 'activities') { // 兼容脏数据 can_retry、isSkipped 字段不存在问题
-                        for (const nodeId in val) {
+                        Object.keys(val).forEach((nodeId) => {
                             const item = val[nodeId]
-                            if (!item.hasOwnProperty('can_retry') && !item.hasOwnProperty('retryable')) {
+                            const has = Object.prototype.hasOwnProperty
+                            if (!has.call(item, 'can_retry') && !has.call(item, 'retryable')) {
                                 item.can_retry = true
                             }
-                            if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
+                            if (!has.call(item, 'isSkipped') && !has.call(item, 'skippable')) {
                                 item.isSkipped = true
                             }
-                        }
+                        })
                     }
                     if (key === 'location') {
-                        val = val.map(item => {
+                        val = val.map((item) => {
                             if (item.type === 'tasknode' || item.type === 'subflow') {
                                 const node = state.activities[item.id]
                                 const loc = Object.assign({}, item, {
@@ -369,9 +371,9 @@ const template = {
             const { source_info } = constant
 
             // 遍历节点，去掉表单的勾选状态，并将变量值复制给对应表单
-            for (const id in source_info) {
+            Object.keys(source_info).forEach((id) => {
                 if (state.activities[id]) {
-                    source_info[id].forEach(item => {
+                    source_info[id].forEach((item) => {
                         let data
                         if (state.activities[id].type === 'ServiceActivity') {
                             data = state.activities[id].component.data[item]
@@ -385,18 +387,18 @@ const template = {
                         }
                     })
                 }
-            }
+            })
             // 删除输出变量的勾选状态
             if (state.outputs.includes(key)) {
                 state.outputs.splice(state.outputs.indexOf(key), 1)
             }
 
-            for (const key in state.constants) {
+            Object.keys(state.constants).forEach((key) => {
                 const varItem = state.constants[key]
                 if (varItem.index > constant.index) {
                     varItem.index = varItem.index - 1
                 }
-            }
+            })
 
             Vue.delete(state.constants, key)
         },
@@ -422,6 +424,7 @@ const template = {
                             atomIndex = index
                             return true
                         }
+                        return false
                     })
                     sourceInfo[id].splice(atomIndex, 1)
                 }
@@ -433,8 +436,8 @@ const template = {
         // 配置分支网关条件
         setBranchCondition (state, condition) {
             const { id, nodeId, name, value } = condition
-            state.gateways[nodeId]['conditions'][id].name = name
-            state.gateways[nodeId]['conditions'][id].evaluate = value
+            state.gateways[nodeId].conditions[id].name = name
+            state.gateways[nodeId].conditions[id].evaluate = value
         },
         // 节点增加、删除、编辑、复制,操作，数据更新
         setLocation (state, payload) {
@@ -445,6 +448,7 @@ const template = {
                     locationIndex = index
                     return true
                 }
+                return false
             })
             if (['add', 'copy'].indexOf(type) > -1 && !isLocationExist) {
                 const loc = tools.deepClone(location)
@@ -461,12 +465,13 @@ const template = {
         // 节点拖动，位置更新
         setLocationXY (state, location) {
             const { id, x, y } = location
-            state.location.some(item => {
+            state.location.some((item) => {
                 if (item.id === id) {
                     item.x = x
                     item.y = y
                     return true
                 }
+                return false
             })
         },
         // 增加、删除节点连线操作，更新模板各相关字段数据
@@ -479,6 +484,7 @@ const template = {
                 ) {
                     return true
                 }
+                return false
             })
 
             if (type === 'add' && !isLineExist) { // 添加连线(手动拖拽连接的情况)
@@ -515,8 +521,8 @@ const template = {
                     if (Array.isArray(gatewayNode.outgoing)) {
                         const len = gatewayNode.outgoing.length
                         Vue.set(gatewayNode.outgoing, len, id)
-                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
-                            const conditions = gatewayNode.conditions
+                        if (gatewayNode.type === ATOM_TYPE_DICT.branchgateway) {
+                            const { conditions } = gatewayNode
                             let evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             let name = evaluate
                             // copy 连线，需复制原来的分支条件信息
@@ -529,8 +535,8 @@ const template = {
                                 name = sourceCondition.name
                             }
                             const conditionItem = {
-                                evaluate: evaluate,
-                                name: name,
+                                evaluate,
+                                name,
                                 tag: `branch_${sourceNode}_${targetNode}`
                             }
                             Vue.set(conditions, id, conditionItem)
@@ -546,12 +552,12 @@ const template = {
                 state.line.push(newLine)
             } else if (type === 'delete') { // sync activities、flows、gateways、start_event、end_event
                 let deletedLine
-                for (const item in state.flows) {
+                Object.keys(state.flows).forEach((item) => {
                     const flow = state.flows[item]
                     if (flow.source === line.source.id && flow.target === line.target.id) {
                         deletedLine = Object.assign({}, flow)
                     }
-                }
+                })
                 const sourceNode = state.flows[deletedLine.id].source
                 const targetNode = state.flows[deletedLine.id].target
 
@@ -575,11 +581,9 @@ const template = {
                 if (state.gateways[sourceNode]) {
                     const gatewayNode = state.gateways[sourceNode]
                     if (Array.isArray(gatewayNode.outgoing)) {
-                        gatewayNode.outgoing = gatewayNode.outgoing.filter(item => {
-                            return item !== deletedLine.id
-                        })
-                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
-                            const conditions = gatewayNode.conditions
+                        gatewayNode.outgoing = gatewayNode.outgoing.filter(item => item !== deletedLine.id)
+                        if (gatewayNode.type === ATOM_TYPE_DICT.branchgateway) {
+                            const { conditions } = gatewayNode
                             conditions[deletedLine.id] && Vue.delete(conditions, deletedLine.id)
                         }
                     } else {
@@ -638,7 +642,7 @@ const template = {
                 }
             } else if (type === 'edit') {
                 Vue.set(state.activities, location.id, location)
-                state.location.some(item => {
+                state.location.forEach((item) => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
                         Vue.set(item, 'stage_name', location.stage_name)
@@ -646,7 +650,7 @@ const template = {
                 })
             } else if (type === 'delete') {
                 Vue.delete(state.activities, location.id)
-                for (const cKey in state.constants) {
+                Object.keys(state.constants).forEach((cKey) => {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
                     if (sourceInfo && sourceInfo[location.id]) {
@@ -656,9 +660,9 @@ const template = {
                             this.commit('template/deleteVariable', cKey)
                         }
                     }
-                }
+                })
             } else if (type === 'copy') { // 复制节点
-                const oldSouceId = location.oldSouceId
+                const { oldSouceId } = location
                 const newActivitie = tools.deepClone(state.activities[oldSouceId])
                 if (!state.activities[location.id]) {
                     if (location.type === 'tasknode' || location.type === 'subflow') {
@@ -670,12 +674,12 @@ const template = {
                     }
                 }
                 // 勾选变量处理
-                for (const key in state.constants) {
+                Object.keys(state.constants).forEach((key) => {
                     const item = state.constants[key]
-                    const source_info = item.source_info
+                    const { source_info } = item
                     const info = source_info[oldSouceId]
                     if (info) {
-                        const source_type = state.constants[key].source_type
+                        const { source_type } = state.constants[key]
                         if (source_type === 'component_inputs') { // 复用输入变量
                             Vue.set(source_info, location.id, info)
                         } else if (source_type === 'component_outputs') { // 新建输出变量
@@ -690,7 +694,7 @@ const template = {
                             Vue.set(state.constants, varId, Object.assign(varValue, changeObj))
                         }
                     }
-                }
+                })
             }
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
@@ -760,9 +764,7 @@ const template = {
                 }
                 state.outputs.push(key)
             } else if (changeType === 'delete') {
-                state.outputs = state.outputs.filter(item => {
-                    return item !== key
-                })
+                state.outputs = state.outputs.filter(item => item !== key)
             } else {
                 const index = state.outputs.findIndex(item => item === key)
                 state.outputs.splice(index, 1, newKey)
@@ -771,9 +773,9 @@ const template = {
         // 修改state中的模板数据
         replaceTemplate (state, template) {
             if (template !== undefined) {
-                for (const prop in template) {
+                Object.keys(template).forEach((prop) => {
                     state[prop] = template[prop]
-                }
+                })
             }
         },
         // 修改lines和locations
@@ -815,18 +817,16 @@ const template = {
                 time_out, category, description, executor_proxy, template_labels
             } = state
             // 剔除 location 的冗余字段
-            const pureLocation = location.map(item => {
-                return {
-                    id: item.id,
-                    type: item.type,
-                    name: item.name,
-                    stage_name: item.stage_name,
-                    x: item.x,
-                    y: item.y,
-                    group: item.group,
-                    icon: item.icon
-                }
-            })
+            const pureLocation = location.map(item => ({
+                id: item.id,
+                type: item.type,
+                name: item.name,
+                stage_name: item.stage_name,
+                x: item.x,
+                y: item.y,
+                group: item.group,
+                icon: item.icon
+            }))
             // 完整的画布数据
             const fullCanvasData = {
                 activities,
@@ -850,7 +850,7 @@ const template = {
                 })
             }
 
-            const name = state.name
+            const { name } = state
             const pipelineTree = JSON.stringify(fullCanvasData)
             const notifyReceivers = JSON.stringify(notify_receivers)
             const notifyType = JSON.stringify(notify_type)
@@ -882,9 +882,7 @@ const template = {
                 notify_type: notifyType
             }, {
                 headers
-            }).then(response => {
-                return response.data
-            })
+            }).then(response => response.data)
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
@@ -918,17 +916,15 @@ const template = {
                 line, location, outputs, start_event
             } = state
             // 剔除 location 的冗余字段
-            const pureLocation = location.map(item => {
-                return {
-                    id: item.id,
-                    type: item.type,
-                    name: item.name,
-                    stage_name: item.stage_name,
-                    status: item.status,
-                    x: item.x,
-                    y: item.y
-                }
-            })
+            const pureLocation = location.map(item => ({
+                id: item.id,
+                type: item.type,
+                name: item.name,
+                stage_name: item.stage_name,
+                status: item.status,
+                x: item.x,
+                y: item.y
+            }))
             return {
                 activities,
                 constants,

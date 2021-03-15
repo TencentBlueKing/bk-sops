@@ -20,7 +20,7 @@ export default function importTag () {
         tagComponent[name] = comp
         tagAttrs[name] = attrs
     }
-    innerComponent.keys().forEach(fileName => {
+    innerComponent.keys().forEach((fileName) => {
         register(fileName, innerComponent)
     })
     // userComponent.keys().forEach(fileName => {

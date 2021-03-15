@@ -25,28 +25,25 @@ axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 // jquery ajax error handler
 setJqueryAjaxConfig()
 
-axios.interceptors.request.use(function (config) {
-    return config
-}, function (error) {
-    return Promise.reject(error)
-})
+axios.interceptors.request.use(
+    config => config,
+    error => Promise.reject(error)
+)
 
 axios.interceptors.response.use(
-    response => {
-        return response
-    },
-    error => {
+    response => response,
+    (error) => {
         // 取消接口请求
         if (error.message === 'cancelled') {
             console.warn('cancelled')
             return Promise.reject(error)
         }
 
-        const response = error.response
+        const { response } = error
         console.log(response)
 
         switch (response.status) {
-            case 400:
+            case 400: {
                 const info = {
                     message: response.data.error || response.data.msg.error,
                     lines: 2,
@@ -54,17 +51,19 @@ axios.interceptors.response.use(
                 }
                 bus.$emit('showMessage', info)
                 break
-            case 401:
-                const data = response.data
+            }
+            case 401: {
+                const { data } = response
                 if (data.has_plain) {
                     const topWindow = isCrossOriginIFrame() ? window : window.top
                     topWindow.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
                 }
                 break
+            }
             case 403:
             case 405:
             case 406:
-            case 499:
+            case 499: {
                 const permissions = response.data.permission
                 let isViewApply = false
                 let viewType = 'other'
@@ -73,7 +72,8 @@ axios.interceptors.response.use(
                     isViewApply = true
                 } else {
                     isViewApply = permissions.actions.some(item => {
-                        return ['flow_view', 'common_flow_view', 'mini_app_view', 'task_view'].includes(item.id)
+                        const result = ['flow_view', 'common_flow_view', 'mini_app_view', 'task_view'].includes(item.id)
+                        return result
                     })
                 }
                 if (isViewApply) {
@@ -82,6 +82,7 @@ axios.interceptors.response.use(
                     bus.$emit('showPermissionModal', permissions)
                 }
                 break
+            }
             case 500:
                 bus.$emit('showErrorModal', response.status, response.data.responseText)
                 break
@@ -92,7 +93,7 @@ axios.interceptors.response.use(
             console.error(msg)
             response.data = {
                 code: response.status,
-                msg: msg
+                msg
             }
         } else {
             const msg = response.data
@@ -104,9 +105,9 @@ axios.interceptors.response.use(
         if (response.data.message) {
             if (checkDataType(response.data.message) === 'Object') {
                 const msg = []
-                for (const key in response.data.message) {
+                Object.keys(response.data.message).forEach((key) => {
                     msg.push(response.data.message[key].join(';'))
-                }
+                })
                 response.data.msg = msg.join(';')
             } else if (checkDataType(response.data.message) === 'Array') {
                 response.data.msg = response.data.message.join(';')

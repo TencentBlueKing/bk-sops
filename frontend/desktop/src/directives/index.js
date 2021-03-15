@@ -14,7 +14,7 @@ import './cursor.js'
 
 Vue.directive('clickout', {
     bind (el, binding) {
-        function handler (e) {
+        const handler = (e) => {
             if (el.contains(e.target)) {
                 return
             }

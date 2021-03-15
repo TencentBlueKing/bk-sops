@@ -41,7 +41,7 @@ const task = {
             try {
                 const detailInfo = await this.getInstanceStatus(data)
                 if (detailInfo.result) {
-                    const state = detailInfo.data.state
+                    const { state } = detailInfo.data
                     const status = {}
                     switch (state) {
                         case 'RUNNING':

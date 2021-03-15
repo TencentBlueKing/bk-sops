@@ -46,9 +46,9 @@ export default {
                     project__id: rootState.bizId,
                     template_id: state.id
                 }
-            }).then(response => {
+            }).then((response) => {
                 const data = response.objects || []
-                data.map(o => {
+                data.map((o) => {
                     o.text = o.name
                     return o
                 })
@@ -59,9 +59,7 @@ export default {
             return http.get(`api/v3/weixin_scheme/${id}/`).then(response => response)
         },
         getPreviewTaskTree ({ rootState }, data) {
-            return http.post(`taskflow/api/preview_task_tree/${rootState.bizId}/`, data).then(response => {
-                return response.data.pipeline_tree
-            })
+            return http.post(`taskflow/api/preview_task_tree/${rootState.bizId}/`, data).then(response => response.data.pipeline_tree)
         },
         createTask ({ rootState, state }, data) {
             const requestData = {

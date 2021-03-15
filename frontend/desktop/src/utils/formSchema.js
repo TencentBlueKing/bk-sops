@@ -52,7 +52,7 @@ const formSchema = {
         const newAttrs = {}
 
         if (!currTagFilterList) return { type, attrs }
-        Object.keys(attrs).forEach(key => {
+        Object.keys(attrs).forEach((key) => {
             if (currTagFilterList.indexOf(key) === -1) {
                 newAttrs[key] = attrs[key]
             }

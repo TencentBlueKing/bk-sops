@@ -17,9 +17,7 @@ export default {
                 params: {
                     instance_id: params.id
                 }
-            }).then(response => {
-                return response.result ? response.data : {}
-            })
+            }).then(response => response.result ? response.data : {})
         },
 
         getTaskList ({ commit, rootState, dispatch }, params) {

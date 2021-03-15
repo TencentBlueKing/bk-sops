@@ -29,22 +29,23 @@ const asyncGetAtomConfig = async function (atomUrl, isEmbedded, atomType, isOutp
         return []
     }
 
+    let list
     if (isEmbedded) {
         /* eslint-disable-next-line */
         eval(atomUrl)
         const configData = transAtom($.atoms, type)
         $.atoms[type] = configData
-        return $.atoms[type]
+        list = $.atoms[type]
     } else {
-        const list = await new Promise((resolve, reject) => {
-            $.getScript(atomUrl, function (response) {
+        list = await new Promise((resolve, reject) => {
+            $.getScript(atomUrl, (response) => {
                 const configData = transAtom($.atoms, type)
                 $.atoms[type] = configData
                 resolve($.atoms[type])
             })
         })
-        return list
     }
+    return list
 }
 
 const atomForm = {
@@ -123,7 +124,7 @@ const atomForm = {
                 url = 'api/v3/common_template/'
             } else {
                 url = 'api/v3/template/'
-                params['project__id'] = project_id
+                params.project__id = project_id
             }
             return axios.get(url, { params }).then(response => response.data)
         },
@@ -144,7 +145,7 @@ const atomForm = {
             if (atomClassify === 'component') {
                 params.version = atomVersion
             }
-            return axios.get(url, { params }).then(async response => {
+            return axios.get(url, { params }).then(async (response) => {
                 const {
                     output: outputData,
                     form: inputForm,

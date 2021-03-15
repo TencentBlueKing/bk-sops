@@ -451,8 +451,8 @@ const timeZones = [
 
 export default timeZones
 
-export function getTimeZoneList () {
-    return timeZones.map(item => {
+export const getTimeZoneList = () => {
+    return timeZones.map((item) => {
         return {
             id: item,
             name: item

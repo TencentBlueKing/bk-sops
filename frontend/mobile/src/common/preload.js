@@ -17,7 +17,7 @@ const config = {
  *
  * @return {Promise} promise 对象
  */
-function getUser () {
+const getUser = () => {
     return store.dispatch('userInfo', config)
 }
 

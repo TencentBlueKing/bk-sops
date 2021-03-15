@@ -17,7 +17,7 @@ const DEFAULT_OPTIONS = {
     cls: 'cursor-element'
 }
 
-function init (el, binding) {
+const init = (el, binding) => {
     el.mouseEnterHandler = function () {
         const element = document.createElement('div')
         element.id = 'directive-ele'
@@ -47,7 +47,7 @@ function init (el, binding) {
     }
 }
 
-function destroy (el) {
+const destroy = (el) => {
     el.element && el.element.remove()
     el.element = null
     el.removeEventListener('mouseenter', el.mouseEnterHandler)

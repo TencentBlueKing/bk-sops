@@ -16,8 +16,9 @@ import i18n from '@/config/i18n/index.js'
  * @param {Object} error 错误对象
  * @param {Object} instance
  */
-export function errorHandler (error, instance) {
-    const data = error.data
+export const errorHandler = (error, instance) => {
+    const { data } = error
+    const that = instance
     console.error(error)
     console.log(error)
     if (data && data.code) {
@@ -25,38 +26,38 @@ export function errorHandler (error, instance) {
             return
         }
         if (!data.code || data.code === 404) {
-            instance.exception = {
+            that.exception = {
                 code: '404',
                 msg: i18n.t('当前访问的页面不存在')
             }
         } else if (data.code === 403) {
-            instance.exception = {
+            that.exception = {
                 code: '403',
                 msg: i18n.t('sorry，您没有访问权限!')
             }
         } else if (data.code === 405) {
-            instance.exception = {
+            that.exception = {
                 code: '405',
                 msg: i18n.t('Sorry，您的权限不足!')
             }
         } else if (data.code === 406) {
-            instance.exception = {
+            that.exception = {
                 code: '405',
                 msg: i18n.t('Sorry，您的权限不足!')
             }
         } else if (data.code === 500) {
-            instance.exception = {
+            that.exception = {
                 code: '500',
                 msg: i18n.t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
             }
         } else if (data.code === 502) {
-            instance.exception = {
+            that.exception = {
                 code: '502',
                 msg: i18n.t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
             }
         }
     } else {
-        instance.bkMessageInstance = instance.$bkMessage({
+        that.bkMessageInstance = that.$bkMessage({
             theme: 'error',
             isSingleLine: false,
             message: error.message || error.data.msg,

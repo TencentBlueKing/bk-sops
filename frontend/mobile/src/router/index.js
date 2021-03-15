@@ -48,7 +48,7 @@ const routes = [
         title: '流程模板',
         isActionSheetShow: true,
         component: Template,
-        props: (route) => ({
+        props: route => ({
             bizId: route.params.bizId
         })
     },
@@ -58,7 +58,7 @@ const routes = [
         title: '新建任务',
         isActionSheetShow: true,
         component: TaskCreate,
-        props: (route) => ({
+        props: route => ({
             templateId: route.params.templateId
         })
     },
@@ -108,16 +108,14 @@ const routes = [
 const router = new VueRouter({
     base: global.SITE_URL + 'weixin/',
     mode: 'history',
-    routes: routes
+    routes
 })
 
-const routerConfig = getRouterConfig(routes)
-
-function getRouterPageTitle ({ title = '', isActionSheetShow = true }) {
-    return { title: title, isActionSheetShow: isActionSheetShow }
+const getRouterPageTitle = ({ title = '', isActionSheetShow = true }) => {
+    return { title, isActionSheetShow }
 }
 
-function getRouterConfig (routers) {
+const getRouterConfig = (routers) => {
     const obj = {}
     routers.forEach((r) => {
         if (r.name) {
@@ -126,6 +124,7 @@ function getRouterConfig (routers) {
     })
     return obj
 }
+const routerConfig = getRouterConfig(routes)
 
 const cancelRequest = async () => {
     const allRequest = http.queue.get()
@@ -172,7 +171,7 @@ router.afterEach(async (to, from) => {
 
     const pageDataMethods = []
     const routerList = to.matched
-    routerList.forEach(r => {
+    routerList.forEach((r) => {
         const fetchPageData = r.instances.default && r.instances.default.fetchPageData
         if (fetchPageData && typeof fetchPageData === 'function') {
             pageDataMethods.push(r.instances.default.fetchPageData())

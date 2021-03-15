@@ -24,7 +24,7 @@ module.exports = function (app) {
         config = requireUncached(path)
     })
     
-    function requireUncached(module){
+    const requireUncached = (module) => {
         delete require.cache[require.resolve(module)]
         return require(module)
     }
@@ -36,14 +36,15 @@ module.exports = function (app) {
             next()
         }
 
-        Object.keys(config).some(item => {
+        Object.keys(config).some((item) => {
             if (pathToRegexp(item).exec(req.path) && req.method === config[item].method) {
                 pathKey = item
                 return true
             }
+            return false
         })
         if (pathKey) {
-           const mock = config[pathKey]
+            const mock = config[pathKey]
             if (mock.type === 'file') {
                 res.sendFile(path.resolve(__dirname, './config/', mock.data))
             } else {
