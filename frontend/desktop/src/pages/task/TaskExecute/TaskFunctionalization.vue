@@ -23,7 +23,7 @@
                         v-model="name"
                         v-validate="taskNameRule">
                     </bk-input>
-                    <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                    <span class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                 </div>
             </div>
         </div>

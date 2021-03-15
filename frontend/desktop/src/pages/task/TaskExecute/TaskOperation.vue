@@ -94,6 +94,10 @@
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
+                <OperationFlow
+                    v-if="nodeInfoType === 'operateFlow'"
+                    class="operation-flow">
+                </OperationFlow>
                 <TaskInfo
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
@@ -175,6 +179,7 @@
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
+    import OperationFlow from './OperationFlow.vue'
     import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
@@ -223,6 +228,7 @@
             ExecuteInfo,
             RetryNode,
             ModifyTime,
+            OperationFlow,
             TaskInfo,
             gatewaySelectDialog,
             revokeDialog,
@@ -1418,6 +1424,9 @@
 }
 .node-info-panel {
     height: 100%;
+    .operation-flow {
+        padding: 20px 30px;
+    }
 }
 
 </style>

@@ -267,6 +267,32 @@ const task = {
             }).then(response => response.data)
         },
         /**
+         * 获取模版操作记录
+         * @param {Object} data 节点配置数据
+         */
+        getOperationRecordTemplate ({ commit }, data) {
+            const { project_id, instance_id } = data
+            return axios.get(`/api/v3/operate_record_template/`, {
+                params: {
+                    project_id,
+                    instance_id
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 获取任务操作记录
+         * @param {Object} data 节点配置数据
+         */
+        getOperationRecordTask ({ commit }, data) {
+            const { project_id, instance_id } = data
+            return axios.get(`/api/v3/operate_record_task/`, {
+                params: {
+                    project_id,
+                    instance_id
+                }
+            }).then(response => response.data)
+        },
+        /**
          * 获取执行记录日志
          * @param {Object} data 节点配置数据
          */

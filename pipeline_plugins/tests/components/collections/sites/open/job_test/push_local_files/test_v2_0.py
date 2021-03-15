@@ -133,7 +133,14 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
-                        "file_info": [{"tag": {"type": "upload_module", "tags": {"tag_id": "tag_id1"}}}],
+                        "file_info": [
+                            {
+                                "response": {
+                                    "result": True,
+                                    "tag": {"type": "upload_module", "tags": {"tag_id": "tag_id1"}},
+                                }
+                            }
+                        ],
                         "target_path": "target_path1",
                     }
                 ]
@@ -184,16 +191,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
 def SCHEDULE_FAILURE_CASE():
     SCHEDULE_FAILURE_RESULT = {"result": True, "data": {"job_id": 12345}}
     SCHEDULE_FAILURE_QUERY_RESULT = {
-        "data": [
-            {
-                "status": 4,
-                "step_results": [
-                    {
-                        "ip_logs": [{"log_content": "log_content_failed"}],
-                    }
-                ],
-            }
-        ],
+        "data": [{"status": 4, "step_results": [{"ip_logs": [{"log_content": "log_content_failed"}]}]}],
         "result": False,
     }
     SCHEDULE_FAILURE_ESB_CLIENT = MagicMock()
@@ -209,7 +207,14 @@ def SCHEDULE_FAILURE_CASE():
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
-                        "file_info": [{"tag": {"type": "upload_module", "tags": {"tag_id": "tag_id1"}}}],
+                        "file_info": [
+                            {
+                                "response": {
+                                    "result": True,
+                                    "tag": {"type": "upload_module", "tags": {"tag_id": "tag_id1"}},
+                                }
+                            }
+                        ],
                         "target_path": "target_path1",
                     }
                 ]
@@ -278,16 +283,7 @@ def SUCCESS_MULTI_CASE():
         {"result": True, "data": {"job_id": 789}},
     ]
     SUCCESS_QUERY_RETURN = {
-        "data": [
-            {
-                "status": 3,
-                "step_results": [
-                    {
-                        "ip_logs": [{"log_content": "log_content_success"}],
-                    }
-                ],
-            }
-        ],
+        "data": [{"status": 3, "step_results": [{"ip_logs": [{"log_content": "log_content_success"}]}]}],
         "result": True,
     }
 
@@ -304,15 +300,36 @@ def SUCCESS_MULTI_CASE():
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
-                        "file_info": [{"tag": {"type": "upload_module", "tags": {"tag_id": "tag_id1"}}}],
+                        "file_info": [
+                            {
+                                "response": {
+                                    "result": True,
+                                    "tag": {"type": "upload_module", "tags": {"tag_id": "tag_id1"}},
+                                }
+                            }
+                        ],
                         "target_path": "target_path1",
                     },
                     {
-                        "file_info": [{"tag": {"type": "upload_module", "tags": {"tag_id": "tag_id2"}}}],
+                        "file_info": [
+                            {
+                                "response": {
+                                    "result": True,
+                                    "tag": {"type": "upload_module", "tags": {"tag_id": "tag_id2"}},
+                                }
+                            }
+                        ],
                         "target_path": "target_path2",
                     },
                     {
-                        "file_info": [{"tag": {"type": "upload_module", "tags": {"tag_id": "tag_id3"}}}],
+                        "file_info": [
+                            {
+                                "response": {
+                                    "result": True,
+                                    "tag": {"type": "upload_module", "tags": {"tag_id": "tag_id3"}},
+                                }
+                            }
+                        ],
                         "target_path": "target_path3",
                     },
                 ]
