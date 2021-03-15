@@ -124,7 +124,7 @@ class JobFastExecuteScriptService(JobService):
             self.InputItem(
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
-                type="string",
+                type="boolean",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
         ]
@@ -134,7 +134,7 @@ class JobFastExecuteScriptService(JobService):
             self.OutputItem(
                 name=_("JOB全局变量"),
                 key="log_outputs",
-                type="dict",
+                type="object",
                 schema=ObjectItemSchema(
                     description=_("输出日志中提取的全局变量"),
                     property_schemas={
@@ -163,12 +163,12 @@ class JobFastExecuteScriptService(JobService):
 
         if ip_is_exist:
             # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-            input_ip_list = get_ip_by_regex(original_ip_list)
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_list))
+            input_ip_set = set(get_ip_by_regex(original_ip_list))
+            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
 
-            difference_ip_list = list(set(input_ip_list).difference(set([ip_item["ip"] for ip_item in ip_list])))
+            difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
 
-            if len(ip_list) != len(input_ip_list):
+            if len(ip_list) != len(input_ip_set):
                 data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
                 return False
 

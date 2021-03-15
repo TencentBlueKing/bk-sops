@@ -39,43 +39,41 @@ class MonitorAlarmShieldStrategyService(Service):
         return shield_end_time
 
     def inputs_format(self):
-        return (
-            [
-                self.InputItem(
-                    name=_("策略 ID"),
-                    key="bk_alarm_shield_strategy",
-                    type="string",
-                    schema=StringItemSchema(description=_("需要执行屏蔽的策略 ID")),
-                ),
-                self.InputItem(
-                    name=_("IP"), key="bk_alarm_shield_IP", type="string", schema=StringItemSchema(description=_("IP"))
-                ),
-                self.InputItem(
-                    name=_("时间选择"),
-                    key="bk_alarm_time_type",
-                    type="string",
-                    schema=StringItemSchema(description=_("开始屏蔽的时间")),
-                ),
-                self.InputItem(
-                    name=_("屏蔽开始时间"),
-                    key="bk_alarm_shield_begin_time",
-                    type="string",
-                    schema=StringItemSchema(description=_("开始屏蔽的时间")),
-                ),
-                self.InputItem(
-                    name=_("屏蔽结束时间"),
-                    key="bk_alarm_end_time",
-                    type="string",
-                    schema=StringItemSchema(description=_("结束屏蔽的时间")),
-                ),
-                self.InputItem(
-                    name=_("屏蔽持续时间"),
-                    key="bk_alarm_shield_duration",
-                    type="string",
-                    schema=StringItemSchema(description=_("屏蔽持续的时间")),
-                ),
-            ],
-        )
+        return [
+            self.InputItem(
+                name=_("策略 ID"),
+                key="bk_alarm_shield_strategy",
+                type="string",
+                schema=StringItemSchema(description=_("需要执行屏蔽的策略 ID")),
+            ),
+            self.InputItem(
+                name=_("IP"), key="bk_alarm_shield_IP", type="string", schema=StringItemSchema(description=_("IP"))
+            ),
+            self.InputItem(
+                name=_("时间选择"),
+                key="bk_alarm_time_type",
+                type="string",
+                schema=StringItemSchema(description=_("开始屏蔽的时间")),
+            ),
+            self.InputItem(
+                name=_("屏蔽开始时间"),
+                key="bk_alarm_shield_begin_time",
+                type="string",
+                schema=StringItemSchema(description=_("开始屏蔽的时间")),
+            ),
+            self.InputItem(
+                name=_("屏蔽结束时间"),
+                key="bk_alarm_end_time",
+                type="string",
+                schema=StringItemSchema(description=_("结束屏蔽的时间")),
+            ),
+            self.InputItem(
+                name=_("屏蔽持续时间"),
+                key="bk_alarm_shield_duration",
+                type="string",
+                schema=StringItemSchema(description=_("屏蔽持续的时间")),
+            ),
+        ]
 
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs("language"):

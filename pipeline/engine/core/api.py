@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import socket
 
 import kombu
@@ -25,6 +26,9 @@ from pipeline.engine import signals
 from pipeline.engine.core import data
 from pipeline.engine.exceptions import RabbitMQConnectionError
 from pipeline.engine.models import FunctionSwitch, PipelineProcess
+
+logger = logging.getLogger("root")
+WORKER_PING_TIMES = 2
 
 
 def freeze():
@@ -49,25 +53,29 @@ def workers(connection=None):
     try:
         worker_list = data.cache_for("__pipeline__workers__")
     except ConnectionError as e:
+        logger.exception("pipeline cache_for __pipeline__workers__ raise error: %s" % e)
         raise e
 
     if not worker_list:
         tries = 0
-        try:
-            while tries < 2:
-                kwargs = {
-                    "timeout": tries + 1
-                }
-                if connection:
-                    kwargs["connection"] = connection
-
+        while tries < WORKER_PING_TIMES:
+            kwargs = {
+                "timeout": tries + 1
+            }
+            if connection is not None:
+                kwargs["connection"] = connection
+            try:
                 worker_list = current_app.control.ping(**kwargs)
+            except socket.error as err:
+                logger.exception("pipeline current_app.control.ping raise error: %s" % err)
+                # raise error at last loop
+                if tries >= WORKER_PING_TIMES - 1:
+                    raise RabbitMQConnectionError(err)
 
-                if worker_list:
-                    break
-                tries += 1
-        except socket.error as err:
-            raise RabbitMQConnectionError(err)
+            if worker_list:
+                break
+
+            tries += 1
 
         if worker_list:
             data.expire_cache("__pipeline__workers__", worker_list, settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES)

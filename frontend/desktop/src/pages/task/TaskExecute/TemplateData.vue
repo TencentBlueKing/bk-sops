@@ -9,7 +9,7 @@
             <no-data v-else></no-data>
         </div>
         <div class="action-wrapper">
-            <bk-button theme="primary" @click="onshutDown">{{ $t('关闭') }}</bk-button>
+            <bk-button theme="default" @click="onshutDown">{{ $t('关闭') }}</bk-button>
         </div>
     </div>
 </template>

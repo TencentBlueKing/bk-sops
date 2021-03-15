@@ -425,7 +425,7 @@
                             'instance_id': params.taskId,
                             'node_id': node.id,
                             'component_code': params.componentCode,
-                            'inputs': JSON.stringify(nodeRetryDataResponse.data.inputs)
+                            'inputs': nodeRetryDataResponse.data.inputs
                         })
                         if (nodeRetryResponse.result) {
                             global.bus.$emit('notify', { message: this.i18n.retrySuccess })

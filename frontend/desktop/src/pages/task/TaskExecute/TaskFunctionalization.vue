@@ -23,7 +23,7 @@
                         v-model="name"
                         v-validate="taskNameRule">
                     </bk-input>
-                    <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                    <span class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                 </div>
             </div>
         </div>
@@ -63,12 +63,13 @@
         <bk-dialog
             :value="previewDialogShow"
             :mask-close="false"
+            :auto-close="false"
             :header-position="'left'"
             :has-footer="false"
             :ext-cls="'common-dialog'"
             :title="$t('任务流程预览')"
             width="1000"
-            @cancel="onCancel">
+            @cancel="onClose">
             <NodePreview
                 v-if="canvasShow"
                 ref="nodePreviewRef"
@@ -78,6 +79,9 @@
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
+            <div slot="footer">
+                <bk-button theme="primary" @click="onClose">{{ $t('关闭') }}</bk-button>
+            </div>
         </bk-dialog>
     </div>
 </template>
@@ -233,7 +237,7 @@
                 })
                 this.previewDialogShow = true
             },
-            onCancel () {
+            onClose () {
                 this.previewDialogShow = false
                 this.previewDataLoading = false
                 this.previewData = tools.deepClone(this.pipelineData)

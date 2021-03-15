@@ -35,6 +35,7 @@ const AppMaker = () => import('@/pages/appmaker/index.vue')
 const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
 
 const ProjectHome = () => import('@/pages/project/index.vue')
+const ProjectConfig = () => import('@/pages/project/config.vue')
 
 const ErrorPage = () => import('@/pages/error/index.vue')
 
@@ -272,6 +273,15 @@ const routers = new VueRouter({
             component: ProjectHome
         },
         {
+            path: '/project/config/:id/',
+            name: 'projectConfig',
+            pathToRegexpOptions: { strict: true },
+            component: ProjectConfig,
+            props: (route) => ({
+                id: route.params.id
+            })
+        },
+        {
             path: '/function',
             component: Functor,
             children: [
@@ -467,6 +477,13 @@ routers.beforeEach((to, from, next) => {
         next(APPMAKER.getIndex())
     } else {
         next()
+    }
+})
+
+// js chunk 静态资源加载失败重新刷新页面
+routers.onError(error => {
+    if (/Loading chunk (\d*) failed/.test(error.message)) {
+        window.location.reload(true)
     }
 })
 

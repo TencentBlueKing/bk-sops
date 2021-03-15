@@ -49,6 +49,7 @@
                     </template>
                 </bk-table-column>
                 <div class="no-data-matched" slot="empty"><NoData /></div>
+                <div class="is-loading" slot="append" v-if="isLoading" v-bkloading="{ isLoading: isLoading }"></div>
             </bk-table>
         </div>
     </bk-dialog>
@@ -75,6 +76,13 @@
         },
         data () {
             return {
+                isLoading: false, // 加载loading
+                isThrottled: false, // 滚动节流 是否进入cd
+                isPageOver: false, // 前端分页加载是否结束
+                pageSize: 15, // 每页展示多少数据
+                totalPage: null, // 计算出总共多少页
+                currentPage: 0, // 当前加载了多少页
+                pollingTimer: null,
                 loading: true,
                 isShow: this.show,
                 recordData: []
@@ -85,18 +93,49 @@
                 this.isShow = val
             }
         },
+        mounted () {
+            this.tableScroller = this.$el.querySelector('.bk-table-body-wrapper')
+            this.tableScroller.addEventListener('scroll', this.handleTableScroll, { passive: true })
+        },
+        beforeDestroy () {
+            this.tableScroller.removeEventListener('scroll', this.handleTableScroll)
+        },
         methods: {
             ...mapActions('admin/', [
                 'periodTaskHistory'
             ]),
+            handleTableScroll () {
+                if (!this.isPageOver && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.tableScroller
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            this.isPageOver = this.currentPage === this.totalPage
+                            clearTimeout(this.pollingTimer)
+                            this.isLoading = true
+                            this.getRecord()
+                        }
+                    }, 200)
+                }
+            },
             async getRecord () {
                 try {
-                    this.loading = true
-                    const resp = await this.periodTaskHistory({ task_id: this.id })
-                    this.recordData = resp.objects
+                    if (!this.currentPage) {
+                        this.loading = true
+                    }
+                    const resp = await this.periodTaskHistory({
+                        task_id: this.id,
+                        limit: this.pageSize,
+                        offset: this.currentPage * this.pageSize
+                    })
+                    this.totalPage = Math.floor(resp.meta.total_count / this.pageSize)
+                    this.recordData.push(...resp.objects)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
+                    this.isLoading = false
                     this.loading = false
                 }
             },
@@ -133,5 +172,8 @@
     .view-btn {
         color: #3a84ff;
         cursor: pointer;
+    }
+    .is-loading {
+        height: 42px;
     }
 </style>

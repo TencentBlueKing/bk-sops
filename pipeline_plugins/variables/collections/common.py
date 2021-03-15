@@ -100,7 +100,7 @@ class Select(LazyVariable):
 class FormatSupportCurrentTime(LazyVariable):
     code = "format_support_current_time"
     name = _("系统当前时间(支持格式自定义)")
-    type = "general"
+    type = "dynamic"
     tag = "format_support_current_time.format_support_current_time"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("系统当前时间变量(支持格式自定义)"))
@@ -116,7 +116,7 @@ class FormatSupportCurrentTime(LazyVariable):
 class CurrentTime(LazyVariable):
     code = "current_time"
     name = _("系统当前时间")
-    type = "general"
+    type = "dynamic"
     tag = "current_time.current_time"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("系统当前时间变量"))
@@ -181,13 +181,15 @@ class Time(LazyVariable):
 class StaffGroupSelector(LazyVariable):
     code = "staff_group_selector"
     name = _("人员分组选择器")
-    type = "general"
+    type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
 
     def get_value(self):
-        operator = self.pipeline_data.get("executor", "")
-        bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
+        if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
+            return ""
+        operator = self.pipeline_data["executor"]
+        bk_biz_id = int(self.pipeline_data["biz_cc_id"])
         supplier_account = supplier_account_for_business(bk_biz_id)
         client = get_client_by_user(operator)
 

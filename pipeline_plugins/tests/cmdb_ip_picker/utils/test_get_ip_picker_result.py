@@ -30,7 +30,7 @@ class MockCMDB(object):
         return [
             {
                 "host": {
-                    "bk_host_innerip": "1.1.1.1,1.1.1.2",
+                    "bk_host_innerip": "1.1.1.1",
                     "bk_host_outerip": "1.1.1.1",
                     "bk_host_name": "1.1.1.1",
                     "bk_host_id": 1,
@@ -65,38 +65,42 @@ class MockCMDB(object):
         dynamic_group_data = {
             "group1": [
                 {
-                    "bk_obj_id": "host",
+                    "bk_host_innerip": "1.1.1.1",
+                    "bk_host_outerip": "1.1.1.1",
+                    "bk_host_name": "1.1.1.1",
                     "bk_host_id": 1,
-                    "bk_host_name": "nginx-1",
-                    "bk_host_innerip": "0.0.0.1",
                     "bk_cloud_id": 0,
+                    "host_modules_id": [3],
                 },
                 {
-                    "bk_obj_id": "host",
+                    "bk_host_innerip": "2.2.2.2",
+                    "bk_host_outerip": "2.2.2.2",
+                    "bk_host_name": "2.2.2.2",
                     "bk_host_id": 2,
-                    "bk_host_name": "nginx-2",
-                    "bk_host_innerip": "0.0.0.2",
                     "bk_cloud_id": 0,
+                    "host_modules_id": [5],
                 },
             ],
             "group2": [
                 {
-                    "bk_obj_id": "host",
-                    "bk_host_id": 3,
-                    "bk_host_name": "nginx-1",
-                    "bk_host_innerip": "0.0.0.3",
+                    "bk_host_innerip": "2.2.2.2",
+                    "bk_host_outerip": "2.2.2.2",
+                    "bk_host_name": "2.2.2.2",
+                    "bk_host_id": 2,
                     "bk_cloud_id": 0,
+                    "host_modules_id": [5],
                 },
                 {
-                    "bk_obj_id": "host",
-                    "bk_host_id": 4,
-                    "bk_host_name": "nginx-2",
-                    "bk_host_innerip": "0.0.0.4",
+                    "bk_host_innerip": "3.3.3.3",
+                    "bk_host_outerip": "3.3.3.3",
+                    "bk_host_name": "3.3.3.3",
+                    "bk_host_id": 3,
                     "bk_cloud_id": 0,
+                    "host_modules_id": [8],
                 },
             ],
         }
-        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-1]]}
+        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-2]]}
 
 
 def mock_get_client_by_user(username):
@@ -292,7 +296,7 @@ class GetIPPickerResultTestCase(TestCase):
         }
         ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["0.0.0.1", "0.0.0.2"])
+        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
         group_kwargs = {
             "bk_biz_id": self.bk_biz_id,
@@ -305,7 +309,24 @@ class GetIPPickerResultTestCase(TestCase):
         }
         ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["0.0.0.1", "0.0.0.2", "0.0.0.3", "0.0.0.4"])
+        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    def test__filter_ip_in_group(self):
+        mock_get_client_by_user.success = True
+        group_kwargs = {
+            "bk_biz_id": self.bk_biz_id,
+            "selectors": ["group"],
+            "topo": [],
+            "ip": [],
+            "group": [{"id": "group1"}],
+            "filters": [{"field": "set", "value": ["set2"]}],
+            "excludes": [],
+        }
+        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip = [host["bk_host_innerip"] for host in ip_data]
+        self.assertEqual(ip, ["2.2.2.2"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
     @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
@@ -550,12 +571,12 @@ class GetIPPickerResultTestCase(TestCase):
             "topo": [],
             "group": [{"id": "group1"}, {"id": "group2"}],
             "ip": [],
-            "excludes": [{"field": "host", "value": ["0.0.0.1", "0.0.0.2"]}],
+            "excludes": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "filters": [],
         }
         ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["0.0.0.3", "0.0.0.4"])
+        self.assertEqual(ip, ["3.3.3.3"])
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
     @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)

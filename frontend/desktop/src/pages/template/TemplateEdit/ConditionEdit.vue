@@ -13,6 +13,7 @@
     <bk-sideslider
         :width="800"
         :is-show="isShow"
+        :quick-close="isReadonly"
         :before-close="onBeforeClose">
         <div slot="header">
             <span>{{ $t('分支条件') }}</span>
@@ -25,11 +26,12 @@
                         <span class="required">*</span>
                     </label>
                     <bk-input
+                        :readonly="isReadonly"
                         v-model.trim="conditionName"
                         v-validate="conditionRule"
                         name="conditionName">
                     </bk-input>
-                    <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
+                    <span v-show="veeErrors.has('conditionName')" class="common-error-tip error-msg">{{ veeErrors.first('conditionName') }}</span>
                 </div>
                 <div class="form-item">
                     <label class="label">
@@ -50,16 +52,16 @@
                             v-validate="expressionRule"
                             name="expression"
                             :value="expression"
-                            :options="{ language: 'python' }"
+                            :options="{ language: 'python', readOnly: isReadonly }"
                             @input="onDataChange">
                         </code-editor>
                     </div>
-                    <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+                    <span v-show="veeErrors.has('expression')" class="common-error-tip error-msg">{{ veeErrors.first('expression') }}</span>
                 </div>
             </div>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="close">{{ $t('取消') }}</bk-button>
+                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="close">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-sideslider>
@@ -77,7 +79,11 @@
         },
         props: {
             isShow: Boolean,
-            conditionData: Object
+            conditionData: Object,
+            isReadonly: {
+                type: Boolean,
+                default: false
+            }
         },
         data () {
             const { name, value } = this.conditionData

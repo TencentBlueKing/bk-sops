@@ -19,60 +19,105 @@
             :quick-close="true"
             :before-close="beforeClose">
             <div class="config-header" slot="header">
-                <span
-                    :class="['go-back', {
-                        'active': isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)
-                    }]"
-                    @click="goBackToConfig">
-                    {{ $t('节点配置') }}
-                </span>
-                <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
-                <span
-                    v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
-                    class="go-back">
-                    <i class="common-icon-angle-right"></i>
-                    {{ selectorTitle }}
-                </span>
-                <div class="view-variable">
-                    <bk-popover
-                        v-if="!isSelectorPanelShow"
-                        ext-cls="variable-popover"
-                        placement="bottom-end">
-                        <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
-                        <div :class="['variable-list', { 'list-change': isChange }]" slot="content">
-                            <bk-table :data="variableList" :max-height="400">
-                                <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
-                                <bk-table-column label="KEY" :show-overflow-tooltip="true" :width="isChange ? '165' : ''">
-                                    <template slot-scope="props" width="165">
-                                        <div class="key">{{ props.row.key }}</div>
-                                        <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
-                                    </template>
-                                </bk-table-column>
-                                <bk-table-column :label="$t('属性')" width="80">
-                                    <div class="icon-wrap" slot-scope="props">
-                                        <i
-                                            :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
-                                            v-bk-tooltips="{
-                                                content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
-                                                placements: ['bottom']
-                                            }">
-                                        </i>
-                                        <i
-                                            :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
-                                            v-bk-tooltips="{
-                                                content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
-                                                placements: ['bottom']
-                                            }">
-                                        </i>
-                                    </div>
-                                </bk-table-column>
-                            </bk-table>
-                        </div>
-                    </bk-popover>
-                </div>
+                <template v-if="isVariablePanelShow">
+                    <i class="bk-icon icon-arrows-left variable-back-icon" @click="isVariablePanelShow = false"></i>
+                    <span>
+                        {{ variableData.key ? $t('编辑') : $t('新建') }}{{ $t('全局变量') }}
+                    </span>
+                </template>
+                <template v-else>
+                    <span
+                        :class="['go-back', {
+                            'active': isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)
+                        }]"
+                        @click="goBackToConfig">
+                        {{ $t('节点配置') }}
+                    </span>
+                    <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
+                    <span
+                        v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
+                        class="go-back">
+                        <i class="common-icon-angle-right"></i>
+                        {{ selectorTitle }}
+                    </span>
+                    <div class="view-variable">
+                        <bk-popover
+                            v-if="!isSelectorPanelShow"
+                            ext-cls="variable-popover"
+                            placement="bottom-end"
+                            :tippy-options="{ hideOnClick: false }">
+                            <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
+                            <div :class="['variable-list', { 'list-change': isChange }]" slot="content">
+                                <div class="header-area">
+                                    <span>{{ $t('全局变量') }}</span>
+                                    <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
+                                </div>
+                                <bk-table :data="variableList" :outer-border="false" :max-height="400">
+                                    <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
+                                    <bk-table-column label="KEY" :show-overflow-tooltip="true" width="209">
+                                        <template slot-scope="props" width="165">
+                                            <div class="key">{{ props.row.key }}</div>
+                                            <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column :label="$t('属性')" width="80">
+                                        <div class="icon-wrap" slot-scope="props">
+                                            <i
+                                                :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
+                                                v-bk-tooltips="{
+                                                    content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
+                                                    placements: ['bottom']
+                                                }">
+                                            </i>
+                                            <i
+                                                :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
+                                                v-bk-tooltips="{
+                                                    content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
+                                                    placements: ['bottom']
+                                                }">
+                                            </i>
+                                        </div>
+                                    </bk-table-column>
+                                    <bk-table-column :label="$t('操作')" width="80">
+                                        <template slot-scope="props">
+                                            <bk-link
+                                                :theme="props.row.source_type === 'system' ? 'default' : 'primary'"
+                                                :disabled="props.row.source_type === 'system'"
+                                                @click="openVariablePanel(props.row)">
+                                                {{ $t('编辑') }}
+                                            </bk-link>
+                                        </template>
+                                    </bk-table-column>
+                                </bk-table>
+                            </div>
+                        </bk-popover>
+                    </div>
+                </template>
             </div>
             <template slot="content">
-                <template v-if="!isSelectorPanelShow">
+                <!-- 插件/子流程选择面板 -->
+                <selector-panel
+                    v-if="isSelectorPanelShow"
+                    :is-subflow="isSubflow"
+                    :atom-type-list="atomTypeList"
+                    :basic-info="basicInfo"
+                    :common="common"
+                    @back="isSelectorPanelShow = false"
+                    @viewSubflow="onViewSubflow"
+                    @select="onPluginOrTplChange">
+                </selector-panel>
+                <!-- 变量编辑面板 -->
+                <div v-else-if="isVariablePanelShow" class="variable-edit-panel">
+                    <variable-edit
+                        ref="variableEdit"
+                        :variable-data="variableData"
+                        :common="common"
+                        @closeEditingPanel="isVariablePanelShow = false"
+                        @onSaveEditing="isVariablePanelShow = false">
+                    </variable-edit>
+                </div>
+                <!-- 插件/子流程表单面板 -->
+                <template v-else>
                     <div class="node-config">
                         <div class="config-form">
                             <!-- 基础信息 -->
@@ -139,16 +184,6 @@
                         </div>
                     </div>
                 </template>
-                <selector-panel
-                    v-else
-                    :is-subflow="isSubflow"
-                    :atom-type-list="atomTypeList"
-                    :basic-info="basicInfo"
-                    :common="common"
-                    @back="isSelectorPanelShow = false"
-                    @viewSubflow="onViewSubflow"
-                    @select="onPluginOrTplChange">
-                </selector-panel>
             </template>
         </bk-sideslider>
         <bk-dialog
@@ -179,6 +214,7 @@
     import InputParams from './InputParams.vue'
     import OutputParams from './OutputParams.vue'
     import SelectorPanel from './SelectorPanel.vue'
+    import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
 
@@ -189,6 +225,7 @@
             InputParams,
             OutputParams,
             SelectorPanel,
+            VariableEdit,
             NoData
         },
         props: {
@@ -198,8 +235,7 @@
             atomList: Array,
             subflowList: Array,
             atomTypeList: Object,
-            common: [String, Number],
-            isSettingPanelShow: Boolean
+            common: [String, Number]
         },
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
@@ -219,6 +255,8 @@
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
                 isSelectorPanelShow, // 是否显示选择插件(子流程)面板
+                isVariablePanelShow: false, // 是否显示变量编辑面板
+                variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 isChange: false // 输入、输出参数勾选状态是否有变化
             }
@@ -481,7 +519,14 @@
                         const atom = this.atomList.find(item => item.code === component.code)
                         basicInfoName = `${atom.group_name}-${atom.name}`
                         version = component.hasOwnProperty('version') ? component.version : 'legacy'
-                        desc = atom.desc
+                        // 获取不同版本的描述
+                        const { desc: description } = atom.list.find(item => item.version === version)
+                        if (description && description.includes('\n')) {
+                            const descList = description.split('\n')
+                            desc = descList.join('<br>')
+                        } else {
+                            desc = description
+                        }
                     }
 
                     return {
@@ -603,7 +648,7 @@
                     this.isSelectorPanelShow = false
                 }
             },
-            
+
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
@@ -622,8 +667,15 @@
              * - 校验基础信息
              */
             async pluginChange (atomGroup) {
-                const { code, group_name, name, desc, list } = atomGroup
+                const { code, group_name, name, list } = atomGroup
                 this.versionList = this.getAtomVersions(code)
+                // 获取不同版本的描述
+                const atom = this.atomList.find(item => item.code === code)
+                let { desc } = atom.list.find(item => item.version === list[list.length - 1].version)
+                if (desc && desc.includes('\n')) {
+                    const descList = desc.split('\n')
+                    desc = descList.join('<br>')
+                }
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,
@@ -646,7 +698,14 @@
              * 标准插件版本切换
              */
             versionChange (val) {
-                this.updateBasicInfo({ version: val })
+                // 获取不同版本的描述
+                const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                let { desc } = atom.list.find(item => item.version === val)
+                if (desc && desc.includes('\n')) {
+                    const descList = desc.split('\n')
+                    desc = descList.join('<br>')
+                }
+                this.updateBasicInfo({ version: val, desc })
                 this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 this.getPluginDetail()
@@ -664,10 +723,7 @@
                     name,
                     version,
                     tpl: id,
-                    nodeName: name,
-                    stageName: '',
-                    nodeLabel: [],
-                    selectable: false
+                    nodeName: name
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)
@@ -697,9 +753,11 @@
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
-                this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                this.setSubprocessUpdated({
-                    subprocess_node_id: this.nodeConfig.id
+                this.$nextTick(() => {
+                    this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                    this.setSubprocessUpdated({
+                        subprocess_node_id: this.nodeConfig.id
+                    })
                 })
             },
             /**
@@ -973,6 +1031,46 @@
                 })
                 return phase
             },
+            isOutputsChanged () {
+                const localOutputs = []
+                const outputs = []
+                Object.keys(this.localConstants).forEach(key => {
+                    const item = this.localConstants[key]
+                    if (item.source_type === 'component_outputs') {
+                        localOutputs.push(item)
+                    }
+                })
+                Object.keys(this.constants).forEach(key => {
+                    const item = this.constants[key]
+                    if (item.source_type === 'component_outputs') {
+                        outputs.push(item)
+                    }
+                })
+                return !tools.isDataEqual(localOutputs, outputs)
+            },
+            // 打开全局变量编辑面板
+            openVariablePanel (variable = {}) {
+                if (variable.key) {
+                    this.variableData = variable
+                } else {
+                    this.variableData = {
+                        custom_type: 'input',
+                        desc: '',
+                        form_schema: {},
+                        index: Object.keys(this.constants).length + 1,
+                        key: '',
+                        name: '',
+                        show_type: 'show',
+                        source_info: {},
+                        source_tag: 'input.input',
+                        source_type: 'custom',
+                        validation: '^.+$',
+                        value: '',
+                        version: 'legacy'
+                    }
+                }
+                this.isVariablePanelShow = true
+            },
             beforeClose () {
                 if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
                     if (!(this.isSubflow ? this.basicInfo.tpl : this.basicInfo.plugin)) {
@@ -980,8 +1078,12 @@
                         return true
                     }
                 }
+                if (this.isVariablePanelShow) { // 变量编辑时，点击遮罩需要确认是否保存变量
+                    this.$refs.variableEdit.handleMaskClick()
+                    return false
+                }
                 const config = this.getNodeFullConfig()
-                if (tools.isDataEqual(config, this.nodeConfig)) {
+                if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
                     this.$emit('update:isShow', false)
                     return true
                 } else {
@@ -1020,6 +1122,8 @@
     height: 100%;
     .config-header {
         position: relative;
+        display: flex;
+        align-items: center;
         .go-back.active {
             color: #3a84ff;
             cursor: pointer;
@@ -1031,6 +1135,14 @@
             font-size: 12px;
             color: #3a84ff;
             line-height: 1;
+        }
+        .variable-back-icon {
+            margin-right: 10px;
+            font-size: 32px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
     }
     .node-config {
@@ -1070,6 +1182,10 @@
     .bk-sideslider-content {
         overflow: initial;
     }
+    .variable-edit-panel {
+        height: calc(100vh - 60px);
+        overflow: hidden;
+    }
 }
 </style>
 <style lang="scss">
@@ -1081,7 +1197,13 @@
             }
         }
         .variable-list {
-            width: 410px;
+            width: 536px;
+            background: #ffffff;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
+            /deep/ .bk-table-body-wrapper {
+                overflow-y: auto;
+            }
             .icon-wrap {
                 i {
                     margin-right: 4px;
@@ -1092,11 +1214,28 @@
                     color: #de9524;
                 }
             }
+            .header-area {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 14px;
+                height: 48px;
+                & > span {
+                    margin-left: 38px;
+                    font-size: 14px;
+                    color: #313238;
+                }
+                /deep/ i {
+                    font-size: 18px;
+                }
+            }
+            /deep/.bk-link-text {
+                font-size: 12px;
+            }
         }
         .list-change {
             /deep/ .bk-table-body-wrapper {
-                overflow-y: scroll;
-                padding-bottom: 27px;
+                padding-bottom: 25px;
             }
         }
         td {

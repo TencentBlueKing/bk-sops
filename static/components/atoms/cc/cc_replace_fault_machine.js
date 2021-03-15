@@ -46,6 +46,7 @@
             tag_code: "cc_host_replace_detail",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("主机详情"),
                 empty_text: gettext("请至少添加一条数据"),
                 editable: true,
@@ -79,6 +80,24 @@
                     }
                 ],
                 hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "copy_attributes",
+            type: "radio",
+            attrs: {
+                name: gettext("复制故障机属性"),
+                hookable: true,
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")}
+                ],
+                default: true,
                 validation: [
                     {
                         type: "required"

@@ -9,7 +9,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import component from './modules/component'
-import business from './modules/business'
+import project from './modules/project'
 import template from './modules/template'
 import taskList from './modules/taskList'
 import task from './modules/task'
@@ -22,7 +22,7 @@ const store = new Vuex.Store({
     // 模块
     modules: {
         component,
-        business,
+        project,
         task,
         taskList,
         template

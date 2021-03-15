@@ -72,7 +72,8 @@ class JobPushLocalFilesService(JobService):
         ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
-        file_tags = [_file["tag"] for _file in local_files]
+        # 这里自动过滤掉上传失败的文件
+        file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]
 
         push_result = file_manager.push_files_to_ips(
             esb_client=client,
@@ -100,5 +101,5 @@ class JobPushLocalFilesComponent(Component):
     name = _("分发本地文件")
     code = "job_push_local_files"
     bound_service = JobPushLocalFilesService
-    form = "%scomponents/atoms/job/job_push_local_files.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/job/job_push_local_files/v1_0_0.js" % settings.STATIC_URL
     version = "1.0.0"

@@ -21,6 +21,7 @@
                 <advance-search-form
                     ref="advanceSearch"
                     id="commonTplList"
+                    :open="isSearchFormOpen"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -55,39 +56,47 @@
                     class="template-table"
                     :data="commonTemplateData"
                     :pagination="pagination"
+                    :size="setting.size"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @sort-change="handleSortChange"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('流程名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <a
-                                v-else
-                                class="template-name"
-                                :title="props.row.name"
-                                @click.prevent="getJumpUrl('edit', props.row.id)">
-                                {{props.row.name}}
-                            </a>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
-                    <bk-table-column width="120" :label="$t('子流程更新')">
-                        <template slot-scope="props">
-                            <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
-                                {{getSubflowContent(props.row)}}
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width"
+                        :sortable="item.sortable">
+                        <template slot-scope="{ row }">
+                            <!--流程名称-->
+                            <div v-if="item.id === 'name'" class="name-column">
+                                <a
+                                    v-if="!hasPermission(['common_flow_view'], row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTemplatePermissonCheck(['common_flow_view'], row)">
+                                    {{row.name}}
+                                </a>
+                                <a
+                                    v-else
+                                    class="template-name"
+                                    :title="row.name"
+                                    @click.prevent="getJumpUrl('edit', row.id)">
+                                    {{row.name}}
+                                </a>
                             </div>
+                            <!--子流程更新-->
+                            <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
+                                {{getSubflowContent(row)}}
+                            </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120"></bk-table-column>
                     <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
@@ -165,6 +174,14 @@
                             </div>
                         </template>
                     </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
+                    </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
@@ -225,12 +242,12 @@
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -262,6 +279,37 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 100
+        }, {
+            id: 'name',
+            label: i18n.t('流程名称'),
+            disabled: true,
+            min_width: 400
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            sortable: 'custom',
+            width: 180
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            sortable: 'custom',
+            width: 200
+        }, {
+            id: 'subprocess_has_update',
+            label: i18n.t('子流程更新'),
+            width: 200
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 160
+        }
+    ]
     export default {
         name: 'TemplateList',
         components: {
@@ -279,16 +327,27 @@
                 page = 1,
                 limit = 15,
                 category = '',
-                start_time = '',
-                end_time = '',
+                queryTime = '',
                 subprocessUpdateVal = '',
                 creator = '',
                 keyword = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
-                searchStr: '',
+                searchForm,
+                isSearchFormOpen,
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
@@ -313,7 +372,7 @@
                     category,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
                     creator,
-                    queryTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
                     flowName: keyword
                 },
                 totalPage: 1,
@@ -328,7 +387,14 @@
                 permissionLoading: false,
                 hasCreateTaskPerm: true,
                 selectedProject: {},
-                selectedTpl: {}
+                selectedTpl: {},
+                ordering: null, // 排序参数
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
+                }
             }
         },
         computed: {
@@ -344,13 +410,7 @@
                 'timeZone': state => state.timezone,
                 'projectName': state => state.projectName,
                 'project_id': state => state.project_id
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.templateCategoryList
-                value[0].loading = this.categoryLoading
-                return searchForm
-            }
+            })
         },
         watch: {
             page (val, oldVal) {
@@ -361,6 +421,7 @@
             }
         },
         created () {
+            this.getFields()
             this.getTemplateList()
             this.getCollectList()
             this.getProjectBaseInfo()
@@ -421,7 +482,8 @@
                         pipeline_template__creator__contains: creator || undefined,
                         category: category || undefined,
                         subprocess_has_update,
-                        has_subprocess
+                        has_subprocess,
+                        order_by: this.ordering || undefined
                     }
                     if (queryTime[0] && queryTime[1]) {
                         data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
@@ -451,11 +513,23 @@
                     const res = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(res.data)
                     this.templateCategoryList = res.data.task_categories
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.templateCategoryList
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
                     this.categoryLoading = false
+                }
+            },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('commonTemplateList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
                 }
             },
             async getExpiredSubflowData () {
@@ -497,7 +571,7 @@
                 this.getTemplateList()
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
@@ -547,6 +621,18 @@
                 this.deleteTemplateName = template.name
                 this.isDeleteDialogShow = true
             },
+            handleSortChange ({ prop, order }) {
+                const params = 'pipeline_template__' + prop
+                if (order === 'ascending') {
+                    this.ordering = params
+                } else if (order === 'descending') {
+                    this.ordering = '-' + params
+                } else {
+                    this.ordering = ''
+                }
+                this.pagination.current = 1
+                this.getTemplateList()
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -558,6 +644,16 @@
                 this.updateUrl()
                 this.getTemplateList()
             },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('commonTemplateList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
+            },
             updateUrl () {
                 const { current, limit } = this.pagination
                 const { category, queryTime, subprocessUpdateVal, creator, flowName } = this.requestData
@@ -567,8 +663,7 @@
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    start_time: queryTime[0],
-                    end_time: queryTime[1],
+                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
                     keyword: flowName
                 }
                 const query = {}
@@ -662,7 +757,7 @@
             handleSubflowFilter () {
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
                 searchComp.submit()
             },
             // 添加/取消收藏模板

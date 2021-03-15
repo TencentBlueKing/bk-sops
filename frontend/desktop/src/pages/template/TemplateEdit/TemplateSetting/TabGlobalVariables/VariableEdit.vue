@@ -12,7 +12,7 @@
                             v-validate="variableNameRule"
                             :readonly="isSystemVar">
                         </bk-input>
-                        <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
+                        <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
                 </li>
                 <!-- key -->
@@ -26,7 +26,7 @@
                             :readonly="isSystemVar"
                             :disabled="isHookedVar">
                         </bk-input>
-                        <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
+                        <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </li>
                 <!-- 描述 -->
@@ -99,7 +99,7 @@
                             v-validate="validationRule"
                             @blur="onBlurValidation">
                         </bk-input>
-                        <span v-show="errors.has('valueValidation')" class="common-error-tip error-msg">{{errors.first('valueValidation')}}</span>
+                        <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
                     </div>
                 </li>
                 <!-- 显示/隐藏 -->
@@ -278,7 +278,8 @@
                 await this.getVarTypeList()
                 // 若当前编辑变量为元变量，则取meta_tag
                 if (is_meta) {
-                    this.varTypeList[1].children.some(item => {
+                    const metaList = this.varTypeList.find(item => item.type === 'meta')
+                    metaList.children.some(item => {
                         if (item.code === custom_type) {
                             this.metaTag = item.meta_tag
                             return true
@@ -318,14 +319,17 @@
                     const listData = [
                         {
                             name: i18n.t('普通变量'),
+                            type: 'general',
                             children: []
                         },
                         {
                             name: i18n.t('动态变量'),
+                            type: 'dynamic',
                             children: []
                         },
                         {
                             name: i18n.t('元变量'),
+                            type: 'meta',
                             children: []
                         }
                     ]
@@ -504,7 +508,7 @@
             onBlurValidation () {
                 const config = tools.deepClone(this.renderConfig[0])
                 const regValidate = config.attrs.validation.find(item => item.type === 'regex')
-                if (!this.errors.has('valueValidation')) {
+                if (!this.veeErrors.has('valueValidation')) {
                     regValidate.args = this.getInputDefaultValueValidation()
                 } else {
                     regValidate.args = ''
@@ -536,7 +540,8 @@
                 if (!this.variableData.key) {
                     this.isSaveConfirmDialogShow = true
                 } else {
-                    const editingVariable = Object.assign({}, this.theEditingData)
+                    const tagCode = this.renderConfig[0].tag_code
+                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
@@ -564,23 +569,26 @@
                     }
 
                     const variable = this.theEditingData
-                    const tagCode = this.renderConfig[0].tag_code
-                    let varValue = {}
+                    if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
+                        const tagCode = this.renderConfig[0].tag_code
+                        let varValue = {}
+    
+                        // value为空且不渲染RenderForm组件的变量取表单默认值
+                        if (this.renderData.hasOwnProperty(tagCode)) {
+                            varValue = this.renderData
+                        } else {
+                            varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
+                        }
+
+                        // 变量key值格式统一
+                        if (!/^\$\{\w+\}$/.test(variable.key)) {
+                            variable.key = '${' + variable.key + '}'
+                        }
+    
+                        this.theEditingData.value = varValue[tagCode]
+                    }
+
                     this.theEditingData.name = this.theEditingData.name.trim()
-
-                    // value为空且不渲染RenderForm组件的变量取表单默认值
-                    if (this.renderData.hasOwnProperty(tagCode)) {
-                        varValue = this.renderData
-                    } else {
-                        varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
-                    }
-                    
-                    // 变量key值格式统一
-                    if (!/^\$\{\w+\}$/.test(variable.key)) {
-                        variable.key = '${' + variable.key + '}'
-                    }
-
-                    this.theEditingData.value = varValue[tagCode]
                     
                     if (!this.variableData.key) { // 新增变量
                         variable.version = 'legacy'
@@ -596,7 +604,7 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('closeEditingPanel')
+                    this.$emit('onSaveEditing')
                     return true
                 })
             }
@@ -678,8 +686,12 @@
         }
     }
     .btn-wrap {
-        padding: 8px 20px;
+        padding: 8px 30px;
         border-top: 1px solid #cacedb;
+        .bk-button {
+            margin-right: 10px;
+            padding: 0 25px;
+        }
     }
     /deep/ .variable-confirm-dialog-content {
         padding: 40px 0;

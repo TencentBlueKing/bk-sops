@@ -19,10 +19,12 @@ from django.apps import AppConfig
 from django.conf import settings
 from django.db.utils import ProgrammingError
 
+from pipeline.utils import env
+
 logger = logging.getLogger("root")
 
 DJANGO_MANAGE_CMD = "manage.py"
-DEFAULT_TRIGGERS = {"runserver", "celery", "worker", "uwsgi", "shell"}
+DEFAULT_TRIGGERS = {"runserver", "celery", "worker", "uwsgi", "shell", "update_component_models"}
 
 
 class ExternalPluginsConfig(AppConfig):
@@ -55,23 +57,11 @@ class ExternalPluginsConfig(AppConfig):
 
     @staticmethod
     def should_load_external_module():
+        django_command = env.get_django_command()
+        if django_command is None:
+            print("app is not start with django manage command, current argv: {argv}".format(argv=sys.argv))
+            return True
+
         triggers = getattr(settings, "EXTERNAL_COMPONENTS_LOAD_TRIGGER", DEFAULT_TRIGGERS)
-        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
-            try:
-                command = sys.argv[1]
-                logger.info(
-                    "current django manage command: {cmd}, triggers: {triggers}".format(cmd=command, triggers=triggers)
-                )
-
-                return command in triggers
-            except Exception:
-                logger.error(
-                    "get django start up command error with argv: {argv}, traceback: {traceback}".format(
-                        argv=sys.argv, traceback=traceback.format_exc()
-                    )
-                )
-
-                return True
-
-        logger.info("app is not start with django manage command, current argv: {argv}".format(argv=sys.argv))
-        return True
+        print("should_load_external_module: {}".format(django_command in triggers))
+        return django_command in triggers

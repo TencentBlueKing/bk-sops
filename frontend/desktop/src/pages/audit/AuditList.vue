@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="auditList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -26,61 +27,53 @@
                 <bk-table
                     :data="auditList"
                     :pagination="pagination"
+                    :size="setting.size"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('所属项目')" width="120">
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width">
                         <template slot-scope="props">
-                            <span :title="props.row.project.name">{{ props.row.project.name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.name"
-                                @click="onTemplatePermissonCheck(props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="task-name"
-                                :title="props.row.name"
-                                :to="{
-                                    name: 'auditTaskExecute',
-                                    params: { project_id: props.row.project.id },
-                                    query: { instance_id: props.row.id }
-                                }">
-                                {{props.row.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行开始')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.start_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.finish_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('执行人')" width="140">
-                        <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="120">
-                        <template slot-scope="props">
-                            <div class="audit-status">
+                            <!--所属项目-->
+                            <div v-if="item.id === 'project'">
+                                <span :title="props.row.project.name">{{ props.row.project.name }}</span>
+                            </div>
+                            <!--任务名称-->
+                            <div v-else-if="item.id === 'name'">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.name"
+                                    @click="onTemplatePermissonCheck(props.row)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-name"
+                                    :title="props.row.name"
+                                    :to="{
+                                        name: 'auditTaskExecute',
+                                        params: { project_id: props.row.project.id },
+                                        query: { instance_id: props.row.id }
+                                    }">
+                                    {{props.row.name}}
+                                </router-link>
+                            </div>
+                            <!--状态-->
+                            <div v-else-if="item.id === 'audit_status'" class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                 <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
                             </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('操作')" width="100">
@@ -104,6 +97,14 @@
                             </router-link>
                         </template>
                     </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
+                    </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData /></div>
                 </bk-table>
             </div>
@@ -123,12 +124,12 @@
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('所属项目'),
             key: 'selectedProject',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择所属项目'),
             list: [],
             value: ''
@@ -144,7 +145,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -178,6 +179,48 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 80
+        }, {
+            id: 'project',
+            label: i18n.t('所属项目'),
+            disabled: true,
+            width: 120
+        }, {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 200
+        }, {
+            id: 'start_time',
+            label: i18n.t('执行开始'),
+            width: 200
+        }, {
+            id: 'finish_time',
+            label: i18n.t('执行结束'),
+            width: 200
+        }, {
+            id: 'category_name',
+            label: i18n.t('任务类型'),
+            width: 140
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 140
+        }, {
+            id: 'executor_name',
+            label: i18n.t('执行人'),
+            width: 140
+        }, {
+            id: 'audit_status',
+            label: i18n.t('状态'),
+            width: 120
+        }
+    ]
     export default {
         name: 'auditHome',
         components: {
@@ -193,13 +236,23 @@
                 limit = 15,
                 selectedProject = '',
                 category = '',
-                start_time = '',
-                end_time = '',
+                executeTime = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
                 keyword = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = item.key === 'selectedProject' ? Number(this.$route.query[item.key]) : this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 taskBasicInfoLoading: true,
                 listLoading: true,
@@ -211,6 +264,8 @@
                     searchable: true,
                     empty: false
                 },
+                searchForm,
+                isSearchFormOpen,
                 auditList: [],
                 taskCategory: [],
                 executeStatus: [], // 任务执行态
@@ -220,7 +275,7 @@
                     creator,
                     executor,
                     statusSync,
-                    executeTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
                     taskName: keyword
                 },
                 pagination: {
@@ -228,21 +283,22 @@
                     count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 }
             }
         },
         computed: {
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                value[2].list = this.taskCategory
-                return searchForm
-            }
+            })
         },
         created () {
+            this.getFields()
             this.loadAuditTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
@@ -290,7 +346,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         project__id: selectedProject || undefined,
                         category: category || undefined,
-                        audit__pipeline_instance__name__icontains: taskName || undefined,
+                        pipeline_instance__name__contains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
@@ -319,6 +375,25 @@
                     this.listLoading = false
                 }
             },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('AuditList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                }
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('AuditList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -341,8 +416,7 @@
                     executor,
                     statusSync,
                     page: current,
-                    start_time: executeTime[0],
-                    end_time: executeTime[1],
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
                     keyword: taskName
                 }
                 const query = {}
@@ -364,6 +438,9 @@
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0 })
                     this.business.list = businessData.objects
+                    const form = this.searchForm.find(item => item.key === 'selectedProject')
+                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -375,6 +452,9 @@
                 try {
                     const res = await this.loadProjectBaseInfo()
                     this.taskCategory = res.data.task_categories.map(m => ({ name: m.name, value: m.value }))
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -403,7 +483,7 @@
                 }
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 this.updateUrl()
                 this.loadAuditTask()

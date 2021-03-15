@@ -109,7 +109,7 @@ def get_service_template_list(username, bk_biz_id, bk_supplier_account):
     if not list_service_template_return["result"]:
         message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
         logger.error(message)
-        return JsonResponse({"result": False, "data": [], "message": message})
+        return []
     return list_service_template_return["data"]["info"]
 
 
@@ -131,7 +131,7 @@ def find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids
     step = 200
 
     while start < len(set_ids):
-        params["bk_set_ids"] = set_ids[start: start + step]
+        params["bk_set_ids"] = set_ids[start : start + step]
         module_list_result = batch_request(client.cc.find_module_with_relation, params)
         result.extend(module_list_result)
         start += step
@@ -154,10 +154,12 @@ def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
         return {"result": False, "data": [], "message": message}
     result = []
     for get_biz_internal_module_option in get_biz_internal_module_return["data"]["module"]:
-        result.append({
-            "id": get_biz_internal_module_option["bk_module_id"],
-            "name": get_biz_internal_module_option["bk_module_name"]
-        })
+        result.append(
+            {
+                "id": get_biz_internal_module_option["bk_module_id"],
+                "name": get_biz_internal_module_option["bk_module_name"],
+            }
+        )
     return result
 
 
@@ -181,7 +183,7 @@ def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
     result = []
 
     while start < len(bk_module_ids):
-        params["bk_module_ids"] = bk_module_ids[start: start + step]
+        params["bk_module_ids"] = bk_module_ids[start : start + step]
         host_list_result = batch_request(client.cc.list_biz_hosts, params)
         result.extend(host_list_result)
         start += step

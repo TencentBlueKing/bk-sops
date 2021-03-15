@@ -80,7 +80,7 @@
                 </template>
             </bk-table>
         </div>
-        <separetor-select :editable="editable" :value="separetor" @change="$emit('update:separetor', $event)"></separetor-select>
+        <separator-select :editable="editable" :value="separator" @change="$emit('update:separator', $event)"></separator-select>
     </div>
 </template>
 <script >
@@ -89,14 +89,14 @@
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import RenderForm from '../RenderForm.vue'
-    import SeparetorSelect from '../SeparetorSelect.vue'
+    import SeparatorSelect from '../SeparatorSelect.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ResourceList',
         components: {
             RenderForm,
-            SeparetorSelect,
+            SeparatorSelect,
             NoData
         },
         props: {
@@ -124,7 +124,7 @@
                     return []
                 }
             },
-            separetor: String
+            separator: String
         },
         data () {
             return {
@@ -246,6 +246,7 @@
                 this.editRow = data.$index
             },
             rowDelClick (row) {
+                this.editRow = ''
                 this.tableData.splice(row.$index, 1)
                 this.$emit('update', tools.deepClone(this.tableData))
             },
@@ -261,6 +262,10 @@
                 this.tableData = tools.deepClone(this.value)
             },
             validate () {
+                // 当前正在编辑行时，自动触发保存
+                if (typeof this.editRow === 'number') {
+                    this.rowSaveClick({ '$index': this.editRow })
+                }
                 return this.validateRow(`row_`)
             }
         }

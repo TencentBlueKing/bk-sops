@@ -55,6 +55,20 @@
                 <i
                     :class="[
                         'params-btn',
+                        'common-icon-branchs',
+                        {
+                            actived: nodeInfoType === 'operateFlow'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('流水操作记录'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
+                </i>
+                <i
+                    :class="[
+                        'params-btn',
                         'solid-eye',
                         'common-icon-solid-eye',
                         {
@@ -174,7 +188,7 @@
                 if (this.templateSource === 'business' || this.templateSource === 'project') {
                     routerData = `/template/edit/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
-                    routerData = `/template/common/${this.project_id}/`
+                    routerData = `/common/edit/?template_id=${this.template_id}&common=1`
                 }
                 return routerData
             },
@@ -282,6 +296,9 @@
                 & + span {
                     margin-left: 0;
                 }
+            }
+            .common-icon-branchs {
+                font-size: 16px;
             }
         }
         .task-operation-btns {

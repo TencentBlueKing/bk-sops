@@ -179,3 +179,15 @@ def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_l
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
     return module_id_list
+
+
+def get_difference_ip_list(original_ip_list, ip_list):
+    """
+    @summary IP存在性校验
+    @param original_ip_list: 手动填写的IP列表
+    @param ip_list: 查询到的IP列表
+    @return:
+    """
+    input_ip_list = set(get_ip_by_regex(original_ip_list))
+    difference_ip_list = set(input_ip_list).difference(set(ip_list))
+    return difference_ip_list

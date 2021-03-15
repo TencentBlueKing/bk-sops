@@ -56,7 +56,7 @@ class JobCronTaskService(Service):
             self.InputItem(
                 name=_("定时作业状态"),
                 key="job_cron_status",
-                type="string",
+                type="int",
                 schema=IntItemSchema(description=_("待创建的定时作业状态，暂停(1) 启动(2)"), enum=[1, 2]),
             ),
         ]

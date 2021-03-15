@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="appmakerHome"
+                    :open="isSearchFormOpen"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     @onSearchInput="onSearchInput"
@@ -97,7 +98,8 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+
+    const SEARCH_FORM = [
         {
             type: 'dateRange',
             key: 'queryTime',
@@ -109,7 +111,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -142,6 +144,7 @@
             value: ''
         }
     ]
+
     export default {
         name: 'appmakerTaskHome',
         components: {
@@ -153,8 +156,32 @@
         mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                category = '',
+                queryTime = '',
+                statusSync = '',
+                creator = '',
+                executor = '',
+                keyword = ''
+            } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+
             return {
                 listLoading: true,
+                searchForm,
+                isSearchFormOpen,
                 isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
                 theDeleteTemplateId: undefined,
@@ -166,9 +193,9 @@
                 executeStatus: [], // 任务执行状态
                 taskCategory: [],
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
                 statusList: [
@@ -178,25 +205,19 @@
                     { 'value': 'finished', 'name': i18n.t('完成') }
                 ],
                 requestData: {
-                    queryTime: [],
-                    category: '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    taskName: keyword
                 }
             }
         },
         computed: {
             ...mapState({
                 businessTimezone: state => state.businessTimezone
-            }),
-            searchForm () {
-                const value = searchForm
-                value[1].list = this.taskCategory
-                value[0].loading = this.taskBasicInfoLoading
-                return searchForm
-            }
+            })
         },
         created () {
             this.getAppmakerList()
@@ -219,7 +240,7 @@
             async getAppmakerList () {
                 this.listLoading = true
                 try {
-                    const { queryTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    const { queryTime, category, creator, executor, statusSync, taskName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -245,7 +266,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: flowName,
+                        q: taskName,
                         category: category || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
@@ -278,6 +299,9 @@
                     this.taskCategory = res.data.task_categories.map(m => ({ value: m.value, name: m.name }))
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -287,8 +311,9 @@
                 this.getAppmakerList()
             },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getAppmakerList()
             },
             onTaskPermissonCheck (task) {
@@ -305,14 +330,38 @@
                 this.applyForPermission(['task_view'], task.auth_actions, resourceData)
             },
             onSearchFormSubmit (data) {
-                this.requestData = data
+                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getAppmakerList()
             },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getAppmakerList()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { category, queryTime, creator, executor, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    page: current,
+                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'appmakerTaskHome', params: { project_id: this.project_id }, query })
             }
         }
     }

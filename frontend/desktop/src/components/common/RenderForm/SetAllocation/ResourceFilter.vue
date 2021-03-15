@@ -57,6 +57,8 @@
                         :value="formData.set[0] && formData.set[0].id"
                         :clearable="false"
                         :loading="pending.set"
+                        :disabled="setSelectDisable"
+                        :placeholder="setSelectDisable ? i18n.setPlaceholder : i18n.pleaseSelect "
                         ext-popover-cls="common-bk-select-hide-option">
                         <template v-if="formData.set.length > 0">
                             <bk-option
@@ -110,6 +112,20 @@
                 <!-- 互斥属性 -->
                 <bk-form-item :label="i18n.exclusive" property="muteAttribute">
                     <bk-select v-model="formData.muteAttribute" @clear="onMuteAttributeClear">
+                        <bk-option
+                            v-for="condition in conditions"
+                            :key="condition.id"
+                            :id="condition.id"
+                            :name="condition.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
+                <bk-form-item :label="i18n.filterLock" property="filterLock">
+                    <bk-switcher theme="primary" size="small" v-model="formData.filterLock"></bk-switcher>
+                </bk-form-item>
+                <!-- 均摊属性 -->
+                <bk-form-item :label="i18n.shareEqually" property="shareEqually">
+                    <bk-select v-model="formData.shareEqually">
                         <bk-option
                             v-for="condition in conditions"
                             :key="condition.id"
@@ -252,6 +268,7 @@
                         set_count: 0,
                         set_template_id: '',
                         host_resources: [],
+                        filter_lock: false,
                         module_detail: []
                     }
                 }
@@ -264,7 +281,7 @@
             }
         },
         data () {
-            const { set_count, host_resources, mute_attribute = '', module_detail } = tools.deepClone(this.config)
+            const { set_count, host_resources, mute_attribute = '', filter_lock = false, shareEqually = '', module_detail } = tools.deepClone(this.config)
             const $this = this
             return {
                 formData: {
@@ -273,6 +290,8 @@
                     set: [],
                     resource: host_resources,
                     muteAttribute: mute_attribute,
+                    shareEqually: shareEqually,
+                    filterLock: filter_lock,
                     modules: module_detail
                 },
                 schemeData: {
@@ -382,6 +401,7 @@
                     set: gettext('集群模板'),
                     resource: gettext('主机资源所属'),
                     exclusive: gettext('互斥属性'),
+                    shareEqually: gettext('均摊属性'),
                     resourceNum: gettext('主机数量'),
                     selectMethod: gettext('筛选方式'),
                     default: gettext('默认'),
@@ -396,8 +416,13 @@
                     moduleMute: gettext('模块间互斥'),
                     muteModuleTips: gettext('如果互斥模块复用本模块，则该互斥约束失效'),
                     muteModule: gettext('互斥模块'),
-                    condition: gettext('筛选条件和排除条件')
-                }
+                    condition: gettext('筛选条件和排除条件'),
+                    filterLock: gettext('过滤加锁主机'),
+                    setPlaceholder: gettext('暂不支持分层层级大于 业务-集群 两层的集群模版'),
+                    pleaseSelect: gettext('请选择')
+                },
+                levelInfo: [], // 集群模板层数
+                setSelectDisable: false // 集群模板是否大于等于三层
             }
         },
         computed: {
@@ -429,7 +454,7 @@
                             select_method, custom_ip_list, mute_method, mute_modules, host_filter_list, // v1 迁移后新增字段
                             filters, excludes // v1 迁移前存在的字段
                         } = tools.deepClone(moduleItem)
-                        
+
                         let filterList = []
                         if (filters && excludes) { // filters、excludes 字段存在说明是 v1 迁移前的旧数据，需要兼容
                             filterList = filters.concat(excludes)
@@ -480,7 +505,8 @@
                 'getCCSearchTopoSet',
                 'getCCSearchTopoResource',
                 'getCCSearchModule',
-                'getCCSearchObjAttrHost'
+                'getCCSearchObjAttrHost',
+                'getCCHostCount'
             ]),
             async gitResourceSchemes () {
                 try {
@@ -509,6 +535,8 @@
                         url: this.urls['cc_search_topo_set']
                     })
                     if (resp.result) {
+                        this.setSelectDisable = this.isSetSelectDisable(resp.data)
+                        if (this.setSelectDisable) return
                         this.setList = resp.data
                         if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
                             const checkedName = this.filterSetName(this.config.set_template_id, resp.data)
@@ -532,6 +560,16 @@
                 } finally {
                     this.pending.set = false
                 }
+            },
+            isSetSelectDisable (data, level = 1) {
+                if (level > 2) {
+                    return true
+                }
+                return data.some(item => {
+                    if (item.children) {
+                        return this.isSetSelectDisable(item.children, level + 1)
+                    }
+                })
             },
             async getResource () {
                 try {
@@ -578,6 +616,17 @@
                     }
                     const resp = await this.getCCSearchModule(params)
                     if (resp.result) {
+                        if (resp.data.info.length > 0) {
+                            const ids = resp.data.info.map(item => item.bk_module_id)
+                            const respCount = await this.getCCHostCount({
+                                url: this.urls['cc_find_host_by_topo'],
+                                ids: ids.join(',')
+                            })
+                            resp.data.info.forEach(md => {
+                                const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
+                                md.count = mdInfo ? mdInfo.host_count : 0
+                            })
+                        }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
                     } else {
@@ -616,7 +665,7 @@
             },
             async onSchemeSelect (id) {
                 const scheme = this.schemes.find(item => item.id === id)
-                const { module_detail, mute_attribute, set_count, host_resources, set_template_id, set_template_name } = JSON.parse(scheme.data)
+                const { module_detail, mute_attribute, shareEqually, set_count, host_resources, set_template_id, set_template_name, filter_lock = false } = JSON.parse(scheme.data)
                 const modules = module_detail.map(item => {
                     const { custom_ip_list, host_count, host_filter_list, id, mute_method, mute_modules, name, reuse_module, select_method } = item
                     return {
@@ -637,6 +686,8 @@
                     set: [{ id: set_template_id, label: set_template_name }],
                     resource: host_resources,
                     muteAttribute: mute_attribute,
+                    filterLock: filter_lock,
+                    shareEqually,
                     modules
                 }
                 this.schemeData.name = scheme.name
@@ -702,7 +753,7 @@
                 await this.getModule(checked.id)
                 this.moduleList.forEach((item, index) => {
                     this.$set(this.formData.modules, index, {
-                        count: 0,
+                        count: item.count || 0,
                         name: item.bk_module_name,
                         id: item.bk_module_id,
                         isReuse: false,
@@ -753,7 +804,7 @@
                 nodes.forEach(item => {
                     list.push(item.id)
                     if (item.children && item.children.length > 0) {
-                        list = list.concat(this.getDisabledNodes(item.children))
+                        list = list.concat(this.traverseNodesToList(item.children))
                     }
                 })
                 return list
@@ -867,7 +918,7 @@
                 try {
                     this.pending.host = true
                     const fields = []
-                    
+
                     this.formData.modules.forEach(md => { // 取出所有模块的筛选、排除条件字段
                         md.hostFilterList.forEach(item => {
                             if (item.field !== '' && !fields.includes(item.field)) {
@@ -877,6 +928,9 @@
                     })
                     if (this.formData.muteAttribute && !fields.includes(this.formData.muteAttribute)) {
                         fields.push(this.formData.muteAttribute)
+                    }
+                    if (this.formData.shareEqually && !fields.includes(this.formData.shareEqually)) {
+                        fields.push(this.formData.shareEqually)
                     }
                     const topo = this.formData.resource.map(item => {
                         const [bk_obj_id, bk_inst_id] = item.id.split('_')
@@ -890,6 +944,10 @@
                         fields,
                         topo
                     })
+                    if (this.formData.filterLock) { // 过滤已经加锁主机
+                        hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
+                    }
+
                     const moduleHosts = this.filterModuleHost(hostData.data)
                     const configData = this.getConfigData()
                     this.$emit('update', configData, moduleHosts)
@@ -905,97 +963,23 @@
              * host 值需要同时满足筛选条件和排除条件
              * 非复用模块间主机不能重复，先分别计算所有满足模块条件的主机，再计算模块所需主机数与满足条件主机的比值，值大的模块优先在主机里取值
              * 模块复用时，取其复用的模块主机数据
-             * 每个模块的 host 数量不能超过 moudule.count 设置
+             * 每个模块的 host 数量不能超过 module.count 设置
              *
              * @param {Array} data 全量的 host 数据
              *
              * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [xx.xx.x.x, x.x.x.xxx], ...}
              */
             filterModuleHost (data) {
-                let fullMdHosts = [] // 所有满足各模块的主机数据
                 const hosts = [] // 模块实际的主机数据，去重、按照实际数量配置截取
-                const reuseOthers = []
+                const reuseOthers = this.formData.modules.filter(item => item.selectMethod === 2)
                 const usedHosts = []
+                const fullMdHosts = this.getFullModuleHosts(data) // 所有满足各模块的主机数据
                 for (let i = 0; i < this.formData.clusterCount; i++) {
                     const moduleHosts = {}
-                    this.formData.modules.forEach(md => {
-                        const { id, selectMethod, customIpList, muteMethod, muteModules, hostFilterList } = md
-                        const validFilters = hostFilterList.filter(item => item.type === 'filter' && item.filed !== '' && item.value.length > 0)
-                        const validExclude = hostFilterList.filter(item => item.type === 'exclude' && item.filed !== '' && item.value.length > 0)
-                        let list = []
-
-                        if (selectMethod === 2) { // 复用其他模块，则暂时不计算该模块的主机
-                            reuseOthers.push(md)
-                        } else if (selectMethod === 1) { // 模块手动填写 ip
-                            const ipArr = customIpList.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
-                            ipArr.forEach(ipItem => {
-                                const ipStr = ipItem.trim()
-                                const matchedData = data.find(item => item.bk_host_innerip === ipItem)
-                                if (ipStr && matchedData) {
-                                    list.push(matchedData)
-                                }
-                            })
-                            fullMdHosts.push({
-                                id,
-                                list,
-                                percent: data.length > 0 ? list.length / data.length : 0
-                            })
-                        } else { // 默认筛选方式，则计算本模块数据
-                            if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                                list = data
-                            } else {
-                                const filterObj = this.transFieldArrToObj(validFilters)
-                                const excludeObj = this.transFieldArrToObj(validExclude)
-                                const innerMuteAttr = [] // 模块内互斥，已使用的属性的值
-
-                                data.forEach(item => {
-                                    let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
-                                    let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
-
-                                    if (validFilters.length === 0) {
-                                        included = true
-                                    } else {
-                                        Object.keys(filterObj).some(filterKey => {
-                                            if (filterObj[filterKey].includes(item[filterKey])) {
-                                                included = true
-                                                return true
-                                            }
-                                        })
-                                    }
-                                    
-                                    if (included) {
-                                        Object.keys(excludeObj).some(excludeKey => {
-                                            if (excludeObj[excludeKey].includes(item[excludeKey])) {
-                                                excluded = true
-                                                return true
-                                            }
-                                        })
-                                    }
-
-                                    if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                        if (muteMethod === 1) { // 模块内互斥
-                                            if (!innerMuteAttr.includes(item[this.formData.muteAttribute])) {
-                                                innerMuteAttr.push(item[this.formData.muteAttribute])
-                                                list.push(item)
-                                            }
-                                        } else {
-                                            list.push(item)
-                                        }
-                                    }
-                                })
-                            }
-                            fullMdHosts.push({
-                                id,
-                                muteModules,
-                                list,
-                                percent: data.length > 0 ? list.length / data.length : 0
-                            })
-                        }
-                    })
-                    fullMdHosts = fullMdHosts.sort((a, b) => b.percent - a.percent)
                     fullMdHosts.forEach(item => {
                         const md = this.formData.modules.find(m => m.id === item.id)
                         const mutedHostAttrs = this.getModuleMutedHostAttrs(md.id, moduleHosts, data) // 当前模块被之前遍历的模块指定为互斥模块的模块，所包含的主机互斥属性的值
+                        const innerMuteAttr = [] // 模块内互斥
                         moduleHosts[md.name] = []
 
                         if (md.count > 0) {
@@ -1004,8 +988,12 @@
                                     return true
                                 }
                                 if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
+                                    if (md.muteMethod === 1 && innerMuteAttr.includes(h[this.formData.muteAttribute])) { // 模块内互斥
+                                        return
+                                    }
                                     moduleHosts[md.name].push(h.bk_host_innerip)
                                     usedHosts.push(h.bk_host_innerip)
+                                    innerMuteAttr.push(h[this.formData.muteAttribute])
                                 }
                             })
                         }
@@ -1026,6 +1014,109 @@
                 }
 
                 return hosts
+            },
+            getFullModuleHosts (data) {
+                const fullMdHosts = []
+                this.formData.modules.forEach(md => {
+                    const { id, selectMethod, customIpList, muteModules, hostFilterList } = md
+                    const validFilters = hostFilterList.filter(item => item.type === 'filter' && item.filed !== '' && item.value.length > 0)
+                    const validExclude = hostFilterList.filter(item => item.type === 'exclude' && item.filed !== '' && item.value.length > 0)
+                    let list = []
+
+                    if (selectMethod !== 2) { // 复用其他模块，则暂时不计算该模块的主机
+                        if (selectMethod === 1) { // 模块手动填写 ip
+                            const ipArr = customIpList.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
+                            ipArr.forEach(ipItem => {
+                                const ipStr = ipItem.trim()
+                                const matchedData = data.find(item => item.bk_host_innerip === ipItem)
+                                if (ipStr && matchedData) {
+                                    list.push(matchedData)
+                                }
+                            })
+                            fullMdHosts.push({
+                                id,
+                                list,
+                                percent: data.length > 0 ? list.length / data.length : 0
+                            })
+                        } else { // 默认筛选方式，则计算本模块数据
+                            if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
+                                list = data
+                            } else {
+                                const filterObj = this.transFieldArrToObj(validFilters)
+                                const excludeObj = this.transFieldArrToObj(validExclude)
+
+                                data.forEach(item => {
+                                    let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
+                                    let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
+
+                                    if (validFilters.length === 0) {
+                                        included = true
+                                    } else {
+                                        Object.keys(filterObj).some(filterKey => {
+                                            if (filterObj[filterKey].includes(item[filterKey])) {
+                                                included = true
+                                                return true
+                                            }
+                                        })
+                                    }
+
+                                    if (included) {
+                                        Object.keys(excludeObj).some(excludeKey => {
+                                            if (excludeObj[excludeKey].includes(item[excludeKey])) {
+                                                excluded = true
+                                                return true
+                                            }
+                                        })
+                                    }
+
+                                    if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
+                                        list.push(item)
+                                    }
+                                })
+                            }
+                            const shareEquallyList = this.formData.shareEqually ? this.shareEquallyAttrs(list, this.formData.shareEqually) : list
+                            fullMdHosts.push({
+                                id,
+                                muteModules,
+                                list: shareEquallyList,
+                                percent: data.length > 0 ? list.length / data.length : 0
+                            })
+                        }
+                    }
+                })
+                return fullMdHosts.sort((a, b) => b.percent - a.percent)
+            },
+            /**
+             * 将主机列表按照属性均摊排序重组
+             *
+             * @param {Array} list 主机列表
+             * @param {String} attr 均摊属性
+             *
+             * @return {Array} 排序后的主机列表
+             */
+            shareEquallyAttrs (list, attr) {
+                const mergedList = []
+                const attrsValObj = {}
+                list.forEach(item => {
+                    const val = item[attr]
+                    if (val in attrsValObj) {
+                        attrsValObj[val].push(item)
+                    } else {
+                        attrsValObj[val] = [item]
+                    }
+                })
+                const valArrs = Object.values(attrsValObj)
+                const maxLenArr = valArrs.reduce((acc, crt) => {
+                    return acc.length - crt.length > 0 ? acc : crt
+                }, [])
+                for (let i = 0; i < maxLenArr.length; i++) {
+                    valArrs.forEach(groupItem => {
+                        if (groupItem.length >= i + 1) {
+                            mergedList.push(groupItem[i])
+                        }
+                    })
+                }
+                return mergedList
             },
             /**
              * 条件数据转换为对象，整合相同条件的 value, 减少条件遍历次数
@@ -1071,7 +1162,7 @@
             },
             // 将本地表单编辑数据格式转换为接口所需数据格式
             getConfigData () {
-                const { clusterCount, modules, resource, set, muteAttribute } = this.formData
+                const { clusterCount, modules, resource, set, muteAttribute, shareEqually, filterLock } = this.formData
                 const moduleDetail = []
                 modules.forEach(md => { // 取出所有模块的筛选、排除条件字段，并模块详情数据转换为接口保存格式
                     const { id, name, count, selectMethod, reuse, customIpList, muteMethod, muteModules, hostFilterList } = md
@@ -1103,6 +1194,8 @@
                     set_template_name: set[0].label,
                     host_resources: resource,
                     mute_attribute: muteAttribute,
+                    filter_lock: filterLock,
+                    shareEqually: shareEqually,
                     module_detail: moduleDetail
                 }
             }

@@ -36,9 +36,9 @@ class GetTemplateInfoInterceptor(ViewInterceptor):
         if template_source in NON_COMMON_TEMPLATE_TYPES:
             action = Action(IAMMeta.FLOW_VIEW_ACTION)
             resources = res_factory.resources_for_flow(template_id)
-            allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+            allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
 
         else:
             action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
             resources = res_factory.resources_for_common_flow(template_id)
-            allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
+            allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

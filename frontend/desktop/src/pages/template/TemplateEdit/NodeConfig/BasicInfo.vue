@@ -27,7 +27,7 @@
                         </div>
                     </template>
                 </bk-input>
-                <p v-if="formData.desc" class="plugin-info-desc">{{ formData.desc }}</p>
+                <p v-if="formData.desc" class="plugin-info-desc" v-html="formData.desc"></p>
             </bk-form-item>
             <bk-form-item :label="$t('插件版本')" :required="true" property="version">
                 <bk-select
@@ -130,7 +130,8 @@
                     v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
                         content: $t('版本更新'),
-                        placements: ['bottom-end'] }"
+                        placements: ['bottom-end']
+                    }"
                     @click="onUpdateSubflowVersion">
                 </i>
             </bk-form-item>
@@ -237,11 +238,6 @@
                         }
                     ],
                     stageName: [
-                        {
-                            regex: NAME_REG,
-                            message: i18n.t('步骤名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
-                            trigger: 'blur'
-                        },
                         {
                             max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
                             message: i18n.t('步骤名称长度不能超过') + STRING_LENGTH.STAGE_NAME_MAX_LENGTH + i18n.t('个字符'),

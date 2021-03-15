@@ -233,6 +233,7 @@
             tag_code: "cc_module_infos_category",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("模块信息"),
                 hookable: true,
                 add_btn: true,
@@ -355,6 +356,7 @@
             tag_code: "cc_module_infos_template",
             type: "datatable",
             attrs: {
+                pagination: true,
                 name: gettext("模块信息"),
                 remote_url: function () {
                     return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/';

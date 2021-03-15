@@ -10,19 +10,22 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <el-tooltip placement="bottom" popper-class="task-node-tooltip" :disabled="!isOpenTooltip">
-        <div
-            :class="[
-                'gateway-node',
-                'branch-gateway',
-                node.status ? node.status.toLowerCase() : ''
-            ]">
-            <div class="node-type-icon common-icon-node-branchgateway"></div>
+    <div
+        :class="[
+            'gateway-node',
+            'branch-gateway',
+            node.status ? node.status.toLowerCase() : ''
+        ]">
+        <div class="node-type-icon common-icon-node-branchgateway"></div>
+        <div class="state-icon" v-if="isOpenTooltip">
+            <el-tooltip placement="bottom" :content="$t('跳过')">
+                <span
+                    class="common-icon-skip"
+                    @click.stop="onGatewaySelectionClick">
+                </span>
+            </el-tooltip>
         </div>
-        <div class="node-tooltip-content" slot="content">
-            <bk-button @click.stop="onGatewaySelectionClick">{{ $t('跳过') }}</bk-button>
-        </div>
-    </el-tooltip>
+    </div>
 </template>
 <script>
 

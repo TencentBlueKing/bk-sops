@@ -20,7 +20,7 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
 
 __group_name__ = _("监控平台(Monitor)")
@@ -65,10 +65,10 @@ class MonitorAlarmShieldDisableService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("响应内容"), key="data", type="str", schema=StringItemSchema(description=_("解除告警屏蔽的响应内容"))
+                name=_("响应内容"), key="data", type="string", schema=StringItemSchema(description=_("解除告警屏蔽的响应内容"))
             ),
             self.OutputItem(
-                name=_("状态码"), key="status_code", type="int", schema=StringItemSchema(description=_("解除告警屏蔽的响应状态码"))
+                name=_("状态码"), key="status_code", type="int", schema=IntItemSchema(description=_("解除告警屏蔽的响应状态码"))
             ),
         ]
 

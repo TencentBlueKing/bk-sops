@@ -89,7 +89,8 @@
         "code": "sleep_timer",
         "name": "定时",
         "group_name": "蓝鲸服务(BK)",
-        "version": "legacy"
+        "version": "legacy",
+        "form": "/static/components/atoms/bk/timer.js"
     },
     "code": 0
 }
@@ -111,7 +112,8 @@
 |  code      |    string    |      插件代码    |
 |  name      |    string    |      插件名    |
 |  group_name      |    string    |      插件组名    |
-|  version      |    name    |      插件版本    |
+|  version      |    string    |      插件版本    |
+|  form         |    string    |      插件表单静态资源链接    |
 
 ##### inputs
 

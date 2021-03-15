@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_zh.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.6.18-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.6.34-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -43,6 +43,7 @@
 - [正式环境上传部署](docs/install/upload_pack_deploy.md)
 - [移动端部署](docs/install/mobile_deploy.md)
 - [标准插件开发](docs/develop/dev_plugins.md)
+- [标准运维开发者工具包](docs/develop/bksops-developer-tools.md)
 
 
 ## Usage

@@ -44,6 +44,7 @@
                     :has-admin-perm="adminView"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
+                    @onConditionClick="onOpenConditionEdit"
                     @onRetryClick="onRetryClick"
                     @onForceFail="onForceFailClick"
                     @onSkipClick="onSkipClick"
@@ -93,6 +94,10 @@
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
+                <OperationFlow
+                    v-if="nodeInfoType === 'operateFlow'"
+                    class="operation-flow">
+                </OperationFlow>
                 <TaskInfo
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
@@ -154,6 +159,12 @@
             @cancel="onTaskNodeResumeCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
         </bk-dialog>
+        <condition-edit
+            ref="conditionEdit"
+            :is-readonly="true"
+            :is-show.sync="isShowConditionEdit"
+            :condition-data="conditionData">
+        </condition-edit>
     </div>
 </template>
 <script>
@@ -168,12 +179,14 @@
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
+    import OperationFlow from './OperationFlow.vue'
     import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
+    import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -215,11 +228,13 @@
             ExecuteInfo,
             RetryNode,
             ModifyTime,
+            OperationFlow,
             TaskInfo,
             gatewaySelectDialog,
             revokeDialog,
             TaskOperationHeader,
-            TemplateData
+            TemplateData,
+            ConditionEdit
         },
         mixins: [permission],
         props: {
@@ -286,7 +301,9 @@
                 nodeResumeId: undefined,
                 operateLoading: false,
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
-                pollErrorTimes: 0 // 任务状态查询异常连续三次后，停止轮询
+                pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
+                isShowConditionEdit: false, // 条件分支侧栏
+                conditionData: {}
             }
         },
         computed: {
@@ -412,7 +429,7 @@
                 try {
                     this.$emit('taskStatusLoadChange', true)
                     let instanceStatus = {}
-                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus) { // 总任务：完成/撤销时,取实例缓存数据
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
                     } else if (
                         this.instanceStatus.state
@@ -1004,7 +1021,7 @@
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
                 this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams', 'templateData'].includes(type)) {
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
                     this.quickClose = false
                 }
             },
@@ -1083,6 +1100,10 @@
                     }
                 }
             },
+            onOpenConditionEdit (data) {
+                this.isShowConditionEdit = true
+                this.conditionData = { ...data }
+            },
             handleSubflowAtomClick (id) {
                 this.cancelTaskStatusTimer()
                 const nodeActivities = this.pipelineData.activities[id]
@@ -1093,7 +1114,6 @@
                     nodeId: nodeActivities.id,
                     type: 'SubProcess'
                 })
-                
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
             },
@@ -1392,14 +1412,21 @@
                 left: 40px;
             }
         }
+        .task-management-page {
+            /deep/ .canvas-wrapper.jsflow .jtk-endpoint {
+                z-index: 2 !important;
+            }
+        }
     }
-
 }
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);
 }
 .node-info-panel {
     height: 100%;
+    .operation-flow {
+        padding: 20px 30px;
+    }
 }
 
 </style>

@@ -15,7 +15,7 @@
             <div class="task-info-title">
                 <span>{{ $t('任务信息') }}</span>
             </div>
-            <div>
+            <div class="task-basic-info">
                 <div class="common-form-item">
                     <label class="required">{{ $t('任务名称') }}</label>
                     <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
@@ -25,7 +25,7 @@
                             class="step-form-content-size"
                             name="taskName">
                         </bk-input>
-                        <span v-show="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                        <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                     </div>
                 </div>
                 <div
@@ -141,6 +141,7 @@
                 isSubmit: false,
                 isSelectFunctionalType: false,
                 taskName: '',
+                appmakerTaskName: '',
                 pipelineData: {},
                 unreferenced: {},
                 taskNameRule: {
@@ -170,6 +171,7 @@
         },
         computed: {
             ...mapState({
+                'locations': state => state.template.location,
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
@@ -182,6 +184,9 @@
             ...mapState('appmaker', {
                 'appmakerDetail': state => state.appmakerDetail
             }),
+            isCommonProcess () {
+                return Number(this.$route.query.common) === 1
+            },
             isTaskTypeShow () {
                 return this.entrance !== 'function' && this.isStartNow
             },
@@ -223,7 +228,11 @@
             ...mapActions('template/', [
                 'loadTemplateData'
             ]),
+            ...mapActions('appmaker/', [
+                'loadAppmakerDetail'
+            ]),
             ...mapActions('task/', [
+                'getSchemeDetail',
                 'loadPreviewNodeData',
                 'createTask'
             ]),
@@ -279,9 +288,28 @@
 
                     this.tplActions = templateData.auth_actions
                     this.setTemplateData(templateData)
+
+                    let schemeId = ''
+                    const excludeNodeIdList = []
+                    if (this.viewMode === 'appmaker') {
+                        await this.loadAppmakerDetail(this.app_id).then(res => {
+                            schemeId = res.template_scheme_id
+                            this.appmakerTaskName = res.name
+                        })
+                        if (schemeId) {
+                            const schemeDetail = await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess })
+                            const allNodeId = JSON.parse(schemeDetail.data)
+                            this.locations.filter(item => {
+                                if (allNodeId.indexOf(item.id) === -1 && item.optional) {
+                                    excludeNodeIdList.push(item.id)
+                                }
+                            })
+                        }
+                    }
+                    const excludeTaskNodesId = this.excludeNode.length ? this.excludeNode : excludeNodeIdList
                     const params = {
                         templateId: this.template_id,
-                        excludeTaskNodesId: this.excludeNode,
+                        excludeTaskNodesId,
                         common: this.common,
                         project_id: this.project_id,
                         template_source: templateSource,
@@ -312,6 +340,9 @@
                     nowTime = moment().format('YYYYMMDDHHmmss')
                 } else {
                     nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                }
+                if (this.viewMode === 'appmaker') {
+                    return this.appmakerTaskName + '_' + nowTime
                 }
                 return this.templateName + '_' + nowTime
             },
@@ -404,7 +435,28 @@
                         formValid = paramEditComp.validate()
                     }
 
-                    if (!result || !formValid) return
+                    if (!result) {
+                        const $basicInfo = document.querySelector('.task-basic-info')
+                        $basicInfo.scrollIntoView()
+                        return
+                    }
+
+                    if (!formValid) {
+                        const $renderform = document.querySelector('.render-form')
+                        const $tipsEl = Array.from($renderform.querySelectorAll('.common-error-tip'))
+                        let $tipInView = null
+                        $tipsEl.some(item => {
+                            console.log(item.style.display)
+                            if (item.style.display !== 'none') {
+                                $tipInView = item
+                                return true
+                            }
+                        })
+                        if ($tipInView) {
+                            $tipInView.scrollIntoView()
+                        }
+                        return
+                    }
 
                     this.isSubmit = true
                     let flowType
