@@ -141,6 +141,7 @@
                 isSubmit: false,
                 isSelectFunctionalType: false,
                 taskName: '',
+                appmakerTaskName: '',
                 pipelineData: {},
                 unreferenced: {},
                 taskNameRule: {
@@ -293,6 +294,7 @@
                     if (this.viewMode === 'appmaker') {
                         await this.loadAppmakerDetail(this.app_id).then(res => {
                             schemeId = res.template_scheme_id
+                            this.appmakerTaskName = res.name
                         })
                         if (schemeId) {
                             const schemeDetail = await this.getSchemeDetail({ id: schemeId, isCommon: this.isCommonProcess })
@@ -338,6 +340,9 @@
                     nowTime = moment().format('YYYYMMDDHHmmss')
                 } else {
                     nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                }
+                if (this.viewMode === 'appmaker') {
+                    return this.appmakerTaskName + '_' + nowTime
                 }
                 return this.templateName + '_' + nowTime
             },
