@@ -1,4 +1,6 @@
 const en = {
+    '已过期，任务运行时数据已清理': 'Expired, data has been clear while task running',
+    '已过期': 'Expired',
     '编辑执行方案': 'Edit execution plan',
     '确定保存并去设置执行方案吗？': 'Are you sure to save and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',
