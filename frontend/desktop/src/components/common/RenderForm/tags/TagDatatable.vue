@@ -352,15 +352,17 @@
                             nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
                         }
                         // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
-                        const excelValue = tabJson[0]['sheet']
-                        for (let i = 0; i < excelValue.length; i++) {
-                            for (const key in excelValue[i]) {
+                        const excelValue = tools.deepClone(tabJson[0]['sheet'])
+                        for (let i = 0; i < tabJson[0]['sheet'].length; i++) {
+                            for (const key in tabJson[0]['sheet'][i]) {
                                 const newKey = nameToTagCode[key]
-                                excelValue[i][newKey] = excelValue[i][key]
-                                delete excelValue[i][key]
+                                if (newKey && key !== newKey) {
+                                    excelValue[i][newKey] = excelValue[i][key]
+                                    delete excelValue[i][key]
+                                }
                             }
                         }
-                        this._set_value(tabJson[0]['sheet'])
+                        this._set_value(excelValue)
                     }
                 })
             },
