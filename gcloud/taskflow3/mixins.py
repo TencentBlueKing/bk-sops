@@ -18,7 +18,7 @@ from django.db import connection
 from django.db.models import Count, Avg
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils.managermixins import ClassificationCountMixin
+from gcloud.utils.managermixins import ClassificationCountMixin
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentExecuteData
 from gcloud.core.models import Project

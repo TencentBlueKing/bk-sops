@@ -21,24 +21,24 @@ from blueapps.account.models import User
 class UserAdmin(admin.ModelAdmin):
 
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        (_('Personal info'), {'fields': ('nickname',)}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
-                                       'groups', 'user_permissions')}),
-        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+        (None, {"fields": ("username", "password")}),
+        (_("Personal info"), {"fields": ("nickname",)}),
+        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions",)},),
+        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username',),
-        }),
-    )
+    add_fieldsets = ((None, {"classes": ("wide",), "fields": ("username",)}),)
     add_form = UserCreationForm
-    filter_horizontal = ['groups']
-    list_display = ['username', 'nickname', 'is_active', 'is_staff',
-                    'is_superuser', 'last_login']
-    search_fields = ['username']
-    list_filter = ['is_superuser', 'is_staff', 'is_active']
+    filter_horizontal = ["groups"]
+    list_display = [
+        "username",
+        "nickname",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+        "last_login",
+    ]
+    list_filter = ("is_superuser", "is_staff")
+    search_fields = ("username",)
 
 
 admin.site.register(User, UserAdmin)

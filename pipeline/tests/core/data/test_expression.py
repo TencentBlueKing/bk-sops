@@ -152,6 +152,48 @@ class TestConstantTemplate(TestCase):
         self.assertEqual(template.resolve_data({"t": True}), "a-1-c")
 
     def test_mako_attack(self):
+        shield_words = [
+            "ascii",
+            "bytearray",
+            "bytes",
+            "callable",
+            "chr",
+            "classmethod",
+            "compile",
+            "delattr",
+            "dir",
+            "divmod",
+            "exec",
+            "eval",
+            "filter",
+            "frozenset",
+            "getattr",
+            "globals",
+            "hasattr",
+            "hash",
+            "help",
+            "id",
+            "input",
+            "isinstance",
+            "issubclass",
+            "iter",
+            "locals",
+            "map",
+            "memoryview",
+            "next",
+            "object",
+            "open",
+            "print",
+            "property",
+            "repr",
+            "setattr",
+            "staticmethod",
+            "super",
+            "type",
+            "vars",
+            "__import__",
+        ]
+        sandbox._shield_words(sandbox.SANDBOX, shield_words)
         attack_templates = [
             '${"".__class__.__mro__[-1].__subclasses__()[127].__init__.__globals__["system"]("whoami")}',  # noqa
             '${getattr("", dir(0)[0][0] + dir(0)[0][0] + "class" + dir(0)[0][0]+ dir(0)[0][0])}',  # noqa

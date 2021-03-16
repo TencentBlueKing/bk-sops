@@ -28,7 +28,7 @@ STATIC_URL = "/static/"
 # REMOTE_STATIC_URL = '%sremote/' % STATIC_URL
 
 # Celery 消息队列设置 RabbitMQ
-# BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+# BROKER_URL = "amqp://guest:guest@localhost:5672/"
 # Celery 消息队列设置 Redis
 BROKER_URL = "redis://localhost:6379/0"
 
@@ -48,6 +48,8 @@ DATABASES = {
         "TEST": {"NAME": "test_sops", "CHARSET": "utf8", "COLLATION": "utf8_general_ci"},
     },
 }
+
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 
 LOG_PERSISTENT_DAYS = 1
 

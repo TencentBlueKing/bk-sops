@@ -18,7 +18,7 @@ from django.db import models
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils import managermixins
+from gcloud.utils import managermixins
 
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
@@ -244,7 +244,7 @@ class AppMaker(models.Model):
     create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
     editor = models.CharField(_("编辑人"), max_length=100, null=True)
     edit_time = models.DateTimeField(_("编辑时间"), auto_now=True, null=True)
-    task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"))
+    task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"), on_delete=models.CASCADE)
     template_scheme_id = models.CharField(_("执行方案"), max_length=100, blank=True)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
 

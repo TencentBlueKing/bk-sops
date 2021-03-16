@@ -24,6 +24,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name="djceleryperiodictask",
-            options={"verbose_name": "djcelery periodic task", "verbose_name_plural": "djcelery periodic tasks"},
+            options={"verbose_name": "djcelery periodic task", "verbose_name_plural": "djcelery periodic tasks",},
         ),
     ]
