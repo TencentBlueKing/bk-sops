@@ -138,136 +138,76 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
     def group_by_atom_execute_times(self, taskflow, *args):
         # 查询各标准插件被执行次数
         # 获得标准插件dict列表
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-
         instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_data = (
-            component.values("component_code")
-            .annotate(execute_times=Count("component_code"))
+            ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
+            .values("component_code", "version")
+            .annotate(execute_times=Count("*"))
             .order_by("component_code")
         )
-        total = component_list.count()
-        execute_data = {}
-        for component in component_data:
-            value = component["execute_times"]
-            execute_data[component["component_code"]] = value
-
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-
-            processed_components.add(code)
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": execute_data.get(code, 0)})
-        return total, groups
+        return ComponentModel.objects.get_component_dicts(component_data, "execute_times")
 
     def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件失败次数
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-
         instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
         # 获得标准插件
-        component_data = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_failed_data = (
-            component_data.filter(status=False)
-            .values("component_code")
-            .annotate(failed_times=Count("component_code"))
+            ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, status=False)
+            .values("component_code", "version")
+            .annotate(failed_times=Count("*"))
             .order_by("component_code")
         )
-        failed_dict = {item["component_code"]: item["failed_times"] for item in component_failed_data}
-
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": failed_dict.get(code, 0)})
-        return component_list.count(), groups
+        return ComponentModel.objects.get_component_dicts(component_failed_data, "failed_times")
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
         # 查询各标准插件被执行次数
         # 获得标准插件dict列表
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-
         instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_data = (
-            component.values("component_code").annotate(avg_execute_time=Avg("elapsed_time")).order_by("component_code")
+            ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
+            .values("component_code", "version")
+            .annotate(avg_execute_time=Avg("elapsed_time"))
+            .order_by("component_code")
         )
-        total = component_list.count()
-        execute_data = {}
-        for component in component_data:
-            value = component["avg_execute_time"]
-            execute_data[component["component_code"]] = value
 
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": execute_data.get(code, 0)})
-        return total, groups
+        return ComponentModel.objects.get_component_dicts(component_data, "avg_execute_time")
 
     def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各标准插件重试次数
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-        total = component_list.count()
-
         instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_data = (
-            component.values("component_code")
-            .annotate(execute_times=Count("component_code"))
+            ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
+            .values("component_code", "version")
+            .annotate(execute_times=Count("*"))
             .order_by("component_code")
         )
         component_failed_data = (
             component_data.filter(status=False)
-            .values("component_code")
-            .annotate(failed_times=Count("component_code"))
+            .values("component_code", "version")
+            .annotate(failed_times=Count("*"))
             .order_by("component_code")
         )
-        failed_dict = {item["component_code"]: item["failed_times"] for item in component_failed_data}
-        fail_percent = {}
+        failed_dict = {
+            "{}-{}".format(item["component_code"], item["version"]): item["failed_times"]
+            for item in component_failed_data
+        }
+        fail_percent = []
         for component in component_data:
-            component_code = component["component_code"]
+            component_code = "{}-{}".format(component["component_code"], component["version"])
             if component_code in failed_dict:
                 execute_times = component["execute_times"]
-                fail_percent[component_code] = "%.2f" % ((failed_dict[component_code] * 1.00 / execute_times) * 100)
+                fail_percent.append(
+                    {
+                        "component_code": component["component_code"],
+                        "version": component["version"],
+                        "fail_percent": "%.2f" % ((failed_dict[component_code] * 1.00 / execute_times) * 100),
+                    }
+                )
 
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": fail_percent.get(code, 0)})
-        return total, groups
+        return ComponentModel.objects.get_component_dicts(fail_percent, "fail_percent")
 
     def group_by_atom_instance(self, taskflow, filters, page, limit):
         # 被引用的任务实例列表
@@ -277,15 +217,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
         # 获得参数中的标准插件code
         component_code = filters.get("component_code")
+        version = filters.get("version")
         # 获取到组件code对应的instance_id_list
         instance_id_list = ComponentExecuteData.objects.filter(is_sub=False)
         # 对code进行二次查找
         if component_code:
-            instance_id_list = (
-                instance_id_list.filter(component_code=component_code).distinct().values_list("instance_id")
+            instance_id_list = instance_id_list.filter(component_code=component_code, version=version).values_list(
+                "instance_id"
             )
         else:
             instance_id_list = instance_id_list.values_list("instance_id")
+
         taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
         # 获得总数
         total = taskflow_list.count()
@@ -363,7 +305,9 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "projectId": task[mapping["projectId"]],
                 "projectName": task[mapping["projectName"]],
                 "category": task_category[task[mapping["categoryKey"]]],
-                "createTime": format_datetime(task[mapping["createTime"]],),
+                "createTime": format_datetime(
+                    task[mapping["createTime"]],
+                ),
                 "creator": task[mapping["creator"]],
                 "elapsedTime": calculate_elapsed_time(task[mapping["startTime"]], task[mapping["finishTime"]]),
                 "atomTotal": 0,
