@@ -53,7 +53,7 @@ def deal_request_args(with_project_id, *args):
 
 def api_hash_key(*args, **kwargs):
     """参考cachetools hashkey实现，对WSGIRequest参数对象进行特殊处理"""
-    new_args = deal_request_args(False, *args)
+    new_args, _ = deal_request_args(False, *args)
     return hashkey(*new_args, **kwargs)
 
 
