@@ -48,6 +48,24 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     TASK_CATEGORY_DICT = dict(TASK_CATEGORY)
 
+    def _assemble_where_statement(self, filters):
+        category = filters.get("category")
+        project_id = filters.get("project_id")
+
+        conditions = []
+        if category is not None:
+            conditions.append(
+                '`category` = "%s"' % (category if category in self.TASK_CATEGORY_DICT else TASK_CATEGORY[-1][0])
+            )
+
+        if project_id:
+            conditions.append("`project_id` = %s" % int(project_id))
+
+        if conditions:
+            return " WHERE %s" % (" AND ".join(conditions))
+        else:
+            return ""
+
     def group_by_state(self, taskflow, *args):
         # 按流程执行状态查询流程个数
         total = taskflow.count()
@@ -340,14 +358,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         :param limit: 返回数据条数
         :type limit: [type]
         """
+
         statement = 'SELECT COUNT(*), `category` \
         FROM `taskflow3_taskflowinstance` T  INNER JOIN (\
             SELECT `id`\
             FROM `pipeline_pipelineinstance`\
             WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
-        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`){where}\
         GROUP BY `T`.`category`;'.format(
-            create_time=filters["create_time_datetime"], finish_time=filters["finish_time_datetime"],
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
         )
 
         with connection.cursor() as cursor:
@@ -374,9 +395,13 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         )
 
         count_statement = 'SELECT COUNT(*)\
-        FROM `pipeline_pipelineinstance`\
-        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"'.format(
-            create_time=filters["create_time_datetime"], finish_time=filters["finish_time_datetime"],
+        FROM `taskflow3_taskflowinstance` T\
+        INNER JOIN (SELECT `id` FROM `pipeline_pipelineinstance`\
+        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}") P\
+        ON (`T`.`pipeline_instance_id` = `P`.`id`){where};'.format(
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
         )
 
         statement = 'SELECT T.id,\
@@ -394,7 +419,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             FROM `pipeline_pipelineinstance`\
             WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
         ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
-        INNER JOIN `statistics_instanceinpipeline` I ON (`I`.`instance_id` = `P`.`instance_id`)\
+        INNER JOIN `statistics_instanceinpipeline` I ON (`I`.`instance_id` = `P`.`instance_id`){where}\
         ORDER BY {order_by} {order_method} LIMIT {start},{end};\
         '.format(
             create_time=filters["create_time_datetime"],
@@ -403,6 +428,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             order_method=order_method,
             start=int((page - 1) * limit),
             end=limit,
+            where=self._assemble_where_statement(filters),
         )
 
         with connection.cursor() as cursor:
@@ -442,10 +468,11 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             SELECT `id`, `create_time`\
             FROM `pipeline_pipelineinstance`\
             WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
-        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`){where}\
         GROUP BY {group_param};'.format(
             create_time=filters["create_time_datetime"],
             finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
             group_param=self.GB_INSTANCE_TIME_GROUP_PARAMS.get(group_type, default_group),
         )
 
@@ -470,9 +497,11 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             FROM `pipeline_pipelineinstance`\
             WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
         ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
-        INNER JOIN `core_project` J ON (`T`.`project_id` = `J`.`id`)\
+        INNER JOIN `core_project` J ON (`T`.`project_id` = `J`.`id`){where}\
         GROUP BY `J`.`id`;'.format(
-            create_time=filters["create_time_datetime"], finish_time=filters["finish_time_datetime"],
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
         )
 
         with connection.cursor() as cursor:
