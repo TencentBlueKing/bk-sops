@@ -112,4 +112,4 @@ LANGUAGE_COOKIE_NAME = "blueking_language"
 IS_DISPLAY_LANGUAGE_CHANGE = "none"
 
 # CSRF Config
-CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
