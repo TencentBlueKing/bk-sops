@@ -289,7 +289,8 @@
                     count: 0,
                     'limit-list': [15, 30, 50, 100],
                     limit: 15
-                }
+                },
+                isInitial: true
             }
         },
         computed: {
@@ -299,8 +300,11 @@
         },
         watch: {
             dateRange (val) {
-                this.pagination.current = 1
-                this.getData()
+                if (!this.isInitial) {
+                    this.pagination.current = 1
+                    this.getData()
+                }
+                this.isInitial = false
             },
             projectList (val) {
                 this.rankSelector[1].options = val

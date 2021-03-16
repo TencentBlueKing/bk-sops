@@ -21,8 +21,7 @@
                                     v-model="dateRange"
                                     type="daterange"
                                     placement="top-end"
-                                    :clearable="false"
-                                    @change="onChangeDateRange">
+                                    :clearable="false">
                                 </bk-date-picker>
                             </bk-form-item>
                         </bk-form>
