@@ -59,34 +59,38 @@
             canvasData (val) {
                 this.$refs.jsFlow.resetPosition()
                 this.$store.commit('setTitle', '子流程')
+                this.init()
             }
         },
         mounted () {
-            const lineMap = this.getLineMap(this.canvasData)
-            const overlayConfig = {
-                type: 'Label',
-                name: '',
-                cls: 'branch-condition',
-                editable: false,
-                location: '-60'
-            }
-            const gateways = this.canvasData.gateways
-            this.canvasData.nodes.forEach(node => {
-                if (node.type === 'branchgateway') {
-                    const { conditions } = gateways[node.id]
-                    for (const c of Object.keys(conditions)) {
-                        const line = lineMap.get(c)
-                        const overlay = Object.assign({}, overlayConfig, { name: conditions[c].evaluate })
-                        this.$refs.jsFlow.addLineOverlay(line, overlay)
-                    }
-                } else if (node.type === 'tasknode') {
-                    if (node.status === 'RUNNING' || node.status === 'FAILED') {
-                        this.setCanvasPosition(node)
-                    }
-                }
-            })
+            this.init()
         },
         methods: {
+            init () {
+                const lineMap = this.getLineMap(this.canvasData)
+                const overlayConfig = {
+                    type: 'Label',
+                    name: '',
+                    cls: 'branch-condition',
+                    editable: false,
+                    location: '-60'
+                }
+                const gateways = this.canvasData.gateways
+                this.canvasData.nodes.forEach(node => {
+                    if (node.type === 'branchgateway') {
+                        const { conditions } = gateways[node.id]
+                        for (const c of Object.keys(conditions)) {
+                            const line = lineMap.get(c)
+                            const overlay = Object.assign({}, overlayConfig, { name: conditions[c].evaluate })
+                            this.$refs.jsFlow.addLineOverlay(line, overlay)
+                        }
+                    } else if (node.type === 'tasknode') {
+                        if (node.status === 'RUNNING' || node.status === 'FAILED') {
+                            this.setCanvasPosition(node)
+                        }
+                    }
+                })
+            },
             setCanvasPosition (node) {
                 // 屏幕宽度
                 const screenWidth = window.innerWidth
