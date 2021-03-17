@@ -53,7 +53,7 @@ CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 
 LOG_PERSISTENT_DAYS = 1
 
-logging_addition_settings(LOGGING, environment="dev")
+default.logging_addition_settings(LOGGING, environment="dev")
 
 # CELERY_ALWAYS_EAGER = True
 # TEST_RUNNER = 'djcelery.contrib.test_runner.' \
