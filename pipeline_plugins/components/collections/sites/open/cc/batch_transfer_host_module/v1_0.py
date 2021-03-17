@@ -22,7 +22,7 @@ from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
@@ -91,10 +91,11 @@ class CCBatchTransferHostModule(Service):
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")
         cc_transfer_host_template_break_line = data.get_one_of_inputs("cc_transfer_host_template_break_line") or ","
+        cc_host_transfer_detail = convert_num_to_str(cc_host_transfer_detail)
 
         attr_list = []
         # 对 单行扩展 填参方式
-        if cc_module_select_method == "template":
+        if cc_module_select_method == "auto":
             for cc_srv_busi_item in cc_host_transfer_detail:
                 chunk_result = chunk_table_data(cc_srv_busi_item, cc_transfer_host_template_break_line)
                 if not chunk_result["result"]:

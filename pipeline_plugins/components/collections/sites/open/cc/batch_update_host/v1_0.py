@@ -23,7 +23,7 @@ from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str
 
 logger = logging.getLogger("celery")
@@ -105,6 +105,7 @@ class CCBatchUpdateHostService(Service):
         host_property_custom = data.get_one_of_inputs("cc_host_property_custom")
         separator = data.get_one_of_inputs("cc_auto_separator")
 
+        host_property_custom = convert_num_to_str(host_property_custom)
         if host_update_method == "auto":
             host_property_data = []
             for column in host_property_custom:
