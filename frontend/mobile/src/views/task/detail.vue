@@ -23,7 +23,9 @@
                         <van-cell
                             :key="item.id"
                             :title="item.name"
-                            :value="item.value" />
+                            :value="item.value">
+                            {{ item.value }}
+                        </van-cell>
                     </template>
                 </template>
                 <template v-else>
