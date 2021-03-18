@@ -53,7 +53,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         project_id = filters.get("project_id")
 
         conditions = []
-        if category is not None:
+        if category:
             conditions.append(
                 '`category` = "%s"' % (category if category in self.TASK_CATEGORY_DICT else TASK_CATEGORY[-1][0])
             )
