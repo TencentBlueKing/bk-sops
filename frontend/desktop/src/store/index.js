@@ -122,11 +122,12 @@ const store = new Vuex.Store({
         // ip 选择器接口 start --->
         // 查询业务在 CMDB 的主机
         getHostInCC ({ commmit }, data) {
-            const { url, fields, topo } = data
+            const { url, fields, topo, search_host_lock } = data
             return axios.get(url, {
                 params: {
                     fields: JSON.stringify(fields),
-                    topo: JSON.stringify(topo)
+                    topo: JSON.stringify(topo),
+                    search_host_lock
                 },
                 baseURL: '/'
             }).then(response => response.data)
@@ -177,7 +178,7 @@ const store = new Vuex.Store({
             return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCHostCount ({ commit }, data) {
-            return axios.get(data.url, { baseURL: '/' }, { params: { bk_inst_id: data.ids } }).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/', params: { bk_inst_id: data.ids } }).then(response => response.data)
         },
         // <--- 开区资源选择器接口 end
         /**

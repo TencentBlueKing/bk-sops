@@ -25,14 +25,14 @@ logger = logging.getLogger("iam")
 @six.add_metaclass(abc.ABCMeta)
 class IAMPermissionHelper(object):
     def __init__(
-        self, system, create_action, read_action, update_action, delete_action, filter_key_mapping={},
+        self, system, create_action, read_action, update_action, delete_action, filter_key_mapping=None,
     ):
         self.system = system
         self.create_action = create_action
         self.read_action = read_action
         self.update_action = update_action
         self.delete_action = delete_action
-        self.filter_key_mapping = filter_key_mapping
+        self.filter_key_mapping = {} if filter_key_mapping is None else filter_key_mapping
 
     @abc.abstractmethod
     def get_subject(self, request, obj=None):
