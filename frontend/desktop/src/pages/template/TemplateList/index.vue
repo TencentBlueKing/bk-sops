@@ -21,6 +21,7 @@
                 <advance-search-form
                     ref="advanceSearch"
                     id="templateList"
+                    :open="isSearchFormOpen"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -55,55 +56,60 @@
                     class="template-table"
                     :data="templateList"
                     :pagination="pagination"
+                    :size="setting.size"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @sort-change="handleSortChange"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="100"></bk-table-column>
-                    <bk-table-column :label="$t('流程名称')" min-width="400">
-                        <div slot-scope="props" class="name-column">
-                            <template>
-                                <a
-                                    v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
-                                    v-cursor
-                                    class="text-permission-disable"
-                                    @click="onTemplatePermissonCheck(['flow_view'], props.row)">
-                                    {{props.row.name}}
-                                </a>
-                                <router-link
-                                    v-else
-                                    class="template-name"
-                                    :title="props.row.name"
-                                    :to="getJumpUrl('edit', props.row.id)">
-                                    {{props.row.name}}
-                                </router-link>
-                            </template>
-                            <template v-if="props.row.template_labels && props.row.template_labels.length > 0">
-                                <span
-                                    v-for="label in props.row.template_labels"
-                                    class="label-name"
-                                    :key="label.id"
-                                    :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
-                                    @click="onSearchLabel(label.label_id)">
-                                    {{ label.name }}
-                                </span>
-                            </template>
-                        </div>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" sortable="custom" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('更新时间')" prop="edit_time" sortable="custom" width="200"></bk-table-column>
                     <bk-table-column
-                        width="160"
-                        :label="$t('子流程更新')">
-                        <template slot-scope="props">
-                            <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
-                                {{getSubflowContent(props.row)}}
-                                <span v-if="!isFlowVisited(props.row.id) " class="red-dot"></span>
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width"
+                        :sortable="item.sortable">
+                        <template slot-scope="{ row }">
+                            <!--流程名称-->
+                            <div v-if="item.id === 'name'" class="name-column">
+                                <template>
+                                    <a
+                                        v-if="!hasPermission(['flow_view'], row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['flow_view'], row)">
+                                        {{row.name}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="template-name"
+                                        :title="row.name"
+                                        :to="getJumpUrl('edit', row.id)">
+                                        {{row.name}}
+                                    </router-link>
+                                </template>
+                                <template v-if="row.template_labels && row.template_labels.length > 0">
+                                    <span
+                                        v-for="label in row.template_labels"
+                                        class="label-name"
+                                        :key="label.id"
+                                        :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
+                                        @click="onSearchLabel(label.label_id)">
+                                        {{ label.name }}
+                                    </span>
+                                </template>
                             </div>
+                            <!--子流程更新-->
+                            <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
+                                {{getSubflowContent(row)}}
+                                <span v-if="!isFlowVisited(row.id) " class="red-dot"></span>
+                            </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
                     <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
@@ -193,6 +199,14 @@
                             </div>
                         </template>
                     </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
+                    </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
@@ -244,7 +258,7 @@
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('分类'),
@@ -290,6 +304,38 @@
             value: []
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 100
+        }, {
+            id: 'name',
+            label: i18n.t('流程名称'),
+            disabled: true,
+            min_width: 400
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            sortable: 'custom',
+            width: 180
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            sortable: 'custom',
+            width: 200
+        }, {
+            id: 'subprocess_has_update',
+            label: i18n.t('子流程更新'),
+            width: 200
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 160
+        }
+    ]
+
     export default {
         name: 'TemplateList',
         components: {
@@ -311,17 +357,30 @@
                 page = 1,
                 limit = 15,
                 category = '',
-                start_time = '',
-                end_time = '',
+                queryTime = '',
                 subprocessUpdateVal = '',
                 creator = '',
-                keyword = ''
+                keyword = '',
+                label_ids = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        const value = this.$route.query[item.key].split(',')
+                        item.value = item.key === 'label_ids' ? value.map(v => Number(v)) : value
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                searchForm: tools.deepClone(searchForm),
+                searchForm,
+                isSearchFormOpen, // 高级搜索表单默认展开
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
@@ -342,7 +401,8 @@
                     category,
                     creator,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
-                    queryTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    label_ids: label_ids ? label_ids.split(',') : [],
                     flowName: keyword
                 },
                 totalPage: 1,
@@ -356,7 +416,13 @@
                 collectListLoading: false,
                 collectionList: [],
                 ordering: null, // 排序参数
-                darkColorList: DARK_COLOR_LIST
+                darkColorList: DARK_COLOR_LIST,
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
+                }
             }
         },
         computed: {
@@ -382,6 +448,7 @@
             }
         },
         created () {
+            this.getFields()
             this.getTemplateList()
             this.getProjectBaseInfo()
             this.getProjectLabelList()
@@ -466,6 +533,15 @@
                     errorHandler(e, this)
                 } finally {
                     this.listLoading = false
+                }
+            },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('templateList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
                 }
             },
             async getProjectBaseInfo () {
@@ -585,6 +661,16 @@
                 this.deleteTemplateName = template.name
                 this.isDeleteDialogShow = true
             },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('templateList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
+            },
             handleSortChange ({ prop, order }) {
                 const params = 'pipeline_template__' + prop
                 if (order === 'ascending') {
@@ -610,15 +696,15 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, subprocessUpdateVal, creator, flowName } = this.requestData
+                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName } = this.requestData
                 const filterObj = {
                     limit,
                     category,
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    start_time: queryTime[0],
-                    end_time: queryTime[1],
+                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
+                    label_ids: label_ids.length ? label_ids.join(',') : '',
                     keyword: flowName
                 }
                 const query = {}
@@ -707,14 +793,14 @@
             handleSubflowFilter () {
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
                 searchComp.submit()
             },
             // 筛选包含当前标签的模板
             onSearchLabel (id) {
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem([id], searchForm[4].key)
+                searchComp.onChangeFormItem([id], 'label_ids')
                 searchComp.submit()
             },
             // 添加/取消收藏模板

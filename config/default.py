@@ -152,7 +152,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.27"
+STATIC_VERSION = "3.6.34"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -203,6 +203,9 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
+
+# max body size
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 
 def _(s):
@@ -384,12 +387,14 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
+# format: module_path: alias
 MAKO_SANDBOX_IMPORT_MODULES = {
     "datetime": "datetime",
     "re": "re",
     "hashlib": "hashlib",
     "random": "random",
     "time": "time",
+    "os.path": "os.path",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:

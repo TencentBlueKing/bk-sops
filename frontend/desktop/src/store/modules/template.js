@@ -273,7 +273,7 @@ const template = {
                         })
                     }
                 }
-                
+
                 state[key] = val
             })
         },
@@ -283,7 +283,7 @@ const template = {
                 name, template_id, pipeline_tree, notify_receivers, template_labels,
                 notify_type, description, executor_proxy, time_out, category, subprocess_info
             } = data
-            
+
             const pipelineData = JSON.parse(pipeline_tree)
             const receiver = JSON.parse(notify_receivers)
             state.name = name
@@ -480,7 +480,7 @@ const template = {
                     return true
                 }
             })
-            
+
             if (type === 'add' && !isLineExist) { // 添加连线(手动拖拽连接的情况)
                 const id = 'line' + uuid()
                 const newLine = Object.assign({}, line, { id })
@@ -554,7 +554,7 @@ const template = {
                 }
                 const sourceNode = state.flows[deletedLine.id].source
                 const targetNode = state.flows[deletedLine.id].target
-                
+
                 if (state.activities[sourceNode]) {
                     state.activities[sourceNode].outgoing = ''
                 }
@@ -901,6 +901,10 @@ const template = {
         // 获取变量预览值
         getConstantsPreviewResult ({ commit }, data) {
             return axios.post('/template/api/get_constant_preview_result/', data).then(response => response.data)
+        },
+        // 获取全局变量被引用数据
+        getVariableCite ({ commit }, data) {
+            return axios.post('/template/api/analysis_constants_ref/', data).then(response => response.data)
         }
     },
     getters: {

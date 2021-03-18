@@ -70,10 +70,10 @@
                                 <span v-else>{{item.name}}</span>
                                 <i class="common-icon-edit" @click.stop="onEditName(item)"></i>
                                 <span
-                                    v-if="errors.first('snapshootName' + item.timestamp)"
+                                    v-if="veeErrors.first('snapshootName' + item.timestamp)"
                                     class="common-icon-info error-msg"
                                     v-bk-tooltips="{
-                                        content: errors.first('snapshootName' + item.timestamp),
+                                        content: veeErrors.first('snapshootName' + item.timestamp),
                                         placements: ['top-end']
                                     }">
                                 </span>

@@ -11,6 +11,10 @@
 */
 <template>
     <div class="setting-panel">
+        <TabOperationFlow
+            v-if="activeTab === 'operationFlowTab'"
+            @closeTab="closeTab">
+        </TabOperationFlow>
         <TabGlobalVariables
             v-if="activeTab === 'globalVariableTab'"
             :common="common"
@@ -46,6 +50,7 @@
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
     import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
+    import TabOperationFlow from './TabOperationFlow.vue'
 
     export default {
         name: 'TemplateSetting',
@@ -53,7 +58,8 @@
             TabGlobalVariables,
             TabTemplateConfig,
             TabTemplateSnapshoot,
-            TabPipelineTreeEdit
+            TabPipelineTreeEdit,
+            TabOperationFlow
         },
         props: {
             projectInfoLoading: Boolean,

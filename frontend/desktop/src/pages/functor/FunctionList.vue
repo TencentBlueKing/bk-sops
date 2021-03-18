@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     id="functionList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -39,62 +40,58 @@
                 <bk-table
                     :data="functorList"
                     :pagination="pagination"
+                    :size="setting.size"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange">
-                    <bk-table-column :label="$t('所属项目')" width="160">
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width">
                         <template slot-scope="props">
-                            <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务ID')" prop="task.id" width="110"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.task.name"
-                                @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                {{props.row.task.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="task-name"
-                                :title="props.row.task.name"
-                                :to="{
-                                    name: 'functionTaskExecute',
-                                    params: { project_id: props.row.task.project.id },
-                                    query: { instance_id: props.row.task.id }
-                                }">
-                                {{props.row.task.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('提单时间')" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('认领时间')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.claim_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('提单人')" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="$t('认领人')" width="120">
-                        <template slot-scope="props">
-                            {{ props.row.claimant || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('认领状态')" width="120">
-                        <template slot-scope="props">
-                            <span :class="statusClass(props.row.status)"></span>
-                            {{statusMethod(props.row.status, props.row.status_name)}}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行状态')" width="120">
-                        <template slot-scope="props">
-                            <div class="task-status">
+                            <!--所属项目-->
+                            <div v-if="item.id === 'project'">
+                                <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
+                            </div>
+                            <!--流程模板-->
+                            <div v-else-if="item.id === 'name'">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.task.name"
+                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                    {{props.row.task.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-name"
+                                    :title="props.row.task.name"
+                                    :to="{
+                                        name: 'functionTaskExecute',
+                                        params: { project_id: props.row.task.project.id },
+                                        query: { instance_id: props.row.task.id }
+                                    }">
+                                    {{props.row.task.name}}
+                                </router-link>
+                            </div>
+                            <!--认领状态-->
+                            <div v-else-if="item.id === 'claim_status'">
+                                <span :class="statusClass(props.row.status)"></span>
+                                {{statusMethod(props.row.status, props.row.status_name)}}
+                            </div>
+                            <!--执行状态-->
+                            <div v-else-if="item.id === 'excute_status'" class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                 <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                             </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('操作')" width="100">
@@ -138,6 +135,14 @@
                                 </router-link>
                             </template>
                         </template>
+                    </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
@@ -238,12 +243,12 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'select',
             label: i18n.t('所属项目'),
             key: 'selectedProject',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择项目'),
             list: [],
             value: ''
@@ -277,6 +282,49 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'project',
+            label: i18n.t('所属项目'),
+            disabled: true,
+            width: 160
+        }, {
+            id: 'id',
+            label: i18n.t('任务ID'),
+            disabled: true,
+            width: 110
+        }, {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 200
+        }, {
+            id: 'create_time',
+            label: i18n.t('提单时间'),
+            isShow: true,
+            width: 200
+        }, {
+            id: 'claim_time',
+            label: i18n.t('认领时间'),
+            width: 200
+        }, {
+            id: 'creator',
+            label: i18n.t('提单人'),
+            width: 120
+        }, {
+            id: 'claimant',
+            label: i18n.t('认领人'),
+            width: 120
+        }, {
+            id: 'claim_status',
+            label: i18n.t('认领状态'),
+            width: 120
+        }, {
+            id: 'excute_status',
+            label: i18n.t('执行状态'),
+            width: 120
+        }
+    ]
     export default {
         name: 'functionHome',
         components: {
@@ -292,16 +340,27 @@
                 page = 1,
                 limit = 15,
                 selectedProject = '',
-                start_time = '',
-                end_time = '',
+                executeTime = '',
                 creator = '',
                 statusSync = '',
                 keyword = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = item.key === 'selectedProject' ? Number(this.$route.query[item.key]) : this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 functorSync: 0,
-                searchStr: undefined,
+                searchForm,
+                isSearchFormOpen,
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
                 functorList: [],
@@ -341,7 +400,7 @@
                     selectedProject,
                     creator,
                     statusSync,
-                    executeTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
                     taskName: keyword
                 },
                 pagination: {
@@ -349,6 +408,12 @@
                     count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 },
                 permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
                 tplAction: [],
@@ -362,14 +427,10 @@
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                return value
-            }
+            })
         },
         created () {
+            this.getFields()
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
@@ -427,6 +488,25 @@
                     this.listLoading = false
                 }
             },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('FunctionList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                }
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('FunctionList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -451,8 +531,7 @@
                     creator,
                     statusSync,
                     page: current,
-                    start_time: executeTime[0],
-                    end_time: executeTime[1],
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
                     keyword: taskName
                 }
                 const query = {}
@@ -511,6 +590,9 @@
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0 })
                     this.business.list = businessData.objects
+                    const form = this.searchForm.find(item => item.key === 'selectedProject')
+                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

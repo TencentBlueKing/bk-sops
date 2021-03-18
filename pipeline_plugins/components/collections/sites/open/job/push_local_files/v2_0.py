@@ -18,7 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     batch_execute_func,
@@ -37,7 +38,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobPushLocalFilesService(Service):
+class JobPushLocalFilesService(JobScheduleService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -167,7 +168,11 @@ class JobPushLocalFilesService(Service):
             {
                 "esb_client": client,
                 "bk_biz_id": biz_cc_id,
-                "file_tags": [_file["tag"] for _file in push_files_info["file_info"]],
+                "file_tags": [
+                    _file["response"]["tag"]
+                    for _file in push_files_info["file_info"]
+                    if _file["response"]["result"] is True
+                ],
                 "target_path": push_files_info["target_path"],
                 "ips": ip_list,
                 "account": target_account,
@@ -183,7 +188,7 @@ class JobPushLocalFilesService(Service):
             return False
         # 校验请求结果
         job_instance_id_list = []
-        data.outputs.requests_error = "Request Error:\n"
+        data.outputs.requests_error = ""
         for push_object in push_results:
             push_result = push_object["result"]
             if not push_result["result"]:
@@ -194,6 +199,9 @@ class JobPushLocalFilesService(Service):
                 data.outputs.requests_error += "{}\n".format(err_message)
             else:
                 job_instance_id_list.append(push_result["data"]["job_id"])
+
+        if data.outputs.requests_error:
+            data.outputs.requests_error = "Request Error:\n{}".format(data.outputs.requests_error)
 
         data.outputs.job_instance_id_list = job_instance_id_list
 
@@ -217,54 +225,7 @@ class JobPushLocalFilesService(Service):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-
-        params_list = [
-            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
-            for job_id in data.outputs.job_id_of_batch_execute
-        ]
-
-        client = get_client_by_user(parent_data.inputs.executor)
-
-        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
-        batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
-
-        # 重置查询 job_id
-        data.outputs.job_id_of_batch_execute = []
-
-        # 解析查询结果
-        running_task_list = []
-
-        for job_result in batch_result_list:
-            result = job_result["result"]
-            job_id_str = job_result["params"]["job_instance_id"]
-            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
-            job_detail_url = job_urls[0] if job_urls else ""
-            if result["result"]:
-                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
-                job_status = result["data"][0]["status"]
-                # 成功状态
-                if job_status == 3:
-                    data.outputs.success_count += 1
-                # 失败状态
-                elif job_status > 3:
-                    data.outputs.ex_data += (
-                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                        "\n错误信息:{}\n".format(job_detail_url, log_content)
-                    )
-                else:
-                    running_task_list.append(job_id_str)
-            else:
-                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                    job_detail_url
-                )
-
-        # 需要继续轮询的任务
-        data.outputs.job_id_of_batch_execute = running_task_list
-        # 结束调度
-        if not data.outputs.job_id_of_batch_execute:
-            self.finish_schedule()
-
-            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+        return super(JobPushLocalFilesService, self).schedule(data, parent_data, callback_data)
 
 
 class JobPushLocalFilesComponent(Component):

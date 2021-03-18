@@ -29,7 +29,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState } from 'vuex'
-    import { JSEncrypt } from 'jsencrypt'
+    import JSEncrypt from 'jsencrypt'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {

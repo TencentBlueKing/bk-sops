@@ -85,11 +85,13 @@ class JobPushLocalFilesService(JobService):
 
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
+
         if not ip_list:
             data.outputs.ex_data = _("目标ip为空，请确认是否为当前业务IP。如需跨业务上传，请选择'允许跨业务'选项")
             return False
 
-        file_tags = [_file["tag"] for _file in local_files]
+        # 这里自动过滤掉上传失败的文件
+        file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]
 
         push_result = file_manager.push_files_to_ips(
             esb_client=client,

@@ -35,6 +35,7 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import (
     StringItemSchema,
@@ -137,7 +138,11 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_status_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
+    get_job_instance_status_kwargs = {
+        "job_instance_id": job_instance_id,
+        "bk_biz_id": bk_biz_id,
+        "return_ip_result": True,
+    }
     get_job_instance_status_return = client.jobv3.get_job_instance_status(get_job_instance_status_kwargs)
     if not get_job_instance_status_return["result"]:
         message = handle_api_error(
@@ -151,6 +156,8 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     # 根据每个步骤的IP（可能有多个），循环查询作业执行日志
     log_list = []
     for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
+        if "step_ip_result_list" not in step_instance:
+            continue
         for step_ip_result in step_instance["step_ip_result_list"]:
             get_job_instance_ip_log_kwargs = {
                 "job_instance_id": job_instance_id,
@@ -169,7 +176,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
                 )
                 service_logger.warning(message)
                 return {"result": False, "message": message}
-            log_list.append(get_job_instance_ip_log_kwargs_return["data"]["log_content"])
+            log_content = get_job_instance_ip_log_kwargs_return["data"]["log_content"]
+            if log_content:
+                log_list.append(str(log_content))
     log_text = "\n".join(log_list)
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
@@ -293,15 +302,21 @@ class JobService(Service):
 
 
 class JobScheduleService(JobService):
+    __need_schedule__ = True
+    interval = StaticIntervalGenerator(5)
+
     def schedule(self, data, parent_data, callback_data=None):
+        if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
+            data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
+        else:
+            data.outputs.ex_data = ""
+
         params_list = [
             {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
             for job_id in data.outputs.job_id_of_batch_execute
         ]
-
         client = get_client_by_user(parent_data.inputs.executor)
 
-        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
 
         # 重置查询 job_id
@@ -338,6 +353,9 @@ class JobScheduleService(JobService):
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
         if not data.outputs.job_id_of_batch_execute:
-            self.finish_schedule()
+            # 没有报错信息
+            if not data.outputs.ex_data:
+                del data.outputs.ex_data
 
+            self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count

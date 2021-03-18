@@ -86,7 +86,7 @@ class SetModuleInfo(object):
 class VarSetModuleSelector(LazyVariable):
     code = "set_module_selector"
     name = _("集群模块选择器")
-    type = "general"
+    type = "dynamic"
     tag = "var_set_module_selector.set_module_selector"
     form = "%svariables/cmdb/var_set_module_selector.js" % settings.STATIC_URL
 

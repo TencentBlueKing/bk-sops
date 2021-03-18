@@ -129,7 +129,10 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         name="push_local_files manager call fail case",
         inputs={
             "biz_cc_id": "biz_cc_id",
-            "job_local_files": [{"tag": "tag_1"}, {"tag": "tag_2"}],
+            "job_local_files": [
+                {"response": {"result": True, "tag": "tag_1"}},
+                {"response": {"result": True, "tag": "tag_2"}},
+            ],
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
@@ -178,7 +181,10 @@ def CALLBACK_INVALID_CASE():
         name="push_local_files callback invalid case",
         inputs={
             "biz_cc_id": "biz_cc_id",
-            "job_local_files": [{"tag": "tag_1"}, {"tag": "tag_2"}],
+            "job_local_files": [
+                {"response": {"result": True, "tag": "tag_1"}},
+                {"response": {"result": True, "tag": "tag_2"}},
+            ],
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
@@ -238,7 +244,10 @@ def CALLBACK_STRUCT_ERR_CASE():
         name="push_local_files callback struct err case",
         inputs={
             "biz_cc_id": "biz_cc_id",
-            "job_local_files": [{"tag": "tag_1"}, {"tag": "tag_2"}],
+            "job_local_files": [
+                {"response": {"result": True, "tag": "tag_1"}},
+                {"response": {"result": True, "tag": "tag_2"}},
+            ],
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
@@ -298,7 +307,10 @@ def CALLBACK_FAIL_CASE():
         name="push_local_files callback fail case",
         inputs={
             "biz_cc_id": "biz_cc_id",
-            "job_local_files": [{"tag": "tag_1"}, {"tag": "tag_2"}],
+            "job_local_files": [
+                {"response": {"result": True, "tag": "tag_1"}},
+                {"response": {"result": True, "tag": "tag_2"}},
+            ],
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
@@ -361,7 +373,10 @@ def SUCCESS_CASE():
         name="push_local_files success case",
         inputs={
             "biz_cc_id": "biz_cc_id",
-            "job_local_files": [{"tag": "tag_1"}, {"tag": "tag_2"}],
+            "job_local_files": [
+                {"response": {"result": True, "tag": "tag_1"}},
+                {"response": {"result": True, "tag": "tag_2"}},
+            ],
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",

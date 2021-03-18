@@ -74,12 +74,14 @@
                                 })
                             },
                             handleSuccess: function (response, file, fileList) {
-                                var file_num = fileList.length;
-                                if (response.result) {
-                                    fileList[file_num - 1].tag = response.tag;
-                                } else {
-                                    fileList.splice(file_num - 2, 1);
+                                if (response.result === false) {
                                     show_msg(response.message, 'error');
+                                    // 原地删除，需要从后往前遍历
+                                    for (var i = fileList.length - 1; i >= 0; i--) {
+                                        if (fileList["response"]["result"] === false) {
+                                            fileList.splice(i, 1)
+                                        }
+                                    }
                                 }
                                 this._set_value(fileList)
                             },
