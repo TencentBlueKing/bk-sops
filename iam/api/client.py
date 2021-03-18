@@ -17,9 +17,9 @@ import json
 import logging
 import os
 
-from cachetools import cached, TTLCache
 from requests.models import PreparedRequest
 
+from cachetools import cached, TTLCache
 from .http import http_get, http_post, http_put, http_delete
 
 logger = logging.getLogger("iam")

@@ -25,7 +25,6 @@ logger = logging.getLogger("app")
 
 
 class CheckXssMiddleware(MiddlewareMixin):
-
     def __init__(self, *args, **kwargs):
         self.__escape_param_list = []
         super(CheckXssMiddleware, self).__init__(*args, **kwargs)
@@ -33,17 +32,18 @@ class CheckXssMiddleware(MiddlewareMixin):
     def process_view(self, request, view, args, kwargs):
         try:
             # 判断豁免权
-            if getattr(view, 'escape_exempt', False):
+            if getattr(view, "escape_exempt", False):
                 return None
 
             # 获取豁免参数名
-            self.__escape_param_list = getattr(view, 'escape_exempt_param', []) if getattr(
-                view, 'escape_exempt_param', False) else []
+            self.__escape_param_list = (
+                getattr(view, "escape_exempt_param", []) if getattr(view, "escape_exempt_param", False) else []
+            )
 
             escapeType = None
-            if getattr(view, 'escape_script', False):
+            if getattr(view, "escape_script", False):
                 escapeType = "script"
-            elif getattr(view, 'escape_url', False):
+            elif getattr(view, "escape_url", False):
                 escapeType = "url"
             # get参数转换
             request.GET = self.__escape_data(request.path, request.GET, escapeType)
@@ -76,11 +76,11 @@ class CheckXssMiddleware(MiddlewareMixin):
                         else:
                             use_type = escape_type
 
-                        if use_type == 'url':
+                        if use_type == "url":
                             new_value = url_escape(_get_value)
-                        elif use_type == 'script':
-                            new_value = check_script(_get_value, 1)
-                        elif use_type == 'name':
+                        elif use_type == "script":
+                            new_value = check_script(_get_value)
+                        elif use_type == "name":
                             new_value = html_escape_name(_get_value)
                         elif _get_key in self.__escape_param_list:
                             new_value = _get_value
@@ -108,30 +108,30 @@ class CheckXssMiddleware(MiddlewareMixin):
         """
         use_name, use_url, use_script = self.__filter_path_list()
         try:
-            result = 'html'
+            result = "html"
             # name过滤
             for name_path, name_v in use_name.items():
-                is_path = re.match(r'^%s' % name_path, path)
+                is_path = re.match(r"^%s" % name_path, path)
                 if is_path and param in name_v:
-                    result = 'name'
+                    result = "name"
                     break
             # url过滤
-            if result == 'html':
+            if result == "html":
                 for url_path, url_v in use_url.items():
-                    is_path = re.match(r'^%s' % url_path, path)
+                    is_path = re.match(r"^%s" % url_path, path)
                     if is_path and param in url_v:
-                        result = 'url'
+                        result = "url"
                         break
             # script过滤
-            if result == 'html':
+            if result == "html":
                 for script_path, script_v in use_script.items():
-                    is_path = re.match(r'^%s' % script_path, path)
+                    is_path = re.match(r"^%s" % script_path, path)
                     if is_path and param in script_v:
-                        result = 'script'
+                        result = "script"
                         break
         except Exception as e:
             logger.error(u"CheckXssMiddleware 特殊path处理失败！%s" % e)
-            result = 'html'
+            result = "html"
         return result
 
     def __filter_path_list(self):
@@ -140,10 +140,10 @@ class CheckXssMiddleware(MiddlewareMixin):
         """
         use_name = {}
         use_url = {
-            '%saccounts/login' % SITE_URL: ['next'],
-            '%saccounts/login_page' % SITE_URL: ['req_url'],
-            '%saccounts/login_success' % SITE_URL: ['req_url'],
-            '%s' % SITE_URL: ['url'],
+            "%saccounts/login" % SITE_URL: ["next"],
+            "%saccounts/login_page" % SITE_URL: ["req_url"],
+            "%saccounts/login_success" % SITE_URL: ["req_url"],
+            "%s" % SITE_URL: ["url"],
         }
         use_script = {}
         return (use_name, use_url, use_script)

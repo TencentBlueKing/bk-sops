@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 
 import logging
-import ujson as json
 from copy import deepcopy
 
+import ujson as json
 from celery import task
 
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION

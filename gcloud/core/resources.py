@@ -237,7 +237,7 @@ class ComponentModelResource(GCloudModelResource):
                 bundle.data["version"], DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
             )
             group_name_en = group_en_pattern.findall(name[0] or "")
-            bundle.data["sort_key_group_en"] = group_name_en[0] if len(group_name_en) else "#"
+            bundle.data["sort_key_group_en"] = group_name_en[0] if group_name_en else "#"
             altered_objects.append(bundle)
 
         data["objects"] = altered_objects

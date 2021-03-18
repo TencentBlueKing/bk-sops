@@ -12,9 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import sys
-import yaml
 from pathlib import Path
 from datetime import datetime
+
+import yaml
 
 
 def extract_logs(log_yaml, version_logs):

@@ -14,14 +14,13 @@ specific language governing permissions and limitations under the License.
 import base64
 import hashlib
 import logging
+from functools import partial
 
 import ujson as json
 
 from pipeline.core.constants import PE
-
 from gcloud import err_code
 from gcloud.conf import settings
-from functools import partial
 
 logger = logging.getLogger("root")
 
