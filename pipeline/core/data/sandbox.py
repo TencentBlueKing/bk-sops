@@ -39,10 +39,22 @@ def _shield_words(sandbox, words):
         sandbox[shield_word] = None
 
 
+class ModuleObject:
+    def __init__(self, sub_paths, module):
+        if len(sub_paths) == 1:
+            setattr(self, sub_paths[0], module)
+            return
+        setattr(self, sub_paths[0], ModuleObject(sub_paths[1:], module))
+
+
 def _import_modules(sandbox, modules):
     for mod_path, alias in modules.items():
         mod = importlib.import_module(mod_path)
-        sandbox[alias] = mod
+        sub_paths = alias.split(".")
+        if len(sub_paths) == 1:
+            sandbox[alias] = mod
+        else:
+            sandbox[sub_paths[0]] = ModuleObject(sub_paths[1:], mod)
 
 
 def _mock_builtins():
