@@ -190,6 +190,11 @@ def get_module_id_list(
         if service_template_item["name"] in BIZ_INTERNAL_MODULE
     ])
 
+    # 所有选择到的集群名
+    all_selected_set_names_list = [
+        set_item["bk_set_name"]
+        for set_item in set_list
+    ]
     inner_module_id_list = []
     if BIZ_INTERNAL_SET in filter_set_names:
         # 判断是否有选择到空闲机模块ID，如果有取选择到的空闲机模块ID，没有则取空闲机池下所有模块ID
@@ -216,17 +221,14 @@ def get_module_id_list(
         elif filter_service_template_names:
             inner_module_id_list = []
     # 筛选规则没有set name但是有module name，选择筛选规则中的module name
-    elif not filter_set_names and biz_internal_module:
+    elif not filter_set_names and biz_internal_module \
+            and (BIZ_INTERNAL_SET in all_selected_set_names_list or ALL_SELECTED_STR in all_selected_set_names_list):
         inner_module_id_list = [
             {"default": 0, "bk_module_id": biz_internal_module_item["id"]}
             for biz_internal_module_item in service_template_list
             if biz_internal_module_item["name"] in biz_internal_module
         ]
-    # 所有选择到的集群名
-    all_selected_set_names_list = [
-        set_item["bk_set_name"]
-        for set_item in set_list
-    ]
+
     # 没有筛选规则时，并且选择到空闲机池，添加选择到的空闲机module id
     if not filter_set_names and not filter_service_template_names and BIZ_INTERNAL_SET in all_selected_set_names_list:
         # 获取service_template_list的空闲模块名
