@@ -33,6 +33,28 @@ class ComponentManager(models.Manager):
             component_dict[bundle.code] = "{}-{}".format(group_name, name)
         return component_dict
 
+    def get_component_dicts(self, other_component_list, index="value"):
+        """
+        :param other_component_list: 结果集
+        :param index: 结果集中指标字段
+        :return:
+        """
+        components = self.filter(status=True).values("code", "version", "name")
+        total = components.count()
+        groups = []
+        for comp in components:
+            version = comp["version"]
+            # 插件名国际化
+            name = comp["name"].split("-")
+            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            code = "{}-{}".format(comp["code"], comp["version"])
+            value = 0
+            for oth_com_tmp in other_component_list:
+                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
+                    value = oth_com_tmp[index]
+            groups.append({"code": code, "name": name, "value": value})
+        return total, groups
+
 
 class ComponentModel(models.Model):
     """

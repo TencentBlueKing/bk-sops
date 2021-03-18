@@ -69,35 +69,15 @@ class TaskTmplStatisticsMixin(ClassificationCountMixin):
     def group_by_atom_cite(self, tasktmpl, *args):
         # 查询不同原子引用的个数
         # 获得标准插件dict列表
-        component_dict = ComponentModel.objects.get_component_dict()
         template_list = tasktmpl.values_list("pipeline_template__template_id")
-        component_list = ComponentModel.objects.filter(status=True).values("code")
         # 用 template_id 列表获取所有符合条件的总数
         other_component_list = (
             ComponentInTemplate.objects.filter(template_id__in=template_list)
-            .values("component_code")
-            .annotate(value=Count("component_code"))
+            .values("component_code", "version")
+            .annotate(value=Count("*"))
             .order_by()
         )
-        components_dict = {}
-        total = component_list.count()
-        for component in other_component_list:
-            value = component["value"]
-            components_dict[component["component_code"]] = value
-            # 总数不能通过查询获得，需要通过循环计数
-        groups = []
-        # 循环聚合信息
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": components_dict.get(code, 0)})
-        return total, groups
+        return ComponentModel.objects.get_component_dicts(other_component_list)
 
     def group_by_atom_template(self, tasktmpl, filters, page, limit):
         # 按起始时间、业务（可选）、类型（可选）、标准插件查询被引用的流程模板列表(dataTable)
@@ -107,11 +87,12 @@ class TaskTmplStatisticsMixin(ClassificationCountMixin):
 
         # 获取标准插件code
         component_code = filters.get("component_code")
+        version = filters.get("version")
         # 获取到组件code对应的template_id_list
         if component_code:
-            template_id_list = (
-                ComponentInTemplate.objects.filter(component_code=component_code).distinct().values_list("template_id")
-            )
+            template_id_list = ComponentInTemplate.objects.filter(
+                component_code=component_code, version=version
+            ).values_list("template_id")
         else:
             template_id_list = ComponentInTemplate.objects.all().values_list("template_id")
         template_list = tasktmpl.filter(pipeline_template__template_id__in=template_id_list)
