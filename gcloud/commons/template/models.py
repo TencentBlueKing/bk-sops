@@ -208,7 +208,7 @@ class BaseTemplate(models.Model):
     @summary: base abstract template，without containing business info
     """
 
-    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Other")
+    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
     pipeline_template = models.ForeignKey(
         PipelineTemplate, blank=True, null=True, on_delete=models.SET_NULL, to_field="template_id"
     )
