@@ -12,24 +12,22 @@
 <template>
     <div class="task-container">
         <div class="list-wrapper">
-            <div class="operation-area">
-                <advance-search-form
-                    id="taskList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            theme="primary"
-                            class="task-btn"
-                            @click="onCreateTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                id="taskList"
+                :open="isSearchFormOpen"
+                :search-config="{ placeholder: $t('请输入任务名称') }"
+                :search-form="searchForm"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+                <template v-slot:operation>
+                    <bk-button
+                        theme="primary"
+                        class="task-btn"
+                        @click="onCreateTask">
+                        {{$t('新建')}}
+                    </bk-button>
+                </template>
+            </advance-search-form>
             <div class="task-table-content">
                 <bk-table
                     :data="taskList"
@@ -505,7 +503,7 @@
             },
             getCreateTaskUrl (task) {
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     query: { template_id: task.template_id },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 }
@@ -708,6 +706,9 @@
 @import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
 @include advancedSearch;
+.task-container {
+    padding: 20px 24px;
+}
 .dialog-content {
     padding: 30px;
     word-break: break-all;
@@ -716,16 +717,6 @@
     min-height: calc(100vh - 300px);
     .advanced-search {
         margin: 20px 0px;
-    }
-}
-.operation-area {
-    margin: 20px 0;
-    .task-btn {
-        width: 120px;
-    }
-    .template-btn {
-        margin-left: 5px;
-        color: #313238;
     }
 }
 .bk-select-inline {

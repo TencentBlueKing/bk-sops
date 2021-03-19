@@ -11,88 +11,90 @@
 */
 <template>
     <div class="param-fill-wrapper">
-        <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]">
-            <div class="task-info-title">
-                <span>{{ $t('任务信息') }}</span>
-            </div>
-            <div class="task-basic-info">
-                <div class="common-form-item">
-                    <label class="required">{{ $t('任务名称') }}</label>
-                    <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
-                        <bk-input
-                            v-model="taskName"
-                            v-validate="taskNameRule"
-                            class="step-form-content-size"
-                            name="taskName">
-                        </bk-input>
-                        <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
-                    </div>
+        <div class="form-area">
+            <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]">
+                <div class="task-info-title">
+                    <span>{{ $t('任务信息') }}</span>
                 </div>
-                <div
-                    v-if="!isExecuteSchemeHide"
-                    class="common-form-item">
-                    <label class="required">{{$t('执行计划')}}</label>
-                    <div class="common-form-content">
-                        <div class="bk-button-group">
-                            <bk-button
-                                :theme="!isStartNow ? 'default' : 'primary'"
-                                @click="onChangeStartNow(true)">
-                                {{ $t('立即执行') }}
-                            </bk-button>
-                            <bk-button
-                                :theme="!isStartNow ? 'primary' : 'default'"
-                                @click="onChangeStartNow(false)">
-                                {{ $t('周期执行') }}
-                            </bk-button>
+                <div class="task-basic-info">
+                    <div class="common-form-item">
+                        <label class="required">{{ $t('任务名称') }}</label>
+                        <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+                            <bk-input
+                                v-model="taskName"
+                                v-validate="taskNameRule"
+                                class="step-form-content-size"
+                                name="taskName">
+                            </bk-input>
+                            <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
+                        </div>
+                    </div>
+                    <div
+                        v-if="!isExecuteSchemeHide"
+                        class="common-form-item">
+                        <label class="required">{{$t('执行计划')}}</label>
+                        <div class="common-form-content">
+                            <div class="bk-button-group">
+                                <bk-button
+                                    :theme="!isStartNow ? 'default' : 'primary'"
+                                    @click="onChangeStartNow(true)">
+                                    {{ $t('立即执行') }}
+                                </bk-button>
+                                <bk-button
+                                    :theme="!isStartNow ? 'primary' : 'default'"
+                                    @click="onChangeStartNow(false)">
+                                    {{ $t('周期执行') }}
+                                </bk-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        v-if="isTaskTypeShow"
+                        class="common-form-item">
+                        <label class="required">{{ $t('流程类型') }}</label>
+                        <div class="common-form-content">
+                            <div class="bk-button-group">
+                                <bk-button
+                                    :theme="isSelectFunctionalType ? 'default' : 'primary'"
+                                    @click="onSwitchTaskType(false)">
+                                    {{ $t('默认任务流程') }}
+                                </bk-button>
+                                <bk-button
+                                    :theme="isSelectFunctionalType ? 'primary' : 'default'"
+                                    @click="onSwitchTaskType(true)">
+                                    {{ $t('职能化任务流程') }}
+                                </bk-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        v-if="!isStartNow"
+                        class="common-form-item">
+                        <label class="required">{{$t('周期表达式')}}</label>
+                        <div class="common-form-content step-form-item-cron">
+                            <LoopRuleSelect
+                                ref="loopRuleSelect"
+                                :manual-input-value="periodicCron">
+                            </LoopRuleSelect>
                         </div>
                     </div>
                 </div>
-                <div
-                    v-if="isTaskTypeShow"
-                    class="common-form-item">
-                    <label class="required">{{ $t('流程类型') }}</label>
-                    <div class="common-form-content">
-                        <div class="bk-button-group">
-                            <bk-button
-                                :theme="isSelectFunctionalType ? 'default' : 'primary'"
-                                @click="onSwitchTaskType(false)">
-                                {{ $t('默认任务流程') }}
-                            </bk-button>
-                            <bk-button
-                                :theme="isSelectFunctionalType ? 'primary' : 'default'"
-                                @click="onSwitchTaskType(true)">
-                                {{ $t('职能化任务流程') }}
-                            </bk-button>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    v-if="!isStartNow"
-                    class="common-form-item">
-                    <label class="required">{{$t('周期表达式')}}</label>
-                    <div class="common-form-content step-form-item-cron">
-                        <LoopRuleSelect
-                            ref="loopRuleSelect"
-                            :manual-input-value="periodicCron">
-                        </LoopRuleSelect>
-                    </div>
-                </div>
             </div>
-        </div>
-        <div class="param-info">
-            <div class="param-info-title">
-                <span>
-                    {{ $t('参数信息') }}
-                </span>
-            </div>
-            <div>
-                <ParameterInfo
-                    ref="ParameterInfo"
-                    :referenced-variable="pipelineData.constants"
-                    :un-referenced-variable="unreferenced"
-                    :task-message-loading="taskMessageLoading"
-                    @paramsLoadingChange="paramsLoadingChange">
-                </ParameterInfo>
+            <div class="param-info">
+                <div class="param-info-title">
+                    <span>
+                        {{ $t('参数信息') }}
+                    </span>
+                </div>
+                <div>
+                    <ParameterInfo
+                        ref="ParameterInfo"
+                        :referenced-variable="pipelineData.constants"
+                        :un-referenced-variable="unreferenced"
+                        :task-message-loading="taskMessageLoading"
+                        @paramsLoadingChange="paramsLoadingChange">
+                    </ParameterInfo>
+                </div>
             </div>
         </div>
         <div class="action-wrapper">
@@ -346,13 +348,13 @@
                 }
                 return this.templateName + '_' + nowTime
             },
-            onSwitchTaskType (isSelectFunctionalType) {
-                this.isSelectFunctionalType = isSelectFunctionalType
-                this.$emit('setFunctionalStep', isSelectFunctionalType)
+            onSwitchTaskType (isFunctional) {
+                this.isSelectFunctionalType = isFunctional
+                this.$emit('toggleFunctionalStep', isFunctional)
             },
             onGotoSelectNode () {
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'selectnode' },
                     query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
                 }
@@ -483,16 +485,18 @@
                             const taskData = await this.createTask(data)
                             let url = {}
                             if (this.viewMode === 'appmaker') {
+                                const { template_id } = this.$route.query
                                 if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
                                     url = {
                                         name: 'appmakerTaskHome',
-                                        params: { app_id: this.app_id, project_id: this.project_id }
+                                        params: { app_id: this.app_id, project_id: this.project_id },
+                                        query: { template_id }
                                     }
                                 } else {
                                     url = {
                                         name: 'appmakerTaskExecute',
                                         params: { app_id: this.app_id, project_id: this.project_id },
-                                        query: { instance_id: taskData.instance_id }
+                                        query: { instance_id: taskData.instance_id, template_id }
                                     }
                                 }
                             } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
@@ -557,7 +561,7 @@
                     return
                 }
                 this.isStartNow = value
-                this.$emit('setPeriodicStep', { 'periodicType': value, 'functionalType': this.isSelectFunctionalType })
+                this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
                 if (!value) {
                     this.lastTaskName = this.taskName
                     this.taskName = this.templateName
@@ -573,13 +577,18 @@
 </script>
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
+@import "@/scss/mixins/scrollbar.scss";
+
 .param-fill-wrapper {
     position: relative;
-    padding-top: 50px;
-    padding-bottom: 72px;
-    box-sizing: border-box;
-    min-height: calc(100vh - 50px - 139px);
+    height: calc(100vh - 100px);
     background: #fff;
+}
+.form-area {
+    padding-top: 20px;
+    height: calc(100% - 72px);
+    overflow: auto;
+    @include scrollbar;
 }
 .task-info,
 .param-info {
@@ -678,14 +687,11 @@
     }
 }
 .action-wrapper {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
+    height: 72px;
+    line-height: 72px;
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
-    button {
-        margin-top: -7px;
-    }
+    box-shadow: 0 -3px 4px 0 rgba(64,112,203,0.06);
     .preview-step-button {
         padding: 0px;
         margin-left: 40px;

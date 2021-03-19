@@ -38,3 +38,8 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+    .home-page {
+        padding: 20px 24px;
+    }
+</style>

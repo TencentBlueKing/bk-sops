@@ -6,21 +6,21 @@
         </div>
         <!-- 更多操作 -->
         <div
-            class="more-operation"
-            @mouseenter="isMoreOperateActive = true"
-            @mouseleave="isMoreOperateActive = false">
-            <bk-dropdown-menu align="right">
-                <template slot="dropdown-trigger">
-                    <div :class="['help-icon', { active: isMoreOperateActive }]">
-                        <i class="common-icon-help"></i>
-                    </div>
-                </template>
-                <div class="operate-container" slot="dropdown-content">
-                    <div class="operate-item" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
-                    <div class="operate-item" @click="onOpenVersion">{{ $t('版本日志') }}</div>
-                    <div class="operate-item" @click="goToFeedback">{{ $t('问题反馈') }}</div>
-                </div>
-            </bk-dropdown-menu>
+            :class="['help-icon', { active: isMoreOperateActive }]"
+            v-bk-tooltips="{
+                placement: 'bottom',
+                allowHtml: 'true',
+                theme: 'light',
+                hideOnClick: false,
+                extCls: 'more-operation-tips',
+                content: '#more-operation-html'
+            }">
+            <i class="common-icon-help"></i>
+        </div>
+        <div id="more-operation-html">
+            <div class="operate-item" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
+            <div class="operate-item" @click="onOpenVersion">{{ $t('版本日志') }}</div>
+            <div class="operate-item" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
         <!-- 用户icon -->
         <div class="user-avatar">{{ username }}</div>
@@ -138,42 +138,20 @@
         .project-select >>> .project-wrapper {
             margin-top: 0;
         }
-        .more-operation {
-            margin-left: 18px;
-            font-size: 16px;
-            color: #63656e;
-            /deep/ .bk-dropdown-content {
-                z-index: 2001;
-            }
-        }
         .help-icon {
             display: flex;
             justify-content: center;
             align-items: center;
             width: 32px;
             height: 32px;
+            font-size: 16px;
+            color: #63656e;
             border-radius: 50%;
+            cursor: pointer;
             transition: brackground .2s;
-            &.active {
+            &.tippy-active {
                 background: #f0f1f5;
                 i {
-                    color: #3a84ff;
-                }
-            }
-        }
-        .operate-container {
-            .operate-item {
-                display: block;
-                height: 32px;
-                line-height: 33px;
-                padding: 0 16px;
-                color: #63656e;
-                font-size: 12px;
-                text-decoration: none;
-                white-space: nowrap;
-                cursor: pointer;
-                &:hover {
-                    background-color: #eaf3ff;
                     color: #3a84ff;
                 }
             }
@@ -188,6 +166,30 @@
         }
         /deep/ .bk-select.is-disabled {
             background: none;
+        }
+    }
+</style>
+<style lang="scss">
+    .tippy-popper.more-operation-tips {
+        .tippy-tooltip {
+            padding: 4px 0;
+        }
+        #more-operation-html {
+            .operate-item {
+                display: block;
+                height: 32px;
+                line-height: 33px;
+                padding: 0 20px;
+                color: #63656e;
+                font-size: 12px;
+                text-decoration: none;
+                white-space: nowrap;
+                cursor: pointer;
+                &:hover {
+                    background-color: #eaf3ff;
+                    color: #3a84ff;
+                }
+            }
         }
     }
 </style>

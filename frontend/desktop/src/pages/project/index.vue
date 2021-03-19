@@ -591,15 +591,10 @@
 </script>
 <style lang="scss" scoped>
     .project-container {
-        min-width: 1320px;
-        min-height: calc(100% - 50px);
+        padding: 20px 24px;
         .dialog-content {
             word-break: break-all;
         }
-    }
-    .list-wrapper {
-        padding: 0 60px;
-        min-height: calc(100vh - 240px);
     }
     .list-header {
         padding: 20px 0;

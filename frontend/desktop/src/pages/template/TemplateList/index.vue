@@ -16,40 +16,38 @@
                 :num="expiredSubflowTplList.length"
                 @viewClick="handleSubflowFilter">
             </list-page-tips-title>
-            <div class="operation-area clearfix">
-                <advance-search-form
-                    ref="advanceSearch"
-                    id="templateList"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称') }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
-                            theme="primary"
-                            :class="['create-template', {
-                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
-                            }]"
-                            @click="checkCreatePermission">
-                            {{$t('新建')}}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onExportTemplate">
-                            {{$t('导出')}}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onImportTemplate">
-                            {{ $t('导入') }}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                ref="advanceSearch"
+                id="templateList"
+                :open="isSearchFormOpen"
+                :search-form="searchForm"
+                :search-config="{ placeholder: $t('请输入流程名称') }"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+                <template v-slot:operation>
+                    <bk-button
+                        v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                        theme="primary"
+                        :class="['create-template', {
+                            'btn-permission-disable': !hasPermission(['flow_create'], authActions)
+                        }]"
+                        @click="checkCreatePermission">
+                        {{$t('新建')}}
+                    </bk-button>
+                    <bk-button
+                        theme="default"
+                        class="template-btn"
+                        @click="onExportTemplate">
+                        {{$t('导出')}}
+                    </bk-button>
+                    <bk-button
+                        theme="default"
+                        class="template-btn"
+                        @click="onImportTemplate">
+                        {{ $t('导入') }}
+                    </bk-button>
+                </template>
+            </advance-search-form>
             <div class="template-table-content">
                 <bk-table
                     class="template-table"
@@ -762,7 +760,7 @@
                 const urlMap = {
                     'edit': { name: 'templatePanel', params: { type: 'edit' } },
                     'newTemplate': { name: 'templatePanel', params: { type: 'new' } },
-                    'newTask': { name: 'taskStep', params: { project_id: this.project_id, step: 'selectnode' } },
+                    'newTask': { name: 'taskCreate', params: { project_id: this.project_id, step: 'selectnode' } },
                     'clone': { name: 'templatePanel', params: { type: 'clone' } }
                 }
                 const url = urlMap[name]
@@ -867,6 +865,9 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+.template-container {
+    padding: 20px 24px;
+}
 .dialog-content {
     padding: 30px;
     word-break: break-all;

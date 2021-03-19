@@ -11,12 +11,6 @@
 */
 <template>
     <div class="task-manage">
-        <!-- <base-title
-            :title="$t('任务管理')"
-            :self-reload="true"
-            :tab-list="titleTabList"
-            @tabChange="onTabChange">
-        </base-title> -->
         <router-view></router-view>
     </div>
 </template>

@@ -12,16 +12,14 @@
 <template>
     <div class="audit-container">
         <div class="list-wrapper">
-            <div class="operation-area clearfix">
-                <advance-search-form
-                    id="auditList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                id="auditList"
+                :open="isSearchFormOpen"
+                :search-config="{ placeholder: $t('请输入任务名称') }"
+                :search-form="searchForm"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+            </advance-search-form>
             <div class="audit-table-content">
                 <bk-table
                     :data="auditList"
@@ -488,6 +486,9 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
+.audit-container {
+    padding: 20px 24px;
+}
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
@@ -495,15 +496,6 @@
 .list-wrapper {
     .advanced-search {
         margin: 0;
-    }
-}
-.operation-area {
-    margin: 20px 0;
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
 }
 .common-icon-dark-circle-pause {

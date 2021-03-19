@@ -12,40 +12,38 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <div class="operation-area clearfix">
-                <advance-search-form
-                    ref="advanceSearch"
-                    id="commonTplList"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称') }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            v-cursor="{ active: !hasCreateCommonTplPerm }"
-                            theme="primary"
-                            :class="['create-template', {
-                                'btn-permission-disable': !hasCreateCommonTplPerm
-                            }]"
-                            @click="checkCreatePermission">
-                            {{$t('新建')}}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onExportTemplate">
-                            {{$t('导出')}}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onImportTemplate">
-                            {{ $t('导入') }}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                ref="advanceSearch"
+                id="commonTplList"
+                :open="isSearchFormOpen"
+                :search-form="searchForm"
+                :search-config="{ placeholder: $t('请输入流程名称') }"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+                <template v-slot:operation>
+                    <bk-button
+                        v-cursor="{ active: !hasCreateCommonTplPerm }"
+                        theme="primary"
+                        :class="['create-template', {
+                            'btn-permission-disable': !hasCreateCommonTplPerm
+                        }]"
+                        @click="checkCreatePermission">
+                        {{$t('新建')}}
+                    </bk-button>
+                    <bk-button
+                        theme="default"
+                        class="template-btn"
+                        @click="onExportTemplate">
+                        {{$t('导出')}}
+                    </bk-button>
+                    <bk-button
+                        theme="default"
+                        class="template-btn"
+                        @click="onImportTemplate">
+                        {{ $t('导入') }}
+                    </bk-button>
+                </template>
+            </advance-search-form>
             <div class="template-table-content">
                 <bk-table
                     class="template-table"
@@ -705,7 +703,7 @@
                 const urlMap = {
                     'edit': { name: 'commonTemplatePanel', params: { type: 'edit' } },
                     'newTemplate': { name: 'commonTemplatePanel', params: { type: 'new' } },
-                    'newTask': { name: 'taskStep', params: { project_id: this.project_id, step: 'selectnode' } },
+                    'newTask': { name: 'taskCreate', params: { project_id: this.project_id, step: 'selectnode' } },
                     'clone': { name: 'commonTemplatePanel', params: { type: 'clone' } }
                 }
                 const url = urlMap[name]
@@ -824,7 +822,7 @@
                     this.applyForPermission(reqPerimmison, curPermission, resourceData)
                 } else {
                     this.$router.push({
-                        name: 'taskStep',
+                        name: 'taskCreate',
                         query: { template_id: this.selectedTpl.id, common: '1' },
                         params: { project_id: this.selectedProject.id, step: 'selectnode' }
                     })
@@ -840,26 +838,15 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+.template-container {
+    padding: 20px 24px;
+}
 a {
     cursor: pointer;
 }
 .dialog-content {
     padding: 30px;
     word-break: break-all;
-}
-.operation-area {
-    margin: 20px 0;
-    .create-template {
-        min-width: 120px;
-        font-size: 14px;
-    }
-    .template-btn {
-        margin-left: 5px;
-    }
-    .template-search {
-        height: 156px;
-        background: #fff;
-    }
 }
 .template-table-content {
     background: #ffffff;

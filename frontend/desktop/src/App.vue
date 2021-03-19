@@ -11,50 +11,19 @@
 */
 <template>
     <div id="app">
-        <bk-navigation
-            v-if="!hideHeader"
-            navigation-type="left-right"
-            :side-title="$t('标准运维')"
-            :need-menu="true"
-            :default-open="true">
-            <div slot="side-icon" class="logo-area">
-                <img :src="logo" class="logo" />
-            </div>
-            <template slot="header-set">
-                <navigator-head-right></navigator-head-right>
+        <navigation v-if="!hideHeader">
+            <template slot="page-content">
+                <div class="main-container">
+                    <router-view v-if="isRouterViewShow"></router-view>
+                </div>
+                <permissionApply
+                    v-if="permissinApplyShow"
+                    ref="permissionApply"
+                    :permission-data="permissionData">
+                </permissionApply>
             </template>
-            <template slot="menu">
-                <bk-navigation-menu>
-                    <bk-navigation-menu-group
-                        v-for="(group, groupIndex) in routerList"
-                        :key="groupIndex">
-                        <bk-navigation-menu-item
-                            v-for="(item, routeIndex) in group.list"
-                            :key="item.id"
-                            :has-child="item.children && !!item.children.length"
-                            :group="item.group"
-                            :icon="item.icon"
-                            :disabled="item.disabled"
-                            :url="item.url"
-                            :id="item.id"
-                            @click="onHandleNavClick($event, groupIndex, routeIndex)">
-                            <span>{{item.name}}</span>
-                            <div slot="child">
-                                <bk-navigation-menu-item
-                                    v-for="(child, childIndex) in item.children"
-                                    :key="child.id"
-                                    :id="child.id"
-                                    :disabled="child.disabled"
-                                    :icon="child.icon"
-                                    :default-active="child.active"
-                                    @click="onHandleSubNavClick($event, groupIndex, routeIndex, childIndex)">
-                                    <span>{{child.name}}</span>
-                                </bk-navigation-menu-item>
-                            </div>
-                        </bk-navigation-menu-item>
-                    </bk-navigation-menu-group>
-                </bk-navigation-menu>
-            </template>
+        </navigation>
+        <template v-else>
             <div class="main-container">
                 <router-view v-if="isRouterViewShow"></router-view>
             </div>
@@ -63,15 +32,7 @@
                 ref="permissionApply"
                 :permission-data="permissionData">
             </permissionApply>
-        </bk-navigation>
-        <div v-else class="main-container">
-            <router-view v-if="isRouterViewShow"></router-view>
-        </div>
-        <permissionApply
-            v-if="permissinApplyShow"
-            ref="permissionApply"
-            :permission-data="permissionData">
-        </permissionApply>
+        </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
     </div>
@@ -79,122 +40,19 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
-    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
+    import Navigation from '@/components/layout/Navigation.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
-    import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
     import permissionApply from '@/components/layout/permissionApply.vue'
-
-    const COMMON_NAVI_LIST = [
-        {
-            list: [
-                {
-                    id: 'home',
-                    name: i18n.t('首页'),
-                    icon: 'icon-home-shape',
-                    url: '/home/'
-                },
-                {
-                    id: 'template',
-                    name: i18n.t('项目流程'),
-                    icon: 'icon-sitemap-shape',
-                    hasProjectId: true,
-                    url: '/template/home/'
-                },
-                {
-                    id: 'task',
-                    name: i18n.t('任务'),
-                    icon: 'icon-calendar-shape',
-                    children: [
-                        {
-                            id: 'taskList',
-                            name: i18n.t('任务记录'),
-                            hasProjectId: true,
-                            url: '/taskflow/home/list/'
-                        },
-                        {
-                            id: 'periodicTask',
-                            name: i18n.t('周期任务'),
-                            hasProjectId: true,
-                            url: '/taskflow/home/periodic/'
-                        }
-                    ]
-                },
-                {
-                    id: 'appmaker',
-                    name: i18n.t('轻应用'),
-                    icon: 'icon-apps-shape',
-                    hasProjectId: true,
-                    url: '/appmaker/home/'
-                }
-            ]
-        },
-        {
-            list: [
-                {
-                    id: 'commonTemplate',
-                    name: i18n.t('公共流程'),
-                    icon: 'icon-execute',
-                    url: '/common/home/'
-                },
-                {
-                    id: 'functor',
-                    name: i18n.t('职能化'),
-                    icon: 'icon-project',
-                    url: '/function/home/'
-                },
-                {
-                    id: 'audit',
-                    name: i18n.t('审计中心'),
-                    icon: 'icon-order-shape',
-                    url: '/audit/home/'
-                },
-                {
-                    id: 'project',
-                    name: i18n.t('项目管理'),
-                    icon: 'icon-work-manage',
-                    url: '/project/home/'
-                }
-            ]
-        }
-    ]
-    const ADMIN_NAVI_LIST = [
-        {
-            list: [
-                {
-                    id: 'admin',
-                    name: i18n.t('管理员入口'),
-                    icon: 'icon-user-shape',
-                    children: [
-                        {
-                            id: 'manage',
-                            name: i18n.t('后台管理'),
-                            url: '/admin/manage/search/'
-                        },
-                        {
-                            id: 'operation',
-                            name: i18n.t('运营数据'),
-                            url: '/admin/statistics/template/'
-                        },
-                        {
-                            id: 'atom',
-                            name: i18n.t('插件开发'),
-                            url: '/admin/atomdev/'
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
 
     export default {
         name: 'App',
         components: {
-            NavigatorHeadRight,
+            Navigation,
             ErrorCodeModal,
             permissionApply,
             PermissionModal
@@ -206,10 +64,7 @@
             }
         },
         data () {
-            const routerList = COMMON_NAVI_LIST.concat(ADMIN_NAVI_LIST)
             return {
-                logo: require('./assets/images/logo/logo_icon.svg'),
-                routerList,
                 footerLoading: false,
                 permissinApplyShow: false,
                 permissionData: {
@@ -405,21 +260,6 @@
                     this.footerLoading = false
                 }
             },
-            onHandleNavClick (id, groupIndex, routeIndex) {
-                this.changeRoute(this.routerList[groupIndex].list[routeIndex])
-            },
-            onHandleSubNavClick (id, groupIndex, routeIndex, childIndex) {
-                this.changeRoute(this.routerList[groupIndex].list[routeIndex].children[childIndex])
-            },
-            changeRoute (nav) {
-                const route = {
-                    path: nav.url
-                }
-                if (nav.hasProjectId) {
-                    route.path = `${nav.url}${this.project_id}/`
-                }
-                this.$router.push(route)
-            },
             handleRouteChange (preProjectId) {
                 this.isRouterAlive = true
                 if (!this.$route.meta.project) {
@@ -452,7 +292,6 @@
 <style lang="scss">
     @import './scss/app.scss';
     @import '@/scss/config.scss';
-    @import '@/scss/mixins/scrollbar.scss';
 
     html,body {
         height:100%;
@@ -467,19 +306,7 @@
         min-width: 1320px;
         .main-container {
             width: 100%;
-            min-width: 1320px;
-            min-height: calc(100% - 50px);
-            overflow-x: hidden;
-        }
-        .bk-navigation-wrapper .navigation-container .container-content {
-            @include scrollbar;
-        }
-        .bk-navigation-menu-group,
-        .bk-navigation-menu-group .group-name-wrap {
-            display: flex;
-            align-items: center;
-            color: #66748f;
-            width: 100%;
+            height: calc(100vh - 52px);
         }
     }
 </style>

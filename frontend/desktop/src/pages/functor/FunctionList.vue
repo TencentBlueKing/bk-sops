@@ -12,29 +12,27 @@
 <template>
     <div class="functor-container">
         <div class="list-wrapper">
-            <div class="operation-area clearfix">
-                <advance-search-form
-                    id="functionList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            theme="primary"
-                            class="task-create-btn"
-                            @click="onCreateTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                    <template v-slot:search-extend>
-                        <span class="auto-redraw" @click.stop>
-                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
-                        </span>
-                    </template>
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                id="functionList"
+                :open="isSearchFormOpen"
+                :search-config="{ placeholder: $t('请输入任务名称') }"
+                :search-form="searchForm"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+                <template v-slot:operation>
+                    <bk-button
+                        theme="primary"
+                        class="task-create-btn"
+                        @click="onCreateTask">
+                        {{$t('新建')}}
+                    </bk-button>
+                </template>
+                <template v-slot:search-extend>
+                    <span class="auto-redraw" @click.stop>
+                        <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
+                    </span>
+                </template>
+            </advance-search-form>
             <div class="functor-table-content">
                 <bk-table
                     :data="functorList"
@@ -829,8 +827,7 @@
     width: 260px;
 }
 .functor-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
+    padding: 20px 24px;
     background: #f4f7fa;
 }
 .operation-area {

@@ -12,26 +12,24 @@
 <template>
     <div class="periodic-container">
         <div class="list-wrapper">
-            <div class="operation-area">
-                <advance-search-form
-                    id="periodicList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-if="!adminView" v-slot:operation>
-                        <bk-button
-                            ref="childComponent"
-                            theme="primary"
-                            class="task-create-btn"
-                            size="normal"
-                            @click="onCreatePeriodTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                id="periodicList"
+                :open="isSearchFormOpen"
+                :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
+                :search-form="searchForm"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+                <template v-if="!adminView" v-slot:operation>
+                    <bk-button
+                        ref="childComponent"
+                        theme="primary"
+                        class="task-create-btn"
+                        size="normal"
+                        @click="onCreatePeriodTask">
+                        {{$t('新建')}}
+                    </bk-button>
+                </template>
+            </advance-search-form>
             <div class="periodic-table-content">
                 <bk-table
                     :data="periodicList"
@@ -682,16 +680,13 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+.periodic-container {
+    padding: 20px 24px;
+}
 .list-wrapper {
     min-height: calc(100vh - 300px);
     .advanced-search {
         margin: 0px;
-    }
-    .operation-area{
-        margin: 20px 0px;
-        .task-create-btn {
-            min-width: 120px;
-        }
     }
 }
 .query-button {
