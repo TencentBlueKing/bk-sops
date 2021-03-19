@@ -85,7 +85,6 @@ class JobPushLocalFilesService(JobService):
 
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
-
         if not ip_list:
             data.outputs.ex_data = _("目标ip为空，请确认是否为当前业务IP。如需跨业务上传，请选择'允许跨业务'选项")
             return False
