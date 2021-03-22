@@ -65,7 +65,7 @@ def create_periodic_task(request, template_id, project_id):
         pass
     if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
         message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
-        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+        return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
 
     params = json.loads(request.body)
     template_source = params.get("template_source", PROJECT)
