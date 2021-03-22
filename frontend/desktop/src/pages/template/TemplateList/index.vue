@@ -11,203 +11,204 @@
 */
 <template>
     <div class="template-container">
-        <div class="list-wrapper">
-            <list-page-tips-title
-                :num="expiredSubflowTplList.length"
-                @viewClick="handleSubflowFilter">
-            </list-page-tips-title>
-            <advance-search-form
-                ref="advanceSearch"
-                id="templateList"
-                :open="isSearchFormOpen"
-                :search-form="searchForm"
-                :search-config="{ placeholder: $t('请输入流程名称') }"
-                @onSearchInput="onSearchInput"
-                @submit="onSearchFormSubmit">
-                <template v-slot:operation>
-                    <bk-button
-                        v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
-                        theme="primary"
-                        :class="['create-template', {
-                            'btn-permission-disable': !hasPermission(['flow_create'], authActions)
-                        }]"
-                        @click="checkCreatePermission">
-                        {{$t('新建')}}
-                    </bk-button>
-                    <bk-button
-                        theme="default"
-                        class="template-btn"
-                        @click="onExportTemplate">
-                        {{$t('导出')}}
-                    </bk-button>
-                    <bk-button
-                        theme="default"
-                        class="template-btn"
-                        @click="onImportTemplate">
-                        {{ $t('导入') }}
-                    </bk-button>
-                </template>
-            </advance-search-form>
-            <div class="template-table-content">
-                <bk-table
-                    class="template-table"
-                    :data="templateList"
-                    :pagination="pagination"
-                    :size="setting.size"
-                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @sort-change="handleSortChange"
-                    @page-change="onPageChange"
-                    @page-limit-change="onPageLimitChange">
-                    <bk-table-column
-                        v-for="item in setting.selectedFields"
-                        :key="item.id"
-                        :label="item.label"
-                        :prop="item.id"
-                        :width="item.width"
-                        :min-width="item.min_width"
-                        :sortable="item.sortable">
-                        <template slot-scope="{ row }">
-                            <!--流程名称-->
-                            <div v-if="item.id === 'name'" class="name-column">
-                                <template>
-                                    <a
-                                        v-if="!hasPermission(['flow_view'], row.auth_actions)"
-                                        v-cursor
-                                        class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['flow_view'], row)">
-                                        {{row.name}}
-                                    </a>
-                                    <router-link
-                                        v-else
-                                        class="template-name"
-                                        :title="row.name"
-                                        :to="getJumpUrl('edit', row.id)">
-                                        {{row.name}}
-                                    </router-link>
+        <skeleton :loading="listLoading" loader="home">
+            <div class="list-wrapper">
+                <list-page-tips-title
+                    :num="expiredSubflowTplList.length"
+                    @viewClick="handleSubflowFilter">
+                </list-page-tips-title>
+                <advance-search-form
+                    ref="advanceSearch"
+                    id="templateList"
+                    :open="isSearchFormOpen"
+                    :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入流程名称') }"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                    <template v-slot:operation>
+                        <bk-button
+                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                            theme="primary"
+                            :class="['create-template', {
+                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
+                            }]"
+                            @click="checkCreatePermission">
+                            {{$t('新建')}}
+                        </bk-button>
+                        <bk-button
+                            theme="default"
+                            class="template-btn"
+                            @click="onExportTemplate">
+                            {{$t('导出')}}
+                        </bk-button>
+                        <bk-button
+                            theme="default"
+                            class="template-btn"
+                            @click="onImportTemplate">
+                            {{ $t('导入') }}
+                        </bk-button>
+                    </template>
+                </advance-search-form>
+                <div class="template-table-content">
+                    <bk-table
+                        class="template-table"
+                        :data="templateList"
+                        :pagination="pagination"
+                        :size="setting.size"
+                        @sort-change="handleSortChange"
+                        @page-change="onPageChange"
+                        @page-limit-change="onPageLimitChange">
+                        <bk-table-column
+                            v-for="item in setting.selectedFields"
+                            :key="item.id"
+                            :label="item.label"
+                            :prop="item.id"
+                            :width="item.width"
+                            :min-width="item.min_width"
+                            :sortable="item.sortable">
+                            <template slot-scope="{ row }">
+                                <!--流程名称-->
+                                <div v-if="item.id === 'name'" class="name-column">
+                                    <template>
+                                        <a
+                                            v-if="!hasPermission(['flow_view'], row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            @click="onTemplatePermissonCheck(['flow_view'], row)">
+                                            {{row.name}}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="template-name"
+                                            :title="row.name"
+                                            :to="getJumpUrl('edit', row.id)">
+                                            {{row.name}}
+                                        </router-link>
+                                    </template>
+                                    <template v-if="row.template_labels && row.template_labels.length > 0">
+                                        <span
+                                            v-for="label in row.template_labels"
+                                            class="label-name"
+                                            :key="label.id"
+                                            :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
+                                            @click="onSearchLabel(label.label_id)">
+                                            {{ label.name }}
+                                        </span>
+                                    </template>
+                                </div>
+                                <!--子流程更新-->
+                                <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
+                                    {{getSubflowContent(row)}}
+                                    <span v-if="!isFlowVisited(row.id) " class="red-dot"></span>
+                                </div>
+                                <!-- 其他 -->
+                                <template v-else>
+                                    <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
                                 </template>
-                                <template v-if="row.template_labels && row.template_labels.length > 0">
-                                    <span
-                                        v-for="label in row.template_labels"
-                                        class="label-name"
-                                        :key="label.id"
-                                        :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
-                                        @click="onSearchLabel(label.label_id)">
-                                        {{ label.name }}
-                                    </span>
-                                </template>
-                            </div>
-                            <!--子流程更新-->
-                            <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
-                                {{getSubflowContent(row)}}
-                                <span v-if="!isFlowVisited(row.id) " class="red-dot"></span>
-                            </div>
-                            <!-- 其他 -->
-                            <template v-else>
-                                <span :title="row[item.id]">{{ row[item.id] || '--' }}</span>
                             </template>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
-                        <template slot-scope="props">
-                            <div class="template-operation">
-                                <template>
-                                    <a
-                                        v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
-                                        v-cursor
-                                        class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['flow_create_task'], props.row)">
-                                        {{$t('新建任务')}}
-                                    </a>
-                                    <router-link
-                                        v-else
-                                        class="template-operate-btn"
-                                        :to="getJumpUrl('newTask', props.row.id)">
-                                        {{$t('新建任务')}}
-                                    </router-link>
-                                    <a
-                                        v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
-                                        v-cursor
-                                        class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['flow_view'], props.row)">
-                                        {{$t('克隆')}}
-                                    </a>
-                                    <router-link
-                                        v-else
-                                        class="template-operate-btn"
-                                        :to="getJumpUrl('clone', props.row.id)">
-                                        {{$t('克隆')}}
-                                    </router-link>
-                                    <router-link
-                                        class="template-operate-btn"
-                                        :to="getExecuteHistoryUrl(props.row.id)">
-                                        {{ $t('执行历史')}}
-                                    </router-link>
-                                    <bk-popover
-                                        theme="light"
-                                        placement="bottom-start"
-                                        ext-cls="common-dropdown-btn-popver"
-                                        :z-index="2000"
-                                        :distance="0"
-                                        :arrow="false"
-                                        :tippy-options="{ boundary: 'window', duration: [0, 0] }">
-                                        <i class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul slot="content">
-                                            <li class="opt-btn">
-                                                <a
-                                                    v-cursor="{ active: !hasPermission(['flow_view'], props.row.auth_actions) }"
-                                                    href="javascript:void(0);"
-                                                    :class="{
-                                                        'disable': collectingId === props.row.id || collectListLoading,
-                                                        'text-permission-disable': !hasPermission(['flow_view'], props.row.auth_actions)
-                                                    }"
-                                                    @click="onCollectTemplate(props.row, $event)">
-                                                    {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
-                                                </a>
-                                            </li>
-                                            <li class="opt-btn">
-                                                <a
-                                                    v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
-                                                    v-cursor
-                                                    class="text-permission-disable"
-                                                    @click="onTemplatePermissonCheck(['flow_edit'], props.row)">
-                                                    {{$t('编辑')}}
-                                                </a>
-                                                <router-link
-                                                    v-else
-                                                    tag="a"
-                                                    :to="getJumpUrl('edit', props.row.id)">
-                                                    {{$t('编辑')}}
-                                                </router-link>
-                                            </li>
-                                            <li class="opt-btn">
-                                                <a
-                                                    v-cursor="{ active: !hasPermission(['flow_delete'], props.row.auth_actions) }"
-                                                    href="javascript:void(0);"
-                                                    :class="{
-                                                        'text-permission-disable': !hasPermission(['flow_delete'], props.row.auth_actions)
-                                                    }"
-                                                    @click="onDeleteTemplate(props.row, $event)">
-                                                    {{ $t('删除') }}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </bk-popover>
-                                </template>
-                            </div>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column type="setting">
-                        <bk-table-setting-content
-                            :fields="setting.fieldList"
-                            :selected="setting.selectedFields"
-                            :size="setting.size"
-                            @setting-change="handleSettingChange">
-                        </bk-table-setting-content>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
-                </bk-table>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
+                            <template slot-scope="props">
+                                <div class="template-operation">
+                                    <template>
+                                        <a
+                                            v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            @click="onTemplatePermissonCheck(['flow_create_task'], props.row)">
+                                            {{$t('新建任务')}}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="template-operate-btn"
+                                            :to="getJumpUrl('newTask', props.row.id)">
+                                            {{$t('新建任务')}}
+                                        </router-link>
+                                        <a
+                                            v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            @click="onTemplatePermissonCheck(['flow_view'], props.row)">
+                                            {{$t('克隆')}}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="template-operate-btn"
+                                            :to="getJumpUrl('clone', props.row.id)">
+                                            {{$t('克隆')}}
+                                        </router-link>
+                                        <router-link
+                                            class="template-operate-btn"
+                                            :to="getExecuteHistoryUrl(props.row.id)">
+                                            {{ $t('执行历史')}}
+                                        </router-link>
+                                        <bk-popover
+                                            theme="light"
+                                            placement="bottom-start"
+                                            ext-cls="common-dropdown-btn-popver"
+                                            :z-index="2000"
+                                            :distance="0"
+                                            :arrow="false"
+                                            :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                            <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                            <ul slot="content">
+                                                <li class="opt-btn">
+                                                    <a
+                                                        v-cursor="{ active: !hasPermission(['flow_view'], props.row.auth_actions) }"
+                                                        href="javascript:void(0);"
+                                                        :class="{
+                                                            'disable': collectingId === props.row.id || collectListLoading,
+                                                            'text-permission-disable': !hasPermission(['flow_view'], props.row.auth_actions)
+                                                        }"
+                                                        @click="onCollectTemplate(props.row, $event)">
+                                                        {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
+                                                    </a>
+                                                </li>
+                                                <li class="opt-btn">
+                                                    <a
+                                                        v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
+                                                        v-cursor
+                                                        class="text-permission-disable"
+                                                        @click="onTemplatePermissonCheck(['flow_edit'], props.row)">
+                                                        {{$t('编辑')}}
+                                                    </a>
+                                                    <router-link
+                                                        v-else
+                                                        tag="a"
+                                                        :to="getJumpUrl('edit', props.row.id)">
+                                                        {{$t('编辑')}}
+                                                    </router-link>
+                                                </li>
+                                                <li class="opt-btn">
+                                                    <a
+                                                        v-cursor="{ active: !hasPermission(['flow_delete'], props.row.auth_actions) }"
+                                                        href="javascript:void(0);"
+                                                        :class="{
+                                                            'text-permission-disable': !hasPermission(['flow_delete'], props.row.auth_actions)
+                                                        }"
+                                                        @click="onDeleteTemplate(props.row, $event)">
+                                                        {{ $t('删除') }}
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </bk-popover>
+                                    </template>
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column type="setting">
+                            <bk-table-setting-content
+                                :fields="setting.fieldList"
+                                :selected="setting.selectedFields"
+                                :size="setting.size"
+                                @setting-change="handleSettingChange">
+                            </bk-table-setting-content>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
+        </skeleton>
         <ImportTemplateDialog
             :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
@@ -244,6 +245,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
+    import Skeleton from '@/components/skeleton/index.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -334,6 +336,7 @@
     export default {
         name: 'TemplateList',
         components: {
+            Skeleton,
             ImportTemplateDialog,
             ExportTemplateDialog,
             ListPageTipsTitle,

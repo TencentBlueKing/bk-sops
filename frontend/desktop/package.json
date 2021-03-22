@@ -103,6 +103,7 @@
     "style-loader": "^0.21.0",
     "terser-webpack-plugin": "^2.2.2",
     "url-loader": "^1.0.1",
+    "vue-content-loader": "^0.2.3",
     "vue-jest": "^3.0.5",
     "vue-json-pretty": "^1.4.1-beta.1",
     "vue-loader": "^15.2.4",
