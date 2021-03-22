@@ -656,6 +656,39 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             }
         ])
 
+    def test_manual_method_all_success_case(self, mock_get_client_by_user_return=None):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value={
+                "var_ip_method": "manual",
+                "var_ip_custom_value": "",
+                "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": ""},
+                "var_ip_manual_value": {"var_manual_set": "集群1", "var_manual_module": "all",
+                                        "var_module_name": ""},
+                "var_filter_set": "",
+                "var_filter_module": "",
+            },
+            name="test_manual_method_success_case",
+            context={},
+        )
+        self.assertEqual("192.168.40.1", set_module_ip_selector.get_value())
+        call_assert([
+            {
+                "func": self.client.new().cc.find_module_with_relation,
+                "calls": [call(bk_biz_id=1, bk_service_template_ids=[62, 61, 3, 4, 5], bk_set_ids=[31],
+                               fields=['bk_module_id'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_service_template_ids=[62, 61, 3, 4, 5], bk_set_ids=[31],
+                               fields=['bk_module_id'], page={'limit': 500, 'start': 0})]
+            },
+            {
+                "func": self.client.new().cc.list_biz_hosts,
+                "calls": [call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
+                          call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
+                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+            }
+        ])
+
     def test_manual_method_fail_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,

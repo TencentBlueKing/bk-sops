@@ -27,7 +27,7 @@
                         return {
                             "cc_search_host": $.context.get("site_url") + "pipeline/cc_search_host/" + $.context.getBkBizId() + "/",
                             "cc_search_topo_set": $.context.get("site_url") + "pipeline/cc_search_topo/set/normal/" + $.context.getBkBizId() + "/",
-                            "cc_search_topo_module": $.context.get("site_url") + "pipeline/cc_search_topo/module/normal/" + $.context.getBkBizId() + "/",
+                            "cc_search_topo_module": $.context.get("site_url") + "pipeline/cc_search_topo/module/normal/" + $.context.getBkBizId() + "/?with_internal_module=true",
                             "cc_search_module": $.context.get("site_url") + "pipeline/cc_search_module/" + $.context.getBkBizId() + "/",
                             "cc_search_object_attribute_host": $.context.get("site_url") + "pipeline/cc_search_object_attribute/host/" + $.context.getBkBizId() + "/",
                             "cc_search_create_object_attribute_set": $.context.get("site_url") + "pipeline/cc_search_create_object_attribute/set/" + $.context.getBkBizId() + "/",

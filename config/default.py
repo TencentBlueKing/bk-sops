@@ -152,7 +152,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.31"
+STATIC_VERSION = "3.6.34"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -387,12 +387,14 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
+# format: module_path: alias
 MAKO_SANDBOX_IMPORT_MODULES = {
     "datetime": "datetime",
     "re": "re",
     "hashlib": "hashlib",
     "random": "random",
     "time": "time",
+    "os.path": "os.path",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:

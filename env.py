@@ -112,3 +112,7 @@ BKAPP_FILE_UPLOAD_ENTRY = os.getenv("BKAPP_FILE_UPLOAD_ENTRY", "")
 BKAPP_WEIXIN_APP_ID = os.getenv("BKAPP_WEIXIN_APP_ID", "")
 BKAPP_WEIXIN_APP_SECRET = os.getenv("BKAPP_WEIXIN_APP_SECRET", "")
 BKAPP_WEIXIN_APP_EXTERNAL_HOST = os.getenv("BKAPP_WEIXIN_APP_EXTERNAL_HOST", "")
+
+# RSA KEYS, 保存的是密钥的base64加密形式, 使用base64.b64encode(KEY.encode("utf-8"))进行处理后保存为环境变量
+RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
+RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)

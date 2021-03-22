@@ -1,5 +1,25 @@
 # Release
 
+## 3.6.34
+
+- improvement
+  - 集群资源筛选变量主机资源所属支持空闲机池
+  - 集群资源筛选变量获取现有模块主机数性能优化
+  
+- bugfix
+  - 修复ip选择器动态分组topo筛选失败问题
+
+## 3.6.33
+
+- bugfix
+  - 修复 分发本地文件插件 多文件同时上传时tag错误问题
+  - 修复 集群模块IP选择器 服务模版all默认选择空闲机池的问题
+
+## 3.6.32
+
+- bugfix
+  - 处理jobv3.get_job_instance_ip_log接口日志内容返回None时报错问题
+
 ## 3.6.31
 
 - improvement

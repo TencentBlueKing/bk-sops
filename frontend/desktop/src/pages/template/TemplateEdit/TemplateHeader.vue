@@ -22,9 +22,9 @@
                     ref="canvasNameInput"
                     v-validate="templateNameRule"
                     data-vv-name="templateName"
-                    :class="['name-input', errors.first('templateName') ? 'name-error' : '']"
+                    :class="['name-input', veeErrors.first('templateName') ? 'name-error' : '']"
                     :name="'templateName'"
-                    :has-error="errors.has('templateName')"
+                    :has-error="veeErrors.has('templateName')"
                     :value="name"
                     :placeholder="$t('请输入名称')"
                     @input="onInputName"
@@ -32,9 +32,9 @@
                     @blur="onInputBlur">
                 </bk-input>
                 <i
-                    v-if="errors.first('templateName')"
+                    v-if="veeErrors.first('templateName')"
                     class="bk-icon icon-exclamation-circle-shape error-tip-icon"
-                    v-bk-tooltips="errors.first('templateName')">
+                    v-bk-tooltips="veeErrors.first('templateName')">
                 </i>
             </template>
             <!-- 执行方案图标 -->
@@ -495,7 +495,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 354px;
+            width: 300px; // 354
             text-align: center;
             display: flex;
             align-items: center;
