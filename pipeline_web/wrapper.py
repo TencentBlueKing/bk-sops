@@ -292,53 +292,48 @@ class PipelineTemplateWebWrapper(object):
 
         if not override:
             template_id_list = list(template.keys())
-            exist_str_id = PipelineTemplate.objects.filter(template_id__in=template_id_list).values_list(
-                "template_id", flat=True
-            )
             old_id_list = list(template.keys())
             template_node_id_old_to_new = {}
 
             # replace id
-            if exist_str_id:
+            # 1st round: replace template id
+            for tid in template_id_list:
+                old_template_id = tid
+                new_template_id = uniqid()
+                temp_id_old_to_new[old_template_id] = new_template_id
 
-                # 1st round: replace template id
-                for tid in exist_str_id:
-                    old_template_id = tid
-                    new_template_id = uniqid()
-                    temp_id_old_to_new[old_template_id] = new_template_id
+                # update subprocess template id
+                for referencer_id, act_ids in list(refs.get(tid, {}).items()):
+                    for act_id in act_ids:
+                        template[referencer_id]["tree"][PWE.activities][act_id]["template_id"] = new_template_id
 
-                    # update subprocess template id
-                    for referencer_id, act_ids in list(refs.get(tid, {}).items()):
-                        for act_id in act_ids:
-                            template[referencer_id]["tree"][PWE.activities][act_id]["template_id"] = new_template_id
-
-                # 2nd round: replace all node id
-                for tid in exist_str_id:
-                    temp = template[tid]
-                    new_id = temp_id_old_to_new[temp["template_id"]]
-                    temp["template_id"] = new_id
-                    node_id_maps = replace_all_id(temp["tree"])
-                    template_node_id_old_to_new[new_id] = node_id_maps
-                    # replace subprocess constants field
-                    for referencer_id, act_ids in list(refs.get(tid, {}).items()):
-                        # can not sure parent id is replaced or not
-                        new_referencer_id = temp_id_old_to_new[referencer_id]
-                        referencer_id = new_referencer_id if referencer_id not in template else referencer_id
-                        for act_id in act_ids:
-                            # can not sure parent node id is replaced or not
-                            act_id = (
-                                template_node_id_old_to_new.get(referencer_id, {})
-                                .get(PWE.activities, {})
-                                .get(act_id, act_id)
-                            )
-                            constant_dict = template[referencer_id]["tree"][PWE.activities][act_id].get("constants", {})
-                            for _, constant in list(constant_dict.items()):
-                                source_info = constant["source_info"]
-                                source_id_list = list(source_info.keys())
-                                for old_source_id in source_id_list:
-                                    new_source_id = node_id_maps[PWE.activities][old_source_id]
-                                    source_info[new_source_id] = source_info.pop(old_source_id)
-                    template[new_id] = template.pop(tid)
+            # 2nd round: replace all node id
+            for tid in template_id_list:
+                temp = template[tid]
+                new_id = temp_id_old_to_new[temp["template_id"]]
+                temp["template_id"] = new_id
+                node_id_maps = replace_all_id(temp["tree"])
+                template_node_id_old_to_new[new_id] = node_id_maps
+                # replace subprocess constants field
+                for referencer_id, act_ids in list(refs.get(tid, {}).items()):
+                    # can not sure parent id is replaced or not
+                    new_referencer_id = temp_id_old_to_new[referencer_id]
+                    referencer_id = new_referencer_id if referencer_id not in template else referencer_id
+                    for act_id in act_ids:
+                        # can not sure parent node id is replaced or not
+                        act_id = (
+                            template_node_id_old_to_new.get(referencer_id, {})
+                            .get(PWE.activities, {})
+                            .get(act_id, act_id)
+                        )
+                        constant_dict = template[referencer_id]["tree"][PWE.activities][act_id].get("constants", {})
+                        for _, constant in list(constant_dict.items()):
+                            source_info = constant["source_info"]
+                            source_id_list = list(source_info.keys())
+                            for old_source_id in source_id_list:
+                                new_source_id = node_id_maps[PWE.activities][old_source_id]
+                                source_info[new_source_id] = source_info.pop(old_source_id)
+                template[new_id] = template.pop(tid)
 
             # add id which do not conflict
             for old_id in old_id_list:
