@@ -33,7 +33,7 @@ class ComponentManager(models.Manager):
             component_dict[bundle.code] = "{}-{}".format(group_name, name)
         return component_dict
 
-    def get_component_dicts(self, other_component_list, index="value"):
+    def get_component_dicts(self, other_component_list):
         """
         :param other_component_list: 结果集
         :param index: 结果集中指标字段
@@ -50,8 +50,8 @@ class ComponentManager(models.Manager):
             code = "{}-{}".format(comp["code"], comp["version"])
             value = 0
             for oth_com_tmp in other_component_list:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value = oth_com_tmp[index]
+                if comp["code"] == oth_com_tmp[1] and comp["version"] == oth_com_tmp[2]:
+                    value = oth_com_tmp[0]
             groups.append({"code": code, "name": name, "value": value})
         return total, groups
 
