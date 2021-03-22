@@ -38,7 +38,7 @@ class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
         resources = res_factory.resources_for_task(task_id)
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
-        allowed = iam.is_allowed(request)
+        allowed = iam.is_allowed_with_cache(request)
 
         if not allowed:
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
