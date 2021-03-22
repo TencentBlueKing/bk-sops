@@ -23,7 +23,7 @@
                         v-model="name"
                         v-validate="taskNameRule">
                     </bk-input>
-                    <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                    <span class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
                 </div>
             </div>
         </div>
@@ -68,7 +68,8 @@
             :has-footer="false"
             :ext-cls="'common-dialog'"
             :title="$t('任务流程预览')"
-            width="1000">
+            width="1000"
+            @cancel="onClose">
             <NodePreview
                 v-if="canvasShow"
                 ref="nodePreviewRef"

@@ -81,7 +81,7 @@ class SetGroupInfo(object):
 class VarSetGroupSelector(LazyVariable):
     code = "set_group_selector"
     name = _("集群分组选择器")
-    type = "general"
+    type = "dynamic"
     tag = "var_set_group_selector.set_group_selector"
     form = "%svariables/cmdb/var_set_group_selector.js" % settings.STATIC_URL
 

@@ -103,6 +103,7 @@
                 if (val !== null) {
                     if (val) {
                         this.hasViewPerm = true
+                        this.getProjectList()
                         this.getCategorys()
                     } else {
                         this.showPermissionApplyPage()
@@ -126,7 +127,7 @@
                 'getCategorys'
             ]),
             ...mapActions('project', [
-                'loadProjectList'
+                'loadUserProjectList'
             ]),
             /**
              * 切换到权限申请页
@@ -152,7 +153,7 @@
                 this.loading = true
 
                 try {
-                    const res = await this.loadProjectList({ limit: 0 })
+                    const res = await this.loadUserProjectList({ limit: 0 })
                     this.projectList = res.objects
                 } catch (err) {
                     errorHandler(err, this)

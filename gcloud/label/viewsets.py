@@ -43,7 +43,9 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         if self.get_object().is_default:
             raise ValidationException("default label cannot be deleted.")
-        return super(LabelViewSet, self).destroy(request, *args, **kwargs)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"result": True, "message": "success"})
 
     @action(methods=["get"], detail=False)
     def list_with_default_labels(self, request, *args, **kwargs):

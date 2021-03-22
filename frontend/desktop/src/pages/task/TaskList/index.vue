@@ -15,6 +15,7 @@
             <div class="operation-area">
                 <advance-search-form
                     id="taskList"
+                    :open="isSearchFormOpen"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -33,66 +34,53 @@
                 <bk-table
                     :data="taskList"
                     :pagination="pagination"
+                    :size="setting.size"
                     @page-change="onPageChange"
                     @page-limit-change="onPageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="240">
+                    <bk-table-column
+                        v-for="item in setting.selectedFields"
+                        :key="item.id"
+                        :label="item.label"
+                        :prop="item.id"
+                        :width="item.width"
+                        :min-width="item.min_width">
                         <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.name"
-                                @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="template-operate-btn"
-                                :title="props.row.name"
-                                :to="{
-                                    name: 'taskExecute',
-                                    params: { project_id: project_id },
-                                    query: { instance_id: props.row.id }
-                                }">
-                                {{props.row.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行开始')" prop="start_time" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.start_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.finish_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('创建时间')" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="100"></bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120">
-                        <template slot-scope="props">
-                            <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行人')" width="120">
-                        <template slot-scope="props">
-                            <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('创建方式')" width="100">
-                        <template slot-scope="props">
-                            {{ transformCreateMethod(props.row.create_method) }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="120">
-                        <template slot-scope="props">
-                            <div class="task-status">
+                            <!--任务名称-->
+                            <div v-if="item.id === 'name'">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.name"
+                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="template-operate-btn"
+                                    :title="props.row.name"
+                                    :to="{
+                                        name: 'taskExecute',
+                                        params: { project_id: project_id },
+                                        query: { instance_id: props.row.id }
+                                    }">
+                                    {{props.row.name}}
+                                </router-link>
+                            </div>
+                            <!--创建方式-->
+                            <div v-else-if="item.id === 'create_method'">
+                                {{ transformCreateMethod(props.row.create_method) }}
+                            </div>
+                            <!--状态-->
+                            <div v-else-if="item.id === 'task_status'" class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                 <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                             </div>
+                            <!-- 其他 -->
+                            <template v-else>
+                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                            </template>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('操作')" width="190">
@@ -133,6 +121,14 @@
                                 </a>
                             </div>
                         </template>
+                    </bk-table-column>
+                    <bk-table-column type="setting">
+                        <bk-table-setting-content
+                            :fields="setting.fieldList"
+                            :selected="setting.selectedFields"
+                            :size="setting.size"
+                            @setting-change="handleSettingChange">
+                        </bk-table-setting-content>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
@@ -183,7 +179,7 @@
     import TaskCloneDialog from './TaskCloneDialog.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+    const SEARCH_FORM = [
         {
             type: 'dateRange',
             key: 'executeTime',
@@ -195,7 +191,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -204,7 +200,7 @@
             type: 'select',
             label: i18n.t('创建方式'),
             key: 'createMethod',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择创建方式'),
             list: [],
             value: ''
@@ -238,6 +234,51 @@
             value: ''
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            disabled: true,
+            width: 100
+        }, {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 240
+        }, {
+            id: 'start_time',
+            label: i18n.t('执行开始'),
+            width: 180
+        }, {
+            id: 'finish_time',
+            label: i18n.t('执行结束'),
+            width: 200
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            width: 200
+        }, {
+            id: 'category_name',
+            label: i18n.t('任务类型'),
+            width: 100
+        }, {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 120
+        }, {
+            id: 'executor_name',
+            label: i18n.t('执行人'),
+            width: 120
+        }, {
+            id: 'create_method',
+            label: i18n.t('创建方式'),
+            width: 100
+        }, {
+            id: 'task_status',
+            label: i18n.t('状态'),
+            width: 120
+        }
+    ]
     export default {
         name: 'TaskList',
         components: {
@@ -261,19 +302,31 @@
                 template_source = '',
                 create_info = '',
                 category = '',
-                start_time = '',
-                end_time = '',
+                executeTime = '',
                 create_method = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
                 keyword = ''
             } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 listLoading: true,
                 templateId: this.$route.query.template_id,
                 taskCategory: [],
                 searchStr: '',
+                searchForm,
+                isSearchFormOpen, // 高级搜索表单默认展开
                 executeStatus: [], // 任务执行状态
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -295,7 +348,7 @@
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    executeTime: (start_time && end_time) ? [start_time, end_time] : [],
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
                     category,
                     creator,
                     executor,
@@ -308,6 +361,12 @@
                     count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 }
             }
         },
@@ -318,20 +377,10 @@
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'timeZone': state => state.timezone
-            }),
-            searchForm () {
-                const value = searchForm
-                // 任务执行
-                value[1].list = this.taskCategory
-                value[1].loading = this.taskBasicInfoLoading
-                // 创建方式
-                value[2].list = this.taskCreateMethodList
-                value[2].value = this.create_method || ''
-                value[5].loading = this.taskBasicInfoLoading
-                return searchForm
-            }
+            })
         },
         created () {
+            this.getFields()
             this.getData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
@@ -431,8 +480,20 @@
                     this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
+                }
+            },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('TaskList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
                 }
             },
             searchInputhandler (data) {
@@ -555,6 +616,16 @@
                 this.isStarted = undefined
                 this.isFinished = undefined
             },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('TaskList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -575,10 +646,9 @@
                     creator,
                     executor,
                     statusSync,
+                    createMethod,
                     page: current,
-                    create_method: createMethod,
-                    start_time: executeTime[0],
-                    end_time: executeTime[1],
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
                     keyword: taskName
                 }
                 const query = {}
@@ -594,7 +664,9 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data.map(m => ({ value: m.value, name: m.name }))
-                    this.createMethod = this.create_method || ''
+                    const form = this.searchForm.find(item => item.key === 'createMethod')
+                    form.list = this.taskCreateMethodList
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }

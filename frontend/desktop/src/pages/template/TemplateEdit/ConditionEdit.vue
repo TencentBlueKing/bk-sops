@@ -31,7 +31,7 @@
                         v-validate="conditionRule"
                         name="conditionName">
                     </bk-input>
-                    <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
+                    <span v-show="veeErrors.has('conditionName')" class="common-error-tip error-msg">{{ veeErrors.first('conditionName') }}</span>
                 </div>
                 <div class="form-item">
                     <label class="label">
@@ -56,7 +56,7 @@
                             @input="onDataChange">
                         </code-editor>
                     </div>
-                    <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+                    <span v-show="veeErrors.has('expression')" class="common-error-tip error-msg">{{ veeErrors.first('expression') }}</span>
                 </div>
             </div>
             <div class="btn-wrap">

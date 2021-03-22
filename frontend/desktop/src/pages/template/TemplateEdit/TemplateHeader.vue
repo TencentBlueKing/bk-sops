@@ -11,20 +11,20 @@
 */
 <template>
     <div class="template-header-wrapper">
-        <base-title class="template-title" :title="title"></base-title>
+        <base-title class="template-title" :title="isEditProcessPage ? title : $t('编辑执行方案')"></base-title>
         <div class="template-name-input">
             <div class="name-show-mode" v-if="isShowMode">
                 <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                <span class="common-icon-edit" @click="onNameEditing"></span>
+                <span v-if="isEditProcessPage" class="common-icon-edit" @click="onNameEditing"></span>
             </div>
             <template v-else>
                 <bk-input
                     ref="canvasNameInput"
                     v-validate="templateNameRule"
                     data-vv-name="templateName"
-                    :class="['name-input', errors.first('templateName') ? 'name-error' : '']"
+                    :class="['name-input', veeErrors.first('templateName') ? 'name-error' : '']"
                     :name="'templateName'"
-                    :has-error="errors.has('templateName')"
+                    :has-error="veeErrors.has('templateName')"
                     :value="name"
                     :placeholder="$t('请输入名称')"
                     @input="onInputName"
@@ -32,13 +32,20 @@
                     @blur="onInputBlur">
                 </bk-input>
                 <i
-                    v-if="errors.first('templateName')"
+                    v-if="veeErrors.first('templateName')"
                     class="bk-icon icon-exclamation-circle-shape error-tip-icon"
-                    v-bk-tooltips="errors.first('templateName')">
+                    v-bk-tooltips="veeErrors.first('templateName')">
                 </i>
             </template>
+            <!-- 执行方案图标 -->
+            <span
+                v-if="isEditProcessPage"
+                class="common-icon-file-setting execute-scheme-icon"
+                :title="$t('执行方案')"
+                @click="onOpenExecuteScheme">
+            </span>
         </div>
-        <div class="button-area">
+        <div class="button-area" v-if="isEditProcessPage">
             <div class="setting-tab-wrap">
                 <span
                     v-for="tab in settingTabs"
@@ -73,6 +80,23 @@
                 {{createTaskBtnText}}
             </bk-button>
             <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
+        </div>
+        <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
+            <bk-button
+                theme="primary"
+                :class="[
+                    'save-execute-scheme',
+                    'task-btn',
+                    { 'btn-permission-disable': !saveBtnActive }]"
+                :loading="executeSchemeSaving"
+                v-cursor="{ active: !saveBtnActive }"
+                @click.stop="onSaveExecuteSchemeClick">
+                {{$t('保存')}}
+            </bk-button>
+            <bk-button theme="default" @click="goBackToTplEdit">{{$t('返回')}}</bk-button>
+        </div>
+        <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
+            <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
         </div>
         <SelectProjectModal
             :title="$t('创建任务')"
@@ -114,6 +138,9 @@
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
             isFromTplListRoute: Boolean,
+            isEditProcessPage: Boolean,
+            isPreviewMode: Boolean,
+            executeSchemeSaving: Boolean,
             tplActions: {
                 type: Array,
                 default () {
@@ -243,6 +270,7 @@
                         }
                     }
                 }
+                this.$emit('onOpenExecuteScheme', false)
             },
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
@@ -279,6 +307,15 @@
                     actions = this.tplActions
                 }
                 return { resourceData, actions }
+            },
+            onSaveExecuteSchemeClick () {
+                this.$emit('onSaveExecuteSchemeClick')
+            },
+            goBackToTplEdit () {
+                this.$emit('goBackToTplEdit')
+            },
+            onClosePreview () {
+                this.$emit('onClosePreview')
             },
             getHomeUrl () {
                 if (this.isFromTplListRoute) {
@@ -436,6 +473,10 @@
                     }]
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
+            },
+            onOpenExecuteScheme () {
+                this.saveTemplate()
+                this.$emit('onOpenExecuteScheme', true)
             }
         }
     }
@@ -454,8 +495,11 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 354px;
+            width: 300px; // 354
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .name-show-mode {
             display: flex;
@@ -479,7 +523,7 @@
         }
         .error-tip-icon {
             position: absolute;
-            right: 10px;
+            right: 15px;
             top: 8px;
             font-size: 16px;
             color: #ea3636;
@@ -493,6 +537,12 @@
             &:hover {
                 color: #3480ff;
             }
+        }
+        .execute-scheme-icon {
+            margin-left: 20px;
+            font-size: 14px;
+            color: #546a9e;
+            cursor: pointer;
         }
         .setting-tab-wrap {
             display: inline-block;

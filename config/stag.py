@@ -25,39 +25,4 @@ BK_IAM_SYNC_TEMPLATES = True
 
 BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
-LOGGING["loggers"]["iam"] = {
-    "handlers": ["component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
-
-LOGGING["handlers"]["engine_component"] = {
-    "class": "pipeline.log.handlers.EngineContextLogHandler",
-    "formatter": "verbose",
-}
-
-LOGGING["loggers"]["component"] = {
-    "handlers": ["component", "engine_component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
-
-LOGGING["formatters"]["light"] = {"format": "%(message)s"}
-
-LOGGING["handlers"]["engine"] = {
-    "class": "pipeline.log.handlers.EngineLogHandler",
-    "formatter": "light",
-}
-
-LOGGING["loggers"]["pipeline.logging"] = {
-    "handlers": ["engine"],
-    "level": "INFO",
-    "propagate": True,
-}
-
-# 多环境需要，celery的handler需要动态获取
-LOGGING["loggers"]["celery_and_engine_component"] = {
-    "handlers": ["engine_component", LOGGING["loggers"]["celery"]["handlers"][0]],
-    "level": "INFO",
-    "propagate": True,
-}
+logging_addition_settings(LOGGING, environment="stag")
