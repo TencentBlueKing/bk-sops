@@ -111,7 +111,7 @@
                                                 :name="'detailValue' + field.id"
                                                 :placeholder="field.placeholder"
                                                 v-model="details[field.id]"
-                                                v-validate="valueRule"
+                                                v-validate="field.validate"
                                                 @blur="onDetailInputBlur(field.id)">
                                             <i class="common-icon-info common-error-tip" v-bk-tooltips.top="$t('必填项')"></i>
                                         </td>
@@ -330,7 +330,10 @@
                     detailFields.push({
                         id: key,
                         name: source.keys[key].name,
-                        placeholder: source.keys[key].placeholder
+                        placeholder: source.keys[key].placeholder,
+                        validate: {
+                            required: key !== 'source_dir'
+                        }
                     })
                     detailValues[key] = ''
                 }
