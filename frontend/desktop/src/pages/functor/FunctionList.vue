@@ -23,7 +23,7 @@
                     <template v-slot:operation>
                         <bk-button
                             theme="primary"
-                            class="task-create-btn"
+                            style="min-width: 120px;"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -39,7 +39,7 @@
                         :data="functorList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: firstLoading && listLoading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -354,7 +354,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 functorSync: 0,
                 searchForm,
                 isSearchFormOpen,
@@ -828,23 +828,17 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
 }
 .functor-container {
     padding: 20px 24px;
-    background: #f4f7fa;
-}
-.operation-area {
-    margin: 20px 0;
-    .task-create-btn {
-        min-width: 120px;
-    }
-    .auto-redraw {
-        margin-left: 30px;
-        display: inline-block;
-    }
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .advanced-search {
     margin: 0;

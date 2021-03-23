@@ -12,7 +12,7 @@
 <template>
     <div class="task-container">
         <skeleton :loading="firstLoading" loader="taskList">
-            <div v-if="!firstLoading" class="list-wrapper">
+            <div class="list-wrapper">
                 <advance-search-form
                     id="taskList"
                     :open="isSearchFormOpen"
@@ -23,7 +23,7 @@
                     <template v-slot:operation>
                         <bk-button
                             theme="primary"
-                            class="task-btn"
+                            style="min-width: 120px;"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -34,7 +34,7 @@
                         :data="taskList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -321,7 +321,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 templateId: this.$route.query.template_id,
                 taskCategory: [],
                 searchStr: '',
@@ -711,9 +711,14 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 @include advancedSearch;
 .task-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .dialog-content {
     padding: 30px;

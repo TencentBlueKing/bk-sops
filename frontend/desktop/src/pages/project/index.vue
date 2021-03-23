@@ -43,7 +43,7 @@
                         :data="projectList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: loading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange">
                         <bk-table-column
@@ -242,7 +242,7 @@
                 OptBtnList,
                 searchStr: '',
                 projectList: [],
-                loading: true,
+                loading: false,
                 totalPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
@@ -596,14 +596,19 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .project-container {
         padding: 20px 24px;
+        height: 100%;
+        overflow: auto;
+        @include scrollbar;
         .dialog-content {
             word-break: break-all;
         }
     }
     .list-header {
-        padding: 20px 0;
+        padding-bottom: 20px;
         overflow: hidden;
         .create-project-btn {
             width: 120px;

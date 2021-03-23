@@ -12,7 +12,7 @@
 <template>
     <div class="template-container">
         <skeleton :loading="firstLoading" loader="templateList">
-            <div class="list-wrapper" v-if="!firstLoading">
+            <div class="list-wrapper">
                 <list-page-tips-title
                     :num="expiredSubflowTplList.length"
                     @viewClick="handleSubflowFilter">
@@ -29,7 +29,7 @@
                         <bk-button
                             v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                             theme="primary"
-                            :class="['create-template', {
+                            :class="['create-template-btn', {
                                 'btn-permission-disable': !hasPermission(['flow_create'], authActions)
                             }]"
                             @click="checkCreatePermission">
@@ -55,7 +55,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -375,7 +375,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
                 searchForm,
@@ -871,26 +871,20 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .template-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
+}
+.create-template-btn {
+    min-width: 120px;
 }
 .dialog-content {
     padding: 30px;
     word-break: break-all;
-}
-.operation-area {
-    margin: 20px 0;
-    .create-template {
-        min-width: 120px;
-        font-size: 14px;
-    }
-    .template-btn {
-        margin-left: 5px;
-    }
-    .template-search {
-        height: 156px;
-        background: #fff;
-    }
 }
 .template-table-content {
     background: #ffffff;

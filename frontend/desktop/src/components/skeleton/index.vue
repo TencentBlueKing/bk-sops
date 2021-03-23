@@ -2,11 +2,7 @@
     <div :class="[{ 'ag-loading-content': isLoaderShow, 'loading': localLoading, 'fadeout': !localLoading }]" :style="{ 'min-height': localLoading && height ? height + 'px' : '100%' }">
         <div :class="['loading-loader', { 'hide': !isLoaderShow }]" :style="{ 'background-color': backgroundColor }">
             <template v-if="loader">
-                <component
-                    :is="loader"
-                    :base-width="baseWidth"
-                    :content-width="contentWidth">
-                </component>
+                <component :is="loader"></component>
             </template>
             <template v-else>
                 <div class="bk-loading" style="position: absolute; z-index: 10; background-color: rgba(255, 255, 255, 0.9);">
@@ -70,9 +66,7 @@
         data () {
             return {
                 localLoading: this.loading,
-                isLoaderShow: this.loading,
-                baseWidth: 1366,
-                contentWidth: 1280
+                isLoaderShow: this.loading
             }
         },
         watch: {
@@ -91,27 +85,11 @@
                 }
             }
         },
-        mounted () {
-            this.initContentWidth()
-
-            window.onresize = () => {
-                this.initContentWidth()
-            }
-        },
         beforeCreate () {
             const loaderComponents = registerLoaders()
             Object.keys(loaderComponents).forEach(name => {
                 this.$options.components[name] = loaderComponents[name]
             })
-        },
-        methods: {
-            initContentWidth () {
-                if (this.width) {
-                    this.contentWidth = this.width
-                } else {
-                    this.contentWidth = document.querySelector('.container-content').getBoundingClientRect().width
-                }
-            }
         }
     }
 </script>
@@ -134,7 +112,9 @@
         }
 
         .loading-loader {
-            opacity: 1 !important;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
             position: absolute;
             width: 100%;
             height: 100%;
@@ -144,6 +124,7 @@
             bottom: 0;
             z-index: 100;
             transition: opacity ease 0.5s;
+            opacity: 1 !important;
 
             &.hide {
                 z-index: -1;

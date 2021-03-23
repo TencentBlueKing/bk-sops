@@ -12,7 +12,7 @@
 <template>
     <div class="periodic-container">
         <skeleton :loading="firstLoading" loader="taskList">
-            <div v-if="!firstLoading" class="list-wrapper">
+            <div class="list-wrapper">
                 <advance-search-form
                     id="periodicList"
                     :open="isSearchFormOpen"
@@ -24,8 +24,8 @@
                         <bk-button
                             ref="childComponent"
                             theme="primary"
-                            class="task-create-btn"
                             size="normal"
+                            style="min-width: 120px;"
                             @click="onCreatePeriodTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -38,7 +38,7 @@
                         :size="setting.size"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }">
                         <template v-for="item in setting.selectedFields">
                             <bk-table-column
                                 v-if="item.isShow ? adminView : true"
@@ -322,7 +322,7 @@
                 firstLoading: true,
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
-                listLoading: true,
+                listLoading: false,
                 deleting: false,
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -686,8 +686,13 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .periodic-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .list-wrapper {
     min-height: calc(100vh - 300px);
