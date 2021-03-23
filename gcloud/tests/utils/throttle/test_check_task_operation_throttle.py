@@ -28,8 +28,11 @@ class CheckTaskOperationThrottleTestCase(TestCase):
     def setUp(self):
         self.start_time_stamp = time.time()
         self.times_config = MockTaskOperationTimesConfig({"times": 10, "time_unit": "m"})
+        setattr(settings, "redis_inst", FakeRedis())
 
-    @patch.object(settings, "redis_inst", FakeRedis())
+    def tearDown(self):
+        delattr(settings, "redis_inst")
+
     def test__task_operation_throttle_exceed_times(self):
         with patch(TASK_OPERATION_TIMES_CONFIG_GET, MagicMock(return_value=self.times_config)):
             for time_num in range(100):
@@ -39,7 +42,6 @@ class CheckTaskOperationThrottleTestCase(TestCase):
                 else:
                     self.assertFalse(result)
 
-    @patch.object(settings, "redis_inst", FakeRedis())
     def test__task_operation_throttle_within_times(self):
         with patch(TASK_OPERATION_TIMES_CONFIG_GET, MagicMock(return_value=self.times_config)):
             for time_num in range(100):
@@ -48,7 +50,6 @@ class CheckTaskOperationThrottleTestCase(TestCase):
                     result = check_task_operation_throttle(project_id=1, operation="test_within_times")
                     self.assertTrue(result)
 
-    @patch.object(settings, "redis_inst", FakeRedis())
     def test__task_operation_throttle_concurrency(self):
         with patch(TASK_OPERATION_TIMES_CONFIG_GET, MagicMock(return_value=self.times_config)):
             pool = ThreadPool()
@@ -64,7 +65,6 @@ class CheckTaskOperationThrottleTestCase(TestCase):
             success_num = len([result for result in result_list if result.get() is True])
             self.assertEqual(success_num, self.times_config.times)
 
-    @patch.object(settings, "redis_inst", FakeRedis())
     def test__task_operation_throttle_gevent(self):
         with patch(TASK_OPERATION_TIMES_CONFIG_GET, MagicMock(return_value=self.times_config)):
             jobs = [gevent.spawn(check_task_operation_throttle, 1, "test_gevent") for _ in range(20)]
