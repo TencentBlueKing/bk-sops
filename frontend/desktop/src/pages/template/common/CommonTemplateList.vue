@@ -25,9 +25,10 @@
                         <bk-button
                             v-cursor="{ active: !hasCreateCommonTplPerm }"
                             theme="primary"
-                            :class="['create-template', {
+                            style="min-width: 120px;"
+                            :class="{
                                 'btn-permission-disable': !hasCreateCommonTplPerm
-                            }]"
+                            }"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
@@ -51,7 +52,7 @@
                         :data="commonTemplateData"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -337,7 +338,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchForm,
                 isSearchFormOpen,
@@ -844,8 +845,13 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .template-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 a {
     cursor: pointer;

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div v-bkloading="{ isLoading: permissionLoading, opacity: 0 }" class="loading-page">
+    <div class="loading-page">
         <router-view v-if="hasViewPerm" router-type="audit"></router-view>
     </div>
 </template>

@@ -43,7 +43,7 @@
                 <span
                     v-if="isEditProcessPage"
                     class="common-icon-file-setting execute-scheme-icon"
-                    :title="$t('执行方案')"
+                    v-bk-tooltips.bottom="$t('执行方案')"
                     @click="onOpenExecuteScheme">
                 </span>
             </div>
@@ -59,7 +59,7 @@
                             'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
                         }]"
                         @click="$emit('onChangePanel', tab.id)">
-                        <i :class="tab.icon" :title="tab.title"></i>
+                        <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
                     </span>
                 </div>
                 <bk-button

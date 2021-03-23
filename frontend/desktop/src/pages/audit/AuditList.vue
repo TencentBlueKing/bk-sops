@@ -26,7 +26,7 @@
                         :data="auditList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -252,7 +252,7 @@
             return {
                 firstLoading: true,
                 taskBasicInfoLoading: true,
-                listLoading: true,
+                listLoading: false,
                 activeTaskCategory: undefined,
                 business: {
                     list: [],
@@ -492,8 +492,13 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .audit-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
