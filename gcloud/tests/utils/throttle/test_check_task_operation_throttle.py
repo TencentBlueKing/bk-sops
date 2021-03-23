@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 import time
 import gevent
 from fakeredis import FakeRedis
-
 from mock import MagicMock, patch
 
+from django.conf import settings
 from django.test import TestCase
 
 from gcloud.tests.mock import MockTaskOperationTimesConfig
@@ -28,7 +28,7 @@ class CheckTaskOperationThrottleTestCase(TestCase):
     def setUp(self):
         self.start_time_stamp = time.time()
         self.times_config = MockTaskOperationTimesConfig({"times": 10, "time_unit": "m"})
-        self.redis_patcher = patch("django.conf.settings.redis_inst", FakeRedis())
+        self.redis_patcher = patch.object(settings, "redis_inst", FakeRedis())
         self.redis_patcher.start()
 
     def tearDown(self):
