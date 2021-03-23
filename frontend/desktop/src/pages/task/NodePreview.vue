@@ -11,7 +11,7 @@
 */
 <template>
     <div class="node-preview-wrapper">
-        <div class="operation-header clearfix">
+        <div class="operation-header clearfix" v-if="!isEditProcessPage">
             <div class="bread-crumbs-wrapper">
                 <div
                     :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
@@ -57,14 +57,18 @@
         components: {
             TemplateCanvas
         },
-        props: [
-            'canvasData',
-            'previewBread',
-            'previewDataLoading',
-            'isAllSelected',
-            'isShowSelectAllTool',
-            'isSelectAllToolDisabled'
-        ],
+        props: {
+            canvasData: Object,
+            previewBread: Array,
+            previewDataLoading: Boolean,
+            isAllSelected: Boolean,
+            isSelectAllToolDisabled: Boolean,
+            isShowSelectAllTool: Boolean,
+            isEditProcessPage: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 ellipsis: '...',

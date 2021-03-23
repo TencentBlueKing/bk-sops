@@ -10,12 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from cachetools import cached, TTLCache
+from cachetools import TTLCache
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
-from gcloud.apigw.utils import api_hash_key
+from gcloud.apigw.utils import bucket_cached, BucketTTLCache, api_bucket_and_key
 from pipeline.engine import api as pipeline_api, states
 from pipeline.engine.exceptions import InvalidOperationException
 
@@ -39,7 +39,7 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
-@cached(cache=TTLCache(maxsize=1024, ttl=10), key=api_hash_key)
+@bucket_cached(BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}), bucket_and_key_func=api_bucket_and_key)
 def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")

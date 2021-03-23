@@ -66,6 +66,9 @@ def save(request, project_id):
         logo_content = None
 
     params.update({"username": request.user.username, "logo_content": logo_content})
+    # 初始化描述
+    if not params.get("desc"):
+        params.update({"desc": "Standard OPS  Mini-App"})
 
     if settings.IS_LOCAL:
         params["link_prefix"] = "%s/appmaker/" % request.get_host()

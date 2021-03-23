@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+# 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
 from blueapps.conf.default_settings import *  # noqa
 
 
@@ -25,6 +26,20 @@ BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
+
+# paas v2 open
+if RUN_VER == "open":
+    # SITE_URL,STATIC_URL,,FORCE_SCRIPT_NAME
+    # 测试环境
+    if os.getenv("BK_ENV") == "testing":
+        BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
+        SITE_URL = os.environ.get("BK_SITE_URL", "/t/%s/" % APP_CODE)
+        STATIC_URL = "%sstatic/" % SITE_URL
+    # 正式环境
+    if os.getenv("BK_ENV") == "production":
+        BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
+        SITE_URL = os.environ.get("BK_SITE_URL", "/o/%s/" % APP_CODE)
+        STATIC_URL = "%sstatic/" % SITE_URL
 
 BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
 BK_ITSM_API_ENTRY = os.getenv("BK_ITSM_API_ENTRY")
@@ -97,6 +112,10 @@ BKAPP_FILE_UPLOAD_ENTRY = os.getenv("BKAPP_FILE_UPLOAD_ENTRY", "")
 BKAPP_WEIXIN_APP_ID = os.getenv("BKAPP_WEIXIN_APP_ID", "")
 BKAPP_WEIXIN_APP_SECRET = os.getenv("BKAPP_WEIXIN_APP_SECRET", "")
 BKAPP_WEIXIN_APP_EXTERNAL_HOST = os.getenv("BKAPP_WEIXIN_APP_EXTERNAL_HOST", "")
+
+# RSA KEYS, 保存的是密钥的base64加密形式, 使用base64.b64encode(KEY.encode("utf-8"))进行处理后保存为环境变量
+RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
+RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
 
 # 任务操作限流开关配置
 TASK_OPERATION_THROTTLE = os.getenv("BKAPP_TASK_OPERATION_THROTTLE", True)

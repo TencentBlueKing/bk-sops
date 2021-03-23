@@ -12,7 +12,7 @@
                             v-validate="variableNameRule"
                             :readonly="isSystemVar">
                         </bk-input>
-                        <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
+                        <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
                 </li>
                 <!-- key -->
@@ -26,7 +26,7 @@
                             :readonly="isSystemVar"
                             :disabled="isHookedVar">
                         </bk-input>
-                        <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
+                        <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </li>
                 <!-- 描述 -->
@@ -99,7 +99,7 @@
                             v-validate="validationRule"
                             @blur="onBlurValidation">
                         </bk-input>
-                        <span v-show="errors.has('valueValidation')" class="common-error-tip error-msg">{{errors.first('valueValidation')}}</span>
+                        <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
                     </div>
                 </li>
                 <!-- 显示/隐藏 -->
@@ -508,7 +508,7 @@
             onBlurValidation () {
                 const config = tools.deepClone(this.renderConfig[0])
                 const regValidate = config.attrs.validation.find(item => item.type === 'regex')
-                if (!this.errors.has('valueValidation')) {
+                if (!this.veeErrors.has('valueValidation')) {
                     regValidate.args = this.getInputDefaultValueValidation()
                 } else {
                     regValidate.args = ''
@@ -604,7 +604,7 @@
                             this.setOutputs({ changeType: 'edit', key: this.variableData.key, newKey: this.theEditingData.key })
                         }
                     }
-                    this.$emit('closeEditingPanel')
+                    this.$emit('onSaveEditing')
                     return true
                 })
             }
@@ -686,8 +686,12 @@
         }
     }
     .btn-wrap {
-        padding: 8px 20px;
+        padding: 8px 30px;
         border-top: 1px solid #cacedb;
+        .bk-button {
+            margin-right: 10px;
+            padding: 0 25px;
+        }
     }
     /deep/ .variable-confirm-dialog-content {
         padding: 40px 0;

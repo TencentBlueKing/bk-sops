@@ -324,6 +324,19 @@ export function getFormMixins (attrs = {}) {
             },
             _set_value (value) {
                 this.updateForm(value)
+            },
+            // 获取 全局变量值
+            getVariableVal (key) {
+                const globalVariable = $.context.getConstants()
+                if (globalVariable) {
+                    if (globalVariable[key]) {
+                        return globalVariable[key].value
+                    } else {
+                        throw new Error(`${key}值 匹配不到变量`)
+                    }
+                } else {
+                    throw new Error(`获取不到全局变量`)
+                }
             }
         }
     }

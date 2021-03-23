@@ -49,4 +49,4 @@ mistune==0.8.4
 # iam sdk
 cachetools==3.1.1
 curlify==2.2.1
-six>=1.11.0
+six==1.11.0

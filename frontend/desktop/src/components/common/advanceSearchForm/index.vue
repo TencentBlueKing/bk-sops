@@ -120,6 +120,10 @@
             AdvanceSearch
         },
         props: {
+            open: {
+                type: Boolean,
+                default: false
+            },
             isShowSearch: {
                 type: Boolean,
                 default: true
@@ -146,7 +150,7 @@
         },
         data () {
             return {
-                isAdvanceOpen: false,
+                isAdvanceOpen: this.open,
                 records: [],
                 selectedRecord: null,
                 searchValue: '',

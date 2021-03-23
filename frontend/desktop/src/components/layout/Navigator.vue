@@ -305,8 +305,16 @@
                 if (route.children && route.children.length > 0) {
                     return
                 }
-                if (this.$route.name === route.routerName && tools.isDataEqual(this.$route.query, config.query)) {
-                    return this.reload()
+                if (this.$route.name === route.routerName) {
+                    if (tools.isDataEqual(this.$route.query, config.query)) {
+                        return this.reload()
+                    } else {
+                        this.$router.push(config)
+                        this.$nextTick(() => {
+                            this.reload()
+                        })
+                        return
+                    }
                 }
                 /** 404 页面时，导航统一跳转到首页 */
                 if (this.notFoundPage && this.view_mode === 'app') {

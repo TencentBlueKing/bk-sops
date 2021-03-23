@@ -72,7 +72,7 @@ class SetInfo(object):
 
 class VarSetFilterSelector(LazyVariable):
     code = "set_filter_selector"
-    name = _("集群筛选选择器")
+    name = _("集群选择器")
     type = "general"
     tag = "var_set_filter_selector.set_filter_selector"
     form = "%svariables/cmdb/var_set_filter_selector.js" % settings.STATIC_URL

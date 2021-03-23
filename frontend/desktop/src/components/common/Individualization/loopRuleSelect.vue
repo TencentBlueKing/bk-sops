@@ -70,9 +70,9 @@
                             <!-- 星期说明 -->
                             <i v-if="item.key === 'week'" v-bk-tooltips="$t('0 表示星期天，6 表示星期六')" class="common-icon-info month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
-                            <div v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
+                            <div v-show="veeErrors.has(item.key + 'Rule') || veeErrors.has('interval')"
                                 class="local-error-tip error-msg">
-                                {{ errors.first(item.key + 'Rule') || errors.first('interval') }}
+                                {{ veeErrors.first(item.key + 'Rule') || veeErrors.first('interval') }}
                             </div>
                         </div>
                         <!-- 指定 -->
@@ -105,9 +105,9 @@
             <img style="width:100%" class="ui-img" :src="periodicCronImg">
         </div>
         <!-- 手动输入错误提示 -->
-        <span v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
+        <span v-show="veeErrors.has('periodicCron') && currentWay === 'manualInput'"
             class="common-error-tip error-msg">
-            {{ errors.first('periodicCron') }}
+            {{ veeErrors.first('periodicCron') }}
         </span>
     </div>
 </template>

@@ -31,7 +31,7 @@
                         </bk-option>
                     </bk-select>
                 </bk-form-item>
-                <bk-form-item :label="$t('标签')">
+                <bk-form-item v-if="!common" :label="$t('标签')">
                     <bk-select
                         v-model="formData.labels"
                         class="label-select"
@@ -183,9 +183,9 @@
         },
         created () {
             this.getNotifyTypeList()
-            this.getTemplateLabelList()
             if (!this.common) {
                 this.getProjectNotifyGroup()
+                this.getTemplateLabelList()
             }
         },
         mounted () {
@@ -321,6 +321,7 @@
             display: inline-block;
             width: 14px;
             height: 14px;
+            border-radius: 2px;
         }
         .bk-option-icon {
             display: none;

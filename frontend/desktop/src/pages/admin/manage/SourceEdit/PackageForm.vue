@@ -44,9 +44,9 @@
                                     v-model="name"
                                     v-validate="packageNameRule"
                                     :disabled="isEditing"
-                                    :class="{ 'error-border': errors.first('packageName') }"
+                                    :class="{ 'error-border': veeErrors.first('packageName') }"
                                     @blur="onPackageNameBlur">
-                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('packageName')"></i>
+                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="veeErrors.first('packageName')"></i>
                             </div>
                         </td>
                     </tr>
@@ -104,7 +104,7 @@
                                     <tr v-for="field in detailFields" :key="field.id">
                                         <th>{{field.name}}</th>
                                         <td class="td-with-input"
-                                            :class="{ 'error-border': errors.first('detailValue' + field.id) }">
+                                            :class="{ 'error-border': veeErrors.first('detailValue' + field.id) }">
                                             <input
                                                 type="text"
                                                 class="table-input"
@@ -140,7 +140,7 @@
                                     <tbody>
                                         <tr v-for="(item, index) in packageValues" :key="index">
                                             <td
-                                                :class="{ 'error-border': errors.first('moduleName' + index) }"
+                                                :class="{ 'error-border': veeErrors.first('moduleName' + index) }"
                                                 class="td-with-input">
                                                 <input
                                                     type="text"
@@ -150,10 +150,10 @@
                                                     v-model="item.key"
                                                     v-validate="moduleNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('moduleName' + index)"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="veeErrors.first('moduleName' + index)"></i>
                                             </td>
                                             <td
-                                                :class="{ 'error-border': errors.first('moduleVersion' + index) }"
+                                                :class="{ 'error-border': veeErrors.first('moduleVersion' + index) }"
                                                 class="td-with-input">
                                                 <input
                                                     type="text"
@@ -163,10 +163,10 @@
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('moduleVersion' + index)"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="veeErrors.first('moduleVersion' + index)"></i>
                                             </td>
                                             <td
-                                                :class="{ 'error-border': errors.first('modules' + index) }"
+                                                :class="{ 'error-border': veeErrors.first('modules' + index) }"
                                                 class="td-with-input">
                                                 <textarea
                                                     class="table-textarea"
@@ -177,7 +177,7 @@
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
                                                 </textarea>
-                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('modules' + index)"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="veeErrors.first('modules' + index)"></i>
                                             </td>
                                             <td>
                                                 <bk-button

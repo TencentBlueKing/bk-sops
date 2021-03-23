@@ -53,7 +53,18 @@
                         class="ui-form-item"
                         :clearable="true">
                     </bk-input>
-                    <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
+                    <span v-show="veeErrors.has('appName')" class="common-error-tip error-msg">{{ veeErrors.first('appName') }}</span>
+                </div>
+            </div>
+            <div class="common-form-item">
+                <label>{{$t('类别')}}</label>
+                <div class="common-form-content">
+                    <bk-input
+                        v-model="appData.appCategory"
+                        name="appCategory"
+                        class="ui-form-item"
+                        :clearable="true">
+                    </bk-input>
                 </div>
             </div>
             <div class="common-form-item">
@@ -77,7 +88,7 @@
                     <i
                         class="common-icon-info scheme-tooltip"
                         v-bk-tooltips="{
-                            content: $t('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。'),
+                            content: $t('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。') + $t('如果轻应用选择了执行方案，更新模板后需要同步更新执行方案。'),
                             placements: ['bottom-end'],
                             width: 400 }">
                     </i>
@@ -154,7 +165,7 @@
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
                     </bk-input>
-                    <span v-show="errors.has('appDesc')" class="common-error-tip error-msg">{{ errors.first('appDesc') }}</span>
+                    <span v-show="veeErrors.has('appDesc')" class="common-error-tip error-msg">{{ veeErrors.first('appDesc') }}</span>
                 </div>
             </div>
         </div>
@@ -193,6 +204,7 @@
                     return {
                         template_id: '',
                         name: '',
+                        category: '',
                         template_scheme_id: '',
                         desc: '',
                         logo_url: undefined,
@@ -214,6 +226,7 @@
                 appData: {
                     appTemplate: '',
                     appName: '',
+                    appCategory: '',
                     appScheme: '',
                     appDesc: '',
                     appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
@@ -268,11 +281,12 @@
             },
             currentAppData: {
                 handler (val) {
-                    const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
+                    const { template_id, name, template_scheme_id, desc, logo_url, auth_actions, category } = val
                     this.appData = {
                         appActions: auth_actions,
                         appTemplate: template_id ? Number(template_id) : '',
                         appName: name,
+                        appCategory: category,
                         appScheme: template_scheme_id ? Number(template_scheme_id) : '',
                         appDesc: desc,
                         appLogo: undefined
@@ -313,7 +327,7 @@
                 this.schemeLoading = true
                 try {
                     const data = {
-                        project__id: this.project_id,
+                        project_id: this.project_id,
                         template_id: this.appData.appTemplate
                     }
                     this.schemeList = await this.loadTaskScheme(data)
@@ -326,6 +340,7 @@
                 const template = this.templateList.find(item => item.id === id)
                 this.appData.appTemplate = id
                 this.appData.appName = template.name
+                this.appData.appCategory = template.category
                 this.appTemplateEmpty = false
                 this.appData.appScheme = ''
                 this.appData.appActions = template.auth_actions
@@ -388,13 +403,14 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
-                this.errors.clear()
+                this.veeErrors.clear()
                 this.appTemplateEmpty = false
             },
             resetAppData () {
                 this.appData = {
                     appTemplate: '',
                     appName: '',
+                    appCategory: '',
                     appScheme: '',
                     appDesc: '',
                     appActions: [],

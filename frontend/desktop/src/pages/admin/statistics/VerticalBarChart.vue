@@ -34,15 +34,14 @@
                 </bk-select>
             </bk-form-item>
         </bk-form>
-        <div class="chart-wrapper" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
-            <div id="chart-mount-el" v-if="dataList.length > 0"></div>
+        <div class="chart-wrapper" ref="chartWrap" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
+            <canvas v-if="dataList.length > 0" class="bar-chart-canvas" style="height: 100%;"></canvas>
             <no-data v-else></no-data>
         </div>
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
-    import Plotly from 'plotly.js/dist/plotly-basic.min.js'
+    import BKChart from '@blueking/bkcharts'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
@@ -72,69 +71,77 @@
                 default: true
             }
         },
-        watch: {
-            dataList (val) {
-                if (val.length > 0) {
-                    this.$nextTick(() => {
-                        this.initChart()
-                    })
-                }
+        data () {
+            return {
+                chartInstance: null
             }
         },
-        created () {
-            if (this.dataList.length > 0) {
-                this.initChart()
+        watch: {
+            dataList: {
+                handler (val) {
+                    if (val.length > 0) {
+                        this.$nextTick(() => {
+                            const x = []
+                            const y = []
+                            this.dataList.forEach(item => {
+                                x.push(item.time)
+                                y.push(item.value)
+                            })
+                            if (this.chartInstance) {
+                                this.updateChart(x, y)
+                            } else {
+                                this.initChart(x, y)
+                            }
+                        })
+                    }
+                }
             }
         },
         methods: {
-            initChart () {
-                const x = []
-                const y = []
-                const text = []
-                this.dataList.forEach(item => {
-                    x.push(item.time)
-                    y.push(item.value)
-                    text.push(`${i18n.t('日期')}：${item.time}    ${i18n.t('任务')}：${item.value}`)
-                })
-                const max = Math.max(...y)
-                const RangeMax = max < 100 ? Math.floor((max / 10 + 1)) * 10 : Math.floor((max / 100 + 1)) * 100
-                const data = [{
-                    x,
-                    y,
-                    text,
-                    marker: {
-                        color: '#3a84ff'
+            initChart (x, y) {
+                const ctx = this.$refs.chartWrap.querySelector('.bar-chart-canvas').getContext('2d')
+                this.chartInstance = new BKChart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: x,
+                        datasets: [{
+                            data: y,
+                            backgroundColor: '#3a84ff',
+                            maxBarThickness: 24
+                        }]
                     },
-                    hoverinfo: 'text',
-                    hoverlabel: {
-                        bgcolor: '#000',
-                        font: {
-                            color: '#fff'
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            crosshair: {
+                                enabled: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                gridLines: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                gridLines: {
+                                    borderDash: [5, 3]
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest'
                         }
-                    },
-                    type: 'bar'
-                }]
-                const layout = {
-                    height: 365,
-                    font: {
-                        size: 12,
-                        color: '#63656e'
-                    },
-                    margin: {
-                        t: 10,
-                        b: 80
-                    },
-                    yaxis: {
-                        fixedrange: true,
-                        range: [0, RangeMax]
-                    },
-                    xaxis: {
-                        fixedrange: true,
-                        type: 'category',
-                        tickmode: 'auto'
                     }
-                }
-                this.chart = Plotly.newPlot('chart-mount-el', data, layout, { displayModeBar: false })
+                })
+            },
+            updateChart (x, y) {
+                this.chartInstance.data.datasets[0].data = y
+                this.chartInstance.data.labels = x
+                this.chartInstance.update()
             },
             onOptionClick (selector, id) {
                 this.$emit('onFilterClick', id, selector)
@@ -162,6 +169,7 @@
         }
         .chart-wrapper {
             margin-top: 20px;
+            padding-bottom: 20px;
             height: 365px;
         }
         .no-data-wrapper {
