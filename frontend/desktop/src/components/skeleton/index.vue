@@ -4,7 +4,6 @@
             <template v-if="loader">
                 <component
                     :is="loader"
-                    :style="{ 'padding-top': `${offsetTop}px`, 'margin-left': `${offsetLeft}px`, 'transform-origin': 'left top' }"
                     :base-width="baseWidth"
                     :content-width="contentWidth">
                 </component>
@@ -53,14 +52,6 @@
             loader: {
                 type: String
             },
-            offsetTop: {
-                type: Number,
-                default: 0
-            },
-            offsetLeft: {
-                type: Number,
-                default: 0
-            },
             width: {
                 type: Number
             },
@@ -80,7 +71,7 @@
             return {
                 localLoading: this.loading,
                 isLoaderShow: this.loading,
-                baseWidth: 1615,
+                baseWidth: 1366,
                 contentWidth: 1280
             }
         },
@@ -109,7 +100,6 @@
         },
         beforeCreate () {
             const loaderComponents = registerLoaders()
-            console.log(loaderComponents)
             Object.keys(loaderComponents).forEach(name => {
                 this.$options.components[name] = loaderComponents[name]
             })
@@ -119,10 +109,7 @@
                 if (this.width) {
                     this.contentWidth = this.width
                 } else {
-                    const winWidth = window.innerWidth
-                    const PADDING_WIDTH = 25
-                    const MENU_WIDTH = 60
-                    this.contentWidth = winWidth - MENU_WIDTH - PADDING_WIDTH * 2
+                    this.contentWidth = document.querySelector('.container-content').getBoundingClientRect().width
                 }
             }
         }

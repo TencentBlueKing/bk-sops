@@ -11,85 +11,87 @@
 */
 <template>
     <div class="project-container">
-        <div class="list-wrapper">
-            <div class="list-header">
-                <!-- <bk-button
-                    v-cursor="{ active: !hasPermission(['project_create'], projectActions) }"
-                    theme="primary"
-                    :class="['create-project-btn', {
-                        'btn-permission-disable': !hasPermission(['project_create'], projectActions)
-                    }]"
-                    @click="onCreateProject">
-                    {{$t('新建项目')}}
-                </bk-button> -->
-                <div class="filter-area">
-                    <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
-                    <div class="search-input">
-                        <bk-input
-                            v-model.trim="searchStr"
-                            class="search-input"
-                            clearable
-                            :right-icon="'bk-icon icon-search'"
-                            :placeholder="$t('请输入ID、名称、描述、创建人')"
-                            @change="onSearchInput">
-                        </bk-input>
+        <skeleton :loading="firstLoading" loader="commonList">
+            <div class="list-wrapper">
+                <div class="list-header">
+                    <!-- <bk-button
+                        v-cursor="{ active: !hasPermission(['project_create'], projectActions) }"
+                        theme="primary"
+                        :class="['create-project-btn', {
+                            'btn-permission-disable': !hasPermission(['project_create'], projectActions)
+                        }]"
+                        @click="onCreateProject">
+                        {{$t('新建项目')}}
+                    </bk-button> -->
+                    <div class="filter-area">
+                        <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
+                        <div class="search-input">
+                            <bk-input
+                                v-model.trim="searchStr"
+                                class="search-input"
+                                clearable
+                                :right-icon="'bk-icon icon-search'"
+                                :placeholder="$t('请输入ID、名称、描述、创建人')"
+                                @change="onSearchInput">
+                            </bk-input>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="project-table-content">
-                <bk-table
-                    class="project-table"
-                    :data="projectList"
-                    :pagination="pagination"
-                    :size="setting.size"
-                    v-bkloading="{ isLoading: loading, opacity: 1 }"
-                    @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
-                    <bk-table-column
-                        v-for="item in setting.selectedFields"
-                        :key="item.id"
-                        :label="item.label"
-                        :prop="item.id"
-                        :width="item.width"
-                        :min-width="item.min_width">
-                        <template slot-scope="props">
-                            {{ props.row[item.id] || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('操作')">
-                        <template slot-scope="props">
-                            <template
-                                v-for="(item, index) in OptBtnList">
-                                <a
-                                    v-if="isShowOptBtn(props.row.is_disable, item.name)"
-                                    v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions) }"
-                                    :key="index"
-                                    :class="['operate-btn', {
-                                        'text-permission-disable': !hasPermission([item.power], props.row.auth_actions)
-                                    }]"
-                                    :text="true"
-                                    @click="onClickOptBtn(props.row, item.name)">
-                                    {{
-                                        item.name === 'view'
-                                            ? (!hasPermission([item.power], props.row.auth_actions) ? item.text : item.enter )
-                                            : item.text
-                                    }}
-                                </a>
+                <div class="project-table-content">
+                    <bk-table
+                        class="project-table"
+                        :data="projectList"
+                        :pagination="pagination"
+                        :size="setting.size"
+                        v-bkloading="{ isLoading: loading, opacity: 1 }"
+                        @page-change="onPageChange"
+                        @page-limit-change="handlePageLimitChange">
+                        <bk-table-column
+                            v-for="item in setting.selectedFields"
+                            :key="item.id"
+                            :label="item.label"
+                            :prop="item.id"
+                            :width="item.width"
+                            :min-width="item.min_width">
+                            <template slot-scope="props">
+                                {{ props.row[item.id] || '--' }}
                             </template>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column type="setting">
-                        <bk-table-setting-content
-                            :fields="setting.fieldList"
-                            :selected="setting.selectedFields"
-                            :size="setting.size"
-                            @setting-change="handleSettingChange">
-                        </bk-table-setting-content>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData /></div>
-                </bk-table>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')">
+                            <template slot-scope="props">
+                                <template
+                                    v-for="(item, index) in OptBtnList">
+                                    <a
+                                        v-if="isShowOptBtn(props.row.is_disable, item.name)"
+                                        v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions) }"
+                                        :key="index"
+                                        :class="['operate-btn', {
+                                            'text-permission-disable': !hasPermission([item.power], props.row.auth_actions)
+                                        }]"
+                                        :text="true"
+                                        @click="onClickOptBtn(props.row, item.name)">
+                                        {{
+                                            item.name === 'view'
+                                                ? (!hasPermission([item.power], props.row.auth_actions) ? item.text : item.enter )
+                                                : item.text
+                                        }}
+                                    </a>
+                                </template>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column type="setting">
+                            <bk-table-setting-content
+                                :fields="setting.fieldList"
+                                :selected="setting.selectedFields"
+                                :size="setting.size"
+                                @setting-change="handleSettingChange">
+                            </bk-table-setting-content>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
+        </skeleton>
         <bk-dialog
             width="600"
             padding="30px 20px"
@@ -170,6 +172,7 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
@@ -205,12 +208,12 @@
     const TABLE_FIELDS = [
         {
             id: 'id',
-            label: i18n.t('ID'),
+            label: 'ID',
             disabled: true,
             width: 80
         }, {
             id: 'bk_biz_id',
-            label: i18n.t('CC_ID'),
+            label: 'CC_ID',
             disabled: true,
             width: 80
         }, {
@@ -229,11 +232,13 @@
     export default {
         name: 'ProjectHome',
         components: {
+            Skeleton,
             NoData
         },
         mixins: [permission],
         data () {
             return {
+                firstLoading: true,
                 OptBtnList,
                 searchStr: '',
                 projectList: [],
@@ -288,11 +293,12 @@
                 return this.operationType === 'stop' ? i18n.t('停用') : i18n.t('启用')
             }
         },
-        created () {
+        async created () {
             this.getFields()
             this.queryProjectCreatePerm()
-            this.getProjectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getProjectList()
+            this.firstLoading = false
         },
         methods: {
             ...mapMutations('project', [

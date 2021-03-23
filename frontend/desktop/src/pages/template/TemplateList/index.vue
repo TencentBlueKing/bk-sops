@@ -11,8 +11,8 @@
 */
 <template>
     <div class="template-container">
-        <skeleton :loading="listLoading" loader="home">
-            <div class="list-wrapper">
+        <skeleton :loading="firstLoading" loader="templateList">
+            <div class="list-wrapper" v-if="!firstLoading">
                 <list-page-tips-title
                     :num="expiredSubflowTplList.length"
                     @viewClick="handleSubflowFilter">
@@ -55,6 +55,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
+                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -373,6 +374,7 @@
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
+                firstLoading: true,
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
@@ -444,14 +446,15 @@
                 }
             }
         },
-        created () {
+        async created () {
             this.getFields()
-            this.getTemplateList()
             this.getProjectBaseInfo()
             this.getProjectLabelList()
             this.getExpiredSubflowData()
             this.getCollectList()
             this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
+            await this.getTemplateList()
+            this.firstLoading = false
         },
         beforeRouteLeave (to, from, next) {
             // 记录访问过的流程 id

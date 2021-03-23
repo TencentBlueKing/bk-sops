@@ -46,9 +46,10 @@ const COMMON_ROUTE_LIST = [
     ],
     [
         {
-            id: 'commonTemplate',
+            id: 'commonProcessList',
             name: i18n.t('公共流程'),
             icon: 'icon-execute',
+            subRoutes: ['commonTemplatePanel'],
             url: '/common/home/'
         },
         {

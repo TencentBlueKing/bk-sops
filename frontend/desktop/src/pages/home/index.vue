@@ -22,6 +22,7 @@
     import MyCollection from './MyCollection.vue'
     import MyDynamic from './MyDynamic.vue'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+
     export default {
         name: 'HomePage',
         components: {
@@ -29,12 +30,6 @@
             MyCollection,
             MyDynamic,
             CopyrightFooter
-        },
-        data () {
-            return {
-            }
-        },
-        created () {
         }
     }
 </script>

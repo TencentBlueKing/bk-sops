@@ -83,6 +83,11 @@
                 return paths.some(path => this.$route.path.startsWith(path))
             }
         },
+        created () {
+            if (this.view_mode !== 'appmaker') {
+                this.getProjectList()
+            }
+        },
         methods: {
             ...mapActions([
                 'getVersionList',
@@ -96,6 +101,13 @@
             },
             goToFeedback () {
                 window.open(this.bkFeedbackUrl, '_blank')
+            },
+            getProjectList () {
+                try {
+                    this.loadUserProjectList({ limit: 0 })
+                } catch (e) {
+                    errorHandler(e, this)
+                }
             },
             /* 打开版本日志 */
             async onOpenVersion () {
@@ -137,6 +149,7 @@
         align-items: center;
         .project-select >>> .project-wrapper {
             margin-top: 0;
+            width: 240px;
         }
         .help-icon {
             display: flex;

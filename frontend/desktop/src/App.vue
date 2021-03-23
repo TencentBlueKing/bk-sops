@@ -303,7 +303,7 @@
         width: 100%;
         height: 100%;
         overflow-x: hidden;
-        min-width: 1320px;
+        min-width: 1366px;
         .main-container {
             width: 100%;
             height: calc(100vh - 52px);

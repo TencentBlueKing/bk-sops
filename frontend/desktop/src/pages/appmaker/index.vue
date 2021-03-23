@@ -339,7 +339,8 @@
     width: 260px;
 }
 .page-content {
-    margin: 20px auto;
+    margin: 0 auto;
+    padding: 20px 0;
     .app-list {
         display: flex;
         flex-wrap: wrap;

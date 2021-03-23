@@ -11,140 +11,142 @@
 */
 <template>
     <div class="functor-container">
-        <div class="list-wrapper">
-            <advance-search-form
-                id="functionList"
-                :open="isSearchFormOpen"
-                :search-config="{ placeholder: $t('请输入任务名称') }"
-                :search-form="searchForm"
-                @onSearchInput="onSearchInput"
-                @submit="onSearchFormSubmit">
-                <template v-slot:operation>
-                    <bk-button
-                        theme="primary"
-                        class="task-create-btn"
-                        @click="onCreateTask">
-                        {{$t('新建')}}
-                    </bk-button>
-                </template>
-                <template v-slot:search-extend>
-                    <span class="auto-redraw" @click.stop>
-                        <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
-                    </span>
-                </template>
-            </advance-search-form>
-            <div class="functor-table-content">
-                <bk-table
-                    :data="functorList"
-                    :pagination="pagination"
-                    :size="setting.size"
-                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange"
-                    @page-limit-change="onPageLimitChange">
-                    <bk-table-column
-                        v-for="item in setting.selectedFields"
-                        :key="item.id"
-                        :label="item.label"
-                        :prop="item.id"
-                        :width="item.width"
-                        :min-width="item.min_width">
-                        <template slot-scope="props">
-                            <!--所属项目-->
-                            <div v-if="item.id === 'project'">
-                                <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
-                            </div>
-                            <!--流程模板-->
-                            <div v-else-if="item.id === 'name'">
-                                <a
-                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                    v-cursor
-                                    class="text-permission-disable"
-                                    :title="props.row.task.name"
-                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                    {{props.row.task.name}}
-                                </a>
-                                <router-link
-                                    v-else
-                                    class="task-name"
-                                    :title="props.row.task.name"
-                                    :to="{
-                                        name: 'functionTaskExecute',
-                                        params: { project_id: props.row.task.project.id },
-                                        query: { instance_id: props.row.task.id }
-                                    }">
-                                    {{props.row.task.name}}
-                                </router-link>
-                            </div>
-                            <!--认领状态-->
-                            <div v-else-if="item.id === 'claim_status'">
-                                <span :class="statusClass(props.row.status)"></span>
-                                {{statusMethod(props.row.status, props.row.status_name)}}
-                            </div>
-                            <!--执行状态-->
-                            <div v-else-if="item.id === 'excute_status'" class="task-status">
-                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
-                            </div>
-                            <!-- 其他 -->
-                            <template v-else>
-                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+        <skeleton :loading="firstLoading" loader="taskList">
+            <div class="list-wrapper">
+                <advance-search-form
+                    id="functionList"
+                    :open="isSearchFormOpen"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
+                    :search-form="searchForm"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                    <template v-slot:operation>
+                        <bk-button
+                            theme="primary"
+                            class="task-create-btn"
+                            @click="onCreateTask">
+                            {{$t('新建')}}
+                        </bk-button>
+                    </template>
+                    <template v-slot:search-extend>
+                        <span class="auto-redraw" @click.stop>
+                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
+                        </span>
+                    </template>
+                </advance-search-form>
+                <div class="functor-table-content">
+                    <bk-table
+                        :data="functorList"
+                        :pagination="pagination"
+                        :size="setting.size"
+                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        @page-change="onPageChange"
+                        @page-limit-change="onPageLimitChange">
+                        <bk-table-column
+                            v-for="item in setting.selectedFields"
+                            :key="item.id"
+                            :label="item.label"
+                            :prop="item.id"
+                            :width="item.width"
+                            :min-width="item.min_width">
+                            <template slot-scope="props">
+                                <!--所属项目-->
+                                <div v-if="item.id === 'project'">
+                                    <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
+                                </div>
+                                <!--流程模板-->
+                                <div v-else-if="item.id === 'name'">
+                                    <a
+                                        v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        :title="props.row.task.name"
+                                        @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                        {{props.row.task.name}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="task-name"
+                                        :title="props.row.task.name"
+                                        :to="{
+                                            name: 'functionTaskExecute',
+                                            params: { project_id: props.row.task.project.id },
+                                            query: { instance_id: props.row.task.id }
+                                        }">
+                                        {{props.row.task.name}}
+                                    </router-link>
+                                </div>
+                                <!--认领状态-->
+                                <div v-else-if="item.id === 'claim_status'">
+                                    <span :class="statusClass(props.row.status)"></span>
+                                    {{statusMethod(props.row.status, props.row.status_name)}}
+                                </div>
+                                <!--执行状态-->
+                                <div v-else-if="item.id === 'excute_status'" class="task-status">
+                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                    <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                                </div>
+                                <!-- 其他 -->
+                                <template v-else>
+                                    <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                                </template>
                             </template>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('操作')" width="100">
-                        <template slot-scope="props">
-                            <template v-if="props.row.status === 'submitted'">
-                                <a
-                                    v-if="!hasPermission(['task_claim'], props.row.auth_actions)"
-                                    v-cursor
-                                    class="text-permission-disable"
-                                    @click="onTaskPermissonCheck(['task_claim'], props.row)">
-                                    {{ $t('认领') }}
-                                </a>
-                                <router-link
-                                    v-else
-                                    class="functor-operation-btn"
-                                    :to="{
-                                        name: 'functionTaskExecute',
-                                        params: { project_id: props.row.task.project.id },
-                                        query: { instance_id: props.row.task.id }
-                                    }">
-                                    {{ $t('认领') }}
-                                </router-link>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="100">
+                            <template slot-scope="props">
+                                <template v-if="props.row.status === 'submitted'">
+                                    <a
+                                        v-if="!hasPermission(['task_claim'], props.row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTaskPermissonCheck(['task_claim'], props.row)">
+                                        {{ $t('认领') }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="functor-operation-btn"
+                                        :to="{
+                                            name: 'functionTaskExecute',
+                                            params: { project_id: props.row.task.project.id },
+                                            query: { instance_id: props.row.task.id }
+                                        }">
+                                        {{ $t('认领') }}
+                                    </router-link>
+                                </template>
+                                <template v-else>
+                                    <a
+                                        v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                        {{ $t('查看') }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="functor-operation-btn"
+                                        :to="{
+                                            name: 'functionTaskExecute',
+                                            params: { project_id: props.row.task.project.id },
+                                            query: { instance_id: props.row.task.id }
+                                        }">
+                                        {{ $t('查看') }}
+                                    </router-link>
+                                </template>
                             </template>
-                            <template v-else>
-                                <a
-                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                    v-cursor
-                                    class="text-permission-disable"
-                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                    {{ $t('查看') }}
-                                </a>
-                                <router-link
-                                    v-else
-                                    class="functor-operation-btn"
-                                    :to="{
-                                        name: 'functionTaskExecute',
-                                        params: { project_id: props.row.task.project.id },
-                                        query: { instance_id: props.row.task.id }
-                                    }">
-                                    {{ $t('查看') }}
-                                </router-link>
-                            </template>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column type="setting">
-                        <bk-table-setting-content
-                            :fields="setting.fieldList"
-                            :selected="setting.selectedFields"
-                            :size="setting.size"
-                            @setting-change="handleSettingChange">
-                        </bk-table-setting-content>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
-                </bk-table>
+                        </bk-table-column>
+                        <bk-table-column type="setting">
+                            <bk-table-setting-content
+                                :fields="setting.fieldList"
+                                :selected="setting.selectedFields"
+                                :size="setting.size"
+                                @setting-change="handleSettingChange">
+                            </bk-table-setting-content>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
+        </skeleton>
         <bk-dialog
             width="600"
             ext-cls="common-dialog"
@@ -231,6 +233,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapMutations, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
@@ -322,6 +325,7 @@
     export default {
         name: 'functionHome',
         components: {
+            Skeleton,
             AdvanceSearchForm,
             NoData
         },
@@ -349,6 +353,7 @@
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
+                firstLoading: true,
                 listLoading: true,
                 functorSync: 0,
                 searchForm,
@@ -421,11 +426,12 @@
                 'timeZone': state => state.timezone
             })
         },
-        created () {
+        async created () {
             this.getFields()
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            this.getProjectList()
+            await this.getProjectList()
+            this.firstLoading = false
         },
         beforeDestroy () {
             this.clearAutoRedraw()

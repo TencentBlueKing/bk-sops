@@ -12,7 +12,7 @@
             <navigator-head-right></navigator-head-right>
         </template>
         <template slot="menu">
-            <bk-navigation-menu :toggle-active="true">
+            <bk-navigation-menu :default-active="currentNav" :toggle-active="true">
                 <bk-navigation-menu-group
                     v-for="(group, groupIndex) in routerList"
                     :key="groupIndex">
@@ -64,6 +64,7 @@
             return {
                 routerList,
                 title: '',
+                currentNav: '',
                 logo: require('../../assets/images/logo/logo_icon.svg')
             }
         },
@@ -84,29 +85,36 @@
             hasAdminPerm (val) {
                 if (val && this.VIEW_MODE !== 'appmaker') {
                     this.routerList = COMMON_ROUTE_LIST.concat(ADMIN_ROUTE_LIST)
+                    this.setNavigationTitle(this.$route)
                 }
             }
         },
-        mounted () {
-            console.log(this.$route)
-        },
         methods: {
             setNavigationTitle (route) {
+                const nav = this.findCurrentNav(route)
+                if (nav) {
+                    this.title = nav.name
+                    this.currentNav = nav.id
+                }
+            },
+            findCurrentNav (route) {
+                let nav
                 this.routerList.some(group => {
                     return group.some(item => {
                         if (item.id === route.name || (item.subRoutes && item.subRoutes.includes(route.name))) {
-                            this.title = item.name
+                            nav = item
                             return true
                         } else if (item.children) {
                             return item.children.some(childNav => {
                                 if (childNav.id === route.name || (childNav.subRoutes && childNav.subRoutes.includes(route.name))) {
-                                    this.title = childNav.name
+                                    nav = childNav
                                     return true
                                 }
                             })
                         }
                     })
                 })
+                return nav
             },
             changeRoute (nav) {
                 const route = {

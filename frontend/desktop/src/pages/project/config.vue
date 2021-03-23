@@ -693,7 +693,7 @@
         .project-info {
             display: flex;
             justify-content: flex-start;
-            padding: 40px 32px;
+            padding: 40px 0;
             background: #f4f7fa;
             .icon {
                 margin-right: 16px;
@@ -745,7 +745,7 @@
             }
         }
         .mandate-section {
-            padding: 32px;
+            padding: 32px 0;
             .title {
                 position: relative;
                 margin: 0 0 10px;
