@@ -103,7 +103,7 @@
                                     :to="{
                                         name: 'taskStep',
                                         query: { template_id: props.row.template_id },
-                                        params: { project_id: project_id, step: 'selectnode' }
+                                        params: { project_id: project_id, step: 'selectnode', template_source: props.row.template_source }
                                     }">
                                     {{$t('再创建')}}
                                 </router-link>

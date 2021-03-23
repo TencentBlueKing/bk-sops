@@ -158,7 +158,7 @@
             async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
-                        project__id: this.project_id,
+                        project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     })
