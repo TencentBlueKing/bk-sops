@@ -13,15 +13,21 @@ specific language governing permissions and limitations under the License.
 import time
 from threading import Lock
 
-from django.core.cache import cache
+from django.conf import settings
 
 from gcloud.taskflow3.models import TaskOperationTimesConfig
 
 task_operation_throttle_lock = Lock()
 
 
-def check_task_operation_throttle(project_id, operation):
+def get_redis_with_default(redis_instance, key, default_value):
+    value = redis_instance.get(key)
+    if value is None:
+        return default_value
+    return value
 
+
+def check_task_operation_throttle(project_id, operation):
     # load config
     try:
         times_config = TaskOperationTimesConfig.objects.get(project_id=project_id, operation=operation)
@@ -39,20 +45,20 @@ def check_task_operation_throttle(project_id, operation):
 
     task_operation_throttle_lock.acquire()
     try:
-        token_num = cache.get(token_num_key, allowed_times)
+        token_num = float(get_redis_with_default(settings.redis_inst, token_num_key, allowed_times))
         now = time.time()
-        last_time = cache.get(last_time_key, now)
-        cache.set(last_time_key, now)
+        last_time = float(get_redis_with_default(settings.redis_inst, last_time_key, now))
+        settings.redis_inst.set(last_time_key, now)
 
         token_gen_rate = allowed_times / scope_seconds
         token_num = token_num + (now - last_time) * token_gen_rate
 
         if token_num < 1:
-            cache.set(token_num_key, token_num)
+            settings.redis_inst.set(token_num_key, token_num)
             return False
 
         token_num = allowed_times if token_num - 1 > allowed_times else token_num - 1
-        cache.set(token_num_key, token_num)
+        settings.redis_inst.set(token_num_key, token_num)
         return True
     finally:
         task_operation_throttle_lock.release()
