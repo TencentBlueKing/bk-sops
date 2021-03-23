@@ -17,20 +17,7 @@
         :width="800"
         :before-close="closeTab">
         <div class="config-wrapper" slot="content">
-            <bk-form class="form-area" :model="formData" :label-width="140" :rules="rules" ref="configForm">
-                <bk-form-item property="category" :label="$t('分类')" :required="true">
-                    <bk-select
-                        v-model="formData.category"
-                        class="category-select"
-                        :clearable="false">
-                        <bk-option
-                            v-for="(item, index) in taskCategories"
-                            :key="index"
-                            :id="item.id"
-                            :name="item.name">
-                        </bk-option>
-                    </bk-select>
-                </bk-form-item>
+            <bk-form class="form-area" :model="formData" :label-width="140" ref="configForm">
                 <bk-form-item v-if="!common" :label="$t('标签')">
                     <bk-select
                         v-model="formData.labels"
@@ -55,6 +42,19 @@
                             <i class="common-icon-edit"></i>
                             <span>{{ $t('编辑标签') }}</span>
                         </div>
+                    </bk-select>
+                </bk-form-item>
+                <bk-form-item property="category" :label="$t('分类')">
+                    <bk-select
+                        v-model="formData.category"
+                        class="category-select"
+                        :clearable="false">
+                        <bk-option
+                            v-for="(item, index) in taskCategories"
+                            :key="index"
+                            :id="item.id"
+                            :name="item.name">
+                        </bk-option>
                     </bk-select>
                 </bk-form-item>
                 <bk-form-item :label="$t('通知方式')">
@@ -102,7 +102,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
-    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
@@ -112,7 +111,6 @@
         },
         props: {
             projectInfoLoading: Boolean,
-            isTemplateConfigValid: Boolean,
             isShow: Boolean,
             common: [String, Number]
         },
@@ -126,22 +124,6 @@
                     receiverGroup: notify_receivers.receiver_group.slice(0),
                     notifyType: notify_type.slice(0),
                     labels: template_labels
-                },
-                rules: {
-                    category: [
-                        {
-                            required: true,
-                            message: i18n.t('必填项'),
-                            trigger: 'blur'
-                        }
-                    ]
-                    // description: [
-                    //     {
-                    //         max: 300,
-                    //         message: i18n.t('备注信息不能多于300个字符'),
-                    //         trigger: 'blur'
-                    //     }
-                    // ]
                 },
                 templateLabels: [],
                 notifyTypeList: [],
@@ -186,11 +168,6 @@
             if (!this.common) {
                 this.getProjectNotifyGroup()
                 this.getTemplateLabelList()
-            }
-        },
-        mounted () {
-            if (!this.isTemplateConfigValid) {
-                this.$refs.configForm.validate()
             }
         },
         methods: {
@@ -241,22 +218,18 @@
                 }
             },
             onConfirm () {
-                this.$refs.configForm.validate().then(result => {
-                    if (result) {
-                        const { category, description, executorProxy, receiverGroup, notifyType, labels } = this.formData
-                        const data = {
-                            category,
-                            description,
-                            template_labels: labels,
-                            executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
-                            receiver_group: receiverGroup,
-                            notify_type: notifyType
-                        }
-                        this.setTplConfig(data)
-                        this.closeTab()
-                        this.$emit('templateDataChanged')
-                    }
-                })
+                const { category, description, executorProxy, receiverGroup, notifyType, labels } = this.formData
+                const data = {
+                    category,
+                    description,
+                    template_labels: labels,
+                    executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
+                    receiver_group: receiverGroup,
+                    notify_type: notifyType
+                }
+                this.setTplConfig(data)
+                this.closeTab()
+                this.$emit('templateDataChanged')
             },
             closeTab () {
                 this.$emit('closeTab')

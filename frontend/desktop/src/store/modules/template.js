@@ -320,7 +320,7 @@ const template = {
             state.start_event = start_event
             state.template_id = ''
             state.constants = {}
-            state.category = ''
+            state.category = 'Default'
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
@@ -343,7 +343,7 @@ const template = {
             state.start_event = {}
             state.template_id = ''
             state.constants = {}
-            state.category = ''
+            state.category = 'Default'
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],

@@ -103,7 +103,6 @@
                 </condition-edit>
                 <template-setting
                     :project-info-loading="projectInfoLoading"
-                    :is-template-config-valid="isTemplateConfigValid"
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
                     :common="common"
@@ -219,7 +218,6 @@
                 saveAndCreate: false,
                 pid: undefined, // 公共流程创建任务需要跳转到所选业务
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
-                isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false,
@@ -1097,20 +1095,8 @@
                         this.multipleTabDialogShow = true
                     }
                 } else {
-                    this.checkBasicProperty() // 基础属性是否合法
+                    this.checkNodeAndSaveTemplate()
                 }
-            },
-            // 校验基础属性
-            checkBasicProperty () {
-                // 模板分类是否选择
-                if (!this.category) {
-                    this.isTemplateConfigValid = false
-                    this.templateSaving = false
-                    this.createTaskSaving = false
-                    this.activeSettingTab = 'templateConfigTab'
-                    return
-                }
-                this.checkNodeAndSaveTemplate()
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
@@ -1356,7 +1342,6 @@
             // 多 tab 打开同一流程模板
             onMutilpleTabConfirm () {
                 this.multipleTabDialogShow = false
-                this.checkBasicProperty()
             },
             getTplTabData () {
                 return {
