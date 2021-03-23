@@ -12,17 +12,14 @@
 <template>
     <div class="appmaker-container">
         <div class="list-wrapper">
-            <base-title :title="$t('任务记录')"></base-title>
-            <div class="operation-area clearfix">
-                <advance-search-form
-                    id="appmakerHome"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                </advance-search-form>
-            </div>
+            <advance-search-form
+                id="appmakerHome"
+                :open="isSearchFormOpen"
+                :search-form="searchForm"
+                :search-config="{ placeholder: $t('请输入任务名称') }"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+            </advance-search-form>
             <div class="appmaker-table-content">
                 <bk-table
                     :data="appmakerList"
@@ -48,7 +45,7 @@
                                 :to="{
                                     name: 'appmakerTaskExecute',
                                     params: { app_id: props.row.create_info, project_id: props.row.project.id },
-                                    query: { instance_id: props.row.id }
+                                    query: { instance_id: props.row.id, template_id: props.row.template_id }
                                 }">
                                 {{props.row.name}}
                             </router-link>
@@ -83,16 +80,13 @@
                 </bk-table>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
@@ -149,8 +143,6 @@
         name: 'appmakerTaskHome',
         components: {
             AdvanceSearchForm,
-            CopyrightFooter,
-            BaseTitle,
             NoData
         },
         mixins: [permission, task],
@@ -374,14 +366,8 @@
    display: inline-block;
     width: 260px;
 }
-.appmaker-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: #fafafa;
-}
 .list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
+    padding: 20px 24px;
 }
 .operation-area {
     margin: 20px 0;

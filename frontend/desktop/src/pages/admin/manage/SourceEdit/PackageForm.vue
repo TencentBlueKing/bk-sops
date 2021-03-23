@@ -461,7 +461,7 @@
     }
     .package-form {
         margin-bottom: 30px;
-        background: #f0f1f5;
+        background: #ffffff;
         border-radius: 2px;
     }
     .form-header {

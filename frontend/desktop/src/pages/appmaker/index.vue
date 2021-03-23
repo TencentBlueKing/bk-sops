@@ -11,25 +11,19 @@
 */
 <template>
     <div class="appmaker-page">
-        <div class="page-content">
-            <div class="appmaker-table-content">
-                <base-title :title="$t('轻应用')"></base-title>
-                <div class="operation-wrapper">
-                    <advance-search-form
-                        id="appmakerList"
-                        :open="isSearchFormOpen"
-                        :search-form="searchForm"
-                        :search-config="{ placeholder: $t('请输入轻应用名称') }"
-                        @onSearchInput="onSearchInput"
-                        @submit="onSearchFormSubmit">
-                        <template v-slot:operation>
-                            <bk-button theme="primary" @click="onCreateApp">{{$t('新建')}}</bk-button>
-                        </template>
-                    </advance-search-form>
-                </div>
-            </div>
+        <div class="page-content" :style="{ width: `${contentWidth}px` }">
+            <advance-search-form
+                :open="isSearchFormOpen"
+                :search-form="searchForm"
+                :search-config="{ placeholder: $t('请输入轻应用名称') }"
+                @onSearchInput="onSearchInput"
+                @submit="onSearchFormSubmit">
+                <template v-slot:operation>
+                    <bk-button theme="primary" @click="onCreateApp">{{$t('新建')}}</bk-button>
+                </template>
+            </advance-search-form>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
-                <div v-if="appList.length" class="app-list clearfix">
+                <div v-if="appList.length" class="app-list">
                     <app-card
                         v-for="item in appList"
                         :key="item.id"
@@ -92,7 +86,6 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
@@ -119,7 +112,6 @@
         name: 'AppMaker',
         components: {
             NoData,
-            BaseTitle,
             AppCard,
             AppEditDialog,
             AdvanceSearchForm
@@ -141,6 +133,7 @@
             return {
                 loading: true,
                 collectedLoading: false,
+                contentWidth: 0,
                 list: [],
                 collectedList: [],
                 searchMode: false,
@@ -174,6 +167,14 @@
             this.loadData()
             this.getCollectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.resizeHandler = toolsUtils.debounce(this.setContainerWidth, 500)
+            window.addEventListener('resize', this.resizeHandler)
+        },
+        mounted () {
+            this.setContainerWidth()
+        },
+        beforeDestroy () {
+            window.removeEventListener('resize', this.resizeHandler)
         },
         methods: {
             ...mapActions([
@@ -226,6 +227,17 @@
                 } else {
                     this.searchMode = false
                     this.searchList = []
+                }
+            },
+            setContainerWidth () {
+                const $container = document.querySelector('.appmaker-page')
+                const containerWidth = $container.getBoundingClientRect().width
+                if (containerWidth >= 1600) {
+                    this.contentWidth = 1600
+                } else if (containerWidth >= 1200 && containerWidth < 1600) {
+                    this.contentWidth = 1195
+                } else {
+                    this.contentWidth = 790
                 }
             },
             onCreateApp () {
@@ -326,55 +338,13 @@
     display: inline-block;
     width: 260px;
 }
-.appmaker-page {
-    .page-content {
-        padding: 0 60px 40px 60px;
-    }
-    @media screen and (max-width: 1560px) {
-        .card-wrapper {
-            width: 32.5%;
-        }
-        .card-particular .app-synopsis {
-            width: 67%;
-        }
-        .card-wrapper:nth-child(3n) {
-            margin-right: 0;
-        }
-    }
-    @media screen and (min-width: 1561px) and (max-width: 1919px) {
-        .card-wrapper {
-            width: 24.265%;
-        }
-        .card-wrapper:nth-child(4n) {
-            margin-right: 0;
-        }
-    }
-    @media screen and (min-width: 1920px) {
-        .app-list {
-            max-width: 2150px;
-        }
-        .card-wrapper {
-            width: 19.3%;
-        }
-        .card-wrapper:nth-child(5n) {
-            margin-right: 0;
-        }
-    }
-    .operation-wrapper {
-        margin: 20px 0px;
-        .bk-button {
-            width: 120px;
-            height: 32px;
-            line-height: 32px;
-        }
-        .app-search {
-            float: right;
-            position: relative;
-        }
-    }
-    .card-wrapper {
-        float: left;
-        margin: 0 14px 20px 0;
+.page-content {
+    margin: 0 auto;
+    padding: 20px 0;
+    .app-list {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px;
     }
     .add-appmaker-btn {
         margin: 20px 0;

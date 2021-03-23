@@ -11,8 +11,8 @@
 */
 <template>
     <div class="periodic-container">
-        <div class="list-wrapper">
-            <div class="operation-area">
+        <skeleton :loading="firstLoading" loader="taskList">
+            <div v-if="!firstLoading" class="list-wrapper">
                 <advance-search-form
                     id="periodicList"
                     :open="isSearchFormOpen"
@@ -31,152 +31,151 @@
                         </bk-button>
                     </template>
                 </advance-search-form>
-            </div>
-            <div class="periodic-table-content">
-                <bk-table
-                    :data="periodicList"
-                    :pagination="pagination"
-                    :size="setting.size"
-                    @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange"
-                    v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <template v-for="item in setting.selectedFields">
-                        <bk-table-column
-                            v-if="item.isShow ? adminView : true"
-                            :key="item.id"
-                            :label="item.label"
-                            :prop="item.id"
-                            :width="item.width"
-                            :min-width="item.min_width">
-                            <template slot-scope="{ row }">
-                                <!--流程模板-->
-                                <div v-if="item.id === 'process_template'">
+                <div class="periodic-table-content">
+                    <bk-table
+                        :data="periodicList"
+                        :pagination="pagination"
+                        :size="setting.size"
+                        @page-change="onPageChange"
+                        @page-limit-change="handlePageLimitChange"
+                        v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+                        <template v-for="item in setting.selectedFields">
+                            <bk-table-column
+                                v-if="item.isShow ? adminView : true"
+                                :key="item.id"
+                                :label="item.label"
+                                :prop="item.id"
+                                :width="item.width"
+                                :min-width="item.min_width">
+                                <template slot-scope="{ row }">
+                                    <!--流程模板-->
+                                    <div v-if="item.id === 'process_template'">
+                                        <a
+                                            v-if="!hasPermission(['periodic_task_view'], row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            @click="onPeriodicPermissonCheck(['periodic_task_view'], row, $event)">
+                                            {{row.task_template_name}}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="periodic-name"
+                                            :title="row.task_template_name"
+                                            :to="templateNameUrl(row)">
+                                            {{row.task_template_name}}
+                                        </router-link>
+                                    </div>
+                                    <!--项目-->
+                                    <div v-else-if="item.id === 'project'">
+                                        <span :title="row.project.name">{{ row.project.name }}</span>
+                                    </div>
+                                    <!--周期规则-->
+                                    <div v-else-if="item.id === 'cron'">
+                                        <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
+                                    </div>
+                                    <!--状态-->
+                                    <div v-else-if="item.id === 'periodic_status'" class="periodic-status">
+                                        <span :class="row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
+                                        {{row.enabled ? $t('启动') : $t('暂停')}}
+                                    </div>
+                                    <!-- 其他 -->
+                                    <template v-else>
+                                        <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
+                                    </template>
+                                </template>
+                            </bk-table-column>
+                        </template>
+                        <bk-table-column :label="$t('操作')" width="240">
+                            <template slot-scope="props">
+                                <div class="periodic-operation">
+                                    <template v-if="!adminView">
+                                        <a
+                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
+                                            href="javascript:void(0);"
+                                            :class="['periodic-pause-btn', {
+                                                'periodic-start-btn': !props.row.enabled,
+                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
+                                            }]"
+                                            @click="onSetEnable(props.row, $event)">
+                                            {{!props.row.enabled ? $t('启动') : $t('暂停')}}
+                                        </a>
+                                        <a
+                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
+                                            href="javascript:void(0);"
+                                            :class="['periodic-bk-btn', {
+                                                'periodic-bk-disable': props.row.enabled,
+                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
+                                            }]"
+                                            :title="props.row.enabled ? $t('请暂停任务后再执行编辑操作') : ''"
+                                            @click="onModifyCronPeriodic(props.row, $event)">
+                                            {{ $t('编辑') }}
+                                        </a>
+                                    </template>
                                     <a
-                                        v-if="!hasPermission(['periodic_task_view'], row.auth_actions)"
-                                        v-cursor
-                                        class="text-permission-disable"
-                                        @click="onPeriodicPermissonCheck(['periodic_task_view'], row, $event)">
-                                        {{row.task_template_name}}
+                                        v-else
+                                        href="javascript:void(0);"
+                                        @click="onRecordView(props.row, $event)">
+                                        {{ $t('启动记录') }}
                                     </a>
                                     <router-link
-                                        v-else
-                                        class="periodic-name"
-                                        :title="row.task_template_name"
-                                        :to="templateNameUrl(row)">
-                                        {{row.task_template_name}}
+                                        :to="{
+                                            name: 'taskList',
+                                            params: { project_id: props.row.project.id },
+                                            query: { template_id: props.row.template_id, create_method: 'periodic', create_info: props.row.task.id, template_source: props.row.template_source }
+                                        }">
+                                        {{ $t('执行历史') }}
                                     </router-link>
+                                    <bk-popover
+                                        theme="light"
+                                        placement="bottom-start"
+                                        ext-cls="common-dropdown-btn-popver"
+                                        :z-index="2000"
+                                        :distance="0"
+                                        :arrow="false"
+                                        :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                        <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul slot="content">
+                                            <li class="opt-btn">
+                                                <a
+                                                    v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'disable': props.row.id === collectingId || collectListLoading,
+                                                        'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
+                                                    }"
+                                                    @click="onCollectTask(props.row, $event)">
+                                                    {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
+                                                </a>
+                                            </li>
+                                            <li class="opt-btn">
+                                                <a
+                                                    v-cursor="{ active: !hasPermission(['periodic_task_delete'], props.row.auth_actions) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'text-permission-disable': !hasPermission(['periodic_task_delete'], props.row.auth_actions)
+                                                    }"
+                                                    @click="onDeletePeriodic(props.row, $event)">
+                                                    {{ $t('删除') }}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </bk-popover>
                                 </div>
-                                <!--项目-->
-                                <div v-else-if="item.id === 'project'">
-                                    <span :title="row.project.name">{{ row.project.name }}</span>
-                                </div>
-                                <!--周期规则-->
-                                <div v-else-if="item.id === 'cron'">
-                                    <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
-                                </div>
-                                <!--状态-->
-                                <div v-else-if="item.id === 'periodic_status'" class="periodic-status">
-                                    <span :class="row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
-                                    {{row.enabled ? $t('启动') : $t('暂停')}}
-                                </div>
-                                <!-- 其他 -->
-                                <template v-else>
-                                    <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
-                                </template>
                             </template>
                         </bk-table-column>
-                    </template>
-                    <bk-table-column :label="$t('操作')" width="240">
-                        <template slot-scope="props">
-                            <div class="periodic-operation">
-                                <template v-if="!adminView">
-                                    <a
-                                        v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
-                                        href="javascript:void(0);"
-                                        :class="['periodic-pause-btn', {
-                                            'periodic-start-btn': !props.row.enabled,
-                                            'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
-                                        }]"
-                                        @click="onSetEnable(props.row, $event)">
-                                        {{!props.row.enabled ? $t('启动') : $t('暂停')}}
-                                    </a>
-                                    <a
-                                        v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
-                                        href="javascript:void(0);"
-                                        :class="['periodic-bk-btn', {
-                                            'periodic-bk-disable': props.row.enabled,
-                                            'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
-                                        }]"
-                                        :title="props.row.enabled ? $t('请暂停任务后再执行编辑操作') : ''"
-                                        @click="onModifyCronPeriodic(props.row, $event)">
-                                        {{ $t('编辑') }}
-                                    </a>
-                                </template>
-                                <a
-                                    v-else
-                                    href="javascript:void(0);"
-                                    @click="onRecordView(props.row, $event)">
-                                    {{ $t('启动记录') }}
-                                </a>
-                                <router-link
-                                    :to="{
-                                        name: 'taskList',
-                                        params: { project_id: props.row.project.id },
-                                        query: { template_id: props.row.template_id, create_method: 'periodic', create_info: props.row.task.id, template_source: props.row.template_source }
-                                    }">
-                                    {{ $t('执行历史') }}
-                                </router-link>
-                                <bk-popover
-                                    theme="light"
-                                    placement="bottom-start"
-                                    ext-cls="common-dropdown-btn-popver"
-                                    :z-index="2000"
-                                    :distance="0"
-                                    :arrow="false"
-                                    :tippy-options="{ boundary: 'window', duration: [0, 0] }">
-                                    <i class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul slot="content">
-                                        <li class="opt-btn">
-                                            <a
-                                                v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
-                                                href="javascript:void(0);"
-                                                :class="{
-                                                    'disable': props.row.id === collectingId || collectListLoading,
-                                                    'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
-                                                }"
-                                                @click="onCollectTask(props.row, $event)">
-                                                {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
-                                            </a>
-                                        </li>
-                                        <li class="opt-btn">
-                                            <a
-                                                v-cursor="{ active: !hasPermission(['periodic_task_delete'], props.row.auth_actions) }"
-                                                href="javascript:void(0);"
-                                                :class="{
-                                                    'text-permission-disable': !hasPermission(['periodic_task_delete'], props.row.auth_actions)
-                                                }"
-                                                @click="onDeletePeriodic(props.row, $event)">
-                                                {{ $t('删除') }}
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </bk-popover>
-                            </div>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column type="setting">
-                        <bk-table-setting-content
-                            :fields="setting.fieldList"
-                            :selected="setting.selectedFields"
-                            :size="setting.size"
-                            @setting-change="handleSettingChange">
-                        </bk-table-setting-content>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
-                </bk-table>
+                        <bk-table-column type="setting">
+                            <bk-table-setting-content
+                                :fields="setting.fieldList"
+                                :selected="setting.selectedFields"
+                                :size="setting.size"
+                                @setting-change="handleSettingChange">
+                            </bk-table-setting-content>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
-        <CopyrightFooter></CopyrightFooter>
+        </skeleton>
         <TaskCreateDialog
             :entrance="'periodicTask'"
             :project_id="project_id"
@@ -215,7 +214,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
@@ -288,7 +287,7 @@
     export default {
         name: 'PeriodicList',
         components: {
-            CopyrightFooter,
+            Skeleton,
             AdvanceSearchForm,
             NoData,
             TaskCreateDialog,
@@ -320,6 +319,7 @@
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
+                firstLoading: true,
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
                 listLoading: true,
@@ -368,12 +368,13 @@
                 return this.hasAdminPerm && this.admin
             }
         },
-        created () {
+        async created () {
             this.getFields()
-            this.getPeriodicList()
             this.getBizBaseInfo()
             this.getCollectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getPeriodicList()
+            this.firstLoading = false
         },
         methods: {
             ...mapActions([
@@ -685,16 +686,13 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+.periodic-container {
+    padding: 20px 24px;
+}
 .list-wrapper {
     min-height: calc(100vh - 300px);
     .advanced-search {
         margin: 0px;
-    }
-    .operation-area{
-        margin: 20px 0px;
-        .task-create-btn {
-            min-width: 120px;
-        }
     }
 }
 .query-button {

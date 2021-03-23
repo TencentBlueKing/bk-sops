@@ -11,9 +11,8 @@
 */
 <template>
     <div class="audit-container">
-        <div class="list-wrapper">
-            <base-title :title="$t('审计中心')"></base-title>
-            <div class="operation-area clearfix">
+        <skeleton :loading="firstLoading" loader="commonList">
+            <div class="list-wrapper">
                 <advance-search-form
                     id="auditList"
                     :open="isSearchFormOpen"
@@ -22,94 +21,93 @@
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>
-            </div>
-            <div class="audit-table-content">
-                <bk-table
-                    :data="auditList"
-                    :pagination="pagination"
-                    :size="setting.size"
-                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange"
-                    @page-limit-change="onPageLimitChange">
-                    <bk-table-column
-                        v-for="item in setting.selectedFields"
-                        :key="item.id"
-                        :label="item.label"
-                        :prop="item.id"
-                        :width="item.width"
-                        :min-width="item.min_width">
-                        <template slot-scope="props">
-                            <!--所属项目-->
-                            <div v-if="item.id === 'project'">
-                                <span :title="props.row.project.name">{{ props.row.project.name }}</span>
-                            </div>
-                            <!--任务名称-->
-                            <div v-else-if="item.id === 'name'">
+                <div class="audit-table-content">
+                    <bk-table
+                        :data="auditList"
+                        :pagination="pagination"
+                        :size="setting.size"
+                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        @page-change="onPageChange"
+                        @page-limit-change="onPageLimitChange">
+                        <bk-table-column
+                            v-for="item in setting.selectedFields"
+                            :key="item.id"
+                            :label="item.label"
+                            :prop="item.id"
+                            :width="item.width"
+                            :min-width="item.min_width">
+                            <template slot-scope="props">
+                                <!--所属项目-->
+                                <div v-if="item.id === 'project'">
+                                    <span :title="props.row.project.name">{{ props.row.project.name }}</span>
+                                </div>
+                                <!--任务名称-->
+                                <div v-else-if="item.id === 'name'">
+                                    <a
+                                        v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        :title="props.row.name"
+                                        @click="onTemplatePermissonCheck(props.row)">
+                                        {{props.row.name}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="task-name"
+                                        :title="props.row.name"
+                                        :to="{
+                                            name: 'auditTaskExecute',
+                                            params: { project_id: props.row.project.id },
+                                            query: { instance_id: props.row.id }
+                                        }">
+                                        {{props.row.name}}
+                                    </router-link>
+                                </div>
+                                <!--状态-->
+                                <div v-else-if="item.id === 'audit_status'" class="audit-status">
+                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                    <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                </div>
+                                <!-- 其他 -->
+                                <template v-else>
+                                    <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                                </template>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="100">
+                            <template slot-scope="props">
                                 <a
                                     v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    :title="props.row.name"
                                     @click="onTemplatePermissonCheck(props.row)">
-                                    {{props.row.name}}
+                                    {{$t('查看')}}
                                 </a>
                                 <router-link
                                     v-else
-                                    class="task-name"
-                                    :title="props.row.name"
+                                    class="audit-operation-btn"
                                     :to="{
                                         name: 'auditTaskExecute',
                                         params: { project_id: props.row.project.id },
                                         query: { instance_id: props.row.id }
                                     }">
-                                    {{props.row.name}}
+                                    {{ $t('查看') }}
                                 </router-link>
-                            </div>
-                            <!--状态-->
-                            <div v-else-if="item.id === 'audit_status'" class="audit-status">
-                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
-                            </div>
-                            <!-- 其他 -->
-                            <template v-else>
-                                <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
                             </template>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('操作')" width="100">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                @click="onTemplatePermissonCheck(props.row)">
-                                {{$t('查看')}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="audit-operation-btn"
-                                :to="{
-                                    name: 'auditTaskExecute',
-                                    params: { project_id: props.row.project.id },
-                                    query: { instance_id: props.row.id }
-                                }">
-                                {{ $t('查看') }}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column type="setting">
-                        <bk-table-setting-content
-                            :fields="setting.fieldList"
-                            :selected="setting.selectedFields"
-                            :size="setting.size"
-                            @setting-change="handleSettingChange">
-                        </bk-table-setting-content>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData /></div>
-                </bk-table>
+                        </bk-table-column>
+                        <bk-table-column type="setting">
+                            <bk-table-setting-content
+                                :fields="setting.fieldList"
+                                :selected="setting.selectedFields"
+                                :size="setting.size"
+                                @setting-change="handleSettingChange">
+                            </bk-table-setting-content>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
-        <CopyrightFooter></CopyrightFooter>
+        </skeleton>
     </div>
 </template>
 <script>
@@ -117,9 +115,8 @@
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
@@ -224,9 +221,8 @@
     export default {
         name: 'auditHome',
         components: {
+            Skeleton,
             AdvanceSearchForm,
-            CopyrightFooter,
-            BaseTitle,
             NoData
         },
         mixins: [permission, task],
@@ -254,6 +250,7 @@
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
+                firstLoading: true,
                 taskBasicInfoLoading: true,
                 listLoading: true,
                 activeTaskCategory: undefined,
@@ -297,12 +294,13 @@
                 'timeZone': state => state.timezone
             })
         },
-        created () {
+        async created () {
             this.getFields()
             this.loadAuditTask()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            this.getProjectList()
             this.getProjectBaseInfo()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getProjectList()
+            this.firstLoading = false
         },
         methods: {
             ...mapActions('auditTask/', [
@@ -494,28 +492,16 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
+.audit-container {
+    padding: 20px 24px;
+}
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
 }
-.audit-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-}
 .list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 0;
-    }
-}
-.operation-area {
-    margin: 20px 0;
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
 }
 .common-icon-dark-circle-pause {

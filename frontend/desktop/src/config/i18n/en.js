@@ -1085,7 +1085,8 @@ const en = {
     '预览值': 'Preview Value',
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
-    '退出': 'Quit'
+    '退出': 'Quit',
+    '首页': 'Home'
 }
 
 export default en

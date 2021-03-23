@@ -37,35 +37,36 @@
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
-            <SubflowUpdateTips
-                v-if="subflowShouldUpdated.length > 0"
-                :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
-                :list="subflowShouldUpdated"
-                :locations="locations"
-                :node-menu-open="nodeMenuOpen"
-                @viewClick="viewUpdatedNode"
-                @foldClick="clearDotAnimation">
-            </SubflowUpdateTips>
-            <TemplateCanvas
-                v-if="isEditProcessPage"
-                ref="templateCanvas"
-                class="template-canvas"
-                :atom-type-list="atomTypeList"
-                :name="name"
-                :type="type"
-                :common="common"
-                :canvas-data="canvasData"
-                :node-memu-open.sync="nodeMenuOpen"
-                @hook:mounted="canvasMounted"
-                @onConditionClick="onOpenConditionEdit"
-                @templateDataChanged="templateDataChanged"
-                @onLocationChange="onLocationChange"
-                @onLineChange="onLineChange"
-                @onLocationMoveDone="onLocationMoveDone"
-                @onFormatPosition="onFormatPosition"
-                @onReplaceLineAndLocation="onReplaceLineAndLocation"
-                @onShowNodeConfig="onShowNodeConfig">
-            </TemplateCanvas>
+            <template v-if="isEditProcessPage">
+                <SubflowUpdateTips
+                    v-if="subflowShouldUpdated.length > 0"
+                    :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
+                    :list="subflowShouldUpdated"
+                    :locations="locations"
+                    :node-menu-open="nodeMenuOpen"
+                    @viewClick="viewUpdatedNode"
+                    @foldClick="clearDotAnimation">
+                </SubflowUpdateTips>
+                <TemplateCanvas
+                    ref="templateCanvas"
+                    class="template-canvas"
+                    :atom-type-list="atomTypeList"
+                    :name="name"
+                    :type="type"
+                    :common="common"
+                    :canvas-data="canvasData"
+                    :node-memu-open.sync="nodeMenuOpen"
+                    @hook:mounted="canvasMounted"
+                    @onConditionClick="onOpenConditionEdit"
+                    @templateDataChanged="templateDataChanged"
+                    @onLocationChange="onLocationChange"
+                    @onLineChange="onLineChange"
+                    @onLocationMoveDone="onLocationMoveDone"
+                    @onFormatPosition="onFormatPosition"
+                    @onReplaceLineAndLocation="onReplaceLineAndLocation"
+                    @onShowNodeConfig="onShowNodeConfig">
+                </TemplateCanvas>
+            </template>
             <TaskSelectNode
                 v-else
                 ref="taskSelectNode"
@@ -1076,7 +1077,7 @@
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { step: 'selectnode', project_id: this.pid },
                     query: {
                         template_id,
@@ -1410,7 +1411,7 @@
     }
     .update-tips {
         position: absolute;
-        top: 76px;
+        top: 64px;
         left: 495px;
         min-height: 40px;
         overflow: hidden;
@@ -1425,7 +1426,7 @@
     }
     .template-canvas {
         position: relative;
-        height: calc(100% - 60px);
+        height: calc(100vh - 100px);
     }
     .side-content {
         position: absolute;

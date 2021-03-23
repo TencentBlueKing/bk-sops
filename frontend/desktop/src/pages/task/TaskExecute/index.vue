@@ -10,33 +10,20 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['task-execute-container', { 'task-function-container': currentStep === 'functionalization' }]"
-        v-if="!exception.code"
-        v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <template v-if="!loading">
-            <TaskStep
-                v-if="isFunctional"
-                :list="stepList"
-                :current-step="currentStep"
-                :task-status="'TaskExecute'"
-                :is-functional="isFunctional"
+    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }">
+        <template v-if="!taskDataLoading">
+            <TaskFunctionalization
+                v-if="isFunctional && showParamsFill"
                 :common="common"
                 :project_id="project_id"
-                :instance-name="instanceName"
-                :template-source="templateSource"
-                :async-template-id="templateId"
-                :all-finished="isAllStepsFinished">
-            </TaskStep>
-            <TaskFunctionalization
-                v-if="isFunctional"
-                :project_id="project_id"
-                :instance_id="instance_id"
+                :template-id="templateId"
+                :instance-id="instance_id"
                 :instance-name="instanceName"
                 :instance-flow="instanceFlow"
                 :instance-actions="instanceActions">
             </TaskFunctionalization>
             <TaskOperation
-                v-if="!isFunctional"
+                v-else
                 :project_id="project_id"
                 :instance_id="instance_id"
                 :router-type="routerType"
@@ -44,37 +31,20 @@
                 :instance-flow="instanceFlow"
                 :template_id="templateId"
                 :template-source="templateSource"
-                :instance-actions="instanceActions"
-                @taskStatusLoadChange="taskStatusLoadChange">
+                :instance-actions="instanceActions">
             </TaskOperation>
         </template>
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import TaskStep from '../TaskStep.vue'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
-    const STEP_DICT = [
-        {
-            step: 'selectnode',
-            name: i18n.t('节点选择')
-        },
-        {
-            step: 'paramfill',
-            name: i18n.t('参数填写')
-        },
-        {
-            step: 'taskexecute',
-            name: i18n.t('任务执行')
-        }
-    ]
+
     export default {
         name: 'TaskExecute',
         components: {
-            TaskStep,
             TaskOperation,
             TaskFunctionalization
         },
@@ -88,22 +58,13 @@
             return {
                 taskDataLoading: true,
                 taskStatusLoading: true,
-                bkMessageInstance: null,
-                exception: {},
-                stepList: STEP_DICT.slice(),
-                currentStep: 'taskexecute',
-                isFunctional: false,
-                isAllStepsFinished: false,
+                isFunctional: this.routerType === 'function', // 是否为职能化任务
+                showParamsFill: false, // 显示参数填写页面
                 instanceName: '',
                 instanceFlow: '',
                 templateSource: '',
                 instanceActions: [],
                 templateId: ''
-            }
-        },
-        computed: {
-            loading () {
-                return this.isFunctional ? this.taskDataLoading : (this.taskDataLoading && this.taskStatusLoading)
             }
         },
         created () {
@@ -113,42 +74,24 @@
             ...mapActions('task/', [
                 'getTaskInstanceData'
             ]),
-            appendFunctionalization () {
-                const isHasFunctionalization = this.stepList.some(item => item.step === 'functionalization')
-                if (!isHasFunctionalization) {
-                    this.stepList.splice(2, 0, {
-                        step: 'functionalization',
-                        name: i18n.t('职能化认领')
-                    })
-                }
-            },
             async getTaskData () {
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    if (instanceData.flow_type === 'common_func') {
-                        this.appendFunctionalization()
-                        if (instanceData.current_flow === 'func_claim') {
-                            this.isFunctional = true
-                            this.currentStep = 'functionalization'
-                        }
+                    const { current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
+                    if (this.isFunctional && current_flow === 'func_claim') {
+                        this.showParamsFill = true
                     }
-                    this.instanceFlow = instanceData.pipeline_tree
-                    this.instanceName = instanceData.name
-                    this.templateId = instanceData.template_id
-                    this.templateSource = instanceData.template_source
-                    this.instanceActions = instanceData.auth_actions
-                    if (instanceData.is_finished) {
-                        this.isAllStepsFinished = true
-                    }
+                    this.instanceFlow = pipeline_tree
+                    this.instanceName = name
+                    this.templateId = template_id
+                    this.templateSource = template_source
+                    this.instanceActions = auth_actions
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.taskDataLoading = false
                 }
-            },
-            taskStatusLoadChange (status) {
-                this.taskStatusLoading = status
             }
         }
     }
@@ -158,12 +101,9 @@
         height: 100%;
         background: #f4f7fa;
     }
-    .task-function-container {
-        background-color: #ffffff;
-    }
-    /deep/.task-management-page {
-        .canvas-flow-wrap {
-            padding-left: 60px;
+    /deep/ .task-management-page {
+        .canvas-wrapper.jsflow .tool-panel-wrap {
+            left: 20px;
         }
     }
 </style>

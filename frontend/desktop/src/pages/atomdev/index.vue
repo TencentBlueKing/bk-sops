@@ -11,14 +11,6 @@
 */
 <template>
     <div class="atomdev-page">
-        <div class="page-header">
-            <page-title :title="$t('插件开发')"></page-title>
-            <div class="operate-area">
-                <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ $t('下载') }}</bk-button>
-                <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ $t('预览') }}</bk-button>
-                <bk-button theme="default" :disabled="isPreviewMode" @click="showUploadDialog = true">{{ $t('导入') }}</bk-button>
-            </div>
-        </div>
         <div class="atom-edit-wrapper">
             <div class="tag-panel-col">
                 <tag-panel :tags="tags" :disabled="isPreviewMode"></tag-panel>
@@ -36,6 +28,11 @@
                 <div v-else class="error-message">{{ atomStringError }}</div>
             </div>
             <div class="config-panel-col">
+                <div class="operate-area">
+                    <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ $t('下载') }}</bk-button>
+                    <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ $t('预览') }}</bk-button>
+                    <bk-button theme="default" :disabled="isPreviewMode" @click="showUploadDialog = true">{{ $t('导入') }}</bk-button>
+                </div>
                 <config-panel
                     ref="configPanel"
                     :atom-config-str="atomConfigStr"
@@ -115,7 +112,6 @@
 <script>
     import JSZip from 'jszip'
     import { saveAs } from 'file-saver'
-    import PageTitle from './PageTitle.vue'
     import TagPanel from './TagPanel.vue'
     import FormPanel from './formPanel/FormPanel.vue'
     import ConfigPanel from './configPanel/ConfigPanel.vue'
@@ -140,7 +136,6 @@
     export default {
         name: 'AtomDev',
         components: {
-            PageTitle,
             TagPanel,
             FormPanel,
             AtomSetting,
@@ -449,26 +444,13 @@
 </script>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
-
     .atomdev-page {
-        min-width: 1320px;
         height: 100%;
-    }
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 20px;
-        height: 50px;
-        border-bottom: 1px solid #dde4eb;
-        .operate-area > button {
-            margin-left: 6px;
-        }
     }
     .atom-edit-wrapper {
         display: flex;
         justify-content: space-around;
-        height: calc(100% - 50px);
+        height: 100%;
     }
     .tag-panel-col {
         width: 111px;
@@ -484,6 +466,11 @@
         height: 100%;
         background: #ffffff;
         border-left: 1px solid #dde4eb;
+        .operate-area {
+            padding: 10px 20px 9px;
+            text-align: right;
+            border-bottom: 1px solid #dde4eb;
+        }
     }
     .slider-footer {
         padding: 0 20px;
