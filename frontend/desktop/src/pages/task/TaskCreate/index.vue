@@ -17,7 +17,7 @@
         <TaskStep
             :project_id="project_id"
             :list="stepList"
-            :common="common"
+            :common="isCommonTemplate || common"
             :template_id="template_id"
             :task-status="'TaskCreate'"
             :current-step="currentStep">
@@ -27,7 +27,7 @@
             :is="currentComponent"
             :current-step="currentStep"
             :project_id="project_id"
-            :common="common"
+            :common="isCommonTemplate || common"
             :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
@@ -74,7 +74,8 @@
                 hasFunctionalStep: false,
                 hasPeriodicTask: false,
                 previewData: [],
-                excludeNode: []
+                excludeNode: [],
+                isCommonTemplate: false
             }
         },
         computed: {
@@ -126,6 +127,12 @@
                 } else {
                     this.stepList.push(taskExecution)
                 }
+            }
+        },
+        created () {
+            const { params } = this.$route
+            if (params) {
+                this.isCommonTemplate = params.template_source === 'common'
             }
         },
         mounted () {
