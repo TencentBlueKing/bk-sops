@@ -34,7 +34,13 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
-                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
+                <ip-search-input
+                    :class="['ip-search-wrap', getClassName]"
+                    :editable="editable"
+                    @search="onStaticIpSearch"
+                    @focus="onStaticIpFocus"
+                    @blur="onStaticIpBlur">
+                </ip-search-input>
             </div>
             <div class="selected-ip-table-wrap">
                 <table :class="['ip-table', { 'disabled': !editable }]">
@@ -201,7 +207,8 @@
                         name: i18n.clearFailedAgentIp
                     }
                 ],
-                i18n
+                i18n,
+                isStaticIpStatus: null
             }
         },
         computed: {
@@ -210,6 +217,15 @@
             },
             isShowQuantity () {
                 return this.staticIps.length
+            },
+            getClassName () {
+                let className = ''
+                if (this.isStaticIpStatus === 'focus') {
+                    className = 'static-ip-focus'
+                } else if (this.isStaticIpStatus === 'blur') {
+                    className = 'static-ip-blur'
+                }
+                return className
             }
         },
         watch: {
@@ -297,6 +313,12 @@
                     this.setPanigation(this.staticIps)
                     this.isSearchMode = false
                 }
+            },
+            onStaticIpFocus () {
+                this.isStaticIpStatus = 'focus'
+            },
+            onStaticIpBlur () {
+                this.isStaticIpStatus = 'blur'
             },
             onOperationClick (type) {
                 this[type] && this[type]()
@@ -387,6 +409,14 @@
     top: -56px;
     right: 0;
     width: 42%;
+}
+.static-ip-focus {
+    width: 100%;
+    transition: width .5s;
+}
+.static-ip-blur {
+    width: 42%;
+    transition: width .5s;
 }
 .ip-table {
     width: 100%;
