@@ -169,9 +169,12 @@
     .bk-navigation >>> {
         .bk-navigation-wrapper {
             min-width: 1366px;
-            .navigation-container .container-content {
-                padding: 0;
-                @include scrollbar;
+            .navigation-container {
+                max-width: unset !important;
+                .container-content {
+                    padding: 0;
+                    @include scrollbar;
+                }
             }
             .navigation-nav .nav-slider-list {
                 padding-top: 0;

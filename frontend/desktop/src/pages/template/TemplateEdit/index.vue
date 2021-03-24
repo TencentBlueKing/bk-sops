@@ -451,7 +451,7 @@
                             })
                         }
                     })
-                    this.atomList = atomList
+                    this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                 } catch (e) {
@@ -657,6 +657,27 @@
                 const activities = tools.deepClone(this.activities[location.id])
                 activities.component.data = data
                 this.setActivities({ type: 'edit', location: activities })
+            },
+            /**
+             * 插件列表按照版本号递增排序，legacy 置为最前
+             */
+            handleAtomVersionOrder (atomList) {
+                return atomList.map(atom => {
+                    const index = atom.list.find(item => item.version === 'legacy')
+                    const list = atom.list.slice(0)
+                    const legacyList = []
+                    if (index > -1) {
+                        legacyList.push(list[index])
+                        list.splice(index, 1)
+                    }
+                    if (list.length > 1) {
+                        list.sort((a, b) => a.version.localeCompare(b.version))
+                    }
+                    return {
+                        ...atom,
+                        list: legacyList.concat(list)
+                    }
+                })
             },
             /**
              * 标准插件分组
