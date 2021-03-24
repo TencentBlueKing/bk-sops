@@ -241,7 +241,7 @@
         position: relative;
         margin-bottom: 30px;
         padding: 20px;
-        background: #f0f1f5;
+        background: #ffffff;
         border-radius: 2px;
         .form-table {
             width: 100%;

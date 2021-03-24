@@ -298,7 +298,7 @@
     .config-panel {
         position: relative;
         padding: 20px;
-        height: 100%;
+        height: calc(100% - 52px);
         overflow-y: auto;
         @include scrollbar;
 

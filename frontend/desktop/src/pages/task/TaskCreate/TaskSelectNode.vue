@@ -31,7 +31,6 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
-                :is-edit-process-page="isEditProcessPage"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
@@ -187,9 +186,14 @@
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = appmakerData.template_scheme_id
+                        this.previewBread = [{
+                            id: this.template_id,
+                            name: this.templateName,
+                            version: this.version
+                        }]
                         if (schemeId === '') {
                             this.isAppmakerHasScheme = false
-                            await this.getPreviewNodeData(this.template_id)
+                            await this.getPreviewNodeData(this.template_id, this.version)
                         } else {
                             this.selectScheme({ id: schemeId })
                         }
@@ -218,16 +222,17 @@
             },
             /**
              * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
-             * @params {String} templateId  模板 ID
+             * @params {Number|String} templateId  模板 ID
+             * @params {String} version  模板版本
              */
-            async getPreviewNodeData (templateId) {
+            async getPreviewNodeData (templateId, version) {
                 this.previewDataLoading = true
                 const excludeNodes = this.getExcludeNode()
                 const params = {
-                    templateId: templateId,
+                    templateId: Number(templateId),
                     excludeTaskNodesId: excludeNodes,
                     common: this.common,
-                    version: this.version
+                    version
                 }
                 try {
                     const resp = await this.loadPreviewNodeData(params)
@@ -247,7 +252,7 @@
              */
             async onGotoParamFill () {
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
                 }
@@ -352,12 +357,13 @@
                 if (this.viewMode === 'appmaker' || !activity || activity.type !== 'SubProcess') {
                     return
                 }
-                const templateId = activity.template_id
+                const { template_id, name, version } = activity
                 this.previewBread.push({
-                    data: templateId,
-                    name: activity.name
+                    id: template_id,
+                    name,
+                    version
                 })
-                this.getPreviewNodeData(templateId)
+                this.getPreviewNodeData(template_id, activity.version)
             },
             /**
              * 选中节点
@@ -385,8 +391,8 @@
              * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
              * @params {Number} index  点击的面包屑的下标
              */
-            onSelectSubflow (id, index) {
-                this.getPreviewNodeData(id)
+            onSelectSubflow (id, version, index) {
+                this.getPreviewNodeData(id, version)
                 this.previewBread.splice(index + 1, this.previewBread.length)
             },
             getExcludeNode () {
@@ -444,7 +450,7 @@
                     }
                 })
                 if (this.isPreviewMode) {
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
             // 导入临时方案
@@ -458,7 +464,7 @@
                     }
                 })
                 if (this.isPreviewMode) {
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
             updateTaskSchemeList (val) {
@@ -482,10 +488,11 @@
                 this.isPreviewMode = isPreview
                 if (isPreview) {
                     this.previewBread.push({
-                        data: this.template_id,
-                        name: this.templateName
+                        id: this.template_id,
+                        name: this.templateName,
+                        version: this.version
                     })
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 } else {
                     this.previewBread = []
                 }
@@ -502,10 +509,9 @@
 @import '@/scss/config.scss';
 
 .select-node-wrapper {
-    height: calc(100% - 90px);
+    height: calc(100vh - 100px);
 }
 .task-create-page {
-    height: 100%;
     .canvas-content {
         height: 100%;
     }
@@ -522,18 +528,20 @@
         height: 100%;
     }
 }
-.next-button {
-    width:140px;
-}
-.action-wrapper {
-    padding-left: 40px;
-    border-top: 1px solid #cacedb;
-    background-color: #ffffff;
-}
 /deep/ .pipeline-canvas {
     .tool-wrapper {
         top: 19px;
         left: 40px;
+    }
+}
+.action-wrapper {
+    padding-left: 40px;
+    height: 72px;
+    line-height: 72px;
+    border-top: 1px solid #cacedb;
+    background-color: #ffffff;
+    .next-button {
+        width: 140px;
     }
 }
 </style>

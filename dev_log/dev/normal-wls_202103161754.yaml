@@ -1,0 +1,2 @@
+improvement:
+  - get_task_status和get_task_detail接口添加基于业务的60s缓存

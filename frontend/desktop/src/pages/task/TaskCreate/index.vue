@@ -10,60 +10,61 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="{
-        'task-create-container': true,
-        'fill-height': currentStep === 'selectnode'
-    }">
-        <TaskStep
-            :project_id="project_id"
-            :list="stepList"
+    <div class="task-create-container">
+        <task-create-header
+            :title="$store.state.view_mode !== 'appmaker' ? $t('新建任务') : ''"
             :common="common"
-            :template_id="template_id"
-            :task-status="'TaskCreate'"
-            :current-step="currentStep">
-        </TaskStep>
-        <component
-            :ref="currentComponent"
-            :is="currentComponent"
-            :current-step="currentStep"
+            :steps="stepList"
+            :current-step="curStepIndex"
+            :project_id="project_id"
+            :template_id="template_id">
+        </task-create-header>
+        <task-select-node
+            v-if="currentStep === 'selectnode'"
             :project_id="project_id"
             :common="common"
             :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
-            @setFunctionalStep="setFunctionalStep"
-            @setPeriodicStep="setPeriodicStep"
             @setExcludeNode="setExcludeNode">
-        </component>
+        </task-select-node>
+        <task-param-fill
+            v-if="currentStep === 'paramfill'"
+            :project_id="project_id"
+            :common="common"
+            :entrance="entrance"
+            :template_id="template_id"
+            :exclude-node="excludeNode"
+            @togglePeriodicStep="togglePeriodicStep"
+            @toggleFunctionalStep="toggleFunctionalStep"
+            @setExcludeNode="setExcludeNode">
+        </task-param-fill>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState } from 'vuex'
-    import TaskStep from '../TaskStep.vue'
+    import TaskCreateHeader from '../TaskCreateHeader.vue'
     import TaskSelectNode from './TaskSelectNode.vue'
     import TaskParamFill from './TaskParamFill.vue'
 
     const STEP_DICT = [
         {
             step: 'selectnode',
-            name: i18n.t('节点选择'),
-            component: 'TaskSelectNode'
+            title: i18n.t('节点选择')
         },
         {
             step: 'paramfill',
-            name: i18n.t('参数填写'),
-            component: 'TaskParamFill'
+            title: i18n.t('参数填写')
         },
         {
             step: 'taskexecute',
-            name: i18n.t('任务执行')
+            title: i18n.t('任务执行')
         }
     ]
     export default {
         name: 'TaskCreate',
         components: {
-            TaskStep,
+            TaskCreateHeader,
             TaskSelectNode,
             TaskParamFill
         },
@@ -72,94 +73,51 @@
             project_id: [String, Number],
             step: String,
             common: [String, Number],
-            entrance: String,
-            routerType: String
+            entrance: String
         },
         data () {
             return {
-                stepList: STEP_DICT.slice(),
-                hasFunctionalStep: false,
-                hasPeriodicTask: false,
-                previewData: [],
+                stepList: this.addStepIcon(STEP_DICT),
+                currentStep: this.$route.params.step,
                 excludeNode: []
             }
         },
         computed: {
-            ...mapState({
-                locations: state => state.template.location,
-                lines: state => state.template.line
-            }),
-            currentStep () {
-                return this.step || 'selectnode'
-            },
-            currentComponent () {
-                return this.stepList.filter(item => item.step === this.currentStep)[0].component
+            curStepIndex () {
+                return this.stepList.findIndex(item => item.step === this.currentStep) + 1
             }
         },
         watch: {
-            hasFunctionalStep (val) {
-                if (val) {
-                    this.appendFunctionalization()
-                } else {
-                    let stepIndex
-                    this.stepList.some((item, index) => {
-                        if (item.step === 'functionalization') {
-                            stepIndex = index
-                            return true
-                        }
-                    })
-                    if (stepIndex) {
-                        this.stepList.splice(stepIndex, 1)
-                    }
+            '$route.params.step' (val) {
+                if (val === 'selectnode') {
+                    this.stepList = this.addStepIcon(STEP_DICT)
                 }
-            },
-            hasPeriodicTask (val) {
-                const taskExecution = {
-                    step: 'taskexecute',
-                    name: i18n.t('任务执行')
-                }
-                if (!val) {
-                    this.stepList.push(taskExecution)
-                } else if (!val.periodicType) {
-                    this.deletePeriodicCurrentStep()
-                } else if (val.periodicType && val.functionalType) {
-                    this.stepList.splice(2, 0, {
-                        step: 'functionalization',
-                        name: i18n.t('职能化认领'),
-                        component: 'TaskParamFill'
-                    })
-                    this.stepList.push(taskExecution)
-                } else {
-                    this.stepList.push(taskExecution)
-                }
-            }
-        },
-        mounted () {
-            if (this.entrance === 'function') {
-                this.setFunctionalStep(true)
-            }
-            if (this.entrance === 'periodicTask') {
-                this.deletePeriodicCurrentStep()
+                this.currentStep = val
             }
         },
         methods: {
-            appendFunctionalization () {
-                this.stepList.splice(2, 0, {
-                    step: 'functionalization',
-                    name: i18n.t('职能化认领'),
-                    component: 'TaskParamFill'
-                })
+            addStepIcon (steps) {
+                return steps.map((item, index) => Object.assign({}, item, { icon: index + 1 }))
             },
-            setFunctionalStep (isSelectFunctionalType) {
-                this.hasFunctionalStep = isSelectFunctionalType
-            },
-            setPeriodicStep (isSelectPeriodicType) {
-                this.hasPeriodicTask = isSelectPeriodicType
-            },
-            deletePeriodicCurrentStep () {
-                while (this.stepList.length !== 2) {
-                    this.stepList.pop()
+            togglePeriodicStep (isPeriodicTask, isFunctional) {
+                let steps = STEP_DICT.slice()
+                if (isPeriodicTask) {
+                    steps = STEP_DICT.filter(item => ['selectnode', 'paramfill'].includes(item.step))
+                } else if (isFunctional) {
+                    this.toggleFunctionalStep(true)
+                    return
                 }
+                this.stepList = this.addStepIcon(steps)
+            },
+            toggleFunctionalStep (isFunctionalTask) {
+                const steps = STEP_DICT.slice()
+                if (isFunctionalTask) {
+                    steps.splice(2, 0, {
+                        step: 'functionalization',
+                        title: i18n.t('职能化认领')
+                    })
+                }
+                this.stepList = this.addStepIcon(steps)
             },
             setExcludeNode (excludeNode) {
                 this.excludeNode = excludeNode
@@ -169,14 +127,6 @@
 </script>
 <style lang="scss" scoped>
     .task-create-container {
-       min-width: 1320px;
-        &.fill-height {
-            height: calc(100% - 50px);
-        }
-        /deep/ .action-wrapper {
-            height: 72px;
-            line-height: 72px;
-            text-align: left;
-        }
+       height: calc(100vh - 52px);
     }
 </style>
