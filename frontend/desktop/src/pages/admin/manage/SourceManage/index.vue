@@ -143,9 +143,7 @@
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        padding-top: 20px;
-        min-height: calc(100% - 140px);
-        background: #f4f7fa;
+        padding: 20px 24px;
     }
     .section-title {
         margin: 20px 0;

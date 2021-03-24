@@ -349,7 +349,7 @@
 .advance-search-wrapper {
     width: 100%;
     .operation-area {
-        margin: 20px 0;
+        margin: 0 0 20px 0;
         .operation-btn {
             float: left;
         }

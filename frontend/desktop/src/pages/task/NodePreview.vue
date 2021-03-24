@@ -11,7 +11,7 @@
 */
 <template>
     <div class="node-preview-wrapper">
-        <div class="operation-header clearfix" v-if="!isEditProcessPage">
+        <div class="operation-header clearfix">
             <div class="bread-crumbs-wrapper">
                 <div
                     :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
@@ -26,7 +26,7 @@
                         v-if="showBreakList.includes(index)"
                         class="node-name"
                         :title="path.name"
-                        @click="onSelectSubflow(path.data, index)">
+                        @click="onSelectSubflow(path.id, path.version, index)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">
@@ -63,11 +63,7 @@
             previewDataLoading: Boolean,
             isAllSelected: Boolean,
             isSelectAllToolDisabled: Boolean,
-            isShowSelectAllTool: Boolean,
-            isEditProcessPage: {
-                type: Boolean,
-                default: true
-            }
+            isShowSelectAllTool: Boolean
         },
         data () {
             return {
@@ -92,17 +88,14 @@
                 }
                 this.$emit('onNodeClick', id)
             },
-            onSelectSubflow (data, index) {
+            onSelectSubflow (id, version, index) {
                 if (this.previewDataLoading) {
                     return
                 }
                 if (this.previewBread.length - 1 === index) {
                     return
                 }
-                this.$emit('onSelectSubflow', data, index)
-            },
-            onUpdateNodeInfo (id, item) {
-                this.$refs.TemplateCanvas.onUpdateNodeInfo(item.id, item)
+                this.$emit('onSelectSubflow', id, version, index)
             }
         }
     }

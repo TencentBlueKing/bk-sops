@@ -32,6 +32,7 @@ from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
+    plat_ip_reg,
 )
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -112,16 +113,22 @@ class JobExecuteTaskService(JobService):
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
+        biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
             # 3-IP
             val = loose_strip(_value["value"])
             if _value["category"] == 3:
-                var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=val, use_cache=False)
-                ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
-                if val and not ip_list:
-                    data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
-                    return False
+                if biz_across:
+                    # 跨业务，不校验IP归属
+                    plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
+                    ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+                else:
+                    var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=val, use_cache=False)
+                    ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
+                    if val and not ip_list:
+                        data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+                        return False
 
                 if ip_is_exist:
                     # 如果ip校验开关打开，校验通过的ip数量减少，返回错误

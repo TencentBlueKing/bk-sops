@@ -11,17 +11,30 @@
 */
 <template>
     <div id="app">
-        <navigator v-if="!hideHeader" :appmaker-data-loading="appmakerDataLoading" />
-        <div class="main-container">
-            <router-view v-if="isRouterViewShow"></router-view>
-        </div>
+        <navigation v-if="!hideHeader">
+            <template slot="page-content">
+                <div class="main-container">
+                    <router-view v-if="isRouterViewShow"></router-view>
+                </div>
+                <permissionApply
+                    v-if="permissinApplyShow"
+                    ref="permissionApply"
+                    :permission-data="permissionData">
+                </permissionApply>
+            </template>
+        </navigation>
+        <template v-else>
+            <div class="main-container">
+                <router-view v-if="isRouterViewShow"></router-view>
+            </div>
+            <permissionApply
+                v-if="permissinApplyShow"
+                ref="permissionApply"
+                :permission-data="permissionData">
+            </permissionApply>
+        </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
-        <permissionApply
-            v-if="permissinApplyShow"
-            ref="permissionApply"
-            :permission-data="permissionData">
-        </permissionApply>
     </div>
 </template>
 <script>
@@ -31,15 +44,15 @@
     import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
+    import Navigation from '@/components/layout/Navigation.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
-    import Navigator from '@/components/layout/Navigator.vue'
     import permissionApply from '@/components/layout/permissionApply.vue'
 
     export default {
         name: 'App',
         components: {
-            Navigator,
+            Navigation,
             ErrorCodeModal,
             permissionApply,
             PermissionModal
@@ -279,6 +292,7 @@
 <style lang="scss">
     @import './scss/app.scss';
     @import '@/scss/config.scss';
+
     html,body {
         height:100%;
     }
@@ -289,13 +303,10 @@
         width: 100%;
         height: 100%;
         overflow-x: hidden;
-        min-width: 1320px;
-    }
-    .main-container {
-        width: 100%;
-        height: calc(100% - 50px);
-        min-width: 1320px;
-        min-height: calc(100% - 50px);
-        overflow-x: hidden;
+        min-width: 1366px;
+        .main-container {
+            width: 100%;
+            height: calc(100vh - 52px);
+        }
     }
 </style>
