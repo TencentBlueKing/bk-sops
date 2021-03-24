@@ -168,6 +168,7 @@
 
     .bk-navigation >>> {
         .bk-navigation-wrapper {
+            min-width: 1366px;
             .navigation-container .container-content {
                 padding: 0;
                 @include scrollbar;
