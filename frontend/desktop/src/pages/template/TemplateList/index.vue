@@ -331,6 +331,10 @@
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 160
+        }, {
+            id: 'editor_name',
+            label: i18n.t('更新人'),
+            width: 160
         }
     ]
 
