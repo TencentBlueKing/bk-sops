@@ -96,6 +96,7 @@
                                 :placeholder="item.placeholder">
                             </bk-input>
                         </template>
+                        <i v-if="item.tips" class="common-icon-info form-tips" v-bk-tooltips="item.tips"></i>
                     </bk-form-item>
                     <bk-form-item class="query-button">
                         <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
@@ -434,6 +435,17 @@
             .query-cancel {
                 margin-left: 5px;
             }
+        }
+    }
+    .form-tips {
+        position: absolute;
+        right: -20px;
+        top: 10px;
+        font-size: 16px;
+        color: #c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #f4aa1a;
         }
     }
 }

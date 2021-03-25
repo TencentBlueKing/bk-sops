@@ -56,6 +56,15 @@
                             :name="item.name">
                         </bk-option>
                     </bk-select>
+                    <i
+                        class="common-icon-info category-tips"
+                        v-bk-tooltips="{
+                            content: $t('模板分类即将下线，建议使用标签'),
+                            placement: 'bottom',
+                            theme: 'light',
+                            showOnInit: true
+                        }">
+                    </i>
                 </bk-form-item>
                 <bk-form-item :label="$t('通知方式')">
                     <bk-checkbox-group v-model="formData.notifyType" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
@@ -282,6 +291,17 @@
     }
     .user-selector {
         display: block;
+    }
+    .category-tips {
+        position: absolute;
+        right: -20px;
+        top: 10px;
+        font-size: 16px;
+        color: #c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #f4aa1a;
+        }
     }
 }
 </style>

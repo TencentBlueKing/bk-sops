@@ -1086,7 +1086,8 @@ const en = {
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
     '退出': 'Quit',
-    '首页': 'Home'
+    '首页': 'Home',
+    '模板分类即将下线，建议使用标签': 'template categary is about to go offline. Tags are recommended'
 }
 
 export default en
