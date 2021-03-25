@@ -175,18 +175,6 @@ class TestContext(TestCase):
         self.context.sync_change(child_context)
         self.assertEqual(self.context.variables, {"key_1": "new_val_1", "key_2": "test_val2", "key_3": "new_val_3"})
 
-    def test_write_output__missing_some_keys(self):
-        test_context = context.Context({})
-        test_context._output_key = ["key1", "key2", "key3"]
-        test_context.variables = {"key1": "val1", "key2": "val2"}
-
-        mock_pipeline = MagicMock()
-        mock_pipeline.data = MagicMock()
-        test_context.write_output(mock_pipeline)
-        mock_pipeline.data.set_outputs.assert_has_calls(
-            [call("key1", "val1"), call("key2", "val2"), call("key3", "key3")]
-        )
-
     def test_sync_change_with_splice_vars(self):
         from pipeline.core.data.var import SpliceVariable
 
@@ -223,6 +211,18 @@ class TestContext(TestCase):
         self.assertEqual(self.context.variables["key_4"]._value, "val4")
         self.assertEqual(self.context.variables["key_5"]._value, "old_val5")
         self.assertEqual(self.context.variables["key_6"]._value, None)
+
+    def test_write_output__missing_some_keys(self):
+        test_context = context.Context({})
+        test_context._output_key = ["key1", "key2", "key3"]
+        test_context.variables = {"key1": "val1", "key2": "val2"}
+
+        mock_pipeline = MagicMock()
+        mock_pipeline.data = MagicMock()
+        test_context.write_output(mock_pipeline)
+        mock_pipeline.data.set_outputs.assert_has_calls(
+            [call("key1", "val1"), call("key2", "val2"), call("key3", "key3")]
+        )
 
 
 class TestOutputRef(TestCase):

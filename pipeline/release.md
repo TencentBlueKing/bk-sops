@@ -1,3 +1,31 @@
+# 3.0.0rc2
+
+- bugfix:
+  - 修复高并发情况下 sleep 可能会覆写 schedule 产生的数据的问题
+# 3.0.0rc1
+
+- features:
+  - 支持 Django2，支持 Celery 4
+# 2.4.4
+
+- feature:
+  - redis sentinel 模式支持配置 redis sentinel 独立密码
+  - mako 模板渲染上下文支持配置屏蔽关键字及导入模块
+  - 添加 engine context 模块,支持直接获取当前上下文中正在执行的节点信息
+  - 支持对 mako 模板进行安全检查
+- optimization:
+  - 结束节点写流程输出失败时不抛出错误,兼容输出字段可能未输出的情况
+  - 优化 pipeline set_{status} 系列接口
+  - 优化 component model 和 variable model 的加载逻辑
+  - 优化有向图环检测算法
+  - 为 pipeline.log LogEntry 的 logged_at 字段添加索引
+- bugfix: 
+  - 修复子流程参数传递过程中内外层存在同名 key 时导致参数传递失败的问题
+  - 修复 lazy 变量 get_value 异常时没有捕获的 bug
+  - 修复 pipeline.log.handlers 没有捕获可能会出现的 AppRegistryNotReady 异常
+  - IOField 支持序列化节点数更多的流程
+  - 修复解析 mako 变量值时没有捕获所有可能异常的问题
+  - 修复分支网关提前解析了引用输出的变量后导致后续节点获取不到值的问题
 # 2.4.3
 
 - feature:

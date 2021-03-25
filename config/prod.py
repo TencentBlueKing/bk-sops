@@ -10,13 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 from config import RUN_VER
 
 if RUN_VER == "open":
     from blueapps.patch.settings_open_saas import *  # noqa
 else:
     from blueapps.patch.settings_paas_services import *  # noqa
+
+import env
 
 # 正式环境
 RUN_MODE = "PRODUCT"
@@ -25,4 +26,6 @@ BK_IAM_SYNC_TEMPLATES = True
 
 BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
-logging_addition_settings(LOGGING, environment="prod")
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
+
+default.logging_addition_settings(LOGGING, environment="prod")

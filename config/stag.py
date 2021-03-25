@@ -18,6 +18,9 @@ if RUN_VER == "open":
 else:
     from blueapps.patch.settings_paas_services import *  # noqaJobExecuteTaskComponent
 
+import env
+
+
 # 预发布环境
 RUN_MODE = "STAGING"
 
@@ -25,4 +28,6 @@ BK_IAM_SYNC_TEMPLATES = True
 
 BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
-logging_addition_settings(LOGGING, environment="stag")
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
+
+default.logging_addition_settings(LOGGING, environment="stag")

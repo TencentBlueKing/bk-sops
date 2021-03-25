@@ -53,14 +53,14 @@ class Migration(migrations.Migration):
             model_name="djceleryperiodictask",
             name="args",
             field=models.TextField(
-                blank=True, default="[]", help_text="JSON encoded positional arguments", verbose_name="Arguments"
+                blank=True, default="[]", help_text="JSON encoded positional arguments", verbose_name="Arguments",
             ),
         ),
         migrations.AlterField(
             model_name="djceleryperiodictask",
             name="kwargs",
             field=models.TextField(
-                blank=True, default="{}", help_text="JSON encoded keyword arguments", verbose_name="Keyword arguments"
+                blank=True, default="{}", help_text="JSON encoded keyword arguments", verbose_name="Keyword arguments",
             ),
         ),
         migrations.AlterField(

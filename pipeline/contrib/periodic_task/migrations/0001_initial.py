@@ -28,16 +28,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="CrontabSchedule",
             fields=[
-                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
-                ("minute", models.CharField(default=b"*", max_length=64, verbose_name="minute")),
-                ("hour", models.CharField(default=b"*", max_length=64, verbose_name="hour")),
-                ("day_of_week", models.CharField(default=b"*", max_length=64, verbose_name="day of week")),
-                ("day_of_month", models.CharField(default=b"*", max_length=64, verbose_name="day of month")),
-                ("month_of_year", models.CharField(default=b"*", max_length=64, verbose_name="month of year")),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True,),),
+                ("minute", models.CharField(default=b"*", max_length=64, verbose_name="minute"),),
+                ("hour", models.CharField(default=b"*", max_length=64, verbose_name="hour"),),
+                ("day_of_week", models.CharField(default=b"*", max_length=64, verbose_name="day of week"),),
+                ("day_of_month", models.CharField(default=b"*", max_length=64, verbose_name="day of month"),),
+                ("month_of_year", models.CharField(default=b"*", max_length=64, verbose_name="month of year"),),
                 ("timezone", timezone_field.fields.TimeZoneField(default=b"UTC")),
             ],
             options={
-                "ordering": ["month_of_year", "day_of_month", "day_of_week", "hour", "minute"],
+                "ordering": ["month_of_year", "day_of_month", "day_of_week", "hour", "minute",],
                 "verbose_name": "crontab",
                 "verbose_name_plural": "crontabs",
             },
@@ -45,10 +45,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="DjCeleryPeriodicTask",
             fields=[
-                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True,),),
                 (
                     "name",
-                    models.CharField(help_text="Useful description", unique=True, max_length=200, verbose_name="name"),
+                    models.CharField(help_text="Useful description", unique=True, max_length=200, verbose_name="name",),
                 ),
                 ("task", models.CharField(max_length=200, verbose_name="task name")),
                 (
@@ -82,18 +82,18 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "exchange",
-                    models.CharField(default=None, max_length=200, null=True, verbose_name="exchange", blank=True),
+                    models.CharField(default=None, max_length=200, null=True, verbose_name="exchange", blank=True,),
                 ),
                 (
                     "routing_key",
-                    models.CharField(default=None, max_length=200, null=True, verbose_name="routing key", blank=True),
+                    models.CharField(default=None, max_length=200, null=True, verbose_name="routing key", blank=True,),
                 ),
-                ("expires", models.DateTimeField(null=True, verbose_name="expires", blank=True)),
+                ("expires", models.DateTimeField(null=True, verbose_name="expires", blank=True),),
                 ("enabled", models.BooleanField(default=True, verbose_name="enabled")),
-                ("last_run_at", models.DateTimeField(null=True, editable=False, blank=True)),
-                ("total_run_count", models.PositiveIntegerField(default=0, editable=False)),
+                ("last_run_at", models.DateTimeField(null=True, editable=False, blank=True),),
+                ("total_run_count", models.PositiveIntegerField(default=0, editable=False),),
                 ("date_changed", models.DateTimeField(auto_now=True)),
-                ("description", models.TextField(verbose_name="description", blank=True)),
+                ("description", models.TextField(verbose_name="description", blank=True),),
                 (
                     "crontab",
                     models.ForeignKey(
@@ -106,19 +106,19 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"verbose_name": "periodic task", "verbose_name_plural": "periodic tasks"},
+            options={"verbose_name": "periodic task", "verbose_name_plural": "periodic tasks",},
         ),
         migrations.CreateModel(
             name="DjCeleryPeriodicTasks",
             fields=[
-                ("ident", models.SmallIntegerField(default=1, unique=True, serialize=False, primary_key=True)),
+                ("ident", models.SmallIntegerField(default=1, unique=True, serialize=False, primary_key=True),),
                 ("last_update", models.DateTimeField()),
             ],
         ),
         migrations.CreateModel(
             name="IntervalSchedule",
             fields=[
-                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True,),),
                 ("every", models.IntegerField(verbose_name="every")),
                 (
                     "period",
@@ -135,18 +135,18 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ["period", "every"], "verbose_name": "interval", "verbose_name_plural": "intervals"},
+            options={"ordering": ["period", "every"], "verbose_name": "interval", "verbose_name_plural": "intervals",},
         ),
         migrations.CreateModel(
             name="PeriodicTask",
             fields=[
-                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
-                ("name", models.CharField(max_length=64, verbose_name="\u5468\u671f\u4efb\u52a1\u540d\u79f0")),
-                ("cron", models.CharField(max_length=128, verbose_name="\u8c03\u5ea6\u7b56\u7565")),
-                ("total_run_count", models.PositiveIntegerField(default=0, verbose_name="\u6267\u884c\u6b21\u6570")),
-                ("last_run_at", models.DateTimeField(null=True, verbose_name="\u4e0a\u6b21\u8fd0\u884c\u65f6\u95f4")),
-                ("creator", models.CharField(default=b"", max_length=32, verbose_name="\u521b\u5efa\u8005")),
-                ("extra_info", pipeline.models.CompressJSONField(verbose_name="\u989d\u5916\u4fe1\u606f", null=True)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True,),),
+                ("name", models.CharField(max_length=64, verbose_name="\u5468\u671f\u4efb\u52a1\u540d\u79f0",),),
+                ("cron", models.CharField(max_length=128, verbose_name="\u8c03\u5ea6\u7b56\u7565"),),
+                ("total_run_count", models.PositiveIntegerField(default=0, verbose_name="\u6267\u884c\u6b21\u6570"),),
+                ("last_run_at", models.DateTimeField(null=True, verbose_name="\u4e0a\u6b21\u8fd0\u884c\u65f6\u95f4"),),
+                ("creator", models.CharField(default=b"", max_length=32, verbose_name="\u521b\u5efa\u8005"),),
+                ("extra_info", pipeline.models.CompressJSONField(verbose_name="\u989d\u5916\u4fe1\u606f", null=True),),
                 (
                     "celery_task",
                     models.ForeignKey(
@@ -181,12 +181,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PeriodicTaskHistory",
             fields=[
-                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True,),),
                 ("ex_data", models.TextField(verbose_name="\u5f02\u5e38\u4fe1\u606f")),
-                ("start_at", models.DateTimeField(auto_now_add=True, verbose_name="\u5f00\u59cb\u65f6\u95f4")),
+                ("start_at", models.DateTimeField(auto_now_add=True, verbose_name="\u5f00\u59cb\u65f6\u95f4"),),
                 (
                     "start_success",
-                    models.BooleanField(default=True, verbose_name="\u662f\u5426\u542f\u52a8\u6210\u529f"),
+                    models.BooleanField(default=True, verbose_name="\u662f\u5426\u542f\u52a8\u6210\u529f",),
                 ),
                 (
                     "periodic_task",
