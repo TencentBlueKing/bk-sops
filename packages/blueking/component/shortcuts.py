@@ -17,11 +17,11 @@ from .client import ComponentClient
 from . import conf
 
 
-logger = logging.getLogger('component')
+logger = logging.getLogger("component")
 
 __all__ = [
-    'get_client_by_request',
-    'get_client_by_user',
+    "get_client_by_request",
+    "get_client_by_user",
 ]
 
 
@@ -32,13 +32,13 @@ def get_client_by_request(request, **kwargs):
     :returns: 一个初始化好的ComponentClint对象
     """
 
-    if request.user.is_authenticated():
-        bk_token = request.COOKIES.get('bk_token', '')
+    if request.user.is_authenticated:
+        bk_token = request.COOKIES.get("bk_token", "")
     else:
-        bk_token = ''
+        bk_token = ""
 
     common_args = {
-        'bk_token': bk_token,
+        "bk_token": bk_token,
     }
     common_args.update(kwargs)
     return ComponentClient(conf.APP_CODE, conf.SECRET_KEY, common_args=common_args)
@@ -61,8 +61,8 @@ def get_client_by_user(user, **kwargs):
         else:
             username = user
     except Exception:
-        logger.exception('Failed to get user according to user (%s)' % user)
+        logger.exception("Failed to get user according to user (%s)" % user)
 
-    common_args = {'bk_username': username}
+    common_args = {"bk_username": username}
     common_args.update(kwargs)
     return ComponentClient(conf.APP_CODE, conf.SECRET_KEY, common_args=common_args)
