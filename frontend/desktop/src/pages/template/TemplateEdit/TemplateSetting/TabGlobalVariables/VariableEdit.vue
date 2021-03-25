@@ -30,21 +30,9 @@
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </div>
-                <!-- 描述 -->
-                <div class="form-item clearfix">
-                    <label class="form-label">{{ $t('说明') }}</label>
-                    <div class="form-content">
-                        <bk-input
-                            type="textarea"
-                            v-model="theEditingData.desc"
-                            :placeholder="isSystemVar ? ' ' : $t('请输入')"
-                            :readonly="isSystemVar">
-                        </bk-input>
-                    </div>
-                </div>
                 <!-- 类型 -->
                 <div class="form-item variable-type clearfix" v-if="!isSystemVar">
-                    <label class="required">{{ $t('类型') }}</label>
+                    <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="currentValType"
@@ -91,7 +79,7 @@
                 </div>
                 <!-- 显示/隐藏 -->
                 <div class="form-item clearfix" v-if="!isSystemVar">
-                    <label class="required">{{ $t('显示')}}</label>
+                    <label>{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.show_type"
@@ -105,6 +93,34 @@
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
+                    </div>
+                </div>
+                <!-- 模板预渲染 -->
+                <div class="form-item clearfix" v-if="!isSystemVar">
+                    <label class="form-label">{{ $t('模板预渲染')}}</label>
+                    <div class="form-content">
+                        <bk-select
+                            v-model="theEditingData.preRenderMako"
+                            :clearable="false">
+                            <bk-option
+                                v-for="(option, index) in preRenderList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </div>
+                </div>
+                <!-- 描述 -->
+                <div class="form-item clearfix">
+                    <label class="form-label">{{ $t('说明') }}</label>
+                    <div class="form-content">
+                        <bk-input
+                            type="textarea"
+                            v-model="theEditingData.desc"
+                            :placeholder="isSystemVar ? ' ' : $t('请输入')"
+                            :readonly="isSystemVar">
+                        </bk-input>
                     </div>
                 </div>
             </section>
@@ -182,6 +198,10 @@
                 showTypeList: [
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
+                ],
+                preRenderList: [
+                    { id: 'true', name: i18n.t('是') },
+                    { id: 'false', name: i18n.t('否') }
                 ],
                 metaTag: undefined, // 元变量tag名称
                 renderData: {},
@@ -270,6 +290,13 @@
             }
         },
         created () {
+            // 设置模板预渲染默认值（兼容以前存在的模板）
+            const variableData = this.variableData
+            if (variableData.hasOwnProperty('pre_render_mako')) {
+                this.theEditingData.preRenderMako = String(variableData.pre_render_mako)
+            } else if (variableData.show_type === 'hide') {
+                this.theEditingData.preRenderMako = 'true'
+            }
             this.extendFormValidate()
         },
         async mounted () {
@@ -571,6 +598,9 @@
                         return false
                     }
 
+                    if (this.theEditingData.preRenderMako) {
+                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.preRenderMako)
+                    }
                     const variable = this.theEditingData
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
                         const tagCode = this.renderConfig[0].tag_code

@@ -1018,6 +1018,31 @@ web_tree = json.loads(
                 "key": "${d}",
                 "name": "d",
                 "show_type": "show",
+                "pre_render_mako": true,
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "validator": [],
+                "value": "3",
+                "version": "legacy"
+            },
+            "${d1}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {
+                    "attrs": {
+                        "hookable": true,
+                        "name": "输入框",
+                        "validation": []
+                    },
+                    "type": "input"
+                },
+                "index": 0,
+                "key": "${d1}",
+                "name": "d",
+                "show_type": "show",
+                "pre_render_mako": false,
                 "source_info": {},
                 "source_tag": "input.input",
                 "source_type": "custom",
@@ -1130,6 +1155,52 @@ web_tree = json.loads(
                 "source_type": "custom",
                 "validation": "^.+$",
                 "value": "${5 if int(d) < 10 else d}",
+                "version": "legacy"
+            },
+            "${exp2}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {
+                    "type": "input",
+                    "attrs": {
+                        "name": "输入框",
+                        "hookable": true,
+                        "validation": []
+                    }
+                },
+                "index": 5,
+                "key": "${exp2}",
+                "name": "exp2",
+                "show_type": "show",
+                "pre_render_mako": true,
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "value": "${5 if int(d) < 10 else d}",
+                "version": "legacy"
+            },
+            "${exp3}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {
+                    "type": "input",
+                    "attrs": {
+                        "name": "输入框",
+                        "hookable": true,
+                        "validation": []
+                    }
+                },
+                "index": 5,
+                "key": "${exp3}",
+                "name": "exp3",
+                "show_type": "show",
+                "pre_render_mako": true,
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "value": "${5 if int(d1) < 10 else d}",
                 "version": "legacy"
             },
             "${output_exp}": {
@@ -2396,6 +2467,11 @@ pipeline_tree = json.loads(
                     "value": "3",
                     "is_param": false
                 },
+                "${d1}": {
+                    "type": "plain",
+                    "value": "3",
+                    "is_param": false
+                },
                 "${time}": {
                     "type": "splice",
                     "value": "3",
@@ -2420,7 +2496,17 @@ pipeline_tree = json.loads(
                 },
                 "${exp1}": {
                     "type": "splice",
-                    "value": "${5 if int(d) < 10 else d}",
+                    "value": "5",
+                    "is_param": false
+                },
+                "${exp2}": {
+                    "type": "splice",
+                    "value": "5",
+                    "is_param": false
+                },
+                "${exp3}": {
+                    "type": "splice",
+                    "value": "${5 if int(d1) < 10 else d}",
                     "is_param": false
                 },
                 "${output_exp}": {
@@ -2451,5 +2537,7 @@ class FormatWebDataToPipelineTestCase(TestCase):
         全局变量引用输出变量解析
         子流程中隐藏变量 mako 预解析
         隐藏变量 mako 预解析
+        预渲染显示变量引用预渲染显示变量
+        预渲染显示变量引用预非渲染显示变量
         """
         self.assertEqual(format_web_data_to_pipeline(web_tree), pipeline_tree)
