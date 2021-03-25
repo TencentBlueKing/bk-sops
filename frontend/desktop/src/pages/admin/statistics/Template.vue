@@ -229,8 +229,7 @@
                     count: 0,
                     'limit-list': [15, 30, 50, 100],
                     limit: 15
-                },
-                isInitial: true
+                }
             }
         },
         computed: {
@@ -240,11 +239,8 @@
         },
         watch: {
             dateRange (val) {
-                if (!this.isInitial) {
-                    this.pagination.current = 1
-                    this.getData()
-                }
-                this.isInitial = false
+                this.pagination.current = 1
+                this.getData()
             },
             projectList (val) {
                 this.projectSelector[0].options = val

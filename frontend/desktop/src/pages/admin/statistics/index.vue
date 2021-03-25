@@ -18,10 +18,11 @@
                         <bk-form form-type="inline">
                             <bk-form-item :label="$t('时间范围')">
                                 <bk-date-picker
-                                    v-model="dateRange"
+                                    :value="dateRange"
                                     type="daterange"
                                     placement="top-end"
-                                    :clearable="false">
+                                    :clearable="false"
+                                    @change="onChangeDateRange">
                                 </bk-date-picker>
                             </bk-form-item>
                         </bk-form>
