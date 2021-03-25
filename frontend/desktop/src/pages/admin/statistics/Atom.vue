@@ -343,7 +343,8 @@
                     this.atomListData = res.map(item => {
                         return {
                             id: item.code,
-                            name: `${item.group_name}-${item.name}`
+                            name: `${item.group_name}-${item.name}-${item.version}`,
+                            version: item.version
                         }
                     })
                 } catch (e) {
@@ -373,12 +374,14 @@
             async getTableData () {
                 try {
                     this.tableDataLoading = true
+                    const selectedAtom = this.atomListData.find(item => item.id === this.tableAtom)
                     const query = {
                         group_by: this.activeTab,
                         conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             component_code: this.tableAtom,
+                            version: selectedAtom ? selectedAtom.version : undefined,
                             project_id: this.tableProject,
                             category: this.tableCategory,
                             order_by: this.tableSort

@@ -11,4 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from blueapps.core.celery.celery import app as celery_app # noqa
+from blueapps.core.celery.celery import app as celery_app
+
+__all__ = ["celery_app"]

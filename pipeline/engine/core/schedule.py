@@ -18,8 +18,8 @@ import traceback
 from django.db import transaction
 
 from pipeline.django_signal_valve import valve
-from pipeline.engine import exceptions, signals, states
 from pipeline.engine.core import context
+from pipeline.engine import exceptions, signals, states
 from pipeline.engine.core.data import delete_parent_data, get_schedule_parent_data, set_schedule_data
 from pipeline.engine.models import Data, MultiCallbackData, PipelineProcess, ScheduleService, Status
 
@@ -213,17 +213,16 @@ def schedule(process_id, schedule_id, data_id=None):
                     s.save()
 
                 # sync parent data
-                with transaction.atomic():
-                    process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
-                    if not process.is_alive:
-                        logger.warning("schedule({} - {}) revoked.".format(act_id, version))
-                        sched_service.destroy()
-                        return
+                process = PipelineProcess.objects.get(id=sched_service.process_id)
+                if not process.is_alive:
+                    logger.warning("schedule({} - {}) revoked.".format(act_id, version))
+                    sched_service.destroy()
+                    return
 
-                    process.top_pipeline.data.update_outputs(parent_data.get_outputs())
-                    # extract outputs
-                    process.top_pipeline.context.extract_output(service_act)
-                    process.save(save_snapshot=True)
+                process.top_pipeline.data.update_outputs(parent_data.get_outputs())
+                # extract outputs
+                process.top_pipeline.context.extract_output(service_act)
+                process.save(save_snapshot=True)
 
                 # clear temp data
                 delete_parent_data(sched_service.id)

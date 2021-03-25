@@ -20,8 +20,27 @@ from blueapps.conf import settings
 from blueapps.core.exceptions import AccessForbidden, MethodError
 from blueapps.utils.request_provider import get_request
 
+"""
+全平台 esb-sdk 封装，依赖于 esb-sdk 包，但不依赖 sdk 的版本。
+sdk 中有封装好 cc.get_app_by_user 方法时，可直接按以前 sdk 的习惯调用
+
+from blueapps.utils import client
+client.cc.get_app_by_user()
+
+from blueapps.utils import backend_client
+b_client = backend_client(access_token="SfgcGlBHmPWttwlGd7nOLAbOP3TAOG")
+b_client.cc.get_app_by_user()
+
+当前版本 sdk 中未封装好，但 api 已经有 get_app_by_user 的时候。需要指定请求方法
+client.cc.get_app_by_user.get()
+"""
+
 __all__ = [
-    'client', 'backend_client', 'get_client_by_user', 'get_client_by_request', 'CustomComponentAPI'
+    "client",
+    "backend_client",
+    "get_client_by_user",
+    "get_client_by_request",
+    "CustomComponentAPI",
 ]
 
 
@@ -37,7 +56,7 @@ def get_api_prefix():
         # tencet
         "tencent": "/c/ieg/compapi",
         # open
-        "open": "/api/c/compapi/"
+        "open": "/api/c/compapi/",
     }
     return platform_api_prefix_map[settings.RUN_VER]
 
@@ -49,8 +68,7 @@ try:
     if not ESB_SDK_NAME:
         raise AttributeError
 except AttributeError:
-    ESB_SDK_NAME = 'blueking.component.{platform}'.format(
-        platform=settings.RUN_VER)
+    ESB_SDK_NAME = "blueking.component.{platform}".format(platform=settings.RUN_VER)
 
 
 class SDKClient(object):
@@ -67,17 +85,15 @@ class SDKClient(object):
     def __new__(cls, **kwargs):
         if cls.sdk_package is None:
             try:
-                cls.sdk_package = __import__(ESB_SDK_NAME,
-                                             fromlist=['shortcuts'])
-            except ImportError as e:
-                raise ImportError("%s is not installed: %s"
-                                  % (ESB_SDK_NAME, e))
+                cls.sdk_package = __import__(ESB_SDK_NAME, fromlist=["shortcuts"])
+            except ImportError as err:
+                raise ImportError("%s is not installed: %s" % (ESB_SDK_NAME, err))
         return super(SDKClient, cls).__new__(cls)
 
     def __init__(self, **kwargs):
         self.mod_name = ""
         self.sdk_mod = None
-        for ignored_field in ['app_code', 'app_secret']:
+        for ignored_field in ["app_code", "app_secret"]:
             if ignored_field in kwargs:
                 kwargs.pop(ignored_field)
         self.common_args = kwargs
@@ -109,52 +125,41 @@ class SDKClient(object):
         try:
             request = get_request()
             # 调用sdk方法获取sdk client
-            return self.load_sdk_class(
-                "shortcuts", "get_client_by_request")(request)
-        except Exception:
+            return self.load_sdk_class("shortcuts", "get_client_by_request")(request)
+        except Exception:  # pylint: disable=broad-except
             if settings.RUN_MODE != "DEVELOP":
                 if self.common_args:
-                    return self.load_sdk_class(
-                        "client", "ComponentClient"
-                    )(
-                        app_code=settings.APP_CODE,
-                        app_secret=settings.SECRET_KEY,
-                        common_args=self.common_args
+                    return self.load_sdk_class("client", "ComponentClient")(
+                        app_code=settings.APP_CODE, app_secret=settings.SECRET_KEY, common_args=self.common_args,
                     )
                 else:
-                    raise AccessForbidden(
-                        "sdk can only be called through the Web request")
+                    raise AccessForbidden("sdk can only be called through the Web request")
             else:
                 # develop mode
                 # 根据RUN_VER获得get_component_client_common_args函数
                 get_component_client_common_args = import_string(
                     "blueapps.utils.sites.{platform}."
-                    "get_component_client_common_args".format(
-                        platform=settings.RUN_VER
-                    )
+                    "get_component_client_common_args".format(platform=settings.RUN_VER)
                 )
-                return self.load_sdk_class(
-                    "client", "ComponentClient"
-                )(
+                return self.load_sdk_class("client", "ComponentClient")(
                     app_code=settings.APP_CODE,
                     app_secret=settings.SECRET_KEY,
-                    common_args=get_component_client_common_args()
+                    common_args=get_component_client_common_args(),
                 )
 
     def load_sdk_class(self, mod, attr_or_class):
-        dotted_path = "%s.%s.%s" % (self.__backend__, mod, attr_or_class)
+        dotted_path = "{}.{}.{}".format(self.__backend__, mod, attr_or_class)
         return import_string(dotted_path)
 
     def patch_sdk_component_api_class(self):
         def patch_get_item(self, item):
-            if item.startswith('__'):
+            if item.startswith("__"):
                 # make client can be pickled
                 raise AttributeError()
 
             method = item.upper()
             if method not in self.allowed_methods:
-                raise MethodError("esb api does not support method: %s" %
-                                  method)
+                raise MethodError("esb api does not support method: %s" % method)
             self.method = method
             return self
 
@@ -168,8 +173,7 @@ class ComponentAPICollection(object):
 
     def __new__(cls, sdk_client, *args, **kwargs):
         if sdk_client.mod_name not in cls.mod_map:
-            cls.mod_map[sdk_client.mod_name] = super(
-                ComponentAPICollection, cls).__new__(cls)
+            cls.mod_map[sdk_client.mod_name] = super(ComponentAPICollection, cls).__new__(cls)
         return cls.mod_map[sdk_client.mod_name]
 
     def __init__(self, sdk_client):
@@ -200,21 +204,18 @@ class CustomComponentAPI(object):
         return api_cls(
             client=SDKClient(**self.collection.client.common_args),
             method=method,
-            path='{api_prefix}{collection}/{action}/'.format(
-                api_prefix=ESB_API_PREFIX,
-                collection=self.collection.client.mod_name,
-                action=self.action
+            path="{api_prefix}{collection}/{action}/".format(
+                api_prefix=ESB_API_PREFIX, collection=self.collection.client.mod_name, action=self.action,
             ),
-            description='custom api(%s)' % self.action
+            description="custom api(%s)" % self.action,
         )
 
     def __call__(self, *args, **kwargs):
-        raise NotImplementedError(
-            'custom api `%s` must specify the request method' % self.action)
+        raise NotImplementedError("custom api `%s` must specify the request method" % self.action)
 
 
 client = SDKClient()
-backend_client = SDKClient
+backend_client = SDKClient  # pylint: disable=invalid-name
 client.patch_sdk_component_api_class()
 
 
@@ -224,8 +225,7 @@ def get_client_by_user(user_or_username):
         username = user_or_username.username
     else:
         username = user_or_username
-    get_client_by_user = import_string(
-        ".".join([ESB_SDK_NAME, 'shortcuts', 'get_client_by_user']))
+    get_client_by_user = import_string(".".join([ESB_SDK_NAME, "shortcuts", "get_client_by_user"]))
     return get_client_by_user(username)
 
 
