@@ -15,6 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from gcloud.exceptions import PluginApiRequestError
 from pipeline.celery.queues import ScalableQueues
 import env
 
@@ -122,6 +123,7 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
+    "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -444,6 +446,10 @@ LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if
 
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
+
+# 自定义插件和变量Exception类型
+PLUGIN_SPECIFIC_EXCEPTIONS = (PluginApiRequestError,)
+VARIABLE_SPECIFIC_EXCEPTIONS = (PluginApiRequestError,)
 
 
 # SaaS统一日志配置

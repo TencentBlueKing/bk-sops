@@ -17,8 +17,8 @@ from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
+from gcloud.exceptions import PluginApiRequestError
 from pipeline.core.data.var import LazyVariable
-
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -33,6 +33,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
     :param bk_module_id: 模块ID
     :return:
     """
+    raise PluginApiRequestError("test")
     str_module_ids = [str(item) for item in bk_module_ids]
     set_module_info = {"set_id": bk_set_id, "module_id": bk_module_ids, "flat__module_id": ",".join(str_module_ids)}
     client = get_client_by_user(operator)
@@ -51,7 +52,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
             kwargs=set_kwargs, result=set_result
         )
         logger.error(err_msg)
-        set_module_info["set_name"] = ""
+        raise PluginApiRequestError(err_msg)
 
     module_kwargs = {"bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id, "fields": ["bk_module_id", "bk_module_name"]}
     module_info = batch_request(client.cc.search_module, module_kwargs)
@@ -102,7 +103,7 @@ class VarSetModuleSelector(LazyVariable):
             flat__module_id: ${var.flat__module_id}
         """
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return SetModuleInfo({})
+            return "ERROR: executor and biz_cc_id of pipeline is needed"
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_set_id = int(self.value.get("bk_set_id", 0))

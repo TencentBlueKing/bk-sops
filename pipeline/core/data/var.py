@@ -15,6 +15,7 @@ import logging
 from abc import abstractmethod
 
 from pipeline import exceptions
+from pipeline.conf import settings
 from pipeline.core.data import library
 from pipeline.core.data.context import OutputRef
 from pipeline.core.data.expression import ConstantTemplate, format_constant_key
@@ -62,6 +63,9 @@ class SpliceVariable(Variable):
         if not self._value:
             try:
                 self._resolve()
+            except settings.VARIABLE_SPECIFIC_EXCEPTIONS as e:
+                logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
+                return "Error: {}".format(e)
             except Exception as e:
                 logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
                 return self.value
@@ -132,6 +136,9 @@ class LazyVariable(SpliceVariable, metaclass=RegisterVariableMeta):
         self.value = super(LazyVariable, self).get()
         try:
             return self.get_value()
+        except settings.VARIABLE_SPECIFIC_EXCEPTIONS as e:
+            logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
+            return "Error: {}".format(e)
         except Exception as e:
             logger.error("get value[{}] of Variable[{}] error[{}]".format(self.value, self.name, e))
             return self.value

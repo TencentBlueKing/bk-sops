@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from gcloud.conf import settings
+from gcloud.exceptions import PluginApiRequestError
 from .thread import ThreadPool
 
 logger = logging.getLogger("root")
@@ -22,8 +23,12 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def batch_request(
-        func, params, get_data=lambda x: x["data"]["info"], get_count=lambda x: x["data"]["count"], limit=500,
-        page_param=None
+    func,
+    params,
+    get_data=lambda x: x["data"]["info"],
+    get_count=lambda x: x["data"]["count"],
+    limit=500,
+    page_param=None,
 ):
     """
     并发请求接口
@@ -41,8 +46,9 @@ def batch_request(
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
         except Exception as e:
-            logger.error("[batch_request] please input correct page param, {}".format(e))
-            return []
+            message = "[batch_request] please input correct page param, {}".format(e)
+            logger.error(message)
+            raise PluginApiRequestError(message)
     else:
         cur_page_param = "start"
         page_size_param = "limit"
@@ -51,8 +57,9 @@ def batch_request(
     result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
 
     if not result["result"]:
-        logger.error("[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result))
-        return []
+        message = "[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result)
+        logger.error(message)
+        raise PluginApiRequestError(message)
 
     count = get_count(result)
     data = []
@@ -76,12 +83,11 @@ def batch_request(
         result = params_and_future["future"].get()
 
         if not result:
-            logger.error(
-                "[batch_request] {api} request error, params: {params}, result: {result}".format(
-                    api=func.__name__, params=params_and_future["params"], result=result
-                )
+            message = "[batch_request] {api} request error, params: {params}, result: {result}".format(
+                api=func.__name__, params=params_and_future["params"], result=result
             )
-            return []
+            logger.error(message)
+            raise PluginApiRequestError(message)
 
         data.extend(get_data(result))
 

@@ -16,6 +16,7 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.conf import settings
 from pipeline.core.flow.activity.base import Activity
 from pipeline.core.flow.io import BooleanItemSchema, InputItem, IntItemSchema, OutputItem
 from pipeline.utils.utils import convert_bytes_to_str
@@ -161,7 +162,11 @@ class ServiceActivity(Activity):
 
     def execute(self, parent_data):
         self.setup_logger()
-        result = self.service.execute(self.data, parent_data)
+        try:
+            result = self.service.execute(self.data, parent_data)
+        except settings.PLUGIN_SPECIFIC_EXCEPTIONS as e:
+            self.data.set_outputs("ex_data", e)
+            result = False
 
         # set result
         self.set_result_bit(result)
@@ -195,7 +200,11 @@ class ServiceActivity(Activity):
 
     def schedule(self, parent_data, callback_data=None):
         self.setup_logger()
-        result = self.service.schedule(self.data, parent_data, callback_data)
+        try:
+            result = self.service.schedule(self.data, parent_data, callback_data)
+        except settings.PLUGIN_SPECIFIC_EXCEPTIONS as e:
+            self.data.set_outputs("ex_data", e)
+            result = False
         self.set_result_bit(result)
 
         if result is False:
