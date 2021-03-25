@@ -13,6 +13,11 @@ import i18n from '@/config/i18n/index.js'
 
 const SETTING_TABS = [
     {
+        id: 'operationFlowTab',
+        icon: 'common-icon-branchs',
+        title: i18n.t('操作流水')
+    },
+    {
         id: 'globalVariableTab',
         icon: 'common-icon-square-code',
         title: i18n.t('全局变量'),

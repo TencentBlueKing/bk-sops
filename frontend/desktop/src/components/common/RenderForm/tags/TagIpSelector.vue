@@ -63,7 +63,8 @@
                     topo: [],
                     filters: [],
                     excludes: [],
-                    with_cloud_id: false
+                    with_cloud_id: false,
+                    separator: ','
                 }
             }
         }

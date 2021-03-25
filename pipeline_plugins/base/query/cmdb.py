@@ -41,7 +41,7 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
         "bk_cloud_id",
         "bk_host_innerip",
     ]
-    select_modules = [int(x) for x in select_module_id]
+    select_modules = [int(x) for x in select_module_id if x.isdigit()]
     data_format = request.GET.get("format", "tree")
     # 查询 module 对应的主机
     module_hosts = cc_format_module_hosts(

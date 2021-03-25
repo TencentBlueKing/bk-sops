@@ -13,7 +13,7 @@
 (function () {
     $.atoms.nodeman_plugin_operate = [
         {
-            tag_code: "bk_biz_id",
+            tag_code: "biz_cc_id",
             type: "select",
             attrs: {
                 name: gettext("业务"),
@@ -320,9 +320,11 @@
                                 source: "nodeman_plugin",
                                 type: "init",
                                 action: function (value) {
-                                    let os = this.get_parent().get_parent().get_child("nodeman_host_os_type").value
-                                    this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_version/' + value + '/' + os + '/';
-                                    this.remoteMethod()
+                                    if (value) {
+                                        let os = this.get_parent().get_parent().get_child("nodeman_host_os_type").value
+                                        this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_version/' + value + '/' + os + '/';
+                                        this.remoteMethod()
+                                    }
                                 }
                             },
                             {

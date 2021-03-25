@@ -33,11 +33,11 @@
                                 class="cache-name"
                                 name="cacheName"
                                 :disabled="isEditing"
-                                :class="{ 'error-border': errors.first('cacheName') }"
+                                :class="{ 'error-border': veeErrors.first('cacheName') }"
                                 v-model="name"
                                 v-validate="nameRule"
                                 @blur="updateValue">
-                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top=" errors.first('cacheName')"></i>
+                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top=" veeErrors.first('cacheName')"></i>
                         </div>
                     </td>
                 </tr>
@@ -95,7 +95,7 @@
                                 <tr v-for="field in detailFields" :key="field.id">
                                     <th>{{field.name}}</th>
                                     <td class="td-with-input"
-                                        :class="{ 'error-border': errors.first('detailValue' + field.id) }">
+                                        :class="{ 'error-border': veeErrors.first('detailValue' + field.id) }">
                                         <input
                                             type="text"
                                             class="table-input"
@@ -241,7 +241,7 @@
         position: relative;
         margin-bottom: 30px;
         padding: 20px;
-        background: #f0f1f5;
+        background: #ffffff;
         border-radius: 2px;
         .form-table {
             width: 100%;

@@ -27,69 +27,59 @@ import blueapps
 
 
 class BlueTemplateCommand(TemplateCommand):
-
     def handle_template(self, template, subdir):
         if template is None:
-            return path.join(blueapps.__path__[0], 'conf', subdir)
+            return path.join(blueapps.__path__[0], "conf", subdir)
 
         else:
-            return super(BlueTemplateCommand,
-                         self).handle_template(template, subdir)
+            return super(BlueTemplateCommand, self).handle_template(template, subdir)
 
     def handle(self, app_or_project, name, target=None, **options):
         self.app_or_project = app_or_project
         self.paths_to_remove = []
-        self.verbosity = options['verbosity']
+        self.verbosity = options["verbosity"]
 
         self.validate_name(name, app_or_project)
 
         # if some directory is given, make sure it's nicely expanded
-        if target is None:
-            top_dir = path.join(os.getcwd(), name)
-            try:
-                os.makedirs(top_dir)
-            except OSError as e:
-                if e.errno == errno.EEXIST:
-                    message = "'%s' already exists" % top_dir
-                else:
-                    message = e
-                raise CommandError(message)
-        else:
-            top_dir = os.path.abspath(path.expanduser(target))
-            if not os.path.exists(top_dir):
-                raise CommandError("Destination directory '%s' does not "
-                                   "exist, please create it first." % top_dir)
+        top_dir = self.get_top_dir(target, name)
 
-        extensions = tuple(handle_extensions(options['extensions']))
-        extra_files = ['csrftoken.js']
-        for file in options['files']:
-            extra_files.extend(map(lambda x: x.strip(), file.split(',')))
+        extensions = tuple(handle_extensions(options["extensions"]))
+        extra_files = ["csrftoken.js"]
+        for file in options["files"]:
+            extra_files.extend(map(lambda x: x.strip(), file.split(",")))
         if self.verbosity >= 2:
-            self.stdout.write("Rendering %s template files with "
-                              "extensions: %s\n" %
-                              (app_or_project, ', '.join(extensions)))
-            self.stdout.write("Rendering %s template files with "
-                              "filenames: %s\n" %
-                              (app_or_project, ', '.join(extra_files)))
+            self.stdout.write(
+                "Rendering %s template files with " "extensions: %s\n" % (app_or_project, ", ".join(extensions))
+            )
+            self.stdout.write(
+                "Rendering %s template files with " "filenames: %s\n" % (app_or_project, ", ".join(extra_files))
+            )
 
-        base_name = '%s_name' % app_or_project
-        base_subdir = '%s_template' % app_or_project
-        base_directory = '%s_directory' % app_or_project
+        base_name = "%s_name" % app_or_project
+        base_subdir = "%s_template" % app_or_project
+        base_directory = "%s_directory" % app_or_project
 
-        context = Context(dict(options, **{
-            base_name: name,
-            base_directory: top_dir,
-            'docs_version': get_docs_version(),
-            'django_version': django.__version__,
-        }), autoescape=False)
+        context = Context(
+            dict(
+                options,
+                **{
+                    base_name: name,
+                    base_directory: top_dir,
+                    "docs_version": get_docs_version(),
+                    "django_version": django.__version__,
+                }
+            ),
+            autoescape=False,
+        )
 
         # Setup a stub settings environment for template rendering
         from django.conf import settings
+
         if not settings.configured:
             settings.configure()
 
-        template_dir = self.handle_template(options['template'],
-                                            base_subdir)
+        template_dir = self.handle_template(options["template"], base_subdir)
         prefix_length = len(template_dir) + 1
 
         for root, dirs, files in os.walk(template_dir):
@@ -102,7 +92,7 @@ class BlueTemplateCommand(TemplateCommand):
                     os.mkdir(target_dir)
 
             for dirname in dirs[:]:
-                if dirname.startswith('.') or dirname == '__pycache__':
+                if dirname.startswith(".") or dirname == "__pycache__":
                     dirs.remove(dirname)
                 # 处理多版本差异，将只对指定版本初始化
                 if "run_ver" in options and os.path.basename(root) == "sites":
@@ -110,28 +100,29 @@ class BlueTemplateCommand(TemplateCommand):
                         dirs.remove(dirname)
 
             for filename in files:
-                if filename.endswith(('.pyo', '.pyc', '.py.class')):
+                if filename.endswith((".pyo", ".pyc", ".py.class")):
                     # Ignore some files as they cause various breakages.
                     continue
                 old_path = path.join(root, filename)
-                new_path = path.join(top_dir, relative_dir,
-                                     filename.replace(base_name, name))
+                new_path = path.join(top_dir, relative_dir, filename.replace(base_name, name))
                 if path.exists(new_path):
-                    raise CommandError("%s already exists, overlaying a "
-                                       "project or app into an existing "
-                                       "directory won't replace conflicting "
-                                       "files" % new_path)
+                    raise CommandError(
+                        "%s already exists, overlaying a "
+                        "project or app into an existing "
+                        "directory won't replace conflicting "
+                        "files" % new_path
+                    )
 
                 # Only render the Python files, as we don't want to
                 # accidentally render Django templates files
-                with open(old_path, 'rb') as template_file:
+                with open(old_path, "rb") as template_file:
                     content = template_file.read()
                 if filename.endswith(extensions) or filename in extra_files:
-                    content = content.decode('utf-8')
+                    content = content.decode("utf-8")
                     template = Engine().from_string(content)
                     content = template.render(context)
-                    content = content.encode('utf-8')
-                with open(new_path, 'wb') as new_file:
+                    content = content.encode("utf-8")
+                with open(new_path, "wb") as new_file:
                     new_file.write(content)
 
                 if self.verbosity >= 2:
@@ -143,7 +134,9 @@ class BlueTemplateCommand(TemplateCommand):
                     self.stderr.write(
                         "Notice: Couldn't set permission bits on %s. You're "
                         "probably using an uncommon filesystem setup. No "
-                        "problem." % new_path, self.style.NOTICE)
+                        "problem." % new_path,
+                        self.style.NOTICE,
+                    )
 
         if self.paths_to_remove:
             if self.verbosity >= 2:
@@ -153,3 +146,21 @@ class BlueTemplateCommand(TemplateCommand):
                     os.remove(path_to_remove)
                 else:
                     shutil.rmtree(path_to_remove)
+
+    @staticmethod
+    def get_top_dir(target, name):
+        if target is None:
+            top_dir = path.join(os.getcwd(), name)
+            try:
+                os.makedirs(top_dir)
+            except OSError as err:
+                if err.errno == errno.EEXIST:
+                    message = "'%s' already exists" % top_dir
+                else:
+                    message = err
+                raise CommandError(message)
+        else:
+            top_dir = os.path.abspath(path.expanduser(target))
+            if not os.path.exists(top_dir):
+                raise CommandError("Destination directory '%s' does not " "exist, please create it first." % top_dir)
+        return top_dir

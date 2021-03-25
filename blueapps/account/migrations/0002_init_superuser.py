@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db import migrations
 from django.conf import settings
+from django.db import migrations
 
 
 def load_data(apps, schema_editor):
@@ -22,15 +22,10 @@ def load_data(apps, schema_editor):
     User = apps.get_model("account", "User")
     for name in settings.INIT_SUPERUSER:
         User.objects.update_or_create(
-            username=name,
-            defaults={'is_staff': True, 'is_active': True, 'is_superuser': True}
+            username=name, defaults={"is_staff": True, "is_active": True, "is_superuser": True},
         )
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ('account', '0001_initial')
-    ]
-    operations = [
-        migrations.RunPython(load_data)
-    ]
+    dependencies = [("account", "0001_initial")]
+    operations = [migrations.RunPython(load_data)]

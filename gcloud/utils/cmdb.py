@@ -190,7 +190,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     return result
 
 
-def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
+def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id, host_modules_ids):
     """获取动态分组中对应主机列表"""
     client = get_client_by_user(username)
     kwargs = {
@@ -200,4 +200,6 @@ def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynami
         "fields": ["bk_host_innerip", "bk_cloud_id"],
     }
     host_list = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
+    for host in host_list:
+        host["host_modules_id"] = host_modules_ids[host["bk_host_innerip"]]
     return True, {"code": 0, "message": "success", "data": host_list}

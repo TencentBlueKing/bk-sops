@@ -258,6 +258,5 @@
         padding: 30px;
         width: 1000px;
         height: 100%;
-        overflow-y: auto;
     }
 </style>

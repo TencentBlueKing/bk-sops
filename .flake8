@@ -13,6 +13,7 @@ exclude =
     */templates_module*,
     */bin/*,
     local/*,
+    blueapps/*,
     local_settings.py,
 max-line-length = 120
 max-complexity = 12

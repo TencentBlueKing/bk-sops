@@ -270,6 +270,23 @@
                     }
                 ]
             }
+        },
+        {
+            tag_code: "biz_across",
+            type: "radio",
+            attrs: {
+                name: gettext("IP 允许跨业务"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();

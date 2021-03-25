@@ -15,7 +15,8 @@ import copy
 
 from django.test import TestCase
 
-from pipeline.contrib.periodic_task.models import DjCeleryPeriodicTask, PeriodicTask
+from django_celery_beat.models import PeriodicTask
+from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.exceptions import InvalidOperationException
 
 
@@ -37,13 +38,13 @@ class PeriodicTestCase(TestCase):
             self.task = self.task.delete()
 
     def create_a_task(self):
-        return PeriodicTask.objects.create_task(
-            name=self.name, template=None, cron={}, data=self.data, creator=self.creator, extra_info=self.extra_info
+        return PipelinePeriodicTask.objects.create_task(
+            name=self.name, template=None, cron={}, data=self.data, creator=self.creator, extra_info=self.extra_info,
         )
 
     def test_create_task(self):
-        self.assertIsInstance(self.task, PeriodicTask)
-        self.assertIsInstance(self.task.celery_task, DjCeleryPeriodicTask)
+        self.assertIsInstance(self.task, PipelinePeriodicTask)
+        self.assertIsInstance(self.task.celery_task, PeriodicTask)
         self.assertEqual(self.task.name, self.name)
         self.assertEqual(self.task.template, None)
         self.assertEqual(self.task.creator, self.creator)
@@ -70,7 +71,7 @@ class PeriodicTestCase(TestCase):
     def test_delete(self):
         celery_task_id = self.task.celery_task.id
         self.task.delete()
-        self.assertRaises(DjCeleryPeriodicTask.DoesNotExist, DjCeleryPeriodicTask.objects.get, id=celery_task_id)
+        self.assertRaises(PeriodicTask.DoesNotExist, PeriodicTask.objects.get, id=celery_task_id)
         self.task = None
 
     def test_modify_cron(self):

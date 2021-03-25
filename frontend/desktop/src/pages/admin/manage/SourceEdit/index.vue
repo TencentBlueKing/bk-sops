@@ -185,7 +185,6 @@
 </script>
 <style lang="scss" scoped>
     .source-edit {
-        padding-top: 20px;
-        height: calc(100% - 80px);
+        height: 100%;
     }
 </style>

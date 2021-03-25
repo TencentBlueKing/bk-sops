@@ -32,7 +32,7 @@ class FunctionTaskResource(GCloudModelResource):
     editor_name = fields.CharField(attribute="editor_name", readonly=True, null=True)
     status_name = fields.CharField(attribute="status_name", readonly=True, null=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
         resource_name = "function_task"
         # iam config, use task permission

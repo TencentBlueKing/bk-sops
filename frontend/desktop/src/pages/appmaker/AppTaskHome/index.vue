@@ -11,93 +11,92 @@
 */
 <template>
     <div class="appmaker-container">
-        <div class="list-wrapper">
-            <base-title :title="$t('任务记录')"></base-title>
-            <div class="operation-area clearfix">
+        <skeleton :loading="firstLoading" loader="commonList">
+            <div class="list-wrapper">
                 <advance-search-form
                     id="appmakerHome"
+                    :open="isSearchFormOpen"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>
+                <div class="appmaker-table-content">
+                    <bk-table
+                        :data="appmakerList"
+                        :pagination="pagination"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
+                        @page-change="onPageChange"
+                        @page-limit-change="handlePageLimitChange">
+                        <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                        <bk-table-column :label="$t('任务名称')" min-width="200">
+                            <template slot-scope="props">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.name"
+                                    @click="onTaskPermissonCheck(props.row)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-name"
+                                    :title="props.row.name"
+                                    :to="{
+                                        name: 'appmakerTaskExecute',
+                                        params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                        query: { instance_id: props.row.id, template_id: props.row.template_id }
+                                    }">
+                                    {{props.row.name}}
+                                </router-link>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('执行开始')" width="200">
+                            <template slot-scope="props">
+                                {{ props.row.start_time || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('执行结束')" width="200">
+                            <template slot-scope="props">
+                                {{ props.row.finish_time || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
+                        <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
+                        <bk-table-column :label="$t('执行人')" width="140">
+                            <template slot-scope="props">
+                                {{ props.row.executor_name || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('状态')" width="100">
+                            <template slot-scope="props">
+                                <div class="ui-task-status">
+                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                    <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData /></div>
+                    </bk-table>
+                </div>
             </div>
-            <div class="appmaker-table-content">
-                <bk-table
-                    :data="appmakerList"
-                    :pagination="pagination"
-                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.name"
-                                @click="onTaskPermissonCheck(props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="task-name"
-                                :title="props.row.name"
-                                :to="{
-                                    name: 'appmakerTaskExecute',
-                                    params: { app_id: props.row.create_info, project_id: props.row.project.id },
-                                    query: { instance_id: props.row.id }
-                                }">
-                                {{props.row.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行开始')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.start_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.finish_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('执行人')" width="140">
-                        <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="100">
-                        <template slot-scope="props">
-                            <div class="ui-task-status">
-                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
-                            </div>
-                        </template>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData /></div>
-                </bk-table>
-            </div>
-        </div>
-        <CopyrightFooter></CopyrightFooter>
+        </skeleton>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const searchForm = [
+
+    const SEARCH_FORM = [
         {
             type: 'dateRange',
             key: 'queryTime',
@@ -109,7 +108,7 @@
             type: 'select',
             label: i18n.t('任务分类'),
             key: 'category',
-            loading: false,
+            loading: true,
             placeholder: i18n.t('请选择分类'),
             list: [],
             value: ''
@@ -142,19 +141,44 @@
             value: ''
         }
     ]
+
     export default {
         name: 'appmakerTaskHome',
         components: {
+            Skeleton,
             AdvanceSearchForm,
-            CopyrightFooter,
-            BaseTitle,
             NoData
         },
         mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                category = '',
+                queryTime = '',
+                statusSync = '',
+                creator = '',
+                executor = '',
+                keyword = ''
+            } = this.$route.query
+            const searchForm = SEARCH_FORM.map(item => {
+                if (this.$route.query[item.key]) {
+                    if (Array.isArray(item.value)) {
+                        item.value = this.$route.query[item.key].split(',')
+                    } else {
+                        item.value = this.$route.query[item.key]
+                    }
+                }
+                return item
+            })
+            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+
             return {
-                listLoading: true,
+                firstLoading: true,
+                listLoading: false,
+                searchForm,
+                isSearchFormOpen,
                 isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
                 theDeleteTemplateId: undefined,
@@ -166,9 +190,9 @@
                 executeStatus: [], // 任务执行状态
                 taskCategory: [],
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
                 statusList: [
@@ -178,30 +202,25 @@
                     { 'value': 'finished', 'name': i18n.t('完成') }
                 ],
                 requestData: {
-                    queryTime: [],
-                    category: '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    taskName: keyword
                 }
             }
         },
         computed: {
             ...mapState({
                 businessTimezone: state => state.businessTimezone
-            }),
-            searchForm () {
-                const value = searchForm
-                value[1].list = this.taskCategory
-                value[0].loading = this.taskBasicInfoLoading
-                return searchForm
-            }
+            })
         },
-        created () {
-            this.getAppmakerList()
+        async created () {
             this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getAppmakerList()
+            this.firstLoading = false
         },
         methods: {
             ...mapActions('taskList/', [
@@ -219,7 +238,7 @@
             async getAppmakerList () {
                 this.listLoading = true
                 try {
-                    const { queryTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    const { queryTime, category, creator, executor, statusSync, taskName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -245,7 +264,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: flowName,
+                        q: taskName,
                         category: category || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
@@ -278,6 +297,9 @@
                     this.taskCategory = res.data.task_categories.map(m => ({ value: m.value, name: m.name }))
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
+                    const form = this.searchForm.find(item => item.key === 'category')
+                    form.list = this.taskCategory
+                    form.loading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -287,8 +309,9 @@
                 this.getAppmakerList()
             },
             searchInputhandler (data) {
-                this.requestData.flowName = data
+                this.requestData.taskName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getAppmakerList()
             },
             onTaskPermissonCheck (task) {
@@ -307,12 +330,36 @@
             onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getAppmakerList()
             },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getAppmakerList()
+            },
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { category, queryTime, creator, executor, statusSync, taskName } = this.requestData
+                const filterObj = {
+                    limit,
+                    category,
+                    creator,
+                    executor,
+                    statusSync,
+                    page: current,
+                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
+                    keyword: taskName
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.push({ name: 'appmakerTaskHome', params: { project_id: this.project_id }, query })
             }
         }
     }
@@ -321,21 +368,17 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .bk-select-inline,.bk-input-inline {
    display: inline-block;
     width: 260px;
 }
 .appmaker-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: #fafafa;
-}
-.list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
-}
-.operation-area {
-    margin: 20px 0;
+    padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .app-search {
     @include advancedSearch;

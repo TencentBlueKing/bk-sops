@@ -379,7 +379,7 @@
                         conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
-                            project: this.timeDataProject,
+                            project_id: this.timeDataProject,
                             category: this.timeDataCategory,
                             type: this.timeDataType
                         }

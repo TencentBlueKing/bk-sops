@@ -19,7 +19,7 @@ import redis
 from django.apps import AppConfig
 from django.conf import settings
 from redis.sentinel import Sentinel
-from rediscluster import StrictRedisCluster
+from rediscluster import RedisCluster
 
 logger = logging.getLogger("root")
 
@@ -33,7 +33,7 @@ def get_client_through_sentinel():
         kwargs["password"] = settings.REDIS["password"]
     host = settings.REDIS["host"]
     port = settings.REDIS["port"]
-    sentinels = list(zip([h.strip() for h in host.split(",")], [p.strip() for p in str(port).split(",")]))
+    sentinels = list(zip([h.strip() for h in host.split(",")], [p.strip() for p in str(port).split(",")],))
     rs = Sentinel(sentinels, **kwargs)
     # avoid None value in settings.REDIS
     r = rs.master_for(settings.REDIS.get("service_name") or "mymaster")
@@ -47,7 +47,7 @@ def get_cluster_client():
     if "password" in settings.REDIS:
         kwargs["password"] = settings.REDIS["password"]
 
-    r = StrictRedisCluster(**kwargs)
+    r = RedisCluster(**kwargs)
     r.echo("Hello Redis")
     return r
 
@@ -66,7 +66,11 @@ def get_single_client():
     return redis.StrictRedis(connection_pool=pool)
 
 
-CLIENT_GETTER = {"replication": get_client_through_sentinel, "cluster": get_cluster_client, "single": get_single_client}
+CLIENT_GETTER = {
+    "replication": get_client_through_sentinel,
+    "cluster": get_cluster_client,
+    "single": get_single_client,
+}
 
 
 class PipelineConfig(AppConfig):

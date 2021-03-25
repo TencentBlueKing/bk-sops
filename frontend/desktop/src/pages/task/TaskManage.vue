@@ -11,25 +11,16 @@
 */
 <template>
     <div class="task-manage">
-        <base-title
-            :title="$t('任务管理')"
-            :self-reload="true"
-            :tab-list="titleTabList"
-            @tabChange="onTabChange">
-        </base-title>
         <router-view></router-view>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import { mapState } from 'vuex'
+
     export default {
         name: 'TaskManage',
         inject: ['reload'],
-        components: {
-            BaseTitle
-        },
         computed: {
             ...mapState('project', {
                 project_id: state => state.project_id
@@ -58,8 +49,3 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-.task-manage {
-    padding: 0 60px;
-}
-</style>

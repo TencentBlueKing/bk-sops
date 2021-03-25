@@ -11,7 +11,7 @@
                     theme="primary"
                     :loading="loading"
                     @click="applyBtnClick">
-                    {{$t('去申请')}}
+                    {{ hasClicked ? $t('已申请') : $t('去申请') }}
                 </bk-button>
             </div>
         </div>
@@ -42,6 +42,7 @@
             return {
                 url: '',
                 loading: false,
+                hasClicked: false,
                 authActions: [],
                 lock: require('../../assets/images/lock-radius.svg')
             }
@@ -84,11 +85,16 @@
                 if (this.loading) {
                     return
                 }
-                let url = this.url
-                if (this.permissionData.type === 'project' & !this.url) {
-                    url = window.BK_IAM_SAAS_HOST + '/perm-apply'
+                if (this.hasClicked) {
+                    window.location.reload()
+                } else {
+                    this.hasClicked = true
+                    let url = this.url
+                    if (this.permissionData.type === 'project' & !this.url) {
+                        url = window.BK_IAM_SAAS_HOST + '/perm-apply'
+                    }
+                    openOtherApp(window.BK_IAM_APP_CODE, url)
                 }
-                openOtherApp(window.BK_IAM_APP_CODE, url)
             },
             async queryProjectCreatePerm () {
                 try {
