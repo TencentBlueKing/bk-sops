@@ -150,6 +150,16 @@
                         currentFormConfig.tag_code = key
                         currentFormConfig.name = variable.name // 变量名称，全局变量编辑时填写的名称，和表单配置项 label 名称不同
                         currentFormConfig.attrs.desc = variable.desc
+
+                        // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
+                        if (currentFormConfig.hasOwnProperty('events')) {
+                            currentFormConfig.events.forEach(e => {
+                                if (e.source === tagCode) {
+                                    e.source = '${' + e.source + '}'
+                                }
+                            })
+                        }
+
                         if (
                             variable.custom_type === 'input'
                             && variable.validation !== ''

@@ -17,15 +17,11 @@ const project = {
         project_id: window.DEFAULT_PROJECT_ID,
         bizId: '',
         projectName: '',
-        projectList: [],
         userProjectList: [], // 用户有权限的项目列表
         timeZone: window.TIMEZONE,
         authActions: []
     },
     mutations: {
-        setProjectList (state, data) {
-            state.projectList = data
-        },
         setUserProjectList (state, data) {
             state.userProjectList = data
         },
@@ -53,23 +49,12 @@ const project = {
         changeDefaultProject ({ state }, id) {
             return axios.post(`core/api/change_default_project/${id}/`).then(response => response.data)
         },
-        loadProjectList ({ commit }, data) {
-            const { limit, offset, is_disable = false, q } = data
-            return axios.get(`api/v3/project/`, {
-                params: {
-                    limit,
-                    offset,
-                    is_disable,
-                    q
-                }
-            }).then(response => {
-                return response.data
-            })
-        },
         // 加载用户有权限的项目列表
         loadUserProjectList ({ commit }, params) {
             return axios.get(`api/v3/user_project/`, { params }).then(response => {
-                commit('setUserProjectList', response.data.objects)
+                if (params.limit === 0) { // 拉全量项目时更新项目列表，区分项目管理页面的分页数据
+                    commit('setUserProjectList', response.data.objects)
+                }
                 return response.data
             })
         },

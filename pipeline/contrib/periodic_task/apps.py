@@ -19,6 +19,4 @@ class PeriodicTaskConfig(AppConfig):
     verbose_name = "PipelinePeriodicTask"
 
     def ready(self):
-        from pipeline.contrib.periodic_task.patch.djcelery.djcelery_patch import patch
-
-        patch()
+        from pipeline.contrib.periodic_task.tasks import periodic_task_start  # noqa  # register task

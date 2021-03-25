@@ -61,19 +61,19 @@ def periodic_task_start(*args, **kwargs):
         )
 
         result = instance.start(
-            periodic_task.creator, check_workers=False, priority=periodic_task.priority, queue=periodic_task.queue
+            periodic_task.creator, check_workers=False, priority=periodic_task.priority, queue=periodic_task.queue,
         )
     except Exception:
         et = traceback.format_exc()
         logger.error(et)
         PeriodicTaskHistory.objects.record_schedule(
-            periodic_task=periodic_task, pipeline_instance=None, ex_data=et, start_success=False
+            periodic_task=periodic_task, pipeline_instance=None, ex_data=et, start_success=False,
         )
         return
 
     if not result.result:
         PeriodicTaskHistory.objects.record_schedule(
-            periodic_task=periodic_task, pipeline_instance=None, ex_data=result.message, start_success=False
+            periodic_task=periodic_task, pipeline_instance=None, ex_data=result.message, start_success=False,
         )
         return
 

@@ -63,7 +63,7 @@ class TaskTemplateResource(GCloudModelResource):
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
     description = fields.CharField(attribute="pipeline_template__description", readonly=True, null=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "template"
 
@@ -125,7 +125,7 @@ class TaskTemplateResource(GCloudModelResource):
                 bundle.data["is_add"] = 1
             else:
                 bundle.data["is_add"] = 0
-            bundle.data["labels"] = templates_labels.get(bundle.obj.id, [])
+            bundle.data["template_labels"] = templates_labels.get(bundle.obj.id, [])
 
         return data
 
@@ -263,7 +263,7 @@ class TaskTemplateResource(GCloudModelResource):
 class TemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(attribute="data", use_in="detail")
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TemplateScheme.objects.all()
         resource_name = "scheme"
         authorization = Authorization()
@@ -296,6 +296,22 @@ class TemplateSchemeResource(GCloudModelResource):
             orm_filters.update({"unique_id": ""})
         return orm_filters
 
+    def obj_get_list(self, bundle, **kwargs):
+        template_id = bundle.request.GET.get("template_id")
+        project_id = bundle.request.GET.get("project__id")
+        if template_id is None or project_id is None:
+            message = "scheme params error: need template_id and project__id"
+            logger.error(message)
+            raise BadRequest(message)
+        self._check_user_scheme_permission(bundle.request.user.username, template_id, project_id)
+        return super(TemplateSchemeResource, self).obj_get_list(bundle, **kwargs)
+
+    def obj_get(self, bundle, **kwargs):
+        obj = super(TemplateSchemeResource, self).obj_get(bundle, **kwargs)
+        template_id = obj.unique_id.split("-")[0]
+        self._check_user_scheme_permission(bundle.request.user.username, template_id)
+        return obj
+
     def obj_create(self, bundle, **kwargs):
         try:
             template_id = bundle.data.pop("template_id")
@@ -305,22 +321,7 @@ class TemplateSchemeResource(GCloudModelResource):
             message = "create scheme params error: %s" % e
             logger.error(message)
             raise BadRequest(message)
-        try:
-            template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
-        except TaskTemplate.DoesNotExist:
-            message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
-                template_id=template_id, project_id=project_id
-            )
-            logger.error(message)
-            raise BadRequest(message)
-
-        allow_or_raise_immediate_response(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", bundle.request.user.username),
-            action=Action(IAMMeta.FLOW_EDIT_ACTION),
-            resources=res_factory.resources_for_flow_obj(template),
-        )
+        _, template = self._check_user_scheme_permission(bundle.request.user.username, template_id, project_id)
 
         bundle.data["name"] = name_handler(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs["unique_id"] = "{}-{}".format(template_id, bundle.data["name"])
@@ -334,17 +335,33 @@ class TemplateSchemeResource(GCloudModelResource):
             obj = TemplateScheme.objects.get(id=kwargs["pk"])
         except TemplateScheme.DoesNotExist:
             raise BadRequest("scheme does not exist")
+        template_id = obj.unique_id.split("-")[0]
+        self._check_user_scheme_permission(bundle.request.user.username, template_id)
+        return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)
 
-        try:
-            template = TaskTemplate.objects.get(pipeline_template=obj.template)
-        except TaskTemplate.DoesNotExist:
-            raise BadRequest("flow template the deleted scheme belongs to does not exist")
-
+    @staticmethod
+    def _check_user_scheme_permission(username, template_id, project_id=None):
+        if project_id is None:
+            try:
+                template = TaskTemplate.objects.get(pk=template_id)
+            except TaskTemplate.DoesNotExist:
+                message = "flow template[id={template_id}] does not exist".format(template_id=template_id)
+                logger.error(message)
+                raise BadRequest(message)
+        else:
+            try:
+                template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
+            except TaskTemplate.DoesNotExist:
+                message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
+                    template_id=template_id, project_id=project_id
+                )
+                logger.error(message)
+                raise BadRequest(message)
         allow_or_raise_immediate_response(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", bundle.request.user.username),
+            subject=Subject("user", username),
             action=Action(IAMMeta.FLOW_EDIT_ACTION),
             resources=res_factory.resources_for_flow_obj(template),
         )
-        return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)
+        return True, template

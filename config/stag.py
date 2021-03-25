@@ -18,6 +18,9 @@ if RUN_VER == "open":
 else:
     from blueapps.patch.settings_paas_services import *  # noqaJobExecuteTaskComponent
 
+import env
+
+
 # 预发布环境
 RUN_MODE = "STAGING"
 
@@ -25,39 +28,6 @@ BK_IAM_SYNC_TEMPLATES = True
 
 BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
-LOGGING["loggers"]["iam"] = {
-    "handlers": ["component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 
-LOGGING["handlers"]["engine_component"] = {
-    "class": "pipeline.log.handlers.EngineContextLogHandler",
-    "formatter": "verbose",
-}
-
-LOGGING["loggers"]["component"] = {
-    "handlers": ["component", "engine_component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
-
-LOGGING["formatters"]["light"] = {"format": "%(message)s"}
-
-LOGGING["handlers"]["engine"] = {
-    "class": "pipeline.log.handlers.EngineLogHandler",
-    "formatter": "light",
-}
-
-LOGGING["loggers"]["pipeline.logging"] = {
-    "handlers": ["engine"],
-    "level": "INFO",
-    "propagate": True,
-}
-
-# 多环境需要，celery的handler需要动态获取
-LOGGING["loggers"]["celery_and_engine_component"] = {
-    "handlers": ["engine_component", LOGGING["loggers"]["celery"]["handlers"][0]],
-    "level": "INFO",
-    "propagate": True,
-}
+default.logging_addition_settings(LOGGING, environment="stag")

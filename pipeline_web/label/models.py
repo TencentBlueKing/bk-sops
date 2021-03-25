@@ -19,44 +19,44 @@ from pipeline_web.core.abstract import NodeAttr
 
 
 class LabelGroup(models.Model):
-    code = models.CharField(_('标签分组编码'), max_length=255, db_index=True)
-    name = models.CharField(_('标签分组名称'), max_length=255)
+    code = models.CharField(_("标签分组编码"), max_length=255, db_index=True)
+    name = models.CharField(_("标签分组名称"), max_length=255)
 
     class Meta:
-        verbose_name = _('标签分组 LabelGroup')
-        verbose_name_plural = _('标签分组 LabelGroup')
+        verbose_name = _("标签分组 LabelGroup")
+        verbose_name_plural = _("标签分组 LabelGroup")
 
     def __unicode__(self):
-        return '{}_{}'.format(self.code, self.name)
+        return "{}_{}".format(self.code, self.name)
 
     def __str__(self):
-        return '{}_{}'.format(self.code, self.name)
+        return "{}_{}".format(self.code, self.name)
 
 
 class Label(models.Model):
-    group = models.ForeignKey(LabelGroup)
-    code = models.CharField(_('标签编码'), max_length=255, db_index=True)
-    name = models.CharField(_('标签名称'), max_length=255)
+    group = models.ForeignKey(LabelGroup, on_delete=models.CASCADE)
+    code = models.CharField(_("标签编码"), max_length=255, db_index=True)
+    name = models.CharField(_("标签名称"), max_length=255)
 
     class Meta:
-        verbose_name = _('标签 Label')
-        verbose_name_plural = _('标签 Label')
+        verbose_name = _("标签 Label")
+        verbose_name_plural = _("标签 Label")
 
     def __unicode__(self):
-        return '{}_{}'.format(self.code, self.name)
+        return "{}_{}".format(self.code, self.name)
 
     def __str__(self):
-        return '{}_{}'.format(self.code, self.name)
+        return "{}_{}".format(self.code, self.name)
 
     @property
     def value(self):
-        return {'label': self.code, 'group': self.group.code}
+        return {"label": self.code, "group": self.group.code}
 
 
 class NodeAttrLabelManager(models.Manager):
     def batch_update_nodes_attr(self, nodes, attr):
-        nodes_pks = set(nodes.values_list('pk', flat=True))
-        nodes_attrs = self.select_related('node').filter(node__pk__in=nodes_pks).prefetch_related('labels')
+        nodes_pks = set(nodes.values_list("pk", flat=True))
+        nodes_attrs = self.select_related("node").filter(node__pk__in=nodes_pks).prefetch_related("labels")
         nodes_to_attr = {node.node.pk: [label.value for label in node.labels.all()] for node in nodes_attrs}
         for node in nodes:
             node.attrs.update({attr: nodes_to_attr.get(node.pk, [])})
@@ -64,25 +64,25 @@ class NodeAttrLabelManager(models.Manager):
 
 @NodeAttr.register_template_attr
 class NodeInTemplateAttrLabel(NodeInTemplateAttr):
-    _attr = 'labels'
+    _attr = "labels"
 
-    labels = models.ManyToManyField(Label, verbose_name=_('节点标签'), blank=True)
+    labels = models.ManyToManyField(Label, verbose_name=_("节点标签"), blank=True)
 
     objects = NodeAttrLabelManager()
 
     class Meta:
-        verbose_name = _('流程模板节点标签 NodeInTemplateAttrLabel')
-        verbose_name_plural = _('流程模板节点标签 NodeInTemplateAttrLabel')
+        verbose_name = _("流程模板节点标签 NodeInTemplateAttrLabel")
+        verbose_name_plural = _("流程模板节点标签 NodeInTemplateAttrLabel")
 
 
 @NodeAttr.register_instance_attr
 class NodeInInstanceAttrLabel(NodeInInstanceAttr):
-    _attr = 'labels'
+    _attr = "labels"
 
-    labels = models.ManyToManyField(Label, verbose_name=_('节点标签'), blank=True)
+    labels = models.ManyToManyField(Label, verbose_name=_("节点标签"), blank=True)
 
     objects = NodeAttrLabelManager()
 
     class Meta:
-        verbose_name = _('流程实例节点标签 NodeInInstanceAttrLabel')
-        verbose_name_plural = _('流程实例节点标签 NodeInInstanceAttrLabel')
+        verbose_name = _("流程实例节点标签 NodeInInstanceAttrLabel")
+        verbose_name_plural = _("流程实例节点标签 NodeInInstanceAttrLabel")

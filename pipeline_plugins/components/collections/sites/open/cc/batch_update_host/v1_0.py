@@ -137,12 +137,16 @@ class CCBatchUpdateHostService(Service):
 
         update_host_message = []
         for host_property_dir in host_property_custom:
-            if host_property_dir["bk_host_innerip"] not in ip_dir:
-                message = _("innerip【{}】找不到对应的host_id".format(host_property_dir["bk_host_innerip"]))
+            inner_host_ip = host_property_dir["bk_host_innerip"]
+            # 兼容填写云区域ID：IP的情况, 只获取对应IP
+            if ":" in inner_host_ip:
+                inner_host_ip = inner_host_ip.split(":")[1]
+            if inner_host_ip not in ip_dir:
+                message = _("innerip【{}】找不到对应的host_id".format(inner_host_ip))
                 data.outputs.ex_data = message
                 self.logger.error(message)
                 return False
-            host_id = ip_dir[host_property_dir["bk_host_innerip"]]
+            host_id = ip_dir[inner_host_ip]
             host_update = {"bk_host_id": host_id}
             host_property_dir.pop("bk_host_innerip")
             properties = {}

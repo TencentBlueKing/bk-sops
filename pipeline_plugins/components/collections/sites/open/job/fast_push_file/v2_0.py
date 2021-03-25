@@ -65,7 +65,10 @@ class JobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -80,7 +83,10 @@ class JobFastPushFileService(JobScheduleService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -137,7 +143,10 @@ class JobFastPushFileService(JobScheduleService):
                     return False
             else:
                 ip_info = cc_get_ips_info_by_str(
-                    username=executor, biz_cc_id=biz_cc_id, ip_str=item["ip"], use_cache=False,
+                    username=executor,
+                    biz_cc_id=biz_cc_id,
+                    ip_str=item["ip"],
+                    use_cache=False,
                 )
             file_source.append(
                 {
@@ -181,7 +190,7 @@ class JobFastPushFileService(JobScheduleService):
 
                 job_kwargs = {
                     "bk_biz_id": biz_cc_id,
-                    "file_source": source,
+                    "file_source": [source],
                     "ip_list": ip_list,
                     "account": job_account,
                     "file_target_path": job_target_path,
@@ -197,21 +206,25 @@ class JobFastPushFileService(JobScheduleService):
         task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
-        job_instance_id, job_inst_name, job_inst_url, ex_data = [], [], [], []
+        job_instance_id, job_inst_name, job_inst_url = [], [], []
+        data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):
             job_result = res["result"]
-            if job_result:
+            if job_result["result"]:
                 job_instance_id.append(job_result["data"]["job_instance_id"])
                 job_inst_name.append(job_result["data"]["job_instance_name"])
                 job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
             else:
                 message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
                 self.logger.error(message)
-                ex_data.append(message)
+                data.outputs.requests_error += "{}\n".format(message)
+        if data.outputs.requests_error:
+            data.outputs.requests_error = "Request Error:\n{}".format(data.outputs.requests_error)
 
         data.outputs.job_instance_id_list = job_instance_id
         # 批量请求使用
         data.outputs.job_id_of_batch_execute = job_instance_id
+        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id]
         # 请求成功数
         data.outputs.request_success_count = len(job_result_list)
         # 执行成功数
@@ -224,7 +237,7 @@ class JobFastPushFileService(JobScheduleService):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobScheduleService, self).schedule(data, parent_data, callback_data)
+        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [
@@ -258,3 +271,4 @@ class JobFastPushFileComponent(Component):
     bound_service = JobFastPushFileService
     form = "%scomponents/atoms/job/fast_push_file/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
+    desc = "跨业务分发文件时需要在作业平台添加白名单"

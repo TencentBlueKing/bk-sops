@@ -12,7 +12,7 @@
 <template>
     <div class="page-statistics" v-bkloading="{ isLoading: hasStatisticsPerm === null, opacity: 0 }">
         <template v-if="hasViewPerm">
-            <base-title :title="$t('运营数据')" :tab-list="routers">
+            <page-header :tab-list="routers">
                 <template v-slot:expand>
                     <div class="date-picker">
                         <bk-form form-type="inline">
@@ -28,7 +28,7 @@
                         </bk-form>
                     </div>
                 </template>
-            </base-title>
+            </page-header>
             <div class="statistics-content">
                 <router-view
                     :date-range="dateStamp"
@@ -45,7 +45,7 @@
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import i18n from '@/config/i18n/index.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import PageHeader from '@/components/layout/PageHeader.vue'
 
     const ROUTERS = [
         {
@@ -68,7 +68,7 @@
     export default {
         name: 'Statistics',
         components: {
-            BaseTitle
+            PageHeader
         },
         data () {
             const format = 'YYYY-MM-DD'
@@ -103,6 +103,7 @@
                 if (val !== null) {
                     if (val) {
                         this.hasViewPerm = true
+                        this.getProjectList()
                         this.getCategorys()
                     } else {
                         this.showPermissionApplyPage()
@@ -126,7 +127,7 @@
                 'getCategorys'
             ]),
             ...mapActions('project', [
-                'loadProjectList'
+                'loadUserProjectList'
             ]),
             /**
              * 切换到权限申请页
@@ -152,7 +153,7 @@
                 this.loading = true
 
                 try {
-                    const res = await this.loadProjectList({ limit: 0 })
+                    const res = await this.loadUserProjectList({ limit: 0 })
                     this.projectList = res.objects
                 } catch (err) {
                     errorHandler(err, this)
@@ -167,16 +168,20 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .page-statistics {
-        padding: 0 60px;
-        min-width: 1320px;
-        height: 100%;
+        height: calc(100vh - 52px);
         background: #f4f7fa;
-        .header-wrapper {
-            margin: 0 60px 0;
-        }
         .statistics-content {
-            padding-top: 20px;
+            padding: 20px 24px;
+            height: calc(100vh - 100px);
+            overflow: auto;
+            @include scrollbar;
+        }
+        .date-picker {
+            margin-top: 8px;
+            padding-right: 26px;
         }
         /deep/ .statistics-select {
             width: 250px;

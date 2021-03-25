@@ -23,7 +23,7 @@ from pipeline.service import task_service
 @admin.register(models.PipelineModel)
 class PipelineModelAdmin(admin.ModelAdmin):
     list_display = ["id", "process"]
-    search_fields = ["id", "process__id"]
+    search_fields = ["=id", "=process__id"]
     raw_id_fields = ["process"]
 
 
@@ -41,7 +41,7 @@ class PipelineProcessAdmin(admin.ModelAdmin):
         "is_sleep",
         "is_frozen",
     ]
-    search_fields = ["id", "root_pipeline_id", "current_node_id"]
+    search_fields = ["=id", "=root_pipeline_id", "=current_node_id"]
     list_filter = ["is_alive", "is_sleep"]
     raw_id_fields = ["snapshot"]
 
@@ -64,8 +64,7 @@ class StatusAdmin(admin.ModelAdmin):
         "started_time",
         "archived_time",
     ]
-    search_fields = ["id"]
-    list_filter = ["state", "skip"]
+    search_fields = ["=id"]
     actions = [force_fail_node]
 
 
@@ -79,45 +78,45 @@ class ScheduleServiceAdmin(admin.ModelAdmin):
         "wait_callback",
         "is_finished",
     ]
-    search_fields = ["id"]
+    search_fields = ["=id"]
     list_filter = ["wait_callback", "is_finished"]
 
 
 @admin.register(models.ProcessCeleryTask)
 class ProcessCeleryTaskAdmin(admin.ModelAdmin):
     list_display = ["id", "process_id", "celery_task_id"]
-    search_fields = ["id", "process_id"]
+    search_fields = ["=id", "=process_id"]
 
 
 @admin.register(models.Data)
 class DataAdmin(admin.ModelAdmin):
     list_display = ["id", "inputs", "outputs", "ex_data"]
-    search_fields = ["id"]
+    search_fields = ["=id"]
 
 
 @admin.register(models.HistoryData)
 class HistoryDataAdmin(admin.ModelAdmin):
     list_display = ["id", "inputs", "outputs", "ex_data"]
-    search_fields = ["id"]
+    search_fields = ["=id"]
 
 
 @admin.register(models.History)
 class HistoryAdmin(admin.ModelAdmin):
     list_display = ["identifier", "started_time", "archived_time"]
-    search_fields = ["identifier"]
+    search_fields = ["=identifier"]
     raw_id_fields = ["data"]
 
 
 @admin.register(models.ScheduleCeleryTask)
 class ScheduleCeleryTaskAdmin(admin.ModelAdmin):
     list_display = ["schedule_id", "celery_task_id"]
-    search_fields = ["schedule_id"]
+    search_fields = ["=schedule_id"]
 
 
 @admin.register(models.NodeCeleryTask)
 class NodeCeleryTaskAdmin(admin.ModelAdmin):
     list_display = ["node_id", "celery_task_id"]
-    search_fields = ["node_id"]
+    search_fields = ["=node_id"]
 
 
 on = True
@@ -183,5 +182,5 @@ class SendFailedCeleryTaskAdmin(admin.ModelAdmin):
         "exec_trace",
         "created_at",
     ]
-    search_fields = ["id", "name"]
+    search_fields = ["=id", "name"]
     actions = [resend_task]

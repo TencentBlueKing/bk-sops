@@ -10,69 +10,96 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-header-wrapper">
-        <base-title class="template-title" :title="title"></base-title>
-        <div class="template-name-input">
-            <div class="name-show-mode" v-if="isShowMode">
-                <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                <span class="common-icon-edit" @click="onNameEditing"></span>
-            </div>
-            <template v-else>
-                <bk-input
-                    ref="canvasNameInput"
-                    v-validate="templateNameRule"
-                    data-vv-name="templateName"
-                    :class="['name-input', errors.first('templateName') ? 'name-error' : '']"
-                    :name="'templateName'"
-                    :has-error="errors.has('templateName')"
-                    :value="name"
-                    :placeholder="$t('请输入名称')"
-                    @input="onInputName"
-                    @enter="onInputBlur"
-                    @blur="onInputBlur">
-                </bk-input>
-                <i
-                    v-if="errors.first('templateName')"
-                    class="bk-icon icon-exclamation-circle-shape error-tip-icon"
-                    v-bk-tooltips="errors.first('templateName')">
-                </i>
-            </template>
-        </div>
-        <div class="button-area">
-            <div class="setting-tab-wrap">
+    <page-header class="template-header-wrapper">
+        <div class="header-left-area">
+            <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
+            <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
+            <div class="template-name-input">
+                <div class="name-show-mode" v-if="isShowMode">
+                    <h3 class="canvas-name" :title="tName">{{tName}}</h3>
+                    <span v-if="isEditProcessPage" class="common-icon-edit" @click="onNameEditing"></span>
+                </div>
+                <template v-else>
+                    <bk-input
+                        ref="canvasNameInput"
+                        v-validate="templateNameRule"
+                        data-vv-name="templateName"
+                        :class="['name-input', veeErrors.first('templateName') ? 'name-error' : '']"
+                        :name="'templateName'"
+                        :has-error="veeErrors.has('templateName')"
+                        :value="name"
+                        :placeholder="$t('请输入名称')"
+                        @input="onInputName"
+                        @enter="onInputBlur"
+                        @blur="onInputBlur">
+                    </bk-input>
+                    <i
+                        v-if="veeErrors.first('templateName')"
+                        class="bk-icon icon-exclamation-circle-shape error-tip-icon"
+                        v-bk-tooltips="veeErrors.first('templateName')">
+                    </i>
+                </template>
+                <!-- 执行方案图标 -->
                 <span
-                    v-for="tab in settingTabs"
-                    :key="tab.id"
-                    :class="['setting-item', {
-                        'active': activeTab === tab.id,
-                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
-                    }]"
-                    @click="$emit('onChangePanel', tab.id)">
-                    <i :class="tab.icon" :title="tab.title"></i>
+                    v-if="isEditProcessPage"
+                    class="common-icon-file-setting execute-scheme-icon"
+                    v-bk-tooltips.bottom="$t('执行方案')"
+                    @click="onOpenExecuteScheme">
                 </span>
             </div>
-            <bk-button
-                theme="primary"
-                :class="[
-                    'save-canvas',
-                    'task-btn',
-                    { 'btn-permission-disable': !saveBtnActive }]"
-                :loading="templateSaving"
-                v-cursor="{ active: !saveBtnActive }"
-                @click.stop="onSaveClick(false)">
-                {{$t('保存')}}
-            </bk-button>
-            <bk-button
-                theme="primary"
-                :class="['task-btn', {
-                    'btn-permission-disable': !createTaskBtnActive
-                }]"
-                :loading="createTaskSaving"
-                v-cursor="{ active: !createTaskBtnActive }"
-                @click.stop="onSaveClick(true)">
-                {{createTaskBtnText}}
-            </bk-button>
-            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
+        </div>
+        <div class="header-right-area" slot="expand">
+            <div class="button-area" v-if="isEditProcessPage">
+                <div class="setting-tab-wrap">
+                    <span
+                        v-for="tab in settingTabs"
+                        :key="tab.id"
+                        :class="['setting-item', {
+                            'active': activeTab === tab.id,
+                            'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                        }]"
+                        @click="$emit('onChangePanel', tab.id)">
+                        <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
+                    </span>
+                </div>
+                <bk-button
+                    theme="primary"
+                    :class="[
+                        'save-canvas',
+                        'task-btn',
+                        { 'btn-permission-disable': !saveBtnActive }]"
+                    :loading="templateSaving"
+                    v-cursor="{ active: !saveBtnActive }"
+                    @click.stop="onSaveClick(false)">
+                    {{$t('保存')}}
+                </bk-button>
+                <bk-button
+                    theme="primary"
+                    :class="['task-btn', {
+                        'btn-permission-disable': !createTaskBtnActive
+                    }]"
+                    :loading="createTaskSaving"
+                    v-cursor="{ active: !createTaskBtnActive }"
+                    @click.stop="onSaveClick(true)">
+                    {{createTaskBtnText}}
+                </bk-button>
+            </div>
+            <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
+                <bk-button
+                    theme="primary"
+                    :class="[
+                        'save-execute-scheme',
+                        'task-btn',
+                        { 'btn-permission-disable': !saveBtnActive }]"
+                    :loading="executeSchemeSaving"
+                    v-cursor="{ active: !saveBtnActive }"
+                    @click.stop="onSaveExecuteSchemeClick">
+                    {{$t('保存')}}
+                </bk-button>
+            </div>
+            <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
+                <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
+            </div>
         </div>
         <SelectProjectModal
             :title="$t('创建任务')"
@@ -83,7 +110,7 @@
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
         </SelectProjectModal>
-    </div>
+    </page-header>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
@@ -91,14 +118,14 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import PageHeader from '@/components/layout/PageHeader.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     import SETTING_TABS from './SettingTabs.js'
 
     export default {
         name: 'TemplateHeader',
         components: {
-            BaseTitle,
+            PageHeader,
             SelectProjectModal
         },
         mixins: [permission],
@@ -114,6 +141,9 @@
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
             isFromTplListRoute: Boolean,
+            isEditProcessPage: Boolean,
+            isPreviewMode: Boolean,
+            executeSchemeSaving: Boolean,
             tplActions: {
                 type: Array,
                 default () {
@@ -243,6 +273,7 @@
                         }
                     }
                 }
+                this.$emit('onOpenExecuteScheme', false)
             },
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
@@ -254,7 +285,7 @@
                         if (this.common && pid === undefined) {
                             this.setProjectSelectDialogShow()
                         } else {
-                            this.goToTaskUrl(pid)
+                            this.goTaskCreate(pid)
                         }
                     } else {
                         this.$emit('onSaveTemplate', saveAndCreate, pid)
@@ -280,7 +311,18 @@
                 }
                 return { resourceData, actions }
             },
-            getHomeUrl () {
+            // 返回按钮点击
+            onBackClick () {
+                if (this.isEditProcessPage) {
+                    this.goBackTplList()
+                } else {
+                    this.goBackToTplEdit()
+                }
+            },
+            onSaveExecuteSchemeClick () {
+                this.$emit('onSaveExecuteSchemeClick')
+            },
+            goBackTplList () {
                 if (this.isFromTplListRoute) {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
                 } else {
@@ -288,9 +330,12 @@
                     this.$router.push(url)
                 }
             },
-            goToTaskUrl (pid) {
+            goBackToTplEdit () {
+                this.$emit('goBackToTplEdit')
+            },
+            goTaskCreate (pid) {
                 this.$router.push({
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { step: 'selectnode', project_id: pid },
                     query: {
                         template_id: this.template_id,
@@ -298,6 +343,9 @@
                         entrance: 'templateEdit'
                     }
                 })
+            },
+            onClosePreview () {
+                this.$emit('onClosePreview')
             },
             onNameEditing () {
                 this.isShowMode = false
@@ -436,30 +484,46 @@
                     }]
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
+            },
+            onOpenExecuteScheme () {
+                this.saveTemplate()
+                this.$emit('onOpenExecuteScheme', true)
             }
         }
     }
 </script>
 <style lang="scss" scoped>
     .template-header-wrapper {
-        position: relative;
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        padding: 0 20px;
-        height: 59px;
-        background: #f4f7fa;
-        border: 1px solid #cacedb;
+        padding: 0 20px 0 10px;
+        .header-left-area {
+            display: flex;
+            align-items: center;
+            .back-icon {
+                font-size: 28px;
+                color: #3a84ff;
+                cursor: pointer;
+            }
+            .title {
+                font-size: 14px;
+                color: #313238;
+            }
+        }
+        .header-right-area {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
         .template-name-input {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 354px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-left: 20px;
+            width: 300px;
         }
         .name-show-mode {
             display: flex;
-            justify-content: center;
             align-items: center;
             overflow: hidden;
         }
@@ -472,23 +536,32 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: #606266;
+            color: #63656e;
         }
         .name-input.name-error /deep/.bk-form-input {
             border-color: #ea3636;
         }
         .error-tip-icon {
             position: absolute;
-            right: 10px;
+            left: 248px;
             top: 8px;
             font-size: 16px;
             color: #ea3636;
             cursor: pointer;
         }
         .common-icon-edit {
-            margin-left: 4px;
+            margin-left: 10px;
             font-size: 12px;
-            color: #546a9e;
+            color: #979ba5;
+            cursor: pointer;
+            &:hover {
+                color: #3480ff;
+            }
+        }
+        .execute-scheme-icon {
+            margin-left: 20px;
+            font-size: 14px;
+            color: #979ba5;
             cursor: pointer;
             &:hover {
                 color: #3480ff;
@@ -527,7 +600,7 @@
             }
         }
         .task-btn {
-            margin-right: 5px;
+            margin-left: 5px;
         }
     }
 </style>
