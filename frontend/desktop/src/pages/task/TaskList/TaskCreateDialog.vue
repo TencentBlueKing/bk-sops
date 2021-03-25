@@ -286,7 +286,7 @@
                 }
 
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: {
                         project_id: this.project_id,
                         step: 'selectnode'

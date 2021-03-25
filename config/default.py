@@ -386,12 +386,14 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
+# format: module_path: alias
 MAKO_SANDBOX_IMPORT_MODULES = {
     "datetime": "datetime",
     "re": "re",
     "hashlib": "hashlib",
     "random": "random",
     "time": "time",
+    "os.path": "os.path",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:

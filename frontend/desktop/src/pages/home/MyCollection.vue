@@ -211,7 +211,7 @@
                         break
                     case 'flow':
                         this.$router.push({
-                            name: 'taskStep',
+                            name: 'taskCreate',
                             params: { step: 'selectnode', project_id },
                             query: { template_id }
                         })

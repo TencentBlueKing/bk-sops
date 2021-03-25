@@ -163,7 +163,7 @@
                 }
                 const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
                 this.$router.push({
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { project_id: this.formData.selectedProject, step: 'selectnode' },
                     query: { template_id: templateId, common: '1', entrance }
                 })
