@@ -20,9 +20,9 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
-    batch_execute_func,
     get_job_instance_url,
     plat_ip_reg,
 )

@@ -104,7 +104,7 @@ def batch_execute_func(func, params_list: list, interval_enabled=False):
     :param func: 待处理函数
     :param params_list: 请求参数
     :param interval_enabled: 启用间隔
-    :return: [{"object":结果，”params“: 参数}，{"object":结果，”params“: 参数}，....]
+    :return: [{"result":结果，”params“: 参数}，{"result":结果，”params“: 参数}，....]
     """
     pool = ThreadPool()
     execute_future_list = []
