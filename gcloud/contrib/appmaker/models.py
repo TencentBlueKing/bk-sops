@@ -148,7 +148,13 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             if not fake:
                 # edit app on blueking
                 app_edit_result = edit_maker_app(
-                    creator, app_code, app_params["name"], link, creator, task_template.category, app_params["desc"],
+                    creator,
+                    app_code,
+                    app_params["name"],
+                    link,
+                    creator,
+                    task_template.category,
+                    app_params["desc"],
                 )
                 if not app_edit_result["result"]:
                     return False, _("编辑轻应用失败：%s") % app_edit_result["message"]
@@ -188,7 +194,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         del_name = time_now_str()
         if not fake:
             # rename before delete to avoid name conflict when create a new app
-            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20],)
+            app_edit_result = edit_maker_app(
+                app_maker_obj.creator,
+                app_maker_obj.code,
+                del_name[:20],
+            )
             if not app_edit_result["result"]:
                 return False, _("删除失败：%s") % app_edit_result["message"]
 
@@ -262,7 +272,6 @@ class AppMaker(models.Model):
     @property
     def task_template_name(self):
         return self.task_template.name
-
 
     def __unicode__(self):
         return "%s_%s" % (self.project, self.name)
