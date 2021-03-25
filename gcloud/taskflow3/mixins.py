@@ -53,7 +53,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         project_id = filters.get("project_id")
 
         conditions = []
-        if category is not None:
+        if category:
             conditions.append(
                 '`category` = "%s"' % (category if category in self.TASK_CATEGORY_DICT else TASK_CATEGORY[-1][0])
             )
@@ -395,10 +395,12 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         )
 
         count_statement = 'SELECT COUNT(*)\
-        FROM `taskflow3_taskflowinstance` T\
-        INNER JOIN (SELECT `id` FROM `pipeline_pipelineinstance`\
-        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}") P\
-        ON (`T`.`pipeline_instance_id` = `P`.`id`){where};'.format(
+        FROM `taskflow3_taskflowinstance` T INNER JOIN (\
+            SELECT `id`, `instance_id`, `name`, `create_time`, `finish_time`, `start_time`, `creator`\
+            FROM `pipeline_pipelineinstance`\
+            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
+        INNER JOIN `statistics_instanceinpipeline` I ON (`I`.`instance_id` = `P`.`instance_id`){where};'.format(
             create_time=filters["create_time_datetime"],
             finish_time=filters["finish_time_datetime"],
             where=self._assemble_where_statement(filters),
