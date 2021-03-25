@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils import managermixins
+from gcloud.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate

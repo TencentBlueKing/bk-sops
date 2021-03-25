@@ -19,7 +19,8 @@ from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 from tastypie.authorization import ReadOnlyAuthorization
-from djcelery.models import PeriodicTask as CeleryTask
+from django_celery_beat.models import PeriodicTask as CeleryTask
+
 
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
@@ -50,7 +51,7 @@ iam = get_iam_client()
 class CeleryTaskResource(GCloudModelResource):
     enabled = fields.BooleanField(attribute="enabled", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = CeleryTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = "celery_task"
@@ -64,7 +65,7 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
     name = fields.CharField(attribute="name", readonly=True)
     creator = fields.CharField(attribute="creator", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelinePeriodicTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = "pipeline_periodic_task"
@@ -89,7 +90,7 @@ class PeriodicTaskResource(GCloudModelResource):
     form = fields.DictField(attribute="form", readonly=True, use_in="detail")
     task = fields.ForeignKey(PipelinePeriodicTaskResource, "task", full=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PeriodicTask.objects.all()
         resource_name = "periodic_task"
         filtering = {

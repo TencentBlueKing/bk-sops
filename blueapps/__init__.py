@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-VERSION = '2.5.1'
+VERSION = "3.3.1"
 __version__ = VERSION
 
 
@@ -20,6 +20,7 @@ RUN_VER = ""
 
 def get_run_ver():
     from django.conf import settings
+
     try:
         return settings.RUN_VER
     except AttributeError:

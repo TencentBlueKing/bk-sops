@@ -63,7 +63,7 @@ class TaskTemplateResource(GCloudModelResource):
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
     description = fields.CharField(attribute="pipeline_template__description", readonly=True, null=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "template"
 
@@ -263,7 +263,7 @@ class TaskTemplateResource(GCloudModelResource):
 class TemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(attribute="data", use_in="detail")
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TemplateScheme.objects.all()
         resource_name = "scheme"
         authorization = Authorization()

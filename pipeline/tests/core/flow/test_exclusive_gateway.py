@@ -56,6 +56,8 @@ class TestExclusiveGateway(TestCase):
 
         self.gateway_for_test_next = ex_gateway2
 
+        self.nodes = [next_node1, next_node2, next_node3, next_node4, next_node5]
+
     def test_exclusive_gateway(self):
         gw_id = "1"
         conditions = [Condition(None, None), Condition(None, None)]

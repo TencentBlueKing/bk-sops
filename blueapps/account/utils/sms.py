@@ -11,9 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from blueapps.utils import client
 from blueapps.account.conf import ConfFixture
+from blueapps.utils import client
 from blueapps.utils.esbclient import CustomComponentAPI
+
+
+"""
+发送短信工具文件，开发者可以直接调用此处的send_sms函数，屏蔽环境之间的差异
+"""
 
 
 def send_sms(user_list, content):
@@ -30,8 +35,8 @@ def send_sms(user_list, content):
 
     # 2. 拼接发送函数的内容
     request_args = {
-        ConfFixture.SMS_CLIENT_USER_ARGS_NAME: ','.join(user_list),
-        ConfFixture.SMS_CLIENT_CONTENT_ARGS_NAME: content
+        ConfFixture.SMS_CLIENT_USER_ARGS_NAME: ",".join(user_list),
+        ConfFixture.SMS_CLIENT_CONTENT_ARGS_NAME: content,
     }
 
     # 3. 发送短信

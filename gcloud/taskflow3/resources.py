@@ -50,7 +50,7 @@ iam = get_iam_client()
 
 
 class PipelineInstanceResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = "pipeline_instance"
         authorization = ReadOnlyAuthorization()
@@ -86,7 +86,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
     subprocess_info = fields.DictField(attribute="subprocess_info", use_in="detail", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = "taskflow"
         filtering = {

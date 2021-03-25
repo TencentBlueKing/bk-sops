@@ -13,10 +13,16 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
+import os
 import re
 
-from blueapps.conf.environ import *  # noqa
+from blueapps.conf import environ, get_settings_from_module
 from blueapps.conf.database import get_default_database_config_dict
+
+locals().update(get_settings_from_module(environ))
+
+BASE_DIR = locals()["BASE_DIR"]
+APP_CODE = locals()["APP_CODE"]
 
 ROOT_URLCONF = "urls"
 
@@ -44,7 +50,6 @@ MIDDLEWARE = (
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     # 跨域检测中间件， 默认关闭
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -57,25 +62,17 @@ MIDDLEWARE = (
     "blueapps.account.middlewares.LoginRequiredMiddleware",
     # exception middleware
     "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
+    # django国际化中间件
+    "django.middleware.locale.LocaleMiddleware",
 )
-
-# Database
-# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-try:
-    import pymysql
-
-    pymysql.install_as_MySQLdb()
-    # Patch version info to forcely pass Django client check
-    setattr(pymysql, "version_info", (1, 2, 6, "final", 0))
-except ImportError as e:
-    raise ImportError("PyMySQL is not installed: %s" % e)
 
 DATABASES = {"default": get_default_database_config_dict(locals())}
 
 # Cache
 
 CACHES = {
-    "db": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
+    "db": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache",},
+    "login_db": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "account_cache",},
     "dummy": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
     "locmem": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
 }
@@ -121,6 +118,8 @@ TEMPLATES = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
+# 国际化配置
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 ALLOWED_HOSTS = ["*"]
 TIME_ZONE = "Asia/Shanghai"
@@ -128,9 +127,15 @@ LANGUAGE_CODE = "zh-hans"
 USE_I18N = True
 USE_L10N = True
 
+LANGUAGES = (
+    ("en", u"English"),
+    ("zh-hans", u"简体中文"),
+)
+
 # Authentication & Authorization
 
-SESSION_COOKIE_AGE = 60
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 2
+SESSION_COOKIE_NAME = "_".join([APP_CODE, "sessionid"])
 AUTH_USER_MODEL = "account.User"
 
 AUTHENTICATION_BACKENDS = (
@@ -148,5 +153,11 @@ CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 # close celery hijack root logger
 CELERYD_HIJACK_ROOT_LOGGER = False
 
-# PAGE_NOT_FOUND_URL_KEY
-PAGE_NOT_FOUND_URL_KEY = "not_found_url"
+# log_dir_prefix
+LOG_DIR_PREFIX = "/app/v3logs/"
+
+# 登录缓存时间配置, 单位秒（与django cache单位一致）
+LOGIN_CACHE_EXPIRED = 60
+
+# CELERY与RabbitMQ增加60秒心跳设置项
+BROKER_HEARTBEAT = 60

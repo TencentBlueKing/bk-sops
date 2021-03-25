@@ -16,7 +16,7 @@ import logging
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils.managermixins import ClassificationCountMixin
+from gcloud.utils.managermixins import ClassificationCountMixin
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentInTemplate, TemplateInPipeline
 from pipeline.contrib.periodic_task.models import PeriodicTask
