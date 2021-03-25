@@ -283,12 +283,10 @@
         {
             id: 'project',
             label: i18n.t('所属项目'),
-            disabled: true,
             width: 160
         }, {
             id: 'id',
             label: i18n.t('任务ID'),
-            disabled: true,
             width: 110
         }, {
             id: 'name',

@@ -42,6 +42,7 @@
                 :label="item.label"
                 :prop="item.prop"
                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                :min-width="item.min_width"
                 :sortable="item.sortable">
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">
@@ -94,12 +95,12 @@
         {
             label: 'ID',
             prop: 'id',
-            width: '100'
+            width: 100
         },
         {
             label: i18n.t('任务名称'),
             prop: 'name',
-            width: '300'
+            min_width: 300
         },
         {
             label: i18n.t('项目'),
@@ -107,21 +108,23 @@
         },
         {
             label: i18n.t('执行开始'),
-            prop: 'start_time'
+            prop: 'start_time',
+            width: 200
         },
         {
             label: i18n.t('执行结束'),
-            prop: 'finish_time'
+            prop: 'finish_time',
+            width: 200
         },
         {
             label: i18n.t('创建方式'),
             prop: 'create_method',
-            width: '150'
+            width: 150
         },
         {
             label: i18n.t('状态'),
             prop: 'status',
-            width: '100'
+            width: 100
         }
     ]
     export default {

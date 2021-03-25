@@ -1,9 +1,10 @@
 <template>
     <div class="variable-edit">
         <div class="variable-edit-content">
-            <ul class="form-list">
+            <section class="form-section">
+                <h3>{{ $t('基础信息') }}</h3>
                 <!-- 名称 -->
-                <li class="form-item clearfix">
+                <div class="form-item clearfix">
                     <label class="required">{{ $t('名称') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -14,9 +15,9 @@
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
-                </li>
+                </div>
                 <!-- key -->
-                <li class="form-item clearfix">
+                <div class="form-item clearfix">
                     <label class="required">KEY</label>
                     <div class="form-content">
                         <bk-input
@@ -28,9 +29,9 @@
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
-                </li>
+                </div>
                 <!-- 描述 -->
-                <li class="form-item clearfix">
+                <div class="form-item clearfix">
                     <label class="form-label">{{ $t('说明') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -40,9 +41,9 @@
                             :readonly="isSystemVar">
                         </bk-input>
                     </div>
-                </li>
+                </div>
                 <!-- 类型 -->
-                <li class="form-item variable-type clearfix" v-if="!isSystemVar">
+                <div class="form-item variable-type clearfix" v-if="!isSystemVar">
                     <label class="required">{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -74,23 +75,9 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
-                </li>
-                <!-- 默认值 -->
-                <li v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-item clearfix">
-                    <label class="form-label">{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</label>
-                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
-                        <template v-if="!atomConfigLoading && renderConfig.length">
-                            <RenderForm
-                                ref="renderForm"
-                                :scheme="renderConfig"
-                                :form-option="renderOption"
-                                v-model="renderData">
-                            </RenderForm>
-                        </template>
-                    </div>
-                </li>
+                </div>
                 <!-- 验证规则 -->
-                <li v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
+                <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -101,9 +88,9 @@
                         </bk-input>
                         <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
                     </div>
-                </li>
+                </div>
                 <!-- 显示/隐藏 -->
-                <li class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar">
                     <label class="required">{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -119,8 +106,24 @@
                             </bk-option>
                         </bk-select>
                     </div>
-                </li>
-            </ul>
+                </div>
+            </section>
+            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-section">
+                <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
+                <!-- 默认值 -->
+                <div class="form-item value-form clearfix">
+                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                        <template v-if="!atomConfigLoading && renderConfig.length">
+                            <RenderForm
+                                ref="renderForm"
+                                :scheme="renderConfig"
+                                :form-option="renderOption"
+                                v-model="renderData">
+                            </RenderForm>
+                        </template>
+                    </div>
+                </div>
+            </section>
         </div>
         <div class="btn-wrap">
             <template v-if="!isSystemVar">
@@ -186,7 +189,7 @@
                 renderOption: {
                     showHook: false,
                     showGroup: false,
-                    showLabel: false,
+                    showLabel: true,
                     showVarList: true,
                     validateSet: ['custom', 'regex']
                 },
@@ -266,7 +269,7 @@
                 return rule
             }
         },
-        async created () {
+        created () {
             this.extendFormValidate()
         },
         async mounted () {
@@ -620,6 +623,17 @@
         height: calc(100% - 49px);
         overflow-y: auto;
     }
+    .form-section {
+        margin-bottom: 30px;
+        & > h3 {
+            margin: 0;
+            padding-bottom: 10px;
+            color: #313238;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 1px solid #cacedb;
+        }
+    }
     .form-item {
         margin: 15px 0;
         &:first-child {
@@ -642,6 +656,11 @@
                 right: -10px;
                 color: #ff2602;
                 font-family: "SimSun";
+            }
+        }
+        &.value-form {
+            .form-content {
+                margin-left: 0;
             }
         }
     }

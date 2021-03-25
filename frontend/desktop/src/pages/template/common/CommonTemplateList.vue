@@ -277,8 +277,7 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
-            width: 100
+            width: 80
         }, {
             id: 'name',
             label: i18n.t('流程名称'),
@@ -288,7 +287,7 @@
             id: 'create_time',
             label: i18n.t('创建时间'),
             sortable: 'custom',
-            width: 180
+            width: 200
         }, {
             id: 'edit_time',
             label: i18n.t('更新时间'),
