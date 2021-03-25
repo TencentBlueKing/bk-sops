@@ -446,6 +446,18 @@ def flow_valid_edge_case_4():
     return build_tree(start)
 
 
+def flow_valid_edge_case_5():
+    start = EmptyStartEvent(id=start_event_id)
+    eg = ExclusiveGateway(id=exclusive_gw_id(1), conditions={0: "123", 1: "456", 2: "789"})
+    cg = ConvergeGateway(id=converge_gw_id(1))
+    end = EmptyEndEvent(id=end_event_id)
+
+    start.extend(eg).connect(cg, cg, end)
+    cg.connect(eg)
+
+    return build_tree(start)
+
+
 def flow_invalid_case_1():
     start = EmptyStartEvent(id=start_event_id)
     act_1 = ServiceActivity(id=act_id(1))
@@ -490,6 +502,7 @@ flow_valid_edge_cases = [
     {"case": flow_valid_edge_case_2},
     {"case": flow_valid_edge_case_3},
     {"case": flow_valid_edge_case_4},
+    {"case": flow_valid_edge_case_5},
 ]
 
 flow_invalid_cases = [
