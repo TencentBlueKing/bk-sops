@@ -900,7 +900,7 @@
     }
     .label-name {
         display: inline-block;
-        margin-left: 4px;
+        margin: 4px 0 4px;
         padding: 2px 6px;
         font-size: 12px;
         line-height: 1;

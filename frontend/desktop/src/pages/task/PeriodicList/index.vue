@@ -246,7 +246,6 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
             width: 80
         }, {
             id: 'name',
@@ -256,7 +255,7 @@
         }, {
             id: 'process_template',
             label: i18n.t('流程模板'),
-            width: 200
+            min_width: 200
         }, {
             id: 'project',
             label: i18n.t('项目'),
