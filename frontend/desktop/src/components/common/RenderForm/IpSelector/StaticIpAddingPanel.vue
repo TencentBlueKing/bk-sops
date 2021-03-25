@@ -13,7 +13,7 @@
     <div class="static-ip-adding-panel">
         <ip-search-input
             v-if="type === 'select'"
-            :class="['ip-search-wrap', getClassName]"
+            :class="['ip-search-wrap', isIpClassName]"
             @search="onIpSearch"
             @focus="onIpFocus"
             @blur="onIpBlur">
@@ -174,18 +174,12 @@
                     placement: 'top'
                 },
                 i18n,
-                isIpStatus: null
+                isSearchInputFocus: false
             }
         },
         computed: {
-            getClassName () {
-                let className = ''
-                if (this.isIpStatus === 'focus') {
-                    className = 'ip-focus'
-                } else if (this.isIpStatus === 'blur') {
-                    className = 'ip-blur'
-                }
-                return className
+            isIpClassName () {
+                return this.isSearchInputFocus ? 'ip-focus' : 'ip-blur'
             }
         },
         watch: {
@@ -232,10 +226,10 @@
                 }
             },
             onIpFocus () {
-                this.isIpStatus = 'focus'
+                this.isSearchInputFocus = true
             },
             onIpBlur () {
-                this.isIpStatus = 'blur'
+                this.isSearchInputFocus = false
             },
             onSelectAllClick () {
                 if (this.listAllSelected) {
@@ -342,14 +336,14 @@
     position: absolute;
     top: -36px;
     right: 0;
-    width: 42%;
+    width: 32%;
 }
 .ip-focus {
     width: 100%;
     transition: width .5s;
 }
 .ip-blur {
-    width: 42%;
+    width: 32%;
     transition: width .5s;
 }
 .ip-list-wrap {
