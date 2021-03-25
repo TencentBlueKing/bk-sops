@@ -28,7 +28,6 @@
 #page-footer-wrapper {
     margin-top: 50px;
     padding-bottom: 30px;
-    min-width: 1320px;
     .copyright {
         font-size: 12px;
         color: #999999;

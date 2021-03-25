@@ -102,14 +102,16 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .package-edit {
-        height: calc(100% - 40px);
-        background: #ffffff;
+        height: calc(100% - 70px);
     }
     .source-centent {
-        padding: 30px 60px 60px;
-        min-height: 100%;
-        background: #ffffff;
+        padding: 30px 60px 20px;
+        height: calc(100% - 60px);
+        overflow: auto;
+        @include scrollbar;
     }
     .add-package {
         margin-bottom: 60px;
@@ -120,6 +122,7 @@
         text-align: center;
         border: 1px dashed #c4c6cc;
         border-radius: 2px;
+        background: #ffffff;
         cursor: pointer;
         &:hover {
             color: #3a84ff;
@@ -127,11 +130,11 @@
         }
     }
     .operate-area {
-        margin-top: -60px;
         padding: 0 60px;
         height: 60px;
         line-height: 60px;
         border-top: 1px solid #cacedb;
+        box-shadow: 0 -3px 4px 0 rgba(64,112,203,0.06);
         .bk-button {
             height: 32px;
             line-height: 32px;

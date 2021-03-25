@@ -97,29 +97,11 @@ class FlowNode(FlowElement, metaclass=ABCMeta):
         return self.__dict__
 
 
-class NodeWeakRef(object):
-    def __init__(self):
-        self._nodes = weakref.WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        ref = self._nodes.get(instance)
-        if not ref:
-            return None
-        return ref()
-
-    def __set__(self, instance, value):
-        if not __debug__ and not issubclass(value.__class__, FlowNode):
-            raise TypeError("source and target must be a subclass of FlowNode.")
-        self._nodes[instance] = weakref.ref(value)
-
-
 class SequenceFlow(FlowElement):
     def __init__(self, id, source, target, is_default=False, name=None):
         super(SequenceFlow, self).__init__(id, name)
-        self.source = NodeWeakRef()
-        self.source = source
-        self.target = NodeWeakRef()
-        self.target = target
+        self.source = weakref.proxy(source) if source is not None else source
+        self.target = weakref.proxy(target) if target is not None else target
         self.is_default = is_default
 
 

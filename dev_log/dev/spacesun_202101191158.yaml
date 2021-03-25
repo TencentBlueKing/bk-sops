@@ -1,0 +1,2 @@
+improvmement:
+    - "HTTP-请求插件在请求前对 url 进行 strip"

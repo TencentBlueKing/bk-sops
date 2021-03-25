@@ -19,6 +19,5 @@ class NullMiddleware(MiddlewareMixin):
 
 
 class NullBackend(object):
-
     def authenticate(self, **kwargs):
         return None

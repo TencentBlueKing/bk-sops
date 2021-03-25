@@ -10,24 +10,26 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="operation-header clearfix">
-        <div class="operation-title">{{$t('任务执行')}}</div>
-        <div class="bread-crumbs-wrapper" v-if="true">
-            <span
-                :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
-                v-for="(path, index) in nodeNav"
-                :key="path.id"
-                :title="showNodeList.includes(index) ? path.name : ''">
-                <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
-                <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
-                    {{path.name}}
+    <page-header class="operation-header">
+        <div class="head-left-area">
+            <i class="bk-icon icon-arrows-left back-icon" @click="onBack"></i>
+            <div class="operation-title">{{$t('任务执行')}}</div>
+            <div class="bread-crumbs-wrapper">
+                <span
+                    :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
+                    v-for="(path, index) in nodeNav"
+                    :key="path.id"
+                    :title="showNodeList.includes(index) ? path.name : ''">
+                    <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
+                        {{path.name}}
+                    </span>
+                    <span class="node-ellipsis" v-else-if="index === 1">...</span>
                 </span>
-                <span class="node-ellipsis" v-else-if="index === 1">
-                    {{ellipsis}}
-                </span>
-            </span>
+            </div>
+            <span v-if="stateStr" :class="['task-state', state]">{{ stateStr }}</span>
         </div>
-        <div class="operation-container clearfix">
+        <div class="operation-container" slot="expand">
             <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
                 <template v-for="operation in taskOperationBtns">
                     <bk-button
@@ -52,6 +54,20 @@
                 </template>
             </div>
             <div class="task-params-btns">
+                <i
+                    :class="[
+                        'params-btn',
+                        'common-icon-branchs',
+                        {
+                            actived: nodeInfoType === 'operateFlow'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('流水操作记录'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
+                </i>
                 <i
                     :class="[
                         'params-btn',
@@ -120,19 +136,20 @@
                     }"
                     @click="onTaskParamsClick('taskExecuteInfo')">
                 </i>
-                <bk-button :title="$t('返回')" @click="onBack" class="back-button">
-                    {{$t('返回')}}
-                </bk-button>
             </div>
         </div>
-    </div>
+    </page-header>
 </template>
 <script>
     import permission from '@/mixins/permission.js'
+    import PageHeader from '@/components/layout/PageHeader.vue'
     import { mapState } from 'vuex'
 
     export default {
         name: 'TaskOperationHeader',
+        components: {
+            PageHeader
+        },
         mixins: [permission],
         props: [
             'nodeInfoType',
@@ -143,14 +160,15 @@
             'instanceActions',
             'taskOperationBtns',
             'adminView',
+            'state',
+            'stateStr',
             'isBreadcrumbShow',
             'isTaskOperationBtnsShow',
             'isShowViewProcess'
         ],
         data () {
             return {
-                showNodeList: [0, 1, 2],
-                ellipsis: '...'
+                showNodeList: [0, 1, 2]
             }
         },
         computed: {
@@ -216,25 +234,28 @@
 @import '@/scss/config.scss';
 
 .operation-header {
-    margin: 0 20px;
-    height: 50px;
-    line-height: 50px;
-    background: #f4f7fa;
-    border-top: 1px solid #cacedb;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px 0 10px;
+    .head-left-area {
+        display: flex;
+        align-items: center;
+        .back-icon {
+            font-size: 28px;
+            color: #3a84ff;
+            cursor: pointer;
+        }
+    }
     .operation-title {
-        float: left;
-        line-height: 50px;
         font-size: 14px;
-        font-weight: bold;
         color: #313238;
     }
     .bread-crumbs-wrapper {
-        display: inline-block;
-        margin-left: 20px;
-        font-size: 14px;
-        height: 50px;
+        margin-left: 10px;
+        font-size: 0;
         .path-item {
             display: inline-block;
+            font-size: 14px;
             overflow: hidden;
             &.name-ellipsis {
                 max-width: 190px;
@@ -266,8 +287,45 @@
             }
         }
     }
+    .task-state {
+        display: inline-block;
+        margin-left: 10px;
+        padding: 0 6px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 12px;
+        color: #63656e;
+        border-radius: 10px;
+        background-color: #dcdee5;
+        &.CREATED {
+            color: #63656e;
+        }
+        &.FINISHED {
+            background-color: #cceed9;
+            color: #2dcb56;
+        }
+        &.RUNNING,
+        &.READY {
+            background-color: #cfdffb;
+            color: #3a84ff;
+        }
+        &.SUSPENDED, &.NODE_SUSPENDED {
+            background-color: #ffe8c3;
+            color: #d78300;
+        }
+        &.FAILED {
+            background-color: #f2d0d3;
+            color: #ea3636;
+        }
+        &.REVOKED {
+            background-color: #f2d0d3;
+            color: #ea3636;
+        }
+    }
     .operation-container {
-        float: right;
+        display: flex;
+        align-items: center;
+        height: 100%;
         .task-operation-btns,
         .task-params-btns {
             float: left;
@@ -283,9 +341,12 @@
                     margin-left: 0;
                 }
             }
+            .common-icon-branchs {
+                font-size: 16px;
+            }
         }
         .task-operation-btns {
-            margin: 9px 35px 0 0;
+            margin-right: 35px;
             line-height: initial;
             border-right: 1px solid #dde4eb;
             .operation-btn {
@@ -341,6 +402,9 @@
                 &:hover {
                     color: #63656e;
                 }
+            }
+            .params-btn:last-child {
+                margin-right: 0;
             }
             .back-button {
                 background: #ffffff;

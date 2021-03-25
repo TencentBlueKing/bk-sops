@@ -47,7 +47,7 @@ group_en_pattern = re.compile(r"(?:\()(.*)(?:\))")
 
 
 class BusinessResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Business.objects.exclude(status="disabled").exclude(
             life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")]
         )
@@ -78,7 +78,7 @@ class ProjectResource(GCloudModelResource):
 
     ALLOW_UPDATE_FIELD = ["desc", "is_disable"]
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Project.objects.all().order_by("-id")
         validation = FormValidation(form_class=ProjectForm)
         resource_name = "project"
@@ -135,7 +135,7 @@ class ProjectResource(GCloudModelResource):
 
 
 class UserProjectResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Project.objects.all().order_by("-id")
         resource_name = "user_project"
         filtering = {"is_disable": ALL}
@@ -174,7 +174,7 @@ class UserProjectResource(GCloudModelResource):
 
 
 class ComponentModelResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = ComponentModel.objects.filter(status=True).order_by("name")
         resource_name = "component"
         excludes = ["status", "id"]
@@ -271,7 +271,7 @@ class VariableModelResource(GCloudModelResource):
     tag = fields.CharField(attribute="tag", readonly=True, null=True)
     meta_tag = fields.CharField(attribute="meta_tag", readonly=True, null=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = VariableModel.objects.filter(status=True)
         resource_name = "variable"
         excludes = ["status", "id"]
@@ -293,7 +293,7 @@ class VariableModelResource(GCloudModelResource):
 class CommonProjectResource(GCloudModelResource):
     project = fields.ForeignKey(ProjectResource, "project", full=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = ProjectCounter.objects.all().order_by("-count")
         resource_name = "common_use_project"
         allowed_methods = ["get"]
@@ -337,7 +337,7 @@ class LabelGroupModelResource(GCloudModelResource):
     code = fields.CharField(attribute="code", readonly=True)
     name = fields.CharField(attribute="name", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = LabelGroup.objects.all()
         resource_name = "label_group"
         detail_uri_name = "id"
@@ -350,7 +350,7 @@ class LabelModelResource(GCloudModelResource):
     code = fields.CharField(attribute="code", readonly=True)
     name = fields.CharField(attribute="name", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Label.objects.all()
         resource_name = "label"
         detail_uri_name = "id"

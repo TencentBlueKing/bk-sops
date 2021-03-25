@@ -16,6 +16,7 @@ class ConfFixture(object):
     """
     登录模块项目变量汇总
     """
+
     #################
     # 浏览器参数说明 #
     #################
@@ -47,18 +48,18 @@ class ConfFixture(object):
     # 跳转至登录平台是否加跨域前缀标识
     # http://xxx.com/login/?c_url={CROSS_PREFIX}http%3A//xxx.com%3A8000/
     ADD_CROSS_PREFIX = True
-    CROSS_PREFIX = ''
+    CROSS_PREFIX = ""
 
     # 跳转至登录平台是否加上APP_CODE
     # http://xxx.com/login/?c_url=http%3A//xxx.com%3A8000/&app_code=xxx
     ADD_APP_CODE = True
     # http://xxx.com/login/?c_url=http%3A//xxx.com%3A8000/&{APP_KEY}=xxx
-    APP_KEY = 'app_code'
-    SETTINGS_APP_KEY = 'APP_CODE'
+    APP_KEY = "app_code"
+    SETTINGS_APP_KEY = "APP_CODE"
 
     # 跳转至登录平台，回调参数名称
     # http://xxx.com/login/?{C_URL}=http%3A//xxx.com%3A8000/
-    C_URL = 'c_url'
+    C_URL = "c_url"
 
     # 内嵌式的登录平台的尺寸大小，决定前端适配的弹框大小
     IFRAME_HEIGHT = 490

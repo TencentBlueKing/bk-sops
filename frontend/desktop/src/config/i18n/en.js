@@ -1,4 +1,14 @@
 const en = {
+    '操作名称': 'Operation name',
+    '操作时间': 'Operating time',
+    '操作来源': 'Operation source',
+    '历史记录': 'History record',
+    '流水操作记录': 'Pipeline operation record',
+    '操作流水': 'Operation flow',
+    '编辑执行方案': 'Edit execution plan',
+    '确定保存并去设置执行方案吗？': 'Are you sure to save and go to set the execution plan?',
+    '方案保存成功': 'The plan was saved successfully',
+    '类别': 'Category',
     '请先保存已修改的信息': 'Please save the modified information first',
     '暂不支持分层层级大于 业务-集群 两层的集群模版': 'Do not support Set template with more than two levels: Business-set',
     '任务数据': 'Task data',
@@ -184,7 +194,7 @@ const en = {
     '分支网关：': 'Exclusive Gateway: ',
     '执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。': 'Execute first branch which condtion evaluate success',
     '汇聚网关：': 'Converge Gateway: ',
-    '所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。': 'Converge gateway will be executed only when all incoming branch execute to it',
+    '当汇聚网关用于汇聚并行网关时，所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。': 'Convergence gateway used to converge parallel gateways, Converge gateway will be executed only when all incoming branch execute to it',
     '复位': 'Reset zoom',
     '节点框选': 'Selection',
     '排版': 'Layout',
@@ -464,6 +474,7 @@ const en = {
     '应用名称': 'App Name',
     '执行方案': 'Execution Scheme',
     '当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。': 'You can add schemes when creating a task if the flow contains optional nodes.After selecting a scheme, you can only create tasks according to the fixed execution scheme with this Mini-APP.',
+    '如果轻应用选择了执行方案，更新模板后需要同步更新执行方案。': 'If light application chooses the execution scheme, it needs to update the execution scheme synchronously after updating the template.',
     '应用LOGO': 'LOGO',
     '点击更换': 'Change',
     '只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K': 'Only JPG/PNG type files can be uploaded. The recommended size is 100px*100px, which cannot exceed 100K',
@@ -1074,7 +1085,8 @@ const en = {
     '预览值': 'Preview Value',
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
-    '退出': 'Quit'
+    '退出': 'Quit',
+    '首页': 'Home'
 }
 
 export default en

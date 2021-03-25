@@ -17,7 +17,7 @@ from datetime import datetime
 
 import pytz
 from celery import schedules
-from celery.utils.timeutils import is_naive, make_aware
+from celery.utils.time import is_naive, make_aware
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 logger = logging.getLogger("celery")
@@ -27,7 +27,7 @@ class TzAwareCrontab(schedules.crontab):
     """Timezone Aware Crontab."""
 
     def __init__(
-        self, minute="*", hour="*", day_of_week="*", day_of_month="*", month_of_year="*", tz=pytz.utc, app=None
+        self, minute="*", hour="*", day_of_week="*", day_of_month="*", month_of_year="*", tz=pytz.utc, app=None,
     ):
         """Overwrite Crontab constructor to include a timezone argument."""
         self.tz = tz

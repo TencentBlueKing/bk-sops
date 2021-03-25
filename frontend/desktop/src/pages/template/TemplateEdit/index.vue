@@ -26,38 +26,61 @@
                 :create-task-saving="createTaskSaving"
                 :active-tab="activeSettingTab"
                 :tpl-actions="tplActions"
+                :is-edit-process-page="isEditProcessPage"
+                :is-preview-mode="isPreviewMode"
+                :execute-scheme-saving="executeSchemeSaving"
+                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
+                @goBackToTplEdit="goBackToTplEdit"
+                @onClosePreview="onClosePreview"
+                @onOpenExecuteScheme="onOpenExecuteScheme"
                 @onChangeName="onChangeName"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
-            <SubflowUpdateTips
-                v-if="subflowShouldUpdated.length > 0"
-                :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
-                :list="subflowShouldUpdated"
-                :locations="locations"
-                :node-menu-open="nodeMenuOpen"
-                @viewClick="viewUpdatedNode"
-                @foldClick="clearDotAnimation">
-            </SubflowUpdateTips>
-            <TemplateCanvas
-                ref="templateCanvas"
-                class="template-canvas"
-                :atom-type-list="atomTypeList"
-                :name="name"
-                :type="type"
+            <template v-if="isEditProcessPage">
+                <SubflowUpdateTips
+                    v-if="subflowShouldUpdated.length > 0"
+                    :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
+                    :list="subflowShouldUpdated"
+                    :locations="locations"
+                    :node-menu-open="nodeMenuOpen"
+                    @viewClick="viewUpdatedNode"
+                    @foldClick="clearDotAnimation">
+                </SubflowUpdateTips>
+                <TemplateCanvas
+                    ref="templateCanvas"
+                    class="template-canvas"
+                    :atom-type-list="atomTypeList"
+                    :name="name"
+                    :type="type"
+                    :common="common"
+                    :canvas-data="canvasData"
+                    :node-memu-open.sync="nodeMenuOpen"
+                    @hook:mounted="canvasMounted"
+                    @onConditionClick="onOpenConditionEdit"
+                    @templateDataChanged="templateDataChanged"
+                    @onLocationChange="onLocationChange"
+                    @onLineChange="onLineChange"
+                    @onLocationMoveDone="onLocationMoveDone"
+                    @onFormatPosition="onFormatPosition"
+                    @onReplaceLineAndLocation="onReplaceLineAndLocation"
+                    @onShowNodeConfig="onShowNodeConfig">
+                </TemplateCanvas>
+            </template>
+            <TaskSelectNode
+                v-else
+                ref="taskSelectNode"
+                :project_id="project_id"
                 :common="common"
-                :canvas-data="canvasData"
-                :node-memu-open.sync="nodeMenuOpen"
-                @hook:mounted="canvasMounted"
-                @onConditionClick="onOpenConditionEdit"
-                @templateDataChanged="templateDataChanged"
-                @onLocationChange="onLocationChange"
-                @onLineChange="onLineChange"
-                @onLocationMoveDone="onLocationMoveDone"
-                @onFormatPosition="onFormatPosition"
-                @onReplaceLineAndLocation="onReplaceLineAndLocation"
-                @onShowNodeConfig="onShowNodeConfig">
-            </TemplateCanvas>
+                :entrance="entrance"
+                :template_id="template_id"
+                :exclude-node="excludeNode"
+                :init-template-id="initTemplateId"
+                :is-edit-process-page="isEditProcessPage"
+                @updateTaskSchemeList="updateTaskSchemeList"
+                @togglePreviewMode="togglePreviewMode"
+                @setExcludeNode="setExcludeNode">
+            </TaskSelectNode>
             <div class="side-content">
                 <node-config
                     ref="nodeConfig"
@@ -122,6 +145,21 @@
                     </div>
                 </div>
             </bk-dialog>
+            <bk-dialog
+                ext-cls="template-edit-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :show-footer="false"
+                :value="isExectueSchemeDialog"
+                @cancel="isExectueSchemeDialog = false">
+                <div class="template-edit-dialog-content">
+                    <div class="leave-tips">{{ isEditProcessPage ? $t('确定保存并去设置执行方案吗？') : $t('确定保存修改的内容？') }}</div>
+                    <div class="action-wrapper">
+                        <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
+                    </div>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -148,21 +186,31 @@
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
+    import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
 
     export default {
         name: 'TemplateEdit',
         components: {
             TemplateHeader,
             TemplateCanvas,
+            TaskSelectNode,
             NodeConfig,
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips
         },
         mixins: [permission],
-        props: ['template_id', 'type', 'common'],
+        props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
+                isSchemaListChange: false,
+                executeSchemeSaving: false,
+                taskSchemeList: [],
+                isPreviewMode: false,
+                isExectueSchemeDialog: false,
+                isExecuteScheme: false, // 是否为执行方案
+                isEditProcessPage: true,
+                excludeNode: [],
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -215,7 +263,8 @@
                             val: i18n.t('可以快捷打开节点配置面板')
                         }
                     ]
-                }
+                },
+                initTemplateId: this.template_id // 初始模板id
             }
         },
         computed: {
@@ -369,6 +418,9 @@
                 'getLocalTemplateData',
                 'getPipelineTree'
             ]),
+            ...mapActions('task/', [
+                'saveTaskSchemList'
+            ]),
             /**
              * 加载标准插件列表
              */
@@ -399,7 +451,7 @@
                             })
                         }
                     })
-                    this.atomList = atomList
+                    this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                 } catch (e) {
@@ -605,6 +657,27 @@
                 const activities = tools.deepClone(this.activities[location.id])
                 activities.component.data = data
                 this.setActivities({ type: 'edit', location: activities })
+            },
+            /**
+             * 插件列表按照版本号递增排序，legacy 置为最前
+             */
+            handleAtomVersionOrder (atomList) {
+                return atomList.map(atom => {
+                    const index = atom.list.find(item => item.version === 'legacy')
+                    const list = atom.list.slice(0)
+                    const legacyList = []
+                    if (index > -1) {
+                        legacyList.push(list[index])
+                        list.splice(index, 1)
+                    }
+                    if (list.length > 1) {
+                        list.sort((a, b) => a.version.localeCompare(b.version))
+                    }
+                    return {
+                        ...atom,
+                        list: legacyList.concat(list)
+                    }
+                })
             },
             /**
              * 标准插件分组
@@ -952,6 +1025,64 @@
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
+            async onSaveExecuteSchemeClick () {
+                try {
+                    this.executeSchemeSaving = true
+                    const schemes = this.taskSchemeList.map(item => {
+                        return {
+                            data: item.data,
+                            name: item.name,
+                            id: this.initTemplateId === this.template_id ? item.id : undefined // 克隆执行方案时不需要传id
+                        }
+                    })
+                    const resp = await this.saveTaskSchemList({
+                        project_id: this.project_id,
+                        template_id: this.template_id,
+                        schemes
+                    })
+                    this.isExectueSchemeDialog = false
+                    if (!resp.result) {
+                        this.$bkMessage({
+                            message: resp.message,
+                            theme: 'error'
+                        })
+                        return
+                    }
+                    this.$bkMessage({
+                        message: i18n.t('方案保存成功'),
+                        theme: 'success'
+                    })
+                    // 将初始模板id替换为当前模板id，此时不再是克隆执行方案而是正常保存执行方案了
+                    this.initTemplateId = this.template_id
+                    this.allowLeave = true
+                    this.isTemplateDataChanged = false
+                    this.isEditProcessPage = true
+                    this.isSchemaListChange = false
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.executeSchemeSaving = false
+                }
+            },
+            goBackToTplEdit () {
+                if (this.isSchemaListChange) {
+                    this.isExectueSchemeDialog = true
+                } else {
+                    this.isEditProcessPage = true
+                }
+            },
+            updateTaskSchemeList (val) {
+                this.taskSchemeList = val
+                this.allowLeave = false
+                this.isTemplateDataChanged = true
+                this.isSchemaListChange = true
+            },
+            onClosePreview () {
+                this.$refs.taskSelectNode.togglePreviewMode(false)
+            },
+            onOpenExecuteScheme (val) {
+                this.isExecuteScheme = val
+            },
             // 流程名称修改
             onChangeName (name) {
                 this.templateDataChanged()
@@ -967,7 +1098,7 @@
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { step: 'selectnode', project_id: this.pid },
                     query: {
                         template_id,
@@ -984,7 +1115,9 @@
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
                 if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
-                    this.multipleTabDialogShow = true
+                    if (!this.isExecuteScheme) {
+                        this.multipleTabDialogShow = true
+                    }
                 } else {
                     this.checkBasicProperty() // 基础属性是否合法
                 }
@@ -1022,7 +1155,11 @@
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
-                        this.saveTemplate()
+                        if (this.isExecuteScheme) {
+                            this.isExectueSchemeDialog = true
+                        } else {
+                            this.saveTemplate()
+                        }
                     }
                 }
             },
@@ -1249,6 +1386,27 @@
                     id: this.common ? 'common' : this.project_id,
                     tpl: this.template_id
                 }
+            },
+            togglePreviewMode (isPreview) {
+                this.isPreviewMode = isPreview
+            },
+            setExcludeNode (val) {
+                this.excludeNode = val
+            },
+            // 编辑执行方案弹框 确定事件
+            async onConfirmSave () {
+                if (this.isEditProcessPage) {
+                    await this.saveTemplate()
+                    this.isExectueSchemeDialog = false
+                    this.isEditProcessPage = false
+                } else {
+                    this.onSaveExecuteSchemeClick()
+                }
+            },
+            // 编辑执行方案弹框 取消事件
+            onCancelSave () {
+                this.isExectueSchemeDialog = false
+                this.isEditProcessPage = true
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1274,7 +1432,7 @@
     }
     .update-tips {
         position: absolute;
-        top: 76px;
+        top: 64px;
         left: 495px;
         min-height: 40px;
         overflow: hidden;
@@ -1289,7 +1447,7 @@
     }
     .template-canvas {
         position: relative;
-        height: calc(100% - 60px);
+        height: calc(100vh - 100px);
     }
     .side-content {
         position: absolute;
@@ -1315,6 +1473,25 @@
         }
         .action-wrapper .bk-button {
             margin-right: 6px;
+        }
+    }
+</style>
+<style lang="scss">
+    .template-edit-dialog {
+        .bk-dialog-body {
+            padding: 0;
+        }
+        .template-edit-dialog-content {
+            padding: 20px 0 40px 0;
+            text-align: center;
+            .leave-tips {
+                font-size: 24px;
+                margin-bottom: 30px;
+                padding: 0;
+            }
+            .action-wrapper .bk-button {
+                margin-right: 6px;
+            }
         }
     }
 </style>

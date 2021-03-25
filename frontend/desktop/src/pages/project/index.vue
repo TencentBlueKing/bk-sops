@@ -11,76 +11,87 @@
 */
 <template>
     <div class="project-container">
-        <div class="list-wrapper">
-            <base-title :title="$t('项目管理')"></base-title>
-            <div class="list-header">
-                <!-- <bk-button
-                    v-cursor="{ active: !hasPermission(['project_create'], projectActions) }"
-                    theme="primary"
-                    :class="['create-project-btn', {
-                        'btn-permission-disable': !hasPermission(['project_create'], projectActions)
-                    }]"
-                    @click="onCreateProject">
-                    {{$t('新建项目')}}
-                </bk-button> -->
-                <div class="filter-area">
-                    <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
-                    <div class="search-input">
-                        <bk-input
-                            v-model.trim="searchStr"
-                            class="search-input"
-                            clearable
-                            :right-icon="'bk-icon icon-search'"
-                            :placeholder="$t('请输入ID、名称、描述、创建人')"
-                            @change="onSearchInput">
-                        </bk-input>
+        <skeleton :loading="firstLoading" loader="commonList">
+            <div class="list-wrapper">
+                <div class="list-header">
+                    <!-- <bk-button
+                        v-cursor="{ active: !hasPermission(['project_create'], projectActions) }"
+                        theme="primary"
+                        :class="['create-project-btn', {
+                            'btn-permission-disable': !hasPermission(['project_create'], projectActions)
+                        }]"
+                        @click="onCreateProject">
+                        {{$t('新建项目')}}
+                    </bk-button> -->
+                    <div class="filter-area">
+                        <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
+                        <div class="search-input">
+                            <bk-input
+                                v-model.trim="searchStr"
+                                class="search-input"
+                                clearable
+                                :right-icon="'bk-icon icon-search'"
+                                :placeholder="$t('请输入ID、名称、描述、创建人')"
+                                @change="onSearchInput">
+                            </bk-input>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="project-table-content">
-                <bk-table
-                    class="project-table"
-                    :data="projectList"
-                    :pagination="pagination"
-                    v-bkloading="{ isLoading: loading, opacity: 1 }"
-                    @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column label="CC_ID" prop="bk_biz_id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('项目名称')" prop="name"></bk-table-column>
-                    <bk-table-column :label="$t('项目描述')">
-                        <template slot-scope="props">
-                            {{props.row.desc || '--'}}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator"></bk-table-column>
-                    <bk-table-column :label="$t('操作')">
-                        <template slot-scope="props">
-                            <template
-                                v-for="(item, index) in OptBtnList">
-                                <a
-                                    v-if="isShowOptBtn(props.row.is_disable, item.name)"
-                                    v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions) }"
-                                    :key="index"
-                                    :class="['operate-btn', {
-                                        'text-permission-disable': !hasPermission([item.power], props.row.auth_actions)
-                                    }]"
-                                    :text="true"
-                                    @click="onClickOptBtn(props.row, item.name)">
-                                    {{
-                                        item.name === 'view'
-                                            ? (!hasPermission([item.power], props.row.auth_actions) ? item.text : item.enter )
-                                            : item.text
-                                    }}
-                                </a>
+                <div class="project-table-content">
+                    <bk-table
+                        class="project-table"
+                        :data="projectList"
+                        :pagination="pagination"
+                        :size="setting.size"
+                        v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }"
+                        @page-change="onPageChange"
+                        @page-limit-change="handlePageLimitChange">
+                        <bk-table-column
+                            v-for="item in setting.selectedFields"
+                            :key="item.id"
+                            :label="item.label"
+                            :prop="item.id"
+                            :width="item.width"
+                            :min-width="item.min_width">
+                            <template slot-scope="props">
+                                {{ props.row[item.id] || '--' }}
                             </template>
-                        </template>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData /></div>
-                </bk-table>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')">
+                            <template slot-scope="props">
+                                <template
+                                    v-for="(item, index) in OptBtnList">
+                                    <a
+                                        v-if="isShowOptBtn(props.row.is_disable, item.name)"
+                                        v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions) }"
+                                        :key="index"
+                                        :class="['operate-btn', {
+                                            'text-permission-disable': !hasPermission([item.power], props.row.auth_actions)
+                                        }]"
+                                        :text="true"
+                                        @click="onClickOptBtn(props.row, item.name)">
+                                        {{
+                                            item.name === 'view'
+                                                ? (!hasPermission([item.power], props.row.auth_actions) ? item.text : item.enter )
+                                                : item.text
+                                        }}
+                                    </a>
+                                </template>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column type="setting">
+                            <bk-table-setting-content
+                                :fields="setting.fieldList"
+                                :selected="setting.selectedFields"
+                                :size="setting.size"
+                                @setting-change="handleSettingChange">
+                            </bk-table-setting-content>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
-        <CopyrightFooter></CopyrightFooter>
+        </skeleton>
         <bk-dialog
             width="600"
             padding="30px 20px"
@@ -103,7 +114,7 @@
                             data-vv-validate-on=" "
                             v-validate="nameRule">
                         </bk-input>
-                        <span v-show="errors.has('projectName')" class="common-error-tip error-msg">{{ errors.first('projectName') }}</span>
+                        <span v-show="veeErrors.has('projectName')" class="common-error-tip error-msg">{{ veeErrors.first('projectName') }}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -134,7 +145,7 @@
                             data-vv-validate-on=" "
                             v-validate="descRule">
                         </textarea>
-                        <span v-show="errors.has('projectDesc')" class="common-error-tip error-msg">{{ errors.first('projectDesc') }}</span>
+                        <span v-show="veeErrors.has('projectDesc')" class="common-error-tip error-msg">{{ veeErrors.first('projectDesc') }}</span>
                     </div>
                 </div>
             </div>
@@ -161,9 +172,8 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
@@ -195,20 +205,44 @@
             text: i18n.t('停用')
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: 'ID',
+            disabled: true,
+            width: 80
+        }, {
+            id: 'bk_biz_id',
+            label: 'CC_ID',
+            disabled: true,
+            width: 80
+        }, {
+            id: 'name',
+            label: i18n.t('项目名称'),
+            disabled: true,
+            min_width: 200
+        }, {
+            id: 'desc',
+            label: i18n.t('项目描述')
+        }, {
+            id: 'creator',
+            label: i18n.t('创建人')
+        }
+    ]
     export default {
         name: 'ProjectHome',
         components: {
-            NoData,
-            BaseTitle,
-            CopyrightFooter
+            Skeleton,
+            NoData
         },
         mixins: [permission],
         data () {
             return {
+                firstLoading: true,
                 OptBtnList,
                 searchStr: '',
                 projectList: [],
-                loading: true,
+                loading: false,
                 totalPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
@@ -239,6 +273,12 @@
                     count: 0,
                     limit: 15,
                     'limit-list': [15, 30, 50, 100]
+                },
+                tableFields: TABLE_FIELDS,
+                setting: {
+                    fieldList: TABLE_FIELDS,
+                    selectedFields: TABLE_FIELDS.slice(0),
+                    size: 'small'
                 }
             }
         },
@@ -253,10 +293,12 @@
                 return this.operationType === 'stop' ? i18n.t('停用') : i18n.t('启用')
             }
         },
-        created () {
+        async created () {
+            this.getFields()
             this.queryProjectCreatePerm()
-            this.getProjectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getProjectList()
+            this.firstLoading = false
         },
         methods: {
             ...mapMutations('project', [
@@ -322,6 +364,15 @@
                     this.loading = false
                 }
             },
+            // 获取当前视图表格头显示字段
+            getFields () {
+                const settingFields = localStorage.getItem('ProjectList')
+                if (settingFields) {
+                    const { fieldList, size } = JSON.parse(settingFields)
+                    this.setting.size = size
+                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                }
+            },
             async getProjectDetail (id) {
                 try {
                     this.projectDetailLoading = false
@@ -379,6 +430,16 @@
                 } finally {
                     this.updatePending = false
                 }
+            },
+            // 表格功能选项
+            handleSettingChange ({ fields, size }) {
+                this.setting.size = size
+                this.setting.selectedFields = fields
+                const fieldIds = fields.map(m => m.id)
+                localStorage.setItem('ProjectList', JSON.stringify({
+                    fieldList: fieldIds,
+                    size
+                }))
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -535,19 +596,19 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .project-container {
-        min-width: 1320px;
-        min-height: calc(100% - 50px);
+        padding: 20px 24px;
+        height: 100%;
+        overflow: auto;
+        @include scrollbar;
         .dialog-content {
             word-break: break-all;
         }
     }
-    .list-wrapper {
-        padding: 0 60px;
-        min-height: calc(100vh - 240px);
-    }
     .list-header {
-        padding: 20px 0;
+        padding-bottom: 20px;
         overflow: hidden;
         .create-project-btn {
             width: 120px;

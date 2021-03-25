@@ -10,3 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
+
+from werkzeug.local import Local
+
+local = Local()
+
+
+class TraceIDInjectFilter(logging.Filter):
+    def filter(self, record):
+        record.trace_id = getattr(local, "trace_id", None)
+        return True

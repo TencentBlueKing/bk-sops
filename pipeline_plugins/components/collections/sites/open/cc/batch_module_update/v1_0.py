@@ -28,7 +28,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     get_module_set_id,
 )
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 VERSION = "1.0"
 
@@ -41,7 +41,10 @@ class CCBatchModuleUpdateService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_tag_method", type="string", schema=StringItemSchema(description=_("填参方式")),
+                name=_("填参方式"),
+                key="cc_tag_method",
+                type="string",
+                schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
                 name=_("拓扑模块属性修改"),
@@ -66,12 +69,10 @@ class CCBatchModuleUpdateService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         bk_biz_name = parent_data.inputs.bk_biz_name
         cc_module_update_data = data.get_one_of_inputs("cc_module_update_data")
-        cc_template_break_line = data.get_one_of_inputs("cc_template_break_line")
+        cc_template_break_line = data.get_one_of_inputs("cc_template_break_line") or ","
         cc_tag_method = data.get_one_of_inputs("cc_tag_method")
 
-        # 如果用户没有输入分隔符，则默认为 ','
-        if not cc_template_break_line:
-            cc_template_break_line = ","
+        cc_module_update_data = convert_num_to_str(cc_module_update_data)
 
         attr_list = []
         # 如果用户选择了单行扩展
