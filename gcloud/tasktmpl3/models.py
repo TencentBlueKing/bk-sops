@@ -85,7 +85,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTmplStatisticsMixin):
         if override and (not check_info["can_override"]):
             return {
                 "result": False,
-                "message": "Unable to override flows across project",
+                "message": _("跨业务导入模版不支持覆盖相同ID"),
                 "data": 0,
                 "code": err_code.INVALID_OPERATION.code,
             }

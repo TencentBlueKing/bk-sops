@@ -31,14 +31,14 @@ GET_MODULE_LIST = "{}.get_module_list".format(CMDB_API_FUNC_PREFIX)
 
 class MockClient(object):
     def __init__(
-            self,
-            search_set_return=None,
-            list_biz_hosts_topo_return=None,
-            find_module_with_relation_func=None,
-            list_biz_hosts_func=None,
-            list_service_template_return=None,
-            find_module_batch_return=None,
-            get_biz_internal_module_return=None
+        self,
+        search_set_return=None,
+        list_biz_hosts_topo_return=None,
+        find_module_with_relation_func=None,
+        list_biz_hosts_func=None,
+        list_service_template_return=None,
+        find_module_batch_return=None,
+        get_biz_internal_module_return=None,
     ):
         self.cc = MagicMock()
         self.cc.list_biz_hosts_topo = MagicMock(return_value=list_biz_hosts_topo_return)
@@ -74,10 +74,7 @@ def list_biz_hosts_func(*args, **kwargs):
 
 
 def find_module_with_relation_func(*args, **kwargs):
-    data = {
-        "count": 0,
-        "info": []
-    }
+    data = {"count": 0, "info": []}
     if 31 in kwargs["bk_set_ids"] and 61 in kwargs["bk_service_template_ids"]:
         data["info"].append({"bk_module_id": 61})
     if 32 in kwargs["bk_set_ids"] and 62 in kwargs["bk_service_template_ids"]:
@@ -175,53 +172,49 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
 
         self.pipeline_data = {"executor": "admin", "biz_cc_id": 123, "project_id": 1}
 
-        self.client = patch(GET_CLIENT_BY_USER, MagicMock(return_value=MockClient(
-            list_biz_hosts_func=list_biz_hosts_func,
-            list_service_template_return={
-                "result": True,
-                "code": 0,
-                "message": "success",
-                "permission": None,
-                "data": {"count": 2, "info": [{"id": 62, "name": "test"}, {"id": 61, "name": "db"}]},
-            },
-            search_set_return={
-                "result": True,
-                "code": 0,
-                "message": "",
-                "data": {
-                    "count": 3,
-                    "info": [
-                        {"default": 0, "bk_set_id": 2, "bk_set_name": "空闲机池"},
-                        {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
-                        {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
-                    ],
-                },
-            },
-            find_module_with_relation_func=find_module_with_relation_func,
-            get_biz_internal_module_return={
-                "result": True,
-                "code": 0,
-                "message": "success",
-                "data": {
-                    "bk_set_id": 2,
-                    "bk_set_name": "空闲机池",
-                    "module": [
-                        {
-                            "bk_module_id": 3,
-                            "bk_module_name": "空闲机"
+        self.client = patch(
+            GET_CLIENT_BY_USER,
+            MagicMock(
+                return_value=MockClient(
+                    list_biz_hosts_func=list_biz_hosts_func,
+                    list_service_template_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "success",
+                        "permission": None,
+                        "data": {"count": 2, "info": [{"id": 62, "name": "test"}, {"id": 61, "name": "db"}]},
+                    },
+                    search_set_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "",
+                        "data": {
+                            "count": 3,
+                            "info": [
+                                {"default": 0, "bk_set_id": 2, "bk_set_name": "空闲机池"},
+                                {"default": 0, "bk_set_id": 31, "bk_set_name": "集群1"},
+                                {"default": 0, "bk_set_id": 32, "bk_set_name": "集群2"},
+                            ],
                         },
-                        {
-                            "bk_module_id": 4,
-                            "bk_module_name": "故障机"
+                    },
+                    find_module_with_relation_func=find_module_with_relation_func,
+                    get_biz_internal_module_return={
+                        "result": True,
+                        "code": 0,
+                        "message": "success",
+                        "data": {
+                            "bk_set_id": 2,
+                            "bk_set_name": "空闲机池",
+                            "module": [
+                                {"bk_module_id": 3, "bk_module_name": "空闲机"},
+                                {"bk_module_id": 4, "bk_module_name": "故障机"},
+                                {"bk_module_id": 5, "bk_module_name": "待回收"},
+                            ],
                         },
-                        {
-                            "bk_module_id": 5,
-                            "bk_module_name": "待回收"
-                        }
-                    ]
-                }
-            }
-        )))
+                    },
+                )
+            ),
+        )
         self.client.start()
         self.project_patcher.start()
         self.supplier_account_for_project_patcher.start()
@@ -246,33 +239,63 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             name="test_select_method_success_case",
             context={},
         )
-        self.assertEqual('192.168.40.1', set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[61], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[61], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+        self.assertEqual("192.168.40.1", set_module_ip_selector.get_value())
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-            }
-        ])
-
-    def test_ip_selector_select_method_suc_no_filter_has_filter_set_modulue_success_case(self, mock_get_client_by_user_return=None): # noqa
+    def test_ip_selector_select_method_suc_no_filter_has_filter_set_modulue_success_case(
+        self, mock_get_client_by_user_return=None
+    ):  # noqa
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"],
-                                        "var_module_name": "ip"},
+                "var_ip_select_value": {
+                    "var_set": ["空闲机池", "集群1"],
+                    "var_module": ["空闲机", "db"],
+                    "var_module_name": "ip",
+                },
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "空闲机池",
                 "var_filter_module": "",
@@ -280,31 +303,45 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             name="test_ip_selector_select_method_suc_no_filter_has_filter_set_modulue_success_case",
             context={},
         )
-        self.assertEqual('192.168.1.1', set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func":
-                    self.client.new().cc.find_module_with_relation,
-                "calls": []
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
+        call_assert(
+            [
+                {"func": self.client.new().cc.find_module_with_relation, "calls": []},
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-    def test_ip_selector_select_method_suc_has_filter_set_module_success_case(self,
-                                                                              mock_get_client_by_user_return=None): # noqa
+    def test_ip_selector_select_method_suc_has_filter_set_module_success_case(
+        self, mock_get_client_by_user_return=None
+    ):  # noqa
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"],
-                                        "var_module_name": "ip"},
+                "var_ip_select_value": {
+                    "var_set": ["空闲机池", "集群1"],
+                    "var_module": ["空闲机", "db"],
+                    "var_module_name": "ip",
+                },
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "空闲机池",
                 "var_filter_module": "空闲机",
@@ -313,19 +350,30 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": []
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {"func": self.client.new().cc.find_module_with_relation, "calls": []},
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_ip_selector_select_method_suc_has_filter_other_set_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -333,8 +381,11 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"],
-                                        "var_module_name": "ip"},
+                "var_ip_select_value": {
+                    "var_set": ["空闲机池", "集群1"],
+                    "var_module": ["空闲机", "db"],
+                    "var_module_name": "ip",
+                },
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "集群1,空闲机池",
                 "var_filter_module": "",
@@ -343,32 +394,62 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.1,192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[61, 3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[61, 3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61, 3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61, 3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61, 3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61, 3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-    def test_ip_selector_select_method_suc_has_filter_other_set_module_success_case(self,
-                                                                                    mock_get_client_by_user_return=None): # noqa
+    def test_ip_selector_select_method_suc_has_filter_other_set_module_success_case(
+        self, mock_get_client_by_user_return=None
+    ):  # noqa
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"],
-                                        "var_module_name": "ip"},
+                "var_ip_select_value": {
+                    "var_set": ["空闲机池", "集群1"],
+                    "var_module": ["空闲机", "db"],
+                    "var_module_name": "ip",
+                },
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "集群1,空闲机池",
                 "var_filter_module": "空闲机",
@@ -377,23 +458,43 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-    def test_ip_selector_select_method_suc_no_filter_no_modulue_success_case(self,
-                                                                             mock_get_client_by_user_return=None):
+    def test_ip_selector_select_method_suc_no_filter_no_modulue_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
@@ -408,33 +509,60 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[61], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[61], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-            }
-        ])
-
-    def test_ip_selector_select_method_suc_no_filter_success_case(self,
-                                                                  mock_get_client_by_user_return=None):
+    def test_ip_selector_select_method_suc_no_filter_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["空闲机", "db"],
-                                        "var_module_name": "ip"},
+                "var_ip_select_value": {
+                    "var_set": ["空闲机池", "集群1"],
+                    "var_module": ["空闲机", "db"],
+                    "var_module_name": "ip",
+                },
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "",
                 "var_filter_module": "",
@@ -443,32 +571,60 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.1,192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[61, 3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[61, 3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61, 3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61, 3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61, 3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61, 3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-    def test_ip_selector_select_method_no_inner_module_success_case(self,
-                                                                    mock_get_client_by_user_return=None):
+    def test_ip_selector_select_method_no_inner_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
                 "var_ip_method": "select",
                 "var_ip_custom_value": "",
-                "var_ip_select_value": {"var_set": ["空闲机", "集群1"], "var_module": ["空闲机", "db"],
-                                        "var_module_name": "ip"},
+                "var_ip_select_value": {
+                    "var_set": ["空闲机", "集群1"],
+                    "var_module": ["空闲机", "db"],
+                    "var_module_name": "ip",
+                },
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "集群1,集群2",
                 "var_filter_module": "ls",
@@ -477,20 +633,25 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
-    def test_ip_selector_select_method_all_select_set_success__case(self,
-                                                                    mock_get_client_by_user_return=None):
+    def test_ip_selector_select_method_all_select_set_success__case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
@@ -505,17 +666,23 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31, 32], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_ip_selector_select_method_all_select_set_module_fail_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -532,16 +699,12 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": []
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {"func": self.client.new().cc.find_module_with_relation, "calls": []},
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_ip_selector_select_method_all_select_set_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -558,23 +721,43 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[32], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
-    def test_ip_selector_select_method_all_select_module_success_case(self,
-                                                                      mock_get_client_by_user_return=None):
+    def test_ip_selector_select_method_all_select_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
             pipeline_data=self.pipeline_data,
             value={
@@ -589,17 +772,23 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_select_method_get_ip_fail_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -616,17 +805,23 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_manual_method_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -635,8 +830,11 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                 "var_ip_method": "manual",
                 "var_ip_custom_value": "",
                 "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
-                "var_ip_manual_value": {"var_manual_set": "空闲机,集群1", "var_manual_module": "all,db",
-                                        "var_module_name": ""},
+                "var_ip_manual_value": {
+                    "var_manual_set": "空闲机,集群1",
+                    "var_manual_module": "all,db",
+                    "var_module_name": "",
+                },
                 "var_filter_set": "集群1,集群2",
                 "var_filter_module": "ls",
             },
@@ -644,17 +842,23 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_manual_method_all_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -663,8 +867,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                 "var_ip_method": "manual",
                 "var_ip_custom_value": "",
                 "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": ""},
-                "var_ip_manual_value": {"var_manual_set": "集群1", "var_manual_module": "all",
-                                        "var_module_name": ""},
+                "var_ip_manual_value": {"var_manual_set": "集群1", "var_manual_module": "all", "var_module_name": ""},
                 "var_filter_set": "",
                 "var_filter_module": "",
             },
@@ -672,22 +875,48 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[62, 61, 3, 4, 5], bk_set_ids=[31],
-                               fields=['bk_module_id'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[62, 61, 3, 4, 5], bk_set_ids=[31],
-                               fields=['bk_module_id'], page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[62, 61, 3, 4, 5],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[62, 61, 3, 4, 5],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_manual_method_fail_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -696,8 +925,11 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                 "var_ip_method": "manual",
                 "var_ip_custom_value": "",
                 "var_ip_select_value": {"var_set": ["空闲机池", "集群1"], "var_module": ["db"], "var_module_name": "ip"},
-                "var_ip_manual_value": {"var_manual_set": "空闲机,集群1", "var_manual_module": "all,db",
-                                        "var_module_name": ""},
+                "var_ip_manual_value": {
+                    "var_manual_set": "空闲机,集群1",
+                    "var_manual_module": "all,db",
+                    "var_module_name": "",
+                },
                 "var_filter_set": "集群1,集群2",
                 "var_filter_module": "ls",
             },
@@ -705,17 +937,23 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_custom_method_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -732,22 +970,48 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[61], bk_set_ids=[31, 32], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[61], bk_set_ids=[31, 32], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_custom_method_fail_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -764,17 +1028,23 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[], bk_set_ids=[31, 32], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_custom_method_biz_input_inner_set_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -791,22 +1061,48 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.2,192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[62, 3], bk_set_ids=[32], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[62, 3], bk_set_ids=[32], fields=['bk_module_id'],
-                               page={'limit': 500, 'start': 0})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[62, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[62, 3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[62, 3],
+                            bk_set_ids=[32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[62, 3],
+                            bk_set_ids=[32],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[62, 3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[62, 3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_custom_method_biz_input_inner_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -823,20 +1119,41 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31, 32], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_select_method_biz_input_inner_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -848,23 +1165,28 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                 "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
                 "var_filter_set": "集群1,集群2",
                 "var_filter_module": "db,空闲机",
-            }
-            ,
+            },
             name="test_select_method_biz_innerip_success_case",
             context={},
         )
         self.assertEqual("", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": []
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
     def test_select_method_biz_input_inner_set_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -881,19 +1203,30 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": []
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {"func": self.client.new().cc.find_module_with_relation, "calls": []},
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_select_method_no_filter_set_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -910,20 +1243,41 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.1.1", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[3], bk_set_ids=[31], fields=['bk_module_id'],
-                               page={'start': 0, 'limit': 1})]
-            },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[3], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[3],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
 
     def test_select_method_no_filter_set_module_select_module_success_case(self, mock_get_client_by_user_return=None):
         set_module_ip_selector = SetModuleIpSelector(
@@ -940,22 +1294,81 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             context={},
         )
         self.assertEqual("192.168.40.1,192.168.1.1,192.168.1.2,192.168.1.3", set_module_ip_selector.get_value())
-        call_assert([
-            {
-                "func": self.client.new().cc.find_module_with_relation,
-                "calls": [call(bk_biz_id=1, bk_service_template_ids=[62, 61, 3, 4, 5], bk_set_ids=[31],
-                               fields=['bk_module_id'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_service_template_ids=[62, 61, 3, 4, 5], bk_set_ids=[31],
-                               fields=['bk_module_id'], page={'limit': 500, 'start': 0})]
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[62, 61, 3, 4, 5],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[62, 61, 3, 4, 5],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+                {
+                    "func": self.client.new().cc.list_biz_hosts,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61, 3, 4, 5],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"start": 0, "limit": 1},
+                        ),
+                        call(
+                            bk_biz_id=1,
+                            bk_module_ids=[61, 3, 4, 5],
+                            bk_supplier_account="supplier_account_token",
+                            fields=["bk_host_innerip"],
+                            page={"limit": 500, "start": 0},
+                        ),
+                    ],
+                },
+            ]
+        )
+
+    def test_select_method_inner_service_success_case(self, mock_get_client_by_user_return=None):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value={
+                "var_ip_method": "select",
+                "var_ip_custom_value": "",
+                "var_ip_select_value": {"var_set": ["集群1"], "var_module": ["all"], "var_module_name": ""},
+                "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+                "var_filter_set": "",
+                "var_filter_module": "待回收",
             },
-            {
-                "func": self.client.new().cc.list_biz_hosts,
-                "calls": [call(bk_biz_id=1, bk_module_ids=[61, 3, 4, 5], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'start': 0, 'limit': 1}),
-                          call(bk_biz_id=1, bk_module_ids=[61, 3, 4, 5], bk_supplier_account='supplier_account_token',
-                               fields=['bk_host_innerip'], page={'limit': 500, 'start': 0})]
-            }
-        ])
+            name="test_select_method_inner_service_success_case",
+            context={},
+        )
+        self.assertEqual("", set_module_ip_selector.get_value())
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[5],
+                            bk_set_ids=[31],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
 
 
 def call_assert(calls_list):
