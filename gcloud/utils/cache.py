@@ -16,7 +16,7 @@ specific language governing permissions and limitations under the License.
 import time
 from contextlib import contextmanager
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache
-from django.utils.synch import RWLock
+from threading import Lock
 
 _caches = {}
 _expire_info = {}
@@ -52,13 +52,13 @@ class LocMemCache(BaseCache):
         BaseCache.__init__(self, params)
         self._cache = _caches.setdefault(name, {})
         self._expire_info = _expire_info.setdefault(name, {})
-        self._lock = _locks.setdefault(name, RWLock())
+        self._lock = _locks.setdefault(name, Lock())
 
     def add(self, key, value, timeout=DEFAULT_TIMEOUT, version=None):
         key = self.make_key(key, version=version)
         self.validate_key(key)
         pickled = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
-        with self._lock.writer():
+        with self._lock:
             if self._has_expired(key):
                 self._set(key, pickled, timeout)
                 return True
@@ -68,7 +68,7 @@ class LocMemCache(BaseCache):
         key = self.make_key(key, version=version)
         self.validate_key(key)
         pickled = None
-        with (self._lock.reader() if acquire_lock else dummy()):
+        with (self._lock if acquire_lock else dummy()):
             if not self._has_expired(key):
                 pickled = self._cache[key]
         if pickled is not None:
@@ -77,7 +77,7 @@ class LocMemCache(BaseCache):
             except pickle.PickleError:
                 return default
 
-        with (self._lock.writer() if acquire_lock else dummy()):
+        with (self._lock if acquire_lock else dummy()):
             try:
                 del self._cache[key]
                 del self._expire_info[key]
@@ -95,11 +95,11 @@ class LocMemCache(BaseCache):
         key = self.make_key(key, version=version)
         self.validate_key(key)
         pickled = pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
-        with self._lock.writer():
+        with self._lock:
             self._set(key, pickled, timeout)
 
     def incr(self, key, delta=1, version=None):
-        with self._lock.writer():
+        with self._lock:
             value = self.get(key, version=version, acquire_lock=False)
             if value is None:
                 raise ValueError("Key '%s' not found" % key)
@@ -112,11 +112,11 @@ class LocMemCache(BaseCache):
     def has_key(self, key, version=None):
         key = self.make_key(key, version=version)
         self.validate_key(key)
-        with self._lock.reader():
+        with self._lock:
             if not self._has_expired(key):
                 return True
 
-        with self._lock.writer():
+        with self._lock:
             try:
                 del self._cache[key]
                 del self._expire_info[key]
@@ -151,7 +151,7 @@ class LocMemCache(BaseCache):
     def delete(self, key, version=None):
         key = self.make_key(key, version=version)
         self.validate_key(key)
-        with self._lock.writer():
+        with self._lock:
             self._delete(key)
 
     def clear(self):

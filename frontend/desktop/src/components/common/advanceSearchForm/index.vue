@@ -120,6 +120,10 @@
             AdvanceSearch
         },
         props: {
+            open: {
+                type: Boolean,
+                default: false
+            },
             isShowSearch: {
                 type: Boolean,
                 default: true
@@ -146,7 +150,7 @@
         },
         data () {
             return {
-                isAdvanceOpen: false,
+                isAdvanceOpen: this.open,
                 records: [],
                 selectedRecord: null,
                 searchValue: '',
@@ -345,7 +349,7 @@
 .advance-search-wrapper {
     width: 100%;
     .operation-area {
-        margin: 20px 0;
+        margin: 0 0 20px 0;
         .operation-btn {
             float: left;
         }

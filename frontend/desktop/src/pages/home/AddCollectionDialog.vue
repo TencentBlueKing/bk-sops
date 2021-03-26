@@ -515,7 +515,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 40px 4px 20px 0;
+        padding: 40px 0 20px;
         width: 557px;
         height: 100%;
         .template-list {

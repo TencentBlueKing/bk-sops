@@ -53,18 +53,25 @@
                         class="ui-form-item"
                         :clearable="true">
                     </bk-input>
-                    <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
+                    <span v-show="veeErrors.has('appName')" class="common-error-tip error-msg">{{ veeErrors.first('appName') }}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{$t('类别')}}</label>
                 <div class="common-form-content">
-                    <bk-input
+                    <bk-select
                         v-model="appData.appCategory"
-                        name="appCategory"
                         class="ui-form-item"
+                        :searchable="true"
+                        :placeholder="$t('请选择')"
                         :clearable="true">
-                    </bk-input>
+                        <bk-option
+                            v-for="(option, index) in taskCategories"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                 </div>
             </div>
             <div class="common-form-item">
@@ -88,7 +95,7 @@
                     <i
                         class="common-icon-info scheme-tooltip"
                         v-bk-tooltips="{
-                            content: $t('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。'),
+                            content: $t('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。') + $t('如果轻应用选择了执行方案，更新模板后需要同步更新执行方案。'),
                             placements: ['bottom-end'],
                             width: 400 }">
                     </i>
@@ -165,7 +172,7 @@
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
                     </bk-input>
-                    <span v-show="errors.has('appDesc')" class="common-error-tip error-msg">{{ errors.first('appDesc') }}</span>
+                    <span v-show="veeErrors.has('appDesc')" class="common-error-tip error-msg">{{ veeErrors.first('appDesc') }}</span>
                 </div>
             </div>
         </div>
@@ -246,6 +253,20 @@
             }
         },
         computed: {
+            ...mapState({
+                'projectBaseInfo': state => state.template.projectBaseInfo
+            }),
+            taskCategories () {
+                if (this.projectBaseInfo.task_categories) {
+                    return this.projectBaseInfo.task_categories.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.name
+                        }
+                    })
+                }
+                return []
+            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -327,7 +348,7 @@
                 this.schemeLoading = true
                 try {
                     const data = {
-                        project__id: this.project_id,
+                        project_id: this.project_id,
                         template_id: this.appData.appTemplate
                     }
                     this.schemeList = await this.loadTaskScheme(data)
@@ -403,7 +424,7 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
-                this.errors.clear()
+                this.veeErrors.clear()
                 this.appTemplateEmpty = false
             },
             resetAppData () {

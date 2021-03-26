@@ -7,7 +7,10 @@ log_name="$user"_"$ts"
 mkdir -p ./dev_log/dev
 echo "add log: ./dev_log/dev/$log_name.yaml"
 
-if [ ! -n "$1" ]; then
+if [ $# -eq 2 ]; then
+text=$1":
+  - "$2
+elif [ ! -n "$1" ]; then
 text="feature:
   - 新增 xxx 功能
 improvement:

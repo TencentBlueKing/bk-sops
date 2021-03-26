@@ -33,7 +33,9 @@ class FunctionTask(models.Model):
     职能化认领单
     """
 
-    task = models.ForeignKey(TaskFlowInstance, related_name="function_task", help_text=_("职能化单"))
+    task = models.ForeignKey(
+        TaskFlowInstance, related_name="function_task", help_text=_("职能化单"), on_delete=models.CASCADE
+    )
     creator = models.CharField(_("提单人"), max_length=32)
     create_time = models.DateTimeField(_("提单时间"), auto_now_add=True)
     claimant = models.CharField(_("认领人"), max_length=32, blank=True)

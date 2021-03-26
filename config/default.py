@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import importlib
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -136,7 +137,10 @@ else:
 if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
-MIDDLEWARE = ("weixin.core.middlewares.WeixinProxyPatchMiddleware",) + MIDDLEWARE
+MIDDLEWARE = (
+    "gcloud.core.middlewares.TraceIDInjectMiddleware",
+    "weixin.core.middlewares.WeixinProxyPatchMiddleware",
+) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
 LOG_LEVEL = "INFO"
@@ -149,7 +153,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.27"
+STATIC_VERSION = "3.6.34"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -168,12 +172,9 @@ CELERY_IMPORTS = ()
 # celery settings
 if IS_USE_CELERY:
     INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
-    import djcelery
-
-    INSTALLED_APPS += ("djcelery",)
-    djcelery.setup_loader()
-    CELERY_ENABLE_UTC = True
-    CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+    INSTALLED_APPS += ("django_celery_beat", "django_celery_results")
+    CELERY_ENABLE_UTC = False
+    CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
 
 TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
 OLD_COMMUNITY_TEMPLATE_DATA_SALT = "e5483c1ccde63392bd439775bba6a7ae"
@@ -200,6 +201,9 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
+
+# max body size
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 
 def _(s):
@@ -253,6 +257,7 @@ if locals().get("DISABLED_APPS"):
 # python manage.py createcachetable django_cache
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
+    "login_db": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "account_cache"},
     "locmem": {"BACKEND": "gcloud.utils.cache.LocMemCache", "LOCATION": "django_cache"},
     "dummy": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
 }
@@ -381,12 +386,14 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
+# format: module_path: alias
 MAKO_SANDBOX_IMPORT_MODULES = {
     "datetime": "datetime",
     "re": "re",
     "hashlib": "hashlib",
     "random": "random",
     "time": "time",
+    "os.path": "os.path",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:
@@ -436,3 +443,53 @@ LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if
 
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
+
+PAGE_NOT_FOUND_URL_KEY = "page_not_found"
+
+
+# SaaS统一日志配置
+def logging_addition_settings(logging_dict, environment="prod"):
+    logging_dict["loggers"]["iam"] = {
+        "handlers": ["component"],
+        "level": "INFO" if environment == "prod" else "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["handlers"]["engine_component"] = {
+        "class": "pipeline.log.handlers.EngineContextLogHandler",
+        "formatter": "verbose",
+    }
+
+    logging_dict["loggers"]["component"] = {
+        "handlers": ["component", "engine_component"],
+        "level": "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["formatters"]["light"] = {"format": "%(message)s"}
+
+    logging_dict["handlers"]["engine"] = {
+        "class": "pipeline.log.handlers.EngineLogHandler",
+        "formatter": "light",
+    }
+
+    logging_dict["loggers"]["pipeline.logging"] = {
+        "handlers": ["engine"],
+        "level": "INFO",
+        "propagate": True,
+    }
+
+    # 多环境需要，celery的handler需要动态获取
+    logging_dict["loggers"]["celery_and_engine_component"] = {
+        "handlers": ["engine_component", logging_dict["loggers"]["celery"]["handlers"][0]],
+        "level": "INFO",
+        "propagate": True,
+    }
+
+    # 日志中添加trace_id
+    logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
+    for _, logging_handler in logging_dict["handlers"].items():
+        logging_handler.update({"filters": ["trace_id_inject_filter"]})
+    for formatter_name, logging_formatter in logging_dict["formatters"].items():
+        if formatter_name != "simple":
+            logging_formatter.update({"format": logging_formatter["format"].strip() + " [trace_id]: %(trace_id)s\n"})

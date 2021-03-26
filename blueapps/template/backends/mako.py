@@ -32,24 +32,23 @@ class MakoTemplates(BaseEngine):
 
     def __init__(self, params):
         params = params.copy()
-        options = params.pop('OPTIONS').copy()
+        options = params.pop("OPTIONS").copy()
         super(MakoTemplates, self).__init__(params)
 
         # Defaut values for initializing the MakoTemplateLookup class
         # You can define them in the backend OPTIONS dict.
-        options.setdefault('directories', self.template_dirs)
-        options.setdefault('module_directory', tempfile.gettempdir())
-        options.setdefault('input_encoding', settings.FILE_CHARSET)
-        options.setdefault('output_encoding', settings.FILE_CHARSET)
-        options.setdefault('encoding_errors', 'replace')
-        options.setdefault('collection_size', 500)
-        options.setdefault('default_filters',
-                           settings.MAKO_DEFAULT_FILTERS
-                           if hasattr(settings, 'MAKO_DEFAULT_FILTERS') else []
-                           )
+        options.setdefault("directories", self.template_dirs)
+        options.setdefault("module_directory", tempfile.gettempdir())
+        options.setdefault("input_encoding", "utf-8")
+        options.setdefault("output_encoding", "utf-8")
+        options.setdefault("encoding_errors", "replace")
+        options.setdefault("collection_size", 500)
+        options.setdefault(
+            "default_filters", settings.MAKO_DEFAULT_FILTERS if hasattr(settings, "MAKO_DEFAULT_FILTERS") else [],
+        )
 
         # Use context processors like Django
-        context_processors = options.pop('context_processors', [])
+        context_processors = options.pop("context_processors", [])
         self.context_processors = context_processors
 
         # Use the mako template lookup class to find templates
@@ -64,21 +63,19 @@ class MakoTemplates(BaseEngine):
     def from_string(self, template_code):
         try:
             return Template(MakoTemplate(template_code, lookup=self.lookup), [])
-        except mako_exceptions.SyntaxException as e:
-            raise TemplateSyntaxError(e.args)
+        except mako_exceptions.SyntaxException as err:
+            raise TemplateSyntaxError(err.args)
 
     def get_template(self, template_name):
         try:
-            return Template(self.lookup.get_template(template_name),
-                            self.template_context_processors)
-        except mako_exceptions.TemplateLookupException as e:
-            raise TemplateDoesNotExist(e.args)
-        except mako_exceptions.CompileException as e:
-            raise TemplateSyntaxError(e.args)
+            return Template(self.lookup.get_template(template_name), self.template_context_processors,)
+        except mako_exceptions.TemplateLookupException as err:
+            raise TemplateDoesNotExist(err.args)
+        except mako_exceptions.CompileException as err:
+            raise TemplateSyntaxError(err.args)
 
 
 class Template(object):
-
     def __init__(self, template, context_processors):
         self.template = template
         self.context_processors = context_processors
@@ -91,11 +88,11 @@ class Template(object):
             for processor in self.context_processors:
                 try:
                     context.update(processor(request))
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     pass
 
-            context['request'] = request
-            context['csrf_input'] = csrf_input_lazy(request)
-            context['csrf_token'] = csrf_token_lazy(request)
+            context["request"] = request
+            context["csrf_input"] = csrf_input_lazy(request)
+            context["csrf_token"] = csrf_token_lazy(request)
 
         return self.template.render_unicode(**context)

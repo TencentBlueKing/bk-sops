@@ -19,7 +19,11 @@ from django.conf import settings
 from django.db import connection, models
 from django.db.models.query import QuerySet
 
-from pipeline.contrib.periodic_task.djcelery.db import commit_on_success, get_queryset, rollback_unless_managed
+from pipeline.contrib.periodic_task.djcelery.db import (
+    commit_on_success,
+    get_queryset,
+    rollback_unless_managed,
+)
 from pipeline.contrib.periodic_task.djcelery.utils import now
 
 try:

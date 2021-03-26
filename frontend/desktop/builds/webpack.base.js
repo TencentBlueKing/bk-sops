@@ -133,9 +133,15 @@ module.exports = {
                     chunks: 'all',
                     priority: 100
                 },
-                plotly: {
-                    test: /plotly.js\/dist\/plotly-basic\.min\.js/,
-                    name: 'plotly',
+                'bk-magic-vue': {
+                    test: /bk-magic-vue\/dist\/bk-magic-vue\.min\.js/,
+                    name: 'bk-magic-vue',
+                    chunks: 'initial',
+                    priority: 100
+                },
+                bkcharts: {
+                    test: /@blueking\/bkcharts\/dist\/bkcharts\.min\.js/,
+                    name: 'bkcharts',
                     chunks: 'all',
                     priority: 100
                 },

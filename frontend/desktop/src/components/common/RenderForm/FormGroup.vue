@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="rf-form-group" v-show="showForm">
+    <div class="rf-form-group" :class="{ 'rf-has-hook': option.showHook }" v-show="showForm">
         <!-- 分组名称和描述 -->
         <div v-if="showFormTitle" class="rf-group-name">
             <span class="name">{{scheme.name || scheme.attrs.name}}</span>
@@ -40,7 +40,6 @@
             v-for="(form, index) in scheme.attrs.children"
             :key="`${form.tag_code}_${index}`"
             :is="form.type === 'combine' ? 'FormGroup' : 'FormItem'"
-            :class="{ 'rf-has-hook': form.type !== 'combine' && showHook }"
             :constants="constants"
             :scheme="form"
             :option="groupOption"
@@ -242,6 +241,9 @@
 <style lang="scss">
 .rf-form-group {
     position: relative;
+    &.rf-has-hook .rf-tag-form {
+        margin-right: 30px;
+    }
     .rf-group-name {
         display: block
     }

@@ -12,7 +12,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
-// import bus from '@/utils/bus.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 
@@ -198,7 +197,7 @@ const routers = new VueRouter({
                 {
                     path: 'newtask/:project_id/:step/',
                     component: TaskCreate,
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -477,6 +476,13 @@ routers.beforeEach((to, from, next) => {
         next(APPMAKER.getIndex())
     } else {
         next()
+    }
+})
+
+// js chunk 静态资源加载失败重新刷新页面
+routers.onError(error => {
+    if (/Loading chunk (\d*) failed/.test(error.message)) {
+        window.location.reload(true)
     }
 })
 

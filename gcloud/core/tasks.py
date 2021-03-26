@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from django.core.cache import cache
 from celery import task
 from celery.five import monotonic
-from celery.decorators import periodic_task
+from celery.task import periodic_task
 
 from gcloud import exceptions
 from gcloud.conf import settings
@@ -52,7 +52,8 @@ def redis_lock(lock_id, task_id):
 
 
 @periodic_task(run_every=TzAwareCrontab(minute="*/2"))
-def cmdb_business_sync_task(task_id):
+def cmdb_business_sync_task():
+    task_id = cmdb_business_sync_task.request.id
     with redis_lock(LOCK_ID, task_id) as acquired:
         if acquired:
             loggger.info("Start sync business from cmdb...")

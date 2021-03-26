@@ -75,6 +75,10 @@
                     <NoData v-else></NoData>
                 </section>
                 <section class="info-section">
+                    <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
+                    <OperationFlow></OperationFlow>
+                </section>
+                <section class="info-section">
                     <div class="common-section-title input-parameter">
                         <div class="input-title">{{ $t('输入参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -268,6 +272,7 @@
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import NodeTree from './NodeTree'
     import FullCodeEditor from './FullCodeEditor.vue'
+    import OperationFlow from './OperationFlow.vue'
 
     const EXECUTE_INFO_COL = [
         {
@@ -425,7 +430,8 @@
             NoData,
             IpLogContent,
             NodeTree,
-            FullCodeEditor
+            FullCodeEditor,
+            OperationFlow
         },
         props: {
             adminView: {
