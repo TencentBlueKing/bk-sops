@@ -180,7 +180,6 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
             width: 80
         }, {
             id: 'project',

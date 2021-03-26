@@ -209,12 +209,10 @@
         {
             id: 'id',
             label: 'ID',
-            disabled: true,
             width: 80
         }, {
             id: 'bk_biz_id',
             label: 'CC_ID',
-            disabled: true,
             width: 80
         }, {
             id: 'name',

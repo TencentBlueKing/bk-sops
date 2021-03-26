@@ -60,7 +60,13 @@
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
-                <bk-button theme="primary" :disabled="hasAbnormalReturn" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    :disabled="hasAbnormalReturn"
+                    :loading="loading"
+                    @click="goToApply">
+                    {{ hasClicked ? $t('已申请') : $t('去申请') }}
+                </bk-button>
                 <bk-button theme="default" @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
@@ -79,6 +85,7 @@
                 isModalShow: false,
                 permissionData: {},
                 loading: false,
+                hasClicked: false,
                 lock: require('../../../assets/images/lock-radius.svg'),
                 hasAbnormalReturn: false // 接口是否返回异常
             }
@@ -136,7 +143,12 @@
                     return
                 }
 
-                openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                if (this.hasClicked) {
+                    window.location.reload()
+                } else {
+                    this.hasClicked = true
+                    openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                }
             },
             onCloseDialog () {
                 this.isModalShow = false
