@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,7 +19,8 @@ from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 from tastypie.authorization import ReadOnlyAuthorization
-from djcelery.models import PeriodicTask as CeleryTask
+from django_celery_beat.models import PeriodicTask as CeleryTask
+
 
 import env
 from gcloud.core.models import ProjectConfig
@@ -52,7 +53,7 @@ iam = get_iam_client()
 class CeleryTaskResource(GCloudModelResource):
     enabled = fields.BooleanField(attribute="enabled", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = CeleryTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = "celery_task"
@@ -66,7 +67,7 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
     name = fields.CharField(attribute="name", readonly=True)
     creator = fields.CharField(attribute="creator", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelinePeriodicTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = "pipeline_periodic_task"
@@ -91,7 +92,7 @@ class PeriodicTaskResource(GCloudModelResource):
     form = fields.DictField(attribute="form", readonly=True, use_in="detail")
     task = fields.ForeignKey(PipelinePeriodicTaskResource, "task", full=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PeriodicTask.objects.all()
         resource_name = "periodic_task"
         filtering = {

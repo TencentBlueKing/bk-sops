@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -182,7 +182,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=public';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_public_script_name_list/?type=public';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -218,24 +218,10 @@
             },
             events: [
                 {
-                    source: "biz_cc_id",
+                    source: "job_script_list_public",
                     type: "init",
-                    action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=public';
-                            this.remoteMethod();
-                        }
-                    }
-                },
-                {
-                    source: "biz_cc_id",
-                    type: "change",
                     action: function (value) {
-                        if (value === '') {
-                            return;
-                        }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=public';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_public_script_name_list/?type=public';
                         this.remoteMethod();
                     }
                 },

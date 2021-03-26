@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -23,6 +23,7 @@ from pipeline.tests.mock_settings import *  # noqa
 
 
 class TestPipelineInstance(TestCase):
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def setUp(self):
         self.data = {
             "activities": {
@@ -100,6 +101,7 @@ class TestPipelineInstance(TestCase):
             self.template, exec_data=self.data, creator=self.creator, instance_id="3"
         )
 
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     @mock.patch("pipeline.models.PipelineTemplate.objects.unfold_subprocess", mock.MagicMock())
     def test_create_instance(self):
         creator = self.creator
@@ -126,6 +128,7 @@ class TestPipelineInstance(TestCase):
 
         PipelineTemplate.objects.unfold_subprocess.assert_not_called()
 
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_create_instance__without_template(self):
         self.instance_4, no_use = PipelineInstance.objects.create_instance(
             template=None, exec_data=self.data, creator=self.creator, instance_id="4"
@@ -174,6 +177,7 @@ class TestPipelineInstance(TestCase):
             sender=PipelineInstance, instance_id=self.instance.instance_id
         )
 
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_delete_instance(self):
         PipelineInstance.objects.delete_model(self.instance.instance_id)
         i = PipelineInstance.objects.get(instance_id=self.instance.instance_id)
@@ -187,6 +191,7 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=True, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_start__success(self):
         instance, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator
@@ -205,6 +210,7 @@ class TestPipelineInstance(TestCase):
 
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_start__already_started(self):
         instance, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator
@@ -221,6 +227,7 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(side_effect=ImportError()))
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_start__parser_cls_error(self):
         instance, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator
@@ -241,6 +248,7 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_start__task_service_call_fail(self):
         instance, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator
@@ -259,6 +267,7 @@ class TestPipelineInstance(TestCase):
 
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock(side_effect=Exception()))
+    @patch("django.db.models.signals.ModelSignal.send", MagicMock())
     def test_start__error_occurred_before_task_service_call(self):
         instance, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator

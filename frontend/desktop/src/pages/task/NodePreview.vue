@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,7 +11,7 @@
 */
 <template>
     <div class="node-preview-wrapper">
-        <div class="operation-header clearfix" v-if="!isEditProcessPage">
+        <div class="operation-header clearfix">
             <div class="bread-crumbs-wrapper">
                 <div
                     :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
@@ -26,7 +26,7 @@
                         v-if="showBreakList.includes(index)"
                         class="node-name"
                         :title="path.name"
-                        @click="onSelectSubflow(path.data, index)">
+                        @click="onSelectSubflow(path.id, path.version, index)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">
@@ -63,11 +63,7 @@
             previewDataLoading: Boolean,
             isAllSelected: Boolean,
             isSelectAllToolDisabled: Boolean,
-            isShowSelectAllTool: Boolean,
-            isEditProcessPage: {
-                type: Boolean,
-                default: true
-            }
+            isShowSelectAllTool: Boolean
         },
         data () {
             return {
@@ -92,17 +88,14 @@
                 }
                 this.$emit('onNodeClick', id)
             },
-            onSelectSubflow (data, index) {
+            onSelectSubflow (id, version, index) {
                 if (this.previewDataLoading) {
                     return
                 }
                 if (this.previewBread.length - 1 === index) {
                     return
                 }
-                this.$emit('onSelectSubflow', data, index)
-            },
-            onUpdateNodeInfo (id, item) {
-                this.$refs.TemplateCanvas.onUpdateNodeInfo(item.id, item)
+                this.$emit('onSelectSubflow', id, version, index)
             }
         }
     }

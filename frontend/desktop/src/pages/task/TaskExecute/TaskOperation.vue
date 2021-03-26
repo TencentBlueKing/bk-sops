@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,6 +20,8 @@
             :task-operation-btns="taskOperationBtns"
             :instance-actions="instanceActions"
             :admin-view="adminView"
+            :state-str="taskState"
+            :state="state"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
@@ -27,11 +29,6 @@
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick">
         </task-operation-header>
-        <div :class="['task-status', state]">
-            <span class="task-status-name">
-                {{taskState}}
-            </span>
-        </div>
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
@@ -427,7 +424,6 @@
             ]),
             async loadTaskStatus () {
                 try {
-                    this.$emit('taskStatusLoadChange', true)
                     let instanceStatus = {}
                     if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
@@ -487,7 +483,6 @@
                     }
                 } finally {
                     source = null
-                    this.$emit('taskStatusLoadChange', false)
                 }
             },
             /**
@@ -1327,63 +1322,6 @@
     min-height: 500px;
     overflow: hidden;
     background: #f4f7fa;
-    .task-status {
-        height: 30px;
-        line-height: 30px;
-        font-size: 14px;
-        color: #63656e;
-        border-right: 1px solid #d2d4dd;
-        text-align: center;
-        background-color: #dcdee5;
-        &.CREATED {
-            border-top: 1px solid #d2d4dd;
-            border-bottom: 1px solid #d2d4dd;
-            .task-status-name {
-                color: #63656e;
-            }
-        }
-        &.FINISHED {
-            background-color: #cceed9;
-            border-top: 1px solid #b6e4c7;
-            border-bottom: 1px solid #b6e4c7;
-            .task-status-name {
-                color: #2dcb56;
-            }
-        }
-        &.RUNNING,
-        &.READY {
-            background-color: #cfdffb;
-            border-top: 1px solid #c0d4f8;
-            border-bottom: 1px solid #c0d4f8;
-            .task-status-name {
-                color: #3a84ff;
-            }
-        }
-        &.SUSPENDED, &.NODE_SUSPENDED {
-            background-color: #ffe8c3;
-            border-top: 1px solid #e6cfaa;
-            border-bottom: 1px solid #e6cfaa;
-            .task-status-name {
-                color: #d78300;
-            }
-        }
-        &.FAILED {
-            background-color: #f2d0d3;
-            border-top: 1px solid #efb9be;
-            border-bottom: 1px solid #efb9be;
-            .task-status-name {
-                color: #ea3636;
-            }
-        }
-        &.REVOKED {
-            background-color: #f2d0d3;
-            border-top: 1px solid #efb9be;
-            border-bottom: 1px solid #efb9be;
-            .task-status-name {
-                color: #ea3636;
-            }
-        }
-    }
 }
 
 /deep/ .atom-failed {
@@ -1393,7 +1331,7 @@
 .task-container {
     position: relative;
     width: 100%;
-    height: calc(100% - 80px);
+    height: calc(100vh - 100px);
     background: $whiteDefault;
     overflow: hidden;
     .pipeline-nodes {
