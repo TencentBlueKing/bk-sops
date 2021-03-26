@@ -57,12 +57,9 @@ def create_periodic_task(request, template_id, project_id):
 
     # check if the periodic task of the project reach the limit
     periodic_task_limit = env.PERIODIC_TASK_PROJECT_MAX_NUMBER
-    try:
-        max_periodic_task_num = ProjectConfig.objects.get(project_id=project.id).max_periodic_task_num
-        if max_periodic_task_num > 0:
-            periodic_task_limit = max_periodic_task_num
-    except ProjectConfig.DoesNotExist:
-        pass
+    project_config = ProjectConfig.objects.filter(project_id=project.id).only("max_periodic_task_num").first()
+    if project_config and project_config.max_periodic_task_num > 0:
+        periodic_task_limit = project_config.max_periodic_task_num
     if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
         message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
         return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
