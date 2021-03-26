@@ -59,12 +59,19 @@
             <div class="common-form-item">
                 <label>{{$t('类别')}}</label>
                 <div class="common-form-content">
-                    <bk-input
+                    <bk-select
                         v-model="appData.appCategory"
-                        name="appCategory"
                         class="ui-form-item"
+                        :searchable="true"
+                        :placeholder="$t('请选择')"
                         :clearable="true">
-                    </bk-input>
+                        <bk-option
+                            v-for="(option, index) in taskCategories"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                 </div>
             </div>
             <div class="common-form-item">
@@ -246,6 +253,20 @@
             }
         },
         computed: {
+            ...mapState({
+                'projectBaseInfo': state => state.template.projectBaseInfo
+            }),
+            taskCategories () {
+                if (this.projectBaseInfo.task_categories) {
+                    return this.projectBaseInfo.task_categories.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.name
+                        }
+                    })
+                }
+                return []
+            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
