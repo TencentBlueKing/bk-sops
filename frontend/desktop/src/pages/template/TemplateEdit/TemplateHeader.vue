@@ -14,10 +14,19 @@
         <div class="header-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
             <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
-            <div class="template-name-input">
+            <h3 class="template-name">{{ name }}</h3>
+            <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
+            <!-- 执行方案图标 -->
+            <span
+                v-if="isEditProcessPage"
+                class="common-icon-file-setting execute-scheme-icon"
+                v-bk-tooltips.bottom="$t('执行方案')"
+                @click="onOpenExecuteScheme">
+            </span>
+            <!-- <div class="template-name-input">
+                <h3></h3>
                 <div class="name-show-mode" v-if="isShowMode">
                     <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                    <span v-if="isEditProcessPage" class="common-icon-edit" @click="onNameEditing"></span>
                 </div>
                 <template v-else>
                     <bk-input
@@ -39,14 +48,7 @@
                         v-bk-tooltips="veeErrors.first('templateName')">
                     </i>
                 </template>
-                <!-- 执行方案图标 -->
-                <span
-                    v-if="isEditProcessPage"
-                    class="common-icon-file-setting execute-scheme-icon"
-                    v-bk-tooltips.bottom="$t('执行方案')"
-                    @click="onOpenExecuteScheme">
-                </span>
-            </div>
+            </div> -->
         </div>
         <div class="header-right-area" slot="expand">
             <div class="button-area" v-if="isEditProcessPage">
@@ -114,9 +116,8 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapActions, mapMutations } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
@@ -153,14 +154,7 @@
         },
         data () {
             return {
-                tName: this.name.trim(),
                 settingTabs: SETTING_TABS.slice(0),
-                templateNameRule: {
-                    required: true,
-                    max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
-                },
-                isShowMode: true,
                 isSelectProjectShow: false, // 是否显示项目选择弹窗
                 saveBtnActive: false, // 保存按钮是否激活
                 createTaskBtnActive: false, // 新建任务按钮是否激活
@@ -208,9 +202,6 @@
             }
         },
         watch: {
-            name (val) {
-                this.tName = val
-            },
             type (val, oldVal) {
                 if (['new', 'clone'].includes(oldVal) && val === 'edit' && this.common && this.isSelectProjectShow) {
                     this.queryCommonTplCreateTaskPerm().then(() => {
@@ -236,12 +227,6 @@
             ...mapActions([
                 'queryUserPermission'
             ]),
-            ...mapMutations('template/', [
-                'setTemplateName'
-            ]),
-            onInputName (val) {
-                this.$emit('onChangeName', val)
-            },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
              * @param {Boolean} saveAndCreate 是否为新建/保存并新建任务按钮
@@ -279,8 +264,6 @@
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
                     const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
-                    this.tName = this.tName.trim()
-                    this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
                         if (this.common && pid === undefined) {
                             this.setProjectSelectDialogShow()
@@ -346,22 +329,6 @@
             },
             onClosePreview () {
                 this.$emit('onClosePreview')
-            },
-            onNameEditing () {
-                this.isShowMode = false
-                this.$nextTick(() => {
-                    const inputEl = this.$refs.canvasNameInput.$el.getElementsByClassName('bk-form-input')[0]
-                    this.$refs.canvasNameInput.focus()
-                    inputEl.select()
-                })
-            },
-            onInputBlur () {
-                this.$validator.validateAll().then((result) => {
-                    if (!result) {
-                        return
-                    }
-                    this.isShowMode = true
-                })
             },
             handleProjectChange (project) {
                 this.selectedProject = project
@@ -515,39 +482,15 @@
             align-items: center;
             height: 100%;
         }
-        .template-name-input {
-            display: flex;
-            align-items: center;
-            position: relative;
-            margin-left: 20px;
-            width: 300px;
-        }
-        .name-show-mode {
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-        }
-        .canvas-name {
-            display: inline-block;
-            margin: 0;
-            max-width: 400px;
+        .template-name {
+            margin: 0 0 0 20px;
+            max-width: 300px;
             font-size: 14px;
             font-weight: normal;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             color: #63656e;
-        }
-        .name-input.name-error /deep/.bk-form-input {
-            border-color: #ea3636;
-        }
-        .error-tip-icon {
-            position: absolute;
-            left: 248px;
-            top: 8px;
-            font-size: 16px;
-            color: #ea3636;
-            cursor: pointer;
         }
         .common-icon-edit {
             margin-left: 10px;

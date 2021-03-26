@@ -1056,6 +1056,7 @@ const en = {
     '成员': 'Members',
     '保存已修改的节点信息吗？': 'Save the modified node information?',
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '保存已修改的配置信息吗？': 'Save the modified config information?',
     '全部项目': 'All Projects',
     '导入临时方案': 'Import Temporaty Scheme',
     '方案内容': 'Scheme Text',
@@ -1093,7 +1094,11 @@ const en = {
     '全屏': 'Full Screen',
     '退出': 'Quit',
     '首页': 'Home',
-    '模板分类即将下线，建议使用标签': 'template categary is about to go offline. Tags are recommended'
+    '模板分类即将下线，建议使用标签': 'template categary is about to go offline. Tags are recommended',
+    '请输入流程模板名称': 'Please enter the template name',
+    '基础': 'Basic',
+    '通知': 'Notify',
+    '其他': 'Others'
 }
 
 export default en

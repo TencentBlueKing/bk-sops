@@ -33,7 +33,6 @@
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
-                @onChangeName="onChangeName"
                 @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
@@ -1081,11 +1080,6 @@
             onOpenExecuteScheme (val) {
                 this.isExecuteScheme = val
             },
-            // 流程名称修改
-            onChangeName (name) {
-                this.templateDataChanged()
-                this.setTemplateName(name)
-            },
             // 选择侧滑面板
             onChangeSettingPanel (val) {
                 this.activeSettingTab = val
@@ -1363,6 +1357,7 @@
             },
             // 多 tab 打开同一流程模板
             onMutilpleTabConfirm () {
+                this.onSaveTemplate()
                 this.multipleTabDialogShow = false
             },
             getTplTabData () {

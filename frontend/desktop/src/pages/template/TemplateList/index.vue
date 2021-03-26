@@ -341,6 +341,11 @@
             width: 180
         },
         {
+            id: 'category_name',
+            label: i18n.t('分类'),
+            min_width: 180
+        },
+        {
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 160
@@ -570,15 +575,16 @@
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 this.categoryLoading = true
+                const form = this.searchForm.find(item => item.key === 'category')
                 try {
                     const res = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(res.data)
-                    this.searchForm[0].list = res.data.task_categories
+                    form.list = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
-                    this.searchForm[0].loading = false
+                    form.loading = false
                 }
             },
             async getExpiredSubflowData () {
@@ -605,15 +611,16 @@
                 }
             },
             async getProjectLabelList () {
+                const form = this.searchForm.find(item => item.key === 'label_ids')
                 try {
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
-                    this.searchForm[4].list = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    form.list = res.data.map(item => Object.assign({}, item, { value: item.id }))
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
                     this.templateLabelLoading = false
-                    this.searchForm[4].loading = false
+                    form.loading = false
                 }
             },
             checkCreatePermission () {

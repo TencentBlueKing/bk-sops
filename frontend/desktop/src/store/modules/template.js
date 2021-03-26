@@ -206,7 +206,8 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            state.name = name
             state.category = category
             state.notify_type = notify_type
             state.notify_receivers.receiver_group = receiver_group
