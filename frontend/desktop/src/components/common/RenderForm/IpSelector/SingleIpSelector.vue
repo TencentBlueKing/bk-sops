@@ -25,6 +25,7 @@
             <static-ip
                 v-show="activeSelector === 'ip'"
                 ref="ip"
+                :allow-unfold-input="allowUnfoldInput"
                 :editable="editable"
                 :static-ip-list="staticIpList"
                 :static-ips="staticIps"
@@ -62,6 +63,7 @@
             DynamicGroup
         },
         props: {
+            allowUnfoldInput: Boolean,
             editable: Boolean,
             selectorTabs: Array,
             selectors: Array,

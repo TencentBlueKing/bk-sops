@@ -121,6 +121,7 @@
         </div>
         <static-ip-adding-panel
             v-if="isIpAddingPanelShow"
+            :allow-unfold-input="allowUnfoldInput"
             :static-ip-list="staticIpList"
             :static-ips="staticIps"
             :type="addingType"
@@ -167,6 +168,7 @@
             IpSearchInput
         },
         props: {
+            allowUnfoldInput: Boolean,
             editable: Boolean,
             staticIpList: Array,
             staticIps: Array
@@ -219,7 +221,11 @@
                 return this.staticIps.length
             },
             isStaticIpClassName () {
-                return this.isSearchInputFocus ? 'static-ip-focus' : 'static-ip-blur'
+                let className = ''
+                if (this.allowUnfoldInput) {
+                    className = this.isSearchInputFocus ? 'static-ip-focus' : 'static-ip-blur'
+                }
+                return className
             }
         },
         watch: {

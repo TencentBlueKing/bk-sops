@@ -142,6 +142,7 @@
             NoData
         },
         props: {
+            allowUnfoldInput: Boolean,
             staticIpList: Array,
             staticIps: Array,
             type: String
@@ -179,7 +180,11 @@
         },
         computed: {
             isIpClassName () {
-                return this.isSearchInputFocus ? 'ip-focus' : 'ip-blur'
+                let className = ''
+                if (this.allowUnfoldInput) {
+                    className = this.isSearchInputFocus ? 'ip-focus' : 'ip-blur'
+                }
+                return className
             }
         },
         watch: {

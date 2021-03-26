@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div id="ip-selector">
+    <div id="ip-selector" ref="ipSelect">
         <div class="select-area">
             <multiple-ip-selector
                 v-if="isMultiple"
@@ -30,6 +30,7 @@
                 v-else
                 ref="singleIpSelector"
                 :editable="editable"
+                :allow-unfold-input="allowUnfoldInput"
                 :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
@@ -188,7 +189,8 @@
                 with_cloud_id,
                 conditions,
                 separator,
-                i18n
+                i18n,
+                allowUnfoldInput: false
             }
         },
         computed: {
@@ -215,6 +217,11 @@
                 },
                 deep: true
             }
+        },
+        mounted () {
+            // ip选择器搜索框是否扩宽
+            this.allowUnfoldInput = this.$refs.ipSelect.offsetWidth <= 641
+            // 641为新建全局变量默认宽 不包含padding border
         },
         methods: {
             getConditions (filters, excludes) {
