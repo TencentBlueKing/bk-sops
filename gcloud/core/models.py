@@ -359,3 +359,17 @@ class ProjectConfig(models.Model):
     class Meta:
         verbose_name = _("项目配置 ProjectConfig")
         verbose_name_plural = _("项目配置 ProjectConfig")
+
+
+class EngineConfig(models.Model):
+    SCOPE_TYPE = ((1, "project"), (2, "template"))
+    ENGINE_TYPE = ((1, "v1"), (2, "v2"))
+
+    scope_id = models.IntegerField(_("范围对象ID"))
+    scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPE)
+    engine_ver = models.IntegerField(_("引擎版本"), choices=ENGINE_TYPE)
+
+    class Meta:
+        verbose_name = _("引擎版本配置 ProjectConfig")
+        verbose_name_plural = _("引擎版本配置 ProjectConfig")
+        index_together = ["scope", "scope_id"]
