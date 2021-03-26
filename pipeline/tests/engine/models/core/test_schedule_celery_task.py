@@ -23,19 +23,13 @@ class TestScheduleCeleryTask(TestCase):
         schedule_id = "{}{}".format(uniqid(), uniqid())
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ScheduleCeleryTask.objects.bind(
-            schedule_id=schedule_id, celery_task_id=celery_task_id
-        )
-        task = ScheduleCeleryTask.objects.get(
-            schedule_id=schedule_id, celery_task_id=celery_task_id
-        )
+        ScheduleCeleryTask.objects.bind(schedule_id=schedule_id, celery_task_id=celery_task_id)
+        task = ScheduleCeleryTask.objects.get(schedule_id=schedule_id, celery_task_id=celery_task_id)
         self.assertEqual(task.schedule_id, schedule_id)
         self.assertEqual(task.celery_task_id, celery_task_id)
 
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
-        ScheduleCeleryTask.objects.bind(
-            schedule_id=schedule_id, celery_task_id=celery_task_id
-        )
+        ScheduleCeleryTask.objects.bind(schedule_id=schedule_id, celery_task_id=celery_task_id)
         task.refresh_from_db()
         self.assertEqual(task.schedule_id, schedule_id)
         self.assertEqual(task.celery_task_id, celery_task_id)
@@ -44,12 +38,8 @@ class TestScheduleCeleryTask(TestCase):
         schedule_id = "{}{}".format(uniqid(), uniqid())
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ScheduleCeleryTask.objects.bind(
-            schedule_id=schedule_id, celery_task_id=celery_task_id
-        )
-        task = ScheduleCeleryTask.objects.get(
-            schedule_id=schedule_id, celery_task_id=celery_task_id
-        )
+        ScheduleCeleryTask.objects.bind(schedule_id=schedule_id, celery_task_id=celery_task_id)
+        task = ScheduleCeleryTask.objects.get(schedule_id=schedule_id, celery_task_id=celery_task_id)
         ScheduleCeleryTask.objects.unbind(schedule_id)
         task.refresh_from_db()
         self.assertEqual(task.celery_task_id, "")
@@ -58,14 +48,10 @@ class TestScheduleCeleryTask(TestCase):
         schedule_id = "{}{}".format(uniqid(), uniqid())
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ScheduleCeleryTask.objects.bind(
-            schedule_id=schedule_id, celery_task_id=celery_task_id
-        )
+        ScheduleCeleryTask.objects.bind(schedule_id=schedule_id, celery_task_id=celery_task_id)
         ScheduleCeleryTask.objects.destroy(schedule_id)
         self.assertRaises(
-            ScheduleCeleryTask.DoesNotExist,
-            ScheduleCeleryTask.objects.get,
-            schedule_id=schedule_id,
+            ScheduleCeleryTask.DoesNotExist, ScheduleCeleryTask.objects.get, schedule_id=schedule_id,
         )
 
     def test_start_task__record_error(self):
@@ -77,9 +63,7 @@ class TestScheduleCeleryTask(TestCase):
         kwargs = {"a": "1", "b": 2}
         mock_watch = MagicMock()
 
-        with patch(
-            "pipeline.engine.models.core.SendFailedCeleryTask.watch", mock_watch
-        ):
+        with patch("pipeline.engine.models.core.SendFailedCeleryTask.watch", mock_watch):
             ScheduleCeleryTask.objects.start_task(schedule_id, task=task, kwargs=kwargs)
 
         mock_watch.assert_called_once_with(
@@ -105,12 +89,8 @@ class TestScheduleCeleryTask(TestCase):
         kwargs = {"a": "1", "b": 2}
         mock_watch = MagicMock()
 
-        with patch(
-            "pipeline.engine.models.core.SendFailedCeleryTask.watch", mock_watch
-        ):
-            ScheduleCeleryTask.objects.start_task(
-                schedule_id, task=task, kwargs=kwargs, record_error=False
-            )
+        with patch("pipeline.engine.models.core.SendFailedCeleryTask.watch", mock_watch):
+            ScheduleCeleryTask.objects.start_task(schedule_id, task=task, kwargs=kwargs, record_error=False)
 
         mock_watch.assert_not_called()
         task.apply_async.assert_called_with(a="1", b=2)

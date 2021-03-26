@@ -14,7 +14,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="periodictask", name="priority", field=models.IntegerField(default=100, verbose_name="流程优先级"),
+            model_name="periodictask",
+            name="priority",
+            field=models.IntegerField(default=100, verbose_name="流程优先级"),
         ),
         migrations.AddField(
             model_name="periodictask",
@@ -24,12 +26,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="crontabschedule",
             name="day_of_month",
-            field=models.CharField(default="*", max_length=64, verbose_name="day of month"),
+            field=models.CharField(
+                default="*", max_length=64, verbose_name="day of month"
+            ),
         ),
         migrations.AlterField(
             model_name="crontabschedule",
             name="day_of_week",
-            field=models.CharField(default="*", max_length=64, verbose_name="day of week"),
+            field=models.CharField(
+                default="*", max_length=64, verbose_name="day of week"
+            ),
         ),
         migrations.AlterField(
             model_name="crontabschedule",
@@ -44,23 +50,33 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="crontabschedule",
             name="month_of_year",
-            field=models.CharField(default="*", max_length=64, verbose_name="month of year"),
+            field=models.CharField(
+                default="*", max_length=64, verbose_name="month of year"
+            ),
         ),
         migrations.AlterField(
-            model_name="crontabschedule", name="timezone", field=timezone_field.fields.TimeZoneField(default="UTC"),
+            model_name="crontabschedule",
+            name="timezone",
+            field=timezone_field.fields.TimeZoneField(default="UTC"),
         ),
         migrations.AlterField(
             model_name="djceleryperiodictask",
             name="args",
             field=models.TextField(
-                blank=True, default="[]", help_text="JSON encoded positional arguments", verbose_name="Arguments",
+                blank=True,
+                default="[]",
+                help_text="JSON encoded positional arguments",
+                verbose_name="Arguments",
             ),
         ),
         migrations.AlterField(
             model_name="djceleryperiodictask",
             name="kwargs",
             field=models.TextField(
-                blank=True, default="{}", help_text="JSON encoded keyword arguments", verbose_name="Keyword arguments",
+                blank=True,
+                default="{}",
+                help_text="JSON encoded keyword arguments",
+                verbose_name="Keyword arguments",
             ),
         ),
         migrations.AlterField(

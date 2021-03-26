@@ -43,9 +43,7 @@ def _candidate_exc_ensure(propagate):
     try:
         yield
     except Exception:
-        logger.error(
-            "candidate data backend operate error: {}".format(traceback.format_exc())
-        )
+        logger.error("candidate data backend operate error: {}".format(traceback.format_exc()))
 
         if propagate:
             raise
@@ -72,9 +70,7 @@ def _write_operation(method, *args, **kwargs):
         if settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE and method == "set_object":
             # change set_object to expire_cache
             getattr(_backend, "expire_cache")(
-                *args,
-                **kwargs,
-                expires=settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS
+                *args, **kwargs, expires=settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS
             )
         else:
             getattr(_backend, method)(*args, **kwargs)

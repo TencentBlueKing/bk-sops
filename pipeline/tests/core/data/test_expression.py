@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
 import datetime
 
 from django.test import TestCase
@@ -152,6 +153,7 @@ class TestConstantTemplate(TestCase):
         self.assertEqual(template.resolve_data({"t": True}), "a-1-c")
 
     def test_mako_attack(self):
+        sandbox_copy = copy.deepcopy(sandbox.SANDBOX)
         shield_words = [
             "ascii",
             "bytearray",
@@ -203,3 +205,5 @@ class TestConstantTemplate(TestCase):
         ]
         for at in attack_templates:
             self.assertEqual(expression.ConstantTemplate(at).resolve_data({}), at)
+
+        sandbox.SANDBOX = sandbox_copy

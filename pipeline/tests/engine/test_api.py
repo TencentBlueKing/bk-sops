@@ -200,7 +200,7 @@ class TestEngineAPI(TestCase):
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
-    @mock.patch(CELERY_SEND_TASK, mock.MagicMock())
+    @mock.patch(DJCELERY_APP_CURRENT_APP_CONNECTION, mock.MagicMock())
     def test_revoke_pipeline__transit_success(self):
         pipeline_model = MockPipelineModel()
 

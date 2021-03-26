@@ -145,4 +145,3 @@ ENGINE_DATA_API_CANDIDATE_BACKEND = "pipeline.engine.core.data.api._candidate_ba
 ENGINE_HEALTH_ZOMBIE_HEAL_DEFAULT_SETTINGS = "pipeline.engine.health.zombie.heal.default_settings"
 
 DJCELERY_APP_CURRENT_APP_CONNECTION = "celery.current_app.connection"
-CELERY_SEND_TASK = "celery.current_app.send_task"

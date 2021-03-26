@@ -59,9 +59,7 @@ def workers(connection=None):
     if not worker_list:
         tries = 0
         while tries < WORKER_PING_TIMES:
-            kwargs = {
-                "timeout": tries + 1
-            }
+            kwargs = {"timeout": tries + 1}
             if connection is not None:
                 kwargs["connection"] = connection
             try:

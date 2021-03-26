@@ -19,33 +19,6 @@ from pipeline.core.flow import EndEvent, FlowNodeClsFactory
 
 
 class FlowNodeClsFactoryTestCase(TestCase):
-    def test_node_types_without_start_event(self):
-        self.assertEqual(
-            set(FlowNodeClsFactory.node_types_without_start_event()),
-            {
-                "ServiceActivity",
-                "SubProcess",
-                "ExclusiveGateway",
-                "ParallelGateway",
-                "ConditionalParallelGateway",
-                "ConvergeGateway",
-                "EmptyEndEvent",
-            },
-        )
-
-    def test_node_types_without_start_and_end_event(self):
-        self.assertEqual(
-            set(FlowNodeClsFactory.node_types_without_start_end_event()),
-            {
-                "ServiceActivity",
-                "SubProcess",
-                "ExclusiveGateway",
-                "ParallelGateway",
-                "ConditionalParallelGateway",
-                "ConvergeGateway",
-            },
-        )
-
     @patch("pipeline.core.flow.post_new_end_event_register", MagicMock())
     def test_register_node__is_not_end_event(self):
         node_cls = MagicMock()

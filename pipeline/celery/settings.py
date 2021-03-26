@@ -134,7 +134,7 @@ for name, queue in ScalableQueues.queues().items():
             )
         )
 
-CELERY_QUEUES = (
+CELERY_QUEUES = [
     # user queues
     *USER_QUEUES,  # noqa
     # keep old queue to process message left in broker, remove on next version
@@ -167,7 +167,7 @@ CELERY_QUEUES = (
         routing_key=STATISTICS_PRIORITY_ROUTING_KEY,
         queue_arguments={"x-max-priority": PIPELINE_MAX_PRIORITY},
     ),
-)
+]
 
 CELERY_DEFAULT_QUEUE = "default"
 CELERY_DEFAULT_EXCHANGE = "default"

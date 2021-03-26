@@ -1,3 +1,37 @@
+# 3.1.4
+
+- feature
+  - 添加对 bamboo-engine 的 prometheus metrics 支持
+
+# 3.1.3
+
+- feature
+  - get_process_info_with_root_pipeline 接口支持
+
+# 3.1.2
+
+- bugfix
+  - 修复 service wrapper 在 schedule 返回 None 时导致节点卡住的问题
+
+# 3.1.1
+
+- bugfix:
+  - 修复 pypi module 模式下 create_plugins_app 无法工作的问题
+
+# 3.1.0
+
+- features:
+  - 增加 bamboo-engine runtime 实现
+  - s3远程插件加载支持配置源目录
+  - 插件测试框架添加对插件input/output format的检查 & 同步修改service_activity result type类型
+- optimization
+  - engine admin 页面性能优化
+  - worker 检测增加 rabbitmq 连接错误容错机制
+- bugfix:
+  - 修复并行网关子进程解析了 splice 类型变量后 _value 没有同步到父进程的问题
+  - 修复分支网关表达式字符串未转义导致判断出错问题
+  - 修复某些场景下网关合法性校验死循环的问题
+
 # 3.0.0rc2
 
 - bugfix:
