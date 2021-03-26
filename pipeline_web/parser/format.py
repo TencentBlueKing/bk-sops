@@ -92,8 +92,14 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
 def get_pre_render_mako_keys(constants):
     pre_render_inputs_keys = set()
     for key, info in list(constants.items()):
-        if info["source_type"] != "component_outputs" and info["show_type"] != "show":
+        if info["source_type"] == "component_outputs":
+            continue
+
+        if "pre_render_mako" in info and info["pre_render_mako"]:
             pre_render_inputs_keys.add(key)
+        elif info["show_type"] != "show":
+            pre_render_inputs_keys.add(key)
+
     return pre_render_inputs_keys
 
 
