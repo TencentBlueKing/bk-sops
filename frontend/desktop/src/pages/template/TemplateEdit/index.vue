@@ -1357,7 +1357,7 @@
             },
             // 多 tab 打开同一流程模板
             onMutilpleTabConfirm () {
-                this.onSaveTemplate()
+                this.checkNodeAndSaveTemplate()
                 this.multipleTabDialogShow = false
             },
             getTplTabData () {
