@@ -11,12 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import uuid
 
 
 def uniqid():
-    return uuid.uuid3(
-        uuid.uuid1(),
-        uuid.uuid4().hex
-    ).hex
+    return uuid.uuid3(uuid.uuid1(), uuid.uuid4().hex).hex

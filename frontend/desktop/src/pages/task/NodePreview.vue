@@ -26,7 +26,7 @@
                         v-if="showBreakList.includes(index)"
                         class="node-name"
                         :title="path.name"
-                        @click="onSelectSubflow(path.data, index)">
+                        @click="onSelectSubflow(path.id, path.version, index)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">
@@ -57,14 +57,14 @@
         components: {
             TemplateCanvas
         },
-        props: [
-            'canvasData',
-            'previewBread',
-            'previewDataLoading',
-            'isAllSelected',
-            'isShowSelectAllTool',
-            'isSelectAllToolDisabled'
-        ],
+        props: {
+            canvasData: Object,
+            previewBread: Array,
+            previewDataLoading: Boolean,
+            isAllSelected: Boolean,
+            isSelectAllToolDisabled: Boolean,
+            isShowSelectAllTool: Boolean
+        },
         data () {
             return {
                 ellipsis: '...',
@@ -88,17 +88,14 @@
                 }
                 this.$emit('onNodeClick', id)
             },
-            onSelectSubflow (data, index) {
+            onSelectSubflow (id, version, index) {
                 if (this.previewDataLoading) {
                     return
                 }
                 if (this.previewBread.length - 1 === index) {
                     return
                 }
-                this.$emit('onSelectSubflow', data, index)
-            },
-            onUpdateNodeInfo (id, item) {
-                this.$refs.TemplateCanvas.onUpdateNodeInfo(item.id, item)
+                this.$emit('onSelectSubflow', id, version, index)
             }
         }
     }

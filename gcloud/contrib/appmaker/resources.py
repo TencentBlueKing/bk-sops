@@ -50,7 +50,7 @@ class AppMakerResource(GCloudModelResource):
     template_name = fields.CharField(attribute="task_template_name", readonly=True, null=True)
     category = fields.CharField(attribute="category", readonly=True, null=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = AppMaker.objects.filter(is_deleted=False)
         resource_name = "appmaker"
         filtering = {

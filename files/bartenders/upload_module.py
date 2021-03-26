@@ -22,7 +22,7 @@ from .base import UploadRequestBartender
 
 logger = logging.getLogger("root")
 
-INVALID_CHAR_REGEX = re.compile('[\u4e00-\u9fa5\\/:*?"<>|,]')
+INVALID_CHAR_REGEX = re.compile('[\\/:*?"<>|,]')
 
 
 class UploadModuleBartender(UploadRequestBartender):
@@ -38,7 +38,7 @@ class UploadModuleBartender(UploadRequestBartender):
             return response
 
         if INVALID_CHAR_REGEX.findall(file_name):
-            message = _('文件上传失败，文件名不能包含中文和\\/:*?"<>|等特殊字符')
+            message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
             logger.error("[FILE_UPLOAD]invalid file_name: {}".format(message))
             response = JsonResponse({"result": False, "message": message})
             response.status_code = 400

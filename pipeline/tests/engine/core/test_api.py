@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 import socket
 
 import mock
+from celery import current_app
 from django.test import TestCase
-from djcelery.app import current_app
 from redis.exceptions import ConnectionError
 
 from pipeline.conf import settings
@@ -31,7 +31,9 @@ class EngineCoreApiTestCase(TestCase):
         api.freeze()
         FunctionSwitch.objects.freeze_engine.assert_called_once()
 
-    @mock.patch("pipeline.engine.models.FunctionSwitch.objects.unfreeze_engine", mock.MagicMock())
+    @mock.patch(
+        "pipeline.engine.models.FunctionSwitch.objects.unfreeze_engine", mock.MagicMock(),
+    )
     @mock.patch("pipeline.django_signal_valve.valve.open_valve", mock.MagicMock())
     def test_unfreeze(self):
         class MockFrozenProcess(object):
@@ -53,7 +55,7 @@ class EngineCoreApiTestCase(TestCase):
             for mock_process in res:
                 mock_process.unfreeze.assert_called_once()
 
-    @mock.patch("djcelery.app.current_app.control.ping", mock.MagicMock())
+    @mock.patch("celery.current_app.control.ping", mock.MagicMock())
     @mock.patch("pipeline.engine.core.data.expire_cache", mock.MagicMock())
     def test_workers(self):
 
@@ -87,7 +89,7 @@ class EngineCoreApiTestCase(TestCase):
             current_app.control.ping.reset_mock()
             data.expire_cache.reset_mock()
 
-            with mock.patch("djcelery.app.current_app.control.ping", no_workers):
+            with mock.patch("celery.current_app.control.ping", no_workers):
                 worker = api.workers()
                 self.assertEqual(worker, no_workers())
                 data.expire_cache.assert_not_called()
@@ -100,11 +102,11 @@ class EngineCoreApiTestCase(TestCase):
             current_app.control.ping.reset_mock()
             data.expire_cache.reset_mock()
 
-            with mock.patch("djcelery.app.current_app.control.ping", two_workers):
+            with mock.patch("celery.current_app.control.ping", two_workers):
                 worker = api.workers()
                 self.assertEqual(worker, two_workers())
                 data.expire_cache.assert_called_with(
-                    "__pipeline__workers__", two_workers(), settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES
+                    "__pipeline__workers__", two_workers(), settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES,
                 )
 
             # raise exception
@@ -115,17 +117,17 @@ class EngineCoreApiTestCase(TestCase):
             current_app.control.ping.reset_mock()
             data.expire_cache.reset_mock()
 
-            with mock.patch("djcelery.app.current_app.control.ping", raise_mq_conn_error):
+            with mock.patch("celery.current_app.control.ping", raise_mq_conn_error):
                 self.assertRaises(RabbitMQConnectionError, api.workers)
                 data.expire_cache.assert_not_called()
 
             # retry test
             ping_mock = mock.MagicMock(side_effect=[[], two_workers()])
 
-            with mock.patch("djcelery.app.current_app.control.ping", ping_mock):
+            with mock.patch("celery.current_app.control.ping", ping_mock):
                 worker = api.workers()
                 self.assertEqual(worker, two_workers())
                 ping_mock.assert_has_calls([mock.call(timeout=1), mock.call(timeout=2)])
                 data.expire_cache.assert_called_with(
-                    "__pipeline__workers__", two_workers(), settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES
+                    "__pipeline__workers__", two_workers(), settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES,
                 )

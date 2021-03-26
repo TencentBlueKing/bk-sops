@@ -23,9 +23,9 @@ from blueapps.account.conf import ConfFixture
 from blueapps.account.utils.http import send
 from blueapps.utils import client
 
-logger = logging.getLogger('component')
+logger = logging.getLogger("component")
 
-ROLE_TYPE_ADMIN = '1'
+ROLE_TYPE_ADMIN = "1"
 
 
 class TokenBackend(ModelBackend):
@@ -47,34 +47,30 @@ class TokenBackend(ModelBackend):
             # 判断是否获取到用户信息,获取不到则返回None
             if not get_user_info_result:
                 return None
-            user.set_property(key='qq', value=user_info.get('qq', ''))
-            user.set_property(key='language',
-                              value=user_info.get('language', ''))
-            user.set_property(key='time_zone',
-                              value=user_info.get('time_zone', ''))
-            user.set_property(key='role', value=user_info.get('role', ''))
-            user.set_property(key='phone', value=user_info.get('phone', ''))
-            user.set_property(key='email', value=user_info.get('email', ''))
-            user.set_property(key='wx_userid',
-                              value=user_info.get('wx_userid', ''))
-            user.set_property(key='chname', value=user_info.get('chname', ''))
+            user.set_property(key="qq", value=user_info.get("qq", ""))
+            user.set_property(key="language", value=user_info.get("language", ""))
+            user.set_property(key="time_zone", value=user_info.get("time_zone", ""))
+            user.set_property(key="role", value=user_info.get("role", ""))
+            user.set_property(key="phone", value=user_info.get("phone", ""))
+            user.set_property(key="email", value=user_info.get("email", ""))
+            user.set_property(key="wx_userid", value=user_info.get("wx_userid", ""))
+            user.set_property(key="chname", value=user_info.get("chname", ""))
 
             # 用户如果不是管理员，则需要判断是否存在平台权限，如果有则需要加上
             if not user.is_superuser and not user.is_staff:
-                role = user_info.get('role', '')
+                role = user_info.get("role", "")
                 is_admin = True if str(role) == ROLE_TYPE_ADMIN else False
                 user.is_superuser = is_admin
                 user.is_staff = is_admin
                 user.save()
 
             return user
+
         except IntegrityError:
             logger.exception(traceback.format_exc())
-            logger.exception(
-                u"get_or_create UserModel fail or update_or_create UserProperty"
-            )
+            logger.exception(u"get_or_create UserModel fail or update_or_create UserProperty")
             return None
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             logger.exception(traceback.format_exc())
             logger.exception(u"Auto create & update UserModel fail")
             return None
@@ -104,45 +100,41 @@ class TokenBackend(ModelBackend):
         }
         @rtype: bool,dict
         """
-        api_params = {
-            'bk_token': bk_token
-        }
+        api_params = {"bk_token": bk_token}
 
         try:
             response = client.bk_login.get_user(api_params)
-        except Exception as e:
-            logger.exception(u"Abnormal error in get_user_info...:%s" % e)
+        except Exception as err:  # pylint: disable=broad-except
+            logger.exception(u"Abnormal error in get_user_info...:%s" % err)
             return False, {}
 
-        if response.get('result') is True:
+        if response.get("result") is True:
             # 由于v1,v2的get_user存在差异,在这里屏蔽字段的差异,返回字段相同的字典
-            origin_user_info = response.get('data', '')
+            origin_user_info = response.get("data", "")
             user_info = dict()
             # v1,v2字段相同的部分
-            user_info['wx_userid'] = origin_user_info.get('wx_userid', '')
-            user_info['language'] = origin_user_info.get('language', '')
-            user_info['time_zone'] = origin_user_info.get('time_zone', '')
-            user_info['phone'] = origin_user_info.get('phone', '')
-            user_info['chname'] = origin_user_info.get('chname', '')
-            user_info['email'] = origin_user_info.get('email', '')
-            user_info['qq'] = origin_user_info.get('qq', '')
+            user_info["wx_userid"] = origin_user_info.get("wx_userid", "")
+            user_info["language"] = origin_user_info.get("language", "")
+            user_info["time_zone"] = origin_user_info.get("time_zone", "")
+            user_info["phone"] = origin_user_info.get("phone", "")
+            user_info["chname"] = origin_user_info.get("chname", "")
+            user_info["email"] = origin_user_info.get("email", "")
+            user_info["qq"] = origin_user_info.get("qq", "")
             # v2版本特有的字段
-            if settings.DEFAULT_BK_API_VER == 'v2':
-                user_info['username'] = origin_user_info.get('bk_username', '')
-                user_info['role'] = origin_user_info.get('bk_role', '')
+            if settings.DEFAULT_BK_API_VER == "v2":
+                user_info["username"] = origin_user_info.get("bk_username", "")
+                user_info["role"] = origin_user_info.get("bk_role", "")
             # v1版本特有的字段
-            elif settings.DEFAULT_BK_API_VER == '':
-                user_info['username'] = origin_user_info.get('username', '')
-                user_info['role'] = origin_user_info.get('role', '')
+            elif settings.DEFAULT_BK_API_VER == "":
+                user_info["username"] = origin_user_info.get("username", "")
+                user_info["role"] = origin_user_info.get("role", "")
             return True, user_info
         else:
-            error_msg = response.get('message', '')
-            error_data = response.get('data', '')
-            logger.error(u"Failed to Get User Info: error=%(err)s, ret=%(ret)s"
-                         % {
-                             u'err': error_msg,
-                             u'ret': error_data,
-                         })
+            error_msg = response.get("message", "")
+            error_data = response.get("data", "")
+            logger.error(
+                u"Failed to Get User Info: error=%(err)s, ret=%(ret)s" % {u"err": error_msg, u"ret": error_data}
+            )
             return False, {}
 
     @staticmethod
@@ -154,24 +146,20 @@ class TokenBackend(ModelBackend):
         @return: False,None True,username
         @rtype: bool,None/str
         """
-        api_params = {
-            'bk_token': bk_token
-        }
+        api_params = {"bk_token": bk_token}
 
         try:
-            response = send(ConfFixture.VERIFY_URL, 'GET', api_params,
-                            verify=False)
-        except Exception:
+            response = send(ConfFixture.VERIFY_URL, "GET", api_params, verify=False)
+        except Exception:  # pylint: disable=broad-except
             logger.exception(u"Abnormal error in verify_bk_token...")
             return False, None
 
-        if response.get('result'):
-            data = response.get('data')
-            username = data.get('username')
+        if response.get("result"):
+            data = response.get("data")
+            username = data.get("username")
             return True, username
         else:
-            error_msg = response.get('message', '')
-            error_data = response.get('data', '')
-            logger.error(u"Fail to verify bk_token, error=%s, ret=%s" % (
-                error_msg, error_data))
+            error_msg = response.get("message", "")
+            error_data = response.get("data", "")
+            logger.error(u"Fail to verify bk_token, error={}, ret={}".format(error_msg, error_data))
             return False, None

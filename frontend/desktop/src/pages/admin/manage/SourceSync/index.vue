@@ -207,7 +207,7 @@
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        padding-top: 20px;
+        padding: 20px 24px;
         background: #f4f7fa;
         .table-container {
             min-height: 400px;

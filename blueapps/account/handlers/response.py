@@ -13,14 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.conf import settings
 from django.http import HttpResponseRedirect, JsonResponse
+from django.utils.translation import ugettext_lazy as _
+
+from blueapps.account.utils.http import build_redirect_url
+from blueapps.core.exceptions import BkJwtVerifyError, RioVerifyError
 
 try:
     from django.urls import reverse
-except Exception:
+except Exception:  # pylint: disable=broad-except
     from django.core.urlresolvers import reverse
-
-from blueapps.account.utils.http import build_redirect_url
-from blueapps.core.exceptions import RioVerifyError, BkJwtVerifyError
 
 
 class ResponseHandler(object):
@@ -63,7 +64,7 @@ class ResponseHandler(object):
             _next = self._conf.CROSS_PREFIX + _next
 
         _login_url = build_redirect_url(
-            _next, self._conf.LOGIN_PLAIN_URL, self._conf.C_URL, extra_args=self._build_extra_args()
+            _next, self._conf.LOGIN_PLAIN_URL, self._conf.C_URL, extra_args=self._build_extra_args(),
         )
 
         context = {
@@ -98,7 +99,7 @@ class ResponseHandler(object):
             _next = self._conf.CROSS_PREFIX + _next
 
         _login_url = build_redirect_url(
-            _next, self._conf.LOGIN_URL, self._conf.C_URL, extra_args=self._build_extra_args()
+            _next, self._conf.LOGIN_URL, self._conf.C_URL, extra_args=self._build_extra_args(),
         )
         return HttpResponseRedirect(_login_url)
 
@@ -127,12 +128,20 @@ class ResponseHandler(object):
         return HttpResponseRedirect(_redirect)
 
     def build_rio_401_response(self, request):
-        context = {"result": False, "code": RioVerifyError.ERROR_CODE, "message": u"您的登陆请求无法经智能网关正常检测，请与管理人员联系"}
+        context = {
+            "result": False,
+            "code": RioVerifyError.ERROR_CODE,
+            "message": _(u"您的登陆请求无法经智能网关正常检测，请与管理人员联系"),
+        }
         return JsonResponse(context, status=401)
 
     def build_bk_jwt_401_response(self, request):
         """
         BK_JWT鉴权异常
         """
-        context = {"result": False, "code": BkJwtVerifyError.ERROR_CODE, "message": u"您的登陆请求无法经BK JWT检测，请与管理人员联系"}
+        context = {
+            "result": False,
+            "code": BkJwtVerifyError.ERROR_CODE,
+            "message": _(u"您的登陆请求无法经BK JWT检测，请与管理人员联系"),
+        }
         return JsonResponse(context, status=401)

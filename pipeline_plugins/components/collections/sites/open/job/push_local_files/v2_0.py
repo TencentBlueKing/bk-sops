@@ -18,11 +18,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
-    batch_execute_func,
     get_job_instance_url,
+    plat_ip_reg,
 )
 from files.factory import ManagerFactory
 from gcloud.conf import settings
@@ -36,7 +38,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobPushLocalFilesService(Service):
+class JobPushLocalFilesService(JobScheduleService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -128,7 +130,7 @@ class JobPushLocalFilesService(Service):
         local_files_and_target_path = data.inputs.job_local_files_info["job_push_multi_local_files_table"]
         target_ip_list = data.inputs.job_target_ip_list
         target_account = data.inputs.job_target_account
-
+        across_biz = data.get_one_of_inputs("job_across_biz", False)
         task_count = len(local_files_and_target_path)
 
         file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
@@ -146,13 +148,31 @@ class JobPushLocalFilesService(Service):
 
         client = get_client_by_user(executor)
 
-        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
+        # 跨业务
+        if across_biz:
+            ip_info = {"ip_result": []}
+            for match in plat_ip_reg.finditer(target_ip_list):
+                if not match:
+                    continue
+                ip_str = match.group()
+                cloud_id, inner_ip = ip_str.split(":")
+                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
+        else:
+            ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
+
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+        if not ip_list:
+            data.outputs.ex_data = _("目标ip为空，请确认是否为当前业务IP。如需跨业务上传，请选择'允许跨业务'选项")
+            return False
         params_list = [
             {
                 "esb_client": client,
                 "bk_biz_id": biz_cc_id,
-                "file_tags": [_file["tag"] for _file in push_files_info["file_info"]],
+                "file_tags": [
+                    _file["response"]["tag"]
+                    for _file in push_files_info["file_info"]
+                    if _file["response"]["result"] is True
+                ],
                 "target_path": push_files_info["target_path"],
                 "ips": ip_list,
                 "account": target_account,
@@ -168,7 +188,7 @@ class JobPushLocalFilesService(Service):
             return False
         # 校验请求结果
         job_instance_id_list = []
-        data.outputs.requests_error = "Request Error:\n"
+        data.outputs.requests_error = ""
         for push_object in push_results:
             push_result = push_object["result"]
             if not push_result["result"]:
@@ -179,6 +199,9 @@ class JobPushLocalFilesService(Service):
                 data.outputs.requests_error += "{}\n".format(err_message)
             else:
                 job_instance_id_list.append(push_result["data"]["job_id"])
+
+        if data.outputs.requests_error:
+            data.outputs.requests_error = "Request Error:\n{}".format(data.outputs.requests_error)
 
         data.outputs.job_instance_id_list = job_instance_id_list
 
@@ -202,54 +225,7 @@ class JobPushLocalFilesService(Service):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-
-        params_list = [
-            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
-            for job_id in data.outputs.job_id_of_batch_execute
-        ]
-
-        client = get_client_by_user(parent_data.inputs.executor)
-
-        data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
-        batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
-
-        # 重置查询 job_id
-        data.outputs.job_id_of_batch_execute = []
-
-        # 解析查询结果
-        running_task_list = []
-
-        for job_result in batch_result_list:
-            result = job_result["result"]
-            job_id_str = job_result["params"]["job_instance_id"]
-            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
-            job_detail_url = job_urls[0] if job_urls else ""
-            if result["result"]:
-                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
-                job_status = result["data"][0]["status"]
-                # 成功状态
-                if job_status == 3:
-                    data.outputs.success_count += 1
-                # 失败状态
-                elif job_status > 3:
-                    data.outputs.ex_data += (
-                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                        "\n错误信息:{}\n".format(job_detail_url, log_content)
-                    )
-                else:
-                    running_task_list.append(job_id_str)
-            else:
-                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                    job_detail_url
-                )
-
-        # 需要继续轮询的任务
-        data.outputs.job_id_of_batch_execute = running_task_list
-        # 结束调度
-        if not data.outputs.job_id_of_batch_execute:
-            self.finish_schedule()
-
-            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+        return super(JobPushLocalFilesService, self).schedule(data, parent_data, callback_data)
 
 
 class JobPushLocalFilesComponent(Component):

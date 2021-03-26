@@ -22,6 +22,7 @@
     import MyCollection from './MyCollection.vue'
     import MyDynamic from './MyDynamic.vue'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+
     export default {
         name: 'HomePage',
         components: {
@@ -29,19 +30,11 @@
             MyCollection,
             MyDynamic,
             CopyrightFooter
-        },
-        data () {
-            return {
-            }
-        },
-        created () {
         }
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-.home-page {
-    padding: 0px 60px 0 60px;
-    min-width: 1320px;
-}
+    .home-page {
+        padding: 20px 24px;
+    }
 </style>

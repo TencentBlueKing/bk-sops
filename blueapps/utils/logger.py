@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-__all__ = ['logger', 'logger_celery']
+__all__ = ["logger", "logger_celery"]
 
-logger = logging.getLogger('app')
-logger_celery = logging.getLogger('celery')
+logger = logging.getLogger("app")
+logger_celery = logging.getLogger("celery")

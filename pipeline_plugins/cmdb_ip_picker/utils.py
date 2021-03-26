@@ -72,10 +72,11 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     else:
         ip_list = []
     data = []
-
+    host_modules_ids = {}
     for host in host_info:
         host_modules_id = get_modules_id(host["module"])
         host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
+        host_modules_ids[host_innerip] = host_modules_id
         if (
             selector == "topo"
             or selector == "group"
@@ -122,7 +123,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
-                username, bk_biz_id, bk_supplier_account, dynamic_group_id
+                username, bk_biz_id, bk_supplier_account, dynamic_group_id, host_modules_ids
             )
             if not success:
                 return {

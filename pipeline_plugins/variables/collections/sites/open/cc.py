@@ -36,8 +36,8 @@ logger = logging.getLogger("root")
 
 class VarIpPickerVariable(LazyVariable):
     code = "ip"
-    name = _("IP选择器(即将下线，请用新版)")
-    type = "general"
+    name = _("IP选择器(已废弃)")
+    type = "dynamic"
     tag = "var_ip_picker.ip_picker"
     form = "%svariables/cmdb/var_ip_picker.js" % settings.STATIC_URL
 
@@ -95,7 +95,7 @@ class VarIpPickerVariable(LazyVariable):
 class VarCmdbIpSelector(LazyVariable):
     code = "ip_selector"
     name = _("IP选择器")
-    type = "general"
+    type = "dynamic"
     tag = "var_cmdb_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_cmdb_ip_selector.js" % settings.STATIC_URL
 
@@ -181,7 +181,7 @@ class VarCmdbSetAllocation(LazyVariable):
 class VarCmdbAttributeQuery(LazyVariable):
     code = "attribute_query"
     name = _("主机属性查询器")
-    type = "general"
+    type = "dynamic"
     tag = "var_cmdb_attr_query.attr_query"
     form = "%svariables/cmdb/var_cmdb_attribute_query.js" % settings.STATIC_URL
 

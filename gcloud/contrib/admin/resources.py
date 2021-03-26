@@ -49,7 +49,7 @@ class AdminPeriodicTaskHistoryResource(GCloudModelResource):
     start_success = fields.BooleanField(attribute="start_success", readonly=True)
     ex_data = fields.CharField(attribute="ex_data", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PeriodicTaskHistory.objects.all().order_by("-id")
         resource_name = "periodic_task_history"
         authorization = ReadOnlyAuthorization()

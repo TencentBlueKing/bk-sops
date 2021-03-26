@@ -18,38 +18,38 @@ from blueapps.conf import settings
 
 
 class UserAgentMiddleware(object):
-
     def process_request(self, request):
-        request.is_mobile = lambda: bool(settings.RE_MOBILE.search(
-            request.META.get('HTTP_USER_AGENT', '')))
+        request.is_mobile = lambda: bool(settings.RE_MOBILE.search(request.META.get("HTTP_USER_AGENT", "")))
 
         request.is_rio = lambda: bool(
-            request.META.get('HTTP_STAFFNAME', '') and settings.RIO_TOKEN and  # noqa
-            settings.RE_WECHAT.search(request.META.get('HTTP_USER_AGENT', ''))
+            request.META.get("HTTP_STAFFNAME", "")
+            and settings.RIO_TOKEN
+            and settings.RE_WECHAT.search(request.META.get("HTTP_USER_AGENT", ""))
         )
 
-        request.is_wechat = lambda: bool(settings.RE_WECHAT.search(
-            request.META.get('HTTP_USER_AGENT', '')) and not request.is_rio())
+        request.is_wechat = lambda: bool(
+            settings.RE_WECHAT.search(request.META.get("HTTP_USER_AGENT", "")) and not request.is_rio()
+        )
 
-        request.is_bk_jwt = lambda: bool(request.META.get('HTTP_X_BKAPI_JWT', ''))
+        request.is_bk_jwt = lambda: bool(request.META.get("HTTP_X_BKAPI_JWT", ""))
 
 
 class SiteUrlconfMiddleware(object):
-    top_module = 'conf.sites'
+    top_module = "conf.sites"
 
     def process_request(self, request):
-        domain, port = split_domain_port(request.get_host())
+        domain, _ = split_domain_port(request.get_host())
 
         for site in settings.SITES:
             site = site.copy()
             try:
-                if validate_host(domain, site['HOSTS']):
-                    urlconf = '.'.join([self.top_module, site['NAME'], 'urls'])
+                if validate_host(domain, site["HOSTS"]):
+                    urlconf = ".".join([self.top_module, site["NAME"], "urls"])
                     import_module(urlconf)
                     break
             except ImportError:
                 pass
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
         else:
             urlconf = settings.ROOT_URLCONF
@@ -58,37 +58,35 @@ class SiteUrlconfMiddleware(object):
 
 
 class SiteSettingsMiddleware(object):
-    top_module = 'conf.sites'
+    top_module = "conf.sites"
 
     def _enter(self, module):
         for key in dir(module):
-            if not key.startswith('_') and key == key.upper():
+            if not key.startswith("_") and key == key.upper():
                 self._changes[key] = {}
                 if hasattr(settings, key):
-                    self._changes[key]['func'] = setattr
-                    self._changes[key]['args'] = [key, getattr(settings, key)]
+                    self._changes[key]["func"] = setattr
+                    self._changes[key]["args"] = [key, getattr(settings, key)]
                 else:
-                    self._changes[key]['func'] = delattr
-                    self._changes[key]['args'] = [key]
+                    self._changes[key]["func"] = delattr
+                    self._changes[key]["args"] = [key]
 
                 setattr(settings, key, getattr(module, key))
 
     def _exit(self):
         for key in self._changes:
-            self._changes[key]['func'](settings, *self._changes[key]['args'])
+            self._changes[key]["func"](settings, *self._changes[key]["args"])
 
     def process_request(self, request):
-        domain, port = split_domain_port(request.get_host())
+        domain, _ = split_domain_port(request.get_host())
 
         self._changes = {}
 
         for site in settings.SITES:
             site = site.copy()
             try:
-                if validate_host(domain, site['HOSTS']):
-                    site_settings = '.'.join([self.top_module,
-                                              site['NAME'],
-                                              'settings'])
+                if validate_host(domain, site["HOSTS"]):
+                    site_settings = ".".join([self.top_module, site["NAME"], "settings"])
                     self._enter(import_module(site_settings))
                     break
             except ImportError:

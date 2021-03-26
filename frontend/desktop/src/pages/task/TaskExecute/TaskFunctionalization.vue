@@ -11,37 +11,49 @@
 */
 <template>
     <div class="functionalization-wrapper">
-        <div class="task-info">
-            <span class="task-info-title">{{ $t('任务信息') }}</span>
-            <div class="task-info-division-line"></div>
-            <div class="common-form-item">
-                <label class="required">{{ $t('任务名称') }}</label>
-                <div class="common-form-content">
-                    <bk-input
-                        class="task-name"
-                        name="taskName"
-                        v-model="name"
-                        v-validate="taskNameRule">
-                    </bk-input>
-                    <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+        <task-create-header
+            :steps="stepList"
+            :common="common"
+            :title="$t('职能化认领')"
+            :instance-name="instanceName"
+            :current-step="3"
+            :is-functional="true"
+            :project_id="project_id"
+            :template_id="templateId">
+        </task-create-header>
+        <div class="form-area">
+            <div class="task-info">
+                <span class="task-info-title">{{ $t('任务信息') }}</span>
+                <div class="task-info-division-line"></div>
+                <div class="common-form-item">
+                    <label class="required">{{ $t('任务名称') }}</label>
+                    <div class="common-form-content">
+                        <bk-input
+                            class="task-name"
+                            name="taskName"
+                            v-model="name"
+                            v-validate="taskNameRule">
+                        </bk-input>
+                        <span class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="param-info">
-            <div class="param-info-title">
-                <span>
-                    {{ $t('参数信息') }}
-                </span>
+            <div class="param-info">
+                <div class="param-info-title">
+                    <span>
+                        {{ $t('参数信息') }}
+                    </span>
+                </div>
+                <div class="param-info-division-line"></div>
+                <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1 }">
+                    <TaskParamEdit
+                        ref="TaskParamEdit"
+                        :constants="pipelineData.constants"
+                        @onChangeConfigLoading="changeLoading">
+                    </TaskParamEdit>
+                </div>
+                <NoData v-else></NoData>
             </div>
-            <div class="param-info-division-line"></div>
-            <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1 }">
-                <TaskParamEdit
-                    ref="TaskParamEdit"
-                    :constants="pipelineData.constants"
-                    @onChangeConfigLoading="changeLoading">
-                </TaskParamEdit>
-            </div>
-            <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
             <bk-button
@@ -68,7 +80,8 @@
             :has-footer="false"
             :ext-cls="'common-dialog'"
             :title="$t('任务流程预览')"
-            width="1000">
+            width="1000"
+            @cancel="onClose">
             <NodePreview
                 v-if="canvasShow"
                 ref="nodePreviewRef"
@@ -87,28 +100,60 @@
 <script>
     import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
+    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
+    import TaskCreateHeader from '../TaskCreateHeader.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NodePreview from '../NodePreview.vue'
+
+    const STEP_DICT = [
+        {
+            step: 'selectnode',
+            icon: 1,
+            title: i18n.t('节点选择')
+        },
+        {
+            step: 'paramfill',
+            icon: 2,
+            title: i18n.t('参数填写')
+        },
+        {
+            step: 'taskexecute',
+            icon: 3,
+            title: i18n.t('职能化认领')
+        },
+        {
+            step: 'taskexecute',
+            icon: 4,
+            title: i18n.t('任务执行')
+        }
+    ]
 
     export default {
         name: 'TaskFunctionalization',
         inject: ['reload'],
         components: {
             NoData,
+            TaskCreateHeader,
             TaskParamEdit,
             NodePreview
         },
         mixins: [permission],
         props: [
-            'project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName',
+            'common',
+            'project_id',
+            'templateId',
+            'instanceId',
+            'instanceFlow',
+            'instanceName',
             'instanceActions'
         ],
         data () {
             return {
+                stepList: STEP_DICT.slice(0),
                 isSubmit: false,
                 isConfigLoading: false,
                 previewDialogShow: false,
@@ -187,7 +232,7 @@
                 if (!this.hasPermission(['task_claim'], this.instanceActions)) {
                     const resourceData = {
                         task: [{
-                            id: this.instance_id,
+                            id: this.instanceId,
                             name: this.instanceName
                         }],
                         project: [{
@@ -211,7 +256,7 @@
                     }
                     const data = {
                         name: this.name,
-                        instance_id: this.instance_id,
+                        instance_id: this.instanceId,
                         project_id: this.project_id,
                         constants: formData
                     }
@@ -266,11 +311,11 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+@import "@/scss/mixins/scrollbar.scss";
+
 .functionalization-wrapper {
     position: relative;
-    padding: 0 40px;
-    padding-top: 30px;
-    min-height: calc(100vh - 50px - 139px);
+    height: calc(100vh - 100px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){
         width: calc(100% - 80px);
@@ -278,65 +323,15 @@
     /deep/ .no-data-wrapper {
         margin: 100px 0;
     }
-    .operation-header {
-        margin-top: -20px;
-        padding: 0 0 0 10px;
-        height: 50px;
-        border-bottom: 1px solid $commonBorderColor;
-        line-height: 50px;
-        background-color: $commonBgColor;
-    .bread-crumbs-wrapper {
-        display: inline-block;
-        font-size: 14px;
-        .path-item {
-            display: inline-block;
-            .node-name {
-                margin: 0 4px;
-                color: $blueDefault;
-                cursor: pointer;
-            }
-            &:last-child {
-                .node-name {
-                    cursor: pointer;
-                    &:last-child {
-                        color: $greyDefault;
-                        cursor: text;
-                    }
-                }
-            }
-        }
-    }
-    .operation-container {
-        float: right;
-        .operation-btn {
-            float: left;
-            width: 60px;
-            height: 49px;
-            line-height: 49px;
-            font-size: 22px;
-            text-align: center;
-            color: $greyDisable;
-            &.clickable {
-                color: $greyDefault;
-                cursor: pointer;
-                &:hover {
-                    color: $greenDefault;
-                }
-                &.actived {
-                    color: $greenDefault;
-                    background: $whiteDefault;
-                }
-            }
-            &.common-icon-dark-paper {
-                border-left: 1px solid $commonBorderColor;
-            }
-        }
-    }
 }
+.form-area {
+    padding-top: 20px;
+    height: calc(100% - 72px);
+    overflow: auto;
+    @include scrollbar;
 }
 .task-info, .param-info {
-    margin-top: 15px;
-    padding-bottom: 20px;
+    margin: 0 40px 20px 40px;
     .task-info-title, .param-info-title {
         font-size: 14px;
         font-weight: 600;
@@ -365,18 +360,12 @@
     min-height: 200px;
 }
 .action-wrapper {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
     height: 72px;
     line-height: 72px;
-    margin: 0 -40px;
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
     text-align: left;
-    button {
-        margin-top: -7px;
-    }
+    box-shadow: 0 -3px 4px 0 rgba(64,112,203,0.06);
     .preview-button {
         padding: 0px;
         margin-left: 40px;

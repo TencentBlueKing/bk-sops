@@ -41,7 +41,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 class SetModuleIpSelector(LazyVariable):
     code = "set_module_ip_selector"
     name = _("集群模块IP选择器")
-    type = "general"
+    type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
 
@@ -222,9 +222,13 @@ def get_module_id_list(
             for biz_internal_module_item in service_template_list
             if biz_internal_module_item["name"] in biz_internal_module
         ]
-
-    # 没有筛选规则时，添加选择到的空闲机module id
-    if not filter_set_names and not filter_service_template_names:
+    # 所有选择到的集群名
+    all_selected_set_names_list = [
+        set_item["bk_set_name"]
+        for set_item in set_list
+    ]
+    # 没有筛选规则时，并且选择到空闲机池，添加选择到的空闲机module id
+    if not filter_set_names and not filter_service_template_names and BIZ_INTERNAL_SET in all_selected_set_names_list:
         # 获取service_template_list的空闲模块名
         biz_internal_module = [service_template_item["name"]
                                for service_template_item in service_template_list

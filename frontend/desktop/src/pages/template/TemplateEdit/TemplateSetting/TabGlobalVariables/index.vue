@@ -47,6 +47,15 @@
                     <h4>{{ $t('输出：') }}</h4>
                     <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
                 </div>
+                <div class="tips-item">
+                    <h4>{{ $t('模板预渲染：') }}</h4>
+                    <p>
+                        {{ $t('模板预渲染为“是”时，任务会在执行前将变量中的 MAKO 段进行渲染，') }}
+                        {{ $t('而不是在第一个引用该变量的节点执行前才进行渲染；') }}
+                        {{ $t('如果需要预渲染的变量引用了别的变量，') }}
+                        {{ $t('那么被引用变量的预渲染也要设置为“是”，否则预渲染不生效。') }}
+                    </p>
+                </div>
             </div>
         </div>
         <div class="global-variable-panel" slot="content">
@@ -90,11 +99,12 @@
                                 :key="constant.key"
                                 :outputed="outputs.indexOf(constant.key) > -1"
                                 :variable-data="constant"
+                                :variable-cited="variableCited"
                                 :common="common"
                                 @onEditVariable="onEditVariable"
                                 @onChangeVariableOutput="onChangeVariableOutput"
                                 @onDeleteVariable="onDeleteVariable"
-                                @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
+                                @onCitedNodeClick="onCitedNodeClick">
                             </variable-item>
                         </draggable>
                         <div v-if="variableList.length === 0" class="empty-variable-tips">
@@ -110,7 +120,8 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
-                @closeEditingPanel="closeEditingPanel">
+                @closeEditingPanel="closeEditingPanel"
+                @onSaveEditing="onSaveEditing">
             </variable-edit>
             <bk-dialog
                 width="400"
@@ -134,6 +145,7 @@
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'TabGlobalVariables',
@@ -152,11 +164,14 @@
                 variableList: [], // 变量列表，包含系统内置变量和用户变量
                 variableData: null, // 编辑中的变量
                 deleteConfirmDialogShow: false,
-                deleteVarKey: ''
+                deleteVarKey: '',
+                variableCited: {} // 全局变量被任务节点、网关节点以及其他全局变量引用情况
             }
         },
         computed: {
             ...mapState({
+                'activities': state => state.template.activities,
+                'gateways': state => state.template.gateways,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
                 'systemConstants': state => state.template.systemConstants
@@ -173,15 +188,34 @@
         },
         created () {
             this.setVariableList()
+            this.getVariableCitedData()
         },
         methods: {
             ...mapActions('template', [
+                'getVariableCite'
             ]),
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
                 'setOutputs'
             ]),
+            async getVariableCitedData () {
+                try {
+                    const data = {
+                        activities: this.activities,
+                        gateways: this.gateways,
+                        constants: { ...this.systemConstants, ...this.constants }
+                    }
+                    const resp = await this.getVariableCite(data)
+                    if (resp.result) {
+                        this.variableCited = resp.data.defined
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
             setVariableList () {
                 const userVars = Object.keys(this.constants)
                     .map(key => tools.deepClone(this.constants[key]))
@@ -246,12 +280,19 @@
                 })
             },
             /**
-             * 编辑变量
+             * 打开编辑变量面板
              * @param {String} key 变量key值
              */
             onEditVariable (key) {
                 this.variableData = tools.deepClone(this.constants[key] || this.systemConstants[key])
-                this.$emit('templateDataChanged')
+            },
+            onCitedNodeClick (data) {
+                const { group, id } = data
+                if (group === 'constants') {
+                    this.onEditVariable(id)
+                } else {
+                    this.$emit('onCitedNodeClick', data)
+                }
             },
             /**
              * 变量输出勾选
@@ -274,11 +315,18 @@
                 this.deleteVariable(this.deleteVarKey)
                 this.deleteVarKey = ''
                 this.$emit('templateDataChanged')
+                this.getVariableCitedData() // 删除变量后更新引用数据
             },
             // 取消删除
             onDeleteCancel () {
                 this.deleteConfirmDialogShow = false
                 this.deleteVarKey = ''
+            },
+            // 编辑变量后点击保存
+            onSaveEditing () {
+                this.closeEditingPanel()
+                this.$emit('templateDataChanged')
+                this.getVariableCitedData() // 新增或者编辑变量后更新引用数据
             },
             // 关闭变量编辑面板
             closeEditingPanel () {
