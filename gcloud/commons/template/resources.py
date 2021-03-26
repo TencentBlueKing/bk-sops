@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -42,7 +42,7 @@ iam = get_iam_client()
 
 
 class PipelineTemplateResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelineTemplate.objects.filter(is_deleted=False)
         resource_name = "pipeline_template"
         authorization = ReadOnlyAuthorization()
@@ -70,7 +70,7 @@ class CommonTemplateResource(GCloudModelResource):
     subprocess_has_update = fields.BooleanField(attribute="subprocess_has_update", use_in="list", readonly=True)
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "common_template"
         filtering = {
@@ -212,7 +212,7 @@ class CommonTemplateResource(GCloudModelResource):
 class CommonTemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(attribute="data", use_in="detail",)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TemplateScheme.objects.all()
         resource_name = "common_scheme"
         authorization = Authorization()

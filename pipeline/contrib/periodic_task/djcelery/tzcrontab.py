@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@ from datetime import datetime
 
 import pytz
 from celery import schedules
-from celery.utils.timeutils import is_naive, make_aware
+from celery.utils.time import is_naive, make_aware
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 logger = logging.getLogger("celery")
@@ -27,7 +27,7 @@ class TzAwareCrontab(schedules.crontab):
     """Timezone Aware Crontab."""
 
     def __init__(
-        self, minute="*", hour="*", day_of_week="*", day_of_month="*", month_of_year="*", tz=pytz.utc, app=None
+        self, minute="*", hour="*", day_of_week="*", day_of_month="*", month_of_year="*", tz=pytz.utc, app=None,
     ):
         """Overwrite Crontab constructor to include a timezone argument."""
         self.tz = tz

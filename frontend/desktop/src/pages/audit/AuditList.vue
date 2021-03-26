@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -26,7 +26,7 @@
                         :data="auditList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -180,7 +180,6 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
             width: 80
         }, {
             id: 'project',
@@ -252,7 +251,7 @@
             return {
                 firstLoading: true,
                 taskBasicInfoLoading: true,
-                listLoading: true,
+                listLoading: false,
                 activeTaskCategory: undefined,
                 business: {
                     list: [],
@@ -492,8 +491,13 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .audit-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .bk-select-inline,.bk-input-inline {
     display: inline-block;

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -23,7 +23,7 @@
                     <template v-slot:operation>
                         <bk-button
                             theme="primary"
-                            class="task-create-btn"
+                            style="min-width: 120px;"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -39,7 +39,7 @@
                         :data="functorList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: firstLoading && listLoading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -283,12 +283,10 @@
         {
             id: 'project',
             label: i18n.t('所属项目'),
-            disabled: true,
             width: 160
         }, {
             id: 'id',
             label: i18n.t('任务ID'),
-            disabled: true,
             width: 110
         }, {
             id: 'name',
@@ -354,7 +352,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 functorSync: 0,
                 searchForm,
                 isSearchFormOpen,
@@ -828,23 +826,17 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
 }
 .functor-container {
     padding: 20px 24px;
-    background: #f4f7fa;
-}
-.operation-area {
-    margin: 20px 0;
-    .task-create-btn {
-        min-width: 120px;
-    }
-    .auto-redraw {
-        margin-left: 30px;
-        display: inline-block;
-    }
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .advanced-search {
     margin: 0;

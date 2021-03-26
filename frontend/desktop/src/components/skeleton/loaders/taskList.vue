@@ -2,21 +2,22 @@
     <content-loader
         :width="1366"
         :height="600"
-        :style="{ 'transform': `scaleX(${contentWidth / baseWidth})` }"
         :speed="loadingConf.speed"
         :primary-color="loadingConf.primaryColor"
         :secondary-color="loadingConf.secondaryColor">
-        <path d="M 0 44 h 80 v 32 h -80 z" />
-        <path d="M 927 50 h 80 v 20 h -80 z" />
-        <path d="M 1046 44 h 320 v 32 h -320 z" />
-        <path d="M 0 123 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 171 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 219 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 267 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 365 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 415 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 463 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
-        <path d="M 0 317 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 0 h 120 v 32 h -120 z" />
+        <path d="M 940 6 h 68 v 20 h -68 z" />
+        <path d="M 1046 0 h 360 v 32 h -360 z" />
+        <path d="M 0 52 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 92 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 132 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 172 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 212 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 252 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 292 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 332 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 372 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
+        <path d="M 0 412 h 1366 v 24 H 0 v -24 z m 0 0 h 1366 v 24 H 0 v -24 z" />
     </content-loader>
 </template>
 
@@ -28,14 +29,6 @@
             ContentLoader
         },
         props: {
-            baseWidth: {
-                type: Number,
-                default: 1366
-            },
-            contentWidth: {
-                type: Number,
-                default: 1366
-            },
             loadingConf: {
                 type: Object,
                 default () {

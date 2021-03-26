@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -55,6 +55,8 @@ class TestExclusiveGateway(TestCase):
         next_node5.incoming.add_flow(flow5)
 
         self.gateway_for_test_next = ex_gateway2
+
+        self.nodes = [next_node1, next_node2, next_node3, next_node4, next_node5]
 
     def test_exclusive_gateway(self):
         gw_id = "1"

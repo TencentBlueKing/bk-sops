@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <div class="task-container">
         <skeleton :loading="firstLoading" loader="taskList">
-            <div v-if="!firstLoading" class="list-wrapper">
+            <div class="list-wrapper">
                 <advance-search-form
                     id="taskList"
                     :open="isSearchFormOpen"
@@ -23,7 +23,7 @@
                     <template v-slot:operation>
                         <bk-button
                             theme="primary"
-                            class="task-btn"
+                            style="min-width: 120px;"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -34,7 +34,7 @@
                         :data="taskList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -237,7 +237,6 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
             width: 100
         }, {
             id: 'name',
@@ -247,7 +246,7 @@
         }, {
             id: 'start_time',
             label: i18n.t('执行开始'),
-            width: 180
+            width: 200
         }, {
             id: 'finish_time',
             label: i18n.t('执行结束'),
@@ -321,7 +320,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 templateId: this.$route.query.template_id,
                 taskCategory: [],
                 searchStr: '',
@@ -363,6 +362,7 @@
                     'limit-list': [15, 30, 50, 100]
                 },
                 tableFields: TABLE_FIELDS,
+                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
@@ -491,11 +491,15 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('TaskList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
+                    selectedFields = fieldList
                     this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                } else {
+                    selectedFields = this.defaultSelected
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data
@@ -711,9 +715,14 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 @include advancedSearch;
 .task-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .dialog-content {
     padding: 30px;

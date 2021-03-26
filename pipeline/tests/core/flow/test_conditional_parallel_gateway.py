@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from pipeline.core.flow.base import SequenceFlow
-from pipeline.core.flow.gateway import Condition, ConditionalParallelGateway
+from pipeline.core.flow.gateway import Condition, ConditionalParallelGateway, ParallelGateway
 from pipeline.exceptions import ConditionExhaustedException, InvalidOperationException
 from pipeline.tests.mock import *  # noqa
 
@@ -55,10 +55,14 @@ class ConditionalParallelGatewayTestCase(TestCase):
         self.assertEqual(cpg.conditions, ["condition_1", "condition_2"])
 
     def test_targets_meet_condition__normal(self):
-        condition_1 = Condition(evaluate="1 == 1", sequence_flow=SequenceFlow(id=self.id, source="1", target="1"))
-        condition_2 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source="2", target="2"))
-        condition_3 = Condition(evaluate="1 == 1", sequence_flow=SequenceFlow(id=self.id, source="3", target="3"))
-        condition_4 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source="4", target="4"))
+        node_1 = ParallelGateway(id="1", converge_gateway_id="cvg")
+        node_2 = ParallelGateway(id="2", converge_gateway_id="cvg")
+        node_3 = ParallelGateway(id="3", converge_gateway_id="cvg")
+        node_4 = ParallelGateway(id="4", converge_gateway_id="cvg")
+        condition_1 = Condition(evaluate="1 == 1", sequence_flow=SequenceFlow(id=self.id, source=node_1, target=node_1))
+        condition_2 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source=node_2, target=node_2))
+        condition_3 = Condition(evaluate="1 == 1", sequence_flow=SequenceFlow(id=self.id, source=node_3, target=node_3))
+        condition_4 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source=node_4, target=node_4))
         cpg = ConditionalParallelGateway(
             id=self.id,
             converge_gateway_id=self.converge_gateway_id,
@@ -66,13 +70,13 @@ class ConditionalParallelGatewayTestCase(TestCase):
         )
 
         targets = cpg.targets_meet_condition({})
-        self.assertEqual(targets, ["1", "3"])
+        self.assertEqual(targets, [node_1, node_3])
 
     def test_targets_meet_condition__raise_exhausted(self):
-        condition_1 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source="1", target="1"))
-        condition_2 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source="2", target="2"))
-        condition_3 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source="3", target="3"))
-        condition_4 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source="4", target="4"))
+        condition_1 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source=None, target=None))
+        condition_2 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source=None, target=None))
+        condition_3 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source=None, target=None))
+        condition_4 = Condition(evaluate="1 == 0", sequence_flow=SequenceFlow(id=self.id, source=None, target=None))
         cpg = ConditionalParallelGateway(
             id=self.id,
             converge_gateway_id=self.converge_gateway_id,

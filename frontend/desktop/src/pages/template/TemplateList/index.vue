@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <div class="template-container">
         <skeleton :loading="firstLoading" loader="templateList">
-            <div class="list-wrapper" v-if="!firstLoading">
+            <div class="list-wrapper">
                 <list-page-tips-title
                     :num="expiredSubflowTplList.length"
                     @viewClick="handleSubflowFilter">
@@ -29,7 +29,7 @@
                         <bk-button
                             v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                             theme="primary"
-                            :class="['create-template', {
+                            :class="['create-template-btn', {
                                 'btn-permission-disable': !hasPermission(['flow_create'], authActions)
                             }]"
                             @click="checkCreatePermission">
@@ -55,7 +55,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -331,6 +331,10 @@
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 160
+        }, {
+            id: 'editor_name',
+            label: i18n.t('更新人'),
+            width: 160
         }
     ]
 
@@ -375,7 +379,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
                 searchForm,
@@ -871,26 +875,20 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .template-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
+}
+.create-template-btn {
+    min-width: 120px;
 }
 .dialog-content {
     padding: 30px;
     word-break: break-all;
-}
-.operation-area {
-    margin: 20px 0;
-    .create-template {
-        min-width: 120px;
-        font-size: 14px;
-    }
-    .template-btn {
-        margin-left: 5px;
-    }
-    .template-search {
-        height: 156px;
-        background: #fff;
-    }
 }
 .template-table-content {
     background: #ffffff;
@@ -902,7 +900,7 @@
     }
     .label-name {
         display: inline-block;
-        margin-left: 4px;
+        margin: 4px 0 4px;
         padding: 2px 6px;
         font-size: 12px;
         line-height: 1;

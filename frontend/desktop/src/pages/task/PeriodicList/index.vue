@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <div class="periodic-container">
         <skeleton :loading="firstLoading" loader="taskList">
-            <div v-if="!firstLoading" class="list-wrapper">
+            <div class="list-wrapper">
                 <advance-search-form
                     id="periodicList"
                     :open="isSearchFormOpen"
@@ -24,8 +24,8 @@
                         <bk-button
                             ref="childComponent"
                             theme="primary"
-                            class="task-create-btn"
                             size="normal"
+                            style="min-width: 120px;"
                             @click="onCreatePeriodTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -38,7 +38,7 @@
                         :size="setting.size"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }">
                         <template v-for="item in setting.selectedFields">
                             <bk-table-column
                                 v-if="item.isShow ? adminView : true"
@@ -246,7 +246,6 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
             width: 80
         }, {
             id: 'name',
@@ -256,7 +255,7 @@
         }, {
             id: 'process_template',
             label: i18n.t('流程模板'),
-            width: 200
+            min_width: 200
         }, {
             id: 'project',
             label: i18n.t('项目'),
@@ -322,7 +321,7 @@
                 firstLoading: true,
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
-                listLoading: true,
+                listLoading: false,
                 deleting: false,
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -686,8 +685,13 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .periodic-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .list-wrapper {
     min-height: calc(100vh - 300px);

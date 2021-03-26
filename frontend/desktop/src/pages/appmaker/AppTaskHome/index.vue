@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,81 +11,84 @@
 */
 <template>
     <div class="appmaker-container">
-        <div class="list-wrapper">
-            <advance-search-form
-                id="appmakerHome"
-                :open="isSearchFormOpen"
-                :search-form="searchForm"
-                :search-config="{ placeholder: $t('请输入任务名称') }"
-                @onSearchInput="onSearchInput"
-                @submit="onSearchFormSubmit">
-            </advance-search-form>
-            <div class="appmaker-table-content">
-                <bk-table
-                    :data="appmakerList"
-                    :pagination="pagination"
-                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange"
-                    @page-limit-change="handlePageLimitChange">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('任务名称')" min-width="200">
-                        <template slot-scope="props">
-                            <a
-                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                v-cursor
-                                class="text-permission-disable"
-                                :title="props.row.name"
-                                @click="onTaskPermissonCheck(props.row)">
-                                {{props.row.name}}
-                            </a>
-                            <router-link
-                                v-else
-                                class="task-name"
-                                :title="props.row.name"
-                                :to="{
-                                    name: 'appmakerTaskExecute',
-                                    params: { app_id: props.row.create_info, project_id: props.row.project.id },
-                                    query: { instance_id: props.row.id, template_id: props.row.template_id }
-                                }">
-                                {{props.row.name}}
-                            </router-link>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行开始')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.start_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('执行结束')" width="200">
-                        <template slot-scope="props">
-                            {{ props.row.finish_time || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
-                    <bk-table-column :label="$t('执行人')" width="140">
-                        <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('状态')" width="100">
-                        <template slot-scope="props">
-                            <div class="ui-task-status">
-                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
-                            </div>
-                        </template>
-                    </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData /></div>
-                </bk-table>
+        <skeleton :loading="firstLoading" loader="commonList">
+            <div class="list-wrapper">
+                <advance-search-form
+                    id="appmakerHome"
+                    :open="isSearchFormOpen"
+                    :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                </advance-search-form>
+                <div class="appmaker-table-content">
+                    <bk-table
+                        :data="appmakerList"
+                        :pagination="pagination"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
+                        @page-change="onPageChange"
+                        @page-limit-change="handlePageLimitChange">
+                        <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                        <bk-table-column :label="$t('任务名称')" min-width="200">
+                            <template slot-scope="props">
+                                <a
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="props.row.name"
+                                    @click="onTaskPermissonCheck(props.row)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="task-name"
+                                    :title="props.row.name"
+                                    :to="{
+                                        name: 'appmakerTaskExecute',
+                                        params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                        query: { instance_id: props.row.id, template_id: props.row.template_id }
+                                    }">
+                                    {{props.row.name}}
+                                </router-link>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('执行开始')" width="200">
+                            <template slot-scope="props">
+                                {{ props.row.start_time || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('执行结束')" width="200">
+                            <template slot-scope="props">
+                                {{ props.row.finish_time || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
+                        <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
+                        <bk-table-column :label="$t('执行人')" width="140">
+                            <template slot-scope="props">
+                                {{ props.row.executor_name || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('状态')" width="100">
+                            <template slot-scope="props">
+                                <div class="ui-task-status">
+                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                    <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><NoData /></div>
+                    </bk-table>
+                </div>
             </div>
-        </div>
+        </skeleton>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
@@ -142,6 +145,7 @@
     export default {
         name: 'appmakerTaskHome',
         components: {
+            Skeleton,
             AdvanceSearchForm,
             NoData
         },
@@ -171,7 +175,8 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
 
             return {
-                listLoading: true,
+                firstLoading: true,
+                listLoading: false,
                 searchForm,
                 isSearchFormOpen,
                 isDeleteDialogShow: false,
@@ -211,10 +216,11 @@
                 businessTimezone: state => state.businessTimezone
             })
         },
-        created () {
-            this.getAppmakerList()
+        async created () {
             this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getAppmakerList()
+            this.firstLoading = false
         },
         methods: {
             ...mapActions('taskList/', [
@@ -362,15 +368,17 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .bk-select-inline,.bk-input-inline {
    display: inline-block;
     width: 260px;
 }
-.list-wrapper {
+.appmaker-container {
     padding: 20px 24px;
-}
-.operation-area {
-    margin: 20px 0;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 .app-search {
     @include advancedSearch;

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -75,6 +75,10 @@ def chunk_table_data(column_dict, break_line):
             else:
                 return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
         value = value.strip()
+
+        # 分隔符为空，则默认为”,“
+        if not break_line:
+            break_line = ","
         if break_line in value:
             multiple_keys.append(key)
             value = value.split(break_line)
@@ -100,7 +104,7 @@ def batch_execute_func(func, params_list: list, interval_enabled=False):
     :param func: 待处理函数
     :param params_list: 请求参数
     :param interval_enabled: 启用间隔
-    :return: [{"object":结果，”params“: 参数}，{"object":结果，”params“: 参数}，....]
+    :return: [{"result":结果，”params“: 参数}，{"result":结果，”params“: 参数}，....]
     """
     pool = ThreadPool()
     execute_future_list = []
@@ -117,3 +121,12 @@ def batch_execute_func(func, params_list: list, interval_enabled=False):
         future["result"] = future["result"].get()
 
     return execute_future_list
+
+
+def convert_num_to_str(export_data: list):
+    """转换从excel导入值为number类型的数据为str"""
+    for data in export_data:
+        for key, value in data.items():
+            if isinstance(value, int) or isinstance(value, float):
+                data[key] = str(value)
+    return export_data

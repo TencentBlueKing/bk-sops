@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -43,7 +43,7 @@
                         :data="projectList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: loading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange">
                         <bk-table-column
@@ -209,12 +209,10 @@
         {
             id: 'id',
             label: 'ID',
-            disabled: true,
             width: 80
         }, {
             id: 'bk_biz_id',
             label: 'CC_ID',
-            disabled: true,
             width: 80
         }, {
             id: 'name',
@@ -242,7 +240,7 @@
                 OptBtnList,
                 searchStr: '',
                 projectList: [],
-                loading: true,
+                loading: false,
                 totalPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
@@ -596,14 +594,19 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .project-container {
         padding: 20px 24px;
+        height: 100%;
+        overflow: auto;
+        @include scrollbar;
         .dialog-content {
             word-break: break-all;
         }
     }
     .list-header {
-        padding: 20px 0;
+        padding-bottom: 20px;
         overflow: hidden;
         .create-project-btn {
             width: 120px;

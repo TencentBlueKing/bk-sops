@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,52 +11,54 @@
 */
 <template>
     <div class="appmaker-page">
-        <div class="page-content" :style="{ width: `${contentWidth}px` }">
-            <advance-search-form
-                :open="isSearchFormOpen"
-                :search-form="searchForm"
-                :search-config="{ placeholder: $t('请输入轻应用名称') }"
-                @onSearchInput="onSearchInput"
-                @submit="onSearchFormSubmit">
-                <template v-slot:operation>
-                    <bk-button theme="primary" @click="onCreateApp">{{$t('新建')}}</bk-button>
-                </template>
-            </advance-search-form>
-            <div v-bkloading="{ isLoading: loading, opacity: 1 }">
-                <div v-if="appList.length" class="app-list">
-                    <app-card
-                        v-for="item in appList"
-                        :key="item.id"
-                        :app-data="item"
-                        :project_id="project_id"
-                        :collected-loading="collectedLoading"
-                        :collected-list="collectedList"
-                        @onCardEdit="onCardEdit"
-                        @onCardDelete="onCardDelete"
-                        @getCollectList="getCollectList">
-                    </app-card>
-                </div>
-                <div v-else-if="searchMode" class="empty-app-list">
-                    <NoData>
-                        <p>{{$t('未找到相关轻应用')}}</p>
-                    </NoData>
-                </div>
-                <div v-else class="empty-app-content">
-                    <div class="appmaker-info">
-                        <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
-                        <p class="appmaker-info-text">{{$t('业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。')}}</p>
-                        <div class="appmaker-default-icons">
-                            <img
-                                v-for="item in 6"
-                                :key="item"
-                                :src="require(`@/assets/images/appmaker-default-icon-${item}.png`)"
-                                class="default-icon-item"
-                                alt="appmaker-default-icons">
+        <skeleton :loading="firstLoading" loader="appmakerList">
+            <div class="page-content" :style="{ width: `${contentWidth}px` }">
+                <advance-search-form
+                    :open="isSearchFormOpen"
+                    :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入轻应用名称') }"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                    <template v-slot:operation>
+                        <bk-button theme="primary" style="min-width: 120px;" @click="onCreateApp">{{$t('新建')}}</bk-button>
+                    </template>
+                </advance-search-form>
+                <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }">
+                    <div v-if="appList.length" class="app-list">
+                        <app-card
+                            v-for="item in appList"
+                            :key="item.id"
+                            :app-data="item"
+                            :project_id="project_id"
+                            :collected-loading="collectedLoading"
+                            :collected-list="collectedList"
+                            @onCardEdit="onCardEdit"
+                            @onCardDelete="onCardDelete"
+                            @getCollectList="getCollectList">
+                        </app-card>
+                    </div>
+                    <div v-else-if="searchMode" class="empty-app-list">
+                        <NoData>
+                            <p>{{$t('未找到相关轻应用')}}</p>
+                        </NoData>
+                    </div>
+                    <div v-else class="empty-app-content">
+                        <div class="appmaker-info">
+                            <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
+                            <p class="appmaker-info-text">{{$t('业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。')}}</p>
+                            <div class="appmaker-default-icons">
+                                <img
+                                    v-for="item in 6"
+                                    :key="item"
+                                    :src="require(`@/assets/images/appmaker-default-icon-${item}.png`)"
+                                    class="default-icon-item"
+                                    alt="appmaker-default-icons">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </skeleton>
         <AppEditDialog
             :is-edit-dialog-show="isEditDialogShow"
             :is-create-new-app="isCreateNewApp"
@@ -86,6 +88,7 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
+    import Skeleton from '@/components/skeleton/index.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
@@ -111,6 +114,7 @@
     export default {
         name: 'AppMaker',
         components: {
+            Skeleton,
             NoData,
             AppCard,
             AppEditDialog,
@@ -131,7 +135,8 @@
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
-                loading: true,
+                firstLoading: true,
+                loading: false,
                 collectedLoading: false,
                 contentWidth: 0,
                 list: [],
@@ -163,12 +168,13 @@
                 return this.searchMode ? this.searchList : this.list
             }
         },
-        created () {
-            this.loadData()
+        async created () {
             this.getCollectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.resizeHandler = toolsUtils.debounce(this.setContainerWidth, 500)
             window.addEventListener('resize', this.resizeHandler)
+            await this.loadData()
+            this.firstLoading = false
         },
         mounted () {
             this.setContainerWidth()
@@ -337,6 +343,9 @@
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
+}
+.appmaker-page {
+    height: 100%;
 }
 .page-content {
     margin: 0 auto;

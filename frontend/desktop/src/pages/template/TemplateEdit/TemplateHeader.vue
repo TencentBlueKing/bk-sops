@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -43,7 +43,7 @@
                 <span
                     v-if="isEditProcessPage"
                     class="common-icon-file-setting execute-scheme-icon"
-                    :title="$t('执行方案')"
+                    v-bk-tooltips.bottom="$t('执行方案')"
                     @click="onOpenExecuteScheme">
                 </span>
             </div>
@@ -59,7 +59,7 @@
                             'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
                         }]"
                         @click="$emit('onChangePanel', tab.id)">
-                        <i :class="tab.icon" :title="tab.title"></i>
+                        <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
                     </span>
                 </div>
                 <bk-button

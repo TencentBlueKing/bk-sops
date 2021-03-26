@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -25,9 +25,10 @@
                         <bk-button
                             v-cursor="{ active: !hasCreateCommonTplPerm }"
                             theme="primary"
-                            :class="['create-template', {
+                            style="min-width: 120px;"
+                            :class="{
                                 'btn-permission-disable': !hasCreateCommonTplPerm
-                            }]"
+                            }"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
@@ -51,7 +52,7 @@
                         :data="commonTemplateData"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -276,8 +277,7 @@
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
-            width: 100
+            width: 80
         }, {
             id: 'name',
             label: i18n.t('流程名称'),
@@ -287,7 +287,7 @@
             id: 'create_time',
             label: i18n.t('创建时间'),
             sortable: 'custom',
-            width: 180
+            width: 200
         }, {
             id: 'edit_time',
             label: i18n.t('更新时间'),
@@ -337,7 +337,7 @@
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
-                listLoading: true,
+                listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchForm,
                 isSearchFormOpen,
@@ -844,8 +844,13 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
+
 .template-container {
     padding: 20px 24px;
+    height: 100%;
+    overflow: auto;
+    @include scrollbar;
 }
 a {
     cursor: pointer;

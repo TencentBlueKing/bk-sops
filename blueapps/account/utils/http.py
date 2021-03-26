@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,13 +16,14 @@ import logging
 import traceback
 
 import requests
-from django.shortcuts import resolve_url
 from django.http import QueryDict
+from django.shortcuts import resolve_url
 from django.utils.six.moves.urllib.parse import urlparse, urlunparse
+from django.utils.translation import gettext_lazy as _
 
-from blueapps.core.exceptions.base import ApiResultError, ApiNetworkError
+from blueapps.core.exceptions.base import ApiNetworkError, ApiResultError
 
-logger = logging.getLogger('component')
+logger = logging.getLogger("component")
 
 
 def send(url, method, params, timeout=None, **kwargs):
@@ -42,43 +43,42 @@ def send(url, method, params, timeout=None, **kwargs):
     session = requests.session()
 
     try:
-        if method.upper() == 'GET':
-            response = session.request(method='GET', url=url, params=params,
-                                       timeout=timeout, **kwargs)
-        elif method.upper() == 'POST':
-            session.headers.update({
-                'Content-Type': 'application/json; chartset=utf-8'})
-            response = session.request(method='POST', url=url,
-                                       data=json.dumps(params),
-                                       timeout=timeout, **kwargs)
+        if method.upper() == "GET":
+            response = session.request(method="GET", url=url, params=params, timeout=timeout, **kwargs)
+        elif method.upper() == "POST":
+            session.headers.update({"Content-Type": "application/json; chartset=utf-8"})
+            response = session.request(method="POST", url=url, data=json.dumps(params), timeout=timeout, **kwargs)
         else:
-            raise Exception(u"异常请求方式，%s" % method)
+            raise Exception(_(u"异常请求方式，%s") % method)
     except requests.exceptions.Timeout:
-        err_msg = (u"请求超时，url=%s，method=%s，params=%s，timeout=%s" % (
-            url, method, params, timeout))
+        err_msg = _(u"请求超时，url=%s，method=%s，params=%s，timeout=%s") % (url, method, params, timeout,)
         raise ApiNetworkError(err_msg)
 
-    logger.debug('请求记录, url=%s, method=%s, params=%s, response=%s' % (
-        url, method, params, response))
+    logger.debug("请求记录, url={}, method={}, params={}, response={}".format(url, method, params, response))
 
     if response.status_code != requests.codes.ok:
-        err_msg = (u"返回异常状态码，status_code=%s，url=%s，method=%s，"
-                   u"params=%s" % (response.status_code, url, method,
-                                   json.dumps(params)))
+        err_msg = _(u"返回异常状态码，status_code=%s，url=%s，method=%s，" u"params=%s") % (
+            response.status_code,
+            url,
+            method,
+            json.dumps(params),
+        )
         raise ApiResultError(err_msg)
 
     try:
         return response.json()
-    except Exception:
-        err_msg = (u"返回内容不符合 JSON 格式，url=%s，method=%s，params=%s，error=%s，"
-                   u"response=%s" % (url, method, json.dumps(params),
-                                     traceback.format_exc(),
-                                     response.text[:1000]))
+    except Exception:  # pylint: disable=broad-except
+        err_msg = _(u"返回内容不符合 JSON 格式，url=%s，method=%s，params=%s，error=%s，" u"response=%s") % (
+            url,
+            method,
+            json.dumps(params),
+            traceback.format_exc(),
+            response.text[:1000],
+        )
         raise ApiResultError(err_msg)
 
 
-def build_redirect_url(next_url, current_url, redirect_field_name,
-                       extra_args=None):
+def build_redirect_url(next_url, current_url, redirect_field_name, extra_args=None):
     """
     即将访问的 CUR_URL 页面， 加上下一步要跳转的 NEXT 页面
     @param {string} next_url 页面链接，比如 http://a.com/page1/
@@ -94,6 +94,6 @@ def build_redirect_url(next_url, current_url, redirect_field_name,
     if extra_args:
         querystring.update(extra_args)
 
-    login_url_parts[4] = querystring.urlencode(safe='/')
+    login_url_parts[4] = querystring.urlencode(safe="/")
 
     return urlunparse(login_url_parts)
