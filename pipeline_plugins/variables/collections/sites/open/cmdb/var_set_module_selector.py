@@ -33,7 +33,6 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
     :param bk_module_id: 模块ID
     :return:
     """
-    raise PluginApiRequestError("test")
     str_module_ids = [str(item) for item in bk_module_ids]
     set_module_info = {"set_id": bk_set_id, "module_id": bk_module_ids, "flat__module_id": ",".join(str_module_ids)}
     client = get_client_by_user(operator)
