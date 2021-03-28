@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,15 +15,14 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
-from pipeline.component_framework.component import Component
-
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.utils import chunk_table_data
 
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
@@ -91,10 +90,11 @@ class CCBatchTransferHostModule(Service):
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")
         cc_transfer_host_template_break_line = data.get_one_of_inputs("cc_transfer_host_template_break_line") or ","
+        cc_host_transfer_detail = convert_num_to_str(cc_host_transfer_detail)
 
         attr_list = []
         # 对 单行扩展 填参方式
-        if cc_module_select_method == "template":
+        if cc_module_select_method == "auto":
             for cc_srv_busi_item in cc_host_transfer_detail:
                 chunk_result = chunk_table_data(cc_srv_busi_item, cc_transfer_host_template_break_line)
                 if not chunk_result["result"]:
@@ -113,16 +113,21 @@ class CCBatchTransferHostModule(Service):
             # 获取主机id列表
             host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
             if not host_result["result"]:
-                data.set_outputs("ex_data", host_result["message"])
-                failed_update.append(attr)
+                message = _("无法获取主机id列表，主机属性={}, message={}".format(attr, host_result["message"]))
+                data.set_outputs("ex_data", message)
+                failed_update.append(message)
                 continue
             # 获取 bk module id
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
                 executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_path
             )
             if not cc_list_select_node_inst_id_return["result"]:
-                data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
-                failed_update.append(attr)
+                message = _(
+                    "无法获取bk module id，"
+                    "主机属性={}, message={}".format(attr, cc_list_select_node_inst_id_return["message"])
+                )
+                data.set_outputs("ex_data", message)
+                failed_update.append(message)
                 continue
             cc_module_select = cc_list_select_node_inst_id_return["data"]
 
@@ -139,8 +144,11 @@ class CCBatchTransferHostModule(Service):
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))
                 success_update.append(attr)
             else:
-                self.logger.info("主机所属业务模块更新失败, data={}".format(cc_kwargs))
-                failed_update.append(attr)
+                message = _(
+                    "主机所属业务模块更新失败，" "主机属性={}, kwargs={} message={}".format(attr, cc_kwargs, update_result["message"])
+                )
+                self.logger.info(message)
+                failed_update.append(message)
 
         data.set_outputs("transfer_host_module_success", success_update)
         data.set_outputs("transfer_host_module_failed", failed_update)

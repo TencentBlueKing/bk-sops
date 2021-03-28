@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,8 +19,11 @@ from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 from tastypie.authorization import ReadOnlyAuthorization
-from djcelery.models import PeriodicTask as CeleryTask
+from django_celery_beat.models import PeriodicTask as CeleryTask
 
+
+import env
+from gcloud.core.models import ProjectConfig
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -50,7 +53,7 @@ iam = get_iam_client()
 class CeleryTaskResource(GCloudModelResource):
     enabled = fields.BooleanField(attribute="enabled", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = CeleryTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = "celery_task"
@@ -64,7 +67,7 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
     name = fields.CharField(attribute="name", readonly=True)
     creator = fields.CharField(attribute="creator", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelinePeriodicTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = "pipeline_periodic_task"
@@ -89,7 +92,7 @@ class PeriodicTaskResource(GCloudModelResource):
     form = fields.DictField(attribute="form", readonly=True, use_in="detail")
     task = fields.ForeignKey(PipelinePeriodicTaskResource, "task", full=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PeriodicTask.objects.all()
         resource_name = "periodic_task"
         filtering = {
@@ -142,6 +145,14 @@ class PeriodicTaskResource(GCloudModelResource):
             project = ProjectResource().get_via_uri(bundle.data.get("project"), request=bundle.request)
         except NotFound:
             raise BadRequest("project [uri=%s] does not exist" % bundle.data.get("project"))
+
+        # check if the periodic task of the project reach the limit
+        periodic_task_limit = env.PERIODIC_TASK_PROJECT_MAX_NUMBER
+        project_config = ProjectConfig.objects.filter(project_id=project.id).only("max_periodic_task_num").first()
+        if project_config and project_config.max_periodic_task_num > 0:
+            periodic_task_limit = project_config.max_periodic_task_num
+        if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
+            raise BadRequest("Periodic task number reaches limit: {}".format(periodic_task_limit))
 
         if template_source == PROJECT:
             try:

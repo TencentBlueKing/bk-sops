@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,85 +11,87 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic">
-            <div class="logo" @click="onGotoAppMaker">
-                <div v-if="isShowDefaultLogo" class="default-logo">
-                    <img class="default-icon" :src="require(`@/assets/images/appmaker-default-icon-1.png`)" alt="default-icon-1">
+        <div class="card-content">
+            <div class="card-basic">
+                <div class="logo" @click="onGotoAppMaker">
+                    <div v-if="isShowDefaultLogo" class="default-logo">
+                        <img class="default-icon" :src="require(`@/assets/images/appmaker-default-icon-1.png`)" alt="default-icon-1">
+                    </div>
+                    <div v-else>
+                        <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
+                    </div>
                 </div>
-                <div v-else>
-                    <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
+                <div class="app-name-wrap">
+                    <a
+                        class="app-name"
+                        :title="appData.name"
+                        @click.self="onGotoAppMaker">
+                        {{appData.name}}
+                    </a>
                 </div>
-            </div>
-            <div class="app-name-wrap">
-                <a
-                    class="app-name"
-                    :title="appData.name"
-                    @click.self="onGotoAppMaker">
-                    {{appData.name}}
-                </a>
-            </div>
-            <div class="card-operation">
-                <span
-                    :class="['common-icon-box-pen', 'operate-btn', {
-                        'permission-disable': !hasPermission(['mini_app_edit'], appData.auth_actions)
-                    }]"
-                    :title="$t('修改轻应用')"
-                    v-cursor="{ active: !hasPermission(['mini_app_edit'], appData.auth_actions) }"
-                    @click.stop="onCardEdit">
-                </span>
-                <router-link
-                    class="common-icon-clock-reload operate-btn"
-                    :title="$t('执行历史')"
-                    :to="getExecuteHistoryUrl(appData)">
-                </router-link>
-                <bk-popover
-                    theme="light"
-                    placement="bottom-start"
-                    ext-cls="common-dropdown-btn-popver"
-                    :z-index="2000"
-                    :distance="0"
-                    :arrow="false"
-                    :tippy-options="{ boundary: 'window', duration: [0, 0], appendTo: 'parent' }">
-                    <span class="common-icon-circle-ellipsis operate-btn"></span>
-                    <ul class="operate-list" slot="content">
-                        <li
-                            v-cursor="{ active: !hasPermission(['mini_app_view'], appData.auth_actions) }"
-                            href="javascript:void(0);"
-                            :class="{
-                                'opt-btn': true,
-                                'disable': collectingId === appData.id || collectedLoading,
-                                'text-permission-disable': !hasPermission(['mini_app_view'], appData.auth_actions)
-                            }"
-                            @click="onCollectAppMaker(appData, $event)">
-                            {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
-                        </li>
-                        <li
-                            :class="{
-                                'opt-btn': true,
-                                'text-permission-disable': !hasPermission(['mini_app_delete'], appData.auth_actions)
-                            }"
-                            v-cursor="{ active: !hasPermission(['mini_app_delete'], appData.auth_actions) }"
-                            @click="onCardDelete">
-                            {{$t('删除')}}
-                        </li>
-                    </ul>
-                </bk-popover>
-            </div>
-        </div>
-        <div class="card-particular">
-            <div class="app-detail">
-                <div class="app-template">{{$t('流程模板')}}
-                    <p>{{appData.template_name}}</p>
-                </div>
-                <div class="editor-name">{{$t('更新人')}}
-                    <p>{{appData.editor_name}}</p>
-                </div>
-                <div class="edit-time">{{$t('更新时间')}}
-                    <p>{{appData.edit_time}}</p>
+                <div class="card-operation">
+                    <span
+                        :class="['common-icon-box-pen', 'operate-btn', {
+                            'permission-disable': !hasPermission(['mini_app_edit'], appData.auth_actions)
+                        }]"
+                        :title="$t('修改轻应用')"
+                        v-cursor="{ active: !hasPermission(['mini_app_edit'], appData.auth_actions) }"
+                        @click.stop="onCardEdit">
+                    </span>
+                    <router-link
+                        class="common-icon-clock-reload operate-btn"
+                        :title="$t('执行历史')"
+                        :to="getExecuteHistoryUrl(appData)">
+                    </router-link>
+                    <bk-popover
+                        theme="light"
+                        placement="bottom-start"
+                        ext-cls="common-dropdown-btn-popver"
+                        :z-index="2000"
+                        :distance="0"
+                        :arrow="false"
+                        :tippy-options="{ boundary: 'window', duration: [0, 0], appendTo: 'parent' }">
+                        <span class="common-icon-circle-ellipsis operate-btn"></span>
+                        <ul class="operate-list" slot="content">
+                            <li
+                                v-cursor="{ active: !hasPermission(['mini_app_view'], appData.auth_actions) }"
+                                href="javascript:void(0);"
+                                :class="{
+                                    'opt-btn': true,
+                                    'disable': collectingId === appData.id || collectedLoading,
+                                    'text-permission-disable': !hasPermission(['mini_app_view'], appData.auth_actions)
+                                }"
+                                @click="onCollectAppMaker(appData, $event)">
+                                {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
+                            </li>
+                            <li
+                                :class="{
+                                    'opt-btn': true,
+                                    'text-permission-disable': !hasPermission(['mini_app_delete'], appData.auth_actions)
+                                }"
+                                v-cursor="{ active: !hasPermission(['mini_app_delete'], appData.auth_actions) }"
+                                @click="onCardDelete">
+                                {{$t('删除')}}
+                            </li>
+                        </ul>
+                    </bk-popover>
                 </div>
             </div>
-            <div class="app-synopsis">{{$t('应用简介')}}
-                <p class="synopsis-content">{{appData.desc || '--'}}</p>
+            <div class="card-particular">
+                <div class="app-detail">
+                    <div class="app-template">{{$t('流程模板')}}
+                        <p>{{appData.template_name}}</p>
+                    </div>
+                    <div class="editor-name">{{$t('更新人')}}
+                        <p>{{appData.editor_name}}</p>
+                    </div>
+                    <div class="edit-time">{{$t('更新时间')}}
+                        <p>{{appData.edit_time}}</p>
+                    </div>
+                </div>
+                <div class="app-synopsis">{{$t('应用简介')}}
+                    <p class="synopsis-content">{{appData.desc || '--'}}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -236,13 +238,17 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .card-wrapper {
+    padding: 0 10px;
+    margin-bottom: 20px;
+    width: 405px;
+}
+.card-content {
     position: relative;
-    min-width: 345px;
     height: 184px;
     color: #63656e;
-    background: $whiteDefault;
     border: 1px solid $commonBorderColor;
     border-radius: 2px;
+    background: #ffffff;
 }
 .card-basic {
     float: left;

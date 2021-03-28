@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -352,15 +352,17 @@
                             nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
                         }
                         // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
-                        const excelValue = tabJson[0]['sheet']
-                        for (let i = 0; i < excelValue.length; i++) {
-                            for (const key in excelValue[i]) {
+                        const excelValue = tools.deepClone(tabJson[0]['sheet'])
+                        for (let i = 0; i < tabJson[0]['sheet'].length; i++) {
+                            for (const key in tabJson[0]['sheet'][i]) {
                                 const newKey = nameToTagCode[key]
-                                excelValue[i][newKey] = excelValue[i][key]
-                                delete excelValue[i][key]
+                                if (newKey && key !== newKey) {
+                                    excelValue[i][newKey] = excelValue[i][key]
+                                    delete excelValue[i][key]
+                                }
                             }
                         }
-                        this._set_value(tabJson[0]['sheet'])
+                        this._set_value(excelValue)
                     }
                 })
             },

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,7 +15,8 @@ import copy
 
 from django.test import TestCase
 
-from pipeline.contrib.periodic_task.models import DjCeleryPeriodicTask, PeriodicTask
+from django_celery_beat.models import PeriodicTask
+from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.exceptions import InvalidOperationException
 
 
@@ -37,13 +38,13 @@ class PeriodicTestCase(TestCase):
             self.task = self.task.delete()
 
     def create_a_task(self):
-        return PeriodicTask.objects.create_task(
-            name=self.name, template=None, cron={}, data=self.data, creator=self.creator, extra_info=self.extra_info
+        return PipelinePeriodicTask.objects.create_task(
+            name=self.name, template=None, cron={}, data=self.data, creator=self.creator, extra_info=self.extra_info,
         )
 
     def test_create_task(self):
-        self.assertIsInstance(self.task, PeriodicTask)
-        self.assertIsInstance(self.task.celery_task, DjCeleryPeriodicTask)
+        self.assertIsInstance(self.task, PipelinePeriodicTask)
+        self.assertIsInstance(self.task.celery_task, PeriodicTask)
         self.assertEqual(self.task.name, self.name)
         self.assertEqual(self.task.template, None)
         self.assertEqual(self.task.creator, self.creator)
@@ -70,7 +71,7 @@ class PeriodicTestCase(TestCase):
     def test_delete(self):
         celery_task_id = self.task.celery_task.id
         self.task.delete()
-        self.assertRaises(DjCeleryPeriodicTask.DoesNotExist, DjCeleryPeriodicTask.objects.get, id=celery_task_id)
+        self.assertRaises(PeriodicTask.DoesNotExist, PeriodicTask.objects.get, id=celery_task_id)
         self.task = None
 
     def test_modify_cron(self):

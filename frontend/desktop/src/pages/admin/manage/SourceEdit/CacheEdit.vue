@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -120,13 +120,16 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .cache-edit {
-        height: calc(100% - 40px);
-        background: #ffffff;
+        height: calc(100% - 70px);
     }
     .cache-content {
-        min-height: 100%;
-        padding: 30px 60px 60px;
+        height: calc(100% - 60px);
+        padding: 30px 60px 20px;
+        overflow: auto;
+        @include scrollbar;
     }
     .add-cache {
         margin-bottom: 60px;
@@ -137,6 +140,7 @@
         text-align: center;
         border: 1px dashed #c4c6cc;
         border-radius: 2px;
+        background: #ffffff;
         cursor: pointer;
         &:hover {
             color: #3a84ff;
@@ -144,11 +148,11 @@
         }
     }
     .operate-area {
-        margin-top: -60px;
         padding: 0 60px;
         height: 60px;
         line-height: 60px;
         border-top: 1px solid #cacedb;
+        box-shadow: 0 -3px 4px 0 rgba(64,112,203,0.06);
         .bk-button {
             height: 32px;
             line-height: 32px;

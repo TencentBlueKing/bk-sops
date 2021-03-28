@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,25 +11,16 @@
 */
 <template>
     <div class="task-manage">
-        <base-title
-            :title="$t('任务管理')"
-            :self-reload="true"
-            :tab-list="titleTabList"
-            @tabChange="onTabChange">
-        </base-title>
         <router-view></router-view>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import { mapState } from 'vuex'
+
     export default {
         name: 'TaskManage',
         inject: ['reload'],
-        components: {
-            BaseTitle
-        },
         computed: {
             ...mapState('project', {
                 project_id: state => state.project_id
@@ -58,8 +49,3 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-.task-manage {
-    padding: 0 60px;
-}
-</style>

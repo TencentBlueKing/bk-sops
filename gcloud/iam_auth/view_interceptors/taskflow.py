@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -38,7 +38,7 @@ class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
         resources = res_factory.resources_for_task(task_id)
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
-        allowed = iam.is_allowed(request)
+        allowed = iam.is_allowed_with_cache(request)
 
         if not allowed:
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
@@ -52,6 +52,10 @@ class TaskSingleActionPostInterceptor(TaskSingleActionInterceptor):
 class TaskSingleActionGetInterceptor(TaskSingleActionInterceptor):
     def get_task_id(self, request, *args, **kwargs):
         return request.GET["instance_id"]
+
+
+class StatusViewInterceptor(TaskSingleActionGetInterceptor):
+    action = IAMMeta.TASK_VIEW_ACTION
 
 
 class DataViewInterceptor(TaskSingleActionGetInterceptor):

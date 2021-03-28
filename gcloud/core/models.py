@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -54,7 +54,7 @@ class Business(models.Model):
         verbose_name = _("业务 Business")
         verbose_name_plural = _("业务 Business")
         permissions = (
-            ("view_business", "Can view business"),
+            ("get_business", "Can get business"),
             ("manage_business", "Can manage business"),
         )
 
@@ -85,8 +85,8 @@ class UserBusiness(models.Model):
 
 
 class BusinessGroupMembership(models.Model):
-    business = models.ForeignKey(Business)
-    group = models.ForeignKey(Group)
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
     date_created = models.DateTimeField(default=timezone.now)
 
@@ -259,7 +259,7 @@ class UserDefaultProjectManager(models.Manager):
 
 class UserDefaultProject(models.Model):
     username = models.CharField(_("用户名"), max_length=255, unique=True)
-    default_project = models.ForeignKey(verbose_name=_("用户默认项目"), to=Project)
+    default_project = models.ForeignKey(verbose_name=_("用户默认项目"), to=Project, on_delete=models.CASCADE)
 
     objects = UserDefaultProjectManager()
 
@@ -285,7 +285,7 @@ class ProjectCounterManager(models.Manager):
 
 class ProjectCounter(models.Model):
     username = models.CharField(_("用户名"), max_length=255)
-    project = models.ForeignKey(verbose_name=_("项目"), to=Project)
+    project = models.ForeignKey(verbose_name=_("项目"), to=Project, on_delete=models.CASCADE)
     count = models.IntegerField(_("项目访问次数"), default=1)
 
     objects = ProjectCounterManager()
@@ -353,6 +353,7 @@ class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
+    max_periodic_task_num = models.IntegerField(_("项目下最大周期任务数"), default=-1, blank=True)
 
     objects = ProjectConfigManager()
 

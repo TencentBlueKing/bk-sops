@@ -1,5 +1,5 @@
 {
-  "name": "blueflow",
+  "name": "bk-sops-fe",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -16,7 +16,7 @@
     "ajv": "^6.10.2",
     "art-template": "^4.13.0",
     "axios": "^0.18.0",
-    "bk-magic-vue": "2.2.1",
+    "bk-magic-vue": "2.2.5",
     "dom-to-image": "^2.6.0",
     "element-ui": "^2.4.1",
     "file-saver": "^2.0.2",
@@ -103,6 +103,7 @@
     "style-loader": "^0.21.0",
     "terser-webpack-plugin": "^2.2.2",
     "url-loader": "^1.0.1",
+    "vue-content-loader": "^0.2.3",
     "vue-jest": "^3.0.5",
     "vue-json-pretty": "^1.4.1-beta.1",
     "vue-loader": "^15.2.4",

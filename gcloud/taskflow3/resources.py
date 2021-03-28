@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -50,7 +50,7 @@ iam = get_iam_client()
 
 
 class PipelineInstanceResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = "pipeline_instance"
         authorization = ReadOnlyAuthorization()
@@ -86,7 +86,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
     subprocess_info = fields.DictField(attribute="subprocess_info", use_in="detail", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = "taskflow"
         filtering = {
