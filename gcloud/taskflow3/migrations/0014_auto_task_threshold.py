@@ -19,15 +19,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("taskflow3", "0012_auto_20200325_1458"),
+        ("taskflow3", "0013_auto_20210125_1943"),
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name="taskflowinstance",
-            name="create_info",
-            field=models.CharField(blank=True, max_length=255, verbose_name="创建任务额外信息（App maker ID或APP CODE或周期任务ID）"),
-        ),
         migrations.CreateModel(
             name="TaskOperationTimesConfig",
             fields=[
