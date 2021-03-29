@@ -14,8 +14,10 @@ specific language governing permissions and limitations under the License.
 from bamboo_engine import api as bamboo_engine_api
 from pipeline.service import task_service
 from pipeline.eri.runtime import BambooDjangoRuntime
+from pipeline.log.models import LogEntry
 
 from gcloud import err_code
+from gcloud.utils.handlers import handle_plain_log
 
 from .base import EngineCommandDispatcher, ensure_return_has_code, ensure_return_is_dict
 
@@ -39,11 +41,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     def dispatch(self, command, operator, **kwargs):
         if self.engine_ver not in self.VALID_ENGINE_VER:
-            return {
-                "result": False,
-                "message": "Unsupported engine version: {}".format(self.engine_ver),
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
+            return self._unsupported_engine_ver_result()
 
         if command not in self.NODE_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
@@ -132,3 +130,24 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.forced_fail_activity(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
         )
+
+    def get_node_log(self, history_id):
+        if self.engine_ver not in self.VALID_ENGINE_VER:
+            return self._unsupported_engine_ver_result()
+
+        return getattr(self, "get_node_log_v{}".format(self.engine_ver))(history_id=history_id)
+
+    def get_node_log_v1(self, history_id):
+        return {
+            "result": True,
+            "data": handle_plain_log(LogEntry.objects.plain_log_for_node(node_id=self.node_id, history_id=history_id)),
+            "message": "",
+        }
+
+    def get_node_log_v2(self, history_id):
+        runtime = BambooDjangoRuntime()
+        return {
+            "result": True,
+            "data": handle_plain_log(runtime.get_plain_log_for_node(node_id=self.node_id, history_id=history_id)),
+            "message": "",
+        }

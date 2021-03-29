@@ -35,7 +35,7 @@ from pipeline.eri.imp.execution_history import ExecutionHistoryMixin
 from pipeline.eri.imp.task import TaskMixin
 from pipeline.eri.celery.queues import QueueResolver
 
-from pipeline.eri.models import Node, Data, ContextValue, Process, ContextOutputs, LogEntry
+from pipeline.eri.models import Node, Data, ContextValue, Process, ContextOutputs, LogEntry, ExecutionHistory, State
 
 
 class BambooDjangoRuntime(
@@ -428,17 +428,28 @@ class BambooDjangoRuntime(
                     )
                     queue.declare(channel=channel)
 
-    def get_plain_log_for_node(self, node_id: str, loop: int = 1) -> str:
+    def get_plain_log_for_node(self, node_id: str, history_id: int = -1) -> str:
         """
         读取某个节点某一次执行的日志
 
         :param node_id: 节点 ID
         :type node_id: str
-        :param loop: 循环次数, defaults to 1
-        :type loop: int, optional
+        :param history_id: 执行历史 ID, -1 表示获取最新日志
+        :type history_id: int, optional
         :return: 节点日志
         :rtype: str
         """
+        if history_id != -1:
+            qs = ExecutionHistory.objects.filter(id=history_id).only("version")
+        else:
+            qs = State.objects.filter(node_id=node_id).only("version")
+
+        if not qs:
+            return ""
+        version = qs.first().version
         return "\n".join(
-            [e.message for e in LogEntry.objects.order_by("id").filter(node_id=node_id, loop=loop).only("message")]
+            [
+                e.message
+                for e in LogEntry.objects.order_by("id").filter(node_id=node_id, version=version).only("message")
+            ]
         )

@@ -52,3 +52,10 @@ def ensure_return_has_code(func):
 
 class EngineCommandDispatcher(metaclass=ABCMeta):
     VALID_ENGINE_VER = {EngineConfig.ENGINE_VER_V1, EngineConfig.ENGINE_VER_V2}
+
+    def _unsupported_engine_ver_result(self):
+        return {
+            "result": False,
+            "message": "Unsupported engine version: {}".format(self.engine_ver),
+            "code": err_code.UNKNOWN_ERROR.code,
+        }

@@ -19,7 +19,6 @@ import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.handlers import handle_plain_log
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
@@ -29,7 +28,6 @@ from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
-from pipeline.log.models import LogEntry
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
 from pipeline_web.core.abstract import NodeAttr
@@ -890,25 +888,6 @@ class TaskFlowInstance(models.Model):
                         return act
 
         return get_act_of_pipeline(self.pipeline_tree)
-
-    def log_for_node(self, node_id, history_id=None):
-        if not history_id:
-            history_id = -1
-
-        if not self.has_node(node_id):
-            message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                node_id=node_id, task_id=self.id
-            )
-            return {"result": False, "data": None, "message": message}
-
-        plain_log = handle_plain_log(LogEntry.objects.plain_log_for_node(node_id, history_id))
-        return {
-            "result": True if plain_log else False,
-            "data": plain_log,
-            "message": "node with history_id(%s) does not exist or log already expired" % history_id
-            if not plain_log
-            else "",
-        }
 
     def has_node(self, node_id):
         return node_id in self.pipeline_instance.node_id_set

@@ -46,11 +46,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
     def dispatch(self, command, operator):
         if self.engine_ver not in self.VALID_ENGINE_VER:
-            return {
-                "result": False,
-                "message": "Unsupported engine version: {}".format(self.engine_ver),
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
+            return self._unsupported_engine_ver_result()
 
         if command not in self.TASK_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}

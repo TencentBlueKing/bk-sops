@@ -122,8 +122,10 @@ class ServiceActObject(IdentifyObject):
         id=None,
         schedule_return=True,
         execute_return=True,
+        execute_pre_process_return=True,
         schedule_exception=None,
         execute_exception=None,
+        execute_pre_process_exception=None,
         timeout=None,
         error_ignorable=False,
         is_schedule_done=False,
@@ -140,6 +142,11 @@ class ServiceActObject(IdentifyObject):
             mock.MagicMock(return_value=schedule_return)
             if not schedule_exception
             else mock.MagicMock(side_effect=schedule_exception)
+        )
+        self.execute_pre_process = (
+            mock.MagicMock(return_value=execute_pre_process_return)
+            if not execute_pre_process_exception
+            else mock.MagicMock(side_effect=execute_pre_process_exception)
         )
         self.execute = (
             mock.MagicMock(return_value=execute_return)

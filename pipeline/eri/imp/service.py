@@ -174,5 +174,5 @@ class ServiceWrapper(ServiceInterface):
         :type attrs: Dict[str, Any]
         """
 
-        attrs["logger"] = get_logger(node_id=attrs["id"], loop=attrs["loop"])
+        attrs["logger"] = get_logger(node_id=attrs["id"], loop=attrs["loop"], version=attrs["version"])
         self.service.setup_runtime_attrs(**attrs)

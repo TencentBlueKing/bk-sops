@@ -17,8 +17,8 @@ from logging import LogRecord, LoggerAdapter
 logger = logging.getLogger("pipeline.eri.log")
 
 
-def get_logger(node_id: str, loop: int):
-    return LoggerAdapter(logger=logger, extra={"node_id": node_id, "loop": loop})
+def get_logger(node_id: str, loop: int, version: str):
+    return LoggerAdapter(logger=logger, extra={"node_id": node_id, "loop": loop, "version": version})
 
 
 class ERINodeLogHandler(logging.Handler):
@@ -28,6 +28,7 @@ class ERINodeLogHandler(logging.Handler):
         LogEntry.objects.create(
             node_id=record.node_id,
             loop=record.loop,
+            version=record.version,
             logger_name=record.name,
             level_name=record.levelname,
             message=self.format(record),

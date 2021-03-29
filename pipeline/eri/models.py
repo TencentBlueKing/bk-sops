@@ -135,6 +135,7 @@ class ExecutionHistory(models.Model):
 class LogEntry(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
     node_id = models.CharField(_("节点 ID"), max_length=33)
+    version = models.CharField(_("状态版本"), default="", max_length=33)
     loop = models.IntegerField(_("循环次数"), default=1)
     logger_name = models.CharField(_("logger 名称"), max_length=128)
     level_name = models.CharField(_("日志等级"), max_length=32)

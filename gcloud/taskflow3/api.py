@@ -51,7 +51,7 @@ from gcloud.taskflow3.validators import (
     QueryTaskCountValidator,
     GetNodeLogValidator,
 )
-
+from gcloud.taskflow3.dispatchers import NodeCommandDispatcher
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
@@ -352,9 +352,19 @@ def get_node_log(request, project_id, node_id):
     history_id = request.GET.get("history_id")
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
+    if not task.has_node(node_id):
+        return JsonResponse(
+            {
+                "result": False,
+                "data": None,
+                "message": "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
+                    node_id=node_id, task_id=task.id
+                ),
+            }
+        )
 
-    ctx = task.log_for_node(node_id, history_id)
-    return JsonResponse(ctx)
+    dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id)
+    return JsonResponse(dispatcher.get_node_log(history_id))
 
 
 @require_GET
