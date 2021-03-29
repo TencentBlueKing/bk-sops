@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import keyword
 import logging
 from datetime import datetime
 
@@ -143,3 +143,13 @@ def get_msg_types(request):
 @login_exempt
 def healthz(request):
     return JsonResponse({"result": True, "data": None, "message": "OK"})
+
+
+@require_GET
+def check_variable_key(request):
+    variable_key = request.GET.get("key")
+    if not variable_key or keyword.iskeyword(variable_key) or variable_key in settings.VARIABLE_KEY_BLACKLIST:
+        return JsonResponse(
+            {"result": False, "data": None, "message": "{} is not allow to be the key of variable".format(variable_key)}
+        )
+    return JsonResponse({"result": True, "data": None, "message": "Success"})
