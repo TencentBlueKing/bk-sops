@@ -369,6 +369,9 @@ def get_task_create_method(request):
 @csrf_exempt
 @require_POST
 def node_callback(request, token):
+    """
+    old callback view, handle pipeline callback
+    """
     try:
         f = Fernet(settings.CALLBACK_KEY)
         node_id = f.decrypt(bytes(token, encoding="utf8")).decode()

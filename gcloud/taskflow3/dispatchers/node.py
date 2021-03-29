@@ -72,11 +72,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     @ensure_return_is_dict
     def callback_v2(self, operator, **kwargs):
+        # 兼容 pipeline 引擎时期 callback 可以不传 version 的请求
         runtime = BambooDjangoRuntime()
-        status = runtime.get_state(self.node_id)
-        return bamboo_engine_api.callback(
-            runtime=BambooDjangoRuntime(), node_id=self.node_id, version=status.version, data=kwargs["data"]
-        )
+        version = kwargs.get("version")
+        if not version:
+            version = runtime.get_state(self.node_id).version
+
+        return bamboo_engine_api.callback(runtime=runtime, node_id=self.node_id, version=version, data=kwargs["data"])
 
     @ensure_return_has_code
     def skip_exg_v1(self, operator, **kwargs):
