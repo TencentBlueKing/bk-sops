@@ -53,3 +53,4 @@ django-celery-results==1.2.1
 redis==3.2.0
 redis-py-cluster==2.1.0
 django-timezone-field==4.0
+importlib-metadata==3.7.3
