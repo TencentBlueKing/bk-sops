@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.utils import timezone
 
+from gcloud.taskflow3.constants import TEMPLATE_SOURCE
+
 
 class BusinessManager(models.Manager):
     def supplier_account_for_business(self, cc_id):
@@ -361,13 +363,35 @@ class ProjectConfig(models.Model):
         verbose_name_plural = _("项目配置 ProjectConfig")
 
 
+class EngineConfigManager(models.Manager):
+    def get_engine_type(self, project_id, template_id, template_source):
+        template_config = self.filter(
+            scope_id=template_id, scope=EngineConfig.SCOPE_TYPE_TEMPLATE, template_source=template_source
+        ).only("engine_type")
+        if template_config:
+            return template_config.first().engine_ver
+
+        project_config = self.filter(
+            scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT, template_source=template_source
+        ).only("engine_type")
+        if project_config:
+            return project_config.first().engine_ver
+
+        return EngineConfig.ENGINE_VER_V1
+
+
 class EngineConfig(models.Model):
-    SCOPE_TYPE = ((1, "project"), (2, "template"))
-    ENGINE_TYPE = ((1, "v1"), (2, "v2"))
+    SCOPE_TYPE_PROJECT = 1
+    SCOPE_TYPE_TEMPLATE = 2
+    SCOPE_TYPE = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"))
+    ENGINE_VER_V1 = 1
+    ENGINE_VER_V2 = 2
+    ENGINE_VER = ((ENGINE_VER_V1, "v1"), (ENGINE_VER_V2, "v2"))
 
     scope_id = models.IntegerField(_("范围对象ID"))
     scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPE)
-    engine_ver = models.IntegerField(_("引擎版本"), choices=ENGINE_TYPE)
+    engine_ver = models.IntegerField(_("引擎版本"), choices=ENGINE_VER)
+    template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE)
 
     class Meta:
         verbose_name = _("引擎版本配置 ProjectConfig")

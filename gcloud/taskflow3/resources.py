@@ -32,6 +32,7 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.utils.strings import name_handler, pipeline_node_name_handle
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
+from gcloud.core.models import EngineConfig
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -317,6 +318,12 @@ class TaskFlowInstanceResource(GCloudModelResource):
         else:
             kwargs["current_flow"] = "execute_task"
         kwargs["pipeline_instance_id"] = pipeline_instance.id
+
+        # set engine type
+        kwargs["engine_ver"] = EngineConfig.objects.get_engine_type(
+            project_id=project.id, template_id=template.id, template_source=template_source
+        )
+
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
 

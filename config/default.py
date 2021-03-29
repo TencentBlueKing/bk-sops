@@ -76,6 +76,7 @@ INSTALLED_APPS += (
     "pipeline_plugins",
     "pipeline_plugins.components",
     "pipeline_plugins.variables",
+    "pipeline.eri",
     "pipeline_web.core",
     "pipeline_web.label",
     "pipeline_web.plugin_management",
@@ -410,6 +411,8 @@ ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
 
+# engine queue setttings
+
 # 添加通过api gateway调用的celery任务队列
 API_TASK_QUEUE_NAME = "api_task_queue"
 ScalableQueues.add(name=API_TASK_QUEUE_NAME)
@@ -419,6 +422,13 @@ PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
+from pipeline.eri.celery import queues as eri_queues  # noqa
+
+API_TASK_QUEUE_NAME_V2 = "api"
+PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
+CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
+CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60

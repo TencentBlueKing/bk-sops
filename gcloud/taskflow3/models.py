@@ -30,7 +30,6 @@ from pipeline.engine.models import Data
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.log.models import LogEntry
-from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, IsolateNodeError, StreamValidateError
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
 from pipeline_web.core.abstract import NodeAttr
@@ -43,7 +42,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY
-from gcloud.core.models import Project
+from gcloud.core.models import Project, EngineConfig
 from gcloud.core.utils import convert_readable_username
 from gcloud.utils.dates import format_datetime
 from gcloud.commons.template.models import CommonTemplate
@@ -52,30 +51,11 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
-from gcloud.taskflow3.signals import taskflow_started
+from gcloud.taskflow3.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
 
-
-INSTANCE_ACTIONS = {
-    "start": None,
-    "pause": pipeline_api.pause_pipeline,
-    "resume": pipeline_api.resume_pipeline,
-    "revoke": pipeline_api.revoke_pipeline,
-}
-NODE_ACTIONS = {
-    "revoke": pipeline_api.resume_node_appointment,
-    "retry": pipeline_api.retry_node,
-    "skip": pipeline_api.skip_node,
-    "callback": pipeline_api.activity_callback,
-    "skip_exg": pipeline_api.skip_exclusive_gateway,
-    "pause": pipeline_api.pause_node_appointment,
-    "resume": pipeline_api.resume_node_appointment,
-    "pause_subproc": pipeline_api.pause_pipeline,
-    "resume_subproc": pipeline_api.resume_node_appointment,
-    "forced_fail": pipeline_api.forced_fail,
-}
 STATE_NODE_SUSPENDED = "NODE_SUSPENDED"
 
 MANUAL_INTERVENTION_EXEMPT_STATES = frozenset([states.CREATED, states.FINISHED, states.REVOKED])
@@ -420,6 +400,7 @@ class TaskFlowInstance(models.Model):
     flow_type = models.CharField(_("任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
     current_flow = models.CharField(_("当前任务流程阶段"), max_length=255)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
+    engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=1)
 
     objects = TaskFlowInstanceManager()
 
@@ -805,10 +786,12 @@ class TaskFlowInstance(models.Model):
                     self.save()
         return result
 
-    def _get_task_celery_queue(self):
+    def _get_task_celery_queue(self, engine_ver):
         queue = ""
-        if self.create_method == "api":
+        if engine_ver == EngineConfig.ENGINE_VER_V1 and self.create_method == "api":
             queue = settings.API_TASK_QUEUE_NAME
+        elif engine_ver == EngineConfig.ENGINE_VER_V2 and self.create_method == "api":
+            queue = settings.API_TASK_QUEUE_NAME_V2
         return queue
 
     def task_action(self, action, username):
@@ -818,66 +801,16 @@ class TaskFlowInstance(models.Model):
                 "message": "task with current_flow:%s cannot be %sed" % (self.current_flow, action),
                 "code": err_code.INVALID_OPERATION.code,
             }
-        if action not in INSTANCE_ACTIONS:
-            return {"result": False, "message": "task action is invalid", "code": err_code.INVALID_OPERATION.code}
-        if action == "start":
-            try:
-                queue = self._get_task_celery_queue()
-                action_result = self.pipeline_instance.start(executor=username, queue=queue)
-                if action_result.result:
-                    taskflow_started.send(self, task_id=self.id)
-                return {
-                    "result": action_result.result,
-                    "message": action_result.message,
-                    "code": err_code.OPERATION_FAIL.code,
-                }
 
-            except ConvergeMatchError as e:
-                message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id, str(e), e.gateway_id)
-                logger.exception(message)
-                code = err_code.VALIDATION_ERROR.code
-
-            except StreamValidateError as e:
-                message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, str(e), e.node_id)
-                logger.exception(message)
-                code = err_code.VALIDATION_ERROR.code
-
-            except IsolateNodeError as e:
-                message = "task[id=%s] has isolate structure, message: %s" % (self.id, str(e))
-                logger.exception(message)
-                code = err_code.VALIDATION_ERROR.code
-
-            except ConnectionValidateError as e:
-                message = "task[id=%s] connection check failed, message: %s, nodes: %s" % (
-                    self.id,
-                    e.detail,
-                    e.failed_nodes,
-                )
-                logger.exception(message)
-                code = err_code.VALIDATION_ERROR.code
-
-            except TypeError:
-                message = "redis connection error, please check redis configuration"
-                logger.exception(traceback.format_exc())
-                code = err_code.ENV_ERROR.code
-
-            except Exception as e:
-                message = "task[id=%s] action failed:%s" % (self.id, e)
-                logger.exception(traceback.format_exc())
-                code = err_code.UNKNOWN_ERROR.code
-
-            return {"result": False, "message": message, "code": code}
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=self.engine_ver,
+            taskflow=self,
+            pipeline_instance=self.pipeline_instance,
+            queue=self._get_task_celery_queue(self.engine_ver),
+        )
 
         try:
-            action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
-            if action_result.result:
-                return {"result": True, "data": {}, "code": err_code.SUCCESS.code}
-            else:
-                return {
-                    "result": action_result.result,
-                    "message": action_result.message,
-                    "code": err_code.OPERATION_FAIL.code,
-                }
+            return dispatcher.dispatch(action, username)
         except Exception as e:
             message = "task[id=%s] action failed:%s" % (self.id, e)
             logger.exception(traceback.format_exc())
@@ -889,27 +822,15 @@ class TaskFlowInstance(models.Model):
                 node_id=node_id, task_id=self.id
             )
             return {"result": False, "message": message}
-        if action not in NODE_ACTIONS:
-            return {"result": False, "message": "task action is invalid"}
+
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+
         try:
-            if action == "callback":
-                action_result = NODE_ACTIONS[action](node_id, kwargs["data"])
-            elif action == "skip_exg":
-                action_result = NODE_ACTIONS[action](node_id, kwargs["flow_id"])
-            elif action == "retry":
-                action_result = NODE_ACTIONS[action](node_id, kwargs["inputs"])
-            elif action == "forced_fail":
-                action_result = NODE_ACTIONS[action](node_id, ex_data="forced fail by {}".format(username))
-            else:
-                action_result = NODE_ACTIONS[action](node_id)
+            return dispatcher.dispatch(action, username, **kwargs)
         except Exception as e:
             message = "task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
             logger.exception(traceback.format_exc())
-            return {"result": False, "message": message}
-        if action_result.result:
-            return {"result": True, "data": "success"}
-        else:
-            return {"result": action_result.result, "message": action_result.message}
+            return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
     def clone(self, username, **kwargs):
         clone_pipeline = self.pipeline_instance.clone(username, **kwargs)

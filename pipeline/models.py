@@ -711,8 +711,8 @@ class PipelineInstance(models.Model):
 
     def start(self, executor, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY, queue=""):
         """
-        启动当前流程
         @param executor: 执行者
+        启动当前流程
         @param check_workers: 是否检测 worker 的状态
         @return: 执行结果
         """
