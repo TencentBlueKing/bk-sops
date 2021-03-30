@@ -857,13 +857,18 @@ class TaskFlowInstance(models.Model):
                 node_id=node_id, task_id=self.id
             )
             return {"result": False, "message": message}
-        action_result = pipeline_api.forced_fail(node_id)
-        if not action_result.result:
-            return {"result": False, "message": "timer node not exits or is finished"}
-        action_result = pipeline_api.retry_node(node_id, inputs)
-        if not action_result.result:
-            return {"result": False, "message": "reset timer failed, please try again later"}
-        return {"result": True, "data": "success"}
+
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+
+        action_result = dispatcher.dispatch(command="forced_fail", operator=username)
+        if not action_result["result"]:
+            return action_result
+
+        action_result = dispatcher.dispatch(command="retry", operator=username, inputs=inputs)
+        if not action_result["result"]:
+            return action_result
+
+        return action_result
 
     def get_act_web_info(self, act_id):
         def get_act_of_pipeline(pipeline_tree):
