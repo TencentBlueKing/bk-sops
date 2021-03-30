@@ -58,6 +58,7 @@
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
+            :template-labels="templateLabels"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -76,6 +77,7 @@
             NodeMenu
         },
         props: {
+            templateLabels: Array,
             atomTypeList: {
                 type: Object,
                 default () {
@@ -126,7 +128,7 @@
                 if (this.activeNodeListType === 'tasknode') {
                     return this.atomTypeList.tasknode
                 } else {
-                    return this.atomTypeList.subflow.groups
+                    return this.atomTypeList.subflow
                 }
             }
         },

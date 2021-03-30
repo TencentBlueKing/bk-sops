@@ -36,37 +36,22 @@
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
                     <ul class="grouped-list">
-                        <template v-for="group in panelList">
+                        <template v-for="item in panelList">
                             <li
-                                v-if="group.children.length"
-                                :key="group.id"
-                                class="template-group">
-                                <h5 class="group-name" v-if="group.name">
-                                    {{group.name}}
-                                    (<span class="list-count">{{group.children.length}}</span>)
-                                </h5>
-                                <ul>
-                                    <li
-                                        v-for="template in group.children"
-                                        :key="template.id"
-                                        :title="template.name"
-                                        :class="[
-                                            'template-item',
-                                            {
-                                                'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission([viewPermission], template.auth_actions)
-                                            }
-                                        ]"
-                                        @click="onSelectItem(template)">
-                                        <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
-                                        <div class="item-name-box">
-                                            <div class="template-item-name">{{template.name}}</div>
-                                        </div>
-                                        <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
-                                        </div>
-                                    </li>
-                                </ul>
+                                :class="['template-item', {
+                                    'template-item-selected': getTplIndexInSelected(item) > -1,
+                                    'permission-disable': !hasPermission([viewPermission], item.auth_actions)
+                                }]"
+                                :key="item.id"
+                                :title="item.name"
+                                @click="onSelectItem(item)">
+                                <div class="template-item-icon">{{getTemplateIcon(item)}}</div>
+                                <div class="item-name-box">
+                                    <div class="template-item-name">{{item.name}}</div>
+                                </div>
+                                <div class="apply-permission-mask">
+                                    <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
+                                </div>
                             </li>
                         </template>
                         <NoData v-if="!panelList.length" class="empty-template"></NoData>
@@ -277,7 +262,8 @@
                             panelList = []
                     }
                     const displayList = this.getFilterCollected(panelList)
-                    this.panelList = this.getGroupData(displayList, reqType)
+                    // this.panelList = this.getGroupData(displayList, reqType)
+                    this.panelList = displayList
                     this.collectionPending = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -519,20 +505,13 @@
         width: 557px;
         height: 100%;
         .template-list {
-            padding: 0 14px 0 20px;
+            padding: 30px 14px 30px 20px;
             height: 268px;
             overflow-y: auto;
             @include scrollbar;
         }
-        .template-group {
-            margin: 30px 0;
-        }
         .search-list {
             padding-top: 40px;
-        }
-        .group-name {
-            margin: 0 0 8px;
-            font-size: 12px;
         }
     }
     .template-item {
