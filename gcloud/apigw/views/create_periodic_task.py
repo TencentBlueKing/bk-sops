@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,6 +18,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
@@ -26,6 +27,7 @@ from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import replace_template_id
 from gcloud.constants import PROJECT
+from gcloud.core.models import ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
@@ -52,6 +54,16 @@ except ImportError:
 @iam_intercept(CreatePeriodicTaskInterceptor())
 def create_periodic_task(request, template_id, project_id):
     project = request.project
+
+    # check if the periodic task of the project reach the limit
+    periodic_task_limit = env.PERIODIC_TASK_PROJECT_MAX_NUMBER
+    project_config = ProjectConfig.objects.filter(project_id=project.id).only("max_periodic_task_num").first()
+    if project_config and project_config.max_periodic_task_num > 0:
+        periodic_task_limit = project_config.max_periodic_task_num
+    if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
+        message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
+        return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
+
     params = json.loads(request.body)
     template_source = params.get("template_source", PROJECT)
     logger.info(

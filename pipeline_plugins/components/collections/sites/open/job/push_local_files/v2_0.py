@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,9 +20,9 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
-    batch_execute_func,
     get_job_instance_url,
     plat_ip_reg,
 )

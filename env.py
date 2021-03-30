@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -116,3 +116,6 @@ BKAPP_WEIXIN_APP_EXTERNAL_HOST = os.getenv("BKAPP_WEIXIN_APP_EXTERNAL_HOST", "")
 # RSA KEYS, 保存的是密钥的base64加密形式, 使用base64.b64encode(KEY.encode("utf-8"))进行处理后保存为环境变量
 RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
 RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
+
+# 单业务下最大周期任务数量
+PERIODIC_TASK_PROJECT_MAX_NUMBER = os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50)

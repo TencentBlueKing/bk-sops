@@ -49,6 +49,7 @@
 <script>
     import { mapState } from 'vuex'
     import { COMMON_ROUTE_LIST, ADMIN_ROUTE_LIST, APPMAKER_ROUTE_LIST } from '@/constants/routes.js'
+    import tools from '@/utils/tools.js'
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
 
     export default {
@@ -57,12 +58,7 @@
             NavigatorHeadRight
         },
         data () {
-            let routerList = COMMON_ROUTE_LIST
-            if (this.$store.state.view_mode === 'appmaker') {
-                routerList = APPMAKER_ROUTE_LIST
-            }
             return {
-                routerList,
                 title: '',
                 currentNav: '',
                 logo: require('../../assets/images/logo/logo_icon.svg')
@@ -71,20 +67,33 @@
         computed: {
             ...mapState({
                 hasAdminPerm: state => state.hasAdminPerm,
+                hasStatisticsPerm: state => state.hasStatisticsPerm,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id
-            })
+            }),
+            routerList () {
+                if (this.view_mode === 'appmaker') {
+                    return APPMAKER_ROUTE_LIST
+                } else if (this.hasAdminPerm) {
+                    const adminRouteList = tools.deepClone(ADMIN_ROUTE_LIST)
+                    if (!this.hasStatisticsPerm) {
+                        // 暂时用写死的方式去掉管理员入口导航的运营数据
+                        adminRouteList[0][0].children = adminRouteList[0][0].children.filter(item => item.id !== 'operation')
+                    }
+                    return COMMON_ROUTE_LIST.concat(adminRouteList)
+                }
+                return COMMON_ROUTE_LIST
+            }
         },
         watch: {
             '$route' (val) {
                 this.setNavigationTitle(val)
             },
             hasAdminPerm (val) {
-                if (val && this.VIEW_MODE !== 'appmaker') {
-                    this.routerList = COMMON_ROUTE_LIST.concat(ADMIN_ROUTE_LIST)
+                if (val) {
                     this.setNavigationTitle(this.$route)
                 }
             }

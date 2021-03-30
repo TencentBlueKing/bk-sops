@@ -1,9 +1,10 @@
 <template>
     <div class="variable-edit">
         <div class="variable-edit-content">
-            <ul class="form-list">
+            <section class="form-section">
+                <h3>{{ $t('基础信息') }}</h3>
                 <!-- 名称 -->
-                <li class="form-item clearfix">
+                <div class="form-item clearfix">
                     <label class="required">{{ $t('名称') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -14,9 +15,9 @@
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
-                </li>
+                </div>
                 <!-- key -->
-                <li class="form-item clearfix">
+                <div class="form-item clearfix">
                     <label class="required">KEY</label>
                     <div class="form-content">
                         <bk-input
@@ -28,22 +29,10 @@
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
-                </li>
-                <!-- 描述 -->
-                <li class="form-item clearfix">
-                    <label class="form-label">{{ $t('说明') }}</label>
-                    <div class="form-content">
-                        <bk-input
-                            type="textarea"
-                            v-model="theEditingData.desc"
-                            :placeholder="isSystemVar ? ' ' : $t('请输入')"
-                            :readonly="isSystemVar">
-                        </bk-input>
-                    </div>
-                </li>
+                </div>
                 <!-- 类型 -->
-                <li class="form-item variable-type clearfix" v-if="!isSystemVar">
-                    <label class="required">{{ $t('类型') }}</label>
+                <div class="form-item variable-type clearfix" v-if="!isSystemVar">
+                    <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="currentValType"
@@ -74,23 +63,9 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
-                </li>
-                <!-- 默认值 -->
-                <li v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-item clearfix">
-                    <label class="form-label">{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</label>
-                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
-                        <template v-if="!atomConfigLoading && renderConfig.length">
-                            <RenderForm
-                                ref="renderForm"
-                                :scheme="renderConfig"
-                                :form-option="renderOption"
-                                v-model="renderData">
-                            </RenderForm>
-                        </template>
-                    </div>
-                </li>
+                </div>
                 <!-- 验证规则 -->
-                <li v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
+                <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -101,10 +76,10 @@
                         </bk-input>
                         <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
                     </div>
-                </li>
+                </div>
                 <!-- 显示/隐藏 -->
-                <li class="form-item clearfix" v-if="!isSystemVar">
-                    <label class="required">{{ $t('显示')}}</label>
+                <div class="form-item clearfix" v-if="!isSystemVar">
+                    <label>{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.show_type"
@@ -119,8 +94,52 @@
                             </bk-option>
                         </bk-select>
                     </div>
-                </li>
-            </ul>
+                </div>
+                <!-- 模板预渲染 -->
+                <div class="form-item clearfix" v-if="!isSystemVar">
+                    <label class="form-label">{{ $t('模板预渲染')}}</label>
+                    <div class="form-content">
+                        <bk-select
+                            v-model="theEditingData.preRenderMako"
+                            :clearable="false">
+                            <bk-option
+                                v-for="(option, index) in preRenderList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </div>
+                </div>
+                <!-- 描述 -->
+                <div class="form-item clearfix">
+                    <label class="form-label">{{ $t('说明') }}</label>
+                    <div class="form-content">
+                        <bk-input
+                            type="textarea"
+                            v-model="theEditingData.desc"
+                            :placeholder="isSystemVar ? ' ' : $t('请输入')"
+                            :readonly="isSystemVar">
+                        </bk-input>
+                    </div>
+                </div>
+            </section>
+            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-section">
+                <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
+                <!-- 默认值 -->
+                <div class="form-item value-form clearfix">
+                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                        <template v-if="!atomConfigLoading && renderConfig.length">
+                            <RenderForm
+                                ref="renderForm"
+                                :scheme="renderConfig"
+                                :form-option="renderOption"
+                                v-model="renderData">
+                            </RenderForm>
+                        </template>
+                    </div>
+                </div>
+            </section>
         </div>
         <div class="btn-wrap">
             <template v-if="!isSystemVar">
@@ -180,13 +199,17 @@
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
                 ],
+                preRenderList: [
+                    { id: 'true', name: i18n.t('是') },
+                    { id: 'false', name: i18n.t('否') }
+                ],
                 metaTag: undefined, // 元变量tag名称
                 renderData: {},
                 renderConfig: [],
                 renderOption: {
                     showHook: false,
                     showGroup: false,
-                    showLabel: false,
+                    showLabel: true,
                     showVarList: true,
                     validateSet: ['custom', 'regex']
                 },
@@ -266,7 +289,14 @@
                 return rule
             }
         },
-        async created () {
+        created () {
+            // 设置模板预渲染默认值（兼容以前存在的模板）
+            const variableData = this.variableData
+            if (variableData.hasOwnProperty('pre_render_mako')) {
+                this.theEditingData.preRenderMako = String(variableData.pre_render_mako)
+            } else if (variableData.show_type === 'hide') {
+                this.theEditingData.preRenderMako = 'true'
+            }
             this.extendFormValidate()
         },
         async mounted () {
@@ -568,6 +598,9 @@
                         return false
                     }
 
+                    if (this.theEditingData.preRenderMako) {
+                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.preRenderMako)
+                    }
                     const variable = this.theEditingData
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
                         const tagCode = this.renderConfig[0].tag_code
@@ -620,6 +653,17 @@
         height: calc(100% - 49px);
         overflow-y: auto;
     }
+    .form-section {
+        margin-bottom: 30px;
+        & > h3 {
+            margin: 0;
+            padding-bottom: 10px;
+            color: #313238;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 1px solid #cacedb;
+        }
+    }
     .form-item {
         margin: 15px 0;
         &:first-child {
@@ -642,6 +686,11 @@
                 right: -10px;
                 color: #ff2602;
                 font-family: "SimSun";
+            }
+        }
+        &.value-form {
+            .form-content {
+                margin-left: 0;
             }
         }
     }

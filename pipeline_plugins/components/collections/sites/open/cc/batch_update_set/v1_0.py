@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,7 +21,7 @@ from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -36,7 +36,10 @@ class CCBatchUpdateSetService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_set_select_method", type="str", schema=StringItemSchema(description=_("填参方式")),
+                name=_("填参方式"),
+                key="cc_set_select_method",
+                type="str",
+                schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
                 name=_("拓扑模块属性修改"),
@@ -76,12 +79,12 @@ class CCBatchUpdateSetService(Service):
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
-        cc_set_update_data = data.get_one_of_inputs("cc_set_update_data")
+        cc_set_update_data_list = data.get_one_of_inputs("cc_set_update_data")
         cc_set_template_break_line = data.get_one_of_inputs("cc_set_template_break_line") or ","
-
+        cc_set_update_data = convert_num_to_str(cc_set_update_data_list)
         attr_list = []
         # 如果用户选择了单行扩展
-        if cc_set_select_method == "template":
+        if cc_set_select_method == "auto":
             for cc_set_item in cc_set_update_data:
                 chunk_result = chunk_table_data(cc_set_item, cc_set_template_break_line)
                 if not chunk_result["result"]:
@@ -98,6 +101,8 @@ class CCBatchUpdateSetService(Service):
         for update_item in attr_list:
             # 过滤,去除用户没有填的字段
             update_params = {key: value for key, value in update_item.items() if value}
+            if "bk_set_name" not in update_params:
+                raise KeyError(_("目前Set名称,未填写"))
             bk_set_name = update_params["bk_set_name"]
             if "bk_new_set_name" in update_params:
                 update_params["bk_set_name"] = update_params["bk_new_set_name"]

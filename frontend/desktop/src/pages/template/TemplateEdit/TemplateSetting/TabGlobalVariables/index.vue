@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -46,6 +46,15 @@
                 <div class="tips-item">
                     <h4>{{ $t('输出：') }}</h4>
                     <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
+                </div>
+                <div class="tips-item">
+                    <h4>{{ $t('模板预渲染：') }}</h4>
+                    <p>
+                        {{ $t('模板预渲染为“是”时，任务会在执行前将变量中的 MAKO 段进行渲染，') }}
+                        {{ $t('而不是在第一个引用该变量的节点执行前才进行渲染；') }}
+                        {{ $t('如果需要预渲染的变量引用了别的变量，') }}
+                        {{ $t('那么被引用变量的预渲染也要设置为“是”，否则预渲染不生效。') }}
+                    </p>
                 </div>
             </div>
         </div>
