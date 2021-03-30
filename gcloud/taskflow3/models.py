@@ -25,14 +25,12 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions as engine_exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
-from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
 from pipeline_web.core.abstract import NodeAttr
 
 from pipeline_web.core.models import NodeInInstance
-from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
@@ -49,11 +47,10 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
+from gcloud.taskflow3.utils import format_pipeline_status
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
-
-STATE_NODE_SUSPENDED = "NODE_SUSPENDED"
 
 MANUAL_INTERVENTION_EXEMPT_STATES = frozenset([states.CREATED, states.FINISHED, states.REVOKED])
 
@@ -566,33 +563,6 @@ class TaskFlowInstance(models.Model):
 
         return False
 
-    @staticmethod
-    def format_pipeline_status(status_tree):
-        """
-        @summary: 转换通过 pipeline api 获取的任务状态格式
-        @return:
-        """
-        status_tree.setdefault("children", {})
-        status_tree.pop("created_time", "")
-
-        status_tree["start_time"] = format_datetime(status_tree.pop("started_time"))
-        status_tree["finish_time"] = format_datetime(status_tree.pop("archived_time"))
-        child_status = []
-        for identifier_code, child_tree in list(status_tree["children"].items()):
-            TaskFlowInstance.format_pipeline_status(child_tree)
-            child_status.append(child_tree["state"])
-
-        if status_tree["state"] == states.BLOCKED:
-            if states.RUNNING in child_status:
-                status_tree["state"] = states.RUNNING
-            elif states.FAILED in child_status:
-                status_tree["state"] = states.FAILED
-            elif states.SUSPENDED in child_status or STATE_NODE_SUSPENDED in child_status:
-                status_tree["state"] = STATE_NODE_SUSPENDED
-            # 子流程 BLOCKED 状态表示子节点失败
-            elif not child_status:
-                status_tree["state"] = states.FAILED
-
     def get_status(self):
         if not self.pipeline_instance.is_started:
             return {
@@ -605,7 +575,7 @@ class TaskFlowInstance(models.Model):
                 "children": {},
             }
         status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
-        TaskFlowInstance.format_pipeline_status(status_tree)
+        format_pipeline_status(status_tree)
         return status_tree
 
     def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
@@ -613,7 +583,7 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message, "data": {}}
+            return {"result": False, "message": message, "data": {}, "code": err_code.INVALID_OPERATION.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
         return dispatcher.get_node_data(
@@ -621,7 +591,7 @@ class TaskFlowInstance(models.Model):
             component_code=component_code,
             loop=loop,
             pipeline_instance=self.pipeline_instance,
-            subprocess_stack=subprocess_stack,
+            subprocess_stack=subprocess_stack or [],
         )
 
     def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
@@ -631,64 +601,24 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack, loop)
-        act_start = True
-        detail = {}
-        # 首先获取最新一次执行详情
-        try:
-            detail = pipeline_api.get_status_tree(node_id)
-        except engine_exceptions.InvalidOperationException:
-            act_start = False
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        node_data_result = dispatcher.get_node_data(
+            username=username,
+            component_code=component_code,
+            loop=loop,
+            pipeline_instance=self.pipeline_instance,
+            subprocess_stack=subprocess_stack,
+        )
+        if not node_data_result["result"]:
+            return node_data_result["result"]
 
-        if not act_start:
-            instance_data = self.pipeline_instance.execution_data
-            try:
-                act = WebPipelineAdapter(instance_data).get_act(
-                    act_id=node_id,
-                    subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(
-                        self.pipeline_instance, obj_type="instance", data_type="data", username=username
-                    ),
-                    root_pipeline_context=get_pipeline_context(
-                        self.pipeline_instance, obj_type="instance", data_type="context", username=username
-                    ),
-                )
-                detail.update({"name": act.name, "error_ignorable": act.error_ignorable, "state": states.READY})
-            except Exception as e:
-                logger.exception(traceback.format_exc())
-                error_message = "parser pipeline tree error: %s" % e
-                return {"result": False, "message": error_message, "data": {}, "code": err_code.INVALID_OPERATION.code}
-        else:
-            TaskFlowInstance.format_pipeline_status(detail)
-            # 默认只请求最后一次循环结果
-            if loop is None or int(loop) >= detail["loop"]:
-                loop = detail["loop"]
-                detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
-            # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
-            else:
-                histories = pipeline_api.get_activity_histories(node_id, loop)
-                # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
-                current_loop = histories[-1]
-                current_loop["state"] = states.FINISHED
-                TaskFlowInstance.format_pipeline_status(current_loop)
-                detail.update(
-                    {
-                        "start_time": current_loop["start_time"],
-                        "finish_time": current_loop["finish_time"],
-                        "elapsed_time": current_loop["elapsed_time"],
-                        "loop": current_loop["loop"],
-                        "skip": current_loop["skip"],
-                        "state": current_loop["state"],
-                    }
-                )
-                # index 非 -1 表示当前 loop 的重试记录
-                detail["histories"] = histories[1:]
+        node_detail_result = dispatcher.get_node_detail()
+        if not node_detail_result["result"]:
+            return node_detail_result
 
-            for his in detail["histories"]:
-                # 重试记录必然是因为失败才重试
-                his.setdefault("state", states.FAILED)
-                TaskFlowInstance.format_pipeline_status(his)
-        detail.update(ret_data["data"])
+        detail = node_detail_result["data"]
+        detail.update(node_data_result["data"])
+
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
     def task_claim(self, username, constants, name):

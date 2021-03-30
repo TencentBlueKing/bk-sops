@@ -14,23 +14,26 @@ specific language governing permissions and limitations under the License.
 import copy
 import logging
 
+from pipeline.engine import states
+
 from gcloud.constants import PROJECT
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
+from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")
 
 
-def get_instance_context(pipeline_instance, data_type, username=''):
+def get_instance_context(pipeline_instance, data_type, username=""):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance=pipeline_instance)
     except TaskFlowInstance.DoesNotExist:
-        logger.warning('TaskFlowInstance does not exist: pipeline_template.id=%s' % pipeline_instance.pk)
+        logger.warning("TaskFlowInstance does not exist: pipeline_template.id=%s" % pipeline_instance.pk)
         return {}
     # pipeline的root_pipeline_params数据，最终会传给插件的parent_data，是简单地字典格式
-    if data_type == 'data':
+    if data_type == "data":
         return TaskContext(taskflow, username).__dict__
     # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
     else:
@@ -44,15 +47,38 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
     else:
         template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
     pipeline_tree = template.get_pipeline_tree_by_version(version)
-    template_constants = copy.deepcopy(pipeline_tree['constants'])
+    template_constants = copy.deepcopy(pipeline_tree["constants"])
     TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
     constants_not_referred = {
-        key: value for key, value in list(template_constants.items())
-        if key not in pipeline_tree['constants']
+        key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]
     }
 
-    return {
-        'pipeline_tree': pipeline_tree,
-        'constants_not_referred': constants_not_referred
-    }
+    return {"pipeline_tree": pipeline_tree, "constants_not_referred": constants_not_referred}
+
+
+def format_pipeline_status(status_tree):
+    """
+    @summary: 转换通过 pipeline api 获取的任务状态格式
+    @return:
+    """
+    status_tree.setdefault("children", {})
+    status_tree.pop("created_time", "")
+
+    status_tree["start_time"] = format_datetime(status_tree.pop("started_time"))
+    status_tree["finish_time"] = format_datetime(status_tree.pop("archived_time"))
+    child_status = []
+    for identifier_code, child_tree in list(status_tree["children"].items()):
+        format_pipeline_status(child_tree)
+        child_status.append(child_tree["state"])
+
+    if status_tree["state"] == states.BLOCKED:
+        if states.RUNNING in child_status:
+            status_tree["state"] = states.RUNNING
+        elif states.FAILED in child_status:
+            status_tree["state"] = states.FAILED
+        elif states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
+            status_tree["state"] = "NODE_SUSPENDED"
+        # 子流程 BLOCKED 状态表示子节点失败
+        elif not child_status:
+            status_tree["state"] = states.FAILED

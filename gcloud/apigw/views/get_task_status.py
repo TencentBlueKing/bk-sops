@@ -20,6 +20,7 @@ from pipeline.engine import api as pipeline_api, states
 from pipeline.engine.exceptions import InvalidOperationException
 
 from gcloud import err_code
+from gcloud.taskflow3.utils import format_pipeline_status
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -62,7 +63,7 @@ def get_task_status(request, task_id, project_id):
         # request subprocess
         try:
             task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
-            TaskFlowInstance.format_pipeline_status(task_status)
+            format_pipeline_status(task_status)
         except InvalidOperationException:
             # do not raise error when subprocess not exist or has not been executed
             task_status = {

@@ -52,6 +52,7 @@ from gcloud.taskflow3.validators import (
     GetNodeLogValidator,
 )
 from gcloud.taskflow3.dispatchers import NodeCommandDispatcher
+from gcloud.taskflow3.utils import format_pipeline_status
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
@@ -104,7 +105,7 @@ def status(request, project_id):
     # 请求子流程的状态，直接通过pipeline api查询
     try:
         task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
-        TaskFlowInstance.format_pipeline_status(task_status)
+        format_pipeline_status(task_status)
         ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
     # subprocess pipeline has not executed
     except exceptions.InvalidOperationException:

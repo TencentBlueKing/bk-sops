@@ -15,6 +15,8 @@ import logging
 from typing import Optional, List
 
 from bamboo_engine import api as bamboo_engine_api
+from bamboo_engine import states as bamboo_engine_states
+from pipeline import states as pipeline_states
 from pipeline.engine import api as pipeline_api
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
@@ -26,6 +28,7 @@ from pipeline import exceptions as pipeline_exceptions
 
 from gcloud import err_code
 from gcloud.utils.handlers import handle_plain_log
+from gcloud.taskflow3.utils import format_pipeline_status
 from pipeline_web.parser import WebPipelineAdapter
 
 from .base import EngineCommandDispatcher, ensure_return_has_code, ensure_return_is_dict
@@ -163,7 +166,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             "message": "",
         }
 
-    def _get_act_web_info(self, act_id: str, pipeline: dict):
+    def _get_act_web_info(self, act_id: str, pipeline: dict) -> dict:
         def get_act_of_pipeline(pipeline):
             for node_id, node_info in list(pipeline["activities"].items()):
                 if node_id == act_id:
@@ -175,12 +178,19 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         return get_act_of_pipeline(pipeline)
 
-    def get_node_data(self, username: str, component_code: Optional[str] = None, loop: Optional[int] = None, **kwargs):
+    def get_node_data(
+        self,
+        username: str,
+        subprocess_stack: List[str],
+        component_code: Optional[str] = None,
+        loop: Optional[int] = None,
+        **kwargs
+    ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
         return getattr(self, "get_node_data_v{}".format(self.engine_ver))(
-            username=username, component_code=component_code, loop=loop, **kwargs
+            username=username, component_code=component_code, loop=loop, subprocess_stack=subprocess_stack, **kwargs
         )
 
     def _prerender_node_data(
@@ -262,8 +272,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return True, "", outputs_table
 
     def get_node_data_v1(
-        self, username: str, component_code: Optional[str] = None, loop: Optional[int] = None, **kwargs
-    ):
+        self,
+        username: str,
+        subprocess_stack: List[str],
+        component_code: Optional[str] = None,
+        loop: Optional[int] = None,
+        **kwargs
+    ) -> dict:
         act_started = True
         inputs = {}
         outputs = {}
@@ -278,7 +293,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 outputs = pipeline_api.get_outputs(self.node_id)
             # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
             else:
-                his_data = pipeline_api.get_activity_histories(self.node_id, loop)
+                his_data = pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
                 inputs = his_data[-1]["inputs"]
                 outputs = {"outputs": his_data[-1]["outputs"], "ex_data": his_data[-1]["ex_data"]}
 
@@ -312,8 +327,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return {"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code}
 
     def get_node_data_v2(
-        self, username: str, component_code: Optional[str] = None, loop: Optional[int] = None, **kwargs
-    ):
+        self,
+        username: str,
+        subprocess_stack: List[str],
+        component_code: Optional[str] = None,
+        loop: Optional[int] = None,
+        **kwargs
+    ) -> dict:
         runtime = BambooDjangoRuntime()
         result = bamboo_engine_api.get_children_states(runtime=runtime, node_id=self.node_id)
         if not result.result:
@@ -330,7 +350,6 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         inputs = {}
         outputs = {}
         pipeline_instance = kwargs["pipeline_instance"]
-        subprocess_stack = kwargs["subprocess_stack"]
 
         if state:
             # 获取最新的执行数据
@@ -368,6 +387,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     outputs = {"outputs": outputs, "ex_data": outputs.get("ex_data")}
         # 未执行节点需要实时渲染
         else:
+            # TODO 待 bamboo-engine 提供预览功能后进行替换
             success, err, inputs, outputs = self._prerender_node_data(
                 pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
             )
@@ -398,3 +418,140 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             "message": "",
             "code": err_code.SUCCESS.code,
         }
+
+    def get_node_detail(
+        self,
+        username: str,
+        subprocess_stack: List[str],
+        component_code: Optional[str] = None,
+        loop: Optional[int] = None,
+        **kwargs
+    ) -> dict:
+        if self.engine_ver not in self.VALID_ENGINE_VER:
+            return self._unsupported_engine_ver_result()
+
+        return getattr(self, "get_node_detail_v{}".format(self.engine_ver))(
+            username=username, component_code=component_code, loop=loop, subprocess_stack=subprocess_stack, **kwargs
+        )
+
+    def _assemble_histroy_detail(self, detail: dict, histories: list):
+        # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
+        current_loop = histories[-1]
+        current_loop["state"] = bamboo_engine_states.FINISHED
+        format_pipeline_status(current_loop)
+        detail.update(
+            {
+                "start_time": current_loop["start_time"],
+                "finish_time": current_loop["finish_time"],
+                "elapsed_time": current_loop["elapsed_time"],
+                "loop": current_loop["loop"],
+                "skip": current_loop["skip"],
+                "state": current_loop["state"],
+            }
+        )
+        # index 非 -1 表示当前 loop 的重试记录
+        detail["histories"] = histories[1:]
+
+    def get_node_detail_v1(
+        self,
+        username: str,
+        subprocess_stack: List[str],
+        component_code: Optional[str] = None,
+        loop: Optional[int] = None,
+        **kwargs
+    ) -> dict:
+        act_start = True
+        detail = {}
+        # 首先获取最新一次执行详情
+        try:
+            detail = pipeline_api.get_status_tree(self.node_id)
+        except pipeline_exceptions.InvalidOperationException:
+            act_start = False
+
+        if not act_start:
+            pipeline_instance = kwargs["pipeline_instance"]
+            act = self._get_act_web_info(act_id=self.node_id, pipeline=pipeline_instance.execution_data)
+            detail.update(
+                {"name": act["name"], "error_ignorable": act["error_ignorable"], "state": pipeline_states.READY}
+            )
+        else:
+            format_pipeline_status(detail)
+            # 默认只请求最后一次循环结果
+            if loop is None or int(loop) >= detail["loop"]:
+                loop = detail["loop"]
+                detail["histories"] = pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
+            # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
+            else:
+                self._assemble_histroy_detail(
+                    detail=detail, histories=pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
+                )
+
+            for hist in detail["histories"]:
+                # 重试记录必然是因为失败才重试
+                hist.setdefault("state", pipeline_states.FAILED)
+                format_pipeline_status(hist)
+
+        return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
+
+    def get_node_detail_v2(
+        self,
+        username: str,
+        subprocess_stack: List[str],
+        component_code: Optional[str] = None,
+        loop: Optional[int] = None,
+        **kwargs
+    ) -> dict:
+        runtime = BambooDjangoRuntime()
+        result = bamboo_engine_api.get_children_states(runtime=runtime, node_id=self.node_id)
+        if not result.result:
+            logger.exception("bamboo_engine_api.get_children_states fail")
+            return {
+                "result": False,
+                "data": {},
+                "message": "{}: {}".format(result.message, result.exc),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+
+        detail = result.data
+        # 节点已经执行
+        if detail:
+            # 默认只请求最后一次循环结果
+            format_pipeline_status(detail)
+            if loop is None or int(loop) >= detail["loop"]:
+                loop = detail["loop"]
+                hist_result = bamboo_engine_api.get_node_histories(runtime=runtime, node_id=self.node_id, loop=loop)
+                if not hist_result:
+                    logger.exception("bamboo_engine_api.get_node_histories fail")
+                    return {
+                        "result": False,
+                        "data": {},
+                        "message": "{}: {}".format(hist_result.message, hist_result.exc),
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
+                detail["histories"] = hist_result["data"]
+            # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数，则从历史数据获取结果
+            else:
+                hist_result = bamboo_engine_api.get_node_histories(runtime=runtime, node_id=self.node_id, loop=loop)
+                if not hist_result:
+                    logger.exception("bamboo_engine_api.get_node_histories fail")
+                    return {
+                        "result": False,
+                        "data": {},
+                        "message": "{}: {}".format(hist_result.message, hist_result.exc),
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
+                self._assemble_histroy_detail(detail=detail, histories=hist_result.data)
+
+            for hist in detail["histories"]:
+                # 重试记录必然是因为失败才重试
+                hist.setdefault("state", bamboo_engine_states.FAILED)
+                format_pipeline_status(hist)
+        # 节点未执行
+        else:
+            pipeline_instance = kwargs["pipeline_instance"]
+            act = self._get_act_web_info(act_id=self.node_id, pipeline=pipeline_instance.execution_data)
+            detail.update(
+                {"name": act["name"], "error_ignorable": act["error_ignorable"], "state": pipeline_states.READY}
+            )
+
+        return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
