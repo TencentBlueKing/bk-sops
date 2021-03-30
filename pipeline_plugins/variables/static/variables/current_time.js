@@ -22,6 +22,7 @@
                         tag_code: "time_unit",
                         type: "checkbox",
                         attrs: {
+                            name: gettext("时间单位"),
                             items: [
                                 {name: gettext("年"), value: "year"},
                                 {name: gettext("月"), value: "month"},
