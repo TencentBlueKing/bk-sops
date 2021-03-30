@@ -15,10 +15,7 @@ from pipeline_web.constants import PWE
 
 
 def format_pipeline_node_types(pipeline):
-    node_types = {
-        pipeline[PWE.start_event][PWE.id]: PWE.start_event,
-        pipeline[PWE.end_event][PWE.id]: PWE.end_event
-    }
+    node_types = {pipeline[PWE.start_event][PWE.id]: PWE.start_event, pipeline[PWE.end_event][PWE.id]: PWE.end_event}
     for act_id in pipeline[PWE.activities].keys():
         node_types[act_id] = PWE.activities
     for gw_id in pipeline[PWE.gateways].keys():
@@ -37,15 +34,21 @@ def add_flow_id_to_node_io(node, flow_id, io_type):
 
 def delete_flow_id_from_node_io(node, flow_id, io_type):
     if node[io_type] == flow_id:
-        node[io_type] = ''
+        node[io_type] = ""
     elif isinstance(node[io_type], list):
         if len(node[io_type]) == 1 and node[io_type][0] == flow_id:
-            node[io_type] = ''
+            node[io_type] = (
+                ""
+                if node[PWE.type] not in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]
+                else []
+            )
         else:
             node[io_type].pop(node[io_type].index(flow_id))
 
             # recover to original format
-            if len(node[io_type]) == 1 and io_type == PWE.outgoing and node[PWE.type] in [PWE.EmptyStartEvent,
-                                                                                          PWE.ServiceActivity,
-                                                                                          PWE.ConvergeGateway]:
+            if (
+                len(node[io_type]) == 1
+                and io_type == PWE.outgoing
+                and node[PWE.type] in [PWE.EmptyStartEvent, PWE.ServiceActivity, PWE.ConvergeGateway]
+            ):
                 node[io_type] = node[io_type][0]
