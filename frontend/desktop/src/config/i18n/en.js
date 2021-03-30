@@ -1078,7 +1078,7 @@ const en = {
     '请输入流程模板备注信息': 'please enter process template description',
     '标签': 'Label',
     '编辑标签': 'Edit Label',
-    '选择标签': 'Select Lable',
+    '请选择标签': 'Please Select Lable',
     '选择颜色': 'Select Color',
     '标签设置': 'Label Config',
     '新增标签': 'Add Label',

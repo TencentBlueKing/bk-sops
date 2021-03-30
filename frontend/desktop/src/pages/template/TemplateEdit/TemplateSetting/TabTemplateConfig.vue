@@ -157,6 +157,8 @@
         },
         props: {
             projectInfoLoading: Boolean,
+            templateLabelLoading: Boolean,
+            templateLabels: Array,
             isShow: Boolean,
             common: [String, Number]
         },
@@ -175,13 +177,11 @@
                     notifyType: notify_type.slice(0),
                     labels: template_labels
                 },
-                templateLabels: [],
                 notifyTypeList: [],
                 projectNotifyGroup: [],
                 isSaveConfirmDialogShow: false,
                 notifyTypeLoading: false,
                 notifyGroupLoading: false,
-                templateLabelLoading: false,
                 rules: {
                     name: [
                         {
@@ -237,7 +237,6 @@
             this.getNotifyTypeList()
             if (!this.common) {
                 this.getProjectNotifyGroup()
-                this.getTemplateLabelList()
             }
         },
         methods: {
@@ -248,9 +247,6 @@
                 'getNotifyTypes',
                 'getNotifyGroup'
             ]),
-            ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
-            ]),
             async getNotifyTypeList () {
                 try {
                     this.notifyTypeLoading = true
@@ -260,17 +256,6 @@
                     errorHandler(error, this)
                 } finally {
                     this.notifyTypeLoading = false
-                }
-            },
-            async getTemplateLabelList () {
-                try {
-                    this.templateLabelLoading = true
-                    const res = await this.getProjectLabelsWithDefault(this.$route.params.project_id)
-                    this.templateLabels = res.data
-                } catch (error) {
-                    errorHandler(error, this)
-                } finally {
-                    this.templateLabelLoading = false
                 }
             },
             onEditLabel () {
@@ -419,37 +404,6 @@
     }
     .action-wrapper .bk-button {
         margin-right: 6px;
-    }
-}
-</style>
-<style lang="scss">
-.label-select {
-    .label-select-option {
-        display: flex;
-        align-items: center;
-        .label-select-color {
-            margin-right: 4px;
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 2px;
-        }
-        .bk-option-icon {
-            display: none;
-        }
-    }
-    .bk-option.is-selected .bk-option-icon{
-        display: inline-block;
-    }
-    .label-select-extension {
-        cursor: pointer;
-        & > .common-icon-edit {
-            font-size: 14px;
-            color: #979ba5;
-        }
-        & > span {
-            font-size: 12px;
-        }
     }
 }
 </style>

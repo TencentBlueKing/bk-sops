@@ -21,51 +21,101 @@
             @clear="onClearSearch">
         </bk-input>
         <div class="list-wrapper">
-            <template v-if="listInPanel.length > 0">
-                <div class="group-area">
-                    <div
-                        :class="['group-item', {
-                            active: group.type === activeGroup
-                        }]"
-                        v-for="group in listInPanel"
-                        :key="group.type"
-                        @click="onSelectGroup(group.type)">
-                        <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
-                        <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
-                        <span v-html="group.group_name"></span>
-                        <span>{{ `(${group.list.length})` }}</span>
+            <template v-if="!isSubflow">
+                <template v-if="listInPanel.length > 0">
+                    <div class="group-area">
+                        <div
+                            :class="['group-item', {
+                                active: group.type === activeGroup
+                            }]"
+                            v-for="group in listInPanel"
+                            :key="group.type"
+                            @click="onSelectGroup(group.type)">
+                            <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
+                            <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
+                            <span v-html="group.group_name"></span>
+                            <span>{{ `(${group.list.length})` }}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="selector-area" ref="selectorArea">
-                    <template v-if="activeList.length > 0">
-                        <template v-for="(item, index) in activeList">
+                    <div class="selector-area" ref="selectorArea">
+                        <template v-if="activeList.length > 0">
                             <li
-                                v-if="!isSubflow || item.hasPermission"
+                                v-for="(item, index) in activeList"
                                 :class="['list-item', { active: getSelectedStatus(item) }]"
                                 :key="index"
                                 :title="item.name"
-                                @click="onSelect(item)">
+                                @click="$emit('select', item)">
                                 <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
                                 <span class="node-name" v-else>{{ item.name }}</span>
-                                <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
-                                    <i class="common-icon-box-top-right-corner"></i>
-                                </span>
-                            </li>
-                            <li
-                                v-else
-                                class="list-item text-permission-disable"
-                                :key="item.id"
-                                :title="item.name"
-                                v-cursor
-                                v-html="item.name"
-                                @click="onApplyPermission(item)">
                             </li>
                         </template>
+                        <no-data v-else></no-data>
+                    </div>
+                </template>
+                <no-data v-else></no-data>
+            </template>
+            <div v-else class="subflow-list">
+                <div v-if="!common" class="label-select-wrap">
+                    <bk-select
+                        class="select-group"
+                        ext-popover-cls="label-select"
+                        style="width: 270px;"
+                        v-model="activeGroup"
+                        :placeholder="$t('请选择标签')"
+                        :display-tag="true"
+                        :multiple="true"
+                        :clearable="true"
+                        :searchable="true"
+                        @change="onSelectGroup">
+                        <bk-option
+                            v-for="(item, index) in templateLabels"
+                            class="node-item-option"
+                            :key="index"
+                            :id="item.id"
+                            :name="item.name">
+                            <div class="label-select-option">
+                                <span
+                                    class="label-select-color"
+                                    :style="{ background: item.color }">
+                                </span>
+                                <span>{{item.name}}</span>
+                                <i class="bk-option-icon bk-icon icon-check-1"></i>
+                            </div>
+                        </bk-option>
+                    </bk-select>
+                </div>
+                <div :class="['tpl-list', { 'has-label-select': !common }]">
+                    <template v-if="listInPanel.length > 0">
+                        <div
+                            v-for="item in listInPanel"
+                            v-cursor="{ active: !item.hasPermission }"
+                            :class="['tpl-item', {
+                                'active': getSelectedStatus(item),
+                                'text-permission-disable': !item.hasPermission
+                            }]"
+                            :key="item.id"
+                            @click="onTplClick(item)">
+                            <div class="name-content">
+                                <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
+                                <div class="name" v-else>{{ item.name }}</div>
+                                <span class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
+                                    <i class="common-icon-box-top-right-corner"></i>
+                                </span>
+                            </div>
+                            <div v-if="!common && item.template_labels.length > 0" class="labels-wrap">
+                                <span
+                                    v-for="label in item.template_labels"
+                                    class="label-item"
+                                    :key="label.id"
+                                    :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }">
+                                    {{ label.name }}
+                                </span>
+                            </div>
+                        </div>
                     </template>
                     <no-data v-else></no-data>
                 </div>
-            </template>
-            <no-data v-else></no-data>
+            </div>
         </div>
     </div>
 </template>
@@ -74,7 +124,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
-    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
+    import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
 
     export default {
         name: 'SelectorPanel',
@@ -83,25 +133,30 @@
         },
         mixins: [permission],
         props: {
+            templateLabels: Array,
             atomTypeList: Object,
             isSubflow: Boolean,
             basicInfo: Object,
             common: [String, Number]
         },
         data () {
-            const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
+            const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             return {
                 listData,
                 listInPanel: listData,
+                darkColorList: DARK_COLOR_LIST,
                 searchStr: '',
                 searchResult: [],
-                activeGroup: this.getDefaultActiveGroup()
+                activeGroup: this.isSubflow ? [] : this.getDefaultActiveGroup()
             }
         },
         computed: {
             activeList () {
-                const group = this.listInPanel.find(item => item.type === this.activeGroup)
-                return group ? group.list : []
+                if (!this.isSubflow) {
+                    const group = this.listInPanel.find(item => item.type === this.activeGroup)
+                    return group ? group.list : []
+                }
+                return []
             }
         },
         created () {
@@ -138,59 +193,91 @@
                 }
                 return 'common-icon-sys-default'
             },
+            /**
+             * 选择插件分组
+             */
             onSelectGroup (val) {
                 this.activeGroup = val
-                this.$refs.selectorArea.scrollTop = 0
+                if (this.isSubflow) {
+                    this.searchInputhandler()
+                } else {
+                    this.$refs.selectorArea.scrollTop = 0
+                }
             },
             onClearSearch () {
                 this.searchInputhandler()
             },
             searchInputhandler () {
                 let result = []
-                if (this.searchStr === '') {
-                    result = this.listData.slice(0)
-                    this.activeGroup = this.getDefaultActiveGroup()
+                if (!this.isSubflow) {
+                    if (this.searchStr === '') {
+                        result = this.listData.slice(0)
+                        this.activeGroup = this.getDefaultActiveGroup()
+                    } else {
+                        const reg = new RegExp(this.searchStr, 'i')
+                        this.listData.forEach(group => {
+                            const { group_icon, group_name, type } = group
+                            const list = []
+    
+                            if (reg.test(group_name)) { // 分组名称匹配
+                                const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                result.push({
+                                    ...group,
+                                    group_name: hglGroupName
+                                })
+                            } else if (group.list.length > 0) { // 单个插件或者子流程名称匹配
+                                group.list.forEach(item => {
+                                    if (reg.test(item.name)) {
+                                        const node = { ...item }
+                                        node.highlightName = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                        list.push(node)
+                                    }
+                                })
+                                if (list.length > 0) {
+                                    result.push({
+                                        group_icon,
+                                        group_name,
+                                        type,
+                                        list
+                                    })
+                                }
+                            }
+                        })
+                        if (result.length > 0) {
+                            this.activeGroup = result[0].type
+                        }
+                    }
                 } else {
                     const reg = new RegExp(this.searchStr, 'i')
-                    this.listData.forEach(group => {
-                        const { group_icon, group_name, type } = group
-                        const list = []
+                    this.listData.forEach(tpl => {
+                        let matchLabel = true
+                        let matchName = true
+                        const tplCopy = { ...tpl }
 
-                        if (reg.test(group_name)) { // 分组名称匹配
-                            const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
-                            result.push({
-                                ...group,
-                                group_name: hglGroupName
-                            })
-                        } else if (group.list.length > 0) { // 单个插件或者子流程名称匹配
-                            group.list.forEach(item => {
-                                if (reg.test(item.name)) {
-                                    const node = { ...item }
-                                    node.highlightName = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
-                                    list.push(node)
-                                }
-                            })
-                            if (list.length > 0) {
-                                result.push({
-                                    group_icon,
-                                    group_name,
-                                    type,
-                                    list
-                                })
+                        if (this.activeGroup.length > 0) {
+                            matchLabel = this.activeGroup.every(item => tpl.template_labels.find(label => label.label_id === Number(item)))
+                        }
+                        if (this.searchStr !== '') {
+                            if (!reg.test(tpl.name)) {
+                                matchName = false
+                            } else {
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
                             }
                         }
+
+                        if (matchLabel && matchName) {
+                            result.push(tplCopy)
+                        }
                     })
-                    if (result.length > 0) {
-                        this.activeGroup = result[0].type
-                    }
                 }
                 this.listInPanel = result
             },
-            /**
-             * 选择插件/子流程
-             */
-            onSelect (val) {
-                this.$emit('select', val)
+            onTplClick (tpl) {
+                if (tpl.hasPermission) {
+                    this.$emit('select', tpl)
+                } else {
+                    this.onApplyPermission(tpl)
+                }
             },
             /**
              * 插件/子流程选中状态
@@ -302,10 +389,68 @@
             }
         }
     }
-    .common-icon-box-top-right-corner {
-        position: absolute;
-        right: 20px;
-        top: 14px;
+}
+.subflow-list {
+    height: 100%;
+    .label-select-wrap {
+        padding: 14px 20px;
+        height: 60px;
+        border-bottom: 1px solid #e2e4ed;
+        .bk-select.is-focus {
+            background: #ffffff;
+        }
+    }
+    .tpl-list {
+        height: 100%;
+        overflow: auto;
+        @include scrollbar;
+        &.has-label-select {
+            height: calc(100% - 60px);
+        }
+    }
+    .tpl-item {
+        display: flex;
+        padding: 0 20px;
+        min-height: 40px;
+        align-items: center;
+        justify-content: space-between;
+        color: #63656e;
+        cursor: pointer;
+        &:hover:not(.text-permission-disable), &.active:not(.text-permission-disable) {
+            background: #e1ecff;
+            .name, .view-tpl {
+                color: #3a84ff;
+            }
+        }
+        .name-content {
+            display: flex;
+            align-items: center;
+        }
+        .name {
+            font-size: 12px;
+            max-width: 400px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .view-tpl {
+            margin-left: 10px;
+            color: #9796a5;
+            font-size: 14px;
+        }
+        .labels-wrap {
+            width: 240px;
+            .label-item {
+                display: inline-block;
+                margin: 4px 0 4px 4px;
+                padding: 2px 6px;
+                font-size: 12px;
+                line-height: 1;
+                color: #63656e;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+        }
     }
 }
 </style>

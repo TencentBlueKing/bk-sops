@@ -53,6 +53,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
+                    :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
                     @hook:mounted="canvasMounted"
@@ -87,6 +88,7 @@
                     :is-show.sync="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
+                    :template-labels="templateLabels"
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
@@ -103,6 +105,8 @@
                 </condition-edit>
                 <template-setting
                     :project-info-loading="projectInfoLoading"
+                    :template-label-loading="templateLabelLoading"
+                    :template-labels="templateLabels"
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
                     :common="common"
@@ -235,6 +239,8 @@
                 },
                 snapshoots: [],
                 snapshootTimer: null,
+                templateLabels: [],
+                templateLabelLoading: false,
                 tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
@@ -338,23 +344,26 @@
                 }
             })
         },
-        async created () {
+        created () {
             this.initTemplateData()
             // 获取流程内置变量
             this.getSystemVars()
+            this.getSingleAtomList()
+            this.getProjectBaseInfo()
+            if (!this.common) {
+                this.getTemplateLabelList()
+            }
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
             if (this.type === 'edit' || this.type === 'clone') {
-                await this.getTemplateData()
+                this.getTemplateData()
             } else {
                 const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
-            this.getSingleAtomList()
         },
         mounted () {
-            this.getProjectBaseInfo()
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
@@ -388,6 +397,9 @@
                 'loadSubflowList',
                 'loadAtomConfig',
                 'loadSubflowConfig'
+            ]),
+            ...mapActions('project/', [
+                'getProjectLabelsWithDefault'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -484,7 +496,7 @@
                         templateId: this.template_id
                     }
                     const resp = await this.loadSubflowList(data)
-                    this.handleSubflowGroup(resp)
+                    this.handleSubflowList(resp)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -586,6 +598,20 @@
                     errorHandler(e, this)
                 } finally {
                     this.systemVarsLoading = false
+                }
+            },
+            /**
+             * 加载模板标签列表
+             */
+            async getTemplateLabelList () {
+                try {
+                    this.templateLabelLoading = true
+                    const res = await this.getProjectLabelsWithDefault(this.project_id)
+                    this.templateLabels = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.templateLabelLoading = false
                 }
             },
             /**
@@ -708,30 +734,18 @@
                 this.atomTypeList.tasknode = grouped
             },
             /**
-             * 子流程分组
+             * 子流程列表
              */
-            handleSubflowGroup (data) {
-                const tplList = data.objects
-                const reqPermssion = this.common ? ['common_flow_view'] : ['flow_view']
-                const groups = this.projectBaseInfo.task_categories.map(item => {
-                    return {
-                        type: item.value,
-                        group_name: item.name,
-                        group_icon: '',
-                        list: []
-                    }
-                })
-                tplList.forEach(item => {
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                data.objects.forEach(item => {
                     if (item.id !== Number(this.template_id)) {
-                        const group = groups.find(tpl => tpl.type === item.category)
-                        if (group) {
-                            item.hasPermission = this.hasPermission(reqPermssion, item.auth_actions)
-                            group.list.push(item)
-                        }
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
                     }
                 })
-
-                this.atomTypeList.subflow = { groups }
+                this.atomTypeList.subflow = list
             },
             /**
              * 打开节点配置面板

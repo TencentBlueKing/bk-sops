@@ -200,3 +200,33 @@
         }
     }
 }
+
+.label-select {
+    .label-select-option {
+        display: flex;
+        align-items: center;
+        .label-select-color {
+            margin-right: 4px;
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+        }
+        .bk-option-icon {
+            display: none;
+        }
+    }
+    .bk-option.is-selected .bk-option-icon{
+        display: inline-block;
+    }
+    .label-select-extension {
+        cursor: pointer;
+        & > .common-icon-edit {
+            font-size: 14px;
+            color: #979ba5;
+        }
+        & > span {
+            font-size: 12px;
+        }
+    }
+}

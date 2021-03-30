@@ -265,7 +265,7 @@
             key: 'label_ids',
             multiple: true,
             label: i18n.t('标签'),
-            placeholder: i18n.t('选择标签'),
+            placeholder: i18n.t('请选择标签'),
             list: [],
             value: []
         },
