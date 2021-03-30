@@ -20,7 +20,6 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.constants import PE
-from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions as engine_exceptions
@@ -616,92 +615,14 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "data": {}}
 
-        act_started = True
-        result = True
-        inputs = {}
-        outputs = {}
-        try:
-            detail = pipeline_api.get_status_tree(node_id)
-        except engine_exceptions.InvalidOperationException:
-            act_started = False
-        else:
-            # 最新 loop 执行记录，直接通过接口获取
-            if loop is None or int(loop) >= detail["loop"]:
-                inputs = pipeline_api.get_inputs(node_id)
-                outputs = pipeline_api.get_outputs(node_id)
-            # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
-            else:
-                his_data = detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
-                inputs = his_data[-1]["inputs"]
-                outputs = {"outputs": his_data[-1]["outputs"], "ex_data": his_data[-1]["ex_data"]}
-
-        instance_data = self.pipeline_instance.execution_data
-        if not act_started:
-            try:
-                inputs = WebPipelineAdapter(instance_data).get_act_inputs(
-                    act_id=node_id,
-                    subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(
-                        self.pipeline_instance, obj_type="instance", data_type="data", username=username
-                    ),
-                    root_pipeline_context=get_pipeline_context(
-                        self.pipeline_instance, obj_type="instance", data_type="context", username=username
-                    ),
-                )
-                outputs = {}
-            except Exception as e:
-                inputs = {}
-                result = False
-                logger.exception(traceback.format_exc())
-                outputs = {"ex_data": "parser pipeline tree error: %s" % e}
-
-        if not isinstance(inputs, dict):
-            inputs = {}
-        if not isinstance(outputs, dict):
-            outputs = {}
-
-        if component_code:
-            outputs_table = []
-            version = self.get_act_web_info(node_id).get("component", {}).get("version", None)
-            try:
-                component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
-                outputs_format = component.outputs_format()
-            except Exception as e:
-                result = False
-                message = "get component[component_code=%s] format error: %s" % (component_code, e)
-                logger.exception(traceback.format_exc())
-                outputs = {"ex_data": message}
-            else:
-                # for some special empty case e.g. ''
-                outputs_data = outputs.get("outputs") or {}
-                # 在标准插件定义中的预设输出参数
-                archived_keys = []
-                for outputs_item in outputs_format:
-                    value = outputs_data.get(outputs_item["key"], "")
-                    outputs_table.append(
-                        {"name": outputs_item["name"], "key": outputs_item["key"], "value": value, "preset": True}
-                    )
-                    archived_keys.append(outputs_item["key"])
-                # 其他输出参数
-                for out_key, out_value in list(outputs_data.items()):
-                    if out_key not in archived_keys:
-                        outputs_table.append({"name": out_key, "key": out_key, "value": out_value, "preset": False})
-        else:
-            try:
-                outputs_table = [
-                    {"key": key, "value": val, "preset": False} for key, val in list(outputs.get("outputs", {}).items())
-                ]
-            except Exception:
-                # for unexpected case
-                logger.error(
-                    "get outputs_table error, outputs: {outputs}, traceback: {traceback}".format(
-                        outputs=outputs, traceback=traceback.format_exc()
-                    )
-                )
-                outputs_table = []
-
-        data = {"inputs": inputs, "outputs": outputs_table, "ex_data": outputs.pop("ex_data", "")}
-        return {"result": result, "data": data, "message": "" if result else data["ex_data"]}
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        return dispatcher.get_node_data(
+            username=username,
+            component_code=component_code,
+            loop=loop,
+            pipeline_instance=self.pipeline_instance,
+            subprocess_stack=subprocess_stack,
+        )
 
     def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):
