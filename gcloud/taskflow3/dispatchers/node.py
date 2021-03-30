@@ -35,11 +35,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "forced_fail",
     }
 
-    def __init__(self, engine_ver, node_id):
+    def __init__(self, engine_ver: int, node_id: str):
         self.engine_ver = engine_ver
         self.node_id = node_id
 
-    def dispatch(self, command, operator, **kwargs):
+    def dispatch(self, command: str, operator: str, **kwargs) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
@@ -49,27 +49,27 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
 
     @ensure_return_has_code
-    def retry_v1(self, operator, **kwargs):
+    def retry_v1(self, operator: str, **kwargs) -> dict:
         return task_service.retry_activity(act_id=self.node_id, inputs=kwargs["inputs"])
 
     @ensure_return_is_dict
-    def retry_v2(self, operator, **kwargs):
+    def retry_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.retry_node(runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"])
 
     @ensure_return_has_code
-    def skip_v1(self, operator, **kwargs):
+    def skip_v1(self, operator: str, **kwargs) -> dict:
         return task_service.skip_activity(self.node_id)
 
     @ensure_return_is_dict
-    def skip_v2(self, operator, **kwargs):
+    def skip_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.skip_node(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     @ensure_return_has_code
-    def callback_v1(self, operator, **kwargs):
+    def callback_v1(self, operator: str, **kwargs) -> dict:
         return task_service.callback(act_id=self.node_id, data=kwargs["data"])
 
     @ensure_return_is_dict
-    def callback_v2(self, operator, **kwargs):
+    def callback_v2(self, operator: str, **kwargs) -> dict:
         # 兼容 pipeline 引擎时期 callback 可以不传 version 的请求
         runtime = BambooDjangoRuntime()
         version = kwargs.get("version")
@@ -79,72 +79,72 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.callback(runtime=runtime, node_id=self.node_id, version=version, data=kwargs["data"])
 
     @ensure_return_has_code
-    def skip_exg_v1(self, operator, **kwargs):
+    def skip_exg_v1(self, operator: str, **kwargs) -> dict:
         return task_service.skip_exclusive_gateway(gateway_id=self.node_id, flow_id=kwargs["flow_id"])
 
     @ensure_return_is_dict
-    def skip_exg_v2(self, operator, **kwargs):
+    def skip_exg_v2(self, operator: str, **kwargs) -> dict:
         result = bamboo_engine_api.skip_exclusive_gateway(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, flow_id=kwargs["flow_id"]
         )
         return self._bamboo_api_result_to_dict(result)
 
     @ensure_return_has_code
-    def pause_v1(self, operator, **kwargs):
+    def pause_v1(self, operator: str, **kwargs) -> dict:
         return task_service.pause_activity(self.node_id)
 
     @ensure_return_is_dict
-    def pause_v2(self, operator, **kwargs):
+    def pause_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.pause_node_appoint(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     @ensure_return_has_code
-    def resume_v1(self, operator, **kwargs):
+    def resume_v1(self, operator: str, **kwargs) -> dict:
         return task_service.resume_activity(self.node_id)
 
     @ensure_return_is_dict
-    def resume_v2(self, operator, **kwargs):
+    def resume_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.resume_node_appoint(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     @ensure_return_has_code
-    def pause_subproc_v1(self, operator, **kwargs):
+    def pause_subproc_v1(self, operator: str, **kwargs) -> dict:
         return task_service.pause_pipeline(self.node_id)
 
     @ensure_return_is_dict
-    def pause_subproc_v2(self, operator, **kwargs):
+    def pause_subproc_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.pause_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.node_id)
 
     @ensure_return_has_code
-    def resume_subproc_v1(self, operator, **kwargs):
+    def resume_subproc_v1(self, operator: str, **kwargs) -> dict:
         return task_service.resume_pipeline(self.node_id)
 
     @ensure_return_is_dict
-    def resume_subproc_v2(self, operator, **kwargs):
+    def resume_subproc_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.resume_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.node_id)
 
     @ensure_return_has_code
-    def forced_fail_v1(self, operator, **kwargs):
+    def forced_fail_v1(self, operator: str, **kwargs) -> dict:
         return task_service.forced_fail(at_id=self.node_id, ex_data="forced fail by {}".format(operator))
 
     @ensure_return_is_dict
-    def forced_fail_v2(self, operator, **kwargs):
+    def forced_fail_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.forced_fail_activity(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
         )
 
-    def get_node_log(self, history_id):
+    def get_node_log(self, history_id: int) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
-        return getattr(self, "get_node_log_v{}".format(self.engine_ver))(history_id=history_id)
+        return getattr(self, "get_node_log_v{}".format(self.engine_ver))(history_id)
 
-    def get_node_log_v1(self, history_id):
+    def get_node_log_v1(self, history_id: int) -> dict:
         return {
             "result": True,
             "data": handle_plain_log(LogEntry.objects.plain_log_for_node(node_id=self.node_id, history_id=history_id)),
             "message": "",
         }
 
-    def get_node_log_v2(self, history_id):
+    def get_node_log_v2(self, history_id: int) -> dict:
         runtime = BambooDjangoRuntime()
         return {
             "result": True,

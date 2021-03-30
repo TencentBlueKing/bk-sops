@@ -777,7 +777,7 @@ class TaskFlowInstance(models.Model):
             result = {"result": False, "message": "task with current_flow:%s cannot be claimed" % self.current_flow}
         else:
             with transaction.atomic():
-                self.reset_pipeline_instance_data(constants, name)
+                self.set_task_context(constants, name)
                 result = self.function_task.get(task=self).claim_task(username)
                 if result["result"]:
                     self.current_flow = "execute_task"
@@ -802,7 +802,7 @@ class TaskFlowInstance(models.Model):
 
         dispatcher = TaskCommandDispatcher(
             engine_ver=self.engine_ver,
-            taskflow=self,
+            taskflow_id=self.id,
             pipeline_instance=self.pipeline_instance,
             queue=self._get_task_celery_queue(self.engine_ver),
         )
@@ -845,23 +845,11 @@ class TaskFlowInstance(models.Model):
         self.save()
         return self.pk
 
-    def reset_pipeline_instance_data(self, constants, name):
-        exec_data = self.pipeline_tree
-        try:
-            for key, value in list(constants.items()):
-                if key in exec_data["constants"]:
-                    exec_data["constants"][key]["value"] = value
-            self.pipeline_instance.set_execution_data(exec_data)
-            if name:
-                self.pipeline_instance.name = name
-                self.pipeline_instance.save()
-        except Exception:
-            logger.exception(
-                "TaskFlow reset_pipeline_instance_data error:id=%s, constants=%s, error=%s"
-                % (self.pk, json.dumps(constants), traceback.format_exc())
-            )
-            return {"result": False, "message": "constants is not valid"}
-        return {"result": True, "data": "success"}
+    def set_task_context(self, constants, name):
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
+        )
+        return dispatcher.set_context(constants, name)
 
     def spec_nodes_timer_reset(self, node_id, username, inputs):
         if not self.has_node(node_id):

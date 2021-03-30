@@ -11,20 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import json
 import logging
 import traceback
 
 from django.utils import timezone
 from bamboo_engine import api as bamboo_engine_api
-
-from gcloud import err_code
-from gcloud.taskflow3.signals import taskflow_started
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline_web.parser.format import format_web_data_to_pipeline
 from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, IsolateNodeError, StreamValidateError
+
+from gcloud import err_code
+from gcloud.taskflow3.signals import taskflow_started
 from .base import EngineCommandDispatcher, ensure_return_is_dict, ensure_return_has_code
 
 logger = logging.getLogger("root")
@@ -38,13 +39,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         "revoke",
     }
 
-    def __init__(self, engine_ver, taskflow, pipeline_instance, queue):
+    def __init__(self, engine_ver: int, taskflow_id: int, pipeline_instance: PipelineInstance, queue: str = ""):
         self.engine_ver = engine_ver
-        self.taskflow = taskflow
+        self.taskflow_id = taskflow_id
         self.pipeline_instance = pipeline_instance
         self.queue = queue
 
-    def dispatch(self, command, operator):
+    def dispatch(self, command: str, operator: str) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
@@ -53,11 +54,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
-    def start_v1(self, executor):
+    def start_v1(self, executor: str) -> dict:
         try:
             result = self.pipeline_instance.start(executor=executor, queue=self.queue)
             if result.result:
-                taskflow_started.send(sender=self.__class__, task_id=self.taskflow.id)
+                taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
 
             result["code"] = err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR
             return result
@@ -97,7 +98,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         return {"result": False, "message": message, "code": code}
 
-    def start_v2(self, executor):
+    def start_v2(self, executor: str) -> dict:
         # CAS
         update_success = PipelineInstance.objects.filter(id=self.pipeline_instance.id, is_started=False).update(
             start_time=timezone.now(), is_started=True, executor=executor,
@@ -133,7 +134,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 )
             )
         else:
-            taskflow_started.send(sender=self.__class__, task_id=self.taskflow.id)
+            taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
 
         dict_result = {
             "result": result.result,
@@ -144,25 +145,70 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return dict_result
 
     @ensure_return_has_code
-    def pause_v1(self, operator):
+    def pause_v1(self, operator: str) -> dict:
         return task_service.pause_pipeline(pipeline_id=self.pipeline_instance.id)
 
     @ensure_return_is_dict
-    def pause_v2(self, operator):
+    def pause_v2(self, operator: str) -> dict:
         return bamboo_engine_api.pause_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id)
 
     @ensure_return_has_code
-    def resume_v1(self, operator):
+    def resume_v1(self, operator: str) -> dict:
         return task_service.resume_pipeline(pipeline_id=self.pipeline_instance.id)
 
     @ensure_return_is_dict
-    def resume_v2(self, operator):
+    def resume_v2(self, operator: str) -> dict:
         return bamboo_engine_api.resume_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id)
 
     @ensure_return_has_code
-    def revoke_v1(self, operator):
+    def revoke_v1(self, operator: str) -> dict:
         return task_service.revoke_pipeline(pipeline_id=self.pipeline_instance.id)
 
     @ensure_return_is_dict
-    def revoke_v2(self, operator):
+    def revoke_v2(self, operator: str) -> dict:
         return bamboo_engine_api.revoke_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id)
+
+    def set_task_context(self, task_is_started: bool, task_is_finished: bool, context: dict) -> dict:
+        if self.engine_ver not in self.VALID_ENGINE_VER:
+            return self._unsupported_engine_ver_result()
+
+        if task_is_started:
+            return {
+                "result": False,
+                "message": "task is started",
+                "data": None,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
+        elif task_is_finished:
+            return {
+                "result": False,
+                "message": "task is finished",
+                "data": None,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
+        exec_data = self.task.pipeline_tree
+        try:
+            for key, value in list(context.items()):
+                if key in exec_data["constants"]:
+                    exec_data["constants"][key]["value"] = value
+            self.pipeline_instance.set_execution_data(exec_data)
+        except Exception:
+            logger.exception(
+                "TaskFlow set_task_context error:id=%s, constants=%s, error=%s"
+                % (self.taskflow_id, json.dumps(context), traceback.format_exc())
+            )
+            return {
+                "result": False,
+                "message": "constants is not valid",
+                "data": None,
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+
+        return {
+            "result": True,
+            "data": "success",
+            "message": "",
+            "code": err_code.SUCCESS.code,
+        }

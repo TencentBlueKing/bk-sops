@@ -253,23 +253,9 @@ def task_modify_inputs(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
 
-    if task.is_started:
-        ctx = {"result": False, "message": "task is started", "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
+    constants = data["constants"]
 
-    elif task.is_finished:
-        ctx = {
-            "result": False,
-            "message": "task is finished",
-            "data": None,
-            "code": err_code.REQUEST_PARAM_INVALID.code,
-        }
-
-    else:
-        constants = data["constants"]
-        name = data.get("name", "")
-        ctx = task.reset_pipeline_instance_data(constants, name)
-
-    return JsonResponse(ctx)
+    return JsonResponse(task.set_task_context(constants))
 
 
 @require_POST
