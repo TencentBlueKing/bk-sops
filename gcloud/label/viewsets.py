@@ -94,11 +94,11 @@ class LabelViewSet(ApiMixin, ModelViewSet):
 
     @action(methods=["get"], detail=False)
     def get_templates_labels(self, request):
-        self._fetch_label_or_template_ids(request, fetch_label=True)
+        return self._fetch_label_or_template_ids(request, fetch_label=True)
 
     @action(methods=["get"], detail=False)
     def get_label_template_ids(self, request):
-        self._fetch_label_or_template_ids(request, fetch_label=False)
+        return self._fetch_label_or_template_ids(request, fetch_label=False)
 
     @staticmethod
     def _fetch_label_or_template_ids(request, fetch_label):
