@@ -31,7 +31,7 @@ from gcloud.core.api_adapter import (
     modify_app_logo,
     get_app_logo_url,
 )
-from gcloud.core.constant import AE
+from gcloud.core.constant import AE, TASK_CATEGORY
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.dates import time_now_str
@@ -148,7 +148,13 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             if not fake:
                 # edit app on blueking
                 app_edit_result = edit_maker_app(
-                    creator, app_code, app_params["name"], link, creator, task_template.category, app_params["desc"],
+                    creator,
+                    app_code,
+                    app_params["name"],
+                    link,
+                    creator,
+                    task_template.category,
+                    app_params["desc"],
                 )
                 if not app_edit_result["result"]:
                     return False, _("编辑轻应用失败：%s") % app_edit_result["message"]
@@ -188,7 +194,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         del_name = time_now_str()
         if not fake:
             # rename before delete to avoid name conflict when create a new app
-            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20],)
+            app_edit_result = edit_maker_app(
+                app_maker_obj.creator,
+                app_maker_obj.code,
+                del_name[:20],
+            )
             if not app_edit_result["result"]:
                 return False, _("删除失败：%s") % app_edit_result["message"]
 
@@ -245,6 +255,7 @@ class AppMaker(models.Model):
     editor = models.CharField(_("编辑人"), max_length=100, null=True)
     edit_time = models.DateTimeField(_("编辑时间"), auto_now=True, null=True)
     task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"), on_delete=models.CASCADE)
+    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255)
     template_scheme_id = models.CharField(_("执行方案"), max_length=100, blank=True)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
 
@@ -261,10 +272,6 @@ class AppMaker(models.Model):
     @property
     def task_template_name(self):
         return self.task_template.name
-
-    @property
-    def category(self):
-        return self.task_template.category
 
     def __unicode__(self):
         return "%s_%s" % (self.project, self.name)

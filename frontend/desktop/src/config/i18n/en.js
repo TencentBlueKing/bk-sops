@@ -743,6 +743,7 @@ const en = {
     '任务节点': 'Task Nodes',
     '显示': 'Show',
     '隐藏': 'Hide',
+    '模板预渲染': 'Template pre-render',
     '默认值': 'Default',
     '正则校验': 'Regular Check',
     '组件': 'Component',
@@ -763,6 +764,11 @@ const en = {
     '表示显示，': 'Means show',
     '表示隐藏，输出类型的变量一定是隐藏的。': 'Means hide, outputs vars always hide.',
     '表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。': 'Means whether the variable will be one of output parameters of the flow, which can by referred by other flows using this flow as a SubProcess.',
+    '模板预渲染：': 'Template pre-rendering:',
+    '模板预渲染为“是”时，任务会在执行前将变量中的 MAKO 段进行渲染，': 'When the template pre-rendering is "Yes", the task will render the MAKO segment in the variable before execution,',
+    '而不是在第一个引用该变量的节点执行前才进行渲染；': 'Instead of rendering before the first node that references the variable is executed;',
+    '如果需要预渲染的变量引用了别的变量，': 'If the variable that needs pre-rendering refers to other variables,',
+    '那么被引用变量的预渲染也要设置为“是”，否则预渲染不生效。': 'Then the pre-rendering of the referenced variable should also be set to "Yes", otherwise the pre-rendering will not take effect.',
     '无数据，请手动新增变量或者勾选标准插件参数自动生成': 'No Data',
     '删除变量': 'Delete Variable',
     '确认删除该变量？': 'Are you sure to delete this variable?',
@@ -1050,6 +1056,7 @@ const en = {
     '成员': 'Members',
     '保存已修改的节点信息吗？': 'Save the modified node information?',
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '保存已修改的配置信息吗？': 'Save the modified config information?',
     '全部项目': 'All Projects',
     '导入临时方案': 'Import Temporaty Scheme',
     '方案内容': 'Scheme Text',
@@ -1071,7 +1078,7 @@ const en = {
     '请输入流程模板备注信息': 'please enter process template description',
     '标签': 'Label',
     '编辑标签': 'Edit Label',
-    '选择标签': 'Select Lable',
+    '请选择标签': 'Please Select Lable',
     '选择颜色': 'Select Color',
     '标签设置': 'Label Config',
     '新增标签': 'Add Label',
@@ -1086,7 +1093,12 @@ const en = {
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
     '退出': 'Quit',
-    '首页': 'Home'
+    '首页': 'Home',
+    '模板分类即将下线，建议使用标签': 'template categary is about to go offline. Tags are recommended',
+    '请输入流程模板名称': 'Please enter the template name',
+    '基础': 'Basic',
+    '通知': 'Notify',
+    '其他': 'Others'
 }
 
 export default en

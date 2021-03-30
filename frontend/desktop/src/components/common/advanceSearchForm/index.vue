@@ -62,6 +62,7 @@
                         <template v-if="item.type === 'select'">
                             <bk-select
                                 style="width: 260px;"
+                                ext-popover-cls="advance-select"
                                 :placeholder="item.placeholder"
                                 :loading="item.loading"
                                 :clearable="true"
@@ -76,6 +77,14 @@
                                     :key="option.value"
                                     :id="option.value"
                                     :name="option.name">
+                                    <div v-if="item.key === 'label_ids'" class="label-select-option">
+                                        <span
+                                            class="label-select-color"
+                                            :style="{ background: option.color }">
+                                        </span>
+                                        <span>{{option.name}}</span>
+                                        <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                    </div>
                                 </bk-option>
                             </bk-select>
                         </template>
@@ -96,6 +105,7 @@
                                 :placeholder="item.placeholder">
                             </bk-input>
                         </template>
+                        <i v-if="item.tips" class="common-icon-info form-tips" v-bk-tooltips="item.tips"></i>
                     </bk-form-item>
                     <bk-form-item class="query-button">
                         <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
@@ -429,12 +439,48 @@
                 min-width: 160px !important;
             }
         }
+        /deep/ .bk-select.is-focus {
+            background: #ffffff;
+            z-index: 1;
+        }
         .query-button {
             margin-left: 168px;
             .query-cancel {
                 margin-left: 5px;
             }
         }
+    }
+    .form-tips {
+        position: absolute;
+        right: -20px;
+        top: 10px;
+        font-size: 16px;
+        color: #c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #f4aa1a;
+        }
+    }
+}
+</style>
+<style lang="scss">
+.advance-select {
+    .label-select-option {
+        display: flex;
+        align-items: center;
+        .label-select-color {
+            margin-right: 4px;
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+        }
+        .bk-option-icon {
+            display: none;
+        }
+    }
+    .bk-option.is-selected .bk-option-icon{
+        display: inline-block;
     }
 }
 </style>

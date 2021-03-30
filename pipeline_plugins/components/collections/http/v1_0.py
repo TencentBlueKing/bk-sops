@@ -107,7 +107,7 @@ class HttpRequestService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         method = data.inputs.bk_http_request_method
-        url = data.inputs.bk_http_request_url
+        url = data.inputs.bk_http_request_url.strip()
         body = data.inputs.bk_http_request_body
         request_header = data.inputs.bk_http_request_header
         timeout = min(abs(int(data.inputs.bk_http_timeout)), 30) or 30

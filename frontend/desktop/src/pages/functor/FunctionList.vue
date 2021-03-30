@@ -283,12 +283,10 @@
         {
             id: 'project',
             label: i18n.t('所属项目'),
-            disabled: true,
             width: 160
         }, {
             id: 'id',
             label: i18n.t('任务ID'),
-            disabled: true,
             width: 110
         }, {
             id: 'name',
@@ -904,6 +902,11 @@
                 position: absolute;
                 right: -20px;
                 top: 9px;
+                color: #c4c6cc;
+                cursor: pointer;
+                &:hover {
+                    color: #f4aa1a;
+                }
             }
         }
     }

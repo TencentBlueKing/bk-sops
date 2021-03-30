@@ -238,15 +238,6 @@
 
     const SEARCH_FORM = [
         {
-            type: 'select',
-            label: i18n.t('分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
-        },
-        {
             type: 'dateRange',
             key: 'queryTime',
             placeholder: i18n.t('选择日期时间范围'),
@@ -271,36 +262,60 @@
             label: i18n.t('创建人'),
             placeholder: i18n.t('请输入创建人'),
             value: ''
+        },
+        {
+            type: 'select',
+            label: i18n.t('分类'),
+            key: 'category',
+            loading: true,
+            placeholder: i18n.t('请选择分类'),
+            tips: i18n.t('模板分类即将下线，建议使用标签'),
+            list: [],
+            value: ''
         }
     ]
     const TABLE_FIELDS = [
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
-            width: 100
-        }, {
+            width: 80
+        },
+        {
             id: 'name',
             label: i18n.t('流程名称'),
             disabled: true,
             min_width: 400
-        }, {
+        },
+        {
             id: 'create_time',
             label: i18n.t('创建时间'),
             sortable: 'custom',
-            width: 180
-        }, {
+            width: 200
+        },
+        {
             id: 'edit_time',
             label: i18n.t('更新时间'),
             sortable: 'custom',
             width: 200
-        }, {
+        },
+        {
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
             width: 200
-        }, {
+        },
+        {
+            id: 'category_name',
+            label: i18n.t('分类'),
+            min_width: 180
+        },
+        {
             id: 'creator_name',
             label: i18n.t('创建人'),
+            width: 160
+        },
+        {
+            id: 'editor_name',
+            label: i18n.t('更新人'),
             width: 160
         }
     ]
@@ -384,6 +399,7 @@
                 selectedTpl: {},
                 ordering: null, // 排序参数
                 tableFields: TABLE_FIELDS,
+                defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
@@ -519,11 +535,15 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('commonTemplateList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    selectedFields = fieldList
+                } else {
+                    selectedFields = this.defaultSelected
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             async getCollectList () {
                 try {

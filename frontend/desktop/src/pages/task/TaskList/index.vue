@@ -188,15 +188,6 @@
         },
         {
             type: 'select',
-            label: i18n.t('任务分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
-        },
-        {
-            type: 'select',
             label: i18n.t('创建方式'),
             key: 'createMethod',
             loading: true,
@@ -231,13 +222,22 @@
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ],
             value: ''
+        },
+        {
+            type: 'select',
+            label: i18n.t('任务分类'),
+            key: 'category',
+            loading: true,
+            placeholder: i18n.t('请选择分类'),
+            tips: i18n.t('模板分类即将下线，建议使用标签'),
+            list: [],
+            value: ''
         }
     ]
     const TABLE_FIELDS = [
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
             width: 100
         }, {
             id: 'name',
@@ -247,7 +247,7 @@
         }, {
             id: 'start_time',
             label: i18n.t('执行开始'),
-            width: 180
+            width: 200
         }, {
             id: 'finish_time',
             label: i18n.t('执行结束'),
@@ -363,6 +363,7 @@
                     'limit-list': [15, 30, 50, 100]
                 },
                 tableFields: TABLE_FIELDS,
+                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
@@ -491,11 +492,15 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('TaskList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
+                    selectedFields = fieldList
                     this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                } else {
+                    selectedFields = this.defaultSelected
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data
