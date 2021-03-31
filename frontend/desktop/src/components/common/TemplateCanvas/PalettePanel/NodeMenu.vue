@@ -27,7 +27,6 @@
                 </bk-input>
                 <bk-select
                     v-if="activeNodeListType === 'tasknode'"
-                    class="select-group"
                     v-model="selectedGroup"
                     :clearable="true"
                     :searchable="true"
@@ -42,7 +41,6 @@
                 </bk-select>
                 <bk-select
                     v-else-if="activeNodeListType === 'subflow' && !common"
-                    class="select-group"
                     key="subflow-select"
                     ext-popover-cls="label-select"
                     v-model="selectedGroup"

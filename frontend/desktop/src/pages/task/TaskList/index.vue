@@ -229,7 +229,6 @@
             key: 'category',
             loading: true,
             placeholder: i18n.t('请选择分类'),
-            tips: i18n.t('模板分类即将下线，建议使用标签'),
             list: [],
             value: ''
         }

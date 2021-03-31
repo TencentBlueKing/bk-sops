@@ -26,7 +26,7 @@
                 <section class="form-section">
                     <h4>{{ $t('基础') }}</h4>
                     <bk-form-item property="name" :label="$t('流程名称')" :required="true">
-                        <bk-input v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
+                        <bk-input ref="nameInput" v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
                     </bk-form-item>
                     <bk-form-item v-if="!common" :label="$t('标签')">
                         <bk-select
@@ -238,6 +238,9 @@
             if (!this.common) {
                 this.getProjectNotifyGroup()
             }
+        },
+        mounted () {
+            this.$refs.nameInput.focus()
         },
         methods: {
             ...mapMutations('template/', [
