@@ -47,7 +47,6 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
-from gcloud.taskflow3.utils import format_pipeline_status
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
@@ -562,21 +561,6 @@ class TaskFlowInstance(models.Model):
             return True
 
         return False
-
-    def get_status(self):
-        if not self.pipeline_instance.is_started:
-            return {
-                "start_time": None,
-                "state": "CREATED",
-                "retry": 0,
-                "skip": 0,
-                "finish_time": None,
-                "elapsed_time": 0,
-                "children": {},
-            }
-        status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
-        format_pipeline_status(status_tree)
-        return status_tree
 
     def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):

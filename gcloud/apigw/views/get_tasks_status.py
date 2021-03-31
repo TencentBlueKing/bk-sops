@@ -25,6 +25,7 @@ from gcloud.utils.dates import format_datetime
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.dispatchers import TaskCommandDispatcher
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 
@@ -65,8 +66,14 @@ def get_tasks_status(request, project_id):
 
     data = []
     for task in tasks:
-        status = task.get_status()
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+        )
+        result = dispatcher.get_task_status()
+        if not result["result"]:
+            return JsonResponse(result)
 
+        status = result.data
         if not include_children_status:
             status.pop("children")
 

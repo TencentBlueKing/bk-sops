@@ -30,11 +30,7 @@ class EngineAPIResult(Representable):
     """
 
     def __init__(
-        self,
-        result: bool,
-        message: str,
-        exc: Optional[Exception] = None,
-        data: Optional[Any] = None,
+        self, result: bool, message: str, exc: Optional[Exception] = None, data: Optional[Any] = None,
     ):
         """
         :param result: 是否执行成功
@@ -66,9 +62,7 @@ def _ensure_return_api_result(func):
 
 
 @_ensure_return_api_result
-def run_pipeline(
-    runtime: EngineRuntimeInterface, pipeline: dict, **options
-) -> EngineAPIResult:
+def run_pipeline(runtime: EngineRuntimeInterface, pipeline: dict, **options) -> EngineAPIResult:
     """
     执行 pipeline
 
@@ -84,9 +78,7 @@ def run_pipeline(
 
 
 @_ensure_return_api_result
-def pause_pipeline(
-    runtime: EngineRuntimeInterface, pipeline_id: str
-) -> EngineAPIResult:
+def pause_pipeline(runtime: EngineRuntimeInterface, pipeline_id: str) -> EngineAPIResult:
     """
     暂停 pipeline 的执行
 
@@ -102,9 +94,7 @@ def pause_pipeline(
 
 
 @_ensure_return_api_result
-def revoke_pipeline(
-    runtime: EngineRuntimeInterface, pipeline_id: str
-) -> EngineAPIResult:
+def revoke_pipeline(runtime: EngineRuntimeInterface, pipeline_id: str) -> EngineAPIResult:
     """
     撤销 pipeline，使其无法继续执行
 
@@ -119,9 +109,7 @@ def revoke_pipeline(
 
 
 @_ensure_return_api_result
-def resume_pipeline(
-    runtime: EngineRuntimeInterface, pipeline_id: str
-) -> EngineAPIResult:
+def resume_pipeline(runtime: EngineRuntimeInterface, pipeline_id: str) -> EngineAPIResult:
     """
     继续被 pause_pipeline 接口暂停的 pipeline 的执行
 
@@ -136,9 +124,7 @@ def resume_pipeline(
 
 
 @_ensure_return_api_result
-def pause_node_appoint(
-    runtime: EngineRuntimeInterface, node_id: str
-) -> EngineAPIResult:
+def pause_node_appoint(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
     """
     预约暂停某个节点的执行
 
@@ -153,9 +139,7 @@ def pause_node_appoint(
 
 
 @_ensure_return_api_result
-def resume_node_appoint(
-    runtime: EngineRuntimeInterface, node_id: str
-) -> EngineAPIResult:
+def resume_node_appoint(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
     """
     继续由于某个节点而暂停的 pipeline 的执行
 
@@ -170,9 +154,7 @@ def resume_node_appoint(
 
 
 @_ensure_return_api_result
-def retry_node(
-    runtime: EngineRuntimeInterface, node_id: str, data: Optional[dict] = None
-) -> EngineAPIResult:
+def retry_node(runtime: EngineRuntimeInterface, node_id: str, data: Optional[dict] = None) -> EngineAPIResult:
     """
     重试某个执行失败的节点
 
@@ -204,9 +186,7 @@ def skip_node(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
 
 
 @_ensure_return_api_result
-def skip_exclusive_gateway(
-    runtime: EngineRuntimeInterface, node_id: str, flow_id: str
-) -> EngineAPIResult:
+def skip_exclusive_gateway(runtime: EngineRuntimeInterface, node_id: str, flow_id: str) -> EngineAPIResult:
     """
     跳过某个执行失败的分支网关
 
@@ -223,9 +203,7 @@ def skip_exclusive_gateway(
 
 
 @_ensure_return_api_result
-def forced_fail_activity(
-    runtime: EngineRuntimeInterface, node_id: str, ex_data: str
-) -> EngineAPIResult:
+def forced_fail_activity(runtime: EngineRuntimeInterface, node_id: str, ex_data: str) -> EngineAPIResult:
     """
     强制失败某个 activity 节点
 
@@ -238,13 +216,11 @@ def forced_fail_activity(
     :return: 执行结果
     :rtype: EngineAPIResult
     """
-    Engine(runtime).forced_fail_activity(node_id, message)
+    Engine(runtime).forced_fail_activity(node_id, ex_data)
 
 
 @_ensure_return_api_result
-def callback(
-    runtime: EngineRuntimeInterface, node_id: str, version: str, data: dict
-) -> EngineAPIResult:
+def callback(runtime: EngineRuntimeInterface, node_id: str, version: str, data: dict) -> EngineAPIResult:
     """
     回调某个节点
 
@@ -261,16 +237,16 @@ def callback(
 
 
 @_ensure_return_api_result
-def get_pipeline_states(
-    runtime: EngineRuntimeInterface, root_id: str
-) -> EngineAPIResult:
+def get_pipeline_states(runtime: EngineRuntimeInterface, root_id: str, flat_children=True) -> EngineAPIResult:
     """
     返回某个任务的状态树
 
     :param runtime: 引擎运行时实例
     :type runtime: EngineRuntimeInterface
-    g:param root_id: 根节点 ID
+    :param root_id: 根节点 ID
     :type root_id: str
+    :param flat_children: 是否将所有子节点展开
+    :type flat_children: bool
     :return: 执行结果
     :rtype: EngineAPIResult
     """
@@ -286,7 +262,7 @@ def get_pipeline_states(
                 "id": s.node_id,
                 "state": s.name,
                 "root_id:": s.root_id,
-                "parent_id": s.root_id,
+                "parent_id": s.parent_id,
                 "version": s.version,
                 "loop": s.loop,
                 "retry": s.retry,
@@ -294,9 +270,21 @@ def get_pipeline_states(
                 "created_time": s.created_time,
                 "started_time": s.started_time,
                 "archived_time": s.archived_time,
+                "children": {},
             }
         else:
             root_state = s
+
+    if not flat_children:
+        # set node children
+        for node_id, state in children.items():
+            if state["parent_id"] in children:
+                children[state["parent_id"]]["children"][node_id] = state
+
+        # pop sub child
+        for node_id in list(children.keys()):
+            if children[node_id]["parent_id"] != root_state.node_id:
+                children.pop(node_id)
 
     state_tree = {}
     state_tree[root_state.node_id] = {
@@ -317,9 +305,7 @@ def get_pipeline_states(
 
 
 @_ensure_return_api_result
-def get_children_states(
-    runtime: EngineRuntimeInterface, node_id: str
-) -> EngineAPIResult:
+def get_children_states(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
     """
     返回某个节点及其所有子节点的状态
 
@@ -341,7 +327,7 @@ def get_children_states(
             "id": s.node_id,
             "state": s.name,
             "root_id:": s.root_id,
-            "parent_id": s.root_id,
+            "parent_id": s.parent_id,
             "version": s.version,
             "loop": s.loop,
             "retry": s.retry,
@@ -349,6 +335,7 @@ def get_children_states(
             "created_time": s.created_time,
             "started_time": s.started_time,
             "archived_time": s.archived_time,
+            "children": {},
         }
 
     state_tree = {}
@@ -370,9 +357,7 @@ def get_children_states(
 
 
 @_ensure_return_api_result
-def get_execution_data_inputs(
-    runtime: EngineRuntimeInterface, node_id: str
-) -> EngineAPIResult:
+def get_execution_data_inputs(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
     """
     获取某个节点执行数据的输入数据
 
@@ -387,9 +372,7 @@ def get_execution_data_inputs(
 
 
 @_ensure_return_api_result
-def get_execution_data_outputs(
-    runtime: EngineRuntimeInterface, node_id: str
-) -> EngineAPIResult:
+def get_execution_data_outputs(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
     """
     获取某个节点的执行数据输出
 
@@ -404,9 +387,7 @@ def get_execution_data_outputs(
 
 
 @_ensure_return_api_result
-def get_execution_data(
-    runtime: EngineRuntimeInterface, node_id: str
-) -> EngineAPIResult:
+def get_execution_data(runtime: EngineRuntimeInterface, node_id: str) -> EngineAPIResult:
     """
     获取某个节点的执行数据
 
@@ -422,9 +403,7 @@ def get_execution_data(
 
 
 @_ensure_return_api_result
-def get_node_histories(
-    runtime: EngineRuntimeInterface, node_id: str, loop: int = -1
-) -> EngineAPIResult:
+def get_node_histories(runtime: EngineRuntimeInterface, node_id: str, loop: int = -1) -> EngineAPIResult:
     """
     获取某个节点的历史记录概览
 
@@ -454,9 +433,7 @@ def get_node_histories(
 
 
 @_ensure_return_api_result
-def get_node_short_histories(
-    runtime: EngineRuntimeInterface, node_id: str, loop: int = -1
-) -> EngineAPIResult:
+def get_node_short_histories(runtime: EngineRuntimeInterface, node_id: str, loop: int = -1) -> EngineAPIResult:
     """
     获取某个节点的简要历史记录
 
@@ -522,7 +499,7 @@ def get_node_debug_info(self, runtime: EngineRuntimeInterface, node_id: str):
     try:
         data = runtime.get_data(node_id)
     except Exception as e:
-        errs.append(str(e))
+        err.append(str(e))
 
     try:
         state = runtime.get_state(node_id)

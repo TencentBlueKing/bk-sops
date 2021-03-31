@@ -14,18 +14,23 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 import traceback
+from typing import Optional
 
 from django.utils import timezone
 from bamboo_engine import api as bamboo_engine_api
+from bamboo_engine import states as bamboo_engine_states
 from pipeline.eri.runtime import BambooDjangoRuntime
+from pipeline import exceptions as pipeline_exceptions
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
+from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.format import format_web_data_to_pipeline
 from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, IsolateNodeError, StreamValidateError
 
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
 from .base import EngineCommandDispatcher, ensure_return_is_dict, ensure_return_has_code
 
 logger = logging.getLogger("root")
@@ -212,3 +217,151 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             "message": "",
             "code": err_code.SUCCESS.code,
         }
+
+    def get_task_status(self, subprocess_id: Optional[str] = None, with_ex_data: bool = False) -> dict:
+        if self.engine_ver not in self.VALID_ENGINE_VER:
+            return self._unsupported_engine_ver_result()
+
+        return getattr(self, "get_task_status_v{}".format(self.engine_ver))(
+            subprocess_id=subprocess_id, with_ex_data=with_ex_data
+        )
+
+    def _collect_fail_nodes(self, task_status: dict) -> list:
+        task_status["ex_data"] = {}
+        children_list = [task_status["children"]]
+        failed_nodes = []
+        while len(children_list) > 0:
+            children = children_list.pop(0)
+            for node_id, node in children.items():
+                if node["state"] == bamboo_engine_states.FAILED:
+                    if len(node["children"]) > 0:
+                        children_list.append(node["children"])
+                        continue
+                    failed_nodes.append(node_id)
+        return failed_nodes
+
+    def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if not subprocess_id:
+            if not self.pipeline_instance.is_started:
+                return {
+                    "result": True,
+                    "data": {
+                        "start_time": None,
+                        "state": "CREATED",
+                        "retry": 0,
+                        "skip": 0,
+                        "finish_time": None,
+                        "elapsed_time": 0,
+                        "children": {},
+                    },
+                    "message": "",
+                    "code": err_code.SUCCESS.code,
+                }
+
+            try:
+                task_status = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
+                format_pipeline_status(task_status)
+                return {
+                    "result": True,
+                    "data": task_status,
+                    "message": "",
+                    "code": err_code.SUCCESS.code,
+                }
+            except Exception:
+                logger.exception("task.get_status fail")
+                return {
+                    "result": False,
+                    "message": "task.get_status fail",
+                    "data": {},
+                    "code": err_code.UNKNOWN_ERROR.code,
+                }
+        else:
+            try:
+                task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
+                format_pipeline_status(task_status)
+            except pipeline_exceptions.InvalidOperationException:
+                # do not raise error when subprocess not exist or has not been executed
+                task_status = {
+                    "start_time": None,
+                    "state": "CREATED",
+                    "retry": 0,
+                    "skip": 0,
+                    "finish_time": None,
+                    "elapsed_time": 0,
+                    "children": {},
+                }
+            except Exception:
+                logger.exception("pipeline_api.get_status_tree(subprocess_id:{}) fail".format(subprocess_id))
+                return {
+                    "result": False,
+                    "message": "pipeline_api.get_status_tree(subprocess_id:{}) fail",
+                    "data": {},
+                    "code": err_code.UNKNOWN_ERROR.code,
+                }
+
+        # 返回失败节点和对应调试信息
+        if with_ex_data and task_status["state"] == bamboo_engine_states.FAILED:
+            failed_nodes = self._collect_fail_nodes(task_status)
+            task_status["ex_data"] = {}
+            failed_nodes_outputs = pipeline_api.get_batch_outputs(failed_nodes)
+            for node_id in failed_nodes:
+                task_status["ex_data"][node_id] = failed_nodes_outputs[node_id]["ex_data"]
+
+        return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
+
+    def get_task_status_v2(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if not self.pipeline_instance.is_started:
+            return {
+                "result": True,
+                "data": {
+                    "start_time": None,
+                    "state": "CREATED",
+                    "retry": 0,
+                    "skip": 0,
+                    "finish_time": None,
+                    "elapsed_time": 0,
+                    "children": {},
+                },
+                "message": "",
+                "code": err_code.SUCCESS.code,
+            }
+
+        runtime = BambooDjangoRuntime()
+        status_result = bamboo_engine_api.get_pipeline_states(
+            runtime=runtime, root_id=self.task.pipeline_instance_id, flat_children=False
+        )
+        if not status_result:
+            logger.exception("bamboo_engine_api.get_pipeline_states fail")
+            return {
+                "result": False,
+                "data": {},
+                "message": "{}: {}".format(status_result.message, status_result.exc),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+        task_status = status_result.data
+
+        def get_subprocess_status(task_status: dict, subprocess_id: str) -> dict:
+            for child in task_status["children"].values():
+                if child["id"] == subprocess_id:
+                    return child
+                if child["children"]:
+                    return get_subprocess_status(child, subprocess_id)
+
+        if subprocess_id:
+            task_status = get_subprocess_status(task_status, subprocess_id)
+
+        format_bamboo_engine_status(task_status)
+
+        # 返回失败节点和对应调试信息
+        if with_ex_data and task_status["state"] == bamboo_engine_states.FAILED:
+            failed_nodes = self._collect_fail_nodes(task_status)
+            task_status["ex_data"] = {}
+            for node_id in failed_nodes:
+                data_result = bamboo_engine_api.get_execution_data_outputs(runtime=runtime, node_id=node_id)
+
+                if not data_result:
+                    task_status["ex_data"][node_id] = "get ex_data fail: {}".format(data_result.exc)
+                else:
+                    task_status["ex_data"][node_id] = data_result.data.get("ex_data")
+
+        return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}

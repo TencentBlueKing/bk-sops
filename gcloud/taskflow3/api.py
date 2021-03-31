@@ -25,9 +25,6 @@ from blueapps.account.decorators import login_exempt
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
-from pipeline.engine import api as pipeline_api
-from pipeline.engine import exceptions, states
-
 from gcloud import err_code
 from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
@@ -51,8 +48,7 @@ from gcloud.taskflow3.validators import (
     QueryTaskCountValidator,
     GetNodeLogValidator,
 )
-from gcloud.taskflow3.dispatchers import NodeCommandDispatcher
-from gcloud.taskflow3.utils import format_pipeline_status
+from gcloud.taskflow3.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
@@ -88,34 +84,23 @@ def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
 
-    if not subprocess_id:
-        try:
-            task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
-            task_status = task.get_status()
-            ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
-            return JsonResponse(ctx)
-        except exceptions.InvalidOperationException:
-            ctx = {"result": True, "data": {"state": states.READY, "message": "", "code": err_code.SUCCESS.code}}
-        except Exception as e:
-            message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
-            logger.exception(message)
-            ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
-        return JsonResponse(ctx)
-
-    # 请求子流程的状态，直接通过pipeline api查询
     try:
-        task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
-        format_pipeline_status(task_status)
-        ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
-    # subprocess pipeline has not executed
-    except exceptions.InvalidOperationException:
-        ctx = {"result": True, "data": {"state": states.CREATED}, "message": "", "code": err_code.SUCCESS.code}
-    except Exception as e:
-        message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
-        logger.exception(message)
-        ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
+        task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
+    except TaskFlowInstance.DoesNotExist:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "task with instance_id({}) not exist".format(instance_id),
+                "data": None,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+        )
 
-    return JsonResponse(ctx)
+    dispatcher = TaskCommandDispatcher(
+        engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+    )
+    result = dispatcher.get_task_status(subprocess_id=subprocess_id)
+    return JsonResponse(result)
 
 
 @require_GET
