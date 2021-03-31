@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,13 +15,15 @@ import os
 import sys
 
 from django.core.management import base, call_command
-from django.template.loader import render_to_string
+from django.template import Template, Context
+
+from pipeline.templates.create_plugins_app import js_file, plugins, py_file
 
 PY_COPYRIGHT = '''# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -51,14 +53,14 @@ class Command(base.BaseCommand):
         tests_path = "%s/tests/components/collections/plugins_test" % app_name
         static_collection_path = "{}/static/{}".format(app_name, app_name)
         init_file_info = {
-            "%s/components/collections/__init__.py" % app_name: "create_atoms_app/py_file.tmpl",
-            "%s/components/__init__.py" % app_name: "create_atoms_app/py_file.tmpl",
-            "%s/components/collections/plugins.py" % app_name: "create_atoms_app/plugins.tmpl",
-            "%s/tests/__init__.py" % app_name: "create_atoms_app/py_file.tmpl",
-            "%s/tests/components/__init__.py" % app_name: "create_atoms_app/py_file.tmpl",
-            "%s/tests/components/collections/__init__.py" % app_name: "create_atoms_app/py_file.tmpl",
-            "%s/tests/components/collections/plugins_test/__init__.py" % app_name: "create_atoms_app/py_file.tmpl",
-            "{}/static/{}/plugins.js".format(app_name, app_name): "create_atoms_app/js_file.tmpl",
+            "%s/components/collections/__init__.py" % app_name: py_file.TEMPLATE,
+            "%s/components/__init__.py" % app_name: py_file.TEMPLATE,
+            "%s/components/collections/plugins.py" % app_name: plugins.TEMPLATE,
+            "%s/tests/__init__.py" % app_name: py_file.TEMPLATE,
+            "%s/tests/components/__init__.py" % app_name: py_file.TEMPLATE,
+            "%s/tests/components/collections/__init__.py" % app_name: py_file.TEMPLATE,
+            "%s/tests/components/collections/plugins_test/__init__.py" % app_name: py_file.TEMPLATE,
+            "{}/static/{}/plugins.js".format(app_name, app_name): js_file.TEMPLATE,
         }
         exist_file_path = [
             "%s/migrations/__init__.py" % app_name,
@@ -74,9 +76,11 @@ class Command(base.BaseCommand):
         os.makedirs(collection_path)
         os.makedirs(tests_path)
         os.makedirs(static_collection_path)
+
+        empty_context = Context()
         for p, tmpl in list(init_file_info.items()):
             with open(p, "w+") as f:
-                f.write(render_to_string(tmpl, {}))
+                f.write(Template(tmpl).render(empty_context))
 
         for p in exist_file_path:
             with open(p, "r") as f:

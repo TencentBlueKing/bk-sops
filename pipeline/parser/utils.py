@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -111,7 +111,7 @@ def _replace_front_end_data_id(pipeline_data, node_map, flow_map):
         for location in pipeline_data["location"]:
             location[PE.id] = node_map[location[PE.id]]
     if "constants" in pipeline_data:
-        for _, constant in list(pipeline_data[PE.constants].items()):
+        for key, constant in list(pipeline_data[PE.constants].items()):
             source_info = constant.get("source_info", None)
             if source_info:
                 replaced_constant = {}

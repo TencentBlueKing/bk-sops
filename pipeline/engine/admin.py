@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -23,7 +23,7 @@ from pipeline.service import task_service
 @admin.register(models.PipelineModel)
 class PipelineModelAdmin(admin.ModelAdmin):
     list_display = ["id", "process"]
-    search_fields = ["id", "process__id"]
+    search_fields = ["id__exact", "process__id__exact"]
     raw_id_fields = ["process"]
 
 
@@ -41,7 +41,7 @@ class PipelineProcessAdmin(admin.ModelAdmin):
         "is_sleep",
         "is_frozen",
     ]
-    search_fields = ["id", "root_pipeline_id", "current_node_id"]
+    search_fields = ["id__exact", "root_pipeline_id__exact", "current_node_id__exact"]
     list_filter = ["is_alive", "is_sleep"]
     raw_id_fields = ["snapshot"]
 
@@ -64,8 +64,7 @@ class StatusAdmin(admin.ModelAdmin):
         "started_time",
         "archived_time",
     ]
-    search_fields = ["id"]
-    list_filter = ["state", "skip"]
+    search_fields = ["=id"]
     actions = [force_fail_node]
 
 
@@ -79,45 +78,45 @@ class ScheduleServiceAdmin(admin.ModelAdmin):
         "wait_callback",
         "is_finished",
     ]
-    search_fields = ["id"]
+    search_fields = ["id__exact"]
     list_filter = ["wait_callback", "is_finished"]
 
 
 @admin.register(models.ProcessCeleryTask)
 class ProcessCeleryTaskAdmin(admin.ModelAdmin):
     list_display = ["id", "process_id", "celery_task_id"]
-    search_fields = ["id", "process_id"]
+    search_fields = ["id__exact", "process_id__exact"]
 
 
 @admin.register(models.Data)
 class DataAdmin(admin.ModelAdmin):
     list_display = ["id", "inputs", "outputs", "ex_data"]
-    search_fields = ["id"]
+    search_fields = ["id__exact"]
 
 
 @admin.register(models.HistoryData)
 class HistoryDataAdmin(admin.ModelAdmin):
     list_display = ["id", "inputs", "outputs", "ex_data"]
-    search_fields = ["id"]
+    search_fields = ["id__exact"]
 
 
 @admin.register(models.History)
 class HistoryAdmin(admin.ModelAdmin):
     list_display = ["identifier", "started_time", "archived_time"]
-    search_fields = ["identifier"]
+    search_fields = ["identifier__exact"]
     raw_id_fields = ["data"]
 
 
 @admin.register(models.ScheduleCeleryTask)
 class ScheduleCeleryTaskAdmin(admin.ModelAdmin):
     list_display = ["schedule_id", "celery_task_id"]
-    search_fields = ["schedule_id"]
+    search_fields = ["schedule_id__exact"]
 
 
 @admin.register(models.NodeCeleryTask)
 class NodeCeleryTaskAdmin(admin.ModelAdmin):
     list_display = ["node_id", "celery_task_id"]
-    search_fields = ["node_id"]
+    search_fields = ["node_id__exact"]
 
 
 on = True
@@ -183,5 +182,5 @@ class SendFailedCeleryTaskAdmin(admin.ModelAdmin):
         "exec_trace",
         "created_at",
     ]
-    search_fields = ["id", "name"]
+    search_fields = ["id__exact", "name"]
     actions = [resend_task]

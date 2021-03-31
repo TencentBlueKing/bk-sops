@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -63,9 +63,7 @@ def pipeline_ready_handler(sender, process_id, **kwargs):
 
     with celery_task_send_fail_pass():
         ProcessCeleryTask.objects.start_task(
-            process_id=process_id,
-            task=task,
-            kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
+            process_id=process_id, task=task, kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
         )
 
 
@@ -79,15 +77,11 @@ def child_process_ready_handler(sender, child_id, **kwargs):
 
     with celery_task_send_fail_pass():
         ProcessCeleryTask.objects.start_task(
-            process_id=child_id,
-            task=task,
-            kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
+            process_id=child_id, task=task, kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
         )
 
 
-def process_ready_handler(
-    sender, process_id, current_node_id=None, call_from_child=False, **kwargs
-):
+def process_ready_handler(sender, process_id, current_node_id=None, call_from_child=False, **kwargs):
 
     task = tasks.process_wake_up
     args_resolver = CeleryTaskArgsResolver(process_id)
@@ -96,10 +90,7 @@ def process_ready_handler(
         ProcessCeleryTask.objects.start_task(
             process_id=process_id,
             task=task,
-            kwargs={
-                "args": [process_id, current_node_id, call_from_child],
-                **args_resolver.resolve_args(task),
-            },
+            kwargs={"args": [process_id, current_node_id, call_from_child], **args_resolver.resolve_args(task)},
         )
 
 
@@ -119,10 +110,7 @@ def batch_process_ready_handler(sender, process_id_list, pipeline_id, **kwargs):
 
     with celery_task_send_fail_pass():
         with SendFailedCeleryTask.watch(
-            name=task.name,
-            kwargs=kwargs,
-            type=SendFailedCeleryTask.TASK_TYPE_EMPTY,
-            extra_kwargs={},
+            name=task.name, kwargs=kwargs, type=SendFailedCeleryTask.TASK_TYPE_EMPTY, extra_kwargs={},
         ):
             task.apply_async(**kwargs)
 
@@ -136,10 +124,7 @@ def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
         ProcessCeleryTask.objects.start_task(
             process_id=process_id,
             task=task,
-            kwargs={
-                "args": [process_id, activity_id],
-                **args_resolver.resolve_args(task),
-            },
+            kwargs={"args": [process_id, activity_id], **args_resolver.resolve_args(task)},
         )
 
 
@@ -149,15 +134,11 @@ def process_unfreeze_handler(sender, process_id, **kwargs):
 
     with celery_task_send_fail_pass():
         ProcessCeleryTask.objects.start_task(
-            process_id=process_id,
-            task=task,
-            kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
+            process_id=process_id, task=task, kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
         )
 
 
-def schedule_ready_handler(
-    sender, process_id, schedule_id, countdown, data_id=None, **kwargs
-):
+def schedule_ready_handler(sender, process_id, schedule_id, countdown, data_id=None, **kwargs):
     task = tasks.service_schedule
     args_resolver = CeleryTaskArgsResolver(process_id)
 
@@ -173,9 +154,7 @@ def schedule_ready_handler(
         )
 
 
-def service_activity_timeout_monitor_start_handler(
-    sender, node_id, version, root_pipeline_id, countdown, **kwargs
-):
+def service_activity_timeout_monitor_start_handler(sender, node_id, version, root_pipeline_id, countdown, **kwargs):
     NodeCeleryTask.objects.start_task(
         node_id=node_id,
         task=tasks.node_timeout_check,

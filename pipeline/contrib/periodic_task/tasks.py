@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -61,19 +61,19 @@ def periodic_task_start(*args, **kwargs):
         )
 
         result = instance.start(
-            periodic_task.creator, check_workers=False, priority=periodic_task.priority, queue=periodic_task.queue
+            periodic_task.creator, check_workers=False, priority=periodic_task.priority, queue=periodic_task.queue,
         )
     except Exception:
         et = traceback.format_exc()
         logger.error(et)
         PeriodicTaskHistory.objects.record_schedule(
-            periodic_task=periodic_task, pipeline_instance=None, ex_data=et, start_success=False
+            periodic_task=periodic_task, pipeline_instance=None, ex_data=et, start_success=False,
         )
         return
 
     if not result.result:
         PeriodicTaskHistory.objects.record_schedule(
-            periodic_task=periodic_task, pipeline_instance=None, ex_data=result.message, start_success=False
+            periodic_task=periodic_task, pipeline_instance=None, ex_data=result.message, start_success=False,
         )
         return
 

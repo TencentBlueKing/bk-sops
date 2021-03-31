@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -28,14 +28,3 @@ class PeriodicTaskHistoryAdmin(admin.ModelAdmin):
     list_display = ["id", "start_at", "ex_data", "start_success", "periodic_task"]
     search_fields = ["periodic_task__id"]
     raw_id_fields = ["periodic_task", "pipeline_instance"]
-
-
-@admin.register(models.CrontabSchedule)
-class CrontabScheduleAdmin(admin.ModelAdmin):
-    list_display = ["id", "minute", "hour", "day_of_week", "day_of_month", "month_of_year", "timezone"]
-
-
-@admin.register(models.DjCeleryPeriodicTask)
-class DjCeleryPeriodicTaskAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "task", "enabled", "queue", "last_run_at", "total_run_count", "crontab"]
-    search_fields = ["id", "name", "task", "enabled"]

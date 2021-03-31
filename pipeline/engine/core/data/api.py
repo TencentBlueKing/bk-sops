@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -43,9 +43,7 @@ def _candidate_exc_ensure(propagate):
     try:
         yield
     except Exception:
-        logger.error(
-            "candidate data backend operate error: {}".format(traceback.format_exc())
-        )
+        logger.error("candidate data backend operate error: {}".format(traceback.format_exc()))
 
         if propagate:
             raise
@@ -72,9 +70,7 @@ def _write_operation(method, *args, **kwargs):
         if settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE and method == "set_object":
             # change set_object to expire_cache
             getattr(_backend, "expire_cache")(
-                *args,
-                **kwargs,
-                expires=settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS
+                *args, **kwargs, expires=settings.PIPELINE_DATA_BACKEND_AUTO_EXPIRE_SECONDS
             )
         else:
             getattr(_backend, method)(*args, **kwargs)

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -40,7 +40,7 @@ def parse_template_nodes(
         ast_node = ast.parse(code, "<unknown>", "exec")
         node_visitor.visit(ast_node)
         if hasattr(node, "nodes"):
-            parse_template_nodes(node.nodes, node_visitor, code_extractor)
+            parse_template_nodes(node.nodes, node_visitor)
 
 
 def check_mako_template_safety(text: str, node_visitor: ast.NodeVisitor, code_extractor: MakoNodeCodeExtractor) -> bool:

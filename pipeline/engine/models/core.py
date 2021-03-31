@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ujson as json
 import contextlib
 import logging
 import traceback
@@ -20,7 +21,6 @@ from celery.task.control import revoke
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-import ujson as json
 
 from pipeline.conf import settings as pipeline_settings
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
@@ -913,7 +913,7 @@ class Status(models.Model):
 
 class DataManager(models.Manager):
     def write_node_data(self, node, ex_data=None):
-        data, _ = self.get_or_create(id=node.id)
+        data, created = self.get_or_create(id=node.id)
         if hasattr(node, "data") and node.data:
             data.inputs = node.data.get_inputs()
             outputs = node.data.get_outputs()
@@ -923,12 +923,12 @@ class DataManager(models.Manager):
         data.save()
 
     def write_ex_data(self, node_id, ex_data=None):
-        data, _ = self.get_or_create(id=node_id)
+        data, created = self.get_or_create(id=node_id)
         data.ex_data = ex_data
         data.save()
 
     def forced_fail(self, node_id, ex_data=""):
-        data, _ = self.get_or_create(id=node_id)
+        data, created = self.get_or_create(id=node_id)
         data.outputs = {
             "_forced_failed": True,
         }

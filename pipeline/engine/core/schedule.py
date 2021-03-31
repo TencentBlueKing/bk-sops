@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,12 +18,12 @@ import traceback
 from django.db import transaction
 
 from pipeline.django_signal_valve import valve
-from pipeline.engine import exceptions, signals, states
 from pipeline.engine.core import context
+from pipeline.engine import exceptions, signals, states
 from pipeline.engine.core.data import delete_parent_data, get_schedule_parent_data, set_schedule_data
 from pipeline.engine.models import Data, MultiCallbackData, PipelineProcess, ScheduleService, Status
 
-logger = logging.getLogger("celery_and_engine_component")
+logger = logging.getLogger("celery")
 
 
 @contextlib.contextmanager
@@ -213,17 +213,16 @@ def schedule(process_id, schedule_id, data_id=None):
                     s.save()
 
                 # sync parent data
-                with transaction.atomic():
-                    process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
-                    if not process.is_alive:
-                        logger.warning("schedule({} - {}) revoked.".format(act_id, version))
-                        sched_service.destroy()
-                        return
+                process = PipelineProcess.objects.get(id=sched_service.process_id)
+                if not process.is_alive:
+                    logger.warning("schedule({} - {}) revoked.".format(act_id, version))
+                    sched_service.destroy()
+                    return
 
-                    process.top_pipeline.data.update_outputs(parent_data.get_outputs())
-                    # extract outputs
-                    process.top_pipeline.context.extract_output(service_act)
-                    process.save(save_snapshot=True)
+                process.top_pipeline.data.update_outputs(parent_data.get_outputs())
+                # extract outputs
+                process.top_pipeline.context.extract_output(service_act)
+                process.save(save_snapshot=True)
 
                 # clear temp data
                 delete_parent_data(sched_service.id)
