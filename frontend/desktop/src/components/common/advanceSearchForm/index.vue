@@ -62,7 +62,7 @@
                         <template v-if="item.type === 'select'">
                             <bk-select
                                 style="width: 260px;"
-                                ext-popover-cls="advance-select"
+                                :ext-popover-cls="item.key === 'label_ids' ? 'label-select' : ''"
                                 :placeholder="item.placeholder"
                                 :loading="item.loading"
                                 :clearable="true"
@@ -314,7 +314,7 @@
                 this.isAdvanceOpen = val === undefined ? !this.isAdvanceOpen : val
             },
             onClearFormItem (key) {
-                this.formData[key] = ''
+                this.formData[key] = key === 'label_ids' ? [] : ''
             },
             onChangeFormItem (val, key, type) {
                 if (type === 'dateRange') {
@@ -460,27 +460,6 @@
         &:hover {
             color: #f4aa1a;
         }
-    }
-}
-</style>
-<style lang="scss">
-.advance-select {
-    .label-select-option {
-        display: flex;
-        align-items: center;
-        .label-select-color {
-            margin-right: 4px;
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 2px;
-        }
-        .bk-option-icon {
-            display: none;
-        }
-    }
-    .bk-option.is-selected .bk-option-icon{
-        display: inline-block;
     }
 }
 </style>

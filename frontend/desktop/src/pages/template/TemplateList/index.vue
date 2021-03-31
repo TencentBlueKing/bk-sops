@@ -66,6 +66,7 @@
                             :prop="item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :render-header="renderTableHeader"
                             :sortable="item.sortable">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
@@ -259,6 +260,8 @@
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
+    const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
+
     const SEARCH_FORM = [
         {
             type: 'select',
@@ -301,7 +304,7 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            tips: i18n.t('模板分类即将下线，建议使用标签'),
+            tips: categoryTips,
             list: [],
             value: ''
         }
@@ -445,7 +448,8 @@
                     fieldList: TABLE_FIELDS,
                     selectedFields: [],
                     size: 'small'
-                }
+                },
+                categoryTips
             }
         },
         computed: {
@@ -713,6 +717,24 @@
                 this.pagination.current = 1
                 this.getTemplateList()
             },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property !== 'category_name') {
+                    return column.label
+                }
+
+                return h('span', {
+                    'class': 'category-label'
+                }, [
+                    column.label,
+                    h('i', {
+                        'class': 'common-icon-info table-header-tips',
+                        directives: [{
+                            name: 'bk-tooltips',
+                            value: this.categoryTips
+                        }]
+                    })
+                ])
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -966,6 +988,12 @@
             border-radius: 50%;
             vertical-align: 1px;
         }
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
 }
 </style>

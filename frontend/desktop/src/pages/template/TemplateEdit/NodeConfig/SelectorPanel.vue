@@ -57,7 +57,6 @@
             <div v-else class="subflow-list">
                 <div v-if="!common" class="label-select-wrap">
                     <bk-select
-                        class="select-group"
                         ext-popover-cls="label-select"
                         style="width: 270px;"
                         v-model="activeGroup"

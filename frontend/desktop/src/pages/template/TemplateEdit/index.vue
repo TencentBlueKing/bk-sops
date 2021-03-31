@@ -155,7 +155,7 @@
                 :value="isExectueSchemeDialog"
                 @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
-                    <div class="leave-tips">{{ isEditProcessPage ? $t('确定保存并去设置执行方案吗？') : $t('确定保存修改的内容？') }}</div>
+                    <div class="save-tpl-tips">{{ isEditProcessPage ? $t('确定保存流程并去设置执行方案？') : $t('确定保存修改的内容？') }}</div>
                     <div class="action-wrapper">
                         <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
@@ -1478,10 +1478,10 @@
         .template-edit-dialog-content {
             padding: 20px 0 40px 0;
             text-align: center;
-            .leave-tips {
+            .save-tpl-tips {
                 font-size: 24px;
                 margin-bottom: 30px;
-                padding: 0;
+                padding: 0 10px;
             }
             .action-wrapper .bk-button {
                 margin-right: 6px;
