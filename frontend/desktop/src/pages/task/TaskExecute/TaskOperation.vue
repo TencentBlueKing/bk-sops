@@ -75,6 +75,7 @@
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
+                    :pipeline-data="pipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onClickTreeNode="onClickTreeNode">
