@@ -94,19 +94,19 @@
                     <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
                 </div>
                 <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1 }">
-                    <bk-table-column :label="$t('标签名称')" property="name" :width="150">
+                    <bk-table-column :label="$t('标签名称')" property="name" :min-width="150">
                         <template slot-scope="props">
                             <span class="label-name"
                                 :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
                                 {{ props.row.name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('标签描述')" :width="300">
+                    <bk-table-column :label="$t('标签描述')" :min-width="300">
                         <template slot-scope="props">
                             {{ props.row.description || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('标签引用')">
+                    <bk-table-column :label="$t('标签引用')" :width="200">
                         <template slot-scope="props">
                             {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
                         </template>
@@ -116,7 +116,7 @@
                             {{ props.row.is_default ? $t('是') : $t('否') }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('操作')" :width="300">
+                    <bk-table-column :label="$t('操作')" :width="200">
                         <template slot-scope="props">
                             <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
                                 <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">
@@ -583,16 +583,24 @@
                 this.labelCount = {}
                 try {
                     const resp = await this.getProjectLabelsWithDefault(this.id)
-                    const defaultList = []
-                    const normalList = []
-                    resp.data.forEach(item => {
-                        item.is_default ? defaultList.push(item) : normalList.push(item)
-                    })
-                    this.labelList = [...normalList, ...defaultList]
-                    if (resp.data.length > 0) {
-                        const ids = resp.data.map(item => item.id).join(',')
-                        const labelData = await this.getlabelsCitedCount(ids)
-                        this.labelCount = labelData.data
+                    if (resp.result) {
+                        const defaultList = []
+                        const normalList = []
+                        resp.data.forEach(item => {
+                            item.is_default ? defaultList.push(item) : normalList.push(item)
+                        })
+                        this.labelList = [...normalList, ...defaultList]
+                        if (resp.data.length > 0) {
+                            const ids = resp.data.map(item => item.id).join(',')
+                            const labelData = await this.getlabelsCitedCount({ ids, project_id: this.id })
+                            if (labelData.result) {
+                                this.labelCount = labelData.data
+                            } else {
+                                errorHandler(labelData, this)
+                            }
+                        }
+                    } else {
+                        errorHandler(resp, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
@@ -601,8 +609,9 @@
                 }
             },
             onEditLabel (type, label) {
-                this.labelDetail = type === 'edit' ? { ...label, type: 'edit' } : { color: '#dcffe2', name: '', description: '' }
+                this.labelDetail = type === 'edit' ? { ...label, type: 'edit' } : { color: '#1c9574', name: '', description: '' }
                 this.isLabelDialogShow = true
+                this.colorDropdownShow = false
             },
             onSelectColor (val) {
                 this.labelDetail.color = val

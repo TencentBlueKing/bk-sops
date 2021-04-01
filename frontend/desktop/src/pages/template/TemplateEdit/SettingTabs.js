@@ -23,11 +23,11 @@ const SETTING_TABS = [
         title: i18n.t('全局变量'),
         desc: i18n.t()
     },
-    {
-        id: 'templateConfigTab',
-        icon: 'common-icon-square-attribute',
-        title: i18n.t('基础信息')
-    },
+    // {
+    //     id: 'templateConfigTab',
+    //     icon: 'common-icon-square-attribute',
+    //     title: i18n.t('基础信息')
+    // },
     {
         id: 'tplSnapshootTab',
         icon: 'common-icon-clock-reload',
