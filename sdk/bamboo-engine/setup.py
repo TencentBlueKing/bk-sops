@@ -13,22 +13,23 @@ from os import path
 from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
+about = {}
+with open(path.join(here, "bamboo_engine", "__version__.py"), "r") as f:
+    exec(f.read(), about)
 
-# Get the long description from the README file
-with open(path.join(here, "README.md"), encoding="utf-8") as f:
-    long_description = f.read()
-version = __import__("pipeline").__version__
+long_description = "next generation flow engine of bamboo-pipeline"
+version = about["__version__"]
 
 setup(
-    name="bamboo-pipeline",
+    name="bamboo-engine",
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version=version,
-    description="pipeline",  # noqa
+    description="bamboo-engine",  # noqa
     long_description=long_description,
     # The project's main homepage.
-    url="https://github.com/Tencent/bk-sops/tree/sdk/bamboo-pipeline",
+    url="https://github.com/Tencent/bk-sops/tree/sdk/bamboo-engine",
     # Author details
     author="Blueking",
     author_email="Blueking",
@@ -44,23 +45,10 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        # Base
-        "Django>=2.2.6,<3.0",
-        "requests>=2.22.0,<=2.23.0",
-        "celery>=4.4.0,<5.0",
-        "django-celery-beat==2.0.0",
-        "django-celery-results==1.2.1",
-        "Mako>=1.0.6,<2.0",
-        "pytz==2019.3",
-        # pipeline
-        "jsonschema==2.5.1",
-        "ujson==1.35",
-        "pyparsing==2.2.0",
-        "redis==3.2.0",
-        "redis-py-cluster==2.1.0",
-        "django-timezone-field==4.0",
-        "boto3==1.9.130",
-        "Werkzeug==1.0.1",
+        "Werkzeug>=1.0.1,<2.0",
+        "pyparsing>=2.2.0,<3.0",
+        "mako>=1.1.4,<2.0",
+        "prometheus-client>=0.9.0,<1.0.0",
     ],
     zip_safe=False,
     # To provide executable scripts, use entry points in preference to the

@@ -1,0 +1,153 @@
+{
+  "id": "u-45eb-10b",
+  "data": [
+    {
+      "series": "bamboo-engine",
+      "x": "100",
+      "y": 25.98
+    },
+    {
+      "series": "bamboo-engine",
+      "x": "500",
+      "y": 138
+    },
+    {
+      "series": "bamboo-engine",
+      "x": "1000",
+      "y": 272
+    },
+    {
+      "series": "bamboo-engine",
+      "x": "5000",
+      "y": 2442
+    },
+    {
+      "series": "pipeline",
+      "y": 48.77,
+      "x": "100"
+    },
+    {
+      "series": "pipeline",
+      "y": 311,
+      "x": "500"
+    },
+    {
+      "series": "pipeline",
+      "y": 748,
+      "x": "1000"
+    },
+    {
+      "series": "pipeline",
+      "y": null,
+      "x": "5000"
+    }
+  ],
+  "configs": {
+    "renderer": "canvas",
+    "title": {
+      "visible": true,
+      "text": "多流程并发执行"
+    },
+    "description": {
+      "visible": true,
+      "text": "17个节点，子流程，并行、分支网关(100 gevent)"
+    },
+    "padding": "auto",
+    "legend": {
+      "visible": true,
+      "position": "top-left",
+      "wordSpacing": 4,
+      "flipPage": false
+    },
+    "tooltip": {
+      "visible": true,
+      "shared": true,
+      "crosshairs": {
+        "type": "y"
+      }
+    },
+    "xAxis": {
+      "visible": true,
+      "autoHideLabel": false,
+      "autoRotateLabel": false,
+      "autoRotateTitle": false,
+      "grid": {
+        "visible": false
+      },
+      "line": {
+        "visible": true
+      },
+      "tickLine": {
+        "visible": true
+      },
+      "label": {
+        "visible": true
+      },
+      "title": {
+        "visible": true,
+        "offset": 12,
+        "text": "并发数"
+      }
+    },
+    "yAxis": {
+      "visible": true,
+      "autoHideLabel": false,
+      "autoRotateLabel": false,
+      "autoRotateTitle": true,
+      "grid": {
+        "visible": true
+      },
+      "line": {
+        "visible": false
+      },
+      "tickLine": {
+        "visible": false
+      },
+      "label": {
+        "visible": true
+      },
+      "title": {
+        "visible": true,
+        "offset": 12,
+        "text": "公平调度平均耗时(s)"
+      }
+    },
+    "label": {
+      "visible": true,
+      "type": "point"
+    },
+    "connectNulls": false,
+    "smooth": true,
+    "lineSize": 2,
+    "lineStyle": {
+      "lineJoin": "round",
+      "lineCap": "round"
+    },
+    "point": {
+      "visible": false,
+      "size": 0,
+      "style": {
+        "stroke": "#fff"
+      }
+    },
+    "type": "Line",
+    "forceFit": false,
+    "animation": false,
+    "width": 1097,
+    "height": 532,
+    "data": {
+      "styles": {
+        "London": {
+          "color": "#5b8ff9"
+        }
+      }
+    },
+    "xField": "x",
+    "yField": "y",
+    "seriesField": "series"
+  },
+  "selection": [
+    2,
+    4
+  ]
+}

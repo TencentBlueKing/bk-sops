@@ -1,0 +1,138 @@
+{
+  "id": "u-45eb-10b",
+  "data": [
+    {
+      "series": "normal(20 nodes 14 vars) 100 并发",
+      "x": "100",
+      "y": 0.76
+    },
+    {
+      "series": "normal(20 nodes 14 vars) 100 并发",
+      "x": "500",
+      "y": 1.68
+    },
+    {
+      "series": "normal(20 nodes 14 vars) 100 并发",
+      "x": "1000",
+      "y": 3.19
+    },
+    {
+      "series": "normal(20 nodes 14 vars) 100 并发",
+      "x": "5000",
+      "y": 13
+    },
+    {
+      "x": "10000",
+      "y": 30,
+      "series": "normal(20 nodes 14 vars) 100 并发"
+    }
+  ],
+  "configs": {
+    "renderer": "canvas",
+    "title": {
+      "visible": true,
+      "text": "任务创建耗时"
+    },
+    "description": {
+      "visible": true,
+      "text": ""
+    },
+    "padding": "auto",
+    "legend": {
+      "visible": true,
+      "position": "top-left",
+      "wordSpacing": 4,
+      "flipPage": false
+    },
+    "tooltip": {
+      "visible": true,
+      "shared": true,
+      "crosshairs": {
+        "type": "y"
+      }
+    },
+    "xAxis": {
+      "visible": true,
+      "autoHideLabel": false,
+      "autoRotateLabel": false,
+      "autoRotateTitle": false,
+      "grid": {
+        "visible": false
+      },
+      "line": {
+        "visible": true
+      },
+      "tickLine": {
+        "visible": true
+      },
+      "label": {
+        "visible": true
+      },
+      "title": {
+        "visible": true,
+        "offset": 12,
+        "text": "流程数"
+      }
+    },
+    "yAxis": {
+      "visible": true,
+      "autoHideLabel": false,
+      "autoRotateLabel": false,
+      "autoRotateTitle": true,
+      "grid": {
+        "visible": true
+      },
+      "line": {
+        "visible": false
+      },
+      "tickLine": {
+        "visible": false
+      },
+      "label": {
+        "visible": true
+      },
+      "title": {
+        "visible": true,
+        "offset": 12,
+        "text": "耗时(s)"
+      }
+    },
+    "label": {
+      "visible": true,
+      "type": "point"
+    },
+    "connectNulls": false,
+    "smooth": true,
+    "lineSize": 2,
+    "lineStyle": {
+      "lineJoin": "round",
+      "lineCap": "round"
+    },
+    "point": {
+      "visible": false,
+      "size": 0,
+      "style": {
+        "stroke": "#fff"
+      }
+    },
+    "type": "Line",
+    "forceFit": false,
+    "animation": false,
+    "width": 1097,
+    "height": 532,
+    "data": {
+      "styles": {
+        "London": {
+          "color": "#5b8ff9"
+        }
+      }
+    },
+    "xField": "x",
+    "yField": "y",
+    "seriesField": "series"
+  },
+  "selection": [
+    1,
+    4
+  ]
+}

@@ -1,0 +1,7 @@
+﻿series,x,y
+nodes flow,100,0.05
+nodes flow,500,0.05
+nodes flow,1000,0.09
+nodes flow,5000,0.45
+nodes flow,10000,0.91
+nodes flow,100000,9.32

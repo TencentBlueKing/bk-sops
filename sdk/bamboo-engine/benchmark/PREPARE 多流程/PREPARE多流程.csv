@@ -1,0 +1,6 @@
+﻿series,x,y
+normal(20 nodes 14 vars) p100,100,0.76
+normal(20 nodes 14 vars) p100,500,1.68
+normal(20 nodes 14 vars) p100,1000,3.19
+normal(20 nodes 14 vars) p100,5000,13
+normal(20 nodes 14 vars) p100,10000,30

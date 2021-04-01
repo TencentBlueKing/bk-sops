@@ -1,0 +1,11 @@
+﻿series,x,y
+bamboo_engine,100,1.33
+bamboo_engine,500,9.66
+bamboo_engine,1000,19.33
+bamboo_engine,5000,154.33
+bamboo_engine,10000,347.5
+pipeline,100,6
+pipeline,500,91
+pipeline,1000,545
+pipeline,5000,
+pipeline,10000,

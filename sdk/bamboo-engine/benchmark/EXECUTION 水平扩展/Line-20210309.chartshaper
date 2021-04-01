@@ -1,0 +1,153 @@
+{
+  "id": "u-45eb-10b",
+  "data": [
+    {
+      "series": "100流程(17节点)并发执行",
+      "x": "100",
+      "y": 25.98
+    },
+    {
+      "series": "100流程(17节点)并发执行",
+      "x": "200",
+      "y": 14.75
+    },
+    {
+      "series": "100流程(17节点)并发执行",
+      "x": "500",
+      "y": 8.29
+    },
+    {
+      "series": "100流程(17节点)并发执行",
+      "x": "1000",
+      "y": 6.78
+    },
+    {
+      "series": "1000节点大流程",
+      "y": 19.33,
+      "x": "100"
+    },
+    {
+      "series": "1000节点大流程",
+      "y": 12.5,
+      "x": "200"
+    },
+    {
+      "series": "1000节点大流程",
+      "y": 11,
+      "x": "500"
+    },
+    {
+      "series": "1000节点大流程",
+      "y": 7.5,
+      "x": "1000"
+    }
+  ],
+  "configs": {
+    "renderer": "canvas",
+    "title": {
+      "visible": true,
+      "text": "水平扩展测试"
+    },
+    "description": {
+      "visible": true,
+      "text": ""
+    },
+    "padding": "auto",
+    "legend": {
+      "visible": true,
+      "position": "top-left",
+      "wordSpacing": 4,
+      "flipPage": false
+    },
+    "tooltip": {
+      "visible": true,
+      "shared": true,
+      "crosshairs": {
+        "type": "y"
+      }
+    },
+    "xAxis": {
+      "visible": true,
+      "autoHideLabel": false,
+      "autoRotateLabel": false,
+      "autoRotateTitle": false,
+      "grid": {
+        "visible": false
+      },
+      "line": {
+        "visible": true
+      },
+      "tickLine": {
+        "visible": true
+      },
+      "label": {
+        "visible": true
+      },
+      "title": {
+        "visible": true,
+        "offset": 12,
+        "text": "gevent worker 数"
+      }
+    },
+    "yAxis": {
+      "visible": true,
+      "autoHideLabel": false,
+      "autoRotateLabel": false,
+      "autoRotateTitle": true,
+      "grid": {
+        "visible": true
+      },
+      "line": {
+        "visible": false
+      },
+      "tickLine": {
+        "visible": false
+      },
+      "label": {
+        "visible": true
+      },
+      "title": {
+        "visible": true,
+        "offset": 12,
+        "text": "流程执行耗时"
+      }
+    },
+    "label": {
+      "visible": true,
+      "type": "point"
+    },
+    "connectNulls": false,
+    "smooth": true,
+    "lineSize": 2,
+    "lineStyle": {
+      "lineJoin": "round",
+      "lineCap": "round"
+    },
+    "point": {
+      "visible": false,
+      "size": 0,
+      "style": {
+        "stroke": "#fff"
+      }
+    },
+    "type": "Line",
+    "forceFit": false,
+    "animation": false,
+    "width": 1097,
+    "height": 532,
+    "data": {
+      "styles": {
+        "London": {
+          "color": "#5b8ff9"
+        }
+      }
+    },
+    "xField": "x",
+    "yField": "y",
+    "seriesField": "series"
+  },
+  "selection": [
+    2,
+    3
+  ]
+}
