@@ -27,9 +27,7 @@ class Command(BaseCommand):
 
         # 将之前模型中周期任务create_info字段补上
         print("sync create_info of periodic task instances...")
-        task_queryset = TaskFlowInstance.objects.filter(create_method="periodic")
-        print(len(task_queryset))
-        # task_queryset = TaskFlowInstance.objects.filter(create_method="periodic", create_info="")
+        task_queryset = TaskFlowInstance.objects.filter(create_method="periodic", create_info="")
         task_ids = task_queryset.values_list("id", flat=True)
         history_data = PeriodicTaskHistory.objects.filter(flow_instance__id__in=task_ids).values_list(
             "flow_instance__id", "task__task__id"
