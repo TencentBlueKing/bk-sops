@@ -902,6 +902,11 @@
                 position: absolute;
                 right: -20px;
                 top: 9px;
+                color: #c4c6cc;
+                cursor: pointer;
+                &:hover {
+                    color: #f4aa1a;
+                }
             }
         }
     }

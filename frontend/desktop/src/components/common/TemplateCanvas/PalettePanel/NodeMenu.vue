@@ -16,12 +16,21 @@
                 <i class="common-icon-pin"></i>
             </div>
             <div class="search-wrap">
+                <bk-input
+                    class="search-input"
+                    v-model.trim="searchStr"
+                    right-icon="bk-icon icon-search"
+                    :placeholder="$t('请输入名称')"
+                    :clearable="true"
+                    @input="onNameSearch"
+                    @clear="searchInputhandler">
+                </bk-input>
                 <bk-select
-                    class="select-group"
+                    v-if="activeNodeListType === 'tasknode'"
                     v-model="selectedGroup"
-                    :clearable="false"
-                    searchable
-                    @selected="onSelectGroup">
+                    :clearable="true"
+                    :searchable="true"
+                    @change="searchInputhandler">
                     <bk-option
                         v-for="item in groupList"
                         class="node-item-option"
@@ -30,61 +39,102 @@
                         :name="item.group_name">
                     </bk-option>
                 </bk-select>
-                <bk-input
-                    class="search-input"
-                    v-model.trim="searchStr"
-                    right-icon="bk-icon icon-search"
-                    :placeholder="$t('请输入名称')"
+                <bk-select
+                    v-else-if="activeNodeListType === 'subflow' && !common"
+                    key="subflow-select"
+                    ext-popover-cls="label-select"
+                    v-model="selectedGroup"
+                    :display-tag="true"
+                    :multiple="true"
                     :clearable="true"
-                    @input="onSearchInput"
-                    @clear="onClearSearch">
-                </bk-input>
+                    :searchable="true"
+                    @change="searchInputhandler">
+                    <bk-option
+                        v-for="(item, index) in templateLabels"
+                        class="node-item-option"
+                        :key="index"
+                        :id="item.id"
+                        :name="item.name">
+                        <div class="label-select-option">
+                            <span
+                                class="label-select-color"
+                                :style="{ background: item.color }">
+                            </span>
+                            <span>{{item.name}}</span>
+                            <i class="bk-option-icon bk-icon icon-check-1"></i>
+                        </div>
+                    </bk-option>
+                </bk-select>
             </div>
             <div class="node-list-wrap">
                 <template v-if="listInPanel.length > 0">
-                    <template v-if="searchStr === '' && selectedGroup === 'all'">
-                        <bk-collapse v-for="group in listInPanel" :key="group.type">
-                            <bk-collapse-item :name="group.group_name">
-                                <div class="group-header">
-                                    <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
-                                    <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
-                                    <span class="header-title">{{group.group_name}}
-                                        <span class="header-atom">
-                                            ({{group.list.length}})
+                    <template v-if="!isSearchMode">
+                        <template v-if="activeNodeListType === 'tasknode'">
+                            <bk-collapse v-for="group in listInPanel" :key="group.type">
+                                <bk-collapse-item :name="group.group_name">
+                                    <div class="group-header">
+                                        <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
+                                        <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
+                                        <span class="header-title">{{group.group_name}}
+                                            <span class="header-atom">
+                                                ({{group.list.length}})
+                                            </span>
                                         </span>
-                                    </span>
-                                </div>
-                                <div slot="content" class="node-item-wrap">
-                                    <template v-for="(node, index) in group.list">
-                                        <node-item
-                                            v-if="activeNodeListType !== 'subflow' || node.hasPermission"
-                                            class="node-item"
-                                            :key="index"
-                                            :type="activeNodeListType"
-                                            :node="node">
-                                        </node-item>
-                                        <div
-                                            v-else
-                                            :key="index"
-                                            class="node-item">
+                                    </div>
+                                    <div slot="content" class="node-item-wrap">
+                                        <template v-for="(node, index) in group.list">
+                                            <node-item
+                                                v-if="activeNodeListType !== 'subflow' || node.hasPermission"
+                                                class="node-item"
+                                                :key="index"
+                                                :type="activeNodeListType"
+                                                :node="node">
+                                            </node-item>
                                             <div
-                                                v-cursor
-                                                class="name-wrapper text-permission-disable"
-                                                @click="onApplyPermission(node)">
-                                                {{ node.name }}
+                                                v-else
+                                                :key="index"
+                                                class="node-item">
+                                                <div
+                                                    v-cursor
+                                                    class="name-wrapper text-permission-disable"
+                                                    @click="onApplyPermission(node)">
+                                                    {{ node.name }}
+                                                </div>
                                             </div>
+                                        </template>
+                                        <div class="node-empty" v-if="group.list.length === 0">
+                                            <no-data></no-data>
                                         </div>
-                                    </template>
-                                    <div class="node-empty" v-if="group.list.length === 0">
-                                        <no-data></no-data>
+                                    </div>
+                                </bk-collapse-item>
+                            </bk-collapse>
+                        </template>
+                        <div v-else class="node-item-wrap">
+                            <template v-for="(node, index) in listInPanel">
+                                <node-item
+                                    v-if="node.hasPermission"
+                                    class="node-item"
+                                    :key="index"
+                                    :type="activeNodeListType"
+                                    :node="node">
+                                </node-item>
+                                <div
+                                    v-else
+                                    :key="index"
+                                    class="node-item">
+                                    <div
+                                        v-cursor
+                                        class="name-wrapper text-permission-disable"
+                                        @click="onApplyPermission(node)">
+                                        {{ node.name }}
                                     </div>
                                 </div>
-                            </bk-collapse-item>
-                        </bk-collapse>
+                            </template>
+                        </div>
                     </template>
                     <template v-else>
                         <div class="search-result">
-                            <template v-for="(node, index) in searchResult">
+                            <template v-for="(node, index) in listInPanel">
                                 <node-item
                                     v-if="activeNodeListType !== 'subflow' || node.hasPermission"
                                     class="node-item"
@@ -113,7 +163,6 @@
     </transition>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
@@ -130,6 +179,7 @@
         },
         mixins: [permission],
         props: {
+            templateLabels: Array,
             showNodeMenu: {
                 type: Boolean,
                 default: false
@@ -154,10 +204,11 @@
             }
         },
         data () {
+            const selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
             return {
                 loading: false,
                 isPinActived: false,
-                selectedGroup: 'all', // 标准插件/子流程搜索分组
+                selectedGroup,
                 searchStr: '',
                 searchResult: [],
                 isShowGroup: true,
@@ -169,28 +220,34 @@
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
             }),
+            isSearchMode () {
+                if (this.activeNodeListType === 'tasknode') {
+                    return this.searchStr !== '' || this.selectedGroup !== ''
+                } else {
+                    return this.searchStr !== '' || this.selectedGroup.length > 0
+                }
+            },
             listInPanel () {
-                return (this.searchStr === '' && this.selectedGroup === 'all') ? this.nodes : this.searchResult
+                return this.isSearchMode ? this.searchResult : this.nodes
             },
             groupList () {
-                const list = []
-                list.push({
-                    type: 'all',
-                    group_name: this.activeNodeListType === 'tasknode' ? i18n.t('所有分组') : i18n.t('所有分类')
-                })
-                this.nodes.forEach(item => {
-                    list.push({
-                        type: item.type,
-                        group_name: item.group_name
+                if (this.activeNodeListType === 'tasknode') {
+                    return this.nodes.map(item => {
+                        return {
+                            type: item.type,
+                            group_name: item.group_name
+                        }
                     })
-                })
-                return list
+                } else {
+                    return this.templateLabels
+                }
             }
         },
         watch: {
-            activeNodeListType () {
+            activeNodeListType (val) {
                 this.searchStr = ''
-                this.selectedGroup = 'all'
+                this.searchResult = []
+                this.selectedGroup = val === 'subflow' ? [] : ''
             }
         },
         created () {
@@ -210,40 +267,55 @@
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
             },
-            onSelectGroup (val) {
-                this.selectedGroup = val
-                this.searchInputhandler()
-            },
-            onClearSearch () {
-                this.searchInputhandler()
+            onNameSearch () {
+                this.searchResult = []
+                this.onSearchInput()
             },
             searchInputhandler () {
-                let listData = this.nodes
                 const result = []
-                if (this.selectedGroup !== 'all') {
-                    const list = listData.find(item => item.type === this.selectedGroup)
-                    listData = [list]
-                }
-                if (this.searchStr !== '') {
-                    const reg = new RegExp(this.searchStr)
-                    listData.forEach(group => {
-                        if (group.list.length > 0) {
-                            group.list.forEach(node => {
-                                if (reg.test(node.name)) {
-                                    result.push(node)
-                                }
-                            })
-                        }
-                    })
+                this.searchResult = []
+                if (this.activeNodeListType === 'tasknode') {
+                    let listData = this.nodes
+                    if (this.selectedGroup) {
+                        listData = this.nodes.filter(group => group.group_name === this.selectedGroup)
+                    }
+                    if (this.searchStr !== '') {
+                        const reg = new RegExp(this.searchStr, 'i')
+                        listData.forEach(group => {
+                            if (group.list.length > 0) {
+                                group.list.forEach(node => {
+                                    if (reg.test(node.name)) {
+                                        result.push(node)
+                                    }
+                                })
+                            }
+                        })
+                    } else {
+                        listData.forEach(group => {
+                            if (group.list.length > 0) {
+                                result.push(...group.list.map(item => item.list[item.list.length - 1]))
+                            }
+                        })
+                    }
                 } else {
-                    listData.forEach(group => {
-                        if (group.list.length > 0) {
-                            group.list.forEach(node => {
-                                result.push(node)
-                            })
+                    const reg = new RegExp(this.searchStr, 'i')
+                    this.nodes.forEach(node => {
+                        let matchLabel = true
+                        let matchName = true
+
+                        if (this.selectedGroup.length > 0) {
+                            matchLabel = this.selectedGroup.every(item => node.template_labels.find(label => label.label_id === Number(item)))
+                        }
+                        if (this.searchStr !== '') {
+                            matchName = reg.test(node.name)
+                        }
+
+                        if (matchLabel && matchName) {
+                            result.push(node)
                         }
                     })
                 }
+
                 this.searchResult = result
             },
             handleClickOutSide (e) {
@@ -254,7 +326,7 @@
                     ) {
                         return
                     }
-                    this.selectedGroup = 'all'
+                    this.selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
                     this.$emit('onCloseNodeMenu')
                 }
             },
@@ -322,7 +394,7 @@
         padding: 16px;
         border-bottom: 1px solid #ccd0dd;
         background: #ffffff;
-        .select-group {
+        .search-input {
             margin-bottom: 10px;
             width: 220px;
         }
@@ -401,8 +473,5 @@
     }
     .node-empty {
         padding: 16px 0;
-    }
-    .search-result {
-        padding: 20px 10px;
     }
 </style>

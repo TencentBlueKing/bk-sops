@@ -20,6 +20,11 @@ from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import ApiMixin, permissions
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.label.serilaziers import LabelSerializer
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from iam.contrib.drf.shortcuts import allow_or_raise_immediate_response
+from iam import Subject, Action
+
+iam = get_iam_client()
 
 
 class LabelViewSet(ApiMixin, ModelViewSet):
@@ -33,18 +38,42 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         project_id = request.query_params.get("project_id")
         if not project_id:
             raise ValidationException("project_id should be provided.")
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
         return super(LabelViewSet, self).list(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        if self.get_object().is_default:
+        label = self.get_object()
+        if label.is_default:
             raise ValidationException("default label cannot be updated.")
+        project_id = label.project_id
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
         return super(LabelViewSet, self).update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        if self.get_object().is_default:
+        label = self.get_object()
+        if label.is_default:
             raise ValidationException("default label cannot be deleted.")
-        instance = self.get_object()
-        self.perform_destroy(instance)
+        project_id = label.project_id
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        self.perform_destroy(label)
         return Response({"result": True, "message": "success"})
 
     @action(methods=["get"], detail=False)
@@ -52,22 +81,42 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         project_id = request.query_params.get("project_id")
         if not project_id:
             raise ValidationException("project_id should be provided.")
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
         queryset = Label.objects.filter(Q(project_id=project_id) | Q(is_default=True))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(methods=["get"], detail=False)
     def get_templates_labels(self, request):
-        template_ids = request.query_params.get("template_ids")
-        if not template_ids:
-            raise ValidationException("template_ids must be provided.")
-        template_ids = [int(template_id) for template_id in template_ids.strip().split(",")]
-        return Response(TemplateLabelRelation.objects.fetch_templates_labels(template_ids))
+        return self._fetch_label_or_template_ids(request, fetch_label=True)
 
     @action(methods=["get"], detail=False)
     def get_label_template_ids(self, request):
-        label_ids = request.query_params.get("label_ids")
-        if not label_ids:
-            raise ValidationException("label_ids must be provided.")
-        label_ids = [int(label_id) for label_id in label_ids.strip().split(",")]
-        return Response(TemplateLabelRelation.objects.fetch_label_template_ids(label_ids))
+        return self._fetch_label_or_template_ids(request, fetch_label=False)
+
+    @staticmethod
+    def _fetch_label_or_template_ids(request, fetch_label):
+        base_id_name = "template_ids" if fetch_label else "label_ids"
+        if fetch_label:
+            fetch_func = TemplateLabelRelation.objects.fetch_templates_labels
+        else:
+            fetch_func = TemplateLabelRelation.objects.fetch_label_template_ids
+        base_ids = request.query_params.get(base_id_name)
+        if not base_ids:
+            raise ValidationException("{} must be provided.".format(base_id_name))
+        project_id = request.query_params.get("project_id")
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        base_ids = [int(base_id) for base_id in base_ids.strip().split(",")]
+        return Response(fetch_func(base_ids))
