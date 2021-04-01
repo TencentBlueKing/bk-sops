@@ -14,6 +14,7 @@ exclude =
     */bin/*,
     local/*,
     local_settings.py,
+    sdk/*,
 max-line-length = 120
 max-complexity = 12
 format = pylint
