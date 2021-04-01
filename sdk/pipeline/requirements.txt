@@ -1,0 +1,22 @@
+Django>=2.2.6,<3.0
+requests>=2.22.0,<=2.23.0
+celery>=4.4.0,<5.0
+django-celery-beat==2.0.0
+django-celery-results==1.2.1
+Mako==1.1.4
+pytz==2019.3
+suds-jurko==0.6
+jsonschema==2.5.1
+ujson==1.35
+pyparsing==2.2.0
+redis==3.2.0
+redis-py-cluster==2.1.0
+django-timezone-field==4.0
+boto3==1.9.130
+Werkzeug==0.16.1
+
+# test
+pytest==6.2.1
+pytest-django==4.1.0
+mock==2.0.0
+factory_boy==2.11.1
