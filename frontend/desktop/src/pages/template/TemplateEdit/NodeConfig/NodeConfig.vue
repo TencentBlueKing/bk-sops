@@ -98,6 +98,7 @@
                 <!-- 插件/子流程选择面板 -->
                 <selector-panel
                     v-if="isSelectorPanelShow"
+                    :template-labels="templateLabels"
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
@@ -235,6 +236,7 @@
             atomList: Array,
             subflowList: Array,
             atomTypeList: Object,
+            templateLabels: Array,
             common: [String, Number]
         },
         data () {
@@ -549,13 +551,11 @@
                     let templateName = i18n.t('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
-                        this.atomTypeList.subflow.groups.some(group => {
-                            return group.list.some(item => {
-                                if (item.template_id === Number(template_id)) {
-                                    templateName = item.name
-                                    return true
-                                }
-                            })
+                        this.atomTypeList.subflow.some(item => {
+                            if (item.template_id === Number(template_id)) {
+                                templateName = item.name
+                                return true
+                            }
                         })
                     }
                     return {

@@ -188,15 +188,6 @@
         },
         {
             type: 'select',
-            label: i18n.t('任务分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
-        },
-        {
-            type: 'select',
             label: i18n.t('创建方式'),
             key: 'createMethod',
             loading: true,
@@ -230,6 +221,15 @@
                 { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ],
+            value: ''
+        },
+        {
+            type: 'select',
+            label: i18n.t('任务分类'),
+            key: 'category',
+            loading: true,
+            placeholder: i18n.t('请选择分类'),
+            list: [],
             value: ''
         }
     ]

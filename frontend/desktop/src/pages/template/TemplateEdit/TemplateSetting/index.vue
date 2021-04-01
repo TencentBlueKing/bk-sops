@@ -25,8 +25,9 @@
         <TabTemplateConfig
             v-if="activeTab === 'templateConfigTab'"
             :common="common"
-            :is-template-config-valid="isTemplateConfigValid"
             :project-info-loading="projectInfoLoading"
+            :template-label-loading="templateLabelLoading"
+            :template-labels="templateLabels"
             @templateDataChanged="$emit('templateDataChanged')"
             @closeTab="closeTab">
         </TabTemplateConfig>
@@ -63,7 +64,8 @@
         },
         props: {
             projectInfoLoading: Boolean,
-            isTemplateConfigValid: Boolean,
+            templateLabelLoading: Boolean,
+            templateLabels: Array,
             activeTab: String,
             snapshoots: Array,
             common: [String, Number]
