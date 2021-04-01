@@ -137,12 +137,6 @@ class TaskTemplateResource(GCloudModelResource):
         return bundle
 
     def obj_create(self, bundle, **kwargs):
-        label_ids = bundle.data.get("template_labels")
-        if label_ids and len(label_ids) > 0 and bundle.obj:
-            label_ids = list(set(label_ids))
-            if not Label.objects.check_label_ids(label_ids):
-                raise BadRequest("Containing template label not exist, please check.")
-
         with transaction.atomic():
             model = bundle.obj.__class__
             try:
@@ -174,11 +168,7 @@ class TaskTemplateResource(GCloudModelResource):
             kwargs["pipeline_template_id"] = pipeline_template.template_id
 
             bundle = super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
-            if isinstance(label_ids, list) and len(label_ids) > 0:
-                try:
-                    TemplateLabelRelation.objects.set_labels_for_template(bundle.obj.id, label_ids)
-                except Exception as e:
-                    raise BadRequest(str(e))
+            self._sync_template_labels(bundle)
 
             return bundle
 
@@ -203,22 +193,12 @@ class TaskTemplateResource(GCloudModelResource):
                 validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
             except PipelineException as e:
                 raise BadRequest(str(e))
-
-            label_ids = bundle.data.get("template_labels")
-            if label_ids is not None and len(label_ids) > 0:
-                label_ids = list(set(label_ids))
-                if not Label.objects.check_label_ids(label_ids):
-                    raise BadRequest("Containing template label not exist, please check.")
-                try:
-                    TemplateLabelRelation.objects.set_labels_for_template(obj.id, label_ids)
-                except Exception as e:
-                    raise BadRequest(str(e))
-
             try:
                 obj.update_pipeline_template(**pipeline_template_kwargs)
             except PipelineException as e:
                 raise BadRequest(str(e))
             bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % obj.pipeline_template.pk
+            self._sync_template_labels(bundle)
             return super(TaskTemplateResource, self).obj_update(bundle, **kwargs)
 
     def obj_delete(self, bundle, **kwargs):
@@ -258,6 +238,21 @@ class TaskTemplateResource(GCloudModelResource):
             filters.pop("has_subprocess__exact")
 
         return filters
+
+    @staticmethod
+    def _sync_template_labels(bundle):
+        """
+        创建或更新模版时同步模版标签数据
+        """
+        label_ids = bundle.data.get("template_labels")
+        if label_ids is not None and len(label_ids) > 0:
+            label_ids = list(set(label_ids))
+            if not Label.objects.check_label_ids(label_ids):
+                raise BadRequest("Containing template label not exist, please check.")
+            try:
+                TemplateLabelRelation.objects.set_labels_for_template(bundle.obj.id, label_ids)
+            except Exception as e:
+                raise BadRequest(str(e))
 
 
 class TemplateSchemeResource(GCloudModelResource):
