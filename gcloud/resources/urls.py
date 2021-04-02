@@ -31,7 +31,7 @@ from gcloud.commons.template.resources import CommonTemplateResource, CommonTemp
 from gcloud.label.viewsets import LabelViewSet
 from gcloud.tasktmpl3.resources import (
     TaskTemplateResource,
-    TemplateSchemeResource,
+    # TemplateSchemeResource,
 )
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
@@ -48,7 +48,7 @@ v3_api.register(CommonProjectResource())
 v3_api.register(TaskTemplateResource())
 v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
-v3_api.register(TemplateSchemeResource())
+# v3_api.register(TemplateSchemeResource())
 v3_api.register(TaskFlowInstanceResource())
 v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
@@ -69,4 +69,4 @@ drf_router.register(r"new_label", LabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 
 # Standard bits...
-urlpatterns = [url(r"^api/v3/", include(drf_router.urls)), url(r"^api/", include(v3_api.urls))]
+urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]

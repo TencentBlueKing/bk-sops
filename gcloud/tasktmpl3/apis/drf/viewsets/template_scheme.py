@@ -29,8 +29,8 @@ logger = logging.getLogger("root")
 
 def get_pipeline_template_id(template_id, project_id, *args, **kwargs):
     try:
-        template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
-        return template.pipeline_template.id
+        _filter = {"pk": template_id, "project_id": project_id}
+        return TaskTemplate.objects.filter(**_filter).only("id").first().pipeline_template.id
     except TaskTemplate.DoesNotExist:
         message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
             template_id=template_id, project_id=project_id
@@ -59,46 +59,34 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     @action(methods=["post"], detail=False)
     def batch_operate(self, request, *args, **kwargs):
         validated_data = self.get_serializer_params_data(request)
-        current_schemes = validated_data.get("schemes", {})
+        current_schemes = validated_data.get("schemes")
         template_id = validated_data.get("template_id")
-        if not template_id or not current_schemes:
-            return Response(
-                data={"detail": ErrorDetail("template_id or schemes is empty", err_code.REQUEST_PARAM_INVALID.code)},
-                exception=True,
-            )
 
         # 筛选待处理方案
         pipeline_template_id = get_pipeline_template_id(**validated_data)
-        template_scheme_query = self.queryset.filter(template__id=pipeline_template_id)
-        old_schemes_id_set = set(template_scheme_query.values_list("id", flat=True))
-        need_create_schemes, scheme_id_list = [], []
+        need_create_schemes = []
         for scheme in current_schemes:
-            scheme_id = scheme.get("id")
-            scheme_id_list.append(scheme_id)
-            if not scheme_id:
-                scheme.update(
-                    {
-                        "unique_id": "{}-{}".format(template_id, scheme["name"]),
-                        "template_id": pipeline_template_id,
-                    }
-                )
-                need_create_schemes.append(TemplateScheme(**scheme))
+            if "id" in scheme:
+                scheme.pop("id")
+            scheme.update(
+                {"unique_id": "{}-{}".format(template_id, scheme["name"]), "template_id": pipeline_template_id}
+            )
+            need_create_schemes.append(TemplateScheme(**scheme))
 
-        scheme_id_list_set = set(scheme_id_list)
-        need_delete_schemes_id = old_schemes_id_set.difference(scheme_id_list_set)
+        # 批量删除scheme
+        TemplateScheme.objects.filter(template__id=pipeline_template_id).delete()
 
         # 批量创建scheme
         try:
-            TemplateScheme.objects.bulk_create(need_create_schemes)
+            if need_create_schemes:
+                TemplateScheme.objects.bulk_create(need_create_schemes)
         except Exception as e:
             message = "create template({}) scheme failed: {}".format(template_id, str(e))
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.UNKNOWN_ERROR.code)}, exception=True)
 
-        # 批量删除scheme
-        TemplateScheme.objects.filter(id__in=list(need_delete_schemes_id)).delete()
-
         # 返回流程所有方案
+        template_scheme_query = self.queryset.filter(template__id=pipeline_template_id)
         serializer = self.get_serializer(template_scheme_query, many=True)
         return Response(serializer.data)
 

@@ -14,10 +14,13 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 
 
-class TemplateSchemeSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
+class SchemesSerizlializer(serializers.Serializer):
     data = serializers.CharField()
     name = serializers.CharField(max_length=64)
+
+
+class TemplateSchemeSerializer(SchemesSerizlializer):
+    id = serializers.IntegerField(read_only=True)
 
 
 class ParamsSerializer(serializers.Serializer):
