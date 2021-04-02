@@ -364,3 +364,6 @@ VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_log
 
 # migrate api token
 MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48001122")
+
+# max body size
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
