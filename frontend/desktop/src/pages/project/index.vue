@@ -342,8 +342,7 @@
                     }
                     
                     const projectList = await this.loadUserProjectList(data)
-                    this.projectList = projectList.objects || []
-                    this.projectList = this.projectList.map(item => {
+                    this.projectList = (projectList.objects || []).map(item => {
                         if (!item.from_cmdb) {
                             item.bk_biz_id = '--'
                         }
@@ -489,6 +488,19 @@
                     params: { project_id: id }
                 })
             },
+            onGoToConfig (project) {
+                if (!this.hasPermission(['project_edit'], project.auth_actions)) {
+                    const resourceData = {
+                        project: [{
+                            id: project.id,
+                            name: project.name
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], project.auth_actions, resourceData)
+                    return
+                }
+                this.$router.push({ name: 'projectConfig', params: { id: project.id } })
+            },
             onEditProject (project) {
                 if (!this.hasPermission(['project_edit'], project.auth_actions)) {
                     const resourceData = {
@@ -579,7 +591,7 @@
                     //     this.onEditProject(item)
                     //     break
                     case 'mandate':
-                        this.$router.push({ name: 'projectConfig', params: { id: item.id } })
+                        this.onGoToConfig(item)
                         break
                     default:
                         this.onChangeProjectStatus(item, name)
