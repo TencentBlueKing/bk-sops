@@ -114,7 +114,7 @@ class CCBatchTransferHostModule(Service):
             host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
             if not host_result["result"]:
                 message = _("无法获取主机id列表，主机属性={}, message={}".format(attr, host_result["message"]))
-                data.set_outputs("ex_data", message)
+                self.logger.info(message)
                 failed_update.append(message)
                 continue
             # 获取 bk module id
@@ -126,7 +126,7 @@ class CCBatchTransferHostModule(Service):
                     "无法获取bk module id，"
                     "主机属性={}, message={}".format(attr, cc_list_select_node_inst_id_return["message"])
                 )
-                data.set_outputs("ex_data", message)
+                self.logger.info(message)
                 failed_update.append(message)
                 continue
             cc_module_select = cc_list_select_node_inst_id_return["data"]
