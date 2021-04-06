@@ -23,15 +23,20 @@ from gcloud.conf import settings
 class UtilsTestCase(TestCase):
     def test_get_node_callback_url(self):
         node_id = "node_id"
+        node_version = "node_version"
         f = Fernet(settings.CALLBACK_KEY)
         expect_prefix = "%staskflow/api/nodes/callback" % (settings.BK_PAAS_INNER_HOST + settings.SITE_URL)
         url = get_node_callback_url(node_id)
         actual_prefix, token = url[:-1].rsplit("/", 1)
         self.assertEqual(expect_prefix, actual_prefix)
-        self.assertEqual(node_id, f.decrypt(bytes(token, encoding="utf8")).decode())
+        self.assertEqual("{}::1".format(node_id), f.decrypt(bytes(token, encoding="utf8")).decode())
+        url = get_node_callback_url(node_id, node_version)
+        actual_prefix, token = url[:-1].rsplit("/", 1)
+        self.assertEqual(expect_prefix, actual_prefix)
+        self.assertEqual("{}:{}:2".format(node_id, node_version), f.decrypt(bytes(token, encoding="utf8")).decode())
 
         with mock.patch("gcloud.conf.settings.RUN_MODE", "PRODUCT"):
             url = get_node_callback_url(node_id)
             actual_prefix, token = url[:-1].rsplit("/", 1)
             self.assertEqual(expect_prefix, actual_prefix)
-            self.assertEqual(node_id, f.decrypt(bytes(token, encoding="utf8")).decode())
+            self.assertEqual("{}::1".format(node_id), f.decrypt(bytes(token, encoding="utf8")).decode())
