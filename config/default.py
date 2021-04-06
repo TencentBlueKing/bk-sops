@@ -284,9 +284,10 @@ IS_AJAX_PLAIN_MODE = True
 # init admin list
 INIT_SUPERUSER = ["admin"]
 
-# cc、job、iam域名
+# cc、job、iam、 nodeman域名
 BK_CC_HOST = env.BK_CC_HOST
 BK_JOB_HOST = env.BK_JOB_HOST
+BK_NODEMAN_HOST = env.BK_NODEMAN_HOST
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"
