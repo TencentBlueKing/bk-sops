@@ -28,7 +28,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     SelectMethod,
     cc_format_tree_mode_id,
     cc_format_prop_data,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -222,6 +222,12 @@ class CCCreateSetComponent(Component):
     name = _("创建集群")
     code = "cc_create_set"
     bound_service = CCCreateSetService
-    form = '{static_url}components/atoms/cc/create_set/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                        ver=VERSION.replace('.', '_'))
+    form = "{static_url}components/atoms/cc/create_set/{ver}.js".format(
+        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
+    )
     version = VERSION
+    desc = _(
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )
