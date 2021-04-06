@@ -24,6 +24,7 @@ class Command(BaseCommand):
         # 将之前模型中template_source的business值修改成project
         print("sync template_source of task model...")
         TaskFlowInstance.objects.filter(template_source="business").update(template_source="project")
+        print("sync template_source of task model finished.")
 
         # 将之前模型中周期任务create_info字段补上
         print("sync create_info of periodic task instances...")
@@ -33,8 +34,13 @@ class Command(BaseCommand):
             "flow_instance__id", "task__task__id"
         )
         mapping = {task_id: periodic_id for task_id, periodic_id in history_data}
-        for task_obj in task_queryset:
+        task_obj_num = len(task_queryset)
+        for idx, task_obj in enumerate(task_queryset):
+            if idx % 100 == 0:
+                print("{}/{} periodic tasks have been updated create_info field.".format(idx, task_obj_num))
             task_obj.create_info = mapping.get(task_obj.id, "")
             task_obj.save()
-        # 升级Django2.2后可直接用bulk_create
+        # 升级Django2.2后可直接用bulk_update
         # TaskFlowInstance.objects.bulk_update(task_queryset, ["create_info"])
+
+        print("sync create_info of periodic task instances finished.")
