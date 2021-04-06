@@ -464,7 +464,7 @@
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.singleAtomListLoading = false
                 }
@@ -479,7 +479,7 @@
                     this.setProjectBaseInfo(resp.data)
                     this.getSubflowList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                 }
@@ -498,7 +498,7 @@
                     const resp = await this.loadSubflowList(data)
                     this.handleSubflowList(resp)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.subAtomListLoading = false
                 }
@@ -522,7 +522,7 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateDataLoading = false
                 }
@@ -546,7 +546,7 @@
                     await this.loadAtomConfig({ atom: code, version, project_id })
                     this.addSingleAtomActivities(location, this.atomConfig[code][version])
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomConfigLoading = false
                 }
@@ -583,7 +583,7 @@
                     activities.constants = constants || {}
                     this.setActivities({ type: 'edit', location: activities })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             /**
@@ -595,7 +595,7 @@
                     const result = await this.loadInternalVariable()
                     this.setInternalVariable(result.data)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.systemVarsLoading = false
                 }
@@ -608,8 +608,8 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.templateLabelLoading = false
                 }
@@ -655,7 +655,7 @@
                         this.goToTaskUrl(data.template_id)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.saveAndCreate = false
                     this.pid = undefined
@@ -957,11 +957,9 @@
                                 theme: 'success'
                             })
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.canvasDataLoading = false
                 }
@@ -1069,8 +1067,8 @@
                     this.isTemplateDataChanged = false
                     this.isEditProcessPage = true
                     this.isSchemaListChange = false
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.executeSchemeSaving = false
                 }

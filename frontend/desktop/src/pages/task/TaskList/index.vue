@@ -168,7 +168,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import TaskCreateDialog from './TaskCreateDialog.vue'
@@ -470,7 +469,7 @@
                     this.getExecuteStatus('executeStatus', list)
                     this.setTaskListData(list)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -485,7 +484,7 @@
                     form.list = this.taskCategory
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             // 获取当前视图表格头显示字段
@@ -571,7 +570,7 @@
                     }
                     await this.getTaskList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.isDeleteDialogShow = false
                     this.pending.delete = false
@@ -606,7 +605,7 @@
                         query: { instance_id: data.data.new_instance_id }
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onCloneCancel () {
@@ -673,7 +672,7 @@
                     form.list = this.taskCreateMethodList
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             async getData () {
@@ -682,7 +681,7 @@
                     this.getCreateMethod(),
                     this.getBizBaseInfo()
                 ]).catch(e => {
-                    errorHandler(e, this)
+                    console.log(e)
                 })
             },
             transformCreateMethod (value) {

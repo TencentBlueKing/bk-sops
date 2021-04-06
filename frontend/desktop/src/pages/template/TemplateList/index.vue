@@ -247,7 +247,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
@@ -558,7 +557,7 @@
                         this.totalPage = totalPage
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -585,7 +584,7 @@
                     this.setProjectBaseInfo(res.data)
                     form.list = res.data.task_categories
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                     form.loading = false
@@ -596,11 +595,9 @@
                     const resp = await this.getExpiredSubProcess({ project__id: this.project_id })
                     if (resp.result) {
                         this.expiredSubflowTplList = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getCollectList () {
@@ -609,7 +606,7 @@
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectListLoading = false
                 }
@@ -620,8 +617,8 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     form.list = res.data.map(item => Object.assign({}, item, { value: item.id }))
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.templateLabelLoading = false
                     form.loading = false
@@ -674,11 +671,9 @@
                     const resp = await this.templateExport({ list })
                     if (resp.result) {
                         this.isExportDialogShow = false
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.export = false
                 }
@@ -800,7 +795,7 @@
                     }
                     this.getTemplateList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.delete = false
                 }
@@ -889,7 +884,7 @@
                     }
                     this.getCollectList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }

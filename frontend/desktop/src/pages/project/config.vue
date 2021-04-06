@@ -269,7 +269,6 @@
     import BkUserSelector from '@blueking/user-selector'
     import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
 
@@ -394,8 +393,8 @@
                 try {
                     this.project = await this.loadProjectDetail(this.id)
                     this.descData.value = this.project.desc
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.projectLoading = false
                 }
@@ -408,11 +407,9 @@
                     if (resp.result) {
                         const { executor_proxy, executor_proxy_exempts } = resp.data
                         this.agent = { executor_proxy, executor_proxy_exempts }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.agentLoading = false
                 }
@@ -450,8 +447,8 @@
                             }
                             this.project = await this.updateProject(data)
                             this.descEditing = false
-                        } catch (err) {
-                            errorHandler(err, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.desc = false
                         }
@@ -475,11 +472,9 @@
                         this.isAgentDialogShow = false
                         const { executor_proxy, executor_proxy_exempts } = resp.data
                         this.agent = { executor_proxy, executor_proxy_exempts }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.agent = false
                 }
@@ -491,11 +486,9 @@
                     const resp = await this.getProjectStaffGroupList({ project_id: this.id })
                     if (resp.result) {
                         this.staffGroup = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.staffGroupLoading = false
                 }
@@ -544,13 +537,11 @@
                             if (resp.result) {
                                 this.isStaffDialogShow = false
                                 this.getStaffGroupData()
-                            } else {
-                                errorHandler(resp, this)
                             }
                         }
                     })
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.staff = false
                 }
@@ -569,11 +560,9 @@
                     if (resp.result) {
                         this.isDeleteStaffDialogShow = false
                         this.getStaffGroupData()
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.staff = false
                 }
@@ -595,15 +584,11 @@
                             const labelData = await this.getlabelsCitedCount({ ids, project_id: this.id })
                             if (labelData.result) {
                                 this.labelCount = labelData.data
-                            } else {
-                                errorHandler(labelData, this)
                             }
                         }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.labelLoading = false
                 }
@@ -642,13 +627,11 @@
                             if (resp.result) {
                                 this.isLabelDialogShow = false
                                 this.getTplLabels()
-                            } else {
-                                errorHandler(resp, this)
                             }
                         }
                     })
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.label = false
                 }
@@ -667,11 +650,9 @@
                     if (resp.result) {
                         this.isDeleteLabelDialogShow = false
                         this.getTplLabels()
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.deleteLabel = false
                 }

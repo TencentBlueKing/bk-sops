@@ -43,7 +43,6 @@
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
     import bus from '@/utils/bus.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import i18n from '@/config/i18n/index.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
 
@@ -155,8 +154,8 @@
                 try {
                     const res = await this.loadUserProjectList({ limit: 0 })
                     this.projectList = res.objects
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }

@@ -537,11 +537,9 @@
                     })
                     if (resp.result) {
                         this.schemes = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.scheme = false
                 }
@@ -573,11 +571,9 @@
                                 this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -615,11 +611,9 @@
                                 }
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.resource = false
                 }
@@ -650,11 +644,9 @@
                         }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -675,11 +667,9 @@
                                 name: item.text
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.condition = false
                 }
@@ -755,11 +745,9 @@
                                 this.isSchemeDialogShow = false
                                 this.formData.scheme = resp.data.id
                                 this.gitResourceSchemes()
-                            } else {
-                                errorHandler(resp, this)
                             }
-                        } catch (error) {
-                            errorHandler(error, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.saveScheme = false
                         }
@@ -998,8 +986,8 @@
                     const configData = this.getConfigData()
                     this.$emit('update', configData, moduleHosts)
                     this.$emit('update:showFilter', false)
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.host = false
                 }

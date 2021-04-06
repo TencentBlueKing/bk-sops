@@ -80,7 +80,6 @@
     import i18n from '@/config/i18n/index.js'
     import { uuid } from '@/utils/uuid.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import EditScheme from './EditScheme.vue'
@@ -195,8 +194,8 @@
                         template_id: this.initTemplateId || this.template_id,
                         isCommon: this.isCommonProcess
                     })
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**
@@ -228,7 +227,10 @@
 
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'error'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {
@@ -269,7 +271,7 @@
                             theme: 'success'
                         })
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     } finally {
                         this.schemaName = ''
                         this.nameEditing = false
@@ -302,7 +304,7 @@
                         theme: 'success'
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.deleting = false
                 }

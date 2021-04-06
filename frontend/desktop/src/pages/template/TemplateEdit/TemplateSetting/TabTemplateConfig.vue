@@ -145,7 +145,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
@@ -255,8 +254,8 @@
                     this.notifyTypeLoading = true
                     const res = await this.getNotifyTypes()
                     this.notifyTypeList = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.notifyTypeLoading = false
                 }
@@ -269,8 +268,8 @@
                     this.notifyGroupLoading = true
                     const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
                     this.projectNotifyGroup = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.notifyGroupLoading = false
                 }

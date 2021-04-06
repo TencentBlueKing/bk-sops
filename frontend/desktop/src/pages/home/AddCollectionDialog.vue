@@ -95,7 +95,6 @@
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
@@ -266,7 +265,7 @@
                     this.panelList = displayList
                     this.collectionPending = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             /**
@@ -424,11 +423,9 @@
                             theme: 'success'
                         })
                         this.$emit('onCloseDialog', true)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             // 保存参数

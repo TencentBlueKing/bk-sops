@@ -170,7 +170,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -323,8 +322,8 @@
                     if (res.data.is_allow) {
                         this.projectActions = ['project_create']
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getProjectList () {
@@ -356,8 +355,8 @@
                     } else {
                         this.totalPage = totalPage
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -375,8 +374,8 @@
                 try {
                     this.projectDetailLoading = false
                     this.projectDetail = await this.loadProjectDetail(id)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.projectDetailLoading = false
                 }
@@ -398,8 +397,8 @@
                     this.isProjectDialogShow = false
                     this.getProjectList()
                     this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.addPengding = false
                 }
@@ -423,8 +422,8 @@
                     this.isOperationDialogShow = false
                     this.clearProjectDetail()
                     this.getProjectList()
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.updatePending = false
                 }

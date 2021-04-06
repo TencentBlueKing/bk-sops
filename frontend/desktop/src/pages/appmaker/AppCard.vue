@@ -98,7 +98,6 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import { mapState, mapActions } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
@@ -223,7 +222,7 @@
                     }
                     this.$emit('getCollectList')
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }

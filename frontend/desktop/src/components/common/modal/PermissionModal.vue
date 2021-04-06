@@ -74,7 +74,6 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
@@ -109,10 +108,9 @@
                         this.url = res.data.url
                     } else {
                         this.hasAbnormalReturn = true
-                        errorHandler(res, this)
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
