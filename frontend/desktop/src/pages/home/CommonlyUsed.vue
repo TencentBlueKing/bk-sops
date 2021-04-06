@@ -126,6 +126,11 @@
                 openOtherApp(code, HOST_MAP[name])
             },
             onSwitchBusiness (id) {
+                window.reportInfo({
+                    page: 'home',
+                    zone: 'commonUsed',
+                    event: 'click'
+                })
                 this.setProjectId(id)
                 this.changeDefaultProject(id)
                 this.$router.push({

@@ -33,7 +33,8 @@
                             v-model="formData.labels"
                             ext-popover-cls="label-select"
                             :display-tag="true"
-                            :multiple="true">
+                            :multiple="true"
+                            @toggle="onSelectLabel">
                             <bk-option
                                 v-for="(item, index) in templateLabels"
                                 :key="index"
@@ -58,7 +59,8 @@
                         <bk-select
                             v-model="formData.category"
                             class="category-select"
-                            :clearable="false">
+                            :clearable="false"
+                            @toggle="onSelectCategory">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
@@ -259,6 +261,24 @@
                     errorHandler(error, this)
                 } finally {
                     this.notifyTypeLoading = false
+                }
+            },
+            onSelectCategory (val) {
+                if (val) {
+                    window.reportInfo({
+                        page: 'templateEdit',
+                        zone: 'selectCategory',
+                        event: 'click'
+                    })
+                }
+            },
+            onSelectLabel (val) {
+                if (val) {
+                    window.reportInfo({
+                        page: 'templateEdit',
+                        zone: 'selectLabel',
+                        event: 'click'
+                    })
                 }
             },
             onEditLabel () {
