@@ -427,6 +427,12 @@
             defaultActiveId: {
                 type: String,
                 default: ''
+            },
+            pipelineData: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -503,6 +509,9 @@
             },
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
+            },
+            nodeInfo () {
+                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
         },
         watch: {
@@ -533,8 +542,21 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
+                    this.isShowInputOrigin = false
+                    this.isShowOutputOrigin = false
                     const respData = await this.getTaskNodeDetail()
-                    const { execution_info, outputs, inputs, log, history, state } = respData
+                    if (!respData) {
+                        this.isReadyStatus = false
+                        this.executeInfo = {}
+                        this.outputsInfo = []
+                        this.inputsInfo = {}
+                        this.logInfo = ''
+                        if (!this.nodeInfo) return
+                        this.executeInfo.name = this.nodeInfo.name
+                        return
+                    }
+                    const { execution_info, outputs, inputs, log, history } = respData
+                    const state = this.adminView ? execution_info.state : respData.state
                     this.onNodeState = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code

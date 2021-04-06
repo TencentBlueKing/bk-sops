@@ -75,6 +75,7 @@
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
+                    :pipeline-data="pipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onClickTreeNode="onClickTreeNode">
@@ -793,7 +794,9 @@
             setCanvasData () {
                 this.$nextTick(() => {
                     this.nodeSwitching = false
-                    this.markNodesPhase()
+                    this.$nextTick(() => {
+                        this.markNodesPhase()
+                    })
                 })
             },
             getOptBtnIsClickable (action) {
@@ -941,40 +944,33 @@
                 }
             },
             handleSingleNodeClick (id, type) {
+                // 节点执行状态
                 const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
-                const nodeActivities = this.pipelineData.activities[id]
-                const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
-                const version = type === 'singleAtom' ? (nodeActivities.component.version || 'legacy') : undefined
-                let isPanelShow = false
-                if (nodeState) {
-                    if (type === 'singleAtom') {
-                        // 标准插件节点执行中、完成、失败状态，点击展开详情
-                        isPanelShow = ['RUNNING', 'FINISHED', 'FAILED'].indexOf(nodeState.state) > -1
-                    } else {
-                        // 控制节点失败时点击展开详情
-                        isPanelShow = nodeState.state === 'FAILED'
-                    }
-                }
-                this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
-                if (isPanelShow) {
-                    let subprocessStack = []
-                    if (this.selectedFlowPath.length > 1) {
-                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                    }
-                    
+                // 任务节点
+                if (type === 'singleAtom') {
+                    // updateNodeActived 设置节点选中态
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
-                    this.nodeDetailConfig = {
-                        component_code: componentCode,
-                        version,
-                        node_id: id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
+                    this.setNodeDetailConfig(id)
+                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
                 } else {
-                    this.setNodeDetailConfig(id)
+                    // 分支网关节点失败时展开侧滑面板
+                    if (nodeState && nodeState.state === 'FAILED') {
+                        let subprocessStack = []
+                        if (this.selectedFlowPath.length > 1) {
+                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
+                        }
+                        this.nodeDetailConfig = {
+                            component_code: '',
+                            version: undefined,
+                            node_id: id,
+                            instance_id: this.instance_id,
+                            subprocess_stack: JSON.stringify(subprocessStack)
+                        }
+                        this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
+                    }
                 }
             },
             handleSubflowAtomClick (id) {
@@ -1025,6 +1021,9 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
                
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
@@ -1067,14 +1066,13 @@
                     }
                 } else {
                     this.selectedFlowPath = nodePath
-                    if (nodeType !== 'subflow') {
-                        await this.switchCanvasView(this.completePipelineData, true)
-                        this.treeNodeConfig = {}
-                    }
+                    await this.switchCanvasView(this.completePipelineData, true)
+                    this.treeNodeConfig = {}
                 }
                 if (nodeType !== 'subflow') {
                     this.setNodeDetailConfig(selectNodeId)
                 }
+                this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {
