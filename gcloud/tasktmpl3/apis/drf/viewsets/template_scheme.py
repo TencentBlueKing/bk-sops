@@ -30,7 +30,7 @@ logger = logging.getLogger("root")
 def get_pipeline_template_id(template_id, project_id, *args, **kwargs):
     try:
         _filter = {"pk": template_id, "project_id": project_id}
-        return TaskTemplate.objects.filter(**_filter).only("id").first().pipeline_template.id
+        return TaskTemplate.objects.filter(**_filter).only("pipeline_template__id").first().pipeline_template.id
     except TaskTemplate.DoesNotExist:
         message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
             template_id=template_id, project_id=project_id
