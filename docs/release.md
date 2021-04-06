@@ -1,5 +1,10 @@
 # Release
 
+## 3.5.34
+
+- improvement
+  - 将最大请求体限制改为25MB
+
 ## 3.5.33
 
 - bugfix:
