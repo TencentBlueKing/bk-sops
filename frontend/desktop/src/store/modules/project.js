@@ -145,9 +145,10 @@ const project = {
                 response => response.data
             )
         },
-        getlabelsCitedCount ({ commit }, ids) {
+        getlabelsCitedCount ({ commit }, payload) {
+            const { ids, project_id } = payload
             return axios.get('api/v3/new_label/get_label_template_ids/', {
-                params: { label_ids: ids }
+                params: { label_ids: ids, project_id }
             }).then(response => response.data)
         }
     }

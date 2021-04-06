@@ -6,7 +6,7 @@ const en = {
     '流水操作记录': 'Pipeline operation record',
     '操作流水': 'Operation flow',
     '编辑执行方案': 'Edit execution plan',
-    '确定保存并去设置执行方案吗？': 'Are you sure to save and go to set the execution plan?',
+    '确定保存流程并去设置执行方案？': 'Are you sure to save template and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',
     '类别': 'Category',
     '请先保存已修改的信息': 'Please save the modified information first',
@@ -1056,6 +1056,7 @@ const en = {
     '成员': 'Members',
     '保存已修改的节点信息吗？': 'Save the modified node information?',
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
+    '保存已修改的配置信息吗？': 'Save the modified config information?',
     '全部项目': 'All Projects',
     '导入临时方案': 'Import Temporaty Scheme',
     '方案内容': 'Scheme Text',
@@ -1077,7 +1078,7 @@ const en = {
     '请输入流程模板备注信息': 'please enter process template description',
     '标签': 'Label',
     '编辑标签': 'Edit Label',
-    '选择标签': 'Select Lable',
+    '请选择标签': 'Please Select Lable',
     '选择颜色': 'Select Color',
     '标签设置': 'Label Config',
     '新增标签': 'Add Label',
@@ -1092,7 +1093,12 @@ const en = {
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
     '退出': 'Quit',
-    '首页': 'Home'
+    '首页': 'Home',
+    '模板分类即将下线，建议使用标签': 'template categary is about to go offline. Tags are recommended',
+    '请输入流程模板名称': 'Please enter the template name',
+    '基础': 'Basic',
+    '通知': 'Notify',
+    '其他': 'Others'
 }
 
 export default en
