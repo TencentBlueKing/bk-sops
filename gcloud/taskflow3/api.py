@@ -32,7 +32,7 @@ from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-from gcloud.taskflow3.utils import preview_template_tree
+from gcloud.taskflow3.models import preview_template_tree
 from gcloud.taskflow3.validators import (
     StatusValidator,
     DataValidator,

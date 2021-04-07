@@ -157,8 +157,8 @@ def create_task(request, template_id, project_id):
         create_info=app_code,
         flow_type=params.get("flow_type", "common"),
         current_flow="execute_task" if params.get("flow_type", "common") == "common" else "func_claim",
-        engine_type=EngineConfig.objects.get_engine_type(
-            project_id=project.id, template=template_id, template_source=template_source
+        engine_ver=EngineConfig.objects.get_engine_ver(
+            project_id=project.id, template_id=template_id, template_source=template_source
         ),
     )
     return JsonResponse(

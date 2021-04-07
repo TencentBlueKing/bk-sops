@@ -73,7 +73,7 @@ def get_tasks_status(request, project_id):
         if not result["result"]:
             return JsonResponse(result)
 
-        status = result.data
+        status = result["data"]
         if not include_children_status:
             status.pop("children")
 

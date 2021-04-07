@@ -327,7 +327,7 @@ REST_FRAMEWORK = {
 
 # pipeline settings
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
-PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
+PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.models.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 

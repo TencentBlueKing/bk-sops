@@ -16,7 +16,7 @@ from typing import Optional, List
 
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
-from pipeline import states as pipeline_states
+from pipeline.engine import states as pipeline_states
 from pipeline.engine import api as pipeline_api
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance

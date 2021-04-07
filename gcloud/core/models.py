@@ -364,16 +364,16 @@ class ProjectConfig(models.Model):
 
 
 class EngineConfigManager(models.Manager):
-    def get_engine_type(self, project_id, template_id, template_source):
+    def get_engine_ver(self, project_id, template_id, template_source):
         template_config = self.filter(
             scope_id=template_id, scope=EngineConfig.SCOPE_TYPE_TEMPLATE, template_source=template_source
-        ).only("engine_type")
+        ).only("engine_ver")
         if template_config:
             return template_config.first().engine_ver
 
         project_config = self.filter(
             scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT, template_source=template_source
-        ).only("engine_type")
+        ).only("engine_ver")
         if project_config:
             return project_config.first().engine_ver
 
@@ -392,6 +392,8 @@ class EngineConfig(models.Model):
     scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPE)
     engine_ver = models.IntegerField(_("引擎版本"), choices=ENGINE_VER)
     template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE)
+
+    objects = EngineConfigManager()
 
     class Meta:
         verbose_name = _("引擎版本配置 ProjectConfig")

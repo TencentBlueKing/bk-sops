@@ -320,7 +320,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         kwargs["pipeline_instance_id"] = pipeline_instance.id
 
         # set engine type
-        kwargs["engine_ver"] = EngineConfig.objects.get_engine_type(
+        kwargs["engine_ver"] = EngineConfig.objects.get_engine_ver(
             project_id=project.id, template_id=template.id, template_source=template_source
         )
 
