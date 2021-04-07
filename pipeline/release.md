@@ -1,3 +1,8 @@
+# 3.1.6
+
+- minor
+  - setup optimization
+
 # 3.1.5
 
 - bugfix
