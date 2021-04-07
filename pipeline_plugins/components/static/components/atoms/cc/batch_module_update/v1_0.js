@@ -16,7 +16,7 @@
             type: "radio",
             attrs: {
                 name: gettext("填参方式"),
-                hookable: true,
+                hookable: false,
                 default: "custom",
                 items: [
                     {value: "custom", name: gettext("手动填写")},
