@@ -38,6 +38,8 @@ from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 try:
     from bkoauth.decorators import apigw_required
@@ -53,6 +55,7 @@ except ImportError:
 @project_inject
 @request_validate(CreateTaskValidator)
 @iam_intercept(CreateTaskInterceptor())
+@record_operation(RecordType.task.name, OperateType.create.name, OperateSource.api.name)
 def create_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project

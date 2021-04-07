@@ -17,6 +17,7 @@ from rest_framework.routers import DefaultRouter
 
 from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
 from gcloud.tasktmpl3.apis.drf.viewsets import TemplateSchemeViewSet
+from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import (
     BusinessResource,
     ProjectResource,
@@ -65,6 +66,8 @@ drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
 drf_router.register(r"resource_config", ResourceConfigViewSet)
 drf_router.register(r"staff_group", StaffGroupSetViewSet)
+drf_router.register(r"operate_record_task", TaskOperateRecordSetViewSet)
+drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 drf_router.register(r"new_label", LabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 

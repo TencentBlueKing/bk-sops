@@ -35,6 +35,8 @@ from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 from gcloud.taskflow3.utils import preview_template_tree
 from gcloud.taskflow3.validators import (
     StatusValidator,
@@ -177,6 +179,7 @@ def get_job_instance_log(request, biz_cc_id):
 @require_POST
 @request_validate(TaskActionValidator)
 @iam_intercept(TaskActionInterceptor())
+@record_operation(RecordType.task.name, OperateType.task_action.name)
 def task_action(request, action, project_id):
     task_id = json.loads(request.body)["instance_id"]
     username = request.user.username
@@ -190,6 +193,7 @@ def task_action(request, action, project_id):
 @require_POST
 @request_validate(NodesActionValidator)
 @iam_intercept(NodesActionInpterceptor())
+@record_operation(RecordType.task.name, OperateType.nodes_action.name)
 def nodes_action(request, action, project_id):
     data = json.loads(request.body)
 
@@ -209,6 +213,7 @@ def nodes_action(request, action, project_id):
 @require_POST
 @request_validate(SpecNodesTimerResetValidator)
 @iam_intercept(SpecNodesTimerResetInpterceptor())
+@record_operation(RecordType.task.name, OperateType.spec_nodes_timer_reset.name)
 def spec_nodes_timer_reset(request, project_id):
     data = json.loads(request.body)
 
@@ -225,6 +230,7 @@ def spec_nodes_timer_reset(request, project_id):
 @require_POST
 @request_validate(TaskCloneValidator)
 @iam_intercept(TaskCloneInpterceptor())
+@record_operation(RecordType.task.name, OperateType.task_clone.name)
 def task_clone(request, project_id):
     data = json.loads(request.body)
 
@@ -248,6 +254,7 @@ def task_clone(request, project_id):
 @require_POST
 @request_validate(TaskModifyInputsValidator)
 @iam_intercept(TaskModifyInputsInterceptor())
+@record_operation(RecordType.task.name, OperateType.update.name)
 def task_modify_inputs(request, project_id):
     data = json.loads(request.body)
 

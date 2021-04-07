@@ -22,7 +22,8 @@ from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
-
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 try:
     from bkoauth.decorators import apigw_required
@@ -37,6 +38,7 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskOperateInterceptor())
+@record_operation(RecordType.task.name, OperateType.start.name, OperateSource.api.name)
 def start_task(request, task_id, project_id):
     username = request.user.username
     project = request.project

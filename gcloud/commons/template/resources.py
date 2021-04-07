@@ -37,6 +37,8 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import CommonFlowIAMAuthorizationHelper
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 iam = get_iam_client()
 
@@ -132,6 +134,7 @@ class CommonTemplateResource(GCloudModelResource):
 
         return data
 
+    @record_operation(RecordType.common_template.name, OperateType.create.name, OperateSource.common.name)
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
@@ -160,6 +163,7 @@ class CommonTemplateResource(GCloudModelResource):
         kwargs["pipeline_template_id"] = pipeline_template.template_id
         return super(CommonTemplateResource, self).obj_create(bundle, **kwargs)
 
+    @record_operation(RecordType.common_template.name, OperateType.update.name, OperateSource.common.name)
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         with transaction.atomic():
             obj = bundle.obj
@@ -182,6 +186,7 @@ class CommonTemplateResource(GCloudModelResource):
             bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % obj.pipeline_template.pk
             return super(CommonTemplateResource, self).obj_update(bundle, **kwargs)
 
+    @record_operation(RecordType.common_template.name, OperateType.delete.name, OperateSource.common.name)
     def obj_delete(self, bundle, **kwargs):
         try:
             common_tmpl = CommonTemplate.objects.get(id=kwargs["pk"], is_deleted=False)
