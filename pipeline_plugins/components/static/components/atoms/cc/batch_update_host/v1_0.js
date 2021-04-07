@@ -16,7 +16,7 @@
             type: "radio",
             attrs: {
                 name: gettext("填参方式"),
-                hookable: true,
+                hookable: false,
                 items: [
                     {value: "manual", name: gettext("手动填写")},
                     {value: "auto", name: gettext("单行自动扩展")}
