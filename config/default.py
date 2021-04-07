@@ -175,6 +175,7 @@ if IS_USE_CELERY:
     INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
     INSTALLED_APPS += ("django_celery_beat", "django_celery_results")
     CELERY_ENABLE_UTC = False
+    CELERY_TASK_SERIALIZER = "pickle"
     CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
 
 TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
@@ -284,9 +285,10 @@ IS_AJAX_PLAIN_MODE = True
 # init admin list
 INIT_SUPERUSER = ["admin"]
 
-# cc、job、iam域名
+# cc、job、iam、 nodeman域名
 BK_CC_HOST = env.BK_CC_HOST
 BK_JOB_HOST = env.BK_JOB_HOST
+BK_NODEMAN_HOST = env.BK_NODEMAN_HOST
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"

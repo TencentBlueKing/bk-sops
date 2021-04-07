@@ -66,10 +66,11 @@
                             :prop="item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :render-header="renderTableHeader"
                             :sortable="item.sortable">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
-                                <div v-if="item.id === 'name'" class="name-column">
+                                <div v-if="item.id === 'name'">
                                     <template>
                                         <a
                                             v-if="!hasPermission(['flow_view'], row.auth_actions)"
@@ -86,6 +87,8 @@
                                             {{row.name}}
                                         </router-link>
                                     </template>
+                                </div>
+                                <div v-else-if="item.id === 'label'" class="label-column">
                                     <template v-if="row.template_labels && row.template_labels.length > 0">
                                         <span
                                             v-for="label in row.template_labels"
@@ -96,6 +99,7 @@
                                             {{ label.name }}
                                         </span>
                                     </template>
+                                    <span v-else>--</span>
                                 </div>
                                 <!--子流程更新-->
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
@@ -256,15 +260,17 @@
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
 
+    const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
+
     const SEARCH_FORM = [
         {
             type: 'select',
-            label: i18n.t('分类'),
-            key: 'category',
-            loading: false,
-            placeholder: i18n.t('请选择分类'),
+            key: 'label_ids',
+            multiple: true,
+            label: i18n.t('标签'),
+            placeholder: i18n.t('请选择标签'),
             list: [],
-            value: ''
+            value: []
         },
         {
             type: 'dateRange',
@@ -294,44 +300,60 @@
         },
         {
             type: 'select',
-            key: 'label_ids',
-            multiple: true,
-            label: i18n.t('标签'),
-            placeholder: i18n.t('选择标签'),
+            label: i18n.t('分类'),
+            key: 'category',
+            loading: false,
+            placeholder: i18n.t('请选择分类'),
+            tips: categoryTips,
             list: [],
-            value: []
+            value: ''
         }
     ]
     const TABLE_FIELDS = [
         {
             id: 'id',
             label: i18n.t('ID'),
-            disabled: true,
-            width: 100
-        }, {
+            width: 80
+        },
+        {
             id: 'name',
             label: i18n.t('流程名称'),
             disabled: true,
             min_width: 400
-        }, {
+        },
+        {
+            id: 'label',
+            label: i18n.t('标签'),
+            min_width: 300
+        },
+        {
             id: 'create_time',
             label: i18n.t('创建时间'),
             sortable: 'custom',
-            width: 180
-        }, {
+            width: 200
+        },
+        {
             id: 'edit_time',
             label: i18n.t('更新时间'),
             sortable: 'custom',
             width: 200
-        }, {
+        },
+        {
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
-            width: 200
-        }, {
+            width: 180
+        },
+        {
+            id: 'category_name',
+            label: i18n.t('分类'),
+            min_width: 180
+        },
+        {
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 160
-        }, {
+        },
+        {
             id: 'editor_name',
             label: i18n.t('更新人'),
             width: 160
@@ -421,11 +443,13 @@
                 ordering: null, // 排序参数
                 darkColorList: DARK_COLOR_LIST,
                 tableFields: TABLE_FIELDS,
+                defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
                 setting: {
                     fieldList: TABLE_FIELDS,
-                    selectedFields: TABLE_FIELDS.slice(0),
+                    selectedFields: [],
                     size: 'small'
-                }
+                },
+                categoryTips
             }
         },
         computed: {
@@ -542,24 +566,29 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('templateList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    selectedFields = fieldList
+                } else {
+                    selectedFields = this.defaultSelected
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 this.categoryLoading = true
+                const form = this.searchForm.find(item => item.key === 'category')
                 try {
                     const res = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(res.data)
-                    this.searchForm[0].list = res.data.task_categories
+                    form.list = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
-                    this.searchForm[0].loading = false
+                    form.loading = false
                 }
             },
             async getExpiredSubflowData () {
@@ -586,15 +615,16 @@
                 }
             },
             async getProjectLabelList () {
+                const form = this.searchForm.find(item => item.key === 'label_ids')
                 try {
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
-                    this.searchForm[4].list = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    form.list = res.data.map(item => Object.assign({}, item, { value: item.id }))
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
                     this.templateLabelLoading = false
-                    this.searchForm[4].loading = false
+                    form.loading = false
                 }
             },
             checkCreatePermission () {
@@ -686,6 +716,24 @@
                 }
                 this.pagination.current = 1
                 this.getTemplateList()
+            },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property !== 'category_name') {
+                    return column.label
+                }
+
+                return h('span', {
+                    'class': 'category-label'
+                }, [
+                    column.label,
+                    h('i', {
+                        'class': 'common-icon-info table-header-tips',
+                        directives: [{
+                            name: 'bk-tooltips',
+                            value: this.categoryTips
+                        }]
+                    })
+                ])
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -892,24 +940,21 @@
 }
 .template-table-content {
     background: #ffffff;
-    .name-column {
-        display: table-cell;
-    }
     a.template-name {
         color: $blueDefault;
     }
+    .label-column {
+        display: table-cell;
+    }
     .label-name {
         display: inline-block;
-        margin: 4px 0 4px;
+        margin: 4px 0 4px 4px;
         padding: 2px 6px;
         font-size: 12px;
         line-height: 1;
         color: #63656e;
         border-radius: 8px;
         cursor: pointer;
-        &:first-child {
-            margin-left: 6px;
-        }
     }
     .template-operation > .text-permission-disable {
         padding: 5px;
@@ -943,6 +988,12 @@
             border-radius: 50%;
             vertical-align: 1px;
         }
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
 }
 </style>

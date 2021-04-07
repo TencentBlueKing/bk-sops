@@ -25,7 +25,13 @@ from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
 
-__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url", "plat_ip_reg"]
+__all__ = [
+    "cc_get_ips_info_by_str",
+    "get_job_instance_url",
+    "get_node_callback_url",
+    "plat_ip_reg",
+    "get_nodeman_job_url",
+]
 
 JOB_APP_CODE = "bk_job"
 
@@ -109,7 +115,11 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         for ip_info in ip_list:
             if (
-                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
+                "%s:%s"
+                % (
+                    ip_info["host"].get("bk_cloud_id", -1),
+                    ip_info["host"].get("bk_host_innerip", ""),
+                )
                 in plat_ip
             ):
                 ip_result.append(
@@ -165,6 +175,10 @@ def get_node_callback_url(node_id, node_version=""):
         env.BKAPP_INNER_CALLBACK_HOST,
         f.encrypt(bytes("{}:{}:{}".format(engine_ver, node_id, node_version), encoding="utf8")).decode(),
     )
+
+
+def get_nodeman_job_url(instance_id, bk_host_id):
+    return "{}/#/task-history/{}/log/host|instance|host|{}".format(settings.BK_NODEMAN_HOST, instance_id, bk_host_id)
 
 
 def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list):

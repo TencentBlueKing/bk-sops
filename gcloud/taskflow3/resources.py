@@ -202,7 +202,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         if filters is None:
             filters = {}
 
-        orm_filters = super(GCloudModelResource, self).build_filters(filters, ignore_bad_filters)
+        orm_filters = super(TaskFlowInstanceResource, self).build_filters(filters, ignore_bad_filters)
         if filters.get("creator_or_executor", "").strip():
             if getattr(self.Meta, "creator_or_executor_fields", []):
                 queries = [

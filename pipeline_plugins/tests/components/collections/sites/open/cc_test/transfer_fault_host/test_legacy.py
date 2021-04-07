@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-import ujson as json
 from mock import MagicMock
 
 from pipeline.component_framework.test import (
@@ -24,32 +23,31 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.cc import CmdbTransferHostResourceModuleComponent
+from pipeline_plugins.components.collections.sites.open.cc import CmdbTransferFaultHostComponent
 
 
-class CmdbTransferHostResourceComponentTest(TestCase, ComponentTestMixin):
+class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
-        return [TRANSFER_SUCCESS_CASE, TRANSFER_FAIL_CASE, INVALID_IP_CASE]
+        return [
+            TRANSFER_SUCCESS_CASE,
+            TRANSFER_FAIL_CASE,
+            INVALID_IP_CASE,
+        ]
 
     def component_cls(self):
-        return CmdbTransferHostResourceModuleComponent
+        return CmdbTransferFaultHostComponent
 
 
 class MockClient(object):
     def __init__(self, transfer_host_return=None):
         self.set_bk_api_ver = MagicMock()
         self.cc = MagicMock()
-        self.cc.transfer_host_to_resourcemodule = MagicMock(return_value=transfer_host_return)
+        self.cc.transfer_host_to_faultmodule = MagicMock(return_value=transfer_host_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.cc.transfer_host_resource." "legacy.get_client_by_user"
-)
-GET_IP_BY_REGEX = "pipeline_plugins.components.collections.sites.open.cc.transfer_host_resource.legacy.get_ip_by_regex"
-CC_GET_HOST_ID_BY_INNERIP = (
-    "pipeline_plugins.components.collections.sites.open.cc.transfer_host_resource." "legacy.cc_get_host_id_by_innerip"
-)
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 
 # mock client
 TRANSFER_SUCCESS_CLIENT = MockClient(transfer_host_return={"result": True, "code": 0, "message": "", "data": {}})
@@ -57,7 +55,6 @@ TRANSFER_SUCCESS_CLIENT = MockClient(transfer_host_return={"result": True, "code
 TRANSFER_FAIL_CLIENT = MockClient(
     transfer_host_return={"result": False, "code": 2, "message": "message token", "data": {}}
 )
-
 
 TRANSFER_SUCCESS_CASE = ComponentTestCase(
     name="transfer success case",
@@ -68,14 +65,13 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
         CallAssertion(
-            func=TRANSFER_SUCCESS_CLIENT.cc.transfer_host_to_resourcemodule,
-            calls=[Call({"bk_biz_id": 2, "bk_host_id": [2, 3]})],
+            func=TRANSFER_SUCCESS_CLIENT.cc.transfer_host_to_faultmodule,
+            calls=[Call({"bk_supplier_account": 0, "bk_biz_id": 2, "bk_host_id": [2, 3]})],
         ),
     ],
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_SUCCESS_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": [2, 3]}),
     ],
 )
@@ -87,23 +83,21 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": (
-                "调用配置平台(CMDB)接口cc.transfer_host_to_resource_module返回失败, " "params={params}, error=message token"
-            ).format(params=json.dumps({"bk_biz_id": 2, "bk_host_id": [2, 3]}))
+            "ex_data": "调用配置平台(CMDB)接口cc.transfer_host_to_faultmodule返回失败,"
+            ' params={"bk_supplier_account":0,"bk_biz_id":2,"bk_host_id":[2,3]}, error=message token'
         },
     ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call("executor_token", 2, ["1.1.1.1", "2.2.2.2"], 0)]),
         CallAssertion(
-            func=TRANSFER_FAIL_CLIENT.cc.transfer_host_to_resourcemodule,
-            calls=[Call({"bk_biz_id": 2, "bk_host_id": [2, 3]})],
+            func=TRANSFER_FAIL_CLIENT.cc.transfer_host_to_faultmodule,
+            calls=[Call({"bk_supplier_account": 0, "bk_biz_id": 2, "bk_host_id": [2, 3]})],
         ),
     ],
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_FAIL_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": [2, 3]}),
     ],
 )

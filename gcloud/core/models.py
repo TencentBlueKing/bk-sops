@@ -355,6 +355,7 @@ class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
+    max_periodic_task_num = models.IntegerField(_("项目下最大周期任务数"), default=-1, blank=True)
 
     objects = ProjectConfigManager()
 
