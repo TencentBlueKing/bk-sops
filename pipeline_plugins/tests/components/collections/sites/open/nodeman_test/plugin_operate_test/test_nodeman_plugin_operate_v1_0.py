@@ -149,12 +149,19 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         },
     },
     parent_data={"executor": "tester"},
-    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
+    execute_assertion=ExecuteAssertion(
+        success=True, outputs={"job_url": ["None/#/task-history/1/log/host|instance|host|1"], "job_id": "1"}
+    ),
     schedule_assertion=ScheduleAssertion(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={"fail_num": 0, "job_id": "1", "success_num": 1},
+        outputs={
+            "job_url": ["None/#/task-history/1/log/host|instance|host|1"],
+            "job_id": "1",
+            "success_num": 1,
+            "fail_num": 0,
+        },
     ),
     execute_call_assertion=[
         CallAssertion(
