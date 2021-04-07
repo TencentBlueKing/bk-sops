@@ -1370,6 +1370,28 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             ]
         )
 
+    def test_select_method_filter_set_success_case(self, mock_get_client_by_user_return=None):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value={
+                "var_ip_method": "select",
+                "var_ip_custom_value": "",
+                "var_ip_select_value": {"var_set": ["集群1"], "var_module": ["all"], "var_module_name": ""},
+                "var_ip_manual_value": {"var_manual_set": "", "var_manual_module": "", "var_module_name": ""},
+                "var_filter_set": "空闲机池",
+                "var_filter_module": "",
+            },
+            name="test_select_method_inner_service_success_case",
+            context={},
+        )
+        self.assertEqual("", set_module_ip_selector.get_value())
+        call_assert(
+            [
+                {"func": self.client.new().cc.find_module_with_relation, "calls": []},
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
+
 
 def call_assert(calls_list):
     for call_item in calls_list:

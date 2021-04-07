@@ -196,7 +196,7 @@ def get_module_id_list(
     # 所有选择到的集群名
     all_selected_set_names_list = [set_item["bk_set_name"] for set_item in set_list]
     inner_module_id_list = []
-    if BIZ_INTERNAL_SET in filter_set_names:
+    if BIZ_INTERNAL_SET in filter_set_names and BIZ_INTERNAL_SET in all_selected_set_names_list:
         # 判断是否有选择到空闲机模块ID，如果有取选择到的空闲机模块ID，没有则取空闲机池下所有模块ID
         if selected_inner_module_id_set:
             inner_module_id_list = [
