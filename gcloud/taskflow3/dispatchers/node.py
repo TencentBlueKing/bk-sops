@@ -555,3 +555,33 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             )
 
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
+
+    def get_outputs(self):
+        if self.engine_ver not in self.VALID_ENGINE_VER:
+            return self._unsupported_engine_ver_result()
+
+        return getattr(self, "get_outputs_v{}".format(self.engine_ver))()
+
+    def get_outputs_v1(self):
+        try:
+            outputs = pipeline_api.get_outputs(self.node_id)
+        except Exception:
+            logger.exception("pipeline_api.get_outputs(node_id={}) fail".format(self.node_id))
+            outputs = {}
+
+        return {"result": True, "data": outputs, "message": "", "code": err_code.SUCCESS.code}
+
+    def get_outputs_v2(self):
+        runtime = BambooDjangoRuntime()
+        outputs_result = bamboo_engine_api.get_execution_data_outputs(runtime=runtime, node_id=self.node_id)
+
+        if not outputs_result.result:
+            logger.exception("bamboo_engine_api.get_execution_data_outputs fail")
+            return {
+                "result": False,
+                "data": {},
+                "message": "{}: {}".format(outputs_result.message, outputs_result.exc),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+
+        return {"result": True, "data": outputs_result.data, "message": "", "code": err_code.SUCCESS.code}

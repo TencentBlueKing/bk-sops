@@ -24,7 +24,6 @@ from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions as engine_exceptions
 from pipeline.engine import api as pipeline_api
-from pipeline.engine.models import Data
 from pipeline.engine import states
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
@@ -749,14 +748,18 @@ class TaskFlowInstance(models.Model):
         data["constants"] = constants
         # outputs data, if task has not executed, outputs is empty list
         instance_id = self.pipeline_instance.instance_id
-        try:
-            outputs = pipeline_api.get_outputs(instance_id)
-        except Data.DoesNotExist:
-            outputs = {}
+
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=instance_id)
+        outputs_result = dispatcher.get_outputs()
+        if not outputs_result["result"]:
+            logger.error("dispatcher.get_outputs failed: {}".format(outputs_result["message"]))
+        outputs = outputs_result["data"]
+
         outputs_table = [{"key": key, "value": val} for key, val in list(outputs.get("outputs", {}).items())]
         for out in outputs_table:
             out["name"] = constants[out["key"]]["name"]
         data.update({"outputs": outputs_table, "ex_data": outputs.get("ex_data", "")})
+
         return data
 
     def callback(self, act_id, data, version=""):
