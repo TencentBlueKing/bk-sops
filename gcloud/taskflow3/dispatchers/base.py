@@ -34,7 +34,7 @@ def ensure_return_is_dict(func):
         }
         if isinstance(result, EngineAPIResult) and result.exc:
             dict_result["message"] = "{}: {}".format(
-                result.message, traceback.TracebackException.from_exception(result.exc).format()
+                result.message, "\n".join(traceback.TracebackException.from_exception(result.exc).format())
             )
         return dict_result
 

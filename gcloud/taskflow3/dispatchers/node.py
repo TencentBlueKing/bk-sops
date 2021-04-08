@@ -98,10 +98,9 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     @ensure_return_is_dict
     def skip_exg_v2(self, operator: str, **kwargs) -> dict:
-        result = bamboo_engine_api.skip_exclusive_gateway(
+        return bamboo_engine_api.skip_exclusive_gateway(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, flow_id=kwargs["flow_id"]
         )
-        return self._bamboo_api_result_to_dict(result)
 
     @ensure_return_is_dict
     def pause_v1(self, operator: str, **kwargs) -> dict:
@@ -514,6 +513,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         detail = result.data
         # 节点已经执行
         if detail:
+            detail = detail[self.node_id]
             # 默认只请求最后一次循环结果
             format_pipeline_status(detail)
             if loop is None or int(loop) >= detail["loop"]:
@@ -527,7 +527,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                         "message": "{}: {}".format(hist_result.message, hist_result.exc),
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
-                detail["histories"] = hist_result["data"]
+                detail["histories"] = hist_result.data
             # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数，则从历史数据获取结果
             else:
                 hist_result = bamboo_engine_api.get_node_histories(runtime=runtime, node_id=self.node_id, loop=loop)
@@ -544,6 +544,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试
                 hist.setdefault("state", bamboo_engine_states.FAILED)
+                hist["history_id"] = hist["id"]
                 format_pipeline_status(hist)
         # 节点未执行
         else:

@@ -37,6 +37,17 @@ logger = logging.getLogger("root")
 
 
 class TaskCommandDispatcher(EngineCommandDispatcher):
+
+    CREATED_STATUS = {
+        "start_time": None,
+        "state": "CREATED",
+        "retry": 0,
+        "skip": 0,
+        "finish_time": None,
+        "elapsed_time": 0,
+        "children": {},
+    }
+
     TASK_COMMANDS = {
         "start",
         "pause",
@@ -106,11 +117,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
     def start_v2(self, executor: str) -> dict:
         # CAS
         update_success = PipelineInstance.objects.filter(
-            id=self.pipeline_instance.instance_id, is_started=False
-        ).update(start_time=timezone.now(), is_started=True, executor=executor,)
+            instance_id=self.pipeline_instance.instance_id, is_started=False
+        ).update(start_time=timezone.now(), is_started=True, executor=executor)
         self.pipeline_instance.calculate_tree_info()
-        PipelineInstance.objects.filter(id=self.pipeline_instance.instance_id).update(
-            tree_info__id=self.pipeline_instance.tree_info.id
+        PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id).update(
+            tree_info_id=self.pipeline_instance.tree_info.id
         )
 
         if not update_success:
@@ -250,15 +261,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if not self.pipeline_instance.is_started:
             return {
                 "result": True,
-                "data": {
-                    "start_time": None,
-                    "state": "CREATED",
-                    "retry": 0,
-                    "skip": 0,
-                    "finish_time": None,
-                    "elapsed_time": 0,
-                    "children": {},
-                },
+                "data": self.CREATED_STATUS,
                 "message": "",
                 "code": err_code.SUCCESS.code,
             }
@@ -286,15 +289,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 format_pipeline_status(task_status)
             except pipeline_exceptions.InvalidOperationException:
                 # do not raise error when subprocess not exist or has not been executed
-                task_status = {
-                    "start_time": None,
-                    "state": "CREATED",
-                    "retry": 0,
-                    "skip": 0,
-                    "finish_time": None,
-                    "elapsed_time": 0,
-                    "children": {},
-                }
+                task_status = self.CREATED_STATUS
             except Exception:
                 logger.exception("pipeline_api.get_status_tree(subprocess_id:{}) fail".format(subprocess_id))
                 return {
@@ -318,22 +313,14 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if not self.pipeline_instance.is_started:
             return {
                 "result": True,
-                "data": {
-                    "start_time": None,
-                    "state": "CREATED",
-                    "retry": 0,
-                    "skip": 0,
-                    "finish_time": None,
-                    "elapsed_time": 0,
-                    "children": {},
-                },
+                "data": self.CREATED_STATUS,
                 "message": "",
                 "code": err_code.SUCCESS.code,
             }
 
         runtime = BambooDjangoRuntime()
         status_result = bamboo_engine_api.get_pipeline_states(
-            runtime=runtime, root_id=self.task.pipeline_instance_id, flat_children=False
+            runtime=runtime, root_id=self.pipeline_instance.instance_id, flat_children=False
         )
         if not status_result:
             logger.exception("bamboo_engine_api.get_pipeline_states fail")
@@ -344,6 +331,14 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "code": err_code.UNKNOWN_ERROR.code,
             }
         task_status = status_result.data
+        if not task_status:
+            return {
+                "result": True,
+                "data": self.CREATED_STATUS,
+                "message": "",
+                "code": err_code.SUCCESS.code,
+            }
+        task_status = task_status[self.pipeline_instance.instance_id]
 
         def get_subprocess_status(task_status: dict, subprocess_id: str) -> dict:
             for child in task_status["children"].values():
@@ -354,6 +349,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if subprocess_id:
             task_status = get_subprocess_status(task_status, subprocess_id)
+
+        # subprocess not been executed
+        task_status = task_status or self.CREATED_STATUS
 
         format_bamboo_engine_status(task_status)
 

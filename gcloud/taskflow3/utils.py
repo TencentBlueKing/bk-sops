@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from pipeline.engine import states as pipeline_states
+from pipeline.engine.utils import calculate_elapsed_time
 from bamboo_engine import states as bamboo_engine_states
 
 from gcloud.utils.dates import format_datetime
@@ -24,9 +25,14 @@ logger = logging.getLogger("root")
 def _format_status_time(status_tree):
     status_tree.setdefault("children", {})
     status_tree.pop("created_time", "")
+    started_time = status_tree.pop("started_time", None)
+    archived_time = status_tree.pop("archived_time", None)
 
-    status_tree["start_time"] = format_datetime(status_tree.pop("started_time"))
-    status_tree["finish_time"] = format_datetime(status_tree.pop("archived_time"))
+    if "elapsed_time" not in status_tree:
+        status_tree["elapsed_time"] = calculate_elapsed_time(started_time, archived_time)
+
+    status_tree["start_time"] = format_datetime(started_time) if started_time else None
+    status_tree["finish_time"] = format_datetime(archived_time) if archived_time else None
 
 
 def format_pipeline_status(status_tree):
@@ -36,6 +42,7 @@ def format_pipeline_status(status_tree):
     """
     _format_status_time(status_tree)
     child_status = set()
+
     for identifier_code, child_tree in list(status_tree["children"].items()):
         format_pipeline_status(child_tree)
         child_status.add(child_tree["state"])

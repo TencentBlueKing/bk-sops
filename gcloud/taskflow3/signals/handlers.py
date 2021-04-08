@@ -17,9 +17,11 @@ from django.dispatch import receiver
 
 from bamboo_engine import states as bamboo_engine_states
 from pipeline.engine.signals import activity_failed
+from pipeline.core.pipeline import Pipeline
 from pipeline.models import PipelineInstance
 from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from pipeline.eri.signals import post_set_state
+from pipeline.engine.signals import pipeline_end, pipeline_revoke
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
@@ -55,7 +57,11 @@ def _send_node_fail_message(node_id, pipeline_id):
         return
 
     try:
-        activity_name = taskflow.get_act_web_info(node_id)["name"]
+        activity = taskflow.get_act_web_info(node_id)
+        # is not activity
+        if not activity:
+            return
+        activity_name = activity["name"]
         send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=activity_name)
     except Exception as e:
         logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
@@ -80,7 +86,18 @@ def pipeline_fail_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
 def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version, root_id, parent_id, loop, **kwargs):
     if to_state == bamboo_engine_states.FAILED:
         _send_node_fail_message(node_id=node_id, pipeline_id=root_id)
+
     elif to_state == bamboo_engine_states.REVOKED and node_id == root_id:
+        try:
+            pipeline_revoke.send(sender=Pipeline, root_pipeline_id=root_id)
+        except Exception:
+            logger.exception("taskflow_revoked send error")
+
         _finish_taskflow_and_send_signal(root_id, taskflow_revoked)
     elif to_state == bamboo_engine_states.FINISHED and node_id == root_id:
+        try:
+            pipeline_end.send(sender=Pipeline, root_pipeline_id=root_id)
+        except Exception:
+            logger.exception("pipeline_end send error")
+
         _finish_taskflow_and_send_signal(root_id, taskflow_finished, True)

@@ -397,6 +397,6 @@ class EngineConfig(models.Model):
     objects = EngineConfigManager()
 
     class Meta:
-        verbose_name = _("引擎版本配置 ProjectConfig")
-        verbose_name_plural = _("引擎版本配置 ProjectConfig")
+        verbose_name = _("引擎版本配置 EngineConfig")
+        verbose_name_plural = _("引擎版本配置 EngineConfig")
         index_together = ["scope", "scope_id"]
