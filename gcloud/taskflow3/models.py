@@ -586,7 +586,7 @@ class TaskFlowInstance(models.Model):
             subprocess_stack=subprocess_stack,
         )
         if not node_data_result["result"]:
-            return node_data_result["result"]
+            return node_data_result
 
         node_detail_result = dispatcher.get_node_detail(
             username=username,
