@@ -31,7 +31,7 @@ from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, Iso
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
-from .base import EngineCommandDispatcher, ensure_return_is_dict, ensure_return_has_code
+from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
 
@@ -65,8 +65,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             if result.result:
                 taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
 
-            result["code"] = err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR
-            return result
+            dict_result = {
+                "result": result.result,
+                "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR,
+                "message": result.message,
+                "data": None,
+            }
+            return dict_result
         except ConvergeMatchError as e:
             message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id, str(e), e.gateway_id)
             logger.exception(message)
@@ -91,11 +96,6 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
-        except TypeError:
-            message = "redis connection error, please check redis configuration"
-            logger.exception(traceback.format_exc())
-            code = err_code.ENV_ERROR.code
-
         except Exception as e:
             message = "task[id=%s] command failed:%s" % (self.id, e)
             logger.exception(traceback.format_exc())
@@ -105,11 +105,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
     def start_v2(self, executor: str) -> dict:
         # CAS
-        update_success = PipelineInstance.objects.filter(id=self.pipeline_instance.id, is_started=False).update(
-            start_time=timezone.now(), is_started=True, executor=executor,
-        )
+        update_success = PipelineInstance.objects.filter(
+            id=self.pipeline_instance.instance_id, is_started=False
+        ).update(start_time=timezone.now(), is_started=True, executor=executor,)
         self.pipeline_instance.calculate_tree_info()
-        PipelineInstance.objects.filter(id=self.pipeline_instance.id).update(
+        PipelineInstance.objects.filter(id=self.pipeline_instance.instance_id).update(
             tree_info__id=self.pipeline_instance.tree_info.id
         )
 
@@ -130,7 +130,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         )
 
         if not result.result:
-            PipelineInstance.objects.filter(id=self.pipeline_instance.id, is_started=True).update(
+            PipelineInstance.objects.filter(id=self.pipeline_instance.instance_id, is_started=True).update(
                 start_time=None, is_started=False, executor="",
             )
             logger.error(
@@ -149,29 +149,35 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         return dict_result
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def pause_v1(self, operator: str) -> dict:
-        return task_service.pause_pipeline(pipeline_id=self.pipeline_instance.id)
+        return task_service.pause_pipeline(pipeline_id=self.pipeline_instance.instance_id)
 
     @ensure_return_is_dict
     def pause_v2(self, operator: str) -> dict:
-        return bamboo_engine_api.pause_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id)
+        return bamboo_engine_api.pause_pipeline(
+            runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
+        )
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def resume_v1(self, operator: str) -> dict:
-        return task_service.resume_pipeline(pipeline_id=self.pipeline_instance.id)
+        return task_service.resume_pipeline(pipeline_id=self.pipeline_instance.instance_id)
 
     @ensure_return_is_dict
     def resume_v2(self, operator: str) -> dict:
-        return bamboo_engine_api.resume_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id)
+        return bamboo_engine_api.resume_pipeline(
+            runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
+        )
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def revoke_v1(self, operator: str) -> dict:
-        return task_service.revoke_pipeline(pipeline_id=self.pipeline_instance.id)
+        return task_service.revoke_pipeline(pipeline_id=self.pipeline_instance.instance_id)
 
     @ensure_return_is_dict
     def revoke_v2(self, operator: str) -> dict:
-        return bamboo_engine_api.revoke_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id)
+        return bamboo_engine_api.revoke_pipeline(
+            runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
+        )
 
     def set_task_context(self, task_is_started: bool, task_is_finished: bool, context: dict) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
@@ -193,7 +199,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        exec_data = self.task.pipeline_tree
+        exec_data = self.pipeline_instance.execution_data
         try:
             for key, value in list(context.items()):
                 if key in exec_data["constants"]:
@@ -241,23 +247,22 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return failed_nodes
 
     def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if not self.pipeline_instance.is_started:
+            return {
+                "result": True,
+                "data": {
+                    "start_time": None,
+                    "state": "CREATED",
+                    "retry": 0,
+                    "skip": 0,
+                    "finish_time": None,
+                    "elapsed_time": 0,
+                    "children": {},
+                },
+                "message": "",
+                "code": err_code.SUCCESS.code,
+            }
         if not subprocess_id:
-            if not self.pipeline_instance.is_started:
-                return {
-                    "result": True,
-                    "data": {
-                        "start_time": None,
-                        "state": "CREATED",
-                        "retry": 0,
-                        "skip": 0,
-                        "finish_time": None,
-                        "elapsed_time": 0,
-                        "children": {},
-                    },
-                    "message": "",
-                    "code": err_code.SUCCESS.code,
-                }
-
             try:
                 task_status = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
                 format_pipeline_status(task_status)

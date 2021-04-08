@@ -323,7 +323,7 @@ def get_node_log(request, project_id, node_id):
     @return:
     """
     task_id = request.GET["instance_id"]
-    history_id = request.GET.get("history_id")
+    history_id = request.GET.get("history_id") or -1
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if not task.has_node(node_id):

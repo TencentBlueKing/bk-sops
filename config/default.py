@@ -488,11 +488,18 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "formatter": "light",
     }
 
+    logging_dict["handlers"]["pipeline_eri"] = {
+        "class": "pipeline.eri.log.ERINodeLogHandler",
+        "formatter": "light",
+    }
+
     logging_dict["loggers"]["pipeline.logging"] = {
         "handlers": ["engine"],
         "level": "INFO",
         "propagate": True,
     }
+
+    logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
 
     # 多环境需要，celery的handler需要动态获取
     logging_dict["loggers"]["celery_and_engine_component"] = {

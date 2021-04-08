@@ -597,7 +597,13 @@ class TaskFlowInstance(models.Model):
         if not node_data_result["result"]:
             return node_data_result["result"]
 
-        node_detail_result = dispatcher.get_node_detail()
+        node_detail_result = dispatcher.get_node_detail(
+            username=username,
+            component_code=component_code,
+            loop=loop,
+            pipeline_instance=self.pipeline_instance,
+            subprocess_stack=subprocess_stack,
+        )
         if not node_detail_result["result"]:
             return node_detail_result
 
@@ -608,16 +614,20 @@ class TaskFlowInstance(models.Model):
 
     def task_claim(self, username, constants, name):
         if self.flow_type != "common_func":
-            result = {"result": False, "message": "task is not functional"}
+            return {"result": False, "message": "task is not functional"}
         elif self.current_flow != "func_claim":
-            result = {"result": False, "message": "task with current_flow:%s cannot be claimed" % self.current_flow}
-        else:
-            with transaction.atomic():
-                self.set_task_context(constants, name)
-                result = self.function_task.get(task=self).claim_task(username)
-                if result["result"]:
-                    self.current_flow = "execute_task"
-                    self.save()
+            return {"result": False, "message": "task with current_flow:%s cannot be claimed" % self.current_flow}
+
+        with transaction.atomic():
+            if name:
+                self.pipeline_instance.name = name
+            self.set_task_context(constants)
+            result = self.function_task.get(task=self).claim_task(username)
+            if result["result"]:
+                self.current_flow = "execute_task"
+                self.pipeline_instance.save()
+                self.save()
+
         return result
 
     def _get_task_celery_queue(self, engine_ver):
@@ -681,11 +691,15 @@ class TaskFlowInstance(models.Model):
         self.save()
         return self.pk
 
-    def set_task_context(self, constants, name):
+    def set_task_context(self, constants):
         dispatcher = TaskCommandDispatcher(
             engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
         )
-        return dispatcher.set_context(constants, name)
+        return dispatcher.set_task_context(
+            task_is_started=self.pipeline_instance.is_started,
+            task_is_finished=self.pipeline_instance.is_finished,
+            context=constants,
+        )
 
     def spec_nodes_timer_reset(self, node_id, username, inputs):
         if not self.has_node(node_id):

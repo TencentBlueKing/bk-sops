@@ -29,6 +29,6 @@ def send_taskflow_message(task_id, msg_type, node_name=""):
         taskflow = TaskFlowInstance.objects.get(id=task_id)
         send_task_flow_message(taskflow, msg_type, node_name)
     except Exception as e:
-        logger.exception("send_task_flow_message[taskflow_id=%s] send message error: %s" % (taskflow.id, e))
+        logger.exception("send_task_flow_message[taskflow_id=%s] send message error: %s" % (task_id, e))
     else:
-        logger.info("send_taskflow_message[taskflow_id=%s] task finished" % taskflow.id)
+        logger.info("send_taskflow_message[taskflow_id=%s] task finished" % task_id)

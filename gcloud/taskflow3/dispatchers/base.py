@@ -19,6 +19,8 @@ from abc import ABCMeta
 from gcloud import err_code
 from gcloud.core.models import EngineConfig
 
+from bamboo_engine.api import EngineAPIResult
+
 
 def ensure_return_is_dict(func):
     @functools.wraps(func)
@@ -28,24 +30,13 @@ def ensure_return_is_dict(func):
         dict_result = {
             "result": result.result,
             "message": result.message,
-            "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR,
+            "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR.code,
         }
-        if result.exc:
+        if isinstance(result, EngineAPIResult) and result.exc:
             dict_result["message"] = "{}: {}".format(
                 result.message, traceback.TracebackException.from_exception(result.exc).format()
             )
         return dict_result
-
-    return wrapper
-
-
-def ensure_return_has_code(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        result = func(*args, **kwargs)
-
-        result["code"] = err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR
-        return result
 
     return wrapper
 

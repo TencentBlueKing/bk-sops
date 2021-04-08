@@ -42,7 +42,7 @@ def _finish_taskflow_and_send_signal(instance_id, sig, task_success=False):
 
     if task_success:
         try:
-            send_taskflow_message.t(task_id=task_id, msg_type=TASK_FINISHED)
+            send_taskflow_message.delay(task_id=task_id, msg_type=TASK_FINISHED)
         except Exception as e:
             logger.exception("send_taskflow_message[taskflow_id=%s] task delay error: %s" % (task_id, e))
 
@@ -63,7 +63,7 @@ def _send_node_fail_message(node_id, pipeline_id):
 
 @receiver(post_pipeline_finish, sender=PipelineInstance)
 def pipeline_finish_handler(sender, instance_id, **kwargs):
-    _finish_taskflow_and_send_signal(instance_id, taskflow_finished)
+    _finish_taskflow_and_send_signal(instance_id, taskflow_finished, True)
 
 
 @receiver(post_pipeline_revoke, sender=PipelineInstance)
@@ -83,4 +83,4 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
     elif to_state == bamboo_engine_states.REVOKED and node_id == root_id:
         _finish_taskflow_and_send_signal(root_id, taskflow_revoked)
     elif to_state == bamboo_engine_states.FINISHED and node_id == root_id:
-        _finish_taskflow_and_send_signal(root_id, taskflow_finished)
+        _finish_taskflow_and_send_signal(root_id, taskflow_finished, True)

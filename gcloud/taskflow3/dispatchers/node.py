@@ -24,14 +24,14 @@ from pipeline.parser.context import get_pipeline_context
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.library import ComponentLibrary
-from pipeline import exceptions as pipeline_exceptions
+from pipeline.engine import exceptions as pipeline_exceptions
 
 from gcloud import err_code
 from gcloud.utils.handlers import handle_plain_log
 from gcloud.taskflow3.utils import format_pipeline_status
 from pipeline_web.parser import WebPipelineAdapter
 
-from .base import EngineCommandDispatcher, ensure_return_has_code, ensure_return_is_dict
+from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
 
@@ -62,7 +62,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def retry_v1(self, operator: str, **kwargs) -> dict:
         return task_service.retry_activity(act_id=self.node_id, inputs=kwargs["inputs"])
 
@@ -70,7 +70,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def retry_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.retry_node(runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"])
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def skip_v1(self, operator: str, **kwargs) -> dict:
         return task_service.skip_activity(self.node_id)
 
@@ -78,7 +78,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def skip_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.skip_node(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def callback_v1(self, operator: str, **kwargs) -> dict:
         return task_service.callback(act_id=self.node_id, data=kwargs["data"])
 
@@ -92,7 +92,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         return bamboo_engine_api.callback(runtime=runtime, node_id=self.node_id, version=version, data=kwargs["data"])
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def skip_exg_v1(self, operator: str, **kwargs) -> dict:
         return task_service.skip_exclusive_gateway(gateway_id=self.node_id, flow_id=kwargs["flow_id"])
 
@@ -103,7 +103,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         )
         return self._bamboo_api_result_to_dict(result)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def pause_v1(self, operator: str, **kwargs) -> dict:
         return task_service.pause_activity(self.node_id)
 
@@ -111,7 +111,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def pause_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.pause_node_appoint(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def resume_v1(self, operator: str, **kwargs) -> dict:
         return task_service.resume_activity(self.node_id)
 
@@ -119,7 +119,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def resume_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.resume_node_appoint(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def pause_subproc_v1(self, operator: str, **kwargs) -> dict:
         return task_service.pause_pipeline(self.node_id)
 
@@ -127,17 +127,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def pause_subproc_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.pause_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.node_id)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def resume_subproc_v1(self, operator: str, **kwargs) -> dict:
-        return task_service.resume_pipeline(self.node_id)
+        return task_service.resume_activity(self.node_id)
 
     @ensure_return_is_dict
     def resume_subproc_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.resume_pipeline(runtime=BambooDjangoRuntime(), pipeline_id=self.node_id)
 
-    @ensure_return_has_code
+    @ensure_return_is_dict
     def forced_fail_v1(self, operator: str, **kwargs) -> dict:
-        return task_service.forced_fail(at_id=self.node_id, ex_data="forced fail by {}".format(operator))
+        return task_service.forced_fail(act_id=self.node_id, ex_data="forced fail by {}".format(operator))
 
     @ensure_return_is_dict
     def forced_fail_v2(self, operator: str, **kwargs) -> dict:
@@ -298,7 +298,6 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 outputs = {"outputs": his_data[-1]["outputs"], "ex_data": his_data[-1]["ex_data"]}
 
         pipeline_instance = kwargs["pipeline_instance"]
-        subprocess_stack = kwargs["subprocess_stack"]
         if not act_started:
             success, err, inputs, outputs = self._prerender_node_data(
                 pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
