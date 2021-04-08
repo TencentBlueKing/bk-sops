@@ -86,6 +86,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     executor_name = fields.CharField(attribute="executor_name", readonly=True, null=True)
     pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
     subprocess_info = fields.DictField(attribute="subprocess_info", use_in="detail", readonly=True)
+    engine_ver = fields.IntegerField(attribute="engine_ver", readonly=True)
 
     class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
