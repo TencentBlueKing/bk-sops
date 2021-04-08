@@ -373,15 +373,6 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         return qs.first()
 
-    def callback(self, act_id, data):
-        try:
-            result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
-        except Exception as e:
-            logger.error("node({}) callback with data({}) error: {}".format(act_id, data, traceback.format_exc()))
-            return {"result": False, "message": str(e)}
-
-        return {"result": result.result, "message": result.message}
-
 
 class TaskFlowInstance(models.Model):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
@@ -768,7 +759,7 @@ class TaskFlowInstance(models.Model):
         data.update({"outputs": outputs_table, "ex_data": outputs.get("ex_data", "")})
         return data
 
-    def callback(self, act_id, data):
+    def callback(self, act_id, data, version=""):
         if not self.has_node(act_id):
             return {
                 "result": False,
@@ -776,7 +767,8 @@ class TaskFlowInstance(models.Model):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        return TaskFlowInstance.objects.callback(act_id, data)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=act_id)
+        return dispatcher.dispatch(command="callback", operator="", data=data, version=version)
 
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)

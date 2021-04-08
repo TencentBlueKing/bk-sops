@@ -26,6 +26,7 @@ from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
 from gcloud import err_code
+from gcloud.core.models import EngineConfig
 from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
@@ -369,10 +370,13 @@ def node_callback(request, token):
         logger.warning("node callback error: %s" % traceback.format_exc(e))
         return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
 
+    # 老的回调接口，一定是老引擎的接口
+    dispatcher = NodeCommandDispatcher(engine_ver=EngineConfig.ENGINE_VER_V1, node_id=node_id)
+
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
     for i in range(3):
-        callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+        callback_result = dispatcher.dispatch(command="callback", operator="", data=callback_data)
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:
             break
