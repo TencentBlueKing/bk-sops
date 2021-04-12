@@ -56,6 +56,7 @@
                     @change="updateValue('with_cloud_id', $event)">
                 </bk-switcher>
             </div>
+            <separator-select :editable="editable" :value="separator" @change="updateSeparator"></separator-select>
         </div>
     </div>
 </template>
@@ -64,6 +65,7 @@
     import SingleIpSelector from './SingleIpSelector.vue'
     import MultipleIpSelector from './MultipleIpSelector.vue'
     import SelectCondition from './SelectCondition.vue'
+    import SeparatorSelect from '../SeparatorSelect.vue'
 
     const i18n = {
         staticIp: gettext('静态 IP'),
@@ -82,6 +84,7 @@
     export default {
         name: 'IpSelector',
         components: {
+            SeparatorSelect,
             SingleIpSelector,
             MultipleIpSelector,
             SelectCondition
@@ -100,7 +103,8 @@
                         topo: [],
                         filters: [],
                         excludes: [],
-                        with_cloud_id: false
+                        with_cloud_id: false,
+                        separator: ','
                     }
                 }
             },
@@ -156,7 +160,7 @@
             }
         },
         data () {
-            const { selectors, ip, topo, filters, excludes, with_cloud_id } = this.value
+            const { selectors, ip, topo, filters, excludes, with_cloud_id, separator } = this.value
             const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
@@ -164,6 +168,7 @@
                 topo: topo.slice(0),
                 with_cloud_id,
                 conditions,
+                separator,
                 i18n
             }
         },
@@ -236,6 +241,10 @@
                 }
 
                 this.$emit('change', this.value)
+            },
+            updateSeparator (val) {
+                this.separator = val
+                this.updateValue('separator', val)
             },
             validate () {
                 const selector = this.isMultiple ? this.$refs.multipleIpSelector : this.$refs.singleIpSelector
