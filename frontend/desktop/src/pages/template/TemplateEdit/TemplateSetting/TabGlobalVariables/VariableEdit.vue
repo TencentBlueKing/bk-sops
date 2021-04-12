@@ -331,7 +331,8 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadCustomVarCollection'
+                'loadCustomVarCollection',
+                'checkKey'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -586,7 +587,7 @@
             },
             // 保存变量数据
             onSaveVariable () {
-                return this.$validator.validateAll().then(result => {
+                return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
             
                     // renderform表单校验
@@ -596,6 +597,16 @@
 
                     if (!result || !formValid) {
                         return false
+                    }
+
+                    const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
+
+                    if (!checkKeyResult.data) {
+                        this.$bkMessage({
+                            message: i18n.t('变量KEY为特殊标志符变量，请修改'),
+                            theme: 'warning'
+                        })
+                        return
                     }
 
                     if (this.theEditingData.preRenderMako) {
