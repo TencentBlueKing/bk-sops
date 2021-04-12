@@ -75,3 +75,10 @@ def format_bamboo_engine_status(status_tree):
             status_tree["state"] = bamboo_engine_states.FAILED
         elif bamboo_engine_states.SUSPENDED in child_status or "NODE_SUSPENDED" in child_status:
             status_tree["state"] = "NODE_SUSPENDED"
+
+
+def add_node_name_to_status_tree(pipeline_tree, status_tree_children):
+    for node_id, status in status_tree_children.items():
+        status["name"] = pipeline_tree.get("activities", {}).get(node_id, {}).get("name", "")
+        children = status.get("children", {})
+        add_node_name_to_status_tree(pipeline_tree["activities"].get(node_id, {}).get("pipeline", {}), children)

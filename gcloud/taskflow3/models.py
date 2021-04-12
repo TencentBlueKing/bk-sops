@@ -504,10 +504,13 @@ class TaskFlowInstance(models.Model):
         if not self.is_started:
             return False
 
-        status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
-
-        if not status_tree:
-            return False
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
+        )
+        task_result = dispatcher.get_task_status()
+        if not task_result:
+            raise ValueError("dispatcher.get_task_status fail: {}".format(task_result["message"]))
+        status_tree = task_result["data"]
 
         # judge root status
         if status_tree["state"] in MANUAL_INTERVENTION_EXEMPT_STATES:
