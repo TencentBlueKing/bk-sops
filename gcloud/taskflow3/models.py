@@ -22,8 +22,6 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.constants import PE
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
-from pipeline.engine import exceptions as engine_exceptions
-from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
@@ -484,15 +482,6 @@ class TaskFlowInstance(models.Model):
     @property
     def subprocess_info(self):
         return self.pipeline_instance.template.subprocess_version_info if self.template else {}
-
-    @property
-    def raw_state(self):
-        try:
-            state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)["state"]
-        except engine_exceptions.InvalidOperationException:
-            return None
-
-        return state
 
     @property
     def is_manual_intervention_required(self):

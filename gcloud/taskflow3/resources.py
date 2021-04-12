@@ -25,7 +25,6 @@ from iam import Subject, Action, Request
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
-from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -334,9 +333,8 @@ class TaskFlowInstanceResource(GCloudModelResource):
         except Exception:
             raise BadRequest("taskflow does not exits")
 
-        raw_state = taskflow.raw_state
-
-        if raw_state and raw_state not in states.ARCHIVED_STATES:
-            raise BadRequest(_("无法删除未进入完成或撤销状态的流程"))
+        if taskflow.is_started:
+            if not (taskflow.is_finished or taskflow.is_revoked):
+                raise BadRequest(_("无法删除未进入完成或撤销状态的流程"))
 
         return super(TaskFlowInstanceResource, self).obj_delete(bundle, **kwargs)
