@@ -180,6 +180,7 @@
             min-width: 1366px;
             .navigation-container {
                 max-width: unset !important;
+                z-index: 1;
                 .container-content {
                     padding: 0;
                     @include scrollbar;
