@@ -1,4 +1,4 @@
-q# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -505,7 +505,7 @@ def logging_addition_settings(logging_dict, environment="prod"):
     }
 
     logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
-    
+
     logging_dict["loggers"]["bamboo_engine"] = {"handlers": ["root"], "level": "INFO", "propagate": True}
 
     # 多环境需要，celery的handler需要动态获取
