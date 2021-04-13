@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
+    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1, zIndex: 100 }">
         <resource-list
             v-if="!showFilter"
             ref="resourceList"

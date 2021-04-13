@@ -23,7 +23,7 @@
                         <bk-button theme="primary" style="min-width: 120px;" @click="onCreateApp">{{$t('新建')}}</bk-button>
                     </template>
                 </advance-search-form>
-                <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }">
+                <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1, zIndex: 100 }">
                     <div v-if="appList.length" class="app-list">
                         <app-card
                             v-for="item in appList"
@@ -77,7 +77,7 @@
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除轻应用？')}}
             </div>
         </bk-dialog>

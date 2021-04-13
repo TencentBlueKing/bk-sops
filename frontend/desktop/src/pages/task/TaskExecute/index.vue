@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }">
+    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1, zIndex: 100 }">
         <template v-if="!taskDataLoading">
             <TaskFunctionalization
                 v-if="isFunctional && showParamsFill"

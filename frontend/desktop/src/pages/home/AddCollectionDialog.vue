@@ -34,7 +34,7 @@
                         @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
+                <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
                         <template v-for="item in panelList">
                             <li

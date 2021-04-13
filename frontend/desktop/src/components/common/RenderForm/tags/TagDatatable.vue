@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-datatable" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="tag-datatable" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="button-area" v-if="editable && formMode">
             <bk-button
                 v-if="add_btn"

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="source-edit" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="source-edit" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <edit-header></edit-header>
         <router-view
             :origin-list="originList"

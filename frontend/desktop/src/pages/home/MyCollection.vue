@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
+    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">
             {{ $t('我的收藏') }}
             <span class="add-btn" @click="onAddCollection">{{ $t('添加') }}</span>
@@ -69,7 +69,7 @@
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1 }">
+            <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除收藏？')}}
             </div>
         </bk-dialog>

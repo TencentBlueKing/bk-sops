@@ -20,7 +20,7 @@
         :value="isModifyDialogShow"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
-        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <div class="periodic-info">
                 <h3 class="local-section-title">{{ $t('周期信息') }}</h3>
                 <div class="common-form-item">

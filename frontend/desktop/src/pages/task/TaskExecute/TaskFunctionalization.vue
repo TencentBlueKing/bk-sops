@@ -45,7 +45,7 @@
                     </span>
                 </div>
                 <div class="param-info-division-line"></div>
-                <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1 }">
+                <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1, zIndex: 100 }">
                     <TaskParamEdit
                         ref="TaskParamEdit"
                         :constants="pipelineData.constants"

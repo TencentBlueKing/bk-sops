@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="source-manage" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="source-manage" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="operate-area">
             <bk-button
                 v-if="!hasEditPerm"

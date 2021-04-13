@@ -83,7 +83,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
+                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1, zIndex: 100 }">
                     <ul v-if="!isNoData" class="grouped-list">
                         <template v-if="selectedTplType === 'publicProcess'">
                             <template v-for="item in templateList">

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-statistics" v-bkloading="{ isLoading: hasStatisticsPerm === null, opacity: 0 }">
+    <div class="page-statistics" v-bkloading="{ isLoading: hasStatisticsPerm === null, opacity: 0, zIndex: 100 }">
         <template v-if="hasViewPerm">
             <page-header :tab-list="routers">
                 <template v-slot:expand>

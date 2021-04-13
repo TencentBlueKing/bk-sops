@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="variable-preview-value" v-bkloading="{ isLoading: loading }">
+    <div class="variable-preview-value" v-bkloading="{ isLoading: loading, zIndex: 100 }">
         <div class="content">{{ valueStr }}</div>
     </div>
 </template>
