@@ -23,7 +23,7 @@ from .utils import APITest
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
-DISPATCHER_RETURN = {"result": True, "code": 0, "data": {"children": "children"}, "message": ""}
+DISPATCHER_RETURN = {"result": True, "code": 0, "data": {"children": {}}, "message": ""}
 
 GET_TASK_STATUS_TASK_COMMAND_DISPATCHER = "gcloud.apigw.views.get_tasks_status.TaskCommandDispatcher"
 
@@ -41,7 +41,8 @@ class GetTasksStatusAPITest(APITest):
         ),
     )
     def test_get_tasks_status__success_with_children_status(self):
-        task = MockTaskFlowInstance(get_status_return={"children": "children"})
+        task = MockTaskFlowInstance(get_status_return={"children": {}})
+        task.name = "task_name"
         dispatcher = MagicMock()
         dispatcher.get_task_status = MagicMock(return_value=DISPATCHER_RETURN)
 
@@ -63,7 +64,7 @@ class GetTasksStatusAPITest(APITest):
                         {
                             "id": task.id,
                             "name": task.name,
-                            "status": {"children": "children"},
+                            "status": {"children": {}, "name": task.name},
                             "flow_type": task.flow_type,
                             "current_flow": task.current_flow,
                             "is_deleted": task.is_deleted,
@@ -106,7 +107,7 @@ class GetTasksStatusAPITest(APITest):
                         {
                             "id": task.id,
                             "name": task.name,
-                            "status": {},
+                            "status": {"name": "name"},
                             "flow_type": task.flow_type,
                             "current_flow": task.current_flow,
                             "is_deleted": task.is_deleted,

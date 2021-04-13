@@ -36,15 +36,24 @@ class IsManualInterventionRequiredTestCase(TestCase):
         setattr(taskflow, "pipeline_instance", MagicMock())
         return taskflow
 
-    def test_state_is_none(self):
+    def test_get_task_status_return_false(self):
         taskflow = self._new_taskflow()
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=None)):
-            self.assertFalse(taskflow.is_manual_intervention_required)
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": False, "message": "fail"})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
+            try:
+                taskflow.is_manual_intervention_required
+            except ValueError:
+                pass
 
     def test_root_state_in_exempts_states(self):
         for state in [states.CREATED, states.FINISHED, states.REVOKED]:
             taskflow = self._new_taskflow()
-            with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value={"state": state})):
+            dispatcher = MagicMock()
+            dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": {"state": state}})
+
+            with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
                 self.assertFalse(taskflow.is_manual_intervention_required)
 
     def test_task_is_not_started(self):
@@ -62,7 +71,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 "2": {"id": "2", "state": states.FAILED, "children": {}},
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertTrue(taskflow.is_manual_intervention_required)
 
     def test_2_layer_nodes_has_intervention_states(self):
@@ -79,7 +91,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 },
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertTrue(taskflow.is_manual_intervention_required)
 
     def test_3_layer_nodes_without_intervention_states(self):
@@ -102,7 +117,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 },
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertFalse(taskflow.is_manual_intervention_required)
 
     def test_4_layer_nodes_has_intervention_states(self):
@@ -125,7 +143,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 },
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertTrue(taskflow.is_manual_intervention_required)
 
     def test_without_running_nodes(self):
@@ -148,7 +169,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 },
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertFalse(taskflow.is_manual_intervention_required)
 
     def test_without_running_intervention_required_nodes(self):
@@ -168,7 +192,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 "2": {"id": "2", "state": states.RUNNING, "children": {}},
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertFalse(taskflow.is_manual_intervention_required)
 
     def test_has_running_intervention_required_nodes(self):
@@ -188,7 +215,10 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 "2": {"id": "2", "state": states.RUNNING, "children": {}},
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertTrue(taskflow.is_manual_intervention_required)
 
     def test_has_deep_running_intervention_required_nodes(self):
@@ -234,5 +264,8 @@ class IsManualInterventionRequiredTestCase(TestCase):
                 },
             },
         }
-        with patch(TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE, MagicMock(return_value=state)):
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(return_value={"result": True, "data": state})
+
+        with patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
             self.assertTrue(taskflow.is_manual_intervention_required)

@@ -24,7 +24,7 @@ TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
 TEST_TASKFLOW_ID = "2"
-TEST_DATA = "data"
+TEST_DATA = {}
 TEST_SUBPROCESS_STACK = "[1, 2, 3]"
 TEST_SUBPROCESS_ID = "subprocess_id"
 DISPATCHER_RETURN = {"result": True, "code": 0, "data": TEST_DATA, "message": ""}
@@ -46,6 +46,7 @@ class GetTaskStatusAPITest(APITest):
     )
     def test_get_task_status__success(self):
         task = MagicMock()
+        task.name = "task_name"
         dispatcher = MagicMock()
         dispatcher.get_task_status = MagicMock(return_value=DISPATCHER_RETURN)
 
@@ -55,7 +56,7 @@ class GetTaskStatusAPITest(APITest):
 
                 data = json.loads(response.content)
                 self.assertTrue(data["result"], msg=data)
-                self.assertEqual(data["data"], TEST_DATA)
+                self.assertEqual(data["data"], {"name": task.name})
 
     def test_get_task_status__raise(self):
         task = MockTaskFlowInstance(get_status_raise=Exception())

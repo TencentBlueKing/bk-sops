@@ -26,7 +26,7 @@ class UtilsTestCase(TestCase):
         node_id = "node_id"
         node_version = "node_version"
         f = Fernet(settings.CALLBACK_KEY)
-        expect_prefix = "%staskflow/api/nodes/callback" % env.BKAPP_INNER_CALLBACK_HOST
+        expect_prefix = "%staskflow/api/v4/nodes/callback" % env.BKAPP_INNER_CALLBACK_HOST
         url = get_node_callback_url(node_id)
         actual_prefix, token = url[:-1].rsplit("/", 1)
         self.assertEqual(expect_prefix, actual_prefix)

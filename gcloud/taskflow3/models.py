@@ -497,7 +497,7 @@ class TaskFlowInstance(models.Model):
             engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
         )
         task_result = dispatcher.get_task_status()
-        if not task_result:
+        if not task_result["result"]:
             raise ValueError("dispatcher.get_task_status fail: {}".format(task_result["message"]))
         status_tree = task_result["data"]
 
