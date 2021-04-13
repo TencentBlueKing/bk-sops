@@ -23,32 +23,6 @@
                 v-bk-tooltips.bottom="$t('执行方案')"
                 @click="onOpenExecuteScheme">
             </span>
-            <!-- <div class="template-name-input">
-                <h3></h3>
-                <div class="name-show-mode" v-if="isShowMode">
-                    <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                </div>
-                <template v-else>
-                    <bk-input
-                        ref="canvasNameInput"
-                        v-validate="templateNameRule"
-                        data-vv-name="templateName"
-                        :class="['name-input', veeErrors.first('templateName') ? 'name-error' : '']"
-                        :name="'templateName'"
-                        :has-error="veeErrors.has('templateName')"
-                        :value="name"
-                        :placeholder="$t('请输入名称')"
-                        @input="onInputName"
-                        @enter="onInputBlur"
-                        @blur="onInputBlur">
-                    </bk-input>
-                    <i
-                        v-if="veeErrors.first('templateName')"
-                        class="bk-icon icon-exclamation-circle-shape error-tip-icon"
-                        v-bk-tooltips="veeErrors.first('templateName')">
-                    </i>
-                </template>
-            </div> -->
         </div>
         <div class="header-right-area" slot="expand">
             <div class="button-area" v-if="isEditProcessPage">
