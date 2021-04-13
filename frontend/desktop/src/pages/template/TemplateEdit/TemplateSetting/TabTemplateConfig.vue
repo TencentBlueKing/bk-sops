@@ -262,7 +262,8 @@
                 }
             },
             onEditLabel () {
-                this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                const { href } = this.$router.resolve({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                window.open(href, '_blank')
             },
             async getProjectNotifyGroup () {
                 try {
