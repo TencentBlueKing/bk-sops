@@ -183,6 +183,10 @@
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
             async getVariableData () {
+                // renderform表单校验
+                if (this.$refs.renderForm) {
+                    this.$refs.renderForm.validate()
+                }
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]
