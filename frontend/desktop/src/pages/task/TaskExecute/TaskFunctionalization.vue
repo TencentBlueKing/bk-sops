@@ -67,6 +67,7 @@
                     'btn-permission-disable': !hasPermission(['task_claim'], instanceActions)
                 }]"
                 :loading="isSubmit"
+                :disabled="isConfigLoading"
                 v-cursor="{ active: !hasPermission(['task_claim'], instanceActions) }"
                 @click="onTaskClaim">
                 {{ $t('认领') }}
@@ -317,9 +318,6 @@
     position: relative;
     height: calc(100vh - 100px);
     background-color: #ffffff;
-    @media screen and (max-width: 1300px){
-        width: calc(100% - 80px);
-    }
     /deep/ .no-data-wrapper {
         margin: 100px 0;
     }
