@@ -29,5 +29,17 @@ jobs:
       run: |
         # prepare env
         source scripts/develop/sites/community/env.sh
+        # add local_settings.py
+        echo '# -*- coding: utf-8 -*-
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": "db.sqlite3",
+            }
+        }
+
+        LOG_LEVEL = "DEBUG"
+
+        BK_IAM_SKIP = 1' > local_settings.py
         # run unittest
         python manage.py test
