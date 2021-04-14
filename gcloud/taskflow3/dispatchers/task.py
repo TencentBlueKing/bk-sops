@@ -144,11 +144,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             PipelineInstance.objects.filter(id=self.pipeline_instance.instance_id, is_started=True).update(
                 start_time=None, is_started=False, executor="",
             )
-            logger.error(
-                "run_pipeline fail: {}, exception: {}".format(
-                    result.message, traceback.TracebackException.from_exception(result.exc).format()
-                )
-            )
+            logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
             taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
 

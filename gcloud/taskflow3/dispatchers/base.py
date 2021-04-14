@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import functools
-import traceback
 
 from abc import ABCMeta
 
@@ -33,9 +32,7 @@ def ensure_return_is_dict(func):
             "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR.code,
         }
         if isinstance(result, EngineAPIResult) and result.exc:
-            dict_result["message"] = "{}: {}".format(
-                result.message, "\n".join(traceback.TracebackException.from_exception(result.exc).format())
-            )
+            dict_result["message"] = "{}: {}".format(result.message, result.exc_trace)
         return dict_result
 
     return wrapper

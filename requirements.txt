@@ -28,8 +28,8 @@ pyinstrument==3.1.3
 djangorestframework==3.11.1
 django-filter==2.4.0
 prometheus-client>=0.9.0,<1.0.0
-bamboo-engine==1.0.9
-bamboo-pipeline==3.1.8
+bamboo-engine==1.1.0
+bamboo-pipeline==3.1.9
 
 # version log
 mistune==0.8.4
