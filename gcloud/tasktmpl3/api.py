@@ -134,7 +134,8 @@ def import_templates(request, project_id):
 def _reset_biz_selector_value(templates_data, bk_biz_id):
     for template in templates_data["pipeline_template_data"]["template"].values():
         for act in [act for act in template["tree"]["activities"].values() if act["type"] == "ServiceActivity"]:
-            biz_cc_id_field = act["component"]["data"].get("biz_cc_id")
+            act_info = act["component"]["data"]
+            biz_cc_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
             if biz_cc_id_field and (not biz_cc_id_field["hook"]):
                 biz_cc_id_field["value"] = bk_biz_id
 
