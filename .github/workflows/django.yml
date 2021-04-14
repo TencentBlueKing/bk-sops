@@ -50,5 +50,7 @@ jobs:
         LOG_LEVEL = "DEBUG"
 
         BK_IAM_SKIP = 1' > local_settings.py
+        # rm pipeline tests, we will not longer need it after integrate with bamboo-engine
+        rm -rf pipeline/tests
         # run unittest
         python manage.py test
