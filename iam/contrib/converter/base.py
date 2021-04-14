@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 
-import six
 import abc
+import six
 
 
 @six.add_metaclass(abc.ABCMeta)

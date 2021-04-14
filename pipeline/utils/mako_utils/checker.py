@@ -40,7 +40,7 @@ def parse_template_nodes(
         ast_node = ast.parse(code, "<unknown>", "exec")
         node_visitor.visit(ast_node)
         if hasattr(node, "nodes"):
-            parse_template_nodes(node.nodes, node_visitor)
+            parse_template_nodes(node.nodes, node_visitor, code_extractor)
 
 
 def check_mako_template_safety(text: str, node_visitor: ast.NodeVisitor, code_extractor: MakoNodeCodeExtractor) -> bool:
