@@ -1,5 +1,12 @@
 # Release
 
+## 3.6.38
+
+- bugfix
+  - 修复注册到 IAM 的资源拉取 API 没有使用内网域名的问题
+- improvement
+  - job插件每个步骤只取第一个ip日志进行记录
+
 ## 3.6.37
 
 - bugfix
