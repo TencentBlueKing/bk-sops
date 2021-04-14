@@ -14,6 +14,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      
+      - name: install frontend dependencies
+        run: |
+              cd frontend/desktop/
+              npm install
 
       - name: Run Eslint
         uses: stefanoeb/eslint-action@1.0.2
