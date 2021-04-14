@@ -372,9 +372,7 @@ class EngineConfigManager(models.Manager):
         if template_config:
             return template_config.first().engine_ver
 
-        project_config = self.filter(
-            scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT, template_source=template_source
-        ).only("engine_ver")
+        project_config = self.filter(scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT).only("engine_ver")
         if project_config:
             return project_config.first().engine_ver
 
