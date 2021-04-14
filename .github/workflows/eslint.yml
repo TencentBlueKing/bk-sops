@@ -1,0 +1,19 @@
+# This is a basic workflow to help you get started with Actions
+
+name: frontend code eslint
+
+on:
+  push:
+    branches: [ V3.6.X ]
+  pull_request:
+    branches: [ V3.6.X ]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Eslint
+        uses: stefanoeb/eslint-action@1.0.2
