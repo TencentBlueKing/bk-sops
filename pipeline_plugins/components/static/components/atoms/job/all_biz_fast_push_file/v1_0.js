@@ -30,7 +30,19 @@
             attrs: {
                 name: gettext("源文件"),
                 editable: true,
-                add_btn: true,
+                table_buttons: [
+                    {
+                        type: "export",
+                        text: gettext("导出"),
+                        callback: function () {
+                            this.export2Excel()
+                        }
+                    },
+                    {
+                        type: "import",
+                        text: gettext("导入")
+                    }
+                ],
                 columns: [
                     {
                         tag_code: "bk_cloud_id",
@@ -122,7 +134,19 @@
             type: "datatable",
             attrs: {
                 name: gettext("分发配置"),
-                add_btn: true,
+                table_buttons: [
+                    {
+                        type: "export",
+                        text: gettext("导出"),
+                        callback: function () {
+                            this.export2Excel()
+                        }
+                    },
+                    {
+                        type: "import",
+                        text: gettext("导入")
+                    }
+                ],
                 hookable: true,
                 columns: [
                     {

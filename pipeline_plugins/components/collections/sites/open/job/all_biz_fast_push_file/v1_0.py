@@ -183,9 +183,6 @@ class AllBizJobFastPushFileService(JobScheduleService):
         data.outputs.final_res = task_count == len(job_instance_id_list)
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(AllBizJobFastPushFileService, self).schedule(data, parent_data, callback_data)
-
     def outputs_format(self):
         return [
             self.OutputItem(

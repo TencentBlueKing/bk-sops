@@ -22,4 +22,4 @@ from .fast_execute_script import *  # noqa
 from .fast_push_file import *  # noqa
 from .push_local_files import *  # noqa
 from .local_content_upload import *  # noqa
-from .all_biz_fast_push_file import *
+from .all_biz_fast_push_file import * # noqa
