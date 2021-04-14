@@ -119,7 +119,19 @@
                 placeholder: gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
                 hookable: true,
                 empty_text: gettext("请添加目标IP信息"),
-                add_btn: true,
+                                table_buttons: [
+                    {
+                        type: "export",
+                        text: gettext("导出"),
+                        callback: function () {
+                            this.export2Excel()
+                        }
+                    },
+                    {
+                        type: "import",
+                        text: gettext("导入")
+                    }
+                ],
                 columns: [
                     {
                         tag_code: "bk_cloud_id",

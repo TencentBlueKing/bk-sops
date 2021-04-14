@@ -193,9 +193,6 @@ class AllBizJobFastExecuteScriptService(JobService):
             data.outputs.ex_data = message
             return False
 
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(AllBizJobFastExecuteScriptService, self).schedule(data, parent_data, callback_data)
-
 
 class AllBizJobFastExecuteScriptComponent(Component):
     name = _("全业务_快速执行脚本")
