@@ -27,4 +27,7 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
+        # prepare env
+        source scripts/develop/sites/community/env.sh
+        # run unittest
         python manage.py test
