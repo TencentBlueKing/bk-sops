@@ -216,16 +216,15 @@ UPDATE_MODULE_FAILED_BY_CUSTOM = ComponentTestCase(
         outputs={
             "module_update_success": [],
             "module_update_failed": [
-                {
-                    "cc_module_select_text": "set>module",
-                    "bk_module_name": "test",
-                    "bk_module_type": "",
-                    "operator": "",
-                    "bk_bak_operator": "",
-                }
+                "module 属性更新失败, item={'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
+                "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
+                "'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, message: xxx"
             ],
-            "ex_data": "插件执行失败，原因:有更新失败的数据，data=[{'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
-            "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}]",
+            "ex_data": [
+                "module 属性更新失败, item={'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
+                "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
+                "'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, message: xxx"
+            ],
         },
     ),
     schedule_assertion=ScheduleAssertion(success=True, schedule_finished=True, outputs={}),
@@ -256,25 +255,21 @@ UPDATE_MODULE_FAILED_BY_TEMPLATE = ComponentTestCase(
         outputs={
             "module_update_success": [],
             "module_update_failed": [
-                {
-                    "cc_module_select_text": "set>module",
-                    "bk_module_name": "test",
-                    "bk_module_type": "",
-                    "operator": "",
-                    "bk_bak_operator": "",
-                },
-                {
-                    "cc_module_select_text": "set>module2",
-                    "bk_module_name": "test",
-                    "bk_module_type": "",
-                    "operator": "",
-                    "bk_bak_operator": "",
-                },
+                "module 属性更新失败, item={'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
+                "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
+                "'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, message: xxx",
+                "module 属性更新失败, item={'cc_module_select_text': 'set>module2', 'bk_module_name': 'test', "
+                "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
+                "'bk_module_id': 8, 'data': {'bk_module_name': 'test'}}, message: xxx",
             ],
-            "ex_data": "插件执行失败，原因:有更新失败的数据，data=[{'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
-            "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, {'cc_module_select_text': "
-            "'set>module2', 'bk_module_name': 'test', 'bk_module_type': '', 'operator': '', "
-            "'bk_bak_operator': ''}]",
+            "ex_data": [
+                "module 属性更新失败, item={'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
+                "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
+                "'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, message: xxx",
+                "module 属性更新失败, item={'cc_module_select_text': 'set>module2', 'bk_module_name': 'test', "
+                "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
+                "'bk_module_id': 8, 'data': {'bk_module_name': 'test'}}, message: xxx",
+            ],
         },
     ),
     schedule_assertion=ScheduleAssertion(success=True, schedule_finished=True, outputs={}),
