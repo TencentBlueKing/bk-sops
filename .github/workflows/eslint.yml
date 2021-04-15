@@ -21,4 +21,6 @@ jobs:
               npm install
 
       - name: Run Eslint
-        run: npx eslint --ext .js,.vue src/
+        run: |
+              cd frontend/desktop/
+              npx eslint --ext .js,.vue src/
