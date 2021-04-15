@@ -117,6 +117,14 @@
                     this.cntLoading = false
                 }
             },
+            judgeDataEqual () {
+                if (!this.paramsCanBeModify) {
+                    return true
+                }
+                if (this.$refs.TaskParamEdit) {
+                    return this.$refs.TaskParamEdit.judgeDataEqual()
+                }
+            },
             async onModifyParams () {
                 if (!this.hasSavePermission) {
                     const resourceData = {

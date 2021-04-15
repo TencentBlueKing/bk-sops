@@ -64,6 +64,7 @@
                 renderConfig: [],
                 metaConfig: {},
                 renderData: {},
+                inintRenderData: {},
                 isConfigLoading: true,
                 isNoData: false
             }
@@ -174,6 +175,7 @@
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
                 }
+                this.inintRenderData = this.renderData
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)
@@ -181,6 +183,12 @@
             },
             validate () {
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
+            },
+            judgeDataEqual () {
+                const formvalid = this.validate()
+                if (formvalid) {
+                    return tools.isDataEqual(this.inintRenderData, this.renderData)
+                }
             },
             async getVariableData () {
                 const variables = tools.deepClone(this.constants)

@@ -56,6 +56,7 @@
             return {
                 excludeNodes: [],
                 schemeText: this.transformToText(this.orderedNodeData),
+                initSchemeText: this.transformToText(this.orderedNodeData),
                 errorMsg: ''
             }
         },
@@ -68,6 +69,12 @@
                     text += `${stage_name === '' ? '' : stage_name + '：'}${name} ${status}\n`
                 })
                 return text
+            },
+            judgeDataEqual () {
+                this.updateSelected()
+                if (!this.errorMsg) {
+                    return this.initSchemeText.trim() === this.schemeText.trim()
+                }
             },
             updateSelected () {
                 this.errorMsg = ''

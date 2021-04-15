@@ -52,10 +52,11 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
+                    ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
@@ -80,12 +81,14 @@
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
+                    ref="retryNode"
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
                 <ModifyTime
+                    ref="modifyTime"
                     v-if="nodeInfoType === 'modifyTime'"
                     :node-detail-config="nodeDetailConfig"
                     @modifyTimeSuccess="onModifyTimeSuccess"
@@ -162,6 +165,22 @@
             :is-show.sync="isShowConditionEdit"
             :condition-data="conditionData">
         </condition-edit>
+        <bk-dialog
+            width="400"
+            ext-cls="task-operation-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-operation-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -260,7 +279,6 @@
                 locations: [],
                 setNodeDetail: true,
                 atomList: [],
-                quickClose: true,
                 sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
@@ -300,7 +318,9 @@
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
                 isShowConditionEdit: false, // 条件分支侧栏
-                conditionData: {}
+                conditionData: {},
+                isShowDialog: false,
+                isSaveLoading: false
             }
         },
         computed: {
@@ -1015,10 +1035,6 @@
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
-                this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    this.quickClose = false
-                }
             },
             
             onToggleNodeInfoPanel () {
@@ -1306,6 +1322,39 @@
                 this.isNodeInfoPanelShow = false
                 this.templateData = ''
             },
+            onBeforeClose () {
+                // 除修改参数/修改时间/重试外  其余侧滑没有操作修改功能，支持自动关闭
+                if (!['modifyParams', 'modifyTime', 'retryNode'].includes(this.nodeInfoType)) {
+                    this.isShowDialog = false
+                    this.isNodeInfoPanelShow = false
+                } else {
+                    const idEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
+                    if (idEqual === true) {
+                        this.isNodeInfoPanelShow = false
+                    } else if (idEqual === false) {
+                        this.isShowDialog = true
+                    }
+                }
+            },
+            async onConfirmClick () {
+                this.isSaveLoading = true
+                if (this.nodeInfoType === 'modifyParams') {
+                    await this.$refs.modifyParams.onModifyParams()
+                }
+                if (this.nodeInfoType === 'modifyTime') {
+                    await this.$refs.modifyTime.onModifyTime()
+                }
+                if (this.nodeInfoType === 'retryNode') {
+                    await this.$refs.retryNode.onRetryTask()
+                }
+                this.isShowDialog = false
+                this.isNodeInfoPanelShow = false
+                this.isSaveLoading = false
+            },
+            onCancelClick () {
+                this.isShowDialog = false
+                this.isNodeInfoPanelShow = false
+            },
             onHiddenSideslider () {
                 this.nodeInfoType = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
@@ -1364,6 +1413,17 @@
     height: 100%;
     .operation-flow {
         padding: 20px 30px;
+    }
+}
+.task-operation-confirm-dialog-content {
+    padding: 40px 0;
+    text-align: center;
+    .leave-tips {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    .action-wrapper .bk-button {
+        margin-right: 6px;
     }
 }
 

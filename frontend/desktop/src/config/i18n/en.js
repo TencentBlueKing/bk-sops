@@ -1,4 +1,5 @@
 const en = {
+    '保存已修改的信息吗？': 'Save the modified information?',
     '操作名称': 'Operation name',
     '操作时间': 'Operating time',
     '操作来源': 'Operation source',

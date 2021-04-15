@@ -31,6 +31,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
@@ -53,7 +54,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                inintRenderData: {}
             }
         },
         computed: {
@@ -89,6 +91,7 @@
                             for (const key in this.nodeInfo.data.inputs) {
                                 this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                             }
+                            this.inintRenderData = this.renderData
                         }
                     } else {
                         errorHandler(this.nodeInfo, this)
@@ -109,6 +112,15 @@
                     } catch (e) {
                         errorHandler(e, this)
                     }
+                }
+            },
+            judgeDataEqual () {
+                let formvalid = true
+                if (this.$refs.renderForm) {
+                    formvalid = this.$refs.renderForm.validate()
+                }
+                if (formvalid) {
+                    return tools.isDataEqual(this.inintRenderData, this.renderData)
                 }
             },
             async onRetryTask () {
