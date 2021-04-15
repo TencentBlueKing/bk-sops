@@ -30,6 +30,7 @@ __all__ = [
     "get_node_callback_url",
     "plat_ip_reg",
     "get_nodeman_job_url",
+    "get_difference_ip_list",
 ]
 
 JOB_APP_CODE = "bk_job"
@@ -202,6 +203,5 @@ def get_difference_ip_list(original_ip_list, ip_list):
     @param ip_list: 查询到的IP列表
     @return:
     """
-    input_ip_list = set(get_ip_by_regex(original_ip_list))
-    difference_ip_list = set(input_ip_list).difference(set(ip_list))
+    difference_ip_list = set(original_ip_list).difference(set(ip_list))
     return difference_ip_list

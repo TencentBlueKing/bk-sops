@@ -43,9 +43,7 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.get_client_by_user"
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.cc_get_ips_info_by_str"
-)
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.base.cc_get_ips_info_by_str"
 
 ENVIRONMENT_VAR_GET = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0."
@@ -128,7 +126,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         name="push_local_files v2.0 manager call fail case",
         inputs={
             "biz_cc_id": "1",
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
@@ -163,7 +161,10 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         schedule_assertion=None,
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "1", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=PUSH_FAIL_MANAGER.push_files_to_ips,
                 calls=[
@@ -202,7 +203,7 @@ def SCHEDULE_FAILURE_CASE():
         name="push_local_files v2 schedule failure case",
         inputs={
             "biz_cc_id": "1",
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
@@ -251,7 +252,10 @@ def SCHEDULE_FAILURE_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "1", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=SCHEDULE_FAILURE_MANAGER.push_files_to_ips,
                 calls=[
@@ -295,7 +299,7 @@ def SUCCESS_MULTI_CASE():
         name="push_local_files multi v2 success case",
         inputs={
             "biz_cc_id": "biz_cc_id",
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
@@ -365,7 +369,10 @@ def SUCCESS_MULTI_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "biz_cc_id", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
                 calls=[

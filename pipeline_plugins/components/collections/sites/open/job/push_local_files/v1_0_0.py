@@ -17,12 +17,10 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job import JobService, get_biz_ip_from_frontend
 from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
-    plat_ip_reg,
 )
 from files.factory import ManagerFactory
 from gcloud.conf import settings
@@ -71,24 +69,12 @@ class JobPushLocalFilesService(JobService):
 
         client = get_client_by_user(executor)
 
-        # 跨业务
-        if across_biz:
-            ip_info = {"ip_result": []}
-            for match in plat_ip_reg.finditer(target_ip_list):
-                if not match:
-                    continue
-                ip_str = match.group()
-                cloud_id, inner_ip = ip_str.split(":")
-                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
-        else:
-            ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
-
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-
-        if not ip_list:
-            data.outputs.ex_data = _("目标ip为空，请确认是否为当前业务IP。如需跨业务上传，请选择'允许跨业务'选项")
+        # filter 跨业务 IP
+        clean_result, ip_list = get_biz_ip_from_frontend(
+            target_ip_list, executor, biz_cc_id, data, self.logger, across_biz
+        )
+        if not clean_result:
             return False
-
         # 这里自动过滤掉上传失败的文件
         file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]
 
