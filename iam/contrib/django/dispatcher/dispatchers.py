@@ -59,11 +59,13 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
 
         self._provider[provider_type] = provider
 
-    def as_view(self, decorators=[]):
+    def as_view(self, decorators=None):
         @csrf_exempt
         def view(request):
             return self._dispatch(request)
 
+        if decorators is None:
+            decorators = []
         for dec in decorators:
             view = dec(view)
 
