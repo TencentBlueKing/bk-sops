@@ -21,4 +21,4 @@ jobs:
               npm install
 
       - name: Run Eslint
-        run: npx eslint .src/ --ext .js,.jsx,.ts,.tsx
+        run: npx eslint --ext .js,.vue src/
