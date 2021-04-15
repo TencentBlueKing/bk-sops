@@ -50,3 +50,4 @@ importlib-metadata==3.7.3
 
 # test
 factory_boy==2.11.1
+mock==2.0.0
