@@ -59,10 +59,7 @@ class JobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"),
-                key="upload_speed_limit",
-                type="string",
-                schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -77,10 +74,7 @@ class JobFastPushFileService(JobScheduleService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),

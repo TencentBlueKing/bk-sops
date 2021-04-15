@@ -92,9 +92,7 @@ class XssHtml(HTMLParser):
 
     def __init__(self, allows=None):
         HTMLParser.__init__(self)
-        if allows is None:
-            allows = []
-        self.allow_tags = allows if allows else self.allow_tags
+        self.allow_tags = self.allow_tags if not allows else allows
         self.result = []
         self.start = []
         self.data = []
@@ -131,7 +129,7 @@ class XssHtml(HTMLParser):
 
         attrs = []
         for (key, value) in attdict.items():
-            attrs.append('{}="{}"'.format(key, self.__htmlspecialchars(value)))
+            attrs.append('%s="%s"' % (key, self.__htmlspecialchars(value)))
         attrs = (" " + " ".join(attrs)) if attrs else ""
         self.result.append("<" + tag + attrs + end_diagonal + ">")
 

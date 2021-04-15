@@ -167,7 +167,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
         if "step_ip_result_list" not in step_instance:
             continue
-        for step_ip_result in step_instance["step_ip_result_list"]:
+        # 为了防止查询时间过长，每个步骤只取一个IP的日志进行记录
+        if step_instance["step_ip_result_list"]:
+            step_ip_result = step_instance["step_ip_result_list"][0]
             get_job_instance_ip_log_kwargs = {
                 "job_instance_id": job_instance_id,
                 "bk_biz_id": bk_biz_id,

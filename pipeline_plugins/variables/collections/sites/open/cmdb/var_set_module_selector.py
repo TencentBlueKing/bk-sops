@@ -44,7 +44,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
         "page": {"start": 0, "limit": 1},
     }
     set_result = client.cc.search_set(set_kwargs)
-    if set_result["result"] and len(set_result["data"]["info"]):
+    if set_result["result"] and set_result["data"]["info"]:
         set_module_info["set_name"] = set_result["data"]["info"][0]["bk_set_name"]
     else:
         err_msg = "调用 cc.search_set 接口获取集群名字失败, kwargs={kwargs}, result={result}".format(
