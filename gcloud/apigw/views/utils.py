@@ -173,10 +173,10 @@ def paginate_list_data(request, queryset):
             results = list_data[offset : offset + limit]
         return results, count
     except ValueError as e:
-        logger.error("[API] pagination value error: {}, request: {}".format(e, request))
+        logger.exception("[API] pagination value error: {}, request: {}".format(e, request))
         return [], 0
     except Exception as e:
-        logger.error(
+        logger.exception(
             "[API] pagination parameter error: {}, request: {}, offset: {}, limit: {}".format(e, request, offset, limit)
         )
         return [], 0
