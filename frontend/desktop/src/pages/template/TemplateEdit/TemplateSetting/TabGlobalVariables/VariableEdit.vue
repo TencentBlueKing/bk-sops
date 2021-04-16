@@ -63,6 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
+                    <div class="variable-type-desc">{{ variableConfig.description }}</div>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
@@ -192,6 +193,7 @@
             const currentValType = isHookedVar ? 'component' : theEditingData.custom_type
 
             return {
+                variableConfig: {},
                 theEditingData,
                 isHookedVar, // 是否为勾选生成的变量
                 currentValType,
@@ -405,13 +407,14 @@
                 }
                 
                 try {
-                    await this.loadAtomConfig({
+                    const result = await this.loadAtomConfig({
                         classify,
                         name: this.atomType,
                         project_id: this.common ? undefined : this.project_id,
                         version,
                         atom
                     })
+                    this.variableConfig = result || {}
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)
@@ -732,6 +735,11 @@
             font-size: 12px;
             color: #ffffff;
             background: #b8b8b8;
+        }
+        .variable-type-desc {
+            margin-left: 80px;
+            font-size: 12px;
+            color: #666;
         }
     }
     .btn-wrap {
