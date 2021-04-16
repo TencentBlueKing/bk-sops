@@ -1328,10 +1328,10 @@
                     this.isShowDialog = false
                     this.isNodeInfoPanelShow = false
                 } else {
-                    const idEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
-                    if (idEqual === true) {
+                    const isEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
+                    if (isEqual === true) {
                         this.isNodeInfoPanelShow = false
-                    } else if (idEqual === false) {
+                    } else if (isEqual === false) {
                         this.isShowDialog = true
                     }
                 }

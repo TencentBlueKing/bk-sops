@@ -359,10 +359,10 @@
             },
             onCloseEditScheme () {
                 const editScheme = this.$refs.editScheme
-                const idEqual = editScheme.judgeDataEqual()
-                if (idEqual === true) {
+                const isEqual = editScheme.judgeDataEqual()
+                if (isEqual === true) {
                     this.isEditSchemeShow = false
-                } else if (idEqual === false) {
+                } else if (isEqual === false) {
                     this.isShowDialog = true
                 }
             },
