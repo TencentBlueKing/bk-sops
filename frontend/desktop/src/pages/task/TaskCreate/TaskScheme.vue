@@ -29,6 +29,7 @@
                             name="schemaName"
                             class="bk-input-inline"
                             :clearable="true"
+                            @blur="handlerBlur"
                             @keyup.enter.native="onAddScheme"
                             :placeholder="$t('方案名称')">
                         </bk-input>
@@ -216,6 +217,12 @@
                         this.$refs.nameInput.focus()
                     })
                 }
+            },
+            /**
+             * 添加方案输入框失焦事件
+             */
+            handlerBlur () {
+                this.nameEditing = this.schemaName.trim() !== ''
             },
             /**
              * 添加方案
