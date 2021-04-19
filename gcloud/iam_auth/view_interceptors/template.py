@@ -43,6 +43,37 @@ class FormInterceptor(ViewInterceptor):
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
 
 
+class BatchFormInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        data = request.data
+        template_list = data["templates"]
+
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.FLOW_VIEW_ACTION)
+        resources_list = res_factory.resources_list_for_flows([template["id"] for template in template_list])
+
+        if not resources_list:
+            return
+
+        resources_map = {}
+        for resources in resources_list:
+            resources_map[resources[0].id] = resources
+
+        request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+        result = iam.batch_is_allowed(request, resources_list)
+
+        if not result:
+            raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources_list)
+
+        not_allowed_list = []
+        for tid, allow in result.items():
+            if not allow:
+                not_allowed_list.append(resources_map[tid])
+
+        if not_allowed_list:
+            raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
+
+
 class ExportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
 

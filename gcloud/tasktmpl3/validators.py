@@ -29,6 +29,21 @@ class FormValidator(RequestValidator):
         return True, ""
 
 
+class BatchFormValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        data = request.data
+
+        template_list = data.get("templates")
+
+        if not isinstance(template_list, list):
+            return False, "invalid template_list"
+
+        if not template_list:
+            return False, "template_id_list can not be empty"
+
+        return True, ""
+
+
 class ExportValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
         try:

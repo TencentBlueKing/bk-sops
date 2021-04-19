@@ -17,6 +17,7 @@ from gcloud.tasktmpl3 import api
 
 urlpatterns = [
     url(r"^api/form/(?P<project_id>\d+)/$", api.form),
+    url(r"^api/batch_form/(?P<project_id>\d+)/$", api.batch_form),
     url(r"^api/export/(?P<project_id>\d+)/$", api.export_templates),
     url(r"^api/import/(?P<project_id>\d+)/$", api.import_templates),
     url(r"^api/import_check/(?P<project_id>\d+)/$", api.check_before_import),
