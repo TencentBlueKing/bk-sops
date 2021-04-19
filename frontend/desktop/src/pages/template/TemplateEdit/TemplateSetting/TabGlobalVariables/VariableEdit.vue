@@ -374,6 +374,13 @@
                             listData[2].children.push(item)
                         }
                     })
+                    listData.some(group => {
+                        const option = group.children.find(item => item.code === this.currentValType)
+                        if (option) {
+                            this.variableConfig = option
+                            return true
+                        }
+                    })
                     this.varTypeList = listData
                 } catch (e) {
                     errorHandler(e, this)
@@ -407,14 +414,13 @@
                 }
                 
                 try {
-                    const result = await this.loadAtomConfig({
+                    await this.loadAtomConfig({
                         classify,
                         name: this.atomType,
                         project_id: this.common ? undefined : this.project_id,
                         version,
                         atom
                     })
-                    this.variableConfig = result || {}
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)

@@ -146,7 +146,6 @@ const atomForm = {
             }
             return axios.get(url, { params }).then(async response => {
                 const {
-                    description,
                     output: outputData,
                     form: inputForm,
                     form_is_embedded: isInputFormEmbedded,
@@ -155,7 +154,6 @@ const atomForm = {
                     base
                 } = response.data
                 const result = {
-                    description,
                     input: [],
                     output: [],
                     isRenderOutputForm: !!outputForm
