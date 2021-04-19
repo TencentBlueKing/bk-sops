@@ -178,6 +178,22 @@ class VarCmdbSetAllocation(LazyVariable):
     type = "general"
     tag = "var_cmdb_resource_allocation.set_allocation"
     form = "%svariables/cmdb/var_cmdb_resource_allocation.js" % settings.STATIC_URL
+    desc = """
+    此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）
+    引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}
+    引用${KEY._module}，返回的是集群下的模块信息，类型为字典，键为模块名，值为模块下的主机列
+    引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表
+    如：
+    获取集群的名称列表: ${KEY.bk_set_name}
+    获取集群环境类型: ${KEY.bk_set_env}
+    引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接
+    如：
+    获取集群的名称值: ${KEY.flat__bk_set_name}
+    获取集群环境类型值: ${KEY.flat__bk_set_env}
+    引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接
+    引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接
+    引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接
+    """
 
     def get_value(self):
         """
