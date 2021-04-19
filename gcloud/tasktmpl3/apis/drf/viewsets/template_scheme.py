@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -56,6 +57,12 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
+    @swagger_auto_schema(
+        method="post",
+        operation_summary="执行方案批量更新",
+        request_body=ParamsSerializer,
+        responses={200: TemplateSchemeSerializer(many=True)},
+    )
     @action(methods=["post"], detail=False)
     def batch_operate(self, request, *args, **kwargs):
         validated_data = self.get_serializer_params_data(request)

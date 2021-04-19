@@ -29,12 +29,12 @@ class LabelManager(models.Manager):
 
 
 class Label(models.Model):
-    name = models.CharField(_("标签名称"), max_length=255, db_index=True)
-    creator = models.CharField(_("创建者"), max_length=255)
-    project_id = models.IntegerField(_("项目 ID"), default=-1)  # project_id=-1为默认标签
-    is_default = models.BooleanField(_("默认标签"), default=False)
-    color = models.CharField(_("标签颜色"), max_length=7, default="#dcffe2")
-    description = models.CharField(_("标签描述"), max_length=255, blank=True, null=True)
+    name = models.CharField(_("标签名称"), max_length=255, db_index=True, help_text="标签名称")
+    creator = models.CharField(_("创建者"), max_length=255, help_text="标签创建人")
+    project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="标签对应project id")  # 默认标签时project_id=-1
+    is_default = models.BooleanField(_("默认标签"), default=False, help_text="是否是默认标签")
+    color = models.CharField(_("标签颜色"), max_length=7, default="#dcffe2", help_text="标签颜色值")
+    description = models.CharField(_("标签描述"), max_length=255, blank=True, null=True, help_text="标签描述")
 
     objects = LabelManager()
 
