@@ -40,6 +40,7 @@ class VarIpPickerVariable(LazyVariable):
     type = "dynamic"
     tag = "var_ip_picker.ip_picker"
     form = "%svariables/cmdb/var_ip_picker.js" % settings.STATIC_URL
+    desc = "该变量已废弃，请替换为新版 IP 选择器"
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
@@ -98,6 +99,15 @@ class VarCmdbIpSelector(LazyVariable):
     type = "dynamic"
     tag = "var_cmdb_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_cmdb_ip_selector.js" % settings.STATIC_URL
+    desc = """
+    输出格式为选中 IP 以 ',' 分隔的字符串
+    筛选条件和排除条件为 AND 关系
+    - 筛选：会从IP列表中筛选出符合条件的IP
+    - 排除：会从IP列表中去除符合条件的IP
+    变量值是否带云区域
+    - 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}
+    - 否，返回格式为{ip},{ip}
+    """
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
@@ -187,6 +197,11 @@ class VarCmdbAttributeQuery(LazyVariable):
     type = "dynamic"
     tag = "var_cmdb_attr_query.attr_query"
     form = "%svariables/cmdb/var_cmdb_attribute_query.js" % settings.STATIC_URL
+    desc = """
+    输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）
+    例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID
+    更多可使用的主机属性请在 CMDB 主机模型页面查阅
+    """
 
     def get_value(self):
         """

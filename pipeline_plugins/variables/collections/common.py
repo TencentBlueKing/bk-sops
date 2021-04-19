@@ -56,6 +56,7 @@ class Datetime(CommonPlainVariable):
     tag = "datetime.datetime"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("日期时间变量"))
+    desc = "输出格式: 2000-04-19 14:45:16"
 
 
 class Int(CommonPlainVariable):
@@ -74,6 +75,7 @@ class Password(LazyVariable):
     tag = "password.password"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("密码变量"))
+    desc = "请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用"
 
     def get_value(self):
         return self.value
@@ -87,6 +89,7 @@ class Select(LazyVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
+    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
 
     def get_value(self):
         # multiple select
@@ -161,6 +164,7 @@ class Date(CommonPlainVariable):
     tag = "date.date"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("日期变量"))
+    desc = "输出格式: 2000-04-19"
 
 
 class Time(LazyVariable):
@@ -170,6 +174,7 @@ class Time(LazyVariable):
     tag = "time.time"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("时间变量"))
+    desc = "输出格式: 14:45"
 
     def get_value(self):
         """
@@ -184,6 +189,7 @@ class StaffGroupSelector(LazyVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
+    desc = "输出格式为选中人员用户名以 ',' 拼接的字符串"
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
