@@ -114,20 +114,14 @@
                 }
             },
             judgeDataEqual () {
-                let formvalid = true
-                if (this.$refs.renderForm) {
-                    formvalid = this.$refs.renderForm.validate()
-                }
-                if (formvalid) {
-                    return tools.isDataEqual(this.inintRenderData, this.renderData)
-                }
+                return tools.isDataEqual(this.inintRenderData, this.renderData)
             },
             async onModifyTime () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.modifyTimeLoading) return
+                if (!formvalid || this.modifyTimeLoading) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
@@ -145,6 +139,7 @@
                             message: i18n.t('修改成功'),
                             theme: 'success'
                         })
+                        return true
                     } else {
                         errorHandler(res, this)
                     }

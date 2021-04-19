@@ -188,6 +188,8 @@
                 const formvalid = this.validate()
                 if (formvalid) {
                     return tools.isDataEqual(this.inintRenderData, this.renderData)
+                } else {
+                    return false
                 }
             },
             async getVariableData () {

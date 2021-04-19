@@ -360,20 +360,26 @@
             onCloseEditScheme () {
                 const editScheme = this.$refs.editScheme
                 const isEqual = editScheme.judgeDataEqual()
-                if (isEqual === true) {
+                if (isEqual) {
                     this.isEditSchemeShow = false
-                } else if (isEqual === false) {
+                } else {
                     this.isShowDialog = true
                 }
             },
             onConfirmClick () {
                 this.isSaveLoading = true
-                const editScheme = this.$refs.editScheme
-                const selectedNodes = editScheme.orderedNodeData.filter(item => !editScheme.excludeNodes.includes(item.id)).map(item => item.id)
-                this.$emit('importTextScheme', selectedNodes)
-                this.isShowDialog = false
-                this.isEditSchemeShow = false
-                this.isSaveLoading = false
+                try {
+                    const editScheme = this.$refs.editScheme
+                    editScheme.onSaveScheme()
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                    if (!editScheme.errorMsg) {
+                        this.isEditSchemeShow = false
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isSaveLoading = false
+                }
             },
             onCancelClick () {
                 this.isShowDialog = false

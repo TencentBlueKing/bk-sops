@@ -121,9 +121,7 @@
                 if (!this.paramsCanBeModify) {
                     return true
                 }
-                if (this.$refs.TaskParamEdit) {
-                    return this.$refs.TaskParamEdit.judgeDataEqual()
-                }
+                return this.$refs.TaskParamEdit.judgeDataEqual()
             },
             async onModifyParams () {
                 if (!this.hasSavePermission) {
@@ -149,7 +147,7 @@
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
-                    if (!formValid) return
+                    if (!formValid) return false
                     const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         formData[key] = variables[key].value
@@ -168,6 +166,7 @@
                             theme: 'success'
                         })
                         this.$emit('packUp')
+                        return true
                     } else {
                         errorHandler(res, this)
                     }

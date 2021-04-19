@@ -1219,6 +1219,7 @@
                 this.isSaveLoading = true
                 try {
                     await this.$refs.conditionEdit.confirm()
+                    this.isSaveLoading = false
                     this.isShowDialog = false
                 } catch (error) {
                     this.isSaveLoading = false

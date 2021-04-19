@@ -53,10 +53,11 @@
             orderedNodeData: Array
         },
         data () {
+            const orderedNodeData = this.transformToText(this.orderedNodeData)
             return {
                 excludeNodes: [],
-                schemeText: this.transformToText(this.orderedNodeData),
-                initSchemeText: this.transformToText(this.orderedNodeData),
+                schemeText: orderedNodeData,
+                initSchemeText: orderedNodeData,
                 errorMsg: ''
             }
         },
@@ -71,10 +72,7 @@
                 return text
             },
             judgeDataEqual () {
-                this.updateSelected()
-                if (!this.errorMsg) {
-                    return this.initSchemeText.trim() === this.schemeText.trim()
-                }
+                return this.initSchemeText.trim() === this.schemeText.trim()
             },
             updateSelected () {
                 this.errorMsg = ''

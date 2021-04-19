@@ -1338,18 +1338,26 @@
             },
             async onConfirmClick () {
                 this.isSaveLoading = true
-                if (this.nodeInfoType === 'modifyParams') {
-                    await this.$refs.modifyParams.onModifyParams()
+                try {
+                    let result = true
+                    if (this.nodeInfoType === 'modifyParams') {
+                        result = await this.$refs.modifyParams.onModifyParams()
+                    }
+                    if (this.nodeInfoType === 'modifyTime') {
+                        result = await this.$refs.modifyTime.onModifyTime()
+                    }
+                    if (this.nodeInfoType === 'retryNode') {
+                        result = await this.$refs.retryNode.onRetryTask()
+                    }
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                    if (result) {
+                        this.isNodeInfoPanelShow = false
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isSaveLoading = false
                 }
-                if (this.nodeInfoType === 'modifyTime') {
-                    await this.$refs.modifyTime.onModifyTime()
-                }
-                if (this.nodeInfoType === 'retryNode') {
-                    await this.$refs.retryNode.onRetryTask()
-                }
-                this.isShowDialog = false
-                this.isNodeInfoPanelShow = false
-                this.isSaveLoading = false
             },
             onCancelClick () {
                 this.isShowDialog = false

@@ -115,20 +115,14 @@
                 }
             },
             judgeDataEqual () {
-                let formvalid = true
-                if (this.$refs.renderForm) {
-                    formvalid = this.$refs.renderForm.validate()
-                }
-                if (formvalid) {
-                    return tools.isDataEqual(this.inintRenderData, this.renderData)
-                }
+                return tools.isDataEqual(this.inintRenderData, this.renderData)
             },
             async onRetryTask () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.retrying) return
+                if (!formvalid || this.retrying) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
@@ -146,6 +140,7 @@
                             theme: 'success'
                         })
                         this.$emit('retrySuccess', node_id)
+                        return true
                     } else {
                         errorHandler(res, this)
                     }
