@@ -30,6 +30,13 @@ iam = get_iam_client()
 
 
 class LabelViewSet(ApiMixin, ModelViewSet):
+    """
+    流程标签相关接口
+
+    delete: 标签删除接口，不允许删除默认标签
+    update: 标签修改接口，不允许修改默认标签
+    """
+
     queryset = Label.objects.all()
     serializer_class = LabelSerializer
     permission_classes = [permissions.IsAuthenticated]
