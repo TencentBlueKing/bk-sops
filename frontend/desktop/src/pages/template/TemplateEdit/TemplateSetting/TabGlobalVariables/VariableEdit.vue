@@ -65,7 +65,7 @@
                     </div>
                 </div>
                 <!-- 验证规则 -->
-                <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
+                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -520,7 +520,7 @@
                 })
                 this.renderData = {}
                 // input 类型需要正则校验
-                if (val === 'input') {
+                if (['input', 'textarea'].includes(val)) {
                     this.theEditingData.validation = '^.+$'
                 } else {
                     this.theEditingData.validation = ''
