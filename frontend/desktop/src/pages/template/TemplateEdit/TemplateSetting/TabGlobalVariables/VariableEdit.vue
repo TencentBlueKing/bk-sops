@@ -193,7 +193,6 @@
             const currentValType = isHookedVar ? 'component' : theEditingData.custom_type
 
             return {
-                variableConfig: {},
                 theEditingData,
                 isHookedVar, // 是否为勾选生成的变量
                 currentValType,
@@ -289,6 +288,18 @@
                     delete rule.max
                 }
                 return rule
+            },
+            // 当前选中类型变量配置内容
+            variableConfig () {
+                let data
+                this.varTypeList.some(group => {
+                    const option = group.children.find(item => item.code === this.currentValType)
+                    if (option) {
+                        data = option
+                        return true
+                    }
+                })
+                return data
             }
         },
         created () {
@@ -372,13 +383,6 @@
                             listData[1].children.push(item)
                         } else {
                             listData[2].children.push(item)
-                        }
-                    })
-                    listData.some(group => {
-                        const option = group.children.find(item => item.code === this.currentValType)
-                        if (option) {
-                            this.variableConfig = option
-                            return true
                         }
                     })
                     this.varTypeList = listData
