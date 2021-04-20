@@ -56,4 +56,7 @@ class StartTaskAPITest(APITest):
 
             data = json.loads(response.content)
 
+            if "trace_id" in data:
+                data.pop("trace_id")
+
             self.assertEqual(data, assert_return)
