@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
+import copy
 import logging
 import datetime
 
@@ -83,7 +84,8 @@ def produce_filter(filters):
 def format_create_and_finish_time(filters):
     create_time = timestamp_to_datetime(
         filters.get(
-            "create_time", datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
+            "create_time",
+            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
         )
     )
     finish_time = timestamp_to_datetime(filters.get("finish_time", datetime.datetime.now().timestamp()))
@@ -103,8 +105,11 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     if filters is None:
         filters = {}
 
-    orm_filters = produce_filter(filters)
-    format_create_and_finish_time(filters)
+    filters_no_version = copy.deepcopy(produce_filter(filters))
+    if "version" in filters_no_version:
+        filters_no_version.pop("version")
+    orm_filters = produce_filter(filters_no_version)
+    format_create_and_finish_time(filters_no_version)
 
     try:
         taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
