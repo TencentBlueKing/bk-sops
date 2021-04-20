@@ -10,13 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import logging
 import traceback
 import uuid
 
 import pytz
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
@@ -76,4 +75,6 @@ class TraceIDInjectMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         delattr(local, "trace_id")
+        if isinstance(response, HttpResponse) and response["Content-Type"] == "application/json":
+            response.setdefault("Sops-Trace-Id", request.trace_id)
         return response

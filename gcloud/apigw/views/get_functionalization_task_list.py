@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -65,5 +64,5 @@ def get_functionalization_task_list(request):
     function_tasks, count = paginate_list_data(request, function_tasks)
     data = format_function_task_list_data(function_tasks)
 
-    response = JsonResponse({"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code})
+    response = {"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code}
     return response

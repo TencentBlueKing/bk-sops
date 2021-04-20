@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -44,4 +43,4 @@ def start_task(request, task_id, project_id):
     project = request.project
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
     ctx = task.task_action("start", username)
-    return JsonResponse({"task_url": task.url, **ctx})
+    return {"task_url": task.url, **ctx}

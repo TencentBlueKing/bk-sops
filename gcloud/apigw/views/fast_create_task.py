@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -70,9 +69,7 @@ def fast_create_task(request, project_id):
             "description": params.get("description", ""),
         }
     except (KeyError, ValueError) as e:
-        return JsonResponse(
-            {"result": False, "message": "invalid params: %s" % str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid params: %s" % str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
 
     has_common_subprocess = params.get("has_common_subprocess", False)
     try:
@@ -85,7 +82,7 @@ def fast_create_task(request, project_id):
     except PipelineException as e:
         message = "[API] fast_create_task create pipeline error: %s" % str(e)
         logger.exception(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
     taskflow_kwargs = {
         "project": project,
@@ -104,10 +101,8 @@ def fast_create_task(request, project_id):
         taskflow_kwargs["flow_type"] = "common"
         taskflow_kwargs["current_flow"] = "execute_task"
     task = TaskFlowInstance.objects.create(**taskflow_kwargs)
-    return JsonResponse(
-        {
-            "result": True,
-            "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
-            "code": err_code.SUCCESS.code,
-        }
-    )
+    return {
+        "result": True,
+        "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
+        "code": err_code.SUCCESS.code,
+    }

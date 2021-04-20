@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -45,12 +44,10 @@ def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
     action = params.get("action")
     username = request.user.username
     project = request.project
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     ctx = task.task_action(action, username)
-    return JsonResponse(ctx)
+    return ctx
