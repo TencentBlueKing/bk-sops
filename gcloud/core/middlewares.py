@@ -75,6 +75,10 @@ class TraceIDInjectMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         delattr(local, "trace_id")
-        if isinstance(response, HttpResponse) and response["Content-Type"] == "application/json":
+        if (
+            isinstance(response, HttpResponse)
+            and response["Content-Type"] == "application/json"
+            and hasattr(request, "trace_id")
+        ):
             response.setdefault("Sops-Trace-Id", request.trace_id)
         return response
