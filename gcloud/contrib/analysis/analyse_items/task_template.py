@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
+import copy
 import logging
 import datetime
 
@@ -77,6 +78,10 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     """
     if filters is None:
         filters = {}
+    component_filters = copy.deepcopy(filters)
+    if "version" in filters:
+        filters.pop("version")
+
     orm_filters = produce_filter(filters)
     try:
         tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
@@ -93,7 +98,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         if not result:
             return False, message
     else:
-        total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, filters, page, limit)
+        total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, component_filters, page, limit)
 
     data = {"total": total, "groups": groups}
     return True, data
