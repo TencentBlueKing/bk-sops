@@ -357,6 +357,8 @@ def node_callback(request, token):
     """
     old callback view, handle pipeline callback
     """
+    logger.info("[old_node_callback]callback body for token({}): {}".format(token, request.body))
+
     try:
         f = Fernet(settings.CALLBACK_KEY)
         node_id = f.decrypt(bytes(token, encoding="utf8")).decode()
@@ -366,8 +368,8 @@ def node_callback(request, token):
 
     try:
         callback_data = json.loads(request.body)
-    except Exception as e:
-        logger.warning("node callback error: %s" % traceback.format_exc(e))
+    except Exception:
+        logger.warning("node callback error: %s" % traceback.format_exc())
         return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
 
     # 老的回调接口，一定是老引擎的接口
@@ -375,6 +377,7 @@ def node_callback(request, token):
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
+    callback_result = None
     for i in range(3):
         callback_result = dispatcher.dispatch(command="callback", operator="", data=callback_data)
         logger.info("result of callback call({}): {}".format(token, callback_result))

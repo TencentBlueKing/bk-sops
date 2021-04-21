@@ -32,6 +32,8 @@ logger = logging.getLogger("root")
 @csrf_exempt
 @require_POST
 def node_callback(request, token):
+    logger.info("[node_callback]callback body for token({}): {}".format(token, request.body))
+
     try:
         f = Fernet(settings.CALLBACK_KEY)
         back_load = f.decrypt(bytes(token, encoding="utf8")).decode().split(":")
@@ -42,8 +44,8 @@ def node_callback(request, token):
 
     try:
         callback_data = json.loads(request.body)
-    except Exception as e:
-        logger.warning("node callback error: %s" % traceback.format_exc(e))
+    except Exception:
+        logger.warning("node callback error: %s" % traceback.format_exc())
         return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
