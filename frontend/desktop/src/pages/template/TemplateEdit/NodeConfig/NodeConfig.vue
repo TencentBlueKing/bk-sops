@@ -581,7 +581,7 @@
                     return {
                         version: item.version
                     }
-                })
+                }).reverse()
             },
             /**
              * 获取子流程任务节点输入参数值，有三种情况：
