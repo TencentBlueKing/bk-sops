@@ -741,10 +741,7 @@
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
                 data.objects.forEach(item => {
                     // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone') {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    } else if (item.id !== Number(this.template_id)) {
+                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
                         item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
                         list.push(item)
                     }
