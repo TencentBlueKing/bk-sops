@@ -369,6 +369,7 @@ def get_task_create_method(request):
 @csrf_exempt
 @require_POST
 def node_callback(request, token):
+    logger.info("[node_callback]callback body for token({}): {}".format(token, request.body))
     try:
         f = Fernet(settings.CALLBACK_KEY)
         node_id = f.decrypt(bytes(token, encoding="utf8")).decode()
