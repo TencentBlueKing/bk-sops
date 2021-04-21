@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
+import copy
 import logging
 import datetime
 
@@ -83,7 +84,8 @@ def produce_filter(filters):
 def format_create_and_finish_time(filters):
     create_time = timestamp_to_datetime(
         filters.get(
-            "create_time", datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
+            "create_time",
+            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
         )
     )
     finish_time = timestamp_to_datetime(filters.get("finish_time", datetime.datetime.now().timestamp()))
@@ -102,6 +104,9 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     """
     if filters is None:
         filters = {}
+    component_filters = copy.deepcopy(filters)
+    if "version" in filters:
+        filters.pop("version")
 
     orm_filters = produce_filter(filters)
     format_create_and_finish_time(filters)
@@ -121,7 +126,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         if not result:
             return False, message
     else:
-        total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, filters, page, limit)
+        total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, component_filters, page, limit)
 
     data = {"total": total, "groups": groups}
     return True, data
