@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -43,6 +42,6 @@ def get_common_template_info(request, template_id):
             "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
-        return JsonResponse(result)
+        return result
 
-    return JsonResponse({"result": True, "data": format_template_data(template=tmpl), "code": err_code.SUCCESS.code})
+    return {"result": True, "data": format_template_data(template=tmpl), "code": err_code.SUCCESS.code}

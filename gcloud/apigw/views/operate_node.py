@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -45,13 +44,11 @@ def operate_node(request, project_id, task_id):
     try:
         req_data = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "request body is not a valid json",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "request body is not a valid json",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     username = request.user.username
     node_id = req_data.get("node_id")
@@ -59,23 +56,19 @@ def operate_node(request, project_id, task_id):
 
     data = req_data.get("data", {})
     if not isinstance(data, dict):
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "data field is not a valid object",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "data field is not a valid object",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     inputs = req_data.get("inputs", {})
     if not isinstance(inputs, dict):
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "inputs field is not a valid object",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "inputs field is not a valid object",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     kwargs = {
         "data": data,
@@ -85,4 +78,4 @@ def operate_node(request, project_id, task_id):
     task = TaskFlowInstance.objects.get(pk=task_id)
     result = task.nodes_action(action, node_id, username, **kwargs)
     result["code"] = err_code.SUCCESS.code if result["result"] else err_code.UNKNOWN_ERROR.code
-    return JsonResponse(result)
+    return result

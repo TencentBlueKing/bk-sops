@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from cachetools import TTLCache
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -56,7 +55,7 @@ def get_task_detail(request, task_id, project_id):
             )
         )
         logger.exception(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+        return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     data = task.get_task_detail()
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
