@@ -108,12 +108,14 @@ class AnnotationAutoSchema(SwaggerAutoSchema):
                 response_name = match_return["return_desc"]
                 collecting_response_lines = True
                 continue
+
             # 处理body参数情况
             match_body = self.body_regex.match(line)
             if match_body:
                 body_name = match_body["body_name"] or "data"
                 collecting_body_lines = True
                 continue
+
             if collecting_response_lines:
                 response_lines.append(line.strip())
             if collecting_body_lines:
