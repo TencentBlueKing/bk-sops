@@ -492,7 +492,7 @@
                     formItemConfig.tag_code = key
                     formItemConfig.attrs.name = variable.name
                     // 自定义输入框变量正则校验添加到插件配置项
-                    if (variable.custom_type === 'input' && variable.validation !== '') {
+                    if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
                         formItemConfig.attrs.validation.push({
                             type: 'regex',
                             args: variable.validation,
