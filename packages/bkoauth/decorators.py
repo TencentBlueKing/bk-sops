@@ -40,8 +40,9 @@ def apigw_required(view_func):
         result = view_func(request, *args, **kwargs)
 
         # 如果返回的是dict且request中有trace_id，则在响应中加上
-        if isinstance(result, dict) and hasattr(request, "trace_id"):
-            result["trace_id"] = request.trace_id
+        if isinstance(result, dict):
+            if hasattr(request, "trace_id"):
+                result["trace_id"] = request.trace_id
             result = JsonResponse(result)
         return result
 
