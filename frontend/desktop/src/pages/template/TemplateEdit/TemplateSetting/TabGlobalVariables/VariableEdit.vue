@@ -63,6 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
+                    <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
@@ -287,6 +288,18 @@
                     delete rule.max
                 }
                 return rule
+            },
+            // 当前选中类型变量配置描述
+            variableDesc () {
+                let desc = ''
+                this.varTypeList.some(group => {
+                    const option = group.children.find(item => item.code === this.currentValType)
+                    if (option) {
+                        desc = option.description
+                        return true
+                    }
+                })
+                return desc
             }
         },
         created () {
@@ -732,6 +745,11 @@
             font-size: 12px;
             color: #ffffff;
             background: #b8b8b8;
+        }
+        .variable-type-desc {
+            margin-left: 80px;
+            font-size: 12px;
+            color: #666;
         }
     }
     .btn-wrap {
