@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from cachetools import TTLCache
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -57,7 +56,7 @@ def get_task_status(request, task_id, project_id):
                 "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
-            return JsonResponse(result)
+            return result
     else:
         # request subprocess
         try:
@@ -84,7 +83,7 @@ def get_task_status(request, task_id, project_id):
                 "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
-            return JsonResponse(result)
+            return result
 
     # 返回失败节点和对应调试信息
     if with_ex_data and task_status["state"] == states.FAILED:
@@ -103,4 +102,4 @@ def get_task_status(request, task_id, project_id):
         for node_id in failed_nodes:
             task_status["ex_data"].update({node_id: failed_nodes_outputs[node_id]["ex_data"]})
     result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
-    return JsonResponse(result)
+    return result

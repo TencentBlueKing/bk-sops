@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import os
 from functools import wraps
 
+from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
 from .jwt_client import JWTClient, jwt_invalid_view
@@ -36,6 +37,13 @@ def apigw_required(view_func):
             if not request.jwt.is_valid:
                 return jwt_invalid_view(request)
 
-        return view_func(request, *args, **kwargs)
+        result = view_func(request, *args, **kwargs)
+
+        # 如果返回的是dict且request中有trace_id，则在响应中加上
+        if isinstance(result, dict):
+            if hasattr(request, "trace_id"):
+                result["trace_id"] = request.trace_id
+            result = JsonResponse(result)
+        return result
 
     return _wrapped_view

@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from cachetools import cached, TTLCache
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
@@ -46,19 +45,15 @@ def get_tasks_status(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "request body is not a valid json",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "request body is not a valid json",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     task_ids = params.get("task_id_list", [])
     if not isinstance(task_ids, list):
-        return JsonResponse(
-            {"result": False, "message": "task_id_list must be a list", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "task_id_list must be a list", "code": err_code.REQUEST_PARAM_INVALID.code}
     include_children_status = params.get("include_children_status", False)
 
     tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project__id=request.project.id)
@@ -85,4 +80,4 @@ def get_tasks_status(request, project_id):
             }
         )
 
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}

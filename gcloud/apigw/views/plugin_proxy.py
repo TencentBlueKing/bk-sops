@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 from urllib.parse import urlsplit
 
 import ujson as json
-from django.http import JsonResponse
 from django.test import RequestFactory
 from django.urls import resolve, Resolver404
 from django.views.decorators.csrf import csrf_exempt
@@ -37,27 +36,27 @@ except ImportError:
 @mark_request_whether_is_trust
 def dispatch_plugin_query(request):
     """
-        转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
-        body = {
-            "url": 被转发资源请求url, 比如：/pipeline/job_get_script_list/4/?type=public
-            "method": 'GET|POST',
-            "data": data, POST请求的数据
-        }
+    转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
+    body = {
+        "url": 被转发资源请求url, 比如：/pipeline/job_get_script_list/4/?type=public
+        "method": 'GET|POST',
+        "data": data, POST请求的数据
+    }
     """
 
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code,
-        })
+        return {
+            "result": False,
+            "message": "invalid json format",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     # proxy: url/method/data
-    url = params.get('url')
-    method = params.get('method', 'GET')
-    data = params.get('data', {})
+    url = params.get("url")
+    method = params.get("method", "GET")
+    data = params.get("data", {})
 
     try:
         parsed = urlsplit(url)
@@ -65,15 +64,13 @@ def dispatch_plugin_query(request):
         if method.lower() == "get":
             fake_request = RequestFactory().get(url, content_type="application/json")
         elif method.lower() == "post":
-            fake_request = RequestFactory().post(
-                url, data=data, content_type="application/json"
-            )
+            fake_request = RequestFactory().post(url, data=data, content_type="application/json")
         else:
-            return JsonResponse({
-                'result': False,
-                'code': err_code.INVALID_OPERATION.code,
-                'message': 'dispatch_plugin_query: only support get and post method.'
-            })
+            return {
+                "result": False,
+                "code": err_code.INVALID_OPERATION.code,
+                "message": "dispatch_plugin_query: only support get and post method.",
+            }
 
         # transfer request.user
         setattr(fake_request, "user", request.user)
@@ -86,17 +83,17 @@ def dispatch_plugin_query(request):
         return view_func(fake_request, **kwargs)
 
     except Resolver404:
-        logger.warning('dispatch_plugin_query: resolve view func 404 for: {}'.format(url))
-        return JsonResponse({
-            'result': False,
-            'code': err_code.REQUEST_PARAM_INVALID.code,
-            'message': 'dispatch_plugin_query: resolve view func 404 for: {}'.format(url)
-        })
+        logger.warning("dispatch_plugin_query: resolve view func 404 for: {}".format(url))
+        return {
+            "result": False,
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+            "message": "dispatch_plugin_query: resolve view func 404 for: {}".format(url),
+        }
 
     except Exception as e:
-        logger.error('dispatch_plugin_query: exception for {}'.format(e))
-        return JsonResponse({
-            'result': False,
-            'message': 'dispatch_plugin_query: exception for {}'.format(e),
-            'code': err_code.UNKNOWN_ERROR.code
-        })
+        logger.error("dispatch_plugin_query: exception for {}".format(e))
+        return {
+            "result": False,
+            "message": "dispatch_plugin_query: exception for {}".format(e),
+            "code": err_code.UNKNOWN_ERROR.code,
+        }

@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from cachetools import TTLCache, cached
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -57,4 +56,4 @@ def get_plugin_list(request, project_id):
             }
         )
 
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}

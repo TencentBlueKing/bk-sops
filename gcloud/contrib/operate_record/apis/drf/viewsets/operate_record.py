@@ -22,7 +22,7 @@ from gcloud.contrib.operate_record.apis.drf.serilaziers.operate_record import (
 
 
 class TaskOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = TaskOperateRecord.objects.all().order_by("operate_date")
+    queryset = TaskOperateRecord.objects.all().order_by("-operate_date")
     serializer_class = TaskOperateRecordSetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -42,7 +42,7 @@ class TaskOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class TemplateOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = TemplateOperateRecord.objects.all().order_by("operate_date")
+    queryset = TemplateOperateRecord.objects.all().order_by("-operate_date")
     serializer_class = TemplateOperateRecordSetSerializer
     permission_classes = [permissions.IsAuthenticated]
 

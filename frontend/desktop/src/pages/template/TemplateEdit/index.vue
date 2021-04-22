@@ -1169,7 +1169,11 @@
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
                         if (this.isExecuteScheme) {
-                            this.isExectueSchemeDialog = true
+                            if (this.isTemplateDataChanged) {
+                                this.isExectueSchemeDialog = true
+                            } else {
+                                this.isEditProcessPage = false
+                            }
                         } else {
                             this.saveTemplate()
                         }
