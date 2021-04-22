@@ -101,7 +101,7 @@
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
-                            v-model="theEditingData.preRenderMako"
+                            v-model="theEditingData.pre_render_mako"
                             :clearable="false">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
@@ -303,12 +303,16 @@
             }
         },
         created () {
-            // 设置模板预渲染默认值（兼容以前存在的模板）
+            /**
+             * 设置模板预渲染默认值（兼容以前存在的模板）
+             * 预渲染功能发布后新建变量时，预渲染默认为false
+             * 发布前用户不主动去修改变量，则不需要做处理
+             */
             const variableData = this.variableData
             if (variableData.hasOwnProperty('pre_render_mako')) {
-                this.theEditingData.preRenderMako = String(variableData.pre_render_mako)
-            } else if (variableData.show_type === 'hide') {
-                this.theEditingData.preRenderMako = 'true'
+                this.theEditingData.pre_render_mako = String(variableData.pre_render_mako)
+            } else if (!variableData.key) {
+                this.theEditingData.pre_render_mako = 'false'
             }
             this.extendFormValidate()
         },
@@ -566,6 +570,11 @@
              */
             onToggleShowType (showType, data) {
                 this.theEditingData.show_type = showType
+                // 预渲染功能发布前的模板主动修改变量的【显示类型】，预渲染默认值为false
+                const variableData = this.variableData
+                if (!variableData.hasOwnProperty('pre_render_mako')) {
+                    this.theEditingData.pre_render_mako = 'false'
+                }
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
@@ -611,8 +620,8 @@
                         return false
                     }
 
-                    if (this.theEditingData.preRenderMako) {
-                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.preRenderMako)
+                    if (this.theEditingData.pre_render_mako) {
+                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
                     }
                     const variable = this.theEditingData
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
