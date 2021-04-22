@@ -573,7 +573,7 @@
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
-                    this.theExecuteTime = 1
+                    this.theExecuteTime = undefined
                     this.loadNodeInfo()
                 }
             }
