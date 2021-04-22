@@ -64,7 +64,7 @@
                 renderConfig: [],
                 metaConfig: {},
                 renderData: {},
-                inintRenderData: {},
+                initalRenderData: {},
                 isConfigLoading: true,
                 isNoData: false
             }
@@ -175,7 +175,7 @@
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
                 }
-                this.inintRenderData = this.renderData
+                this.initalRenderData = this.renderData
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)
@@ -187,7 +187,7 @@
             judgeDataEqual () {
                 const formvalid = this.validate()
                 if (formvalid) {
-                    return tools.isDataEqual(this.inintRenderData, this.renderData)
+                    return tools.isDataEqual(this.initalRenderData, this.renderData)
                 } else {
                     return false
                 }

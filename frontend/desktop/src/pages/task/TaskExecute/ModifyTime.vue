@@ -55,7 +55,7 @@
                 },
                 renderConfig: [],
                 renderData: {},
-                inintRenderData: {}
+                initalRenderData: {}
             }
         },
         computed: {
@@ -91,7 +91,7 @@
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
-                        this.inintRenderData = this.renderData
+                        this.initalRenderData = this.renderData
                     } else {
                         errorHandler(nodeDetailRes, this)
                     }
@@ -114,7 +114,7 @@
                 }
             },
             judgeDataEqual () {
-                return tools.isDataEqual(this.inintRenderData, this.renderData)
+                return tools.isDataEqual(this.initalRenderData, this.renderData)
             },
             async onModifyTime () {
                 let formvalid = true
