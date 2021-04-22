@@ -104,7 +104,7 @@
             },
             getProjectList () {
                 try {
-                    this.loadUserProjectList({ limit: 0 })
+                    this.loadUserProjectList({ limit: 0, is_disable: false })
                 } catch (e) {
                     errorHandler(e, this)
                 }
