@@ -84,11 +84,11 @@ class NodemanCreateTaskService(Service):
             data_ip = get_ip_by_regex(host.get("data_ip", ""))
             cascade_ip = get_ip_by_regex(host.get("cascade_ip", ""))
 
-            if len(login_ip):
+            if login_ip:
                 one.update({"login_ip": login_ip[0]})
-            if len(data_ip):
+            if data_ip:
                 one.update({"data_ip": data_ip[0]})
-            if len(cascade_ip):
+            if cascade_ip:
                 one.update({"cascade_ip": cascade_ip[0]})
 
             # 处理key/psw
@@ -195,32 +195,20 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"),
-                key="job_id",
-                type="int",
-                schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"),
-                key="success_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"),
-                key="fail_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="biz_cc_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="biz_cc_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("云区域 ID"),

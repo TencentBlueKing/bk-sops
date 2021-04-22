@@ -76,6 +76,7 @@ INSTALLED_APPS += (
     "pipeline_plugins",
     "pipeline_plugins.components",
     "pipeline_plugins.variables",
+    "pipeline.eri",
     "pipeline_web.core",
     "pipeline_web.label",
     "pipeline_web.plugin_management",
@@ -89,6 +90,7 @@ INSTALLED_APPS += (
     "django_filters",
     "iam",
     "iam.contrib.iam_migration",
+    "drf_yasg",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -153,7 +155,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.34"
+STATIC_VERSION = "3.6.38"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -284,9 +286,10 @@ IS_AJAX_PLAIN_MODE = True
 # init admin list
 INIT_SUPERUSER = ["admin"]
 
-# cc、job、iam域名
+# cc、job、iam、 nodeman域名
 BK_CC_HOST = env.BK_CC_HOST
 BK_JOB_HOST = env.BK_JOB_HOST
+BK_NODEMAN_HOST = env.BK_NODEMAN_HOST
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"
@@ -323,11 +326,12 @@ STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 # drf 配置
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
 # pipeline settings
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
-PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
+PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.models.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
@@ -411,6 +415,8 @@ ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
 
+# engine queue setttings
+
 # 添加通过api gateway调用的celery任务队列
 API_TASK_QUEUE_NAME = "api_task_queue"
 ScalableQueues.add(name=API_TASK_QUEUE_NAME)
@@ -420,6 +426,13 @@ PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
+from pipeline.eri.celery import queues as eri_queues  # noqa
+
+API_TASK_QUEUE_NAME_V2 = "api"
+PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
+CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
+CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -442,6 +455,9 @@ MIGRATE_TOKEN = env.MIGRATE_TOKEN
 LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + env.BKAPP_LOG_SHIELDING_KEYWORDS
 LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if LOG_SHIELDING_KEYWORDS else []
 
+# variable key blacklist
+VARIABLE_KEY_BLACKLIST = env.VARIABLE_KEY_BLACKLIST.strip().strip(",").split(",") if env.VARIABLE_KEY_BLACKLIST else []
+
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
 
@@ -459,13 +475,18 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "propagate": True,
     }
 
-    logging_dict["handlers"]["engine_component"] = {
+    logging_dict["handlers"]["pipeline_engine_component"] = {
         "class": "pipeline.log.handlers.EngineContextLogHandler",
-        "formatter": "verbose",
+        "formatter": "light",
+    }
+
+    logging_dict["handlers"]["bamboo_engine_component"] = {
+        "class": "pipeline.eri.log.EngineContextLogHandler",
+        "formatter": "light",
     }
 
     logging_dict["loggers"]["component"] = {
-        "handlers": ["component", "engine_component"],
+        "handlers": ["component", "pipeline_engine_component", "bamboo_engine_component"],
         "level": "DEBUG",
         "propagate": True,
     }
@@ -477,15 +498,24 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "formatter": "light",
     }
 
+    logging_dict["handlers"]["pipeline_eri"] = {
+        "class": "pipeline.eri.log.ERINodeLogHandler",
+        "formatter": "light",
+    }
+
     logging_dict["loggers"]["pipeline.logging"] = {
         "handlers": ["engine"],
         "level": "INFO",
         "propagate": True,
     }
 
+    logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
+
+    logging_dict["loggers"]["bamboo_engine"] = {"handlers": ["root"], "level": "INFO", "propagate": True}
+
     # 多环境需要，celery的handler需要动态获取
     logging_dict["loggers"]["celery_and_engine_component"] = {
-        "handlers": ["engine_component", logging_dict["loggers"]["celery"]["handlers"][0]],
+        "handlers": ["pipeline_engine_component", logging_dict["loggers"]["celery"]["handlers"][0]],
         "level": "INFO",
         "propagate": True,
     }

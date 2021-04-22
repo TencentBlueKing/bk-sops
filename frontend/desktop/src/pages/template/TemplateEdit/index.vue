@@ -922,6 +922,11 @@
              * 自动排版
              */
             async onFormatPosition () {
+                window.reportInfo({
+                    page: 'templateEdit',
+                    zone: 'formatPositionIcon',
+                    event: 'click'
+                })
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)

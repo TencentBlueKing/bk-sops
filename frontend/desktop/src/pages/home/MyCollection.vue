@@ -201,6 +201,11 @@
                 if (this.getRourcePerm(template)) {
                     return this.checkForPermission(template)
                 }
+                window.reportInfo({
+                    page: 'home',
+                    zone: 'collectedCard',
+                    event: 'click'
+                })
                 const type = template.category
                 // 有权限执行
                 const { project_id, template_id, app_id, name } = template.extra_info

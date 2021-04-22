@@ -27,6 +27,8 @@ BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
+BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST")
+
 # paas v2 open
 if RUN_VER == "open":
     # SITE_URL,STATIC_URL,,FORCE_SCRIPT_NAME
@@ -59,7 +61,7 @@ BK_IAM_SKIP = os.getenv("BK_IAM_SKIP")
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_V3_APP_CODE))
 # 线上环境IAM配置
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
+BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_INNER_HOST, SITE_URL))
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 
@@ -120,3 +122,6 @@ RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
 
 # 单业务下最大周期任务数量
 PERIODIC_TASK_PROJECT_MAX_NUMBER = os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50)
+
+# 变量名关键字黑名单
+VARIABLE_KEY_BLACKLIST = os.getenv("BKAPP_VARIABLE_KEY_BLACKLIST", "context,")

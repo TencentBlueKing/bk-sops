@@ -84,7 +84,7 @@
         },
         created () {
             if (this.view_mode !== 'appmaker') {
-                this.loadUserProjectList({ limit: 0 })
+                this.loadUserProjectList({ limit: 0, is_disable: false })
             }
         },
         methods: {

@@ -19,6 +19,8 @@
             :disabled="!editable"
             :clearable="true"
             v-model="keyword"
+            @focus="$emit('focus')"
+            @blur="$emit('blur')"
             @input="onInputChange">
         </bk-input>
     </div>

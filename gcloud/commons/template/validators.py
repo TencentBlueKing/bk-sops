@@ -27,7 +27,7 @@ class FormValidator(RequestValidator):
 class ExportTemplateValidator(ObjectJsonBodyValidator):
     def validate(self, request, *args, **kwargs):
 
-        valid, err = super().validate(request, *args, **kwargs)
+        super().validate(request, *args, **kwargs)
 
         template_id_list = self.data.get("template_id_list")
 

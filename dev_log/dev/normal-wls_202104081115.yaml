@@ -1,0 +1,2 @@
+improvement:
+  - job插件每个步骤只取第一个ip日志进行记录
