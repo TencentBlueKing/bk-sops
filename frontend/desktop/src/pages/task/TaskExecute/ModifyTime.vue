@@ -31,6 +31,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
@@ -53,7 +54,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                initalRenderData: {}
             }
         },
         computed: {
@@ -89,6 +91,7 @@
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
+                        this.initalRenderData = this.renderData
                     } else {
                         errorHandler(nodeDetailRes, this)
                     }
@@ -110,12 +113,15 @@
                     }
                 }
             },
+            judgeDataEqual () {
+                return tools.isDataEqual(this.initalRenderData, this.renderData)
+            },
             async onModifyTime () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.modifyTimeLoading) return
+                if (!formvalid || this.modifyTimeLoading) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
@@ -133,6 +139,7 @@
                             message: i18n.t('修改成功'),
                             theme: 'success'
                         })
+                        return true
                     } else {
                         errorHandler(res, this)
                     }

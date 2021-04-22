@@ -101,6 +101,7 @@
                     ref="conditionEdit"
                     :is-show.sync="isShowConditionEdit"
                     :condition-data="conditionData"
+                    @onBeforeClose="onBeforeClose"
                     @updataCanvasCondition="updataCanvasCondition">
                 </condition-edit>
                 <template-setting
@@ -162,6 +163,22 @@
                     </div>
                 </div>
             </bk-dialog>
+            <bk-dialog
+                width="400"
+                ext-cls="condition-edit-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :show-footer="false"
+                :value="isShowDialog"
+                @cancel="isShowDialog = false">
+                <div class="condition-edit-confirm-dialog-content">
+                    <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
+                    <div class="action-wrapper">
+                        <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                        <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                    </div>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -205,6 +222,8 @@
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
+                isShowDialog: false,
+                isSaveLoading: false,
                 isSchemaListChange: false,
                 executeSchemeSaving: false,
                 taskSchemeList: [],
@@ -1196,6 +1215,26 @@
                 this.isShowConditionEdit = true
                 this.conditionData = { ...data }
             },
+            // 分支条件侧滑点击遮罩事件
+            onBeforeClose () {
+                this.isShowDialog = true
+            },
+            // 分支条件弹框保存
+            async onConfirmClick () {
+                this.isSaveLoading = true
+                try {
+                    await this.$refs.conditionEdit.confirm()
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                } catch (error) {
+                    this.isSaveLoading = false
+                }
+            },
+            // 分支条件弹框取消
+            onCancelClick () {
+                this.isShowDialog = false
+                this.isShowConditionEdit = false
+            },
             // 更新分支数据
             updataCanvasCondition (data) {
                 // 更新 cavans 页面数据
@@ -1474,6 +1513,25 @@
             margin-right: 6px;
         }
     }
+    /deep/ .condition-edit-dialog {
+        .bk-dialog-tool {
+            display: none;
+        }
+        .bk-dialog-body {
+            padding: 0;
+            .condition-edit-confirm-dialog-content {
+                padding: 40px 0;
+                text-align: center;
+                .leave-tips {
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
+                .action-wrapper .bk-button {
+                    margin-right: 6px;
+                }
+            }
+        }
+    }
 </style>
 <style lang="scss">
     .template-edit-dialog {
@@ -1493,4 +1551,5 @@
             }
         }
     }
+    
 </style>
