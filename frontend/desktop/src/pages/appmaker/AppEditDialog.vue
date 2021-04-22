@@ -21,7 +21,7 @@
         :value="isEditDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
             <div class="common-form-item">
                 <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">

@@ -38,7 +38,7 @@
                         :size="setting.size"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange"
-                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }">
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }">
                         <template v-for="item in setting.selectedFields">
                             <bk-table-column
                                 v-if="item.isShow ? adminView : true"

@@ -26,7 +26,7 @@
             @click="onTaskSyncClick">
             {{$t('同步到本地缓存')}}
         </bk-button>
-        <div class="table-container" v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+        <div class="table-container" v-bkloading="{ isLoading: listLoading, opacity: 1, zIndex: 100 }">
             <table class="sync-table">
                 <thead>
                     <tr>

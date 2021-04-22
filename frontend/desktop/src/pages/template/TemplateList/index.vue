@@ -55,7 +55,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
@@ -238,7 +238,7 @@
             :auto-close="false"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>

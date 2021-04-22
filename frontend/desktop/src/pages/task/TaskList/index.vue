@@ -34,7 +34,7 @@
                         :data="taskList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -159,7 +159,7 @@
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
             </div>
         </bk-dialog>

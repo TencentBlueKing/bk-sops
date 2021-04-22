@@ -81,7 +81,7 @@
                 <section class="form-section">
                     <h4>{{ $t('通知') }}</h4>
                     <bk-form-item :label="$t('通知方式')">
-                        <bk-checkbox-group v-model="formData.notifyType" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
+                        <bk-checkbox-group v-model="formData.notifyType" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1, zIndex: 100 }">
                             <template v-for="item in notifyTypeList">
                                 <bk-checkbox
                                     v-if="item.is_active"
@@ -94,7 +94,7 @@
                         </bk-checkbox-group>
                     </bk-form-item>
                     <bk-form-item :label="$t('通知分组')">
-                        <bk-checkbox-group v-model="formData.receiverGroup" v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1 }">
+                        <bk-checkbox-group v-model="formData.receiverGroup" v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }">
                             <bk-checkbox
                                 v-for="item in notifyGroup"
                                 :key="item.id"
@@ -262,7 +262,8 @@
                 }
             },
             onEditLabel () {
-                this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                const { href } = this.$router.resolve({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                window.open(href, '_blank')
             },
             async getProjectNotifyGroup () {
                 try {

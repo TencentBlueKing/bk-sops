@@ -16,7 +16,7 @@
             <span>{{ $t('项目配置') }}</span>
         </page-header>
         <div class="mandate-page-content">
-            <section class="project-info" v-bkloading="{ isLoading: projectLoading, opacity: 1 }">
+            <section class="project-info" v-bkloading="{ isLoading: projectLoading, opacity: 1, zIndex: 100 }">
                 <template v-if="project.name">
                     <div class="icon">{{ project.name[0] }}</div>
                 </template>
@@ -58,7 +58,7 @@
                     {{ $t('执行代理人设置') }}
                     <bk-button theme="primary" @click="onEditAgent">{{ $t('编辑') }}</bk-button>
                 </div>
-                <bk-form class="agent-form" v-bkloading="{ isLoading: agentLoading, opacity: 1 }">
+                <bk-form class="agent-form" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
                     <bk-form-item :label="$t('执行代理人')">
                         <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
                     </bk-form-item>
@@ -72,7 +72,7 @@
                     {{ $t('人员分组设置') }}({{ staffGroup.length }})
                     <bk-button theme="primary" @click="onEditStaffGroup('create')">{{ $t('增加分组') }}</bk-button>
                 </div>
-                <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1 }">
+                <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1, zIndex: 100 }">
                     <bk-table-column :label="$t('序号')" :width="150" property="id"></bk-table-column>
                     <bk-table-column :label="$t('分组名称')" :width="300" property="name"></bk-table-column>
                     <bk-table-column :label="$t('成员')">
@@ -93,7 +93,7 @@
                     {{ $t('标签设置') }}({{ labelList.length }})
                     <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
                 </div>
-                <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1 }">
+                <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1, zIndex: 100 }">
                     <bk-table-column :label="$t('标签名称')" property="name" :min-width="150">
                         <template slot-scope="props">
                             <span class="label-name"

@@ -153,7 +153,7 @@
                     </bk-select>
                 </bk-form-item>
             </bk-form>
-            <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1 }">
+            <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1, zIndex: 100 }">
                 <bk-tab
                     v-if="moduleList.length > 0 && formData.modules.length > 0"
                     class="module-tabs"

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }">
+    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1, zIndex: 100 }">
         <template v-if="!taskDataLoading">
             <TaskFunctionalization
                 v-if="isFunctional && showParamsFill"
@@ -78,7 +78,16 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
+                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
+                    // 职能化任务通过普通任务执行链接访问时，重定向到职能化任务链接
+                    if (this.$route.name === 'taskExecute' && flow_type === 'common_func') {
+                        this.$router.push({
+                            name: 'functionTaskExecute',
+                            params: { project_id: this.project_id },
+                            query: { instance_id: this.$route.query.instance_id }
+                        })
+                        return
+                    }
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
                     }

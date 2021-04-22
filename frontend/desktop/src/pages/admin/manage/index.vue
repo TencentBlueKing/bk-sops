@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-manage" v-bkloading="{ isLoading: hasAdminPerm === null, opacity: 0 }">
+    <div class="page-manage" v-bkloading="{ isLoading: hasAdminPerm === null, opacity: 0, zIndex: 100 }">
         <template v-if="hasViewPerm">
             <page-header v-if="!hideRoutersNav" :tab-list="routers"></page-header>
             <div :class="['page-manage-content', { 'has-nav': !hideRoutersNav }]">

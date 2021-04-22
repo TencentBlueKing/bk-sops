@@ -12,7 +12,7 @@
 <template>
     <div
         class="modify-params-container"
-        v-bkloading="{ isLoading: loading, opacity: 1 }"
+        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>

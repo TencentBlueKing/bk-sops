@@ -77,7 +77,7 @@
                 <bk-tab-panel v-for="tab in tabs" :key="tab.id" v-bind="{ name: tab.id, label: tab.name }">
                     <bk-table
                         class="tab-data-table"
-                        v-bkloading="{ isLoading: tableDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: tableDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tableData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"

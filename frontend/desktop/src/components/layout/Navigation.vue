@@ -3,7 +3,8 @@
         navigation-type="left-right"
         :side-title="$t('标准运维')"
         :need-menu="true"
-        :default-open="true">
+        :default-open="sideNavOpen"
+        @toggle="toggleSideNav">
         <div slot="side-icon" class="logo-area">
             <img :src="logo" class="logo" />
         </div>
@@ -58,7 +59,10 @@
             NavigatorHeadRight
         },
         data () {
+            const sideNavDefault = localStorage.getItem('sideNav')
+            const sideNavOpen = sideNavDefault ? sideNavDefault === 'open' : true
             return {
+                sideNavOpen,
                 title: '',
                 currentNav: '',
                 logo: require('../../assets/images/logo/logo_icon.svg')
@@ -163,6 +167,9 @@
             },
             onHandleSubNavClick (id, groupIndex, routeIndex, childIndex) {
                 this.changeRoute(this.routerList[groupIndex][routeIndex].children[childIndex])
+            },
+            toggleSideNav (val) {
+                localStorage.setItem('sideNav', val ? 'open' : 'close')
             }
         }
     }
@@ -185,8 +192,11 @@
                     @include scrollbar;
                 }
             }
-            .navigation-nav .nav-slider-list {
-                padding-top: 0;
+            .navigation-nav {
+                z-index: 111;
+                .nav-slider-list {
+                    padding-top: 0;
+                }
             }
             .container-header {
                 justify-content: space-between;

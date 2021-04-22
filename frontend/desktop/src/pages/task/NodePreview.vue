@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <div class="preview-canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1 }">
+        <div class="preview-canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1, zIndex: 100 }">
             <TemplateCanvas
                 v-if="!previewDataLoading"
                 ref="TemplateCanvas"

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"

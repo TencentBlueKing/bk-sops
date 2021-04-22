@@ -52,7 +52,7 @@
                         :data="commonTemplateData"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">

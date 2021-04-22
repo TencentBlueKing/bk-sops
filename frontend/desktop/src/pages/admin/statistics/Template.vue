@@ -68,7 +68,7 @@
                     </bk-form>
                     <bk-table
                         class="tab-data-table"
-                        v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: tplDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tplData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"

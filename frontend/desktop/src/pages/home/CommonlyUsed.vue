@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
+    <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">{{ $t('常用项目') }}</h3>
         <router-link :to="{ name: 'projectHome' }" class="link-btn">{{ $t('全部项目') }}</router-link>
         <div ref="cardView" v-if="commonUsedList.length" class="card-view">

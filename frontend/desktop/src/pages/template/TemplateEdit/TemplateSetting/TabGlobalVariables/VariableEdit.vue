@@ -129,7 +129,7 @@
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
                 <!-- 默认值 -->
                 <div class="form-item value-form clearfix">
-                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
                         <template v-if="!atomConfigLoading && renderConfig.length">
                             <RenderForm
                                 ref="renderForm"

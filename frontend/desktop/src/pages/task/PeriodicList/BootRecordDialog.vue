@@ -22,7 +22,7 @@
         @value-change="dialogValueChange"
         @confirm="$emit('onClose')"
         @cancel="$emit('onClose')">
-        <div class="dialog-content" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div class="dialog-content" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <bk-table :data="recordData" :max-height="350" ref="recordTable">
                 <bk-table-column type="expand" width="30" align="center">
                     <template slot-scope="props">
@@ -49,7 +49,7 @@
                     </template>
                 </bk-table-column>
                 <div class="no-data-matched" slot="empty"><NoData /></div>
-                <div class="is-loading" slot="append" v-if="isLoading" v-bkloading="{ isLoading: isLoading }"></div>
+                <div class="is-loading" slot="append" v-if="isLoading" v-bkloading="{ isLoading: isLoading, zIndex: 100 }"></div>
             </bk-table>
         </div>
     </bk-dialog>
