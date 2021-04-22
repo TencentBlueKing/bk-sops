@@ -1098,7 +1098,8 @@ const en = {
     '请输入流程模板名称': 'Please enter the template name',
     '基础': 'Basic',
     '通知': 'Notify',
-    '其他': 'Others'
+    '其他': 'Others',
+    '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it'
 }
 
 export default en
