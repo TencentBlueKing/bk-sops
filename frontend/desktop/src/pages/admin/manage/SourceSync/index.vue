@@ -101,7 +101,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -157,8 +156,8 @@
                     } else {
                         this.totalPage = totalPage
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -171,8 +170,8 @@
                     this.pending = true
                     await this.createSyncTask()
                     this.getSyncTask()
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending = false
                 }

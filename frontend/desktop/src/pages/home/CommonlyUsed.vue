@@ -55,7 +55,6 @@
 </template>
 <script>
     import PanelNodata from './PanelNodata.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions, mapMutations } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
     import openOtherApp from '@/utils/openOtherApp.js'
@@ -110,7 +109,7 @@
                     this.commonUsedList = res.objects
                     this.commonlyUsedloading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             getLimit () {

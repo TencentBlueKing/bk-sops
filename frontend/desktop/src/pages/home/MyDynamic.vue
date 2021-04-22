@@ -86,7 +86,6 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapState, mapActions } from 'vuex'
     import task from '@/mixins/task.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -193,7 +192,7 @@
                     })
                     this.isTableLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             async getCreateMethods () {
@@ -203,7 +202,7 @@
                     this.createMethods = [...this.createMethods, ...res.data]
                     this.isCreateMethodsLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onSelectMethod (val) {

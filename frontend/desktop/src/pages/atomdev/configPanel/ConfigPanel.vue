@@ -83,7 +83,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import serializeObj from '@/utils/serializeObj.js'
     import FormConfig from './FormConfig.vue'
     import ContextEdit from './ContextEdit.vue'
@@ -191,11 +190,9 @@
                             })
                         }
                         this.systemList = systemList
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.systemListLoading = false
                 }
@@ -210,11 +207,9 @@
                     if (res.result) {
                         const apiCodeStr = res.data
                         this.apiCodeUpdate(apiCodeStr)
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.apiCodeLoading = false
                 }

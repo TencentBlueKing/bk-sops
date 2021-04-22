@@ -125,7 +125,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
 
@@ -209,7 +208,7 @@
                         this.dataConflict = false
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                     this.templateFileError = true
                 } finally {
                     this.pending.upload = false
@@ -229,12 +228,9 @@
                     if (resp.result) {
                         this.$emit('onImportConfirm')
                         this.resetData()
-                    } else {
-                        this.templateFileError = true
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.submit = false
                 }

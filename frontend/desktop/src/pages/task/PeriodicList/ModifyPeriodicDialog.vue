@@ -59,7 +59,6 @@
     import { PERIODIC_REG } from '@/constants/index.js'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -188,7 +187,7 @@
                         this.$emit('onModifyPeriodicConfirm')
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             async modifyCron (cronData) {

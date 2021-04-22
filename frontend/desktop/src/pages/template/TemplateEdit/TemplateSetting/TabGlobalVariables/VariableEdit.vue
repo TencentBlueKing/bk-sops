@@ -172,7 +172,6 @@
     import { Validator } from 'vee-validate'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -375,7 +374,7 @@
                     })
                     this.varTypeList = listData
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.varTypeListLoading = false
                 }
@@ -415,7 +414,7 @@
                     })
                     this.getRenderConfig()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomConfigLoading = false
                 }

@@ -123,7 +123,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -329,11 +328,9 @@
                             this.pagination.count = res.data.total
                         }
                         return res.data.groups
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e)
+                    console.log(e)
                 }
             },
             async getAtomList () {
@@ -348,7 +345,7 @@
                         }
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomListLoading = false
                 }
@@ -366,7 +363,7 @@
                     }
                     this.rankData = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.rankDataLoading = false
                 }
@@ -395,7 +392,7 @@
                     }
                     this.tableData = await this.loadAnalysisData(query, 'table')
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.tableDataLoading = false
                 }

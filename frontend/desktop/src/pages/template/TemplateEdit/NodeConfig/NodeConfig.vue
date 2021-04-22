@@ -208,7 +208,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
     import BasicInfo from './BasicInfo.vue'
@@ -403,8 +402,8 @@
                 try {
                     this.inputs = await this.getAtomConfig(plugin, version)
                     this.outputs = this.atomGroup.list.find(item => item.version === version).output
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pluginLoading = false
                 }
@@ -423,8 +422,8 @@
                     await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     const config = $.atoms[plugin]
                     return config
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**
@@ -456,8 +455,8 @@
                         }
                     })
                     return data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.subflowLoading = false
                 }
