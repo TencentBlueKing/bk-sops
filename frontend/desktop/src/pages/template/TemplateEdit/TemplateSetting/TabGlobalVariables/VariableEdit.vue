@@ -63,7 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
-                    <div class="variable-type-desc">{{ variableConfig.description }}</div>
+                    <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
@@ -289,17 +289,17 @@
                 }
                 return rule
             },
-            // 当前选中类型变量配置内容
-            variableConfig () {
-                let data
+            // 当前选中类型变量配置描述
+            variableDesc () {
+                let desc = ''
                 this.varTypeList.some(group => {
                     const option = group.children.find(item => item.code === this.currentValType)
                     if (option) {
-                        data = option
+                        desc = option.description
                         return true
                     }
                 })
-                return data
+                return desc
             }
         },
         created () {
