@@ -154,7 +154,8 @@
                                             :z-index="2000"
                                             :distance="0"
                                             :arrow="false"
-                                            :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                            :tippy-options="{ boundary: 'window', duration: [0, 0] }"
+                                            :on-show="onShowMoreOperation">
                                             <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                             <ul slot="content">
                                                 <li class="opt-btn">
@@ -626,6 +627,13 @@
                     this.templateLabelLoading = false
                     form.loading = false
                 }
+            },
+            onShowMoreOperation () {
+                window.reportInfo({
+                    page: 'templateList',
+                    zone: 'tableMoreOperation',
+                    event: 'hover'
+                })
             },
             checkCreatePermission () {
                 if (!this.hasPermission(['flow_create'], this.authActions)) {
