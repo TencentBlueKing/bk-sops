@@ -35,13 +35,18 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     classification = classify_constants(constants, is_subprocess)
     # pre render mako for some vars
     pre_render_keys = get_pre_render_mako_keys(constants)
-    pre_render_pool = ConstantPool(
-        pool={
-            k: {"value": info["value"]}
-            for k, info in classification["data_inputs"].items()
-            if (k in pre_render_keys and info["type"] != "lazy")
-        }
-    )
+
+    pool = {}
+    for key in pre_render_keys:
+        # TODO 这里先支持一层的 lazy 变量渲染，后续修改为在开始节点进行预渲染
+        var_info = classification["data_inputs"][key]
+        if var_info == "lazy":
+            lazy_var = library.VariableLibrary.get_var_class(var_info["custom_type"])(key, var_info["value"], {}, {})
+            pool[key] = {"value": lazy_var.get_value()}
+        else:
+            pool[key] = {"value": var_info["value"]}
+
+    pre_render_pool = ConstantPool(pool=pool)
     for k, v in pre_render_pool.pool.items():
         classification["data_inputs"][k]["value"] = v["value"]
 
