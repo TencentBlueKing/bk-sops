@@ -131,11 +131,12 @@ def detail(request, project_id):
     node_id = request.GET["node_id"]
     loop = request.GET.get("loop")
     component_code = request.GET.get("component_code")
+    include_data = int(request.GET.get("include_data", 1))
 
     subprocess_stack = json.loads(request.GET.get("subprocess_stack", "[]"))
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop)
+    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop, include_data)
 
     return JsonResponse(ctx)
 

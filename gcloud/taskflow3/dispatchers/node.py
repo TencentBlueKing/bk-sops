@@ -165,17 +165,23 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             "message": "",
         }
 
-    def _get_act_web_info(self, act_id: str, pipeline: dict) -> dict:
-        def get_act_of_pipeline(pipeline):
-            for node_id, node_info in list(pipeline["activities"].items()):
-                if node_id == act_id:
-                    return node_info
-                elif node_info["type"] == "SubProcess":
-                    act = get_act_of_pipeline(node_info["pipeline"])
-                    if act:
-                        return act
+    def _get_node_info(self, node_id: str, pipeline: dict, subprocess_stack: Optional[list] = None) -> dict:
+        subprocess_stack = subprocess_stack or []
 
-        return get_act_of_pipeline(pipeline)
+        def get_node_info(pipeline: dict, subprocess_stack: list) -> dict:
+            # go deeper
+            if subprocess_stack:
+                return get_node_info(pipeline["activities"][subprocess_stack[0]]["pipeline"], subprocess_stack[1:])
+
+            nodes = {
+                pipeline["start_event"]["id"]: pipeline["start_event"],
+                pipeline["end_event"]["id"]: pipeline["end_event"],
+            }
+            nodes.update(pipeline["activities"])
+            nodes.update(pipeline["gateways"])
+            return nodes[node_id]
+
+        return get_node_info(pipeline, subprocess_stack)
 
     def get_node_data(
         self,
@@ -226,7 +232,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         outputs_table = []
         if component_code:
             version = (
-                self._get_act_web_info(self.node_id, pipeline_instance.execution_data)
+                self._get_node_info(self.node_id, pipeline_instance.execution_data)
                 .get("component", {})
                 .get("version", None)
             )
@@ -258,7 +264,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         else:
             try:
                 outputs_table = [
-                    {"key": key, "value": val, "preset": False} for key, val in list(outputs.get("outputs", {}).items())
+                    {"key": key, "value": val, "preset": False}
+                    for key, val in list((outputs.get("outputs") or {}).items())
                 ]
             except Exception:
                 logger.exception(
@@ -468,9 +475,15 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         if not act_start:
             pipeline_instance = kwargs["pipeline_instance"]
-            act = self._get_act_web_info(act_id=self.node_id, pipeline=pipeline_instance.execution_data)
+            node = self._get_node_info(
+                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+            )
             detail.update(
-                {"name": act["name"], "error_ignorable": act["error_ignorable"], "state": pipeline_states.READY}
+                {
+                    "name": node["name"],
+                    "error_ignorable": node.get("error_ignorable", False),
+                    "state": pipeline_states.READY,
+                }
             )
         else:
             format_pipeline_status(detail)
@@ -549,9 +562,15 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         # 节点未执行
         else:
             pipeline_instance = kwargs["pipeline_instance"]
-            act = self._get_act_web_info(act_id=self.node_id, pipeline=pipeline_instance.execution_data)
+            node = self._get_node_info(
+                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+            )
             detail.update(
-                {"name": act["name"], "error_ignorable": act["error_ignorable"], "state": pipeline_states.READY}
+                {
+                    "name": node["name"],
+                    "error_ignorable": node.get("error_ignorable", False),
+                    "state": pipeline_states.READY,
+                }
             )
 
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
