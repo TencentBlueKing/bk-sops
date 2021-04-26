@@ -305,6 +305,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         pipeline_instance = kwargs["pipeline_instance"]
         if not act_started:
+            node_info = self._get_node_info(
+                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+            )
+            if node_info["type"] != "ServiceActivity":
+                return {
+                    "result": True,
+                    "data": {"inputs": {}, "outputs": {}, "ex_data": ""},
+                    "message": "",
+                    "code": err_code.SUCCESS.code,
+                }
+
             success, err, inputs, outputs = self._prerender_node_data(
                 pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
             )
@@ -392,6 +403,16 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     outputs = {"outputs": outputs, "ex_data": outputs.get("ex_data")}
         # 未执行节点需要实时渲染
         else:
+            node_info = self._get_node_info(
+                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+            )
+            if node_info["type"] != "ServiceActivity":
+                return {
+                    "result": True,
+                    "data": {"inputs": {}, "outputs": {}, "ex_data": ""},
+                    "message": "",
+                    "code": err_code.SUCCESS.code,
+                }
             # TODO 待 bamboo-engine 提供预览功能后进行替换
             success, err, inputs, outputs = self._prerender_node_data(
                 pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
