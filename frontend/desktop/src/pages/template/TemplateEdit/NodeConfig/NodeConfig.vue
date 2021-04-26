@@ -130,6 +130,7 @@
                                     :node-config="nodeConfig"
                                     :version-list="versionList"
                                     :is-subflow="isSubflow"
+                                    :update-subflow="updateSubflow"
                                     :input-loading="inputLoading"
                                     @openSelectorPanel="isSelectorPanelShow = true"
                                     @versionChange="versionChange"
@@ -244,6 +245,7 @@
             const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
             const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
+                updateSubflow: false, // 子流程是否更新
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
@@ -754,9 +756,7 @@
                 this.inputs = await this.getSubflowInputsConfig()
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                    this.setSubprocessUpdated({
-                        subprocess_node_id: this.nodeConfig.id
-                    })
+                    this.updateSubflow = true
                 })
             },
             /**
@@ -1099,6 +1099,11 @@
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
+                        }
+                        if (this.updateSubflow) {
+                            this.setSubprocessUpdated({
+                                subprocess_node_id: this.nodeConfig.id
+                            })
                         }
                         this.syncActivity()
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
