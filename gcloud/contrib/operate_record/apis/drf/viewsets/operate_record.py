@@ -36,7 +36,12 @@ class TaskOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         project_id = serializer.validated_data["project_id"]
         instance_id = serializer.validated_data["instance_id"]
-        queryset = self.get_queryset().filter(project_id=project_id, instance_id=instance_id)
+        node_id = serializer.validated_data.get("node_id")
+        if node_id:
+            filters = {"project_id": project_id, "instance_id": instance_id, "node_id": node_id}
+        else:
+            filters = {"project_id": project_id, "instance_id": instance_id}
+        queryset = self.get_queryset().filter(**filters)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
