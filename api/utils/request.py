@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from gcloud.conf import settings
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 from .thread import ThreadPool
 
 logger = logging.getLogger("root")
@@ -48,7 +48,7 @@ def batch_request(
         except Exception as e:
             message = "[batch_request] please input correct page param, {}".format(e)
             logger.error(message)
-            raise PluginApiRequestError(message)
+            raise ApiRequestError(message)
     else:
         cur_page_param = "start"
         page_size_param = "limit"
@@ -59,7 +59,7 @@ def batch_request(
     if not result["result"]:
         message = "[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result)
         logger.error(message)
-        raise PluginApiRequestError(message)
+        raise ApiRequestError(message)
 
     count = get_count(result)
     data = []
@@ -87,7 +87,7 @@ def batch_request(
                 api=func.__name__, params=params_and_future["params"], result=result
             )
             logger.error(message)
-            raise PluginApiRequestError(message)
+            raise ApiRequestError(message)
 
         data.extend(get_data(result))
 

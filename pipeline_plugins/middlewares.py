@@ -13,10 +13,10 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 
 
 class PluginApiRequestHandleMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
-        if isinstance(exception, PluginApiRequestError):
+        if isinstance(exception, ApiRequestError):
             return JsonResponse({"result": False, "message": exception, "data": ""})

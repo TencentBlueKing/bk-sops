@@ -17,7 +17,7 @@ from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 from pipeline.core.data.var import LazyVariable
 
 logger = logging.getLogger("root")
@@ -51,7 +51,7 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
             kwargs=set_kwargs, result=set_result
         )
         logger.error(err_msg)
-        raise PluginApiRequestError(err_msg)
+        raise ApiRequestError(err_msg)
 
     module_kwargs = {"bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id, "fields": ["bk_module_id", "bk_module_name"]}
     module_info = batch_request(client.cc.search_module, module_kwargs)

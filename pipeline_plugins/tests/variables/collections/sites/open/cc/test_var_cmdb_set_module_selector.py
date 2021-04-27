@@ -16,7 +16,7 @@ from mock import MagicMock, patch
 
 from django.test import TestCase
 
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selector import (
     VarSetModuleSelector,
     SetModuleInfo,
@@ -137,10 +137,10 @@ class VarSetModuleSelectorTestCase(TestCase):
         set_module_selector = VarSetModuleSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
         )
-        with self.assertRaises(PluginApiRequestError) as context:
+        with self.assertRaises(ApiRequestError) as context:
             set_module_selector.get_value()
 
-        self.assertTrue("PluginApiRequestError" in str(context.exception))
+        self.assertTrue("ApiRequestError" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=GET_MODULE_INFO_FAIL_CLIENT)
     def test_get_module_info_fail_case(self, mock_get_client_by_user_return):
@@ -150,10 +150,10 @@ class VarSetModuleSelectorTestCase(TestCase):
         set_module_selector = VarSetModuleSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
         )
-        with self.assertRaises(PluginApiRequestError) as context:
+        with self.assertRaises(ApiRequestError) as context:
             set_module_selector.get_value()
 
-        self.assertTrue("PluginApiRequestError" in str(context.exception))
+        self.assertTrue("ApiRequestError" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=MULTI_MODULES_SUCCESS_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):

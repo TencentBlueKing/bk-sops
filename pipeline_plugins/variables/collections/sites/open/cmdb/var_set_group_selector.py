@@ -17,7 +17,7 @@ from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
 from pipeline.core.data.var import LazyVariable
 
@@ -36,7 +36,7 @@ def get_set_property(operator):
     if not cc_result["result"]:
         message = handle_api_error("cc", "search_object_attribute", kwargs, cc_result)
         logger.error(message)
-        raise PluginApiRequestError(message)
+        raise ApiRequestError(message)
     obj_property = ["bk_set_id"]
     for item in cc_result["data"]:
         obj_property.append(item["bk_property_id"])

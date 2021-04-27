@@ -15,7 +15,7 @@ from mock import MagicMock, patch
 
 from django.test import TestCase
 
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector import (
     VarSetGroupSelector,
     SetGroupInfo,
@@ -217,10 +217,10 @@ class VarSetGroupSelectorTestCase(TestCase):
         set_group_selector = VarSetGroupSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test2", context={}
         )
-        with self.assertRaises(PluginApiRequestError) as context:
+        with self.assertRaises(ApiRequestError) as context:
             set_group_selector.get_value()
 
-        self.assertTrue("PluginApiRequestError" in str(context.exception))
+        self.assertTrue("ApiRequestError" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=MULTI_INPUT_OUTPUT_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):

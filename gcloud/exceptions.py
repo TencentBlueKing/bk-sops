@@ -63,9 +63,9 @@ class FlowExportError(BkSopsError):
     pass
 
 
-class PluginApiRequestError(BkSopsError):
+class ApiRequestError(BkSopsError):
     def __init__(self, message):
-        self.message = "PluginApiRequestError: {}".format(message)
+        self.message = "ApiRequestError: {}".format(message)
 
     def __str__(self):
         return self.message

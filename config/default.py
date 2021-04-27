@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
-from gcloud.exceptions import PluginApiRequestError
+from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
 import env
 
@@ -469,8 +469,8 @@ CELERY_TRACK_STARTED = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
 
 # 自定义插件和变量Exception类型
-PLUGIN_SPECIFIC_EXCEPTIONS = (PluginApiRequestError,)
-VARIABLE_SPECIFIC_EXCEPTIONS = (PluginApiRequestError,)
+PLUGIN_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
+VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 
 # SaaS统一日志配置
