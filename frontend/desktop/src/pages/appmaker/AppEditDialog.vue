@@ -196,7 +196,6 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
@@ -339,7 +338,7 @@
                     const templateListData = await this.loadTemplateList({ project__id: this.project_id })
                     this.templateList = templateListData.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateLoading = false
                 }
@@ -354,7 +353,7 @@
                     this.schemeList = await this.loadTaskScheme(data)
                     this.schemeLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onSelectTemplate (id) {

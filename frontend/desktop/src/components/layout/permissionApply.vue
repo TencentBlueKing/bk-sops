@@ -21,7 +21,6 @@
     import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
@@ -105,8 +104,8 @@
                     if (res.data.is_allow) {
                         this.authActions.push('project_create')
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async loadPermissionUrl () {
@@ -115,11 +114,9 @@
                     const res = await this.getIamUrl(this.permissionData.permission)
                     if (res.result) {
                         this.url = res.data.url
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }

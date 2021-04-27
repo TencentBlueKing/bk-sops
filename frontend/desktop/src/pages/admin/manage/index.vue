@@ -23,7 +23,6 @@
     import { mapActions, mapState } from 'vuex'
     import bus from '@/utils/bus.js'
     import i18n from '@/config/i18n/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
     const ROUTERS = [
         {
@@ -98,8 +97,8 @@
                     })
                     this.hasEditPerm = res.data.is_allow
                     this.editPermLoading = false
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**

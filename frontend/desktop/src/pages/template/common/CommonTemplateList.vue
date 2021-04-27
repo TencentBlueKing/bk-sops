@@ -224,7 +224,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportTemplateDialog from '../TemplateList/ImportTemplateDialog.vue'
@@ -237,15 +236,6 @@
     import moment from 'moment-timezone'
 
     const SEARCH_FORM = [
-        {
-            type: 'select',
-            label: i18n.t('分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
-        },
         {
             type: 'dateRange',
             key: 'queryTime',
@@ -271,6 +261,16 @@
             label: i18n.t('创建人'),
             placeholder: i18n.t('请输入创建人'),
             value: ''
+        },
+        {
+            type: 'select',
+            label: i18n.t('分类'),
+            key: 'category',
+            loading: true,
+            placeholder: i18n.t('请选择分类'),
+            tips: i18n.t('模板分类即将下线，建议使用标签'),
+            list: [],
+            value: ''
         }
     ]
     const TABLE_FIELDS = [
@@ -278,28 +278,43 @@
             id: 'id',
             label: i18n.t('ID'),
             width: 80
-        }, {
+        },
+        {
             id: 'name',
             label: i18n.t('流程名称'),
             disabled: true,
             min_width: 400
-        }, {
+        },
+        {
             id: 'create_time',
             label: i18n.t('创建时间'),
             sortable: 'custom',
             width: 200
-        }, {
+        },
+        {
             id: 'edit_time',
             label: i18n.t('更新时间'),
             sortable: 'custom',
             width: 200
-        }, {
+        },
+        {
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
             width: 200
-        }, {
+        },
+        {
+            id: 'category_name',
+            label: i18n.t('分类'),
+            min_width: 180
+        },
+        {
             id: 'creator_name',
             label: i18n.t('创建人'),
+            width: 160
+        },
+        {
+            id: 'editor_name',
+            label: i18n.t('更新人'),
             width: 160
         }
     ]
@@ -383,6 +398,7 @@
                 selectedTpl: {},
                 ordering: null, // 排序参数
                 tableFields: TABLE_FIELDS,
+                defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
@@ -450,8 +466,8 @@
                         action: 'common_flow_create'
                     })
                     this.hasCreateCommonTplPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getTemplateList () {
@@ -493,7 +509,7 @@
                         this.totalPage = totalPage
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -509,7 +525,7 @@
                     form.list = this.templateCategoryList
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                     this.categoryLoading = false
@@ -518,11 +534,15 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('commonTemplateList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    selectedFields = fieldList
+                } else {
+                    selectedFields = this.defaultSelected
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             async getCollectList () {
                 try {
@@ -530,7 +550,7 @@
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectListLoading = false
                 }
@@ -580,11 +600,9 @@
                     const resp = await this.templateExport(data)
                     if (resp.result) {
                         this.isExportDialogShow = false
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.export = false
                 }
@@ -691,7 +709,7 @@
                     }
                     this.getTemplateList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.delete = false
                 }
@@ -764,7 +782,7 @@
                     }
                     this.getCollectList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
@@ -805,8 +823,8 @@
                     }
                     const resp = await this.queryUserPermission(data)
                     this.hasCreateTaskPerm = resp.data.is_allow
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.permissionLoading = false
                 }

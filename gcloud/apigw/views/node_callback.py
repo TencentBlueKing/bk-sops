@@ -63,5 +63,6 @@ def node_callback(request, task_id, project_id):
 
     node_id = params.get("node_id")
     callback_data = params.get("callback_data")
+    version = params.get("version")
 
-    return JsonResponse(task.callback(node_id, callback_data))
+    return JsonResponse(task.callback(node_id, callback_data, version))

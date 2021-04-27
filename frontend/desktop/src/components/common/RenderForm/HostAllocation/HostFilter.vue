@@ -108,7 +108,6 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
@@ -243,11 +242,9 @@
                     const resp = await this.configProgramList('host')
                     if (resp.result) {
                         this.schemeListArr = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.scheme = false
                 }
@@ -314,11 +311,9 @@
                                 this.schemeData.name = ''
                                 await this.getSetTopo()
                                 this.formData.schemeValue = resp.data.id
-                            } else {
-                                errorHandler(resp, this)
                             }
-                        } catch (error) {
-                            errorHandler(error, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.saveScheme = false
                         }
@@ -349,11 +344,9 @@
                                 }
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.resource = false
                 }
@@ -374,11 +367,9 @@
                                 name: item.text
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.condition = false
                 }
@@ -554,8 +545,8 @@
                     }
                     this.$emit('update', config, eligibleHosts)
                     this.$emit('update:showFilter', false)
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.host = false
                 }

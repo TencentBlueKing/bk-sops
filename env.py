@@ -27,6 +27,8 @@ BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
+BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST")
+
 # paas v2 open
 if RUN_VER == "open":
     # SITE_URL,STATIC_URL,,FORCE_SCRIPT_NAME
@@ -59,7 +61,7 @@ BK_IAM_SKIP = os.getenv("BK_IAM_SKIP")
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_V3_APP_CODE))
 # 线上环境IAM配置
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
+BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_INNER_HOST, SITE_URL))
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 
@@ -76,6 +78,7 @@ BKAPP_PYINSTRUMENT_ENABLE = os.getenv("BKAPP_PYINSTRUMENT_ENABLE", None)
 SOPS_MAKO_IMPORT_MODULES = os.getenv("BKAPP_SOPS_MAKO_IMPORT_MODULES", "")
 
 MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48001122")
+MIGRATE_ALLOW = os.getenv("BKAPP_MIGRATE_ALLOW", False)
 
 BKAPP_LOG_SHIELDING_KEYWORDS = os.getenv("BKAPP_LOG_SHIELDING_KEYWORDS", "")
 
@@ -116,3 +119,9 @@ BKAPP_WEIXIN_APP_EXTERNAL_HOST = os.getenv("BKAPP_WEIXIN_APP_EXTERNAL_HOST", "")
 # RSA KEYS, 保存的是密钥的base64加密形式, 使用base64.b64encode(KEY.encode("utf-8"))进行处理后保存为环境变量
 RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
 RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
+
+# 单业务下最大周期任务数量
+PERIODIC_TASK_PROJECT_MAX_NUMBER = os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50)
+
+# 变量名关键字黑名单
+VARIABLE_KEY_BLACKLIST = os.getenv("BKAPP_VARIABLE_KEY_BLACKLIST", "context,")

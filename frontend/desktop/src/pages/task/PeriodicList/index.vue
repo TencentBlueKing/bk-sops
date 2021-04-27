@@ -211,7 +211,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
@@ -417,7 +416,7 @@
                         this.totalPage = totalPage
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -427,7 +426,7 @@
                     const res = await this.loadProjectBaseInfo()
                     this.taskCategory = res.data.task_categories
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             // 获取当前视图表格头显示字段
@@ -445,7 +444,7 @@
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectListLoading = false
                 }
@@ -550,7 +549,7 @@
                         periodic.enabled = !periodic.enabled
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onModifyCronPeriodic (item) {
@@ -609,7 +608,7 @@
                     }
                     this.getPeriodicList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.deleting = false
                 }
@@ -671,7 +670,7 @@
                     }
                     this.getCollectList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }

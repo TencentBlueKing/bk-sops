@@ -90,12 +90,12 @@ class ThreadPool(_ThreadPool):
 
         return results
 
-    def map_async(self, func, iterable, chunksize=None, callback=None):
+    def map_async(self, func, iterable, chunksize=None, callback=None, error_callback=None):
         return super(ThreadPool, self).map_async(
             self.get_func_with_local(func), iterable, chunksize=chunksize, callback=callback
         )
 
-    def apply_async(self, func, args=(), kwds={}, callback=None):
+    def apply_async(self, func, args=(), kwds={}, callback=None, error_callback=None):
         return super(ThreadPool, self).apply_async(
             self.get_func_with_local(func), args=args, kwds=kwds, callback=callback
         )

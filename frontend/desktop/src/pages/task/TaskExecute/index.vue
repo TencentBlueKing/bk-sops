@@ -38,7 +38,6 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
 
@@ -88,7 +87,7 @@
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskDataLoading = false
                 }

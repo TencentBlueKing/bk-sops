@@ -156,7 +156,6 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler'
 
     export default {
         name: 'BasicInfo',
@@ -300,8 +299,8 @@
                     this.labelLoading = true
                     const resp = await this.getLabels({ limit: 0 })
                     this.labelData = this.transLabelListToGroup(resp.objects)
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.labelLoading = false
                 }

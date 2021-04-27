@@ -65,6 +65,10 @@ Vue.use(Tooltip)
 Vue.use(Cascader)
 Vue.use(autocomplete)
 
+window.reportInfo = function () {
+    debugger
+}
+
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)
     locales.use(enLocale)

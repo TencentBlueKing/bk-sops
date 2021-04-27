@@ -23,8 +23,15 @@ from pipeline_plugins.variables.utils import find_module_with_relation
 from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
+from gcloud.core.models import EngineConfig
 
-__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url", "plat_ip_reg"]
+__all__ = [
+    "cc_get_ips_info_by_str",
+    "get_job_instance_url",
+    "get_node_callback_url",
+    "plat_ip_reg",
+    "get_nodeman_job_url",
+]
 
 JOB_APP_CODE = "bk_job"
 
@@ -157,12 +164,17 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
     return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
 
-def get_node_callback_url(node_id):
+def get_node_callback_url(node_id, node_version=""):
+    engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2
     f = Fernet(settings.CALLBACK_KEY)
-    return "%staskflow/api/nodes/callback/%s/" % (
+    return "%staskflow/api/v4/nodes/callback/%s/" % (
         env.BKAPP_INNER_CALLBACK_HOST,
-        f.encrypt(bytes(node_id, encoding="utf8")).decode(),
+        f.encrypt(bytes("{}:{}:{}".format(engine_ver, node_id, node_version), encoding="utf8")).decode(),
     )
+
+
+def get_nodeman_job_url(instance_id, bk_host_id):
+    return "{}/#/task-history/{}/log/host|instance|host|{}".format(settings.BK_NODEMAN_HOST, instance_id, bk_host_id)
 
 
 def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list):

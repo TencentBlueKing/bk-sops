@@ -17,11 +17,13 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.utils.decorators import available_attrs
 
+import env
+
 
 def require_migrate_token(view_func):
     @wraps(view_func, assigned=available_attrs(view_func))
     def decorator(request, *args, **kwargs):
-        if not (request.META.get("HTTP_SOPS_MIGRATE_TOKEN") == settings.MIGRATE_TOKEN):
+        if not env.MIGRATE_ALLOW or not (request.META.get("HTTP_SOPS_MIGRATE_TOKEN") == settings.MIGRATE_TOKEN):
             return HttpResponseForbidden("invalid migarte token")
 
         return view_func(request, *args, **kwargs)

@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.utils import timezone
 
+from gcloud.taskflow3.constants import TEMPLATE_SOURCE
+
 
 class BusinessManager(models.Manager):
     def supplier_account_for_business(self, cc_id):
@@ -353,9 +355,46 @@ class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
+    max_periodic_task_num = models.IntegerField(_("项目下最大周期任务数"), default=-1, blank=True)
 
     objects = ProjectConfigManager()
 
     class Meta:
         verbose_name = _("项目配置 ProjectConfig")
         verbose_name_plural = _("项目配置 ProjectConfig")
+
+
+class EngineConfigManager(models.Manager):
+    def get_engine_ver(self, project_id, template_id, template_source):
+        template_config = self.filter(
+            scope_id=template_id, scope=EngineConfig.SCOPE_TYPE_TEMPLATE, template_source=template_source
+        ).only("engine_ver")
+        if template_config:
+            return template_config.first().engine_ver
+
+        project_config = self.filter(scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT).only("engine_ver")
+        if project_config:
+            return project_config.first().engine_ver
+
+        return EngineConfig.ENGINE_VER_V1
+
+
+class EngineConfig(models.Model):
+    SCOPE_TYPE_PROJECT = 1
+    SCOPE_TYPE_TEMPLATE = 2
+    SCOPE_TYPE = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"))
+    ENGINE_VER_V1 = 1
+    ENGINE_VER_V2 = 2
+    ENGINE_VER = ((ENGINE_VER_V1, "v1"), (ENGINE_VER_V2, "v2"))
+
+    scope_id = models.IntegerField(_("范围对象ID"))
+    scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPE)
+    engine_ver = models.IntegerField(_("引擎版本"), choices=ENGINE_VER)
+    template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE)
+
+    objects = EngineConfigManager()
+
+    class Meta:
+        verbose_name = _("引擎版本配置 EngineConfig")
+        verbose_name_plural = _("引擎版本配置 EngineConfig")
+        index_together = ["scope", "scope_id"]
