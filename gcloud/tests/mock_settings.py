@@ -43,6 +43,7 @@ TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
 
 TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER = "gcloud.taskflow3.models.TaskCommandDispatcher"
 TASKFLOW_MODEL_TASK_TEMPLATE = "gcloud.taskflow3.models.TaskTemplate"
+TASKFLOW_MODEL_NODE_CMD_DISPATCHER = "gcloud.taskflow3.models.NodeCommandDispatcher"
 
 TASKFLOW_CONTEXT_PROJECT_CONFIG = "gcloud.taskflow3.context.ProjectConfig"
 
