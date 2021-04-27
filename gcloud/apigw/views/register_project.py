@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import ujson as json
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -41,20 +42,24 @@ def register_project(request):
     第三方系统项目同步注册
     """
     if not request.is_trust:
-        return {
-            "result": False,
-            "message": "you have no permission to call this api.",
-            "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
-        }
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "you have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
     try:
         params = json.loads(request.body)
         bk_biz_id = int(params.get("bk_biz_id"))
     except Exception:
-        return {
-            "result": False,
-            "message": "should be json format and contain bk_biz_id(int)",
-            "code": err_code.REQUEST_PARAM_INVALID.code,
-        }
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "should be json format and contain bk_biz_id(int)",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     username = settings.SYSTEM_USE_API_ACCOUNT
     client = get_client_by_user(username)
@@ -69,7 +74,7 @@ def register_project(request):
             biz_result
         )
         logger.error("[api register_project]: {}".format(message))
-        return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
 
     biz_info = biz_result["data"]["info"][0]
     biz_defaults = {
@@ -96,14 +101,12 @@ def register_project(request):
     except Exception as e:
         message = "[api register_project] Error exists when create object: {}".format(e)
         logger.exception(message)
-        return {
-            "result": False,
-            "message": message,
-            "code": err_code.UNKNOWN_ERROR.code,
-        }
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
 
-    return {
-        "result": True,
-        "data": {"project_id": project.id, "project_name": project.name},
-        "code": err_code.SUCCESS.code,
-    }
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {"project_id": project.id, "project_name": project.name},
+            "code": err_code.SUCCESS.code,
+        }
+    )
