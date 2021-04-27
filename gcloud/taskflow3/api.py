@@ -359,16 +359,22 @@ def query_task_count(request, project_id):
     return JsonResponse({"result": True, "data": content, "message": "", "code": err_code.SUCCESS.code})
 
 
-@require_GET
+@swagger_auto_schema(methods=["GET"], auto_schema=AnnotationAutoSchema)
 @request_validate(GetNodeLogValidator)
 @iam_intercept(GetNodeLogInterceptor())
+@api_view(["GET"])
 def get_node_log(request, project_id, node_id):
     """
-    @summary: 查看某个节点的日志
-    @param request:
-    @param project_id:
-    @param node_id
-    @return:
+    获取节点详情
+    param: instance_id: 任务实例 ID, string, query, required
+    param: history_id: 历史 ID, int, query
+
+    return: dict 根据 result 字段判断是否请求成功
+    {
+        "result": "是否请求成功(boolean)",
+        "data": "节点日志文本(string)",
+        "message": "错误时提示(string)"
+    }
     """
     task_id = request.GET["instance_id"]
     history_id = request.GET.get("history_id") or -1
