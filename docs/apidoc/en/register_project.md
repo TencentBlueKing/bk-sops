@@ -4,18 +4,18 @@ Register bk_sops project from cmdb
 
 #### General Parameters
 
-|   字段           |  类型       | 必选     |  描述             |
+|   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
-|   bk_app_code   |   string    |   是    |  应用ID |
-|   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
-|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
-|   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
+|   bk_app_code   |   string    |   YES    |  APP ID |
+|   bk_app_secret |   string    |   YES    |  APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
+|   bk_token      |   string    |   NO     |  Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
+|   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
 
 #### Interface Parameters
 
-| 字段          |  类型       | 必选   |  描述             |
+| Field          |  Type       | Required   |  Description  | 
 |-----------------|-------------|---------|------------------|
-|   bk_biz_id     |   int |   是   |  CMDB 业务 ID |
+|   bk_biz_id    |   string     |   YES   |  CMDB business ID |
 
 ### Request Parameters Example
 
