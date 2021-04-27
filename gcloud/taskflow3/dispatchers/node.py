@@ -286,13 +286,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         loop: Optional[int] = None,
         **kwargs
     ) -> dict:
-        act_started = True
+        node_started = True
         inputs = {}
         outputs = {}
         try:
             detail = pipeline_api.get_status_tree(self.node_id)
         except pipeline_exceptions.InvalidOperationException:
-            act_started = False
+            node_started = False
         else:
             # 最新 loop 执行记录，直接通过接口获取
             if loop is None or int(loop) >= detail["loop"]:
@@ -305,7 +305,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 outputs = {"outputs": his_data[-1]["outputs"], "ex_data": his_data[-1]["ex_data"]}
 
         pipeline_instance = kwargs["pipeline_instance"]
-        if not act_started:
+        if not node_started:
             node_info = self._get_node_info(
                 node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
             )
@@ -375,21 +375,21 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 if not result.result:
                     logger.exception("bamboo_engine_api.get_execution_data fail")
 
-                # 对上层屏蔽执行数据不存在的场景
-                if isinstance(result.exc, ExecutionData.DoesNotExist):
-                    return {
-                        "result": True,
-                        "data": {"inputs": {}, "outputs": [], "ex_data": ""},
-                        "message": "",
-                        "code": err_code.SUCCESS.code,
-                    }
-                else:
-                    return {
-                        "result": False,
-                        "data": {},
-                        "message": "{}: {}".format(result.message, result.exc),
-                        "code": err_code.UNKNOWN_ERROR.code,
-                    }
+                    # 对上层屏蔽执行数据不存在的场景
+                    if isinstance(result.exc, ExecutionData.DoesNotExist):
+                        return {
+                            "result": True,
+                            "data": {"inputs": {}, "outputs": [], "ex_data": ""},
+                            "message": "",
+                            "code": err_code.SUCCESS.code,
+                        }
+                    else:
+                        return {
+                            "result": False,
+                            "data": {},
+                            "message": "{}: {}".format(result.message, result.exc),
+                            "code": err_code.UNKNOWN_ERROR.code,
+                        }
 
                 data = result.data
                 inputs = data["inputs"]

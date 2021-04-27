@@ -47,6 +47,10 @@ TASKFLOW_MODEL_NODE_CMD_DISPATCHER = "gcloud.taskflow3.models.NodeCommandDispatc
 
 TASKFLOW_CONTEXT_PROJECT_CONFIG = "gcloud.taskflow3.context.ProjectConfig"
 
+TASKFLOW_DISPATCHERS_NODE_PIPELINE_API = "gcloud.taskflow3.dispatchers.node.pipeline_api"
+TASKFLOW_DISPATCHERS_NODE_BAMBOO_API = "gcloud.taskflow3.dispatchers.node.bamboo_engine_api"
+TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME = "gcloud.taskflow3.dispatchers.node.BambooDjangoRuntime"
+
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
 PERIODIC_TASK_CREATE = "gcloud.periodictask.models.PeriodicTask.objects.create"
