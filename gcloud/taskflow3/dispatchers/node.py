@@ -22,6 +22,7 @@ from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.eri.runtime import BambooDjangoRuntime
+from pipeline.eri.models import ExecutionData
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import exceptions as pipeline_exceptions
@@ -311,7 +312,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             if node_info["type"] != "ServiceActivity":
                 return {
                     "result": True,
-                    "data": {"inputs": {}, "outputs": {}, "ex_data": ""},
+                    "data": {"inputs": {}, "outputs": [], "ex_data": ""},
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
@@ -373,6 +374,16 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 result = bamboo_engine_api.get_execution_data(runtime=runtime, node_id=self.node_id)
                 if not result.result:
                     logger.exception("bamboo_engine_api.get_execution_data fail")
+
+                # 对上层屏蔽执行数据不存在的场景
+                if isinstance(result.exc, ExecutionData.DoesNotExist):
+                    return {
+                        "result": True,
+                        "data": {"inputs": {}, "outputs": [], "ex_data": ""},
+                        "message": "",
+                        "code": err_code.SUCCESS.code,
+                    }
+                else:
                     return {
                         "result": False,
                         "data": {},
@@ -409,7 +420,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             if node_info["type"] != "ServiceActivity":
                 return {
                     "result": True,
-                    "data": {"inputs": {}, "outputs": {}, "ex_data": ""},
+                    "data": {"inputs": {}, "outputs": [], "ex_data": ""},
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
@@ -561,6 +572,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                         "message": "{}: {}".format(hist_result.message, hist_result.exc),
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
+                for hist in hist_result.data:
+                    hist["ex_data"] = hist.get("outputs", {}).get("ex_data", "")
                 detail["histories"] = hist_result.data
             # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数，则从历史数据获取结果
             else:
