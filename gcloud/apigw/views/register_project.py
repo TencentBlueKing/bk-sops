@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -26,6 +27,7 @@ except ImportError:
     from packages.bkoauth.decorators import apigw_required
 from gcloud.conf import settings
 
+logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
@@ -62,8 +64,11 @@ def register_project(request):
     }
     biz_result = client.cc.search_business(biz_kwargs)
 
-    if not biz_result["result"]:
-        message = "[cc.search_business] error: {}, please confirm your bk_biz_id".format(biz_result)
+    if not biz_result["result"] or not biz_result["data"]["info"]:
+        message = "[cc.search_business] error: {}, please confirm your bk_biz_id and business data exist".format(
+            biz_result
+        )
+        logger.error("[api register_project]: {}".format(message))
         return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
     biz_info = biz_result["data"]["info"][0]
@@ -76,8 +81,6 @@ def register_project(request):
         "status": biz_info.get("bk_data_status", "enable"),
     }
 
-    Business.objects.update_or_create(cc_id=bk_biz_id, defaults=biz_defaults)
-
     project_defaults = {
         "name": biz_info.get("bk_biz_name"),
         "time_zone": biz_info.get("time_zone"),
@@ -85,7 +88,20 @@ def register_project(request):
         "desc": "",
         "from_cmdb": True,
     }
-    project, _ = Project.objects.update_or_create(bk_biz_id=bk_biz_id, defaults=project_defaults)
+
+    try:
+        # 插入后更新Business和Project信息
+        Business.objects.update_or_create(cc_id=bk_biz_id, defaults=biz_defaults)
+        project, _ = Project.objects.update_or_create(bk_biz_id=bk_biz_id, defaults=project_defaults)
+    except Exception as e:
+        message = "[api register_project] Error exists when create object: {}".format(e)
+        logger.exception(message)
+        return {
+            "result": False,
+            "message": message,
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
+
     return {
         "result": True,
         "data": {"project_id": project.id, "project_name": project.name},
