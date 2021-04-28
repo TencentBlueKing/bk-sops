@@ -194,7 +194,7 @@ class ProjectManager(models.Manager):
                         bk_biz_id=cc_id,
                     )
                 )
-
+            # maybe have duplicate entry, caller function should cope with the exception
             self.bulk_create(projects, batch_size=5000)
 
     def update_business_project_status(self, archived_cc_ids, active_cc_ids):
@@ -218,6 +218,7 @@ class Project(models.Model):
     class Meta:
         verbose_name = _("项目 Project")
         verbose_name_plural = _("项目 Project")
+        unique_together = ("bk_biz_id", "name")
 
     def __unicode__(self):
         return "%s_%s" % (self.id, self.name)

@@ -128,3 +128,4 @@ class WechatWorkSendMessageComponent(Component):
     bound_service = WechatWorkSendMessageService
     form = "%scomponents/atoms/wechat_work/wechat_work_send_message/v1_0.js" % settings.STATIC_URL
     version = "1.0"
+    desc = "请参考企业微信群机器人开发文档来获取机器人在群聊中的会话ID"

@@ -40,16 +40,16 @@ def get_functionalization_task_list(request):
     if id_in:
         try:
             id_in = id_in.split(",")
-        except Exception as e:
+        except Exception:
             id_in = None
-            logger.error("[API] get_functionalization_task_list id_in[{}] resolve fail: {}, ignore.".format(id_in, e))
+            logger.exception("[API] get_functionalization_task_list id_in[{}] resolve fail, ignore.".format(id_in))
     if task_id_in:
         try:
             task_id_in = task_id_in.split(",")
-        except Exception as e:
+        except Exception:
             task_id_in = None
-            logger.error(
-                "[API] get_functionalization_task_list task_id_in[{}] resolve fail: {}, ignore".format(task_id_in, e)
+            logger.exception(
+                "[API] get_functionalization_task_list task_id_in[{}] resolve fail, ignore.".format(task_id_in)
             )
 
     filter_kwargs = {}

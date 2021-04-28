@@ -91,7 +91,7 @@ def dispatch_plugin_query(request):
         }
 
     except Exception as e:
-        logger.error("dispatch_plugin_query: exception for {}".format(e))
+        logger.exception("dispatch_plugin_query: exception for {}".format(e))
         return {
             "result": False,
             "message": "dispatch_plugin_query: exception for {}".format(e),

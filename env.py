@@ -61,7 +61,7 @@ BK_IAM_SKIP = os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP")
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_V3_APP_CODE))
 # 线上环境IAM配置
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_HOST, SITE_URL))
+BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_INNER_HOST, SITE_URL))
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 

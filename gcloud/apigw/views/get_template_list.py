@@ -48,7 +48,7 @@ def get_template_list(request, project_id):
             id_in = id_in.split(",")
         except Exception:
             id_in = None
-            logger.error("[API] id_in[{}] resolve fail, ignore.".format(id_in))
+            logger.exception("[API] id_in[{}] resolve fail, ignore.".format(id_in))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:

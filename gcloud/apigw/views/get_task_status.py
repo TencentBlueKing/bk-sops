@@ -50,7 +50,7 @@ def get_task_status(request, task_id, project_id):
             task_status = task.get_status()
         except Exception as e:
             message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
-            logger.error(message)
+            logger.exception(message)
             result = {
                 "result": False,
                 "message": message,
@@ -77,7 +77,7 @@ def get_task_status(request, task_id, project_id):
             message = "[API] get_task_status task[id={task_id}] get status error: {error}".format(
                 task_id=task_id, error=e
             )
-            logger.error(message)
+            logger.exception(message)
             result = {
                 "result": False,
                 "message": message,
