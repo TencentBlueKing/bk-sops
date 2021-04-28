@@ -516,7 +516,7 @@
         width: 850px;
         height: 100%;
         .task-list {
-            padding: 20px 20px 0;
+            padding: 20px 16px 0;
             height: 268px;
             overflow-y: auto;
             @include scrollbar;

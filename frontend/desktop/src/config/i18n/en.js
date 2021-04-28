@@ -1099,7 +1099,8 @@ const en = {
     '请输入流程模板名称': 'Please enter the template name',
     '基础': 'Basic',
     '通知': 'Notify',
-    '其他': 'Others'
+    '其他': 'Others',
+    '默认全部': 'all'
 }
 
 export default en
