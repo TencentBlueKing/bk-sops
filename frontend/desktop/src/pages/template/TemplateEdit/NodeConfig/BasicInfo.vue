@@ -127,7 +127,7 @@
                 <!-- 子流程版本更新 -->
                 <i
                     class="common-icon-clock-inversion update-tooltip"
-                    v-if="!inputLoading && subflowHasUpdate"
+                    v-if="!inputLoading && subflowHasUpdate && !updateSubflow"
                     v-bk-tooltips="{
                         content: $t('版本更新'),
                         placements: ['bottom-end']
@@ -164,6 +164,7 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
+            updateSubflow: Boolean,
             inputLoading: Boolean
         },
         data () {
