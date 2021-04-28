@@ -17,6 +17,7 @@ import traceback
 from typing import Optional
 
 from django.utils import timezone
+from bamboo_engine.utils.object import Representable
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from pipeline.eri.runtime import BambooDjangoRuntime
@@ -34,6 +35,11 @@ from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
+
+
+class SystemObject(Representable):
+    def __init__(self, attrs: dict):
+        self.__dict__ = attrs
 
 
 class TaskCommandDispatcher(EngineCommandDispatcher):
@@ -127,21 +133,37 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if not update_success:
             return {"result": False, "message": "task already started", "code": err_code.INVALID_OPERATION.code}
 
-        # convert web pipeline to pipeline
-        pipeline = format_web_data_to_pipeline(self.pipeline_instance.execution_data)
+        try:
+            # convert web pipeline to pipeline
+            pipeline = format_web_data_to_pipeline(self.pipeline_instance.execution_data)
 
-        # run pipeline
-        result = bamboo_engine_api.run_pipeline(
-            runtime=BambooDjangoRuntime(),
-            pipeline=pipeline,
-            root_pipeline_data=get_pipeline_context(
+            root_pipeline_data = get_pipeline_context(
                 self.pipeline_instance, obj_type="instance", data_type="data", username=executor
-            ),
-            queue=self.queue,
-        )
+            )
+            system_obj = SystemObject(root_pipeline_data)
+            root_pipeline_context = {"${_system}": system_obj}
+
+            # run pipeline
+            result = bamboo_engine_api.run_pipeline(
+                runtime=BambooDjangoRuntime(),
+                pipeline=pipeline,
+                root_pipeline_data=root_pipeline_data,
+                root_pipeline_context=root_pipeline_context,
+                queue=self.queue,
+            )
+        except Exception as e:
+            logger.exception("run pipeline failed")
+            PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
+                start_time=None, is_started=False, executor="",
+            )
+            return {
+                "result": False,
+                "message": "run pipeline failed: {}".format(e),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
 
         if not result.result:
-            PipelineInstance.objects.filter(id=self.pipeline_instance.instance_id, is_started=True).update(
+            PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
                 start_time=None, is_started=False, executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
@@ -151,7 +173,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         dict_result = {
             "result": result.result,
             "message": result.message,
-            "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR,
+            "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR.code,
         }
 
         return dict_result
