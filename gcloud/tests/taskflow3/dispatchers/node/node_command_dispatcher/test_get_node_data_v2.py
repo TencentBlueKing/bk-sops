@@ -22,7 +22,7 @@ from gcloud.tests.mock_settings import *  # noqa
 
 
 class GetNodeDataV2TestCase(TestCase):
-    def test_non_act_no_started(self):
+    def test_non_act_not_started(self):
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -65,7 +65,7 @@ class GetNodeDataV2TestCase(TestCase):
             },
         )
 
-    def test_act_no_started(self):
+    def test_act_not_started(self):
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -275,7 +275,7 @@ class GetNodeDataV2TestCase(TestCase):
             },
         )
 
-    def test_node_started_loop_is_not_none(self):
+    def test_node_started_loop_is_not_latest(self):
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]

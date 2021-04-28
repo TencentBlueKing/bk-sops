@@ -23,9 +23,7 @@ from gcloud.tests.mock_settings import *  # noqa
 
 
 class GetNodeDataV1TestCase(TestCase):
-    def test_non_act_no_started(self):
-        pipeline_api = MagicMock()
-        pipeline_api.get_status_tree = MagicMock(side_effect=pipeline_exceptions.InvalidOperationException)
+    def test_non_act_not_started(self):
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -33,6 +31,8 @@ class GetNodeDataV1TestCase(TestCase):
         pipeline_instance = MagicMock()
         kwargs = {"pipeline_instance": pipeline_instance}
 
+        pipeline_api = MagicMock()
+        pipeline_api.get_status_tree = MagicMock(side_effect=pipeline_exceptions.InvalidOperationException)
         dispatcher = NodeCommandDispatcher(engine_ver=1, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "StartEvent"})
 
@@ -55,9 +55,7 @@ class GetNodeDataV1TestCase(TestCase):
             },
         )
 
-    def test_act_no_started(self):
-        pipeline_api = MagicMock()
-        pipeline_api.get_status_tree = MagicMock(side_effect=pipeline_exceptions.InvalidOperationException)
+    def test_act_not_started(self):
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -65,6 +63,8 @@ class GetNodeDataV1TestCase(TestCase):
         pipeline_instance = MagicMock()
         kwargs = {"pipeline_instance": pipeline_instance}
 
+        pipeline_api = MagicMock()
+        pipeline_api.get_status_tree = MagicMock(side_effect=pipeline_exceptions.InvalidOperationException)
         dispatcher = NodeCommandDispatcher(engine_ver=1, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
         pre_render_inputs = "inputs"
@@ -99,11 +99,6 @@ class GetNodeDataV1TestCase(TestCase):
         )
 
     def test_node_started_loop_is_none(self):
-        pipeline_api = MagicMock()
-        inputs = "inputs"
-        outputs = {"ex_data": "ex_data"}
-        pipeline_api.get_inputs = MagicMock(return_value=inputs)
-        pipeline_api.get_outputs = MagicMock(return_value=outputs)
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -111,6 +106,11 @@ class GetNodeDataV1TestCase(TestCase):
         pipeline_instance = MagicMock()
         kwargs = {"pipeline_instance": pipeline_instance}
 
+        pipeline_api = MagicMock()
+        inputs = "inputs"
+        outputs = {"ex_data": "ex_data"}
+        pipeline_api.get_inputs = MagicMock(return_value=inputs)
+        pipeline_api.get_outputs = MagicMock(return_value=outputs)
         dispatcher = NodeCommandDispatcher(engine_ver=1, node_id="node_id")
         dispatcher._get_node_info = MagicMock()
         dispatcher._prerender_node_data = MagicMock()
@@ -141,13 +141,6 @@ class GetNodeDataV1TestCase(TestCase):
         )
 
     def test_node_started_loop_is_latest(self):
-        detail = {"loop": 1}
-        pipeline_api = MagicMock()
-        inputs = "inputs"
-        outputs = {"ex_data": "ex_data"}
-        pipeline_api.get_status_tree = MagicMock(return_value=detail)
-        pipeline_api.get_inputs = MagicMock(return_value=inputs)
-        pipeline_api.get_outputs = MagicMock(return_value=outputs)
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -155,6 +148,13 @@ class GetNodeDataV1TestCase(TestCase):
         pipeline_instance = MagicMock()
         kwargs = {"pipeline_instance": pipeline_instance}
 
+        detail = {"loop": 1}
+        pipeline_api = MagicMock()
+        inputs = "inputs"
+        outputs = {"ex_data": "ex_data"}
+        pipeline_api.get_status_tree = MagicMock(return_value=detail)
+        pipeline_api.get_inputs = MagicMock(return_value=inputs)
+        pipeline_api.get_outputs = MagicMock(return_value=outputs)
         dispatcher = NodeCommandDispatcher(engine_ver=1, node_id="node_id")
         dispatcher._get_node_info = MagicMock()
         dispatcher._prerender_node_data = MagicMock()
@@ -184,12 +184,7 @@ class GetNodeDataV1TestCase(TestCase):
             },
         )
 
-    def test_node_started_loop_is_not_none(self):
-        detail = {"loop": 2}
-        histories = [{"inputs": "inputs", "outputs": "outputs", "ex_data": "ex_data"}]
-        pipeline_api = MagicMock()
-        pipeline_api.get_status_tree = MagicMock(return_value=detail)
-        pipeline_api.get_activity_histories = MagicMock(return_value=histories)
+    def test_node_started_loop_is_not_latest(self):
         username = "username"
         component_code = "component_code"
         subprocess_stack = ["1"]
@@ -197,6 +192,11 @@ class GetNodeDataV1TestCase(TestCase):
         pipeline_instance = MagicMock()
         kwargs = {"pipeline_instance": pipeline_instance}
 
+        detail = {"loop": 2}
+        histories = [{"inputs": "inputs", "outputs": "outputs", "ex_data": "ex_data"}]
+        pipeline_api = MagicMock()
+        pipeline_api.get_status_tree = MagicMock(return_value=detail)
+        pipeline_api.get_activity_histories = MagicMock(return_value=histories)
         dispatcher = NodeCommandDispatcher(engine_ver=1, node_id="node_id")
         dispatcher._get_node_info = MagicMock()
         dispatcher._prerender_node_data = MagicMock()

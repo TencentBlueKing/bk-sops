@@ -603,7 +603,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 {
                     "name": node["name"],
                     "error_ignorable": node.get("error_ignorable", False),
-                    "state": pipeline_states.READY,
+                    "state": bamboo_engine_states.READY,
                 }
             )
 
