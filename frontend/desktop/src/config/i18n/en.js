@@ -1099,7 +1099,8 @@ const en = {
     '基础': 'Basic',
     '通知': 'Notify',
     '其他': 'Others',
-    '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it'
+    '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
+    '主机名': 'Host Name'
 }
 
 export default en
