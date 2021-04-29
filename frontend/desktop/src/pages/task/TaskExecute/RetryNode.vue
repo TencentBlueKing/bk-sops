@@ -12,13 +12,13 @@
 <template>
     <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="edit-wrapper">
-            <RenderForm
+            <render-form
                 ref="renderForm"
                 v-if="!isEmptyParams"
                 :scheme="renderConfig"
                 :form-option="renderOption"
                 v-model="renderData">
-            </RenderForm>
+            </render-form>
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
@@ -33,12 +33,10 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
     export default {
         name: 'RetryNode',
         components: {
-            RenderForm,
             NoData
         },
         props: ['nodeDetailConfig'],

@@ -103,11 +103,11 @@
                 try {
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
                     const pipelineData = JSON.parse(instanceData.pipeline_tree)
-                    const constants = {}
+                    const constants = []
                     Object.keys(pipelineData.constants).forEach(key => {
                         const cnt = pipelineData.constants[key]
                         if (cnt.show_type === 'show') {
-                            constants[key] = cnt
+                            constants.push(cnt)
                         }
                     })
                     this.constants = constants

@@ -217,7 +217,6 @@
     import SelectorPanel from './SelectorPanel.vue'
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import bus from '@/utils/bus.js'
 
     export default {
         name: 'NodeConfig',
@@ -299,50 +298,6 @@
             }
         },
         created () {
-            /**
-             * notice: 该方法为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
-             * description: 切换作业模板时，将当前作业的全局变量表格数据部分添加到输出参数
-             */
-            bus.$on('jobExecuteTaskOutputs', args => {
-                const { plugin, version } = this.basicInfo
-                if (!this.isSubflow && plugin === 'job_execute_task') {
-                    // tagDatatable 值发生变更前后的值
-                    const { val, oldVal } = args
-                    const outputs = [...this.pluginOutput[plugin][version]]
-                    if (val && val.length > 0) {
-                        val.forEach(item => {
-                            if (item.category === 1) {
-                                outputs.push({
-                                    name: item.name,
-                                    key: item.name,
-                                    version
-                                })
-                            }
-                        })
-                    }
-                    if (oldVal && oldVal.length > 0) {
-                        // 清除变更后不存在且被勾选的输出变量
-                        oldVal.forEach(item => {
-                            if (item.category === 1) {
-                                // 切换前后一直存在的变量不处理
-                                if (val.find(v => v.id === item.id)) {
-                                    return
-                                }
-                                Object.keys(this.localConstants).some(key => {
-                                    const constant = this.localConstants[key]
-                                    const sourceInfo = constant.source_info[this.nodeId]
-                                    if (sourceInfo && sourceInfo.includes(item.name)) {
-                                        this.deleteVariable(key)
-                                        return true
-                                    }
-                                })
-                            }
-                        })
-                    }
-
-                    this.outputs = outputs
-                }
-            })
             this.localConstants = tools.deepClone(this.constants)
         },
         mounted () {
@@ -742,8 +697,51 @@
                 this.basicInfo = Object.assign({}, this.basicInfo, data)
             },
             // 输入参数表单值更新
-            updateInputsValue (val) {
+            updateInputsValue (val, tableDataObj) {
                 this.inputsParamValue = val
+                /**
+                 * notice: 该方法为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
+                 * description: 切换作业模板时，将当前作业的全局变量表格数据部分添加到输出参数
+                 */
+                if (tableDataObj) {
+                    const { newVal, oldVal } = tableDataObj
+                    const { plugin, version } = this.basicInfo
+                    if (!this.isSubflow && plugin === 'job_execute_task') {
+                        // tagDatatable 值发生变更前后的值
+                        const outputs = [...this.pluginOutput[plugin][version]]
+                        if (newVal && newVal.length > 0) {
+                            newVal.forEach(item => {
+                                if (item.category === 1) {
+                                    outputs.push({
+                                        name: item.name,
+                                        key: item.name,
+                                        version
+                                    })
+                                }
+                            })
+                        }
+                        if (oldVal && oldVal.length > 0) {
+                            // 清除变更后不存在且被勾选的输出变量
+                            oldVal.forEach(item => {
+                                if (item.category === 1) {
+                                    // 切换前后一直存在的变量不处理
+                                    if (newVal.find(v => v.id === item.id)) {
+                                        return
+                                    }
+                                    Object.keys(this.localConstants).some(key => {
+                                        const constant = this.localConstants[key]
+                                        const sourceInfo = constant.source_info[this.nodeId]
+                                        if (sourceInfo && sourceInfo.includes(item.name)) {
+                                            this.deleteVariable(key)
+                                            return true
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                        this.outputs = outputs
+                    }
+                }
             },
             /**
              * 子流程版本更新

@@ -88,12 +88,12 @@
                     </div>
                     <div v-if="!adminView">
                         <div v-if="!isShowInputOrigin">
-                            <RenderForm
+                            <render-form
                                 v-if="!isEmptyParams && !loading"
                                 :scheme="renderConfig"
                                 :form-option="renderOption"
                                 v-model="renderData">
-                            </RenderForm>
+                            </render-form>
                             <NoData v-else></NoData>
                         </div>
                         <full-code-editor v-else :value="inputsInfo"></full-code-editor>
@@ -140,11 +140,11 @@
                 <section class="info-section" v-if="isRenderOutputForm && outputRenderConfig && outputRenderConfig.length !== 0 && !loading">
                     <h4 class="common-section-title">{{ $t('输出表单') }}</h4>
                     <div class="code-block-wrap">
-                        <RenderForm
+                        <render-form
                             :scheme="outputRenderConfig"
                             :form-option="outputRenderOption"
                             v-model="outputRenderData">
-                        </RenderForm>
+                        </render-form>
                     </div>
                 </section>
                 <section class="info-section" v-if="executeInfo.ex_data">
@@ -268,7 +268,6 @@
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import NodeTree from './NodeTree'
     import FullCodeEditor from './FullCodeEditor.vue'
@@ -426,7 +425,6 @@
         name: 'ExecuteInfo',
         components: {
             VueJsonPretty,
-            RenderForm,
             NoData,
             IpLogContent,
             NodeTree,

@@ -11,13 +11,13 @@
 */
 <template>
     <div class="task-param-wrapper">
-        <RenderForm
+        <render-form
             ref="renderForm"
             v-if="!isConfigLoading"
             :scheme="renderConfig"
             :form-option="renderOption"
             v-model="renderData">
-        </RenderForm>
+        </render-form>
         <NoData v-if="isNoData && !isConfigLoading"></NoData>
     </div>
 </template>
@@ -26,12 +26,10 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
-    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'TaskParamEdit',
         components: {
-            RenderForm,
             NoData
         },
         props: {

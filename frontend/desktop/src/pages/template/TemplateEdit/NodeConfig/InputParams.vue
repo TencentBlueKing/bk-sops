@@ -14,7 +14,7 @@
             ref="renderForm"
             :scheme="scheme"
             :hooked="hooked"
-            :constants="constants"
+            :constants="Object.values(constants)"
             :form-option="option"
             :form-data="formData"
             @change="onInputsValChange"
@@ -32,7 +32,6 @@
 <script>
     import tools from '@/utils/tools.js'
     import formSchema from '@/utils/formSchema.js'
-    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import ReuseVarDialog from './ReuseVarDialog.vue'
 
     const varKeyReg = /^\$\{(\w+)\}$/
@@ -40,7 +39,6 @@
     export default {
         name: 'InputParams',
         components: {
-            RenderForm,
             ReuseVarDialog
         },
         props: {
@@ -96,8 +94,8 @@
                 })
                 return hooked
             },
-            onInputsValChange (val) {
-                this.$emit('update', tools.deepClone(val))
+            onInputsValChange (val, tableDataObj) {
+                this.$emit('update', tools.deepClone(val), tableDataObj)
             },
             onInputHookChange (form, val) {
                 if (val) {

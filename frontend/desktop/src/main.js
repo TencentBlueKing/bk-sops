@@ -17,6 +17,11 @@ import store from './store/index.js'
 import './directives/index.js'
 import './config/login.js'
 import './api/index.js'
+// 引入renderForm文件
+import './assets/js/render-form/index.js'
+import './assets/js/render-form/index.css'
+import * as monaco from 'monaco-editor'
+
 import i18n from './config/i18n/index.js'
 import App from './App.vue'
 import bkMagicVue, { locale, lang } from 'bk-magic-vue'
@@ -37,6 +42,9 @@ const config = {
 Vue.use(VeeValidate, config)
 
 Vue.use(bkMagicVue)
+/*eslint-disable*/
+Vue.use(renderForm)
+window.monaco = monaco
 
 Vue.use(Input)
 Vue.use(InputNumber)

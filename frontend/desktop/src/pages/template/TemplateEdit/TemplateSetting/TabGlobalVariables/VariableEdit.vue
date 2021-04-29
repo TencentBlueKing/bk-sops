@@ -131,12 +131,12 @@
                 <div class="form-item value-form clearfix">
                     <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
                         <template v-if="!atomConfigLoading && renderConfig.length">
-                            <RenderForm
+                            <render-form
                                 ref="renderForm"
                                 :scheme="renderConfig"
                                 :form-option="renderOption"
                                 v-model="renderData">
-                            </RenderForm>
+                            </render-form>
                         </template>
                     </div>
                 </div>
@@ -176,12 +176,10 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
-    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
 
     export default {
         name: 'VariableEdit',
         components: {
-            RenderForm
         },
         props: {
             variableData: Object,

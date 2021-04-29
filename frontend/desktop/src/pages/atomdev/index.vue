@@ -117,7 +117,6 @@
     import ConfigPanel from './configPanel/ConfigPanel.vue'
     import AtomSetting from './atomSetting/AtomSetting.vue'
     import UploadReadFile from './UploadReadFile.vue'
-    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import importTag from './importTag.js'
     import tools from '@/utils/tools.js'
     import { COMMON_ATTRS } from '@/components/common/RenderForm/formMixins.js'
@@ -140,8 +139,7 @@
             FormPanel,
             AtomSetting,
             UploadReadFile,
-            ConfigPanel,
-            RenderForm
+            ConfigPanel
         },
         data () {
             const tags = this.getTagConfigMap(TAGS)
