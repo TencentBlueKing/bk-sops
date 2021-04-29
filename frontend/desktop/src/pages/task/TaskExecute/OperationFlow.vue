@@ -5,6 +5,7 @@
             :data="operateFlowData">
             <bk-table-column :label="$t('操作时间')" prop="operate_date"></bk-table-column>
             <bk-table-column :label="$t('操作名称')" prop="operate_type_name"></bk-table-column>
+            <bk-table-column :label="$t('节点名称')" prop="node_name"></bk-table-column>
             <bk-table-column :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
             <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
         </bk-table>
@@ -14,9 +15,20 @@
 <script>
     import { mapActions } from 'vuex'
     export default {
+        props: {
+            nodeId: {
+                type: String,
+                default: ''
+            }
+        },
         data () {
             return {
                 operateFlowData: []
+            }
+        },
+        watch: {
+            nodeId (val) {
+                this.getOperationTaskData()
             }
         },
         mounted () {
@@ -31,7 +43,8 @@
                 try {
                     const resp = await this.getOperationRecordTask({
                         project_id: params.project_id,
-                        instance_id: query.instance_id
+                        instance_id: query.instance_id,
+                        node_id: this.nodeId || undefined
                     })
                     this.operateFlowData = resp.data || []
                 } catch (error) {
