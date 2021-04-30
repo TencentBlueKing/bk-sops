@@ -23,11 +23,11 @@
             <div class="pic-wrapper">
                 <img :src="errorPic" class="error-pic" alt="error-pic">
             </div>
-            <ErrorCode403 v-if="code === '403'"></ErrorCode403>
-            <ErrorCode405 v-if="code === '405'" :response-text="responseText"></ErrorCode405>
-            <ErrorCode406 v-if="code === '406'"></ErrorCode406>
-            <ErrorCode407 v-if="code === '407'"></ErrorCode407>
-            <ErrorCode500 v-if="code === '500'" :response-text="responseText"></ErrorCode500>
+            <ErrorCode403 v-if="code === 403"></ErrorCode403>
+            <ErrorCode405 v-if="code === 405" :response-text="responseText"></ErrorCode405>
+            <ErrorCode406 v-if="code === 406"></ErrorCode406>
+            <ErrorCode407 v-if="code === 407"></ErrorCode407>
+            <ErrorCode500 v-if="code === 500" :response-text="responseText"></ErrorCode500>
             <div class="default-modal" v-if="code === 'default'" v-html="responseText"></div>
         </div>
     </bk-dialog>
@@ -68,7 +68,7 @@
         },
         methods: {
             show (code, responseText, title = ' ') {
-                this.code = String(code)
+                this.code = code
                 this.responseText = responseText
                 this.isModalShow = true
                 this.title = title

@@ -90,6 +90,19 @@ export function setConfigContext (site_url, project) {
  */
 // 在这里对ajax请求做一些统一公用处理
 export function setJqueryAjaxConfig () {
+    function getCookie (cname) {
+        const name = cname + '='
+        const ca = document.cookie.split(';')
+        for (let i = 0; i < ca.length; i++) {
+            const c = ca[i].trim()
+            if (c.indexOf(name) > -1) return c.substring(name.length, c.length)
+        }
+        return ''
+    }
+    $(document).ajaxSend(function (event, jqxhr, settings) {
+        jqxhr.setRequestHeader('X-CSRFToken', getCookie('bk_sops_csrftoken'))
+    })
+
     $(document).ajaxError(function (event, xhr, setting) {
         const code = xhr.status
         switch (code) {
@@ -114,19 +127,19 @@ export function setJqueryAjaxConfig () {
                 bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
                 break
             case 403:
-                bus.$emit('showErrorModal', '403')
+                bus.$emit('showErrorModal', 403)
                 break
             case 405:
-                bus.$emit('showErrorModal', '405', xhr.responseText)
+                bus.$emit('showErrorModal', 405, xhr.responseText)
                 break
             case 406:
-                bus.$emit('showErrorModal', '406')
+                bus.$emit('showErrorModal', 406)
                 break
             case 499:
                 bus.$emit('showPermissionModal', xhr.responseJSON.permission)
                 break
             case 500:
-                bus.$emit('showErrorModal', '500', xhr.responseText)
+                bus.$emit('showErrorModal', 500, xhr.responseText)
                 break
         }
     })
