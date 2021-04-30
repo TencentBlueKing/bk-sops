@@ -115,7 +115,9 @@
                             @change="formData.executorProxy = $event">
                         </member-select>
                         <div class="executor-proxy-desc">
-                            {{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效') }}
+                            {{ $t('仅支持本流程的执行代理，可在项目配置中') }}
+                            <span class="project-management" @click="jumpProjectManagement">{{ $t('设置项目执行代理人') }}</span>。
+                            <span class="bloack">{{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效。') }}</span>
                         </div>
                     </bk-form-item>
                     <bk-form-item property="notifyType" :label="$t('备注')">
@@ -212,6 +214,9 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'timeout': state => state.template.time_out
             }),
+            ...mapState('project', {
+                'authActions': state => state.authActions
+            }),
             notifyGroup () {
                 let list = []
                 if (this.projectBaseInfo.notify_group) {
@@ -307,6 +312,11 @@
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
                     notify_type: notifyType
+                }
+            },
+            jumpProjectManagement () {
+                if (this.authActions.includes('project_edit')) {
+                    this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 }
             },
             onSaveConfig () {
@@ -436,5 +446,12 @@
     line-height: 16px;
     margin-top: 5px;
     color: #b8b8b8;
+    .project-management {
+        color: #3a84ff;
+        cursor: pointer;
+    }
+    .bloack {
+        display: block;
+    }
 }
 </style>
