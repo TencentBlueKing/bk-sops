@@ -115,9 +115,11 @@
                             @change="formData.executorProxy = $event">
                         </member-select>
                         <div class="executor-proxy-desc">
-                            {{ $t('仅支持本流程的执行代理，可在项目配置中') }}
-                            <span class="project-management" @click="jumpProjectManagement">{{ $t('设置项目执行代理人') }}</span>。
-                            <span class="bloack">{{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效。') }}</span>
+                            <div v-if="!common">
+                                {{ $t('仅支持本流程的执行代理，可在项目配置中') }}
+                                <span :class="{ 'project-management': authActions && authActions.length }" @click="jumpProjectManagement">{{ $t('设置项目执行代理人') }}</span>。
+                            </div>
+                            {{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效。') }}
                         </div>
                     </bk-form-item>
                     <bk-form-item property="notifyType" :label="$t('备注')">
