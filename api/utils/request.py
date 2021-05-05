@@ -15,6 +15,7 @@ import logging
 
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
+from gcloud.utils.handlers import handle_api_error
 from .thread import ThreadPool
 
 logger = logging.getLogger("root")
@@ -57,7 +58,7 @@ def batch_request(
     result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
 
     if not result["result"]:
-        message = "[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result)
+        message = handle_api_error("[batch_request]", func.path, params, result)
         logger.error(message)
         raise ApiRequestError(message)
 
@@ -83,9 +84,7 @@ def batch_request(
         result = params_and_future["future"].get()
 
         if not result:
-            message = "[batch_request] {api} request error, params: {params}, result: {result}".format(
-                api=func.__name__, params=params_and_future["params"], result=result
-            )
+            message = handle_api_error("[batch_request]", func.path, params_and_future["params"], result)
             logger.error(message)
             raise ApiRequestError(message)
 
