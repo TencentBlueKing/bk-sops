@@ -83,7 +83,7 @@ ENGINE_ZOMBIE_PROCESS_HEAL_CRON = getattr(settings, "ENGINE_ZOMBIE_PROCESS_HEAL_
 
 # 过期任务运行时清理配置
 EXPIRED_TASK_CLEAN = getattr(settings, "EXPIRED_TASK_CLEAN", False)
-EXPIRED_TASK_CLEAN_CRON = getattr(settings, "EXPIRED_TASK_CLEAN_CRON", {"minute": "0", "hour": "1"})
+EXPIRED_TASK_CLEAN_CRON = getattr(settings, "EXPIRED_TASK_CLEAN_CRON", {"minute": "37", "hour": "*"})
 EXPIRED_TASK_CLEAN_NUM_LIMIT = getattr(settings, "EXPIRED_TASK_CLEAN_NUM_LIMIT", 100)
 TASK_EXPIRED_MONTH = getattr(settings, "TASK_EXPIRED_MONTH", 6)
 

@@ -13,16 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import datetime
-import operator
-from functools import reduce
 
 from dateutil.relativedelta import relativedelta
 
 from celery import task
 from celery.decorators import periodic_task
 from celery.schedules import crontab
-from django.db import transaction
-from django.db.models import Q
+from django.db import transaction, connection
 
 from pipeline.conf import default_settings
 from pipeline.core.pipeline import Pipeline
@@ -35,16 +32,8 @@ from pipeline.engine.models import (
     PipelineProcess,
     ProcessCeleryTask,
     Status,
-    Data,
-    History,
-    HistoryData,
     ScheduleService,
-    MultiCallbackData,
-    DataSnapshot,
-    ScheduleCeleryTask,
-    ProcessSnapshot,
-    PipelineModel,
-    SubProcessRelationship,
+    History,
 )
 from pipeline.models import PipelineInstance
 
@@ -189,73 +178,104 @@ def expired_tasks_clean():
         return
     logger.info("Expired tasks clean start")
 
-    try:
-        expired_create_time = datetime.date.today() - relativedelta(months=default_settings.TASK_EXPIRED_MONTH)
-        pipeline_instance_ids = list(
-            PipelineInstance.objects.filter(
-                create_time__lte=expired_create_time, is_finished=True, is_revoked=False, is_expired=False
-            ).values_list("instance_id", flat=True)[: default_settings.EXPIRED_TASK_CLEAN_NUM_LIMIT]
+    expired_create_time = datetime.date.today() - relativedelta(months=default_settings.TASK_EXPIRED_MONTH)
+    pipeline_instance_ids = list(
+        PipelineInstance.objects.filter(
+            create_time__lte=expired_create_time, is_finished=True, is_revoked=False, is_expired=False
+        ).values_list("instance_id", flat=True)[: default_settings.EXPIRED_TASK_CLEAN_NUM_LIMIT]
+    )
+    logger.info(
+        "Clean expired tasks before {} with tasks number: {}, instance ids: {}".format(
+            expired_create_time, len(pipeline_instance_ids), ",".join(pipeline_instance_ids)
         )
-        logger.info(
-            "Clean expired tasks before {} with tasks number: {}, instance ids: {}".format(
-                expired_create_time, len(pipeline_instance_ids), ",".join(pipeline_instance_ids)
-            )
-        )
+    )
 
-        total_process_nodes = []
-        for instance_id in pipeline_instance_ids:
-            process_nodes = NodeRelationship.objects.filter(ancestor_id=instance_id).values_list(
-                "descendant_id", flat=True
-            )
-            process_nodes = list(set(process_nodes))
-            total_process_nodes += process_nodes
-
-        pipeline_process = PipelineProcess.objects.filter(root_pipeline_id__in=pipeline_instance_ids)
-        pipeline_process_ids = pipeline_process.values_list("id", flat=True)
-        subprocess_relationship = SubProcessRelationship.objects.filter(process_id__in=pipeline_process_ids)
-        process_snapshot_ids = pipeline_process.values_list("snapshot__id", flat=True)
-        process_snapshot = ProcessSnapshot.objects.filter(id__in=process_snapshot_ids)
-        pipeline_model = PipelineModel.objects.filter(process_id__in=pipeline_process_ids)
-        process_celery_task = ProcessCeleryTask.objects.filter(process_id__in=pipeline_process_ids)
-        schedule_service = ScheduleService.objects.filter(process_id__in=pipeline_process_ids)
-        schedule_service_ids = schedule_service.values_list("id", flat=True)
-        multi_callback_data = MultiCallbackData.objects.filter(schedule_id__in=schedule_service_ids)
-        node_relationship = NodeRelationship.objects.filter(
-            Q(ancestor_id__in=total_process_nodes) | Q(descendant_id__in=total_process_nodes)
-        )
-        node_celery_tasks = NodeCeleryTask.objects.filter(node_id__in=total_process_nodes)
-        status = Status.objects.filter(id__in=total_process_nodes)
-        data = Data.objects.filter(id__in=total_process_nodes)
-        data_snapshot_prefixes = [Q(key__startswith=process_node) for process_node in total_process_nodes]
-        data_snapshot = DataSnapshot.objects.filter(reduce(operator.or_, data_snapshot_prefixes, Q(key=None)))
-        schedule_celery_task_prefixes = [
-            Q(schedule_id__startswith=process_node) for process_node in total_process_nodes
-        ]
-        schedule_celery_task = ScheduleCeleryTask.objects.filter(
-            reduce(operator.or_, schedule_celery_task_prefixes, Q(schedule_id=None))
-        )
-        history = History.objects.filter(identifier__in=total_process_nodes).only("data")
-        history_data_ids = history.values_list("data__id", flat=True)
-        history_data = HistoryData.objects.filter(id__in=history_data_ids)
-
-        with transaction.atomic():
-            schedule_service.delete()
-            multi_callback_data.delete()
-            history.delete()
-            history_data.delete()
-            data.delete()
-            status.delete()
-            node_celery_tasks.delete()
-            schedule_celery_task.delete()
-            data_snapshot.delete()
-            node_relationship.delete()
-            subprocess_relationship.delete()
-            pipeline_process.delete()
-            process_snapshot.delete()
-            pipeline_model.delete()
-            process_celery_task.delete()
-            PipelineInstance.objects.filter(instance_id__in=pipeline_instance_ids).update(is_expired=True)
-    except Exception as e:
-        logger.exception("An error occurred when clean expired tasks: {}".format(e))
+    for instance_id in pipeline_instance_ids:
+        try:
+            _clean_pipeline_instance_data(instance_id)
+        except Exception as e:
+            logger.exception("An error occurred when clean expired task instance {}: {}".format(instance_id, e))
 
     logger.info("Expired tasks clean finish")
+
+
+def _clean_pipeline_instance_data(instance_id):
+    """
+    根据instance_id删除对应的任务数据
+    """
+    process_nodes = list(
+        set(NodeRelationship.objects.filter(ancestor_id=instance_id).values_list("descendant_id", flat=True))
+    )
+    process_nodes = [process_node for process_node in process_nodes if process_node]
+    process_nodes_str = ",".join(process_nodes)
+    process_nodes_regex = "^" + "|^".join(process_nodes) if process_nodes else ""
+    pipeline_processes = PipelineProcess.objects.filter(root_pipeline_id=instance_id).values_list("id", "snapshot__id")
+    pipeline_process_ids, process_snapshot_ids = [], []
+    for process_id, snapshot_id in pipeline_processes:
+        if process_id:
+            pipeline_process_ids.append(process_id)
+        if snapshot_id:
+            process_snapshot_ids.append(snapshot_id)
+    pipeline_process_ids_str = ",".join(pipeline_process_ids)
+    process_snapshot_ids_str = ",".join(process_snapshot_ids)
+
+    delete_subprocess_relationship = (
+        "DELETE FROM `engine_subprocessrelationship` " "WHERE `engine_subprocessrelationship`.`process_id` " "IN (%s)"
+    )
+    delete_process_snapshot = "DELETE FROM `engine_processsnapshot` WHERE `engine_processsnapshot`.`id` IN (%s)"
+    delete_pipeline_model = "DELETE FROM `engine_pipelinemodel` WHERE `engine_pipelinemodel`.`process_id` IN (%s)"
+    delete_process_celery_task = (
+        "DELETE FROM `engine_processcelerytask` WHERE `engine_processcelerytask`.`process_id` IN (%s)"
+    )
+    schedule_service_ids = list(
+        ScheduleService.objects.filter(process_id__in=pipeline_process_ids).values_list("id", flat=True)
+    )
+    schedule_service_ids = [schedule_service_id for schedule_service_id in schedule_service_ids if schedule_service_id]
+    delete_schedule_service = "DELETE FROM `engine_scheduleservice` WHERE `engine_scheduleservice`.`process_id` IN (%s)"
+    delete_multi_callback_data = (
+        "DELETE FROM `engine_multicallbackdata` WHERE `engine_multicallbackdata`.`schedule_id` IN (%s)"
+    )
+    delete_node_relationship = (
+        "DELETE FROM `engine_noderelationship` "
+        "WHERE (`engine_noderelationship`.`ancestor_id` IN (%s) "
+        "OR `engine_noderelationship`.`descendant_id` IN (%s)) "
+    )
+    delete_node_celery_tasks = "DELETE FROM `engine_nodecelerytask` " "WHERE `engine_nodecelerytask`.`node_id` IN (%s) "
+    delete_status = "DELETE FROM `engine_status` WHERE `engine_status`.`id` IN (%s)"
+    delete_data = "DELETE FROM `engine_data` WHERE `engine_data`.`id` IN (%s)"
+    delete_datasnapshot = "DELETE FROM `engine_datasnapshot` WHERE `engine_datasnapshot`.`key` REGEXP %s"
+    delete_schedule_celery_task = (
+        "DELETE FROM `engine_schedulecelerytask`" "WHERE `engine_schedulecelerytask`.`schedule_id` REGEXP %s"
+    )
+    history_data_ids = list(
+        History.objects.filter(identifier__in=process_nodes).only("data").values_list("data__id", flat=True)
+    )
+    delete_history = "DELETE FROM `engine_history` WHERE `engine_history`.`identifier` IN (%s)"
+    delete_history_data = "DELETE FROM `engine_historydata` WHERE `engine_historydata`.`id` IN (%s)"
+    delete_pipeline_process = (
+        "DELETE FROM `engine_pipelineprocess` " "WHERE `engine_pipelineprocess`.`root_pipeline_id` = %s"
+    )
+    with transaction.atomic():
+        with connection.cursor() as cursor:
+            if pipeline_process_ids_str:
+                cursor.execute(delete_subprocess_relationship, pipeline_process_ids_str)
+                cursor.execute(delete_pipeline_model, pipeline_process_ids_str)
+                cursor.execute(delete_process_celery_task, pipeline_process_ids_str)
+                cursor.execute(delete_schedule_service, pipeline_process_ids_str)
+            if process_snapshot_ids_str:
+                cursor.execute(delete_process_snapshot, process_snapshot_ids_str)
+            if schedule_service_ids:
+                cursor.execute(delete_multi_callback_data, ",".join(schedule_service_ids))
+            if process_nodes_str:
+                cursor.execute(delete_node_relationship, [process_nodes_str, process_nodes_str])
+                cursor.execute(delete_node_celery_tasks, process_nodes_str)
+                cursor.execute(delete_status, process_nodes_str)
+                cursor.execute(delete_data, process_nodes_str)
+                cursor.execute(delete_history, process_nodes_str)
+            if process_nodes_regex:
+                cursor.execute(delete_datasnapshot, process_nodes_regex)
+                cursor.execute(delete_schedule_celery_task, process_nodes_regex)
+            if history_data_ids:
+                cursor.execute(delete_history_data, ",".join(history_data_ids))
+            cursor.execute(delete_pipeline_process, instance_id)
+            PipelineInstance.objects.filter(instance_id=instance_id).update(is_expired=True)
