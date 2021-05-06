@@ -25,6 +25,7 @@ Create a task with a flow template
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 |   exclude_task_nodes_id | list |   NO   |  nodes id not be executed, which are set ignore in flow |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
+|   simplify_vars    |   list       |   NO    |  list of constants key for type simplify.(after the task is created, the simplified constants will lose the type originally configured in the template, and they will all become variables of this textarea. By using this option, the difference in value format of different types of constants can be shielded when API calls are made, and they are uniformly passed through the text type. value) |
 
 #### constants KEY
 
@@ -47,7 +48,8 @@ constant value, the type of value should be same with data from API[get_template
         "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
-    }
+    },
+    "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"]
 }
 ```
 
