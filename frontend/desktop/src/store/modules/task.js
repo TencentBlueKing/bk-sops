@@ -284,11 +284,12 @@ const task = {
          * @param {Object} data 节点配置数据
          */
         getOperationRecordTask ({ commit }, data) {
-            const { project_id, instance_id } = data
+            const { project_id, instance_id, node_id } = data
             return axios.get(`/api/v3/operate_record_task/`, {
                 params: {
                     project_id,
-                    instance_id
+                    instance_id,
+                    node_id
                 }
             }).then(response => response.data)
         },
