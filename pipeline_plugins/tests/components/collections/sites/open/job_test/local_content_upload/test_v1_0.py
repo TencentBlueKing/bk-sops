@@ -170,9 +170,8 @@ KWARGS = {
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口job.push_config_file返回失败, params={params}, error={error}".format(
-        params=json.dumps(KWARGS), error=FAIL_RESULT["message"]
-    )
+    "ex_data": "调用作业平台(JOB)接口job.push_config_file返回失败, params={params}, error={error}, "
+    "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(KWARGS), error=FAIL_RESULT["message"])
 }
 
 IP_IS_EXIST_FAIL_OUTPUTS = {"ex_data": "IP 校验失败，请确认输入的 IP 127.0.0.2 是否合法"}
@@ -196,13 +195,18 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True, schedule_finished=True, outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        success=True,
+        schedule_finished=True,
+        outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": []},
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -243,7 +247,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": []},
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),

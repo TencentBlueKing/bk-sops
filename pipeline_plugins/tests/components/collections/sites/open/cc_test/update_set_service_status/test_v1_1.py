@@ -111,7 +111,8 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_INPUT_WITH_ATTR = {
 }
 
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT = MockClient(
-    search_set_return=SEARCH_SET_SUCCESS_RESULT, update_set_return=UPDATE_SET_SUCCESS_RESULT,
+    search_set_return=SEARCH_SET_SUCCESS_RESULT,
+    update_set_return=UPDATE_SET_SUCCESS_RESULT,
 )
 
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE = ComponentTestCase(
@@ -155,7 +156,8 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE_WITH_ATTR = ComponentTestCase(
 )
 
 SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CLIENT = MockClient(
-    search_set_return=SEARCH_SET_SUCCESS_RESULT, update_set_return=UPDATE_SET_FAIL_RESULT,
+    search_set_return=SEARCH_SET_SUCCESS_RESULT,
+    update_set_return=UPDATE_SET_FAIL_RESULT,
 )
 
 SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
@@ -166,7 +168,7 @@ SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": '调用配置平台(CMDB)接口cc.update_set返回失败, params={"bk_biz_id":2,"bk_supplier_account":0,'
-            '"bk_set_id":45,"data":{"bk_service_status":"1"}}, error=fail'
+            '"bk_set_id":45,"data":{"bk_service_status":"1"}}, error=fail, request_id=4a487ef38cf14157a0c3795310bad1a3'
         },
     ),
     schedule_assertion=[
@@ -180,7 +182,10 @@ SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
     ],
 )
 
-SEARCH_SET_FAIL_CLIENT = MockClient(search_set_return=SEARCH_SET_FAIL_RESULT, update_set_return=UPDATE_SET_FAIL_RESULT,)
+SEARCH_SET_FAIL_CLIENT = MockClient(
+    search_set_return=SEARCH_SET_FAIL_RESULT,
+    update_set_return=UPDATE_SET_FAIL_RESULT,
+)
 
 SEARCH_SET_FAIL_CASE = ComponentTestCase(
     name="fail case: search set fail",
