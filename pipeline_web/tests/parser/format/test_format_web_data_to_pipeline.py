@@ -348,44 +348,6 @@ web_tree = json.loads(
                                         "validator": [],
                                         "value": "${c}",
                                         "version": "legacy"
-                                    },
-                                    "${ip}": {
-                                        "custom_type": "ip_selector",
-                                        "desc": "",
-                                        "form_schema": {
-                                            "type": "ip_selector",
-                                            "attrs": {
-                                                "name": "选择服务器",
-                                                "hookable": true,
-                                                "isMultiple": false,
-                                                "validation": [
-                                                    {
-                                                        "type": "required"
-                                                    }
-                                                ],
-                                                "default": {
-                                                    "selectors": [
-                                                        "ip"
-                                                    ],
-                                                    "topo": [],
-                                                    "ip": [],
-                                                    "filters": [],
-                                                    "excludes": [],
-                                                    "with_cloud_id": false
-                                                }
-                                            }
-                                        },
-                                        "index": 2,
-                                        "key": "${ip}",
-                                        "name": "ip",
-                                        "show_type": "show",
-                                        "source_info": {},
-                                        "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                        "source_type": "custom",
-                                        "validation": "",
-                                        "value": "${ip}",
-                                        "version": "legacy",
-                                        "is_meta": false
                                     }
                                 },
                                 "end_event": {
@@ -521,83 +483,6 @@ web_tree = json.loads(
                             "value": "${d}",
                             "version": "legacy"
                         },
-                        "${ip}": {
-                            "name": "ip",
-                            "key": "${ip}",
-                            "desc": "",
-                            "custom_type": "ip_selector",
-                            "source_info": {
-                                "nab4fa758628344f9d7c3435d62571f4": [
-                                    "${ip}"
-                                ]
-                            },
-                            "source_tag": "var_cmdb_ip_selector.ip_selector",
-                            "value": {
-                                "selectors": [
-                                    "ip"
-                                ],
-                                "topo": [],
-                                "ip": [
-                                    {
-                                        "bk_cloud_id": 0,
-                                        "bk_host_name": "jobdev-1",
-                                        "bk_host_id": 4,
-                                        "bk_host_innerip": "1.1.1.1",
-                                        "cloud": [
-                                            {
-                                                "id": "0",
-                                                "bk_inst_name": "default area"
-                                            }
-                                        ],
-                                        "agent": 1
-                                    },
-                                    {
-                                        "bk_cloud_id": 0,
-                                        "bk_host_name": "",
-                                        "bk_host_id": 9,
-                                        "bk_host_innerip": "2.2.2.2",
-                                        "cloud": [
-                                            {
-                                                "id": "0",
-                                                "bk_inst_name": "default area"
-                                            }
-                                        ],
-                                        "agent": 0
-                                    }
-                                ],
-                                "filters": [],
-                                "excludes": [],
-                                "with_cloud_id": false
-                            },
-                            "show_type": "show",
-                            "source_type": "component_inputs",
-                            "validation": "",
-                            "index": 1,
-                            "version": "legacy",
-                            "form_schema": {
-                                "type": "ip_selector",
-                                "attrs": {
-                                    "name": "ip",
-                                    "hookable": true,
-                                    "isMultiple": false,
-                                    "validation": [
-                                        {
-                                            "type": "required"
-                                        }
-                                    ],
-                                    "default": {
-                                        "selectors": [
-                                            "ip"
-                                        ],
-                                        "topo": [],
-                                        "ip": [],
-                                        "filters": [],
-                                        "excludes": [],
-                                        "with_cloud_id": false
-                                    }
-                                }
-                            }
-                        },
                         "${s1}": {
                             "custom_type": "input",
                             "desc": "",
@@ -725,28 +610,6 @@ web_tree = json.loads(
                             "show_type": "hide",
                             "source_info": {},
                             "source_tag": "input.input",
-                            "source_type": "custom",
-                            "validation": "^.+$",
-                            "value": "${int(v3) + 1}",
-                            "version": "legacy"
-                        },
-                        "${v5}": {
-                            "custom_type": "set_module_ip_selector",
-                            "desc": "",
-                            "form_schema": {
-                                "type": "input",
-                                "attrs": {
-                                    "name": "ip",
-                                    "hookable": true,
-                                    "validation": []
-                                }
-                            },
-                            "index": 5,
-                            "key": "${v5}",
-                            "name": "v5",
-                            "show_type": "hide",
-                            "source_info": {},
-                            "source_tag": "set_module_ip_selector.ip_selector",
                             "source_type": "custom",
                             "validation": "^.+$",
                             "value": "${int(v3) + 1}",
@@ -1831,13 +1694,6 @@ pipeline_tree = json.loads(
                                             "type": "splice",
                                             "value": "${c}",
                                             "is_param": true
-                                        },
-                                        "${ip}": {
-                                            "type": "lazy",
-                                            "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                            "custom_type": "ip_selector",
-                                            "value": "${ip}",
-                                            "is_param": true
                                         }
                                     },
                                     "outputs": []
@@ -1847,12 +1703,6 @@ pipeline_tree = json.loads(
                                 "${b}": {
                                     "type": "splice",
                                     "value": "${c}"
-                                },
-                                "${ip}": {
-                                    "type": "lazy",
-                                    "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                    "custom_type": "ip_selector",
-                                    "value": "${ip}"
                                 }
                             }
                         }
@@ -1942,49 +1792,6 @@ pipeline_tree = json.loads(
                                 "value": "${d}",
                                 "is_param": true
                             },
-                            "${ip}": {
-                                "type": "lazy",
-                                "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                "custom_type": "ip_selector",
-                                "value": {
-                                    "selectors": [
-                                        "ip"
-                                    ],
-                                    "topo": [],
-                                    "ip": [
-                                        {
-                                            "bk_cloud_id": 0,
-                                            "bk_host_name": "jobdev-1",
-                                            "bk_host_id": 4,
-                                            "bk_host_innerip": "1.1.1.1",
-                                            "cloud": [
-                                                {
-                                                    "id": "0",
-                                                    "bk_inst_name": "default area"
-                                                }
-                                            ],
-                                            "agent": 1
-                                        },
-                                        {
-                                            "bk_cloud_id": 0,
-                                            "bk_host_name": "",
-                                            "bk_host_id": 9,
-                                            "bk_host_innerip": "2.2.2.2",
-                                            "cloud": [
-                                                {
-                                                    "id": "0",
-                                                    "bk_inst_name": "default area"
-                                                }
-                                            ],
-                                            "agent": 0
-                                        }
-                                    ],
-                                    "filters": [],
-                                    "excludes": [],
-                                    "with_cloud_id": false
-                                },
-                                "is_param": true
-                            },
                             "${h1}": {
                                 "type": "plain",
                                 "value": "12",
@@ -2015,13 +1822,6 @@ pipeline_tree = json.loads(
                                 "value": "${int(v3) + 1}",
                                 "is_param": false
                             },
-                            "${v5}": {
-                                "custom_type": "set_module_ip_selector",
-                                "type": "lazy",
-                                "source_tag": "set_module_ip_selector.ip_selector",
-                                "value": "${int(v3) + 1}",
-                                "is_param": false
-                            },
                             "${v6}": {
                                 "type": "splice",
                                 "value": "${v5}",
@@ -2035,48 +1835,6 @@ pipeline_tree = json.loads(
                     "${c}": {
                         "type": "splice",
                         "value": "${d}"
-                    },
-                    "${ip}": {
-                        "type": "lazy",
-                        "source_tag": "var_cmdb_ip_selector.ip_selector",
-                        "custom_type": "ip_selector",
-                        "value": {
-                            "selectors": [
-                                "ip"
-                            ],
-                            "topo": [],
-                            "ip": [
-                                {
-                                    "bk_cloud_id": 0,
-                                    "bk_host_name": "jobdev-1",
-                                    "bk_host_id": 4,
-                                    "bk_host_innerip": "1.1.1.1",
-                                    "cloud": [
-                                        {
-                                            "id": "0",
-                                            "bk_inst_name": "default area"
-                                        }
-                                    ],
-                                    "agent": 1
-                                },
-                                {
-                                    "bk_cloud_id": 0,
-                                    "bk_host_name": "",
-                                    "bk_host_id": 9,
-                                    "bk_host_innerip": "2.2.2.2",
-                                    "cloud": [
-                                        {
-                                            "id": "0",
-                                            "bk_inst_name": "default area"
-                                        }
-                                    ],
-                                    "agent": 0
-                                }
-                            ],
-                            "filters": [],
-                            "excludes": [],
-                            "with_cloud_id": false
-                        }
                     },
                     "${s1}": {
                         "type": "splice",
