@@ -250,7 +250,7 @@ class TaskTemplateResource(GCloudModelResource):
         创建或更新模版时同步模版标签数据
         """
         label_ids = bundle.data.get("template_labels")
-        if label_ids is not None and len(label_ids) > 0:
+        if label_ids is not None:
             label_ids = list(set(label_ids))
             if not Label.objects.check_label_ids(label_ids):
                 raise BadRequest("Containing template label not exist, please check.")
