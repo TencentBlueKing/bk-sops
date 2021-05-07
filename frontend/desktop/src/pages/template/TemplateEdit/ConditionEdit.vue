@@ -70,7 +70,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapMutations } from 'vuex'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG } from '@/constants/index.js'
     import CodeEditor from '@/components/common/CodeEditor.vue'
     export default {
         name: 'conditionEdit',
@@ -95,7 +95,7 @@
                 expression: value,
                 conditionRule: {
                     required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                    max: 20,
                     regex: NAME_REG
                 },
                 expressionRule: {
