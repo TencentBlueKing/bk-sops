@@ -127,13 +127,11 @@ class AllBizJobFastPushFileService(JobScheduleService):
         for source in file_source:
             for attr in data.get_one_of_inputs("job_dispatch_attr"):
                 job_account = attr["job_target_account"]
-                # 将[FILESRCIP]替换成源IP
-                job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"])
+                job_target_path = attr["job_target_path"]
                 ip_list = [
-                    {"ip": _ip, "bk_cloud_id": int(attr["bk_cloud_id"]) if attr["bk_cloud_id"] else 0} for _ip in
-                    get_ip_by_regex(attr["job_ip_list"])
+                    {"ip": _ip, "bk_cloud_id": int(attr["bk_cloud_id"]) if attr["bk_cloud_id"] else 0}
+                    for _ip in get_ip_by_regex(attr["job_ip_list"])
                 ]
-
                 job_kwargs = {
                     "bk_biz_id": biz_cc_id,
                     "file_source": [source],
