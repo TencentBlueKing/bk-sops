@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
-import copy
 import logging
 import datetime
 
@@ -104,14 +103,13 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     """
     if filters is None:
         filters = {}
-    component_filters = copy.deepcopy(filters)
-    if "version" in filters:
-        filters.pop("version")
 
     orm_filters = produce_filter(filters)
     format_create_and_finish_time(filters)
 
     try:
+        if "version" in orm_filters:
+            orm_filters.pop("version")
         taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
     except Exception as e:
         message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(
@@ -126,7 +124,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         if not result:
             return False, message
     else:
-        total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, component_filters, page, limit)
+        total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, filters, page, limit)
 
     data = {"total": total, "groups": groups}
     return True, data
