@@ -50,6 +50,7 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1.get_client_by_user"
 )
 CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+BATCH_REQUEST = "pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1.batch_request"
 
 COMMON_PARENT = {"executor": "admin", "bk_biz_id": 2, "biz_supplier_account": 0}
 
@@ -200,5 +201,6 @@ SEARCH_SET_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SEARCH_SET_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SEARCH_SET_FAIL_CLIENT),
+        Patcher(target=BATCH_REQUEST, return_value=[]),
     ],
 )
