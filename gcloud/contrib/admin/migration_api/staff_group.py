@@ -18,9 +18,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
-from .decorators import require_migrate_token
 from gcloud.core.models import Project, StaffGroupSet
 from gcloud import err_code
+from .decorators import require_migrate_token
 
 logger = logging.getLogger("root")
 

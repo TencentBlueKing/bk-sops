@@ -71,7 +71,6 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import PackageTable from './PackageTable.vue'
     import LocalCache from './LocalCache.vue'
@@ -113,8 +112,8 @@
                     } else {
                         this.transformData(data.objects)
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }

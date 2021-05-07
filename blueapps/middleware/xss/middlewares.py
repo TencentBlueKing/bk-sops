@@ -40,11 +40,11 @@ class CheckXssMiddleware(MiddlewareMixin):
                 getattr(view, "escape_exempt_param", []) if getattr(view, "escape_exempt_param", False) else []
             )
 
-            escape_type = None
+            escapeType = None
             if getattr(view, "escape_script", False):
-                escape_type = "script"
+                escapeType = "script"
             elif getattr(view, "escape_url", False):
-                escape_type = "url"
+                escapeType = "url"
             # get参数转换
             request.GET = self.__escape_data(request.path, request.GET, escape_type)
             # post参数转换
@@ -129,8 +129,8 @@ class CheckXssMiddleware(MiddlewareMixin):
                     if is_path and param in script_v:
                         result = "script"
                         break
-        except Exception as err:  # pylint: disable=broad-except
-            logger.error(u"CheckXssMiddleware 特殊path处理失败！%s" % err)
+        except Exception as e:
+            logger.error(u"CheckXssMiddleware 特殊path处理失败！%s" % e)
             result = "html"
         return result
 

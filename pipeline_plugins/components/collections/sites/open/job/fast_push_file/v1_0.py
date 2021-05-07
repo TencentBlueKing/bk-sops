@@ -141,7 +141,7 @@ class JobFastPushFileService(JobService):
             "ip_list": ip_list,
             "account": data.get_one_of_inputs("job_account"),
             "file_target_path": data.get_one_of_inputs("job_target_path"),
-            "bk_callback_url": get_node_callback_url(self.id),
+            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
         if job_timeout:
             job_kwargs["timeout"] = int(job_timeout)
@@ -174,3 +174,4 @@ class JobFastPushFileComponent(Component):
     bound_service = JobFastPushFileService
     form = "%scomponents/atoms/job/fast_push_file/v1_0.js" % settings.STATIC_URL
     version = "v1.0"
+    desc = "该版本不支持目标 IP 跨业务，需要目标 IP 跨业务分发请使用 2.0 及以上版本插件"

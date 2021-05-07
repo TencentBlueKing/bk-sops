@@ -17,6 +17,8 @@ from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
+from gcloud.exceptions import ApiRequestError
+from gcloud.utils.handlers import handle_api_error
 from pipeline.core.data.var import LazyVariable
 
 logger = logging.getLogger("root")
@@ -32,7 +34,9 @@ def get_set_property(operator):
     kwargs = {"bk_obj_id": "set"}
     cc_result = client.cc.search_object_attribute(**kwargs)
     if not cc_result["result"]:
-        return []
+        message = handle_api_error("cc", "search_object_attribute", kwargs, cc_result)
+        logger.error(message)
+        raise ApiRequestError(message)
     obj_property = ["bk_set_id"]
     for item in cc_result["data"]:
         obj_property.append(item["bk_property_id"])
@@ -90,7 +94,7 @@ class VarSetGroupSelector(LazyVariable):
         获取该变量中对应属性值
         """
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return SetGroupInfo({}, [])
+            return "ERROR: executor and biz_cc_id of pipeline is needed"
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_group_id = self.value

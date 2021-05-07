@@ -170,7 +170,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -323,8 +322,8 @@
                     if (res.data.is_allow) {
                         this.projectActions = ['project_create']
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getProjectList () {
@@ -342,8 +341,7 @@
                     }
                     
                     const projectList = await this.loadUserProjectList(data)
-                    this.projectList = projectList.objects || []
-                    this.projectList = this.projectList.map(item => {
+                    this.projectList = (projectList.objects || []).map(item => {
                         if (!item.from_cmdb) {
                             item.bk_biz_id = '--'
                         }
@@ -356,8 +354,8 @@
                     } else {
                         this.totalPage = totalPage
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -375,8 +373,8 @@
                 try {
                     this.projectDetailLoading = false
                     this.projectDetail = await this.loadProjectDetail(id)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.projectDetailLoading = false
                 }
@@ -398,8 +396,8 @@
                     this.isProjectDialogShow = false
                     this.getProjectList()
                     this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.addPengding = false
                 }
@@ -423,8 +421,8 @@
                     this.isOperationDialogShow = false
                     this.clearProjectDetail()
                     this.getProjectList()
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.updatePending = false
                 }
@@ -488,6 +486,19 @@
                     name: 'process',
                     params: { project_id: id }
                 })
+            },
+            onGoToConfig (project) {
+                if (!this.hasPermission(['project_edit'], project.auth_actions)) {
+                    const resourceData = {
+                        project: [{
+                            id: project.id,
+                            name: project.name
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], project.auth_actions, resourceData)
+                    return
+                }
+                this.$router.push({ name: 'projectConfig', params: { id: project.id } })
             },
             onEditProject (project) {
                 if (!this.hasPermission(['project_edit'], project.auth_actions)) {
@@ -579,7 +590,7 @@
                     //     this.onEditProject(item)
                     //     break
                     case 'mandate':
-                        this.$router.push({ name: 'projectConfig', params: { id: item.id } })
+                        this.onGoToConfig(item)
                         break
                     default:
                         this.onChangeProjectStatus(item, name)

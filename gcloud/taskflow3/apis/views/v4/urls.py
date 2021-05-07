@@ -14,5 +14,9 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 
 from .node_action import node_action
+from .node_callback import node_callback
 
-v4_urlpatterns = [url(r"^node_action/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/$", node_action)]
+v4_urlpatterns = [
+    url(r"^node_action/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/$", node_action),
+    url(r"^nodes/callback/(?P<token>.+)/$", node_callback),
+]

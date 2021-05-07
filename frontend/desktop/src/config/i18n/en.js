@@ -1075,6 +1075,10 @@ const en = {
     '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
     '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?',
     '备注': 'Description',
+    '模板级别的执行代理人会覆盖业务级别的执行代理人配置，': 'The template-level executive agent will override the business-level executive agent configuration,',
+    '若模板配置了执行代理人，业务的执行代理人白名单不会生效。': 'If the template is configured with executive agent, the business executive agent whitelist will not take effect。',
+    '仅支持本流程的执行代理，可在项目配置中': 'Only support the execution agent of this process, can be in the project configuration',
+    '设置项目执行代理人': 'set up project execution agent',
     '请输入流程模板备注信息': 'please enter process template description',
     '标签': 'Label',
     '编辑标签': 'Edit Label',
@@ -1098,7 +1102,9 @@ const en = {
     '请输入流程模板名称': 'Please enter the template name',
     '基础': 'Basic',
     '通知': 'Notify',
-    '其他': 'Others'
+    '其他': 'Others',
+    '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
+    '主机名': 'Host Name'
 }
 
 export default en

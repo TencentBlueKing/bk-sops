@@ -537,11 +537,9 @@
                     })
                     if (resp.result) {
                         this.schemes = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.scheme = false
                 }
@@ -573,11 +571,9 @@
                                 this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -615,11 +611,9 @@
                                 }
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.resource = false
                 }
@@ -643,18 +637,18 @@
                                 url: this.urls['cc_find_host_by_topo'],
                                 ids: ids.join(',')
                             })
-                            resp.data.info.forEach(md => {
-                                const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
-                                md.count = mdInfo ? mdInfo.host_count : 0
-                            })
+                            if (respCount.result) {
+                                resp.data.info.forEach(md => {
+                                    const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
+                                    md.count = mdInfo ? mdInfo.host_count : 0
+                                })
+                            }
                         }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -675,11 +669,9 @@
                                 name: item.text
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.condition = false
                 }
@@ -755,11 +747,9 @@
                                 this.isSchemeDialogShow = false
                                 this.formData.scheme = resp.data.id
                                 this.gitResourceSchemes()
-                            } else {
-                                errorHandler(resp, this)
                             }
-                        } catch (error) {
-                            errorHandler(error, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.saveScheme = false
                         }
@@ -988,18 +978,21 @@
                     const hostData = await this.getHostInCC({ // 加载所有主机列表
                         url: this.urls['cc_search_host'],
                         fields,
-                        topo
+                        topo,
+                        search_host_lock: this.formData.filterLock || undefined
                     })
-                    if (this.formData.filterLock) { // 过滤已经加锁主机
-                        hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
+                    if (hostData.result) {
+                        if (this.formData.filterLock) { // 过滤已经加锁主机
+                            hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
+                        }
+    
+                        const moduleHosts = this.filterModuleHost(hostData.data)
+                        const configData = this.getConfigData()
+                        this.$emit('update', configData, moduleHosts)
+                        this.$emit('update:showFilter', false)
                     }
-
-                    const moduleHosts = this.filterModuleHost(hostData.data)
-                    const configData = this.getConfigData()
-                    this.$emit('update', configData, moduleHosts)
-                    this.$emit('update:showFilter', false)
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.log(error)
                 } finally {
                     this.pending.host = false
                 }
@@ -1030,7 +1023,7 @@
 
                         if (md.count > 0) {
                             item.list.some(h => {
-                                if (moduleHosts[md.name].length === md.count) {
+                                if (moduleHosts[md.name].length === Number(md.count)) {
                                     return true
                                 }
                                 if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {

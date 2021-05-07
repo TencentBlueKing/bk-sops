@@ -71,7 +71,7 @@ class ApproveService(Service):
                 {"key": "APPROVAL_CONTENT", "value": approve_content},
             ],
             "fast_approval": True,
-            "meta": {"callback_url": get_node_callback_url(self.id)},
+            "meta": {"callback_url": get_node_callback_url(self.id, getattr(self, "version", ""))},
         }
         result = client.create_ticket(**kwargs)
         if not result["result"]:

@@ -65,7 +65,7 @@
                     </div>
                 </div>
                 <!-- 验证规则 -->
-                <div v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
+                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -172,7 +172,6 @@
     import { Validator } from 'vee-validate'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -331,7 +330,8 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadCustomVarCollection'
+                'loadCustomVarCollection',
+                'checkKey'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
@@ -374,7 +374,7 @@
                     })
                     this.varTypeList = listData
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.varTypeListLoading = false
                 }
@@ -414,7 +414,7 @@
                     })
                     this.getRenderConfig()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomConfigLoading = false
                 }
@@ -430,7 +430,7 @@
                 }
                 const atomConfig = this.atomFormConfig[atom][version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
-                if (custom_type === 'input' && this.theEditingData.validation !== '') {
+                if (['input', 'textarea'].includes(custom_type) && this.theEditingData.validation !== '') {
                     config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
@@ -494,13 +494,13 @@
 
                 // 隐藏状态下，默认值为必填项
                 // 输入框显示类型为隐藏时，按照正则规则校验，去掉必填项校验
-                if (show_type === 'show' || (show_type === 'hide' && custom_type === 'input')) {
+                if (show_type === 'show' || (show_type === 'hide' && ['input', 'textarea'].includes(custom_type))) {
                     return validateSet.slice(1)
                 } else {
                     return validateSet
                 }
             },
-            // input 表单默认校验规则
+            // input/textarea 表单默认校验规则
             getInputDefaultValueValidation () {
                 let validation = this.theEditingData.validation
                 if (this.theEditingData.show_type === 'show') {
@@ -519,8 +519,8 @@
                     }
                 })
                 this.renderData = {}
-                // input 类型需要正则校验
-                if (val === 'input') {
+                // input textarea类型需要正则校验
+                if (['input', 'textarea'].includes(val)) {
                     this.theEditingData.validation = '^.+$'
                 } else {
                     this.theEditingData.validation = ''
@@ -556,7 +556,7 @@
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
-                if (this.theEditingData.custom_type === 'input' && this.theEditingData.validation !== '') {
+                if (['input', 'textarea'].includes(this.theEditingData.custom_type) && this.theEditingData.validation !== '') {
                     const config = tools.deepClone(this.renderConfig[0])
                     const regValidate = config.attrs.validation.find(item => item.type === 'regex')
                     regValidate.args = this.getInputDefaultValueValidation()
@@ -586,7 +586,7 @@
             },
             // 保存变量数据
             onSaveVariable () {
-                return this.$validator.validateAll().then(result => {
+                return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
             
                     // renderform表单校验
@@ -596,6 +596,16 @@
 
                     if (!result || !formValid) {
                         return false
+                    }
+
+                    const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
+
+                    if (!checkKeyResult.data) {
+                        this.$bkMessage({
+                            message: i18n.t('变量KEY为特殊标志符变量，请修改'),
+                            theme: 'warning'
+                        })
+                        return
                     }
 
                     if (this.theEditingData.preRenderMako) {

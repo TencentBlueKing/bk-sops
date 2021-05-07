@@ -17,6 +17,7 @@ import traceback
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from gcloud.core.models import EngineConfig
 from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTaskHistory
@@ -40,6 +41,7 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         create_info=periodic_task.id,
         flow_type="common",
         current_flow="execute_task",
+        engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),
     )
 
 

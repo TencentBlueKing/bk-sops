@@ -23,6 +23,7 @@ from pipeline_plugins.variables.utils import find_module_with_relation
 from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
+from gcloud.core.models import EngineConfig
 
 __all__ = [
     "cc_get_ips_info_by_str",
@@ -114,11 +115,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         for ip_info in ip_list:
             if (
-                "%s:%s"
-                % (
-                    ip_info["host"].get("bk_cloud_id", -1),
-                    ip_info["host"].get("bk_host_innerip", ""),
-                )
+                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
                 in plat_ip
             ):
                 ip_result.append(
@@ -167,11 +164,12 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
     return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
 
-def get_node_callback_url(node_id):
+def get_node_callback_url(node_id, node_version=""):
+    engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2
     f = Fernet(settings.CALLBACK_KEY)
-    return "%staskflow/api/nodes/callback/%s/" % (
+    return "%staskflow/api/v4/nodes/callback/%s/" % (
         env.BKAPP_INNER_CALLBACK_HOST,
-        f.encrypt(bytes(node_id, encoding="utf8")).decode(),
+        f.encrypt(bytes("{}:{}:{}".format(engine_ver, node_id, node_version), encoding="utf8")).decode(),
     )
 
 

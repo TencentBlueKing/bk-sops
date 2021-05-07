@@ -49,23 +49,7 @@ def modify_constants_for_task(request, task_id, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
 
-    if task.is_started:
-        return JsonResponse(
-            {"result": False, "message": "task is started", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
-
-    if task.is_finished:
-        return JsonResponse(
-            {"result": False, "message": "task is finished", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
-
     constants = params.get("constants", {})
-    name = params.get("name", "")
-    reset_result = task.reset_pipeline_instance_data(constants, name)
+    reset_result = task.set_task_context(constants)
 
-    if reset_result["result"] is False:
-        return JsonResponse(
-            {"result": False, "message": reset_result["message"], "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
-
-    return JsonResponse({"result": True, "data": reset_result["data"], "code": err_code.SUCCESS.code})
+    return JsonResponse(reset_result)
