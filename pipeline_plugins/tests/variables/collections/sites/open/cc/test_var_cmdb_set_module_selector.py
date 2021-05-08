@@ -16,6 +16,7 @@ from mock import MagicMock, patch
 
 from django.test import TestCase
 
+from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_module_selector import (
     VarSetModuleSelector,
     SetModuleInfo,
@@ -33,14 +34,18 @@ class MockClient(object):
 
 INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
     search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
-    search_module_return={"result": True,
-                          "data": {"info": [{"bk_module_name": "module", "bk_module_id": 789}], "count": 1}},
+    search_module_return={
+        "result": True,
+        "data": {"info": [{"bk_module_name": "module", "bk_module_id": 789}], "count": 1},
+    },
 )
 
 GET_SET_INFO_FAIL_CLIENT = MockClient(
     search_set_return={"result": False},
-    search_module_return={"result": True,
-                          "data": {"info": [{"bk_module_name": "module", "bk_module_id": 789}], "count": 1}},
+    search_module_return={
+        "result": True,
+        "data": {"info": [{"bk_module_name": "module", "bk_module_id": 789}], "count": 1},
+    },
 )
 
 GET_MODULE_INFO_FAIL_CLIENT = MockClient(
@@ -50,14 +55,16 @@ GET_MODULE_INFO_FAIL_CLIENT = MockClient(
 
 MULTI_MODULES_SUCCESS_CLIENT = MockClient(
     search_set_return={"result": True, "data": {"info": [{"bk_set_name": "set"}]}},
-    search_module_return={"result": True,
-                          "data": {
-                              "count": 2,
-                              "info": [
-                                  {"bk_module_name": "module1", "bk_module_id": 678},
-                                  {"bk_module_name": "module2", "bk_module_id": 789}
-                              ]
-                          }}
+    search_module_return={
+        "result": True,
+        "data": {
+            "count": 2,
+            "info": [
+                {"bk_module_name": "module1", "bk_module_id": 678},
+                {"bk_module_name": "module2", "bk_module_id": 789},
+            ],
+        },
+    },
 )
 
 
@@ -77,7 +84,7 @@ class VarSetModuleSelectorTestCase(TestCase):
                 "module_name": ["module"],
                 "module_id": [789],
                 "flat__module_id": "789",
-                "flat__module_name": "module"
+                "flat__module_name": "module",
             }
         )
         self.get_set_info_fail_return = SetModuleInfo(
@@ -87,7 +94,7 @@ class VarSetModuleSelectorTestCase(TestCase):
                 "module_name": ["module"],
                 "module_id": [789],
                 "flat__module_id": "789",
-                "flat__module_name": "module"
+                "flat__module_name": "module",
             }
         )
         self.get_module_info_fail_return = SetModuleInfo(
@@ -97,7 +104,7 @@ class VarSetModuleSelectorTestCase(TestCase):
                 "module_name": [],
                 "module_id": [789],
                 "flat__module_id": "789",
-                "flat__module_name": ""
+                "flat__module_name": "",
             }
         )
 
@@ -108,7 +115,7 @@ class VarSetModuleSelectorTestCase(TestCase):
                 "module_name": ["module1", "module2"],
                 "module_id": [678, 789],
                 "flat__module_name": "module1,module2",
-                "flat__module_id": "678,789"
+                "flat__module_id": "678,789",
             }
         )
 
@@ -130,7 +137,10 @@ class VarSetModuleSelectorTestCase(TestCase):
         set_module_selector = VarSetModuleSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
         )
-        self.SetModuleInfoEqual(set_module_selector.get_value(), self.get_set_info_fail_return)
+        with self.assertRaises(ApiRequestError) as context:
+            set_module_selector.get_value()
+
+        self.assertTrue("ApiRequestError" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=GET_MODULE_INFO_FAIL_CLIENT)
     def test_get_module_info_fail_case(self, mock_get_client_by_user_return):
@@ -140,7 +150,10 @@ class VarSetModuleSelectorTestCase(TestCase):
         set_module_selector = VarSetModuleSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test", context={}
         )
-        self.SetModuleInfoEqual(set_module_selector.get_value(), self.get_module_info_fail_return)
+        with self.assertRaises(ApiRequestError) as context:
+            set_module_selector.get_value()
+
+        self.assertTrue("ApiRequestError" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=MULTI_MODULES_SUCCESS_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):
@@ -157,12 +170,12 @@ class VarSetModuleSelectorTestCase(TestCase):
         自定义断言：用于判断两个对象的属性值是否相等
         """
         if not (
-                first_inst.set_name == second_inst.set_name
-                and first_inst.set_id == second_inst.set_id
-                and first_inst.module_name == second_inst.module_name
-                and first_inst.module_id == second_inst.module_id
-                and first_inst.flat__module_id == second_inst.flat__module_id
-                and first_inst.flat__module_name == second_inst.flat__module_name
+            first_inst.set_name == second_inst.set_name
+            and first_inst.set_id == second_inst.set_id
+            and first_inst.module_name == second_inst.module_name
+            and first_inst.module_id == second_inst.module_id
+            and first_inst.flat__module_id == second_inst.flat__module_id
+            and first_inst.flat__module_name == second_inst.flat__module_name
         ):
             msg = self._formatMessage("%s == %s" % (safe_repr(first_inst), safe_repr(second_inst)))
             raise self.failureException(msg)

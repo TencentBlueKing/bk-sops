@@ -112,6 +112,8 @@ class MockTaskFlowInstance(object):
         self.flow_type = kwargs.get("flow_type", "flow_type")
         self.current_flow = kwargs.get("current_flow", "current_flow")
         self.is_deleted = True
+        self.engine_ver = kwargs.get("engine_ver", 1)
+        self.pipeline_instance = kwargs.get("pipeline_instance", MagicMock())
 
 
 class MockPeriodicTask(object):

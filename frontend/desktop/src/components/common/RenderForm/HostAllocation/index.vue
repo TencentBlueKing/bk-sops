@@ -42,7 +42,6 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import HostFilter from './HostFilter.vue'
     import ResourceList from '../SetAllocation/ResourceList.vue'
 
@@ -173,11 +172,9 @@
                     if (resp.result) {
                         this.originalCols = resp.data
                         this.joinCols()
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.colsLoading = false
                     this.$nextTick(() => {

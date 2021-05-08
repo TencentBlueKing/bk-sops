@@ -130,6 +130,7 @@
                                     :node-config="nodeConfig"
                                     :version-list="versionList"
                                     :is-subflow="isSubflow"
+                                    :update-subflow="updateSubflow"
                                     :input-loading="inputLoading"
                                     @openSelectorPanel="isSelectorPanelShow = true"
                                     @versionChange="versionChange"
@@ -208,7 +209,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
     import BasicInfo from './BasicInfo.vue'
@@ -245,6 +245,7 @@
             const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
             const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
+                updateSubflow: false, // 子流程是否更新
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
@@ -403,8 +404,8 @@
                 try {
                     this.inputs = await this.getAtomConfig(plugin, version)
                     this.outputs = this.atomGroup.list.find(item => item.version === version).output
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pluginLoading = false
                 }
@@ -423,8 +424,8 @@
                     await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     const config = $.atoms[plugin]
                     return config
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**
@@ -456,8 +457,8 @@
                         }
                     })
                     return data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.subflowLoading = false
                 }
@@ -492,7 +493,7 @@
                     formItemConfig.tag_code = key
                     formItemConfig.attrs.name = variable.name
                     // 自定义输入框变量正则校验添加到插件配置项
-                    if (variable.custom_type === 'input' && variable.validation !== '') {
+                    if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
                         formItemConfig.attrs.validation.push({
                             type: 'regex',
                             args: variable.validation,
@@ -755,9 +756,7 @@
                 this.inputs = await this.getSubflowInputsConfig()
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                    this.setSubprocessUpdated({
-                        subprocess_node_id: this.nodeConfig.id
-                    })
+                    this.updateSubflow = true
                 })
             },
             /**
@@ -1100,6 +1099,11 @@
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
+                        }
+                        if (this.updateSubflow) {
+                            this.setSubprocessUpdated({
+                                subprocess_node_id: this.nodeConfig.id
+                            })
                         }
                         this.syncActivity()
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点

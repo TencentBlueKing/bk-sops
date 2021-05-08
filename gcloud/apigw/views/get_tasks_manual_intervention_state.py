@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+import logging
 import ujson as json
 
 from django.http import JsonResponse
@@ -30,6 +30,8 @@ try:
     from bkoauth.decorators import apigw_required
 except ImportError:
     from packages.bkoauth.decorators import apigw_required
+
+logger = logging.getLogger("root")
 
 
 @csrf_exempt
@@ -70,6 +72,17 @@ def get_tasks_manual_intervention_state(request, project_id):
 
     data = []
     for task in tasks:
-        data.append({"id": task.id, "manual_intervention_required": task.is_manual_intervention_required})
+        try:
+            data.append({"id": task.id, "manual_intervention_required": task.is_manual_intervention_required})
+        except Exception:
+            logger.exception("task.is_manual_intervention_required get fail")
+            return JsonResponse(
+                {
+                    "result": False,
+                    "data": None,
+                    "message": "task.is_manual_intervention_required get fail",
+                    "code": err_code.UNKNOWN_ERROR.code,
+                }
+            )
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

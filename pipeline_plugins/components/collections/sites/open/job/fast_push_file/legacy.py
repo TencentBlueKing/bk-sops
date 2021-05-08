@@ -115,7 +115,7 @@ class JobFastPushFileService(JobService):
             "ip_list": ip_list,
             "account": data.get_one_of_inputs("job_account"),
             "file_target_path": data.get_one_of_inputs("job_target_path"),
-            "bk_callback_url": get_node_callback_url(self.id),
+            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
         if job_timeout:
             job_kwargs["timeout"] = int(job_timeout)

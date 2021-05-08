@@ -52,7 +52,6 @@
     </div>
 </template>
 <script>
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions } from 'vuex'
     import LogDisplay from './LogDisplay.vue'
     export default {
@@ -124,7 +123,7 @@
                         this.initTable()
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }

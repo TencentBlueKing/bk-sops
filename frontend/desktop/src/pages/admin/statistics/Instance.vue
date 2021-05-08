@@ -116,7 +116,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import VerticalBarChart from './VerticalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -328,11 +327,9 @@
                             this.pagination.count = res.data.total
                         }
                         return res.data.groups
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e)
+                    console.log(e)
                 }
             },
             async getCategoryData () {
@@ -348,7 +345,7 @@
                     }
                     this.categoryData = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.categoryDataLoading = false
                 }
@@ -366,7 +363,7 @@
                     }
                     this.projectData = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectDataLoading = false
                 }
@@ -386,7 +383,7 @@
                     }
                     this.timeDataList = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.timeDataLoading = false
                 }
@@ -411,7 +408,7 @@
                     }
                     this.instanceData = await this.loadAnalysisData(query, 'instance')
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.instanceDataLoading = false
                 }

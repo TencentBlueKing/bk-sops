@@ -33,6 +33,12 @@ axios.interceptors.request.use(function (config) {
 
 axios.interceptors.response.use(
     response => {
+        if (response.data.hasOwnProperty('result')) {
+            if (!response.data.result) {
+                const info = Object.assign({}, response.data, { theme: 'error', lines: 2 })
+                bus.$emit('showMessage', info)
+            }
+        }
         return response
     },
     error => {

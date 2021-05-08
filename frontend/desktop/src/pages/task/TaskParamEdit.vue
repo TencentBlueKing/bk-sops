@@ -161,7 +161,7 @@
                         }
 
                         if (
-                            variable.custom_type === 'input'
+                            ['input', 'textarea'].includes(variable.custom_type)
                             && variable.validation !== ''
                         ) {
                             currentFormConfig.attrs.validation.push({

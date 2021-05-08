@@ -169,7 +169,6 @@
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
@@ -474,12 +473,11 @@
                         } else {
                             this.setTaskStatusTimer()
                         }
-                        errorHandler(instanceStatus, this)
                     }
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     if (e.message !== 'cancelled') {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 } finally {
                     source = null
@@ -516,7 +514,7 @@
                     this.atomList = atomList
                     this.markNodesPhase()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.singleAtomListLoading = false
                 }
@@ -589,11 +587,9 @@
                             message: i18n.t('任务开始执行'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -616,11 +612,9 @@
                             message: i18n.t('任务暂停成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -644,11 +638,9 @@
                             message: i18n.t('任务继续成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -665,11 +657,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -698,11 +688,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.skip = false
                 }
@@ -730,11 +718,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.forceFail = false
                 }
@@ -751,11 +737,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.selectGateway = false
                 }
@@ -784,11 +768,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.parseNodeResume = false
                 }

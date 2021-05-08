@@ -15,12 +15,12 @@ from rest_framework import serializers
 
 
 class SchemesSerizlializer(serializers.Serializer):
-    data = serializers.CharField()
-    name = serializers.CharField(max_length=64)
+    data = serializers.CharField(help_text="执行方案数据")
+    name = serializers.CharField(max_length=64, help_text="执行方案名称")
 
 
 class TemplateSchemeSerializer(SchemesSerizlializer):
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.IntegerField(read_only=True, help_text="执行方案ID")
 
 
 class ParamsSerializer(serializers.Serializer):
@@ -28,6 +28,6 @@ class ParamsSerializer(serializers.Serializer):
     查询及批量创建序列化使用
     """
 
-    project_id = serializers.IntegerField()
-    template_id = serializers.IntegerField()
-    schemes = serializers.ListField(required=False)
+    project_id = serializers.IntegerField(help_text="项目ID")
+    template_id = serializers.IntegerField(help_text="流程ID")
+    schemes = serializers.ListField(required=False, child=SchemesSerizlializer(), help_text="执行方案列表")

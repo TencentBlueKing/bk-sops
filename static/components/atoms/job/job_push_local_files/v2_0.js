@@ -170,7 +170,7 @@
                             ],
                             empty_text: gettext("无数据"),
                             deleteable: true,
-                            editable: false,
+                            editable: true,
                             rowEditable: false,
                             columns: [
                                 {

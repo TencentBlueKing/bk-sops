@@ -23,6 +23,7 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.core.models import EngineConfig
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
@@ -156,6 +157,9 @@ def create_task(request, template_id, project_id):
         create_info=app_code,
         flow_type=params.get("flow_type", "common"),
         current_flow="execute_task" if params.get("flow_type", "common") == "common" else "func_claim",
+        engine_ver=EngineConfig.objects.get_engine_ver(
+            project_id=project.id, template_id=template_id, template_source=template_source
+        ),
     )
     return JsonResponse(
         {

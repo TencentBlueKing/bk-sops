@@ -34,7 +34,13 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
-                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
+                <ip-search-input
+                    :class="['ip-search-wrap', isStaticIpClassName]"
+                    :editable="editable"
+                    @search="onStaticIpSearch"
+                    @focus="isSearchInputFocus = true"
+                    @blur="isSearchInputFocus = false">
+                </ip-search-input>
             </div>
             <div class="selected-ip-table-wrap">
                 <table :class="['ip-table', { 'disabled': !editable }]">
@@ -46,6 +52,13 @@
                                 <span class="sort-group">
                                     <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
                                     <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
+                                </span>
+                            </th>
+                            <th width="120">
+                                {{i18n.hostName}}
+                                <span class="sort-group">
+                                    <i :class="['sort-icon', 'up', { 'active': hostNameSortActive === 'up' }]" @click="onHostNameSort('up')"></i>
+                                    <i :class="['sort-icon', { 'active': hostNameSortActive === 'down' }]" @click="onHostNameSort('down')"></i>
                                 </span>
                             </th>
                             <th width="160">Agent {{i18n.status}}</th>
@@ -61,6 +74,7 @@
                                     {{item.cloud[0] && item.cloud[0].bk_inst_name}}
                                 </td>
                                 <td>{{item.bk_host_innerip}}</td>
+                                <td>{{item.bk_host_name}}</td>
                                 <td
                                     class="ui-ellipsis"
                                     :class="item.agent ? 'agent-normal' : 'agent-failed'"
@@ -115,6 +129,7 @@
         </div>
         <static-ip-adding-panel
             v-if="isIpAddingPanelShow"
+            :allow-unfold-input="allowUnfoldInput"
             :static-ip-list="staticIpList"
             :static-ips="staticIps"
             :type="addingType"
@@ -151,7 +166,8 @@
         noData: gettext('无数据'),
         noDataCan: gettext('无数据，可'),
         notEmpty: gettext('必填项'),
-        or: gettext('或者')
+        or: gettext('或者'),
+        hostName: gettext('主机名')
     }
 
     export default {
@@ -161,6 +177,7 @@
             IpSearchInput
         },
         props: {
+            allowUnfoldInput: Boolean,
             editable: Boolean,
             staticIpList: Array,
             staticIps: Array
@@ -175,6 +192,7 @@
                 isSearchMode: false,
                 copyText: '',
                 ipSortActive: '', // ip 排序方式
+                hostNameSortActive: '', // hostname 排序方式
                 searchResult: [],
                 list: this.staticIps,
                 isPaginationShow: totalPage > 1,
@@ -201,7 +219,8 @@
                         name: i18n.clearFailedAgentIp
                     }
                 ],
-                i18n
+                i18n,
+                isSearchInputFocus: null
             }
         },
         computed: {
@@ -210,6 +229,13 @@
             },
             isShowQuantity () {
                 return this.staticIps.length
+            },
+            isStaticIpClassName () {
+                let className = ''
+                if (this.allowUnfoldInput) {
+                    className = this.isSearchInputFocus ? 'static-ip-focus' : 'static-ip-blur'
+                }
+                return className
             }
         },
         watch: {
@@ -224,6 +250,9 @@
             },
             ipSortActive () {
                 this.setDisplayList()
+            },
+            hostNameSortActive () {
+                this.setDisplayList()
             }
         },
         methods: {
@@ -231,6 +260,9 @@
                 let list = this.isSearchMode ? this.searchResult : this.staticIps
                 if (this.ipSortActive) {
                     list = this.getSortIpList(list, this.ipSortActive)
+                }
+                if (this.hostNameSortActive) {
+                    list = this.getSortHostNameList(list, this.hostNameSortActive)
                 }
                 this.list = list
                 this.setPanigation(list)
@@ -347,12 +379,33 @@
                 })
                 return srotList
             },
+            getSortHostNameList (list, way = 'up') {
+                const sortList = list.slice(0)
+                const sortVal = way === 'up' ? 1 : -1
+                sortList.sort((a, b) => {
+                    if (a.bk_host_name > b.bk_host_name) {
+                        return sortVal
+                    } else {
+                        return -sortVal
+                    }
+                })
+                return sortList
+            },
             onIpSort (way) {
+                this.hostNameSortActive = ''
                 if (this.ipSortActive === way) {
                     this.ipSortActive = ''
                     return
                 }
                 this.ipSortActive = way
+            },
+            onHostNameSort (way) {
+                this.ipSortActive = ''
+                if (this.hostNameSortActive === way) {
+                    this.hostNameSortActive = ''
+                    return
+                }
+                this.hostNameSortActive = way
             }
         }
     }
@@ -386,7 +439,15 @@
     position: absolute;
     top: -56px;
     right: 0;
-    width: 42%;
+    width: 32%;
+}
+.static-ip-focus {
+    width: 100%;
+    transition: width .5s;
+}
+.static-ip-blur {
+    width: 32%;
+    transition: width .5s;
 }
 .ip-table {
     width: 100%;
