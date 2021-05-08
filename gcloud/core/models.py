@@ -203,7 +203,7 @@ class ProjectManager(models.Manager):
 
 
 class Project(models.Model):
-    name = models.CharField(_("项目名"), max_length=256)
+    name = models.CharField(_("项目名"), max_length=192)
     time_zone = models.CharField(_("项目时区"), max_length=100, blank=True)
     creator = models.CharField(_("创建者"), max_length=256)
     desc = models.CharField(_("项目描述"), max_length=512, blank=True)

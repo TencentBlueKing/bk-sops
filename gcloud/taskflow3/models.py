@@ -111,20 +111,35 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         return pipeline_instance
 
     @staticmethod
-    def create_pipeline_instance_exclude_task_nodes(template, task_info, constants=None, exclude_task_nodes_id=None):
+    def create_pipeline_instance_exclude_task_nodes(
+        template, task_info, constants=None, exclude_task_nodes_id=None, simplify_vars=None
+    ):
         """
-        @param template:
-        @param task_info: {
+        :param template: 任务模板
+        :type template: TaskTemplate
+        :param task_info: 任务信息 {
             'name': '',
             'creator': '',
             'description': '',
         }
-        @param constants: 覆盖参数，如 {'${a}': '1', '${b}': 2}
-        @param exclude_task_nodes_id: 取消执行的可选节点
-        @return:
+        :type task_info: dict
+        :param constants: 覆盖参数，如 {'${a}': '1', '${b}': 2}
+        :type constants: dict, optional
+        :param exclude_task_nodes_id: 取消执行的可选节点
+        :type exclude_task_nodes_id: list
+        :param simplify_vars: 需要进行类型简化的变量的 key 列表
+        :type simplify_vars: list, optional
+        :return: pipeline instance
+        :rtype: PipelineInstance
         """
         if constants is None:
             constants = {}
+
+        if simplify_vars is None:
+            simplify_vars = {}
+        else:
+            simplify_vars = set(simplify_vars)
+
         pipeline_tree = template.pipeline_tree
 
         TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
@@ -133,6 +148,33 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         for key, value in list(constants.items()):
             if key in pipeline_tree[PE.constants]:
                 pipeline_tree[PE.constants][key]["value"] = value
+
+        # simplify var
+        for key in simplify_vars:
+            if key in pipeline_tree[PE.constants]:
+                var = pipeline_tree[PE.constants][key]
+
+                # 非自定义类型变量不允许简化
+                if var["source_type"] != "custom":
+                    continue
+
+                var["custom_type"] = "textarea"
+                var[
+                    "form_schema"
+                ] = """{
+                    "type": "textarea",
+                    "attrs": {
+                        "name": "文本框",
+                        "hookable": true,
+                        "validation": [
+                            {
+                                "type": "required"
+                            }
+                        ]
+                    }
+                }"""
+                var["source_tag"] = "textarea.textarea"
+                var["is_meta"] = False
 
         task_info["pipeline_tree"] = pipeline_tree
         pipeline_inst = TaskFlowInstanceManager.create_pipeline_instance(template, **task_info)
