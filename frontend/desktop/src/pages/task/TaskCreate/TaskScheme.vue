@@ -24,7 +24,6 @@
                         ref="nameInput"
                         v-model="schemaName"
                         v-validate="schemaNameRule"
-                        data-vv-validate-on=" "
                         name="schemaName"
                         class="bk-input-inline"
                         :clearable="true"
@@ -451,8 +450,6 @@
             .scheme-form {
                 margin-bottom: 4px;
                 position: relative;
-                display: flex;
-                align-items: center;
                 .bk-input-inline {
                     margin-right: 10px;
                 }
