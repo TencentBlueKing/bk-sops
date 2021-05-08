@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
-import copy
 import logging
 import datetime
 
@@ -78,12 +77,11 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     """
     if filters is None:
         filters = {}
-    component_filters = copy.deepcopy(filters)
-    if "version" in filters:
-        filters.pop("version")
-
     orm_filters = produce_filter(filters)
     try:
+        # version 条件为插件版本，需要过滤掉
+        if "version" in orm_filters:
+            orm_filters.pop("version")
         tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
     except Exception as e:
         message = "query template params conditions[{filters}] have invalid key or value: {error}".format(
@@ -98,7 +96,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         if not result:
             return False, message
     else:
-        total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, component_filters, page, limit)
+        total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, filters, page, limit)
 
     data = {"total": total, "groups": groups}
     return True, data
