@@ -281,7 +281,7 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
-                    if (!templateData.result) {
+                    if ('result' in templateData && !templateData.result) {
                         this.nextBtnDisable = true
                         return
                     }
@@ -316,7 +316,7 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    if (!previewData.result) {
+                    if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
                         return
                     }
