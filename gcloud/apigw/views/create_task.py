@@ -100,6 +100,7 @@ def create_task(request, template_id, project_id):
         params.setdefault("flow_type", "common")
         params.setdefault("constants", {})
         params.setdefault("exclude_task_nodes_id", [])
+        params.setdefault("simplify_vars", [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_task raise prams error: %s" % e)
@@ -141,7 +142,11 @@ def create_task(request, template_id, project_id):
     else:
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"],
+                tmpl,
+                pipeline_instance_kwargs,
+                params["constants"],
+                params["exclude_task_nodes_id"],
+                params["simplify_vars"],
             )
         except Exception as e:
             return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
