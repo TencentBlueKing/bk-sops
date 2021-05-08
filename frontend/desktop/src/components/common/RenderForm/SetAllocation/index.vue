@@ -322,6 +322,7 @@
             },
             updateSeparator (val) {
                 this.localSeparator = val
+                this.validate()
                 this.updatePropsData()
             },
             // 同步本地组件数据到父组件

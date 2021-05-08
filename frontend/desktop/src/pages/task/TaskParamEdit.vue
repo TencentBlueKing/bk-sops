@@ -193,6 +193,11 @@
                 }
             },
             async getVariableData () {
+                // renderform表单校验
+                const formValid = this.validate()
+                if (!formValid) {
+                    return
+                }
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]
