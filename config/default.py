@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
 import env
 
@@ -125,6 +126,7 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
+    "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -465,6 +467,10 @@ CELERY_SEND_EVENTS = True
 CELERY_SEND_TASK_SENT_EVENT = True
 CELERY_TRACK_STARTED = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
+
+# 自定义插件和变量Exception类型
+PLUGIN_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
+VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 
 # SaaS统一日志配置
