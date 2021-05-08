@@ -90,6 +90,7 @@ export function setConfigContext (site_url, project) {
  */
 // 在这里对ajax请求做一些统一公用处理
 export function setJqueryAjaxConfig () {
+    // 请求头添加X-CSRFToken
     function getCookie (cname) {
         const name = cname + '='
         const ca = document.cookie.split(';')
