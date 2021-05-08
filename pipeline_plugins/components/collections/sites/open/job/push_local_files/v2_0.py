@@ -19,9 +19,9 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
-from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService, get_biz_ip_from_frontend
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import get_job_instance_url
+from pipeline_plugins.components.utils import get_job_instance_url, get_biz_ip_from_frontend
 
 from files.factory import ManagerFactory
 from gcloud.conf import settings

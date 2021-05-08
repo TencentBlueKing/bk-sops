@@ -43,7 +43,7 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0.get_client_by_user"
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.base.cc_get_ips_info_by_str"
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 
 ENVIRONMENT_VAR_GET = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0."

@@ -66,7 +66,7 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.base.cc_get_ips_info_by_str"
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_node_callback_url"
 )

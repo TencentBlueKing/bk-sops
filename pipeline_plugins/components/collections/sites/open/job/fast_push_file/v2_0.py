@@ -19,9 +19,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService, get_biz_ip_from_frontend
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import get_job_instance_url, loose_strip, chunk_table_data
+from pipeline_plugins.components.utils import (
+    get_job_instance_url,
+    loose_strip,
+    chunk_table_data,
+    get_biz_ip_from_frontend,
+)
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -59,7 +64,10 @@ class JobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -74,7 +82,10 @@ class JobFastPushFileService(JobScheduleService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),

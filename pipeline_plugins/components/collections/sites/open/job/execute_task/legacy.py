@@ -24,12 +24,13 @@ from pipeline.core.flow.io import (
     ObjectItemSchema,
     BooleanItemSchema,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobService, get_biz_ip_from_frontend
+from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
+    get_biz_ip_from_frontend,
 )
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error

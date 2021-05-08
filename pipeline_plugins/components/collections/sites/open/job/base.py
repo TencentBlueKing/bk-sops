@@ -43,16 +43,10 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
+
 from gcloud.utils.handlers import handle_api_error
 
 from pipeline_plugins.components.utils.common import batch_execute_func
-
-from pipeline_plugins.components.utils.sites.open.utils import (
-    cc_get_ips_info_by_str,
-    get_difference_ip_list,
-    plat_ip_reg,
-)
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -372,29 +366,3 @@ class JobScheduleService(JobService):
 
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
-
-
-def get_biz_ip_from_frontend(ip_str, executor, biz_cc_id, data, logger, is_across=False, ip_is_exist=False):
-    """
-    从前端表单中获取有效IP
-    """
-    # 跨业务，不校验IP归属
-    if is_across:
-        plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
-        ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
-        err_msg = _("允许跨业务时IP格式需满足：【云区域ID:IP】。失败 IP： {}")
-    else:
-        var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
-        err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
-
-    # 校验Ip是否存在, 格式是否符合要求
-    input_ip_set = get_ip_by_regex(ip_str)
-    logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
-    difference_ip_list = get_difference_ip_list(input_ip_set, [ip_item["ip"] for ip_item in ip_list])
-
-    if len(ip_list) != len(set(input_ip_set)) or not ip_list:
-        data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
-
-        return False, ip_list
-    return True, ip_list
