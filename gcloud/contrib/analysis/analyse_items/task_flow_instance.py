@@ -108,6 +108,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     format_create_and_finish_time(filters)
 
     try:
+        # version 条件为插件版本，需要过滤掉
         if "version" in orm_filters:
             orm_filters.pop("version")
         taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
