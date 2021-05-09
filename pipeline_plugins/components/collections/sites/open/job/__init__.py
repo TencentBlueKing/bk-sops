@@ -23,3 +23,4 @@ from .fast_push_file import *  # noqa
 from .push_local_files import *  # noqa
 from .local_content_upload import *  # noqa
 from .all_biz_fast_execute_script import *  # noqa
+from .all_biz_execute_job_plan import *  # noqa

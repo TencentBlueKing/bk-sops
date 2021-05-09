@@ -31,6 +31,14 @@ JOB_VAR_CATEGORY_PASSWORD = 4
 JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT, JOB_VAR_CATEGORY_PASSWORD}
 JOB_VAR_CATEGORY_IP = 3
 
+JOBV3_VAR_CATEGORY_STRING = 1
+JOBV3_VAR_CATEGORY_NAMESPACE = 2
+JOBV3_VAR_CATEGORY_IP = 3
+JOBV3_VAR_CATEGORY_PASSWORD = 4
+JOBV3_VAR_CATEGORY_ARRAY = 5
+JOBV3_VAR_CATEGORY_GLOBAL_VARS = {JOBV3_VAR_CATEGORY_STRING, JOBV3_VAR_CATEGORY_NAMESPACE, JOBV3_VAR_CATEGORY_PASSWORD,
+                                  JOBV3_VAR_CATEGORY_ARRAY}
+
 
 def _job_get_scripts_data(request, biz_cc_id=None):
     client = get_client_by_user(request.user.username)
@@ -249,6 +257,129 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     return JsonResponse({"result": True, "data": data})
 
 
+def jobv3_get_job_template_list(request, biz_cc_id):
+    """
+    根据业务ID查询作业模版列表，暂无分页信息
+    @param request:
+    @param biz_cc_id: 业务 ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    # length暂时默认作业平台页面列表最大页
+    kwargs = {"bk_biz_id": biz_cc_id, "length": 100}
+    jobv3_result = client.jobv3.get_job_template_list(kwargs)
+    if not jobv3_result["result"]:
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_template_list返回失败: %s") % (
+            biz_cc_id,
+            jobv3_result["message"],
+        )
+
+        if jobv3_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise RawAuthFailedException(permissions=jobv3_result.get("permission", {}))
+
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    template_list = []
+    for template in jobv3_result["data"]:
+        template_list.append({"value": template["id"], "text": template["name"]})
+    return JsonResponse({"result": True, "data": template_list})
+
+
+def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
+    """
+    查询执行方案列表，暂无分页信息
+    @param request:
+    @param biz_cc_id: 业务 ID
+    @param job_template_id: 作业模版 ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    # length暂时默认作业平台页面列表最大页
+    kwargs = {"bk_biz_id": biz_cc_id, "job_template_id": job_template_id, "length": 100}
+    jobv3_result = client.jobv3.get_job_plan_list(kwargs)
+    if not jobv3_result["result"]:
+        message = _("查询作业平台(JOB)的作业方案[app_id=%s]接口jobv3.get_job_plan_list返回失败: %s") % (
+            biz_cc_id,
+            jobv3_result["message"],
+        )
+
+        if jobv3_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise RawAuthFailedException(permissions=jobv3_result.get("permission", {}))
+
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    plan_list = []
+    for plan in jobv3_result["data"]:
+        plan_list.append({"value": plan["id"], "text": plan["name"]})
+    return JsonResponse({"result": True, "data": plan_list})
+
+
+def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
+    """
+    根据作业执行方案 ID 查询作业执行方案详情
+    @param request:
+    @param biz_cc_id: 业务 ID
+    @param job_plan_id: 作业执行方案 ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": biz_cc_id, "job_plan_id": job_plan_id}
+    jobv3_result = client.jobv3.get_job_plan_detail(kwargs)
+    if not jobv3_result["result"]:
+        message = _("查询作业平台(JOB)的作业方案[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
+            biz_cc_id,
+            jobv3_result["message"],
+        )
+
+        if jobv3_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise RawAuthFailedException(permissions=jobv3_result.get("permission", {}))
+
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    plan_detail = jobv3_result["data"]
+    global_var = []
+    if not plan_detail:
+        message = _("请求作业平台执行方案详情返回数据为空: {}").format(jobv3_result)
+        logger.error(message)
+        return JsonResponse({"result": False, "message": message})
+
+    for var in plan_detail.get("global_var_list", []):
+        # 1-字符串, 2-命名空间, 3-IP, 4-密码, 5-数组
+        if var["type"] in JOBV3_VAR_CATEGORY_GLOBAL_VARS:
+            value = var.get("value", "")
+        elif var["type"] == JOBV3_VAR_CATEGORY_IP:
+            value = ",".join(
+                [
+                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
+                    for ip_item in var.get("server", {}).get("ip_list", [])
+                ]
+            )
+        else:
+            logger.warning("unknow type var: {}".format(var))
+            continue
+
+        global_var.append(
+            {
+                "id": var["id"],
+                "type": var.get("type", 1),
+                "name": var["name"],
+                "value": value,
+                "description": var["description"],
+            }
+        )
+
+    return JsonResponse({"result": True, "data": global_var})
+
+
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
@@ -263,4 +394,8 @@ job_urlpatterns = [
         job_get_job_task_detail,
     ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
+    # jobv3接口
+    url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
+    url(r"^jobv3_get_job_plan_list/(?P<biz_cc_id>\d+)/(?P<job_template_id>\d+)/$", jobv3_get_job_plan_list),
+    url(r"^jobv3_get_job_plan_detail/(?P<biz_cc_id>\d+)/(?P<job_plan_id>\d+)/$", jobv3_get_job_plan_detail),
 ]
