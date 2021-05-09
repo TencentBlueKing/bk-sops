@@ -492,11 +492,19 @@ def cc_find_host_by_topo(request, biz_cc_id):
     ]
 
     result_list = batch_execute_func(client.cc.find_host_by_topo, params_list)
-    data = [
-        {"bk_inst_id": result["params"]["bk_inst_id"], "host_count": result["result"]["data"]["count"]}
-        for result in result_list
-        if result["result"]["result"]
-    ]
+
+    data = []
+    failed_request_message = []
+    for result in result_list:
+        func_result = result["result"]
+        if not func_result["result"]:
+            data.append({"bk_inst_id": result["params"]["bk_inst_id"], "host_count": func_result["data"]["count"]})
+        else:
+            message = handle_api_error("cc", "find_host_by_topo", result["params"], func_result)
+            failed_request_message.append(message)
+
+    if failed_request_message:
+        return JsonResponse({"result": False, "data": [], "message": "\n".join(failed_request_message)})
 
     return JsonResponse({"result": True, "data": data})
 

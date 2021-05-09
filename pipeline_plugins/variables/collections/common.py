@@ -187,7 +187,7 @@ class StaffGroupSelector(LazyVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and biz_cc_id of pipeline is needed"
         operator = self.pipeline_data["executor"]
         bk_biz_id = int(self.pipeline_data["biz_cc_id"])
         supplier_account = supplier_account_for_business(bk_biz_id)

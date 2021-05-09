@@ -47,7 +47,7 @@ class SetModuleIpSelector(LazyVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         var_ip_selector = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
