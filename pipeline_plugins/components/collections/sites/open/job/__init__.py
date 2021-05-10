@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 __group_name__ = _("作业平台(JOB)")
 
 from .base import JobService  # noqa
+from .base_jobv3 import Jobv3Service  # noqa
 from .cron_task import *  # noqa
 from .execute_task import *  # noqa
 from .fast_execute_script import *  # noqa

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from functools import partial
 from copy import deepcopy
 
@@ -12,7 +14,7 @@ from pipeline.core.flow.io import (
     ObjectItemSchema,
     BooleanItemSchema,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
@@ -31,7 +33,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class AllBizJobExecuteJobPlanService(JobService):
+class AllBizJobExecuteJobPlanService(Jobv3Service):
     need_get_sops_var = True
 
     def inputs_format(self):
@@ -97,12 +99,11 @@ class AllBizJobExecuteJobPlanService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
-        client.set_bk_api_ver("v2")
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
 
-        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+        biz_cc_id = data.get_one_of_inputs("all_biz_cc_id")
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_var_list = []
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
@@ -146,6 +147,7 @@ class AllBizJobExecuteJobPlanService(JobService):
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result["data"]["job_instance_name"]
             data.outputs.client = client
+            data.outputs.biz_cc_id = biz_cc_id
             return True
         else:
             message = job_handle_api_error("jobv3.execute_job_plan", job_kwargs, job_result)
@@ -157,7 +159,7 @@ class AllBizJobExecuteJobPlanService(JobService):
         return super(AllBizJobExecuteJobPlanService, self).schedule(data, parent_data, callback_data)
 
 
-class AllBizJobExecuteTaskComponent(Component):
+class AllBizJobExecuteJobPlanComponent(Component):
     name = _("全业务_执行作业")
     code = "all_biz_execute_job_plan"
     bound_service = AllBizJobExecuteJobPlanService
