@@ -147,10 +147,10 @@ class NodemanPluginOperateService(NodeManBaseService):
         result = client.plugin_operate(params)
 
         if result["result"]:
-            job_id = result["data"].get("job_id", None)
+            job_id = result["data"].get(plugin, None)
             data.outputs.job_url = [get_nodeman_job_url(job_id, host_id) for host_id in host]
 
-        return self.get_job_result(result, data, "plugin_operate", params)
+        return self.get_job_result(result, data, "plugin_operate", params, job_is_plugin=True)
 
 
 class NodemanPluginOperateComponent(Component):

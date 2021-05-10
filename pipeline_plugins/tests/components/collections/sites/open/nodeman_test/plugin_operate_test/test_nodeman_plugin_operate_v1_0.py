@@ -69,7 +69,7 @@ INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
         "result": True,
         "code": "00",
         "message": "success",
-        "data": {"job_id": "1"},
+        "data": {"plugin": "1"},
     },
     details_return={
         "result": True,
