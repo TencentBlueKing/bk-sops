@@ -42,6 +42,7 @@ def prepare_and_start_task(task_id, project_id, username):
         logger.exception(
             "[prepare_and_start_task] celery get task for (task_id={}, project_id={}) fail.".format(task_id, project_id)
         )
+        return
 
     result = task.task_action("start", username)
     logger.info(
