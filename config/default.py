@@ -483,18 +483,18 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "propagate": True,
     }
 
-    logging_dict["handlers"]["pipeline_engine_component"] = {
+    logging_dict["handlers"]["pipeline_engine_context"] = {
         "class": "pipeline.log.handlers.EngineContextLogHandler",
         "formatter": "light",
     }
 
-    logging_dict["handlers"]["bamboo_engine_component"] = {
+    logging_dict["handlers"]["bamboo_engine_context"] = {
         "class": "pipeline.eri.log.EngineContextLogHandler",
         "formatter": "light",
     }
 
     logging_dict["loggers"]["component"] = {
-        "handlers": ["component", "pipeline_engine_component", "bamboo_engine_component"],
+        "handlers": ["component", "pipeline_engine_context", "bamboo_engine_context"],
         "level": "DEBUG",
         "propagate": True,
     }
@@ -519,11 +519,14 @@ def logging_addition_settings(logging_dict, environment="prod"):
 
     logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
 
-    logging_dict["loggers"]["bamboo_engine"] = {"handlers": ["root"], "level": "INFO", "propagate": True}
+    logging_dict["loggers"]["bamboo_engine"] = {
+        "handlers": ["root", "bamboo_engine_context"],
+        "level": "INFO",
+        "propagate": True,
+    }
 
-    # 多环境需要，celery的handler需要动态获取
-    logging_dict["loggers"]["celery_and_engine_component"] = {
-        "handlers": ["pipeline_engine_component", logging_dict["loggers"]["celery"]["handlers"][0]],
+    logging_dict["loggers"]["pipeline_engine"] = {
+        "handlers": ["root", "pipeline_engine_context"],
         "level": "INFO",
         "propagate": True,
     }
