@@ -138,7 +138,7 @@ class MonitorAlarmShieldService(Service):
             "end_time": end_time,
             "notice_config": {},
             "shield_notice": False,
-            "source": settings.APP_ID,
+            "source": settings.APP_CODE,
         }
         return request_body
 
