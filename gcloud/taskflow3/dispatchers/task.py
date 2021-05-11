@@ -78,7 +78,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
             dict_result = {
                 "result": result.result,
-                "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR,
+                "code": err_code.SUCCESS.code if result.result else err_code.UNKNOWN_ERROR.code,
                 "message": result.message,
                 "data": None,
             }

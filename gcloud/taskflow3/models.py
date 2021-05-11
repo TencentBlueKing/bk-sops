@@ -370,6 +370,14 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         return qs.first()
 
+    def is_task_started(self, project_id, id):
+        qs = self.filter(project_id=project_id, id=id).only("pipeline_instance")
+
+        if not qs:
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
+
+        return qs.first().pipeline_instance.is_started
+
 
 class TaskFlowInstance(models.Model):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
@@ -477,7 +485,7 @@ class TaskFlowInstance(models.Model):
 
     @property
     def url(self):
-        return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, self.project.id, self.id)
+        return self.__class__.task_url(project_id=self.project_id, task_id=self.id)
 
     @property
     def subprocess_info(self):
@@ -544,6 +552,10 @@ class TaskFlowInstance(models.Model):
             return True
 
         return False
+
+    @classmethod
+    def task_url(cls, project_id, task_id):
+        return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
 
     def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):

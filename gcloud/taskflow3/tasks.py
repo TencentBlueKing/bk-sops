@@ -32,3 +32,20 @@ def send_taskflow_message(task_id, msg_type, node_name=""):
         logger.exception("send_task_flow_message[taskflow_id=%s] send message error: %s" % (task_id, e))
     else:
         logger.info("send_taskflow_message[taskflow_id=%s] task finished" % task_id)
+
+
+@task
+def prepare_and_start_task(task_id, project_id, username):
+    try:
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
+    except TaskFlowInstance.DoesNotExist:
+        logger.exception(
+            "[prepare_and_start_task] celery get task for (task_id={}, project_id={}) fail.".format(task_id, project_id)
+        )
+
+    result = task.task_action("start", username)
+    logger.info(
+        "[prepare_and_start_task] celery start task (task_id={}, project_id={}) result: {}".format(
+            task_id, project_id, result
+        )
+    )
