@@ -573,7 +573,9 @@ class TaskFlowInstance(models.Model):
             subprocess_stack=subprocess_stack or [],
         )
 
-    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
+    def get_node_detail(
+        self, node_id, username, component_code=None, subprocess_stack=None, loop=None, include_data=True
+    ):
         if not self.has_node(node_id):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
@@ -581,15 +583,19 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
-        node_data_result = dispatcher.get_node_data(
-            username=username,
-            component_code=component_code,
-            loop=loop,
-            pipeline_instance=self.pipeline_instance,
-            subprocess_stack=subprocess_stack,
-        )
-        if not node_data_result["result"]:
-            return node_data_result
+
+        node_data = {}
+        if include_data:
+            node_data_result = dispatcher.get_node_data(
+                username=username,
+                component_code=component_code,
+                loop=loop,
+                pipeline_instance=self.pipeline_instance,
+                subprocess_stack=subprocess_stack,
+            )
+            if not node_data_result["result"]:
+                return node_data_result
+            node_data = node_data_result["data"]
 
         node_detail_result = dispatcher.get_node_detail(
             username=username,
@@ -602,7 +608,7 @@ class TaskFlowInstance(models.Model):
             return node_detail_result
 
         detail = node_detail_result["data"]
-        detail.update(node_data_result["data"])
+        detail.update(node_data)
 
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
