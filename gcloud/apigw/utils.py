@@ -64,15 +64,26 @@ def api_bucket_and_key(*args, **kwargs):
     return bucket, key
 
 
-class BucketTTLCache:
+class DecisionCacheMixin:
+    def should_cache(self, key, value):
+        if not self.decisioner:
+            return True
+
+        return self.decisioner(key, value)
+
+
+class BucketTTLCache(DecisionCacheMixin):
     """基于业务分桶的TTLCache"""
 
-    def __init__(self, cache_cls, cache_kwargs):
+    def __init__(self, cache_cls, cache_kwargs, decisioner=None):
         self._buckets = {}
         self.cache_cls = cache_cls
         self.cache_kwargs = cache_kwargs
+        self.decisioner = decisioner
 
     def set_value(self, bucket, key, value):
+        if not self.should_cache(key, value):
+            return
         self._buckets.setdefault(bucket, self.cache_cls(**self.cache_kwargs))[key] = value
 
     def get_value(self, bucket, key):

@@ -33,6 +33,16 @@ except ImportError:
     from packages.bkoauth.decorators import apigw_required
 
 
+def cache_decisioner(key, value):
+    if not value["result"]:
+        return False
+
+    if value["data"]["state"] == "CREATED":
+        return False
+
+    return True
+
+
 @login_exempt
 @require_GET
 @apigw_required
