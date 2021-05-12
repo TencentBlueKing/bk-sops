@@ -162,6 +162,7 @@
                                             ips.push(tools.deepClone(ipItem))
                                         }
                                     })
+                                    value.ip = ips
                                     this.updateForm(value)
                                     break
                                 case 1:
