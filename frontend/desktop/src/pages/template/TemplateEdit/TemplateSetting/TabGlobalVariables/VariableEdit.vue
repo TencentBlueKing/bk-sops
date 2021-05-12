@@ -598,15 +598,15 @@
                         return false
                     }
 
-                    const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
+                    // const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
 
-                    if (!checkKeyResult.data) {
-                        this.$bkMessage({
-                            message: i18n.t('变量KEY为特殊标志符变量，请修改'),
-                            theme: 'warning'
-                        })
-                        return
-                    }
+                    // if (!checkKeyResult.data) {
+                    //     this.$bkMessage({
+                    //         message: i18n.t('变量KEY为特殊标志符变量，请修改'),
+                    //         theme: 'warning'
+                    //     })
+                    //     return
+                    // }
 
                     if (this.theEditingData.preRenderMako) {
                         this.theEditingData.pre_render_mako = Boolean(this.theEditingData.preRenderMako)

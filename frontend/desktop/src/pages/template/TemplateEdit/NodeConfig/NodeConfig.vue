@@ -534,8 +534,8 @@
 
                     return {
                         plugin: component.code || '',
-                        name: basicInfoName,
-                        nodeName: name,
+                        name: basicInfoName, // 插件名称
+                        nodeName: name, // 节点名称
                         stageName: stage_name,
                         nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         version, // 标准插件版本
@@ -551,7 +551,7 @@
                     const { template_id, name, stage_name, labels, optional } = config
                     let templateName = i18n.t('请选择子流程')
 
-                    if (config.template_id || config.template_id === 0) {
+                    if (template_id) {
                         this.atomTypeList.subflow.some(item => {
                             if (item.template_id === Number(template_id)) {
                                 templateName = item.name
@@ -561,8 +561,8 @@
                     }
                     return {
                         tpl: template_id || '',
-                        name: templateName,
-                        nodeName: name,
+                        name: templateName, // 流程模版名称
+                        nodeName: name, // 节点名称
                         stageName: stage_name,
                         nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
