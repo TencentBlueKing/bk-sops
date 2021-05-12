@@ -147,7 +147,11 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         # change constants
         for key, value in list(constants.items()):
             if key in pipeline_tree[PE.constants]:
-                pipeline_tree[PE.constants][key]["value"] = value
+                var = pipeline_tree[PE.constants][key]
+                # set meta field for meta var, so frontend can render meta form
+                if var.get("is_meta"):
+                    var["meta"] = deepcopy(var)
+                var["value"] = value
 
         # simplify var
         for key in simplify_vars:
