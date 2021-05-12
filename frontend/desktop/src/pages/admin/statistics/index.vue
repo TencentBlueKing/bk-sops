@@ -111,7 +111,7 @@
                 }
             }
         },
-        created () {
+        mounted () {
             if (this.hasStatisticsPerm !== null) {
                 if (this.hasStatisticsPerm === false) {
                     this.showPermissionApplyPage()
