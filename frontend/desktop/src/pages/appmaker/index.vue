@@ -224,7 +224,7 @@
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
-                if (data.length) {
+                if (data.length || this.requestData.editor || this.requestData.updateTime.every(item => item !== '')) {
                     this.searchMode = true
                     const reg = new RegExp(this.requestData.flowName, 'i')
                     this.searchList = this.list.filter(item => {
@@ -314,10 +314,11 @@
                     logo_url: undefined
                 }
             },
-            onSearchFormSubmit (data) {
+            async onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
                 this.updateUrl()
-                this.loadData()
+                await this.loadData()
+                this.searchInputhandler(this.requestData.flowName)
             },
             updateUrl () {
                 const { updateTime, editor, flowName } = this.requestData
