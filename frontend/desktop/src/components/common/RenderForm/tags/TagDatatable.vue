@@ -214,7 +214,7 @@
         pagination: {
             type: Boolean,
             required: false,
-            default: false,
+            default: true,
             desc: 'show table pagination'
         },
         page_size: {
@@ -261,9 +261,6 @@
                     operate_text: gettext('操作'),
                     delete_text: gettext('删除'),
                     add_text: gettext('添加')
-                },
-                pagination: {
-                    current: 1
                 }
             }
         },
@@ -476,6 +473,9 @@
                     index = (this.currentPage - 1) * this.page_size + index
                 }
                 this.tableValue.splice(index, 1)
+                if (this.tableValue.length % this.page_size === 0 && this.currentPage > 1) {
+                    this.currentPage -= 1
+                }
                 this.updateForm(this.tableValue)
             },
             onSave (index, row) {
@@ -491,6 +491,9 @@
             onCancel () {
                 this.editRowNumber = undefined
                 this.tableValue = tools.deepClone(this.value)
+                if (this.dataList.length === 0 && this.currentPage > 1) {
+                    this.currentPage -= 1
+                }
             },
             set_loading (loading) {
                 this.loading = loading
