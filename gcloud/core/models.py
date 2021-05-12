@@ -232,7 +232,9 @@ class ProjectBasedComponentManager(models.Manager):
         return self.values_list("component_code", flat=True)
 
     def get_components_of_other_projects(self, project_id):
-        return self.exclude(project_id=project_id).values_list("component_code", flat=True)
+        pre_exclude_components = self.exclude(project_id=project_id).values_list("component_code", flat=True)
+        project_components = self.filter(project_id=project_id).values_list("component_code", flat=True)
+        return list(set(pre_exclude_components) - set(project_components))
 
 
 class ProjectBasedComponent(models.Model):
