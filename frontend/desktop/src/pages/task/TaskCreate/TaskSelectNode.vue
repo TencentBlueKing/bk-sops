@@ -430,7 +430,7 @@
                 } else {
                     try {
                         const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
-                        allNodeId = JSON.parse(result.data.data)
+                        allNodeId = JSON.parse(result.data)
                         this.planDataObj[scheme.id] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
