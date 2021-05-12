@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import re
 from functools import partial
 from copy import deepcopy
 
@@ -31,6 +31,8 @@ __group_name__ = _("作业平台(JOB)")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
+
+plat_reg = re.compile(r"(\d+:)")
 
 
 class AllBizJobExecuteJobPlanService(Jobv3Service):
@@ -106,7 +108,6 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
         biz_cc_id = data.get_one_of_inputs("all_biz_cc_id")
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_var_list = []
-        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
         for _value in original_global_var:
             # 3-IP
@@ -116,17 +117,11 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
                 ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
 
-                if ip_is_exist:
-                    # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-                    input_ip_set = set(get_ip_by_regex(val))
-                    self.logger.info(
-                        "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set)
-                    )
+                plats = plat_reg.findall(val)
+                if len(ip_list) != len(plats):
+                    data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(val))
+                    return False
 
-                    difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
-                    if len(ip_list) != len(input_ip_set):
-                        data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                        return False
                 if ip_list:
                     global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
             else:
