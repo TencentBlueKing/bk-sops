@@ -578,12 +578,12 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
         },
     },
     parent_data={"executor": "tester"},
-    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": None}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": ""}),
     schedule_assertion=ScheduleAssertion(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={"job_id": None},
+        outputs={"job_id": ""},
     ),
     execute_call_assertion=[
         CallAssertion(

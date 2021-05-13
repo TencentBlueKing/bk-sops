@@ -68,7 +68,7 @@ class NodeManBaseService(Service):
             ),
         ]
 
-    def get_job_result(self, result, data, action, kwargs, set_output_job_id=True):
+    def get_job_result(self, result, data, action, kwargs, set_output_job_id=True, job_is_plugin=False):
         """获取任务id及结果"""
         if not result["result"]:
             # 接口失败详细日志都存在 data 中，需要打印出来
@@ -84,8 +84,16 @@ class NodeManBaseService(Service):
             data.set_outputs("ex_data", error)
             self.logger.error(error)
             return False
+        if action == "remove_host":  # 删除类任务无job_id
+            return True
         if set_output_job_id:
-            job_id = result["data"].get("job_id", None)
+            job_key = "job_id"
+            if job_is_plugin:  # 插件操作类的job_id 从result["data][插件名中获取]
+                job_key = kwargs["plugin_params"]["name"]
+            job_id = result["data"].get(job_key)
+            if not job_id:
+                data.outputs.ex_data = _("获取任务job_id失败，result:{}".format(result))
+                return False
             data.set_outputs("job_id", job_id)
         return True
 
