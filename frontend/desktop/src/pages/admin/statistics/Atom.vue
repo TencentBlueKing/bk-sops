@@ -35,7 +35,7 @@
                                 v-for="option in atomListData"
                                 :key="option.id"
                                 :name="option.name"
-                                :id="option.id">
+                                :id="option.id + '&' + option.version">
                             </bk-option>
                         </bk-select>
                     </bk-form-item>
@@ -374,13 +374,14 @@
             async getTableData () {
                 try {
                     this.tableDataLoading = true
-                    const selectedAtom = this.atomListData.find(item => item.id === this.tableAtom)
+                    const componentCode = this.tableAtom.split('&')[0]
+                    const selectedAtom = this.atomListData.find(item => item.id === componentCode)
                     const query = {
                         group_by: this.activeTab,
                         conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
-                            component_code: this.tableAtom,
+                            component_code: componentCode,
                             version: selectedAtom ? selectedAtom.version : undefined,
                             project_id: this.tableProject,
                             category: this.tableCategory,
