@@ -96,10 +96,8 @@
             '$route' (val) {
                 this.setNavigationTitle(val)
             },
-            hasAdminPerm (val) {
-                if (val) {
-                    this.setNavigationTitle(this.$route)
-                }
+            routerList (val) {
+                this.setNavigationTitle(this.$route)
             }
         },
         methods: {
