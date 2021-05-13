@@ -33,7 +33,7 @@ def batch_request(
 ):
     """
     并发请求接口
-    :param page_params: 分页参数，默认使用start/limit分页，例如：{"cur_page_param":"start", "page_size_param":"limit"}
+    :param page_param: 分页参数，默认使用start/limit分页，例如：{"cur_page_param":"start", "page_size_param":"limit"}
     :param func: 请求方法
     :param params: 请求参数
     :param get_data: 获取数据函数
