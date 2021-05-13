@@ -24,7 +24,8 @@ const ATOM_TYPE_DICT = {
     subflow: 'SubProcess',
     parallelgateway: 'ParallelGateway',
     branchgateway: 'ExclusiveGateway',
-    convergegateway: 'ConvergeGateway'
+    convergegateway: 'ConvergeGateway',
+    conditionalparallelgateway: 'ConditionalParallelGateway'
 }
 // 默认流程模板，默认节点
 function generateInitLocation () {
@@ -516,7 +517,7 @@ const template = {
                     if (Array.isArray(gatewayNode.outgoing)) {
                         const len = gatewayNode.outgoing.length
                         Vue.set(gatewayNode.outgoing, len, id)
-                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
+                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway'] || gatewayNode.type === ATOM_TYPE_DICT['conditionalparallelgateway']) {
                             const conditions = gatewayNode.conditions
                             let evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             let name = evaluate
@@ -579,7 +580,7 @@ const template = {
                         gatewayNode.outgoing = gatewayNode.outgoing.filter(item => {
                             return item !== deletedLine.id
                         })
-                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
+                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway'] || gatewayNode.type === ATOM_TYPE_DICT['conditionalparallelgateway']) {
                             const conditions = gatewayNode.conditions
                             conditions[deletedLine.id] && Vue.delete(conditions, deletedLine.id)
                         }
@@ -706,7 +707,7 @@ const template = {
                         outgoing: location.type === 'convergegateway' ? '' : [],
                         type: ATOM_TYPE_DICT[location.type]
                     }
-                    if (location.type === 'branchgateway') {
+                    if (location.type === 'branchgateway' || location.type === 'conditionalparallelgateway') {
                         state.gateways[location.id].conditions = {}
                     }
                 }
