@@ -38,7 +38,7 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     pipeline_tree["data"] = {
         "inputs": classification["data_inputs"],
         "outputs": [key for key in pipeline_tree.pop("outputs")],
-        "pre_render_keys": list(pre_render_keys),
+        "pre_render_keys": sorted(list(pre_render_keys)),
     }
 
     for act_id, act in list(pipeline_tree["activities"].items()):
