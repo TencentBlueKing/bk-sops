@@ -1,0 +1,4 @@
+feature:
+  - 新增 全业务执行作业方案原子 功能
+  - 修复IP正则校验问题
+  - 修改batch_request传参，适配jobv3接口
