@@ -16,6 +16,7 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
+from api.utils.request import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
@@ -259,65 +260,49 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
 
 def jobv3_get_job_template_list(request, biz_cc_id):
     """
-    根据业务ID查询作业模版列表，暂无分页信息
+    根据业务ID查询作业模版列表
     @param request:
     @param biz_cc_id: 业务 ID
     @return:
     """
     client = get_client_by_user(request.user.username)
-    # length暂时默认作业平台页面列表最大页
-    kwargs = {"bk_biz_id": biz_cc_id, "length": 100}
-    jobv3_result = client.jobv3.get_job_template_list(kwargs)
-    if not jobv3_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_template_list返回失败: %s") % (
-            biz_cc_id,
-            jobv3_result["message"],
-        )
+    template_list = batch_request(
+        func=client.jobv3.get_job_template_list,
+        params={"bk_biz_id": biz_cc_id},
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True
+    )
 
-        if jobv3_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=jobv3_result.get("permission", {}))
-
-        logger.error(message)
-        result = {"result": False, "data": [], "message": message}
-        return JsonResponse(result)
-
-    template_list = []
-    for template in jobv3_result["data"]:
-        template_list.append({"value": template["id"], "text": template["name"]})
-    return JsonResponse({"result": True, "data": template_list})
+    data = []
+    for template in template_list:
+        data.append({"value": template["id"], "text": template["name"]})
+    return JsonResponse({"result": True, "data": data})
 
 
 def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
     """
-    查询执行方案列表，暂无分页信息
+    查询执行方案列表
     @param request:
     @param biz_cc_id: 业务 ID
     @param job_template_id: 作业模版 ID
     @return:
     """
     client = get_client_by_user(request.user.username)
-    # length暂时默认作业平台页面列表最大页
-    kwargs = {"bk_biz_id": biz_cc_id, "job_template_id": job_template_id, "length": 100}
-    jobv3_result = client.jobv3.get_job_plan_list(kwargs)
-    if not jobv3_result["result"]:
-        message = _("查询作业平台(JOB)的作业方案[app_id=%s]接口jobv3.get_job_plan_list返回失败: %s") % (
-            biz_cc_id,
-            jobv3_result["message"],
-        )
+    plan_list = batch_request(
+        func=client.jobv3.get_job_plan_list,
+        params={"bk_biz_id": biz_cc_id, "job_template_id": job_template_id},
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True
+    )
 
-        if jobv3_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=jobv3_result.get("permission", {}))
-
-        logger.error(message)
-        result = {"result": False, "data": [], "message": message}
-        return JsonResponse(result)
-
-    plan_list = []
-    for plan in jobv3_result["data"]:
-        plan_list.append({"value": plan["id"], "text": plan["name"]})
-    return JsonResponse({"result": True, "data": plan_list})
+    data = []
+    for plan in plan_list["data"]:
+        data.append({"value": plan["id"], "text": plan["name"]})
+    return JsonResponse({"result": True, "data": data})
 
 
 def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
