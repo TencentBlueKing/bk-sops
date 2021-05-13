@@ -157,4 +157,6 @@ class AllBizJobExecuteJobPlanComponent(Component):
     code = "all_biz_execute_job_plan"
     bound_service = AllBizJobExecuteJobPlanService
     form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js" % settings.STATIC_URL
-    output_form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % settings.STATIC_URL
+    output_form = "%sscomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % (
+        settings.STATIC_URL
+    )
