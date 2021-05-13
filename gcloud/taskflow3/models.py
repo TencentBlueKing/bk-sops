@@ -176,7 +176,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             data.update(node_data)
 
         for gw_id, gw in list(pipeline_tree[PE.gateways].items()):
-            if gw["type"] in  [PE.ExclusiveGateway, PE.ConditionalParallelGateway]:
+            if gw["type"] in [PE.ExclusiveGateway, PE.ConditionalParallelGateway]:
                 gw_data = {
                     ("%s_%s" % (gw_id, key)): {"value": value["evaluate"]}
                     for key, value in list(gw["conditions"].items())
