@@ -374,8 +374,8 @@
             async getTableData () {
                 try {
                     this.tableDataLoading = true
-                    const componentCode = this.tableAtom.split('&')[0]
-                    const selectedAtom = this.atomListData.find(item => item.id === componentCode)
+                    const componentCode = this.tableAtom.split('&')
+                    const selectedAtom = this.atomListData.find(item => item.id === componentCode[0] && item.version === componentCode[1])
                     const query = {
                         group_by: this.activeTab,
                         conditions: {
