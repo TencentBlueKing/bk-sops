@@ -475,8 +475,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             username=username, component_code=component_code, loop=loop, subprocess_stack=subprocess_stack, **kwargs
         )
         if detail["result"]:
-            for hist in detail["data"]["histories"]:
-                if isinstance(hist["ex_data"], str):
+            for hist in detail["data"].get("histories", []):
+                if isinstance(hist.get("ex_data"), str):
                     hist["ex_data"] = handle_plain_log(hist["ex_data"])
 
         return detail
