@@ -27,7 +27,7 @@ BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
-BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST")
+BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", "{}/o/bk_nodeman".format(BK_PAAS_HOST))
 
 # paas v2 open
 if RUN_VER == "open":
