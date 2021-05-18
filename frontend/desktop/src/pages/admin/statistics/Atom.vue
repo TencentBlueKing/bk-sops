@@ -381,7 +381,7 @@
                         conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
-                            component_code: componentCode,
+                            component_code: componentCode[0],
                             version: selectedAtom ? selectedAtom.version : undefined,
                             project_id: this.tableProject,
                             category: this.tableCategory,
