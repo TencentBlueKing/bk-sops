@@ -10,7 +10,7 @@
             <bk-table
                 ext-cls="operate-flow-table"
                 :data="operateFlowData">
-                <bk-table-column :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+                <bk-table-column min-width="140" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
                 <bk-table-column :label="$t('操作名称')" prop="operate_type_name"></bk-table-column>
                 <bk-table-column :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
                 <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
@@ -21,6 +21,7 @@
 
 <script>
     import { mapActions } from 'vuex'
+    import moment from 'moment'
     export default {
         data () {
             return {
@@ -41,7 +42,10 @@
                         project_id: params.project_id,
                         instance_id: query.template_id
                     })
-                    this.operateFlowData = resp.data || []
+                    this.operateFlowData = resp.data.map(item => {
+                        item.operate_date = moment(item.operate_date).format('YYYY-MM-DD HH:mm:ss')
+                        return item
+                    })
                 } catch (error) {
                     console.warn(error)
                 }
