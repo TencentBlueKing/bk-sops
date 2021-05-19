@@ -44,6 +44,7 @@
                     :locations="locations"
                     :node-menu-open="nodeMenuOpen"
                     @viewClick="viewUpdatedNode"
+                    @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
                 </SubflowUpdateTips>
                 <TemplateCanvas
@@ -118,6 +119,7 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
+            <batch-update-dialog :show.sync="isBatchUpdateDialogShow" :list="subflowShouldUpdated"></batch-update-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -189,6 +191,7 @@
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
+    import BatchUpdateDialog from './BatchUpdateDialog.vue'
 
     export default {
         name: 'TemplateEdit',
@@ -199,7 +202,8 @@
             NodeConfig,
             ConditionEdit,
             TemplateSetting,
-            SubflowUpdateTips
+            SubflowUpdateTips,
+            BatchUpdateDialog
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
@@ -246,6 +250,7 @@
                 conditionData: {},
                 multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
+                isBatchUpdateDialogShow: false,
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
