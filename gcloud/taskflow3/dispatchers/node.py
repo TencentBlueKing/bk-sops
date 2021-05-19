@@ -195,9 +195,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
-        return getattr(self, "get_node_data_v{}".format(self.engine_ver))(
+        data = getattr(self, "get_node_data_v{}".format(self.engine_ver))(
             username=username, component_code=component_code, loop=loop, subprocess_stack=subprocess_stack, **kwargs
         )
+        if data["result"] and isinstance(data["data"]["ex_data"], str):
+            data["data"]["ex_data"] = handle_plain_log(data["data"]["ex_data"])
+
+        return data
 
     def _prerender_node_data(
         self, pipeline_instance: PipelineInstance, subprocess_stack: List[str], username: str
@@ -467,9 +471,15 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
-        return getattr(self, "get_node_detail_v{}".format(self.engine_ver))(
+        detail = getattr(self, "get_node_detail_v{}".format(self.engine_ver))(
             username=username, component_code=component_code, loop=loop, subprocess_stack=subprocess_stack, **kwargs
         )
+        if detail["result"]:
+            for hist in detail["data"].get("histories", []):
+                if isinstance(hist.get("ex_data"), str):
+                    hist["ex_data"] = handle_plain_log(hist["ex_data"])
+
+        return detail
 
     def _assemble_histroy_detail(self, detail: dict, histories: list):
         # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
