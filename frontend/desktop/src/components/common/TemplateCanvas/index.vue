@@ -40,6 +40,7 @@
                 <palette-panel
                     :common="common"
                     :atom-type-list="atomTypeList"
+                    :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
                     @updateNodeMenuState="updateNodeMenuState">
@@ -170,14 +171,6 @@
                 type: Boolean,
                 default: false
             },
-            singleAtomListLoading: {
-                type: Boolean,
-                default: false
-            },
-            subAtomListLoading: {
-                type: Boolean,
-                default: false
-            },
             hasAdminPerm: {
                 type: Boolean,
                 default: false
@@ -185,6 +178,10 @@
             common: {
                 type: [String, Number],
                 default: ''
+            },
+            templateLabels: {
+                type: Array,
+                default: () => ([])
             },
             canvasData: {
                 type: Object,

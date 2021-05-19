@@ -122,11 +122,15 @@
                 this.$refs.permissionModal.show(data)
             })
             bus.$on('showMessage', info => {
-                this.$bkMessage({
-                    message: info.message,
-                    ellipsisLine: info.lines || 1,
-                    theme: info.theme || 'error'
-                })
+                if (info.theme === 'error') {
+                    errorHandler(info, this)
+                } else {
+                    this.$bkMessage({
+                        message: info.message,
+                        ellipsisLine: info.lines || 1,
+                        theme: info.theme
+                    })
+                }
             })
 
             /**
@@ -205,8 +209,8 @@
                         setConfigContext(this.site_url, projectDetail)
                     }
                     this.changeDefaultProject(this.project_id)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.projectDetailLoading = false
                 }
@@ -218,7 +222,7 @@
                     this.setProjectName(res.project.name)
                     this.setAppmakerDetail(res)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.appmakerDataLoading = false
                 }
@@ -230,8 +234,8 @@
                     })
 
                     this.setAdminPerm(res.data.is_allow)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async queryStatisticsPerm () {
@@ -241,8 +245,8 @@
                     })
 
                     this.setStatisticsPerm(res.data.is_allow)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 动态获取页面 footer
@@ -253,9 +257,9 @@
                     if (resp.result) {
                         this.setPageFooter(resp.data)
                     }
-                } catch (err) {
+                } catch (e) {
                     this.setPageFooter(`<div class="copyright"><div>蓝鲸智云 版权所有</div></div>`)
-                    errorHandler(err, this)
+                    console.log(e)
                 } finally {
                     this.footerLoading = false
                 }

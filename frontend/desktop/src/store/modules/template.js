@@ -206,7 +206,8 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            state.name = name
             state.category = category
             state.notify_type = notify_type
             state.notify_receivers.receiver_group = receiver_group
@@ -320,7 +321,7 @@ const template = {
             state.start_event = start_event
             state.template_id = ''
             state.constants = {}
-            state.category = ''
+            state.category = 'Default'
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
@@ -343,7 +344,7 @@ const template = {
             state.start_event = {}
             state.template_id = ''
             state.constants = {}
-            state.category = ''
+            state.category = 'Default'
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
@@ -900,11 +901,14 @@ const template = {
         },
         // 获取变量预览值
         getConstantsPreviewResult ({ commit }, data) {
-            return axios.post('/template/api/get_constant_preview_result/', data).then(response => response.data)
+            return axios.post('template/api/get_constant_preview_result/', data).then(response => response.data)
         },
         // 获取全局变量被引用数据
         getVariableCite ({ commit }, data) {
-            return axios.post('/template/api/analysis_constants_ref/', data).then(response => response.data)
+            return axios.post('template/api/analysis_constants_ref/', data).then(response => response.data)
+        },
+        checkKey ({ commit }, data) {
+            return axios.get('core/api/check_variable_key/', { params: data }).then(response => response.data)
         }
     },
     getters: {

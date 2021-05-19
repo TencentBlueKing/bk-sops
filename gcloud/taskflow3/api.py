@@ -19,6 +19,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.translation import ugettext_lazy as _
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view
 
 import env
 from blueapps.account.decorators import login_exempt
@@ -27,17 +29,15 @@ from gcloud.utils.throttle import check_task_operation_throttle
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
-from pipeline.engine import api as pipeline_api
-from pipeline.engine import exceptions, states
-
 from gcloud import err_code
+from gcloud.core.models import EngineConfig
 from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-from gcloud.taskflow3.utils import preview_template_tree
+from gcloud.taskflow3.models import preview_template_tree
 from gcloud.taskflow3.validators import (
     StatusValidator,
     DataValidator,
@@ -53,7 +53,7 @@ from gcloud.taskflow3.validators import (
     QueryTaskCountValidator,
     GetNodeLogValidator,
 )
-
+from gcloud.taskflow3.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
@@ -67,6 +67,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     GetNodeLogInterceptor,
     StatusViewInterceptor,
 )
+from gcloud.openapi.schema import AnnotationAutoSchema
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -91,34 +92,23 @@ def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
 
-    if not subprocess_id:
-        try:
-            task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
-            task_status = task.get_status()
-            ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
-            return JsonResponse(ctx)
-        except exceptions.InvalidOperationException:
-            ctx = {"result": True, "data": {"state": states.READY, "message": "", "code": err_code.SUCCESS.code}}
-        except Exception as e:
-            message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
-            logger.exception(message)
-            ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
-        return JsonResponse(ctx)
-
-    # 请求子流程的状态，直接通过pipeline api查询
     try:
-        task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
-        TaskFlowInstance.format_pipeline_status(task_status)
-        ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
-    # subprocess pipeline has not executed
-    except exceptions.InvalidOperationException:
-        ctx = {"result": True, "data": {"state": states.CREATED}, "message": "", "code": err_code.SUCCESS.code}
-    except Exception as e:
-        message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
-        logger.exception(message)
-        ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
+        task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
+    except TaskFlowInstance.DoesNotExist:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "task with instance_id({}) not exist".format(instance_id),
+                "data": None,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+        )
 
-    return JsonResponse(ctx)
+    dispatcher = TaskCommandDispatcher(
+        engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+    )
+    result = dispatcher.get_task_status(subprocess_id=subprocess_id)
+    return JsonResponse(result)
 
 
 @require_GET
@@ -138,19 +128,63 @@ def data(request, project_id):
     return JsonResponse(ctx)
 
 
-@require_GET
+@swagger_auto_schema(methods=["GET"], auto_schema=AnnotationAutoSchema)
 @request_validate(DetailValidator)
 @iam_intercept(DetailViewInterceptor())
+@api_view(["GET"])
 def detail(request, project_id):
-    task_id = request.GET["instance_id"]
-    node_id = request.GET["node_id"]
-    loop = request.GET.get("loop")
-    component_code = request.GET.get("component_code")
+    """
+    获取节点详情
+    param: instance_id: 任务实例 ID, string, query, required
+    param: node_id: 节点 ID, string, query, required
+    param: loop: 节点重入次数, int, query
+    param: component_code: ServiceActivity 节点组件代号，节点类型为 ServiceActivity 时必传, string, query
+    param: include_data: 是否返回节点执行数据(1:返回 0:不返回), int, query
 
-    subprocess_stack = json.loads(request.GET.get("subprocess_stack", "[]"))
+    return: dict 根据 result 字段判断是否请求成功
+    {
+        "result": "是否请求成功(boolean)",
+        "data": {
+            "id": "节点 ID(string)",
+            "state": "节点状态(string)",
+            "loop": "重入次数(int)",
+            "retry": "重试次数(int)",
+            "skip": "是否跳过(boolean)",
+            "error_ignorable": "是否失败后跳过(boolean)",
+            "elapsed_time": "执行耗时(int)",
+            "start_time": "开始时间(string)",
+            "finish_time": "结束时间(string)",
+            "histories": [
+                {
+                    "loop": "重入次数(int)",
+                    "skip": "是否跳过(boolean)",
+                    "inputs": "节点输入数据(object or null)",
+                    "outputs": "节点输出数据(object or null)",
+                    "history_id": "历史 ID(int)",
+                    "state": "节点历史状态(string)",
+                    "elapsed_time": "执行耗时(int)",
+                    "start_time": "开始时间(string)",
+                    "finish_time": "结束时间(string)",
+                    "ex_data": "节点错误信息(string)"
+                }
+            ],
+            "inputs": "节点输入数据, include_data 为 1 时返回(object or null)",
+            "outputs": "节点输出数据, include_data 为 1 时返回(list)",
+            "ex_data": "节点错误信息, include_data 为 1 时返回(string)"
+        },
+        "message": "错误时提示(string)"
+    }
+    """
+    task_id = request.query_params["instance_id"]
+    node_id = request.query_params["node_id"]
+    loop = request.query_params.get("loop")
+    component_code = request.query_params.get("component_code")
+    include_data = int(request.query_params.get("include_data", 1))
+
+    subprocess_stack = json.loads(request.query_params.get("subprocess_stack", "[]"))
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop)
+    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop, include_data)
 
     return JsonResponse(ctx)
 
@@ -265,23 +299,9 @@ def task_modify_inputs(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
 
-    if task.is_started:
-        ctx = {"result": False, "message": "task is started", "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
+    constants = data["constants"]
 
-    elif task.is_finished:
-        ctx = {
-            "result": False,
-            "message": "task is finished",
-            "data": None,
-            "code": err_code.REQUEST_PARAM_INVALID.code,
-        }
-
-    else:
-        constants = data["constants"]
-        name = data.get("name", "")
-        ctx = task.reset_pipeline_instance_data(constants, name)
-
-    return JsonResponse(ctx)
+    return JsonResponse(task.set_task_context(constants))
 
 
 @require_POST
@@ -349,24 +369,40 @@ def query_task_count(request, project_id):
     return JsonResponse({"result": True, "data": content, "message": "", "code": err_code.SUCCESS.code})
 
 
-@require_GET
+@swagger_auto_schema(methods=["GET"], auto_schema=AnnotationAutoSchema)
 @request_validate(GetNodeLogValidator)
 @iam_intercept(GetNodeLogInterceptor())
+@api_view(["GET"])
 def get_node_log(request, project_id, node_id):
     """
-    @summary: 查看某个节点的日志
-    @param request:
-    @param project_id:
-    @param node_id
-    @return:
+    获取节点详情
+    param: instance_id: 任务实例 ID, string, query, required
+    param: history_id: 历史 ID, int, query
+
+    return: dict 根据 result 字段判断是否请求成功
+    {
+        "result": "是否请求成功(boolean)",
+        "data": "节点日志文本(string)",
+        "message": "错误时提示(string)"
+    }
     """
     task_id = request.GET["instance_id"]
-    history_id = request.GET.get("history_id")
+    history_id = request.GET.get("history_id") or -1
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
+    if not task.has_node(node_id):
+        return JsonResponse(
+            {
+                "result": False,
+                "data": None,
+                "message": "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
+                    node_id=node_id, task_id=task.id
+                ),
+            }
+        )
 
-    ctx = task.log_for_node(node_id, history_id)
-    return JsonResponse(ctx)
+    dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id)
+    return JsonResponse(dispatcher.get_node_log(history_id))
 
 
 @require_GET
@@ -381,6 +417,11 @@ def get_task_create_method(request):
 @csrf_exempt
 @require_POST
 def node_callback(request, token):
+    """
+    old callback view, handle pipeline callback
+    """
+    logger.info("[old_node_callback]callback body for token({}): {}".format(token, request.body))
+
     try:
         f = Fernet(settings.CALLBACK_KEY)
         node_id = f.decrypt(bytes(token, encoding="utf8")).decode()
@@ -390,14 +431,18 @@ def node_callback(request, token):
 
     try:
         callback_data = json.loads(request.body)
-    except Exception as e:
-        logger.warning("node callback error: %s" % traceback.format_exc(e))
+    except Exception:
+        logger.warning("node callback error: %s" % traceback.format_exc())
         return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
+
+    # 老的回调接口，一定是老引擎的接口
+    dispatcher = NodeCommandDispatcher(engine_ver=EngineConfig.ENGINE_VER_V1, node_id=node_id)
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
+    callback_result = None
     for i in range(3):
-        callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+        callback_result = dispatcher.dispatch(command="callback", operator="", data=callback_data)
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:
             break

@@ -38,10 +38,7 @@ class NodeCallbackAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -49,33 +46,21 @@ class NodeCallbackAPITest(APITest):
         mock_instance = MockTaskFlowInstance()
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_instance)):
             response = self.client.post(
-                path=self.url().format(
-                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-                ),
-                data=json.dumps(
-                    {"node_id": TEST_NODE_ID, "callback_data": TEST_CALLBACK_DATA}
-                ),
+                path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+                data=json.dumps({"node_id": TEST_NODE_ID, "callback_data": TEST_CALLBACK_DATA}),
                 content_type="application/json",
             )
 
             data = json.loads(response.content)
 
             self.assertTrue(data["result"], msg=data)
-            mock_instance.callback.assert_called_once_with(
-                TEST_NODE_ID, TEST_CALLBACK_DATA
-            )
+            mock_instance.callback.assert_called_once_with(TEST_NODE_ID, TEST_CALLBACK_DATA, None)
 
-    @mock.patch(
-        TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist())
-    )
+    @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
     def test_node_callback__taskflow_does_not_exists(self):
         response = self.client.post(
-            path=self.url().format(
-                task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-            ),
-            data=json.dumps(
-                {"node_id": TEST_NODE_ID, "callback_data": TEST_CALLBACK_DATA}
-            ),
+            path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+            data=json.dumps({"node_id": TEST_NODE_ID, "callback_data": TEST_CALLBACK_DATA}),
             content_type="application/json",
         )
 

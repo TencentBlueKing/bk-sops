@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
-
 from django.test import TestCase
 from mock import MagicMock
 
@@ -443,9 +441,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
             "job_id": "1",
             "success_num": 0,
             "fail_num": 1,
-            "ex_data": "<br>日志信息为：</br><br><b>主机：{fail_host}</b></br><br>日志：</br>{log_info}".format(
-                fail_host="1.1.1.1", log_info=json.dumps(GET_JOB_LOG_FAIL_DATA, ensure_ascii=False)
-            ),
+            "ex_data": "<br>操作失败主机日志信息：</br><br><b>主机：1.1.1.1</b></br><br>错误日志：</br>安装\ninstall failed",
         },
     ),
     schedule_call_assertion=[

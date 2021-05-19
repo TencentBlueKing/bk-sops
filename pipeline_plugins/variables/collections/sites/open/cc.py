@@ -19,14 +19,11 @@ from django.contrib.admin.utils import flatten
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.data.var import LazyVariable
-
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str
-
 from pipeline_plugins.components.utils.common import ip_re
-
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host
 from gcloud.utils.ip import get_ip_by_regex
@@ -43,7 +40,7 @@ class VarIpPickerVariable(LazyVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         var_ip_picker = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
@@ -101,7 +98,7 @@ class VarCmdbIpSelector(LazyVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -110,12 +107,15 @@ class VarCmdbIpSelector(LazyVariable):
 
         ip_selector = self.value
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
+        separator = self.value.get("separator", ",")
 
         # get for old value compatible
         if self.value.get("with_cloud_id", False):
-            ip = ",".join(["{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in ip_result["data"]])
+            ip = separator.join(
+                ["{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in ip_result["data"]]
+            )
         else:
-            ip = ",".join([host["bk_host_innerip"] for host in ip_result["data"]])
+            ip = separator.join([host["bk_host_innerip"] for host in ip_result["data"]])
         return ip
 
 
@@ -193,7 +193,7 @@ class VarCmdbAttributeQuery(LazyVariable):
         @return:
         """
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)

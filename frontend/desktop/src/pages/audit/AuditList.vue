@@ -113,7 +113,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -137,15 +136,6 @@
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('执行开始'),
             value: ['', '']
-        },
-        {
-            type: 'select',
-            label: i18n.t('任务分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
         },
         {
             type: 'input',
@@ -173,6 +163,16 @@
                 { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ],
+            value: ''
+        },
+        {
+            type: 'select',
+            label: i18n.t('任务分类'),
+            key: 'category',
+            loading: true,
+            placeholder: i18n.t('请选择分类'),
+            tips: i18n.t('模板分类即将下线，建议使用标签'),
+            list: [],
             value: ''
         }
     ]
@@ -367,7 +367,7 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -439,7 +439,7 @@
                     form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.business.loading = false
                 }
@@ -453,7 +453,7 @@
                     form.list = this.taskCategory
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskBasicInfoLoading = false
                 }

@@ -1,9 +1,8 @@
 # # -*- coding: utf-8 -*-
 import logging
 
-from django.http import JsonResponse
-
 from gcloud.conf import settings
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import batch_request
 from gcloud.utils.handlers import handle_api_error
 
@@ -71,7 +70,7 @@ def get_module_list(username, bk_biz_id, kwargs=None):
     if not module_list_result["result"]:
         message = handle_api_error("cc", "cc.find_module_batch", kwargs, module_list_result)
         logger.error(message)
-        return JsonResponse({"result": False, "data": [], "message": message})
+        raise ApiRequestError(message)
     return module_list_result["data"]
 
 
@@ -109,7 +108,7 @@ def get_service_template_list(username, bk_biz_id, bk_supplier_account):
     if not list_service_template_return["result"]:
         message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
         logger.error(message)
-        return []
+        raise ApiRequestError(message)
     return list_service_template_return["data"]["info"]
 
 
@@ -151,7 +150,7 @@ def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
     if not get_biz_internal_module_return["result"]:
         message = handle_api_error("cc", "cc.get_biz_internal_module", params, get_biz_internal_module_return)
         logger.error(message)
-        return {"result": False, "data": [], "message": message}
+        raise ApiRequestError(message)
     result = []
     for get_biz_internal_module_option in get_biz_internal_module_return["data"]["module"]:
         result.append(

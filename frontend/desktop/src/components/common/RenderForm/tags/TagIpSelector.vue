@@ -31,7 +31,6 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { getFormMixins } from '../formMixins.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import IpSelector from '../IpSelector/index.vue'
 
     export const attrs = {
@@ -152,7 +151,7 @@
                     this.loading = false
                 }).catch(e => {
                     this.loading = false
-                    errorHandler(e, this)
+                    console.log(e)
                 })
             },
             customValidate () {

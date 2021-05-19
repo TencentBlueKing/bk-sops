@@ -15,6 +15,7 @@ from mock import MagicMock, patch
 
 from django.test import TestCase
 
+from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.variables.collections.sites.open.cmdb.var_set_group_selector import (
     VarSetGroupSelector,
     SetGroupInfo,
@@ -30,30 +31,32 @@ class MockClient(object):
         self.cc.search_object_attribute = MagicMock(side_effect=search_object_attribute_return)
 
 
-set_field = ['bk_set_id', 'bk_set_name', 'bk_set_desc', 'bk_set_env',
-             'bk_service_status', 'description', 'bk_capacity', 'aaa']
+set_field = [
+    "bk_set_id",
+    "bk_set_name",
+    "bk_set_desc",
+    "bk_set_env",
+    "bk_service_status",
+    "description",
+    "bk_capacity",
+    "aaa",
+]
 
 
 def search_object_attribute(*args, **kwargs):
     result = {
-        'code': 0,
-        'result': True,
-        'message': 'success',
-        'data': [{
-            'bk_property_id': 'bk_set_name'
-        }, {
-            'bk_property_id': 'bk_set_desc'
-        }, {
-            'bk_property_id': 'bk_set_env'
-        }, {
-            'bk_property_id': 'bk_service_status'
-        }, {
-            'bk_property_id': 'description'
-        }, {
-            'bk_property_id': 'bk_capacity'
-        }, {
-            'bk_property_id': 'aaa'
-        }]
+        "code": 0,
+        "result": True,
+        "message": "success",
+        "data": [
+            {"bk_property_id": "bk_set_name"},
+            {"bk_property_id": "bk_set_desc"},
+            {"bk_property_id": "bk_set_env"},
+            {"bk_property_id": "bk_service_status"},
+            {"bk_property_id": "description"},
+            {"bk_property_id": "bk_capacity"},
+            {"bk_property_id": "aaa"},
+        ],
     }
     return result
 
@@ -75,12 +78,12 @@ INPUT_OUTPUT_SUCCESS_CLIENT = MockClient(
                     "bk_service_status": "1",
                     "bk_capacity": "1",
                     "description": "测试group",
-                    "aaa": "321"
+                    "aaa": "321",
                 }
-            ]
-        }
+            ],
+        },
     },
-    search_object_attribute_return=search_object_attribute
+    search_object_attribute_return=search_object_attribute,
 )
 
 MULTI_INPUT_OUTPUT_CLIENT = MockClient(
@@ -100,7 +103,7 @@ MULTI_INPUT_OUTPUT_CLIENT = MockClient(
                     "bk_service_status": "1",
                     "bk_capacity": "1",
                     "description": "测试group",
-                    "aaa": "321"
+                    "aaa": "321",
                 },
                 {
                     "bk_obj_id": "set2",
@@ -111,17 +114,16 @@ MULTI_INPUT_OUTPUT_CLIENT = MockClient(
                     "bk_service_status": "1",
                     "bk_capacity": "1",
                     "description": "测试group2",
-                    "aaa": "333"
-                }
-            ]
-        }
+                    "aaa": "333",
+                },
+            ],
+        },
     },
-    search_object_attribute_return=search_object_attribute
+    search_object_attribute_return=search_object_attribute,
 )
 
 GET_GROUP_INFO_FAIL_CLIENT = MockClient(
-    execute_dynamic_group_return={"result": False},
-    search_object_attribute_return=search_object_attribute
+    execute_dynamic_group_return={"result": False}, search_object_attribute_return=search_object_attribute
 )
 
 
@@ -135,34 +137,35 @@ class VarSetGroupSelectorTestCase(TestCase):
         }
         self.input_output_success_return = SetGroupInfo(
             {
-                'bk_set_id': ['123'],
-                'bk_set_name': ['set123'],
-                'bk_set_desc': ['测试'],
-                'bk_set_env': ['3'],
-                'bk_service_status': ['1'],
-                'description': ['测试group'],
-                'bk_capacity': ['1'],
-                'aaa': ['321'],
-                'flat__bk_set_id': '123',
-                'flat__bk_set_name': 'set123',
-                'flat__bk_set_desc': '测试',
-                'flat__bk_set_env': '3',
-                'flat__bk_service_status': '1',
-                'flat__description': '测试group',
-                'flat__bk_capacity': '1',
-                'flat__aaa': '321'
-            }, set_field
+                "bk_set_id": ["123"],
+                "bk_set_name": ["set123"],
+                "bk_set_desc": ["测试"],
+                "bk_set_env": ["3"],
+                "bk_service_status": ["1"],
+                "description": ["测试group"],
+                "bk_capacity": ["1"],
+                "aaa": ["321"],
+                "flat__bk_set_id": "123",
+                "flat__bk_set_name": "set123",
+                "flat__bk_set_desc": "测试",
+                "flat__bk_set_env": "3",
+                "flat__bk_service_status": "1",
+                "flat__description": "测试group",
+                "flat__bk_capacity": "1",
+                "flat__aaa": "321",
+            },
+            set_field,
         )
         self.multi_output_success_return = SetGroupInfo(
             {
-                "bk_set_id": ['123', '1234'],
-                "bk_set_name": ['set123', 'set1234'],
-                "bk_set_env": ['3', '3'],
-                "bk_set_desc": ['测试', '测试2'],
-                "bk_service_status": ['1', '1'],
-                "bk_capacity": ['1', '1'],
-                "description": ['测试group', '测试group2'],
-                "aaa": ['321', '333'],
+                "bk_set_id": ["123", "1234"],
+                "bk_set_name": ["set123", "set1234"],
+                "bk_set_env": ["3", "3"],
+                "bk_set_desc": ["测试", "测试2"],
+                "bk_service_status": ["1", "1"],
+                "bk_capacity": ["1", "1"],
+                "description": ["测试group", "测试group2"],
+                "aaa": ["321", "333"],
                 "flat__bk_set_id": "123,1234",
                 "flat__bk_set_name": "set123,set1234",
                 "flat__bk_set_env": "3,3",
@@ -170,8 +173,9 @@ class VarSetGroupSelectorTestCase(TestCase):
                 "flat__bk_service_status": "1,1",
                 "flat__bk_capacity": "1,1",
                 "flat__description": "测试group,测试group2",
-                "flat__aaa": "321,333"
-            }, set_field
+                "flat__aaa": "321,333",
+            },
+            set_field,
         )
         self.input_output_fail_return = SetGroupInfo(
             {
@@ -190,8 +194,9 @@ class VarSetGroupSelectorTestCase(TestCase):
                 "flat__bk_service_status": "",
                 "flat__bk_capacity": "",
                 "flat__description": "",
-                "flat__aaa": ""
-            }, set_field
+                "flat__aaa": "",
+            },
+            set_field,
         )
 
     @patch(GET_CLIENT_BY_USER, return_value=INPUT_OUTPUT_SUCCESS_CLIENT)
@@ -212,7 +217,10 @@ class VarSetGroupSelectorTestCase(TestCase):
         set_group_selector = VarSetGroupSelector(
             pipeline_data=self.pipeline_data, value=self.value, name="test2", context={}
         )
-        self.SetGroupInfoEqual(set_group_selector.get_value(), self.input_output_fail_return)
+        with self.assertRaises(ApiRequestError) as context:
+            set_group_selector.get_value()
+
+        self.assertTrue("ApiRequestError" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=MULTI_INPUT_OUTPUT_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):

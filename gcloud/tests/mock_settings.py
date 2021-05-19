@@ -41,10 +41,16 @@ TASKINSTANCE_OBJECTS_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.object
 TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"
 TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
 
-TASKFLOW_MODEL_PIPELINE_API_GET_STATES_TREE = "gcloud.taskflow3.models.pipeline_api.get_status_tree"
+TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER = "gcloud.taskflow3.models.TaskCommandDispatcher"
 TASKFLOW_MODEL_TASK_TEMPLATE = "gcloud.taskflow3.models.TaskTemplate"
+TASKFLOW_MODEL_NODE_CMD_DISPATCHER = "gcloud.taskflow3.models.NodeCommandDispatcher"
 
 TASKFLOW_CONTEXT_PROJECT_CONFIG = "gcloud.taskflow3.context.ProjectConfig"
+
+TASKFLOW_DISPATCHERS_NODE_PIPELINE_API = "gcloud.taskflow3.dispatchers.node.pipeline_api"
+TASKFLOW_DISPATCHERS_NODE_BAMBOO_API = "gcloud.taskflow3.dispatchers.node.bamboo_engine_api"
+TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME = "gcloud.taskflow3.dispatchers.node.BambooDjangoRuntime"
+TASKFLOW_DISPATCHERS_NODE_FORMAT_PIPELINE_STATUS = "gcloud.taskflow3.dispatchers.node.format_pipeline_status"
 
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"

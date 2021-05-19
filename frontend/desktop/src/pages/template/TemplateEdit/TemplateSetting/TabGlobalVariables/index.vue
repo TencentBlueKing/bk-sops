@@ -145,7 +145,6 @@
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'TabGlobalVariables',
@@ -209,11 +208,9 @@
                     const resp = await this.getVariableCite(data)
                     if (resp.result) {
                         this.variableCited = resp.data.defined
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             setVariableList () {

@@ -64,10 +64,7 @@ class JobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"),
-                key="upload_speed_limit",
-                type="string",
-                schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -82,10 +79,7 @@ class JobFastPushFileService(JobScheduleService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -142,10 +136,7 @@ class JobFastPushFileService(JobScheduleService):
                     return False
             else:
                 ip_info = cc_get_ips_info_by_str(
-                    username=executor,
-                    biz_cc_id=biz_cc_id,
-                    ip_str=item["ip"],
-                    use_cache=False,
+                    username=executor, biz_cc_id=biz_cc_id, ip_str=item["ip"], use_cache=False,
                 )
             file_source.append(
                 {
@@ -271,4 +262,9 @@ class JobFastPushFileComponent(Component):
     bound_service = JobFastPushFileService
     form = "%scomponents/atoms/job/fast_push_file/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
-    desc = "跨业务分发文件时需要在作业平台添加白名单"
+    desc = _(
+        "跨业务分发文件时需要在作业平台添加白名单\n"
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

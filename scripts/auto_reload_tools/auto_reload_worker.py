@@ -19,10 +19,10 @@ import os
 import sys
 import subprocess
 import threading
+import time
 
 import djcelery
 from celery.bin import celery
-import time
 from djcelery.app import app
 from djcelery.management.base import CeleryCommand
 

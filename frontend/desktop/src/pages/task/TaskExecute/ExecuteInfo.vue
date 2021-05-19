@@ -266,7 +266,6 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
@@ -695,7 +694,7 @@
                         this.isShowRetryBtn = data.retryable
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -719,8 +718,8 @@
                     if (res.result) {
                         return res.data
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 非admin 用户执行记录
@@ -729,8 +728,8 @@
                     this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.isLogLoading = false
                 }
@@ -779,11 +778,9 @@
                         } else {
                             this.$set(this.historyLog, id, resp.data)
                         }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.historyLogLoading[id] = false
                 }

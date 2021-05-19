@@ -87,7 +87,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
@@ -286,7 +285,7 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -301,7 +300,7 @@
                     form.list = this.taskCategory
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onPageChange (page) {

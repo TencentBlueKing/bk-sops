@@ -36,7 +36,6 @@
 </template>
 <script>
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
 
@@ -85,7 +84,7 @@
         },
         created () {
             if (this.view_mode !== 'appmaker') {
-                this.getProjectList()
+                this.loadUserProjectList({ limit: 0, is_disable: false })
             }
         },
         methods: {
@@ -102,13 +101,6 @@
             goToFeedback () {
                 window.open(this.bkFeedbackUrl, '_blank')
             },
-            getProjectList () {
-                try {
-                    this.loadUserProjectList({ limit: 0 })
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
             /* 打开版本日志 */
             async onOpenVersion () {
                 this.$refs.versionLog.show()
@@ -116,8 +108,8 @@
                     this.logListLoding = true
                     const res = await this.getVersionList()
                     this.logList = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.logListLoding = false
                 }
@@ -127,8 +119,8 @@
                     this.logDetailLoding = true
                     const res = await this.getVersionDetail({ version })
                     this.logDetail = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.logDetailLoding = false
                 }
