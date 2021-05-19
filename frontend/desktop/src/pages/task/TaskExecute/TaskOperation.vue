@@ -1049,7 +1049,7 @@
             },
             handleSingleNodeClick (id, type) {
                 // 节点执行状态
-                const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
+                // const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 // 任务节点
                 if (type === 'singleAtom') {
                     // updateNodeActived 设置节点选中态
@@ -1060,21 +1060,18 @@
                     this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
                 } else {
-                    // 分支网关节点失败时展开侧滑面板
-                    if (nodeState && nodeState.state === 'FAILED') {
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                        }
-                        this.nodeDetailConfig = {
-                            component_code: '',
-                            version: undefined,
-                            node_id: id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
-                        }
-                        this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
+                    let subprocessStack = []
+                    if (this.selectedFlowPath.length > 1) {
+                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
+                    this.nodeDetailConfig = {
+                        component_code: '',
+                        version: undefined,
+                        node_id: id,
+                        instance_id: this.instance_id,
+                        subprocess_stack: JSON.stringify(subprocessStack)
+                    }
+                    this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                 }
             },
             onOpenConditionEdit (data) {
