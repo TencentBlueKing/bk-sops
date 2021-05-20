@@ -32,13 +32,11 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     constants = pipeline_tree.pop("constants")
     # classify inputs and outputs
     classification = classify_constants(constants, is_subprocess)
-    # pre render mako for some vars
-    pre_render_keys = get_pre_render_mako_keys(constants)
 
     pipeline_tree["data"] = {
         "inputs": classification["data_inputs"],
         "outputs": [key for key in pipeline_tree.pop("outputs")],
-        "pre_render_keys": sorted(list(pre_render_keys)),
+        "pre_render_keys": sorted(list(get_pre_render_mako_keys(constants))),
     }
 
     for act_id, act in list(pipeline_tree["activities"].items()):
