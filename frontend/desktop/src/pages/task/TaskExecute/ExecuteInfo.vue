@@ -76,7 +76,7 @@
                 </section>
                 <section class="info-section" v-if="executeInfo.id">
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
-                    <OperationFlow :node-id="executeInfo.id"></OperationFlow>
+                    <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
                 <section class="info-section">
                     <div class="common-section-title input-parameter">

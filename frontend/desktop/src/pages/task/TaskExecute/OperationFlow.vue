@@ -3,13 +3,9 @@
         <bk-table
             ext-cls="operate-flow-table"
             :data="operateFlowData">
-            <bk-table-column min-width="140" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+            <bk-table-column min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
             <bk-table-column :label="$t('操作名称')" prop="operate_type_name"></bk-table-column>
-            <bk-table-column :label="$t('节点名称')" prop="node_name">
-                <template slot-scope="props">
-                    {{ props.row.node_name || '--' }}
-                </template>
-            </bk-table-column>
+            <bk-table-column :label="$t('节点名称')" prop="node_name"></bk-table-column>
             <bk-table-column :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
             <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
         </bk-table>
@@ -21,6 +17,10 @@
     import moment from 'moment'
     export default {
         props: {
+            locations: {
+                type: Array,
+                default: () => []
+            },
             nodeId: {
                 type: String,
                 default: ''
@@ -53,8 +53,15 @@
                     })
                     this.operateFlowData = resp.data.map(item => {
                         item.operate_date = moment(item.operate_date).format('YYYY-MM-DD HH:mm:ss')
+                        item.node_name = '--'
+                        if (item.node_id) {
+                            const node = this.locations.find(node => node.id === item.node_id)
+                            if (node) {
+                                item.node_name = node.name
+                            }
+                        }
                         return item
-                    })
+                    }) || []
                 } catch (error) {
                     console.warn(error)
                 }

@@ -95,6 +95,7 @@
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
                 <OperationFlow
+                    :locations="canvasData.locations"
                     v-if="nodeInfoType === 'operateFlow'"
                     class="operation-flow">
                 </OperationFlow>
