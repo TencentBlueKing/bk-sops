@@ -13,8 +13,10 @@
     <div class="static-ip-adding-panel">
         <ip-search-input
             v-if="type === 'select'"
-            class="ip-search-wrap"
-            @search="onIpSearch">
+            :class="['ip-search-wrap', isIpClassName]"
+            @search="onIpSearch"
+            @focus="onIpFocus"
+            @blur="onIpBlur">
         </ip-search-input>
         <div class="ip-list-wrap">
             <template v-if="type === 'select'">
@@ -140,6 +142,7 @@
             NoData
         },
         props: {
+            allowUnfoldInput: Boolean,
             staticIpList: Array,
             staticIps: Array,
             type: String
@@ -171,7 +174,17 @@
                     content: '#error-ips-content',
                     placement: 'top'
                 },
-                i18n
+                i18n,
+                isSearchInputFocus: false
+            }
+        },
+        computed: {
+            isIpClassName () {
+                let className = ''
+                if (this.allowUnfoldInput) {
+                    className = this.isSearchInputFocus ? 'ip-focus' : 'ip-blur'
+                }
+                return className
             }
         },
         watch: {
@@ -216,6 +229,12 @@
                     this.setPanigation(this.staticIpList)
                     this.isSearchMode = false
                 }
+            },
+            onIpFocus () {
+                this.isSearchInputFocus = true
+            },
+            onIpBlur () {
+                this.isSearchInputFocus = false
             },
             onSelectAllClick () {
                 if (this.listAllSelected) {
@@ -322,7 +341,15 @@
     position: absolute;
     top: -36px;
     right: 0;
-    width: 50%;
+    width: 32%;
+}
+.ip-focus {
+    width: 100%;
+    transition: width .5s;
+}
+.ip-blur {
+    width: 32%;
+    transition: width .5s;
 }
 .ip-list-wrap {
     position: relative;
