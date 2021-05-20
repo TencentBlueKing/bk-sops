@@ -183,7 +183,9 @@ def expired_tasks_clean():
     pipeline_instance_ids = list(
         PipelineInstance.objects.filter(
             create_time__lte=expired_create_time, is_finished=True, is_revoked=False, is_expired=False
-        ).values_list("instance_id", flat=True)[: default_settings.EXPIRED_TASK_CLEAN_NUM_LIMIT]
+        )
+        .order_by("create_time")
+        .values_list("instance_id", flat=True)[: default_settings.EXPIRED_TASK_CLEAN_NUM_LIMIT]
     )
     logger.info(
         "Clean expired tasks before {} with tasks number: {}, instance ids: {}, timestamp: {}".format(
