@@ -1,4 +1,5 @@
 const en = {
+    '需配置最低1个节点插件': 'Need to configure at least 1 node plug-in',
     '保存已修改的信息吗？': 'Save the modified information?',
     '操作名称': 'Operation name',
     '操作时间': 'Operating time',
