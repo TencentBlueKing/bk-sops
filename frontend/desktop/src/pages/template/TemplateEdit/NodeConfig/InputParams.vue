@@ -192,7 +192,7 @@
                 }
                 if (this.isSubflow) {
                     const constant = this.subflowForms[this.hookingVarForm]
-                    const { desc, custom_type, source_tag, validation, version } = constant
+                    const { desc, custom_type, source_tag, validation, is_meta, meta, version } = constant
                     Object.assign(config, {
                         desc,
                         custom_type,
@@ -200,6 +200,10 @@
                         validation,
                         version
                     })
+                    if (is_meta) {
+                        config.is_meta = true
+                        config.meta = tools.deepClone(meta)
+                    }
                 } else {
                     Object.assign(config, {
                         custom_type: '',
