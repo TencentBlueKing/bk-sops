@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from rest_framework import serializers
 
-from pipeline.engine import api as pipeline_api
-
 from gcloud.core.apis.drf.validators import ProjectExistValidator
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 
@@ -42,10 +40,3 @@ class TemplateOperateRecordSetSerializer(OperateRecordSetSerializer):
 
 class TaskOperateRecordSetSerializer(OperateRecordSetSerializer):
     node_id = serializers.CharField(required=False)
-
-    def to_representation(self, instance):
-        data = super(TaskOperateRecordSetSerializer, self).to_representation(instance)
-        node_id = instance.node_id
-
-        data["node_name"] = pipeline_api.get_status_tree(node_id)["name"] if node_id else ""
-        return data
