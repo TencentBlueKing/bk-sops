@@ -6,7 +6,7 @@
             attrs: {
                 name: "IP",
                 hookable: true,
-                placeholder: "多个用换行分隔",
+                placeholder: "输入IP, 多个用英文逗号 `,` 或换行分隔",
                 validation: [
                     {
                         type: "required"

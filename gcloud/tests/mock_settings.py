@@ -109,3 +109,5 @@ CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT = (
 PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS = "pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess"
 
 PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE = "gcloud.core.permissions.project_resource.batch_register_instance"
+
+TASK_OPERATION_TIMES_CONFIG_GET = "gcloud.taskflow3.models.TaskOperationTimesConfig.objects.get"
