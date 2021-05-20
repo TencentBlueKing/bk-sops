@@ -10,7 +10,7 @@
             <bk-table
                 ext-cls="operate-flow-table"
                 :data="operateFlowData">
-                <bk-table-column min-width="140" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
+                <bk-table-column min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
                 <bk-table-column :label="$t('操作名称')" prop="operate_type_name"></bk-table-column>
                 <bk-table-column :label="$t('操作来源')" prop="operate_source_name"></bk-table-column>
                 <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
