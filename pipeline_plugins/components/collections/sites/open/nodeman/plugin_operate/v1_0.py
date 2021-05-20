@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -38,10 +38,7 @@ class NodemanPluginOperateService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -90,10 +87,7 @@ class NodemanPluginOperateService(NodeManBaseService):
         outputs_format.extend(
             [
                 self.OutputItem(
-                    name=_("任务链接"),
-                    key="job_url",
-                    type="string",
-                    schema=StringItemSchema(description=_("任务链接")),
+                    name=_("任务链接"), key="job_url", type="string", schema=StringItemSchema(description=_("任务链接")),
                 ),
             ]
         )
@@ -146,11 +140,15 @@ class NodemanPluginOperateService(NodeManBaseService):
 
         result = client.plugin_operate(params)
 
+        job_is_plugin = True
         if result["result"]:
-            job_id = result["data"].get(plugin, None)
+            # 这里兼容节点管理新老接口
+            if plugin not in result["data"]:
+                job_is_plugin = False
+            job_id = result["data"].get(plugin, None) or result["data"].get("job_id", None)
             data.outputs.job_url = [get_nodeman_job_url(job_id, host_id) for host_id in host]
 
-        return self.get_job_result(result, data, "plugin_operate", params, job_is_plugin=True)
+        return self.get_job_result(result, data, "plugin_operate", params, job_is_plugin=job_is_plugin)
 
 
 class NodemanPluginOperateComponent(Component):
