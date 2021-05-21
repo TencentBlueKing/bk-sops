@@ -90,6 +90,8 @@
         },
         watch: {
             show (val) {
+                this.recordData = []
+                this.currentPage = 0
                 this.isShow = val
             }
         },
