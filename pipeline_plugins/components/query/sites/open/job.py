@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import logging
 
 from django.http import JsonResponse
@@ -315,19 +316,12 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     """
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": biz_cc_id, "job_plan_id": job_plan_id}
+
     jobv3_result = client.jobv3.get_job_plan_detail(kwargs)
     if not jobv3_result["result"]:
-        message = _("查询作业平台(JOB)的作业方案[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
-            biz_cc_id,
-            jobv3_result["message"],
-        )
-
-        if jobv3_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=jobv3_result.get("permission", {}))
-
+        message = handle_api_error("jobv3", "get_job_plan_detail", kwargs, jobv3_result)
         logger.error(message)
-        result = {"result": False, "data": [], "message": message}
+        result = {"result": False, "message": message}
         return JsonResponse(result)
 
     plan_detail = jobv3_result["data"]
@@ -349,8 +343,10 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
                 ]
             )
         else:
-            logger.warning("unknow type var: {}".format(var))
-            continue
+            message = "unknow type var: {}".format(var)
+            logger.error(message)
+            result = {"result": False, "message": message}
+            return JsonResponse(result)
 
         global_var.append(
             {
