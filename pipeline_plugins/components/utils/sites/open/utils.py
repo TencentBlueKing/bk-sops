@@ -228,7 +228,7 @@ def get_biz_ip_from_frontend(ip_str, executor, biz_cc_id, data, logger_handle, i
 
     # 校验Ip是否存在, 格式是否符合要求
     input_ip_set = get_ip_by_regex(ip_str)
-    logger_handle.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
+    logger_handle.info("The valid IP list is:{}, User input IP list is:{}".format(ip_list, input_ip_set))
     difference_ip_list = list(get_difference_ip_list(input_ip_set, [ip_item["ip"] for ip_item in ip_list]))
 
     if len(ip_list) != len(set(input_ip_set)):
