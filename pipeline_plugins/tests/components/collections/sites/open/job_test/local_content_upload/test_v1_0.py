@@ -38,6 +38,7 @@ class JobLocalContentUploadComponentTest(TestCase, ComponentTestMixin):
             LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
             LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE,
+            LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS,
         ]
 
 
@@ -148,8 +149,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT = MockClient(
 # parent_data
 PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
 
-# BASE_INPUTS
-BASE_INPUTS = {
+INPUTS = {
     "local_name": "1.txt",
     "local_content": "123\n456\n789\n",
     "job_ip_list": "1.1.1.1",
@@ -157,8 +157,14 @@ BASE_INPUTS = {
     "file_path": "/tmp/bk_sops_test/",
 }
 
-# manual inputs
-INPUTS = BASE_INPUTS
+ACROSS_BIZ_INPUTS = {
+    "local_name": "1.txt",
+    "local_content": "123\n456\n789\n",
+    "job_ip_list": "2:1.1.1.1",
+    "file_account": "root",
+    "file_path": "/tmp/bk_sops_test/",
+    "job_across_biz": True,
+}
 
 KWARGS = {
     "bk_biz_id": 1,
@@ -195,18 +201,13 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        schedule_finished=True,
-        outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        success=True, schedule_finished=True, outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -247,11 +248,44 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+    ],
+)
+
+# 上传文件成功异步执行成功样例
+LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
+    name="local content upload across biz success",
+    inputs=ACROSS_BIZ_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        schedule_finished=True,
+        outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        callback_data={"job_instance_id": 10000, "status": 3},
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file,
+            calls=[
+                Call(
+                    {
+                        "bk_biz_id": 1,
+                        "account": "root",
+                        "file_target_path": "/tmp/bk_sops_test/",
+                        "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
+                        "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": "2"}],
+                    }
+                )
+            ],
+        ),
+    ],
+    patchers=[
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
     ],
