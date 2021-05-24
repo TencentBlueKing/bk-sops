@@ -19,14 +19,15 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
+
+from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
+    get_biz_ip_from_frontend,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg, get_difference_ip_list
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -69,7 +70,10 @@ class JobFastPushFileService(JobService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -97,44 +101,28 @@ class JobFastPushFileService(JobService):
 
         file_source = []
         for item in original_source_files:
-            if across_biz:
-                ip_info = {"ip_result": []}
-                ip_str = item["ip"]
-                if plat_ip_reg.match(ip_str):
-                    plat_ip = []
-                    for match in plat_ip_reg.finditer(ip_str):
-                        plat_ip.append(match.group())
-                    for ip in plat_ip:
-                        cloud_id, inner_ip = ip.strip().split(":")
-                        ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
-                else:
-                    message = _("允许跨业务时IP格式需满足：【云区域ID:IP】")
-                    self.logger.error(message)
-                    data.set_outputs("ex_data", message)
-                    return False
-            else:
-                ip_info = cc_get_ips_info_by_str(
-                    username=executor, biz_cc_id=biz_cc_id, ip_str=item["ip"], use_cache=False,
-                )
+            # filter 跨业务 IP
+            clean_source_ip_result, source_ip_list = get_biz_ip_from_frontend(
+                item["ip"], executor, biz_cc_id, data, self.logger, across_biz
+            )
+            if not clean_source_ip_result:
+                return False
             file_source.append(
                 {
                     "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "ip_list": [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]],
+                    "ip_list": source_ip_list,
                     "account": loose_strip(item["account"]),
                 }
             )
-
+        # 获取目标IP
         original_ip_list = data.get_one_of_inputs("job_ip_list")
-        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+        clean_result, ip_list = get_biz_ip_from_frontend(
+            original_ip_list, executor, biz_cc_id, data, self.logger, is_across=False, ip_is_exist=ip_is_exist
+        )
+        if not clean_result:
+            return False
+
         job_timeout = data.get_one_of_inputs("job_timeout")
-
-        if ip_is_exist:
-            difference_ip_list = get_difference_ip_list(original_ip_list, [ip_item["ip"] for ip_item in ip_list])
-            if difference_ip_list:
-                data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                return False
-
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
             "file_source": file_source,
@@ -143,6 +131,7 @@ class JobFastPushFileService(JobService):
             "file_target_path": data.get_one_of_inputs("job_target_path"),
             "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
+
         if job_timeout:
             job_kwargs["timeout"] = int(job_timeout)
 

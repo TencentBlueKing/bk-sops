@@ -17,7 +17,6 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import (
     StringItemSchema,
     IntItemSchema,
@@ -28,11 +27,10 @@ from pipeline.core.flow.io import (
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
-    plat_ip_reg,
+    get_biz_ip_from_frontend,
 )
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -124,8 +122,8 @@ class JobExecuteTaskService(JobService):
         biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
-            # 3-IP
             val = loose_strip(_value["value"])
+            # category为3,表示变量类型为IP
             if _value["category"] == 3:
                 if biz_across:
                     # 跨业务，不校验IP归属
