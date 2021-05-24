@@ -15,7 +15,7 @@
                 <span> {{$t('执行方案')}}</span>
                 <div>
                     <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" :disabled="!haveCreateSchemeTpl" @click="isEditSchemeShow = true">导入临时方案</bk-button>
+                    <bk-button size="small" @click="onImportTemporaryPlan">导入临时方案</bk-button>
                 </div>
             </div>
             <div class="scheme-header">
@@ -41,7 +41,7 @@
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
+            <div class="scheme-content">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
@@ -224,6 +224,19 @@
              */
             toggleSchemePanel () {
                 this.showPanel = !this.showPanel
+            },
+            /**
+             * 导入临时方案
+            */
+            onImportTemporaryPlan () {
+                let hasCreatePermission = true
+                if (!this.haveCreateSchemeTpl) {
+                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
+                }
+                if (hasCreatePermission) {
+                    this.isEditSchemeShow = true
+                }
             },
             /**
              * 创建任务方案弹窗
@@ -529,18 +542,6 @@
                         color: #979ba5;
                     }
                 }
-            }
-        }
-        .disable-scheme-list {
-            &:after {
-                content: '';
-                position: absolute;
-                top: 55px;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                opacity: 0.3;
-                background-color: #e1e4e8;
             }
         }
         .scheme-preview-mode {
