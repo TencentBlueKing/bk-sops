@@ -66,7 +66,9 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
+CC_GET_IPS_INFO_BY_STR = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.cc_get_ips_info_by_str"
+)
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_node_callback_url"
 )
@@ -697,20 +699,18 @@ INVALID_IP_CASE = ComponentTestCase(
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
             {"category": 1, "name": "key_2", "value": "value_2"},
-            {"category": 3, "name": "key_3", "value": "1.1.1.1"},
+            {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1"}
-    ),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1", use_cache=False)],
+            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
     ],
     patchers=[
@@ -732,9 +732,7 @@ IP_IS_EXIST_CASE = ComponentTestCase(
         "ip_is_exist": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 2.2.2.2"}
-    ),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 2.2.2.2 是否合法"}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(

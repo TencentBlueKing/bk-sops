@@ -30,9 +30,11 @@ from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
-    get_biz_ip_from_frontend,
+    plat_ip_reg,
+    cc_get_ips_info_by_str,
 )
 from gcloud.conf import settings
+from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -192,3 +194,4 @@ class JobExecuteTaskComponent(Component):
     bound_service = JobExecuteTaskService
     form = "%scomponents/atoms/job/job_execute_task.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
+    desc = _("跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息")
