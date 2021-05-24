@@ -17,7 +17,6 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import (
     StringItemSchema,
     IntItemSchema,
@@ -28,11 +27,10 @@ from pipeline.core.flow.io import (
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
-    plat_ip_reg,
+    get_biz_ip_from_frontend,
 )
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -116,33 +114,15 @@ class JobExecuteTaskService(JobService):
         biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
-            # 3-IP
             val = loose_strip(_value["value"])
+            # category为3,表示变量类型为IP
             if _value["category"] == 3:
-                if biz_across:
-                    # 跨业务，不校验IP归属
-                    plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
-                    ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
-                else:
-                    var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=val, use_cache=False)
-                    ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
-                    if val and not ip_list:
-                        data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
-                        return False
-
-                if ip_is_exist:
-                    # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-                    input_ip_set = set(get_ip_by_regex(val))
-                    self.logger.info(
-                        "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set)
-                    )
-
-                    difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
-                    if len(ip_list) != len(input_ip_set):
-                        data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                        return False
-                if ip_list:
-                    global_vars.append({"name": _value["name"], "ip_list": ip_list})
+                clean_result, ip_list = get_biz_ip_from_frontend(
+                    val, executor, biz_cc_id, data, self.logger, biz_across, ip_is_exist
+                )
+                if not clean_result:
+                    return False
+                global_vars.append({"name": _value["name"], "ip_list": ip_list})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 
