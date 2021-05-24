@@ -537,9 +537,11 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             {"category": 1, "name": "key_1", "value": "value_1"},
             {"category": 1, "name": "key_2", "value": "value_2"},
             {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
+            {"category": 3, "name": "key_3", "value": "0:4.4.4.4,0:3.3.3.3"},
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
+        "biz_across": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -582,6 +584,13 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                            },
+                            {
+                                "name": "key_3",
+                                "ip_list": [
+                                    {"ip": "4.4.4.4", "bk_cloud_id": "0"},
+                                    {"ip": "3.3.3.3", "bk_cloud_id": "0"},
+                                ],
                             },
                         ],
                         "bk_callback_url": "url_token",

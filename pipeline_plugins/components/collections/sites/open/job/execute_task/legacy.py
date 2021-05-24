@@ -101,6 +101,14 @@ class JobExecuteTaskService(JobService):
             ),
         ]
 
+    def _get_ip_from_cmdb(self, executor, biz_cc_id, ip_str, data):
+        var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
+        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
+        if ip_str and not ip_list:
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            return False, ip_list
+        return True, ip_list
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -123,11 +131,19 @@ class JobExecuteTaskService(JobService):
                     # 跨业务，不校验IP归属
                     plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
                     ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+
+                    # 执行作业允许某个 ip 字段不跨业务
+                    if not plat_ip:
+                        result, ip_list = self._get_ip_from_cmdb(
+                            executor=executor, biz_cc_id=biz_cc_id, ip_str=val, data=data
+                        )
+                        if not result:
+                            return False
                 else:
-                    var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=val, use_cache=False)
-                    ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
-                    if val and not ip_list:
-                        data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+                    result, ip_list = self._get_ip_from_cmdb(
+                        executor=executor, biz_cc_id=biz_cc_id, ip_str=val, data=data
+                    )
+                    if not result:
                         return False
 
                 if ip_is_exist:
