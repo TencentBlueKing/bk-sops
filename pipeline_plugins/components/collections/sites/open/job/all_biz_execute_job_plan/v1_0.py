@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import re
 from copy import deepcopy
 from functools import partial
@@ -169,6 +168,6 @@ class AllBizJobExecuteJobPlanComponent(Component):
     code = "all_biz_execute_job_plan"
     bound_service = AllBizJobExecuteJobPlanService
     form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js" % settings.STATIC_URL
-    output_form = "%sscomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % (
+    output_form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % (
         settings.STATIC_URL
     )
