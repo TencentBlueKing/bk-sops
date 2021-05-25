@@ -27,6 +27,7 @@ class OperateType(Enum):
     update = _("修改")
 
     # 任务节点操作
+    callback = _("回调")
     retry = _("重试")
     skip = _("跳过")
     skip_exg = _("跳过失败网关")
