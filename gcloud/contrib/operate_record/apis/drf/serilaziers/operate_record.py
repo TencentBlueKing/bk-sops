@@ -29,7 +29,7 @@ class OperateRecordSetSerializer(serializers.Serializer):
         data = super(OperateRecordSetSerializer, self).to_representation(instance)
         operate_type = instance.operate_type
         operate_source = instance.operate_source
-        data["operate_type_name"] = OperateType[operate_type].value
+        data["operate_type_name"] = OperateType[operate_type].value if operate_type else None
         data["operate_source_name"] = OperateSource[operate_source].value
         return data
 
