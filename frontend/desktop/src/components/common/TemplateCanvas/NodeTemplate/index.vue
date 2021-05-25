@@ -520,6 +520,10 @@
                 }
             }
         }
+        .node-subscript {
+            font-size: 12px;
+            background: #ea3636 !important;
+        }
         .node-phase-icon {
             position: absolute;
             top: -10px;
