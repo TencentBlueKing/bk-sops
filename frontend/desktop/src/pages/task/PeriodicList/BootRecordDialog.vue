@@ -18,10 +18,7 @@
         :header-position="'left'"
         :title="$t('启动记录')"
         :value="show"
-        :draggable="true"
-        @value-change="dialogValueChange"
-        @confirm="$emit('onClose')"
-        @cancel="$emit('onClose')">
+        @cancel="onCloseDialog">
         <div class="dialog-content" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <bk-table :data="recordData" :max-height="350" ref="recordTable">
                 <bk-table-column type="expand" width="30" align="center">
@@ -51,6 +48,9 @@
                 <div class="no-data-matched" slot="empty"><NoData /></div>
                 <div class="is-loading" slot="append" v-if="isLoading" v-bkloading="{ isLoading: isLoading, zIndex: 100 }"></div>
             </bk-table>
+        </div>
+        <div class="footer-wrapper" slot="footer">
+            <bk-button @click="onCloseDialog">{{ $t('关闭') }}</bk-button>
         </div>
     </bk-dialog>
 </template>
@@ -90,7 +90,13 @@
         },
         watch: {
             show (val) {
-                this.isShow = val
+                if (val) {
+                    this.isShow = val
+                    this.currentPage = 0
+                    this.offset = 0
+                    this.recordData = []
+                    this.getRecord()
+                }
             }
         },
         mounted () {
@@ -150,10 +156,8 @@
                     return data
                 }
             },
-            dialogValueChange () {
-                if (this.show) {
-                    this.getRecord()
-                }
+            onCloseDialog () {
+                this.$emit('onClose')
             }
         }
     }

@@ -28,7 +28,7 @@
                         </p>
                         <p class="info-item">
                             <label class="label">{{ $t('时区：') }}</label>
-                            <span class="text">{{ item.project.create_at | getTimeZone }}</span>
+                            <span class="text">{{ item.project.time_zone }}</span>
                         </p>
                     </div>
                 </li>
