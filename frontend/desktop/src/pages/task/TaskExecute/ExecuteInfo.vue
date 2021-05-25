@@ -78,7 +78,7 @@
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
                     <OperationFlow></OperationFlow>
                 </section>
-                <section class="info-section" v-if="nodeDetailConfig.code">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title input-parameter">
                         <div class="input-title">{{ $t('输入参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -102,7 +102,7 @@
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                     </div>
                 </section>
-                <section class="info-section" v-if="nodeDetailConfig.code">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title output-parameter">
                         <div class="output-title">{{ $t('输出参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
