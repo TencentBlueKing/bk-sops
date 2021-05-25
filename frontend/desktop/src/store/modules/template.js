@@ -911,7 +911,8 @@ const template = {
             return axios.get('core/api/check_variable_key/', { params: data }).then(response => response.data)
         },
         getBatchForms ({ commit }, data) {
-            return axios.post('template/api/batch_form/', data)
+            const { projectId, tpls } = data
+            return axios.post(`template/api/batch_form/${projectId}/`, { templates: tpls }).then(response => response.data)
         }
     },
     getters: {

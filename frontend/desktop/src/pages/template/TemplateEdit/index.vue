@@ -119,7 +119,11 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
-            <batch-update-dialog :show.sync="isBatchUpdateDialogShow" :list="subflowShouldUpdated"></batch-update-dialog>
+            <batch-update-dialog
+                :show.sync="isBatchUpdateDialogShow"
+                :project-id="project_id"
+                :list="subflowShouldUpdated">
+            </batch-update-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"

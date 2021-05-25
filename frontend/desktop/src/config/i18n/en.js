@@ -1104,7 +1104,10 @@ const en = {
     '通知': 'Notify',
     '其他': 'Others',
     '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
-    '主机名': 'Host Name'
+    '主机名': 'Host Name',
+    '批量更新': 'Batch Update',
+    '原版本': 'Current Version',
+    '待更新版本': 'Lastest Version'
 }
 
 export default en
