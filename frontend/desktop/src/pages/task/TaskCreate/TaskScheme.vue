@@ -15,10 +15,10 @@
                 <span> {{$t('执行方案')}}</span>
                 <div>
                     <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" @click="isEditSchemeShow = true">导入临时方案</bk-button>
+                    <bk-button size="small" @click="onImportTemporaryPlan">导入临时方案</bk-button>
                 </div>
             </div>
-            <div :class="['scheme-header', { 'disabled-btn': !hasPermission(['flow_edit'], tplActions) }]">
+            <div class="scheme-header">
                 <div class="scheme-form" v-if="nameEditing">
                     <bk-input
                         ref="nameInput"
@@ -41,7 +41,7 @@
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
+            <div class="scheme-content">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
@@ -180,6 +180,10 @@
             }
         },
         computed: {
+            haveCreateSchemeTpl () {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                return this.hasPermission([tplAction], this.tplActions)
+            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -222,10 +226,27 @@
                 this.showPanel = !this.showPanel
             },
             /**
+             * 导入临时方案
+            */
+            onImportTemporaryPlan () {
+                let hasCreatePermission = true
+                if (!this.haveCreateSchemeTpl) {
+                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
+                }
+                if (hasCreatePermission) {
+                    this.isEditSchemeShow = true
+                }
+            },
+            /**
              * 创建任务方案弹窗
              */
             onCreateScheme () {
-                const hasCreatePermission = this.checkSchemeRelativePermission(['flow_edit'])
+                let hasCreatePermission = true
+                if (!this.haveCreateSchemeTpl) {
+                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
+                }
                 if (hasCreatePermission && !this.isPreviewMode) {
                     this.nameEditing = true
                     this.$nextTick(() => {
@@ -473,18 +494,6 @@
                 padding-bottom: 2px;
             }
         }
-        .disabled-btn {
-            &:after {
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 0px;
-                width: 100%;
-                height: 100%;
-                opacity: 0.4;
-                background-color: #e1e4e8;
-            }
-        }
         .scheme-content {
             height: calc(100% - 127px);
             overflow: hidden;
@@ -533,18 +542,6 @@
                         color: #979ba5;
                     }
                 }
-            }
-        }
-        .disable-scheme-list {
-            &:after {
-                content: '';
-                position: absolute;
-                top: 55px;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                opacity: 0.3;
-                background-color: #e1e4e8;
             }
         }
         .scheme-preview-mode {
