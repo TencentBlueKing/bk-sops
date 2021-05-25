@@ -795,12 +795,14 @@
              */
             validateAtomNode () {
                 let isAllValid = true
+                let nodeNameNull = false
                 Object.keys(this.activities).forEach(id => {
                     let isNodeValid = true
                     const node = this.activities[id]
                     if (node.type === 'ServiceActivity') {
                         if (!node.name) { // 节点名称为空
                             isNodeValid = false
+                            nodeNameNull = true
                         }
                         if (node.component.code) {
                             if (!this.validateAtomInputForm(node.component)) {
@@ -821,7 +823,7 @@
                 })
                 if (!isAllValid) {
                     this.$bkMessage({
-                        message: i18n.t('任务节点参数错误，请点击错误节点查看详情'),
+                        message: nodeNameNull ? i18n.t('需配置最低1个节点插件') : i18n.t('任务节点参数错误，请点击错误节点查看详情'),
                         theme: 'error'
                     })
                 }
