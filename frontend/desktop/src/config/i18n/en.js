@@ -1,5 +1,6 @@
 const en = {
-    '需配置最低1个节点插件': 'Need to configure at least 1 node plug-in',
+    '请选择节点的插件类型': 'Please select the plug-in type of the node',
+    '请选择节点的子流程': 'Please select the sub-process of the node',
     '保存已修改的信息吗？': 'Save the modified information?',
     '操作名称': 'Operation name',
     '操作时间': 'Operating time',

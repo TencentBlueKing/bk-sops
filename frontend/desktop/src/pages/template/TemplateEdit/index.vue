@@ -287,7 +287,7 @@
                     ]
                 },
                 initTemplateId: this.template_id, // 初始模板id
-                nodeNameNull: false // 新建流程节点名是否为空
+                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
             }
         },
         computed: {
@@ -796,14 +796,14 @@
              */
             validateAtomNode () {
                 let isAllValid = true
-                this.nodeNameNull = false
+                this.typeOfNodeNameEmpty = ''
                 Object.keys(this.activities).forEach(id => {
                     let isNodeValid = true
                     const node = this.activities[id]
                     if (node.type === 'ServiceActivity') {
                         if (!node.name) { // 节点名称为空
                             isNodeValid = false
-                            this.nodeNameNull = true
+                            this.typeOfNodeNameEmpty = 'serviceActivity'
                         }
                         if (node.component.code) {
                             if (!this.validateAtomInputForm(node.component)) {
@@ -815,6 +815,7 @@
                     } else { // @todo 子流程节点只校验名称和模板id，输入参数未校验
                         if (!node.name || node.template_id === undefined) {
                             isNodeValid = false
+                            this.typeOfNodeNameEmpty = 'subProcess'
                         }
                     }
                     if (!isNodeValid) {
@@ -823,8 +824,12 @@
                     }
                 })
                 if (!isAllValid) {
+                    let message = i18n.t('任务节点参数错误，请点击错误节点查看详情')
+                    if (this.typeOfNodeNameEmpty) {
+                        message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
+                    }
                     this.$bkMessage({
-                        message: this.nodeNameNull ? i18n.t('需配置最低1个节点插件') : i18n.t('任务节点参数错误，请点击错误节点查看详情'),
+                        message,
                         theme: 'error'
                     })
                 }
@@ -1164,7 +1169,11 @@
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    errorHandler({ message: this.nodeNameNull ? i18n.t('需配置最低1个节点插件') : i18n.t('任务节点参数错误，请点击错误节点查看详情') }, this)
+                    let message = i18n.t('任务节点参数错误，请点击错误节点查看详情')
+                    if (this.typeOfNodeNameEmpty) {
+                        message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
+                    }
+                    errorHandler({ message }, this)
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
