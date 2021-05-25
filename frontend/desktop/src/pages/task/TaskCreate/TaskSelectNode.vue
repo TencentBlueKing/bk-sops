@@ -485,9 +485,7 @@
                 XLSX.writeFile(wb, `bk_sops_tpl_task_scheme_${+new Date()}.xlsx`)
             },
             togglePreviewMode (isPreview) {
-                if (this.viewMode !== 'appmaker') {
-                    this.isPreviewMode = isPreview
-                }
+                this.isPreviewMode = isPreview
                 if (isPreview) {
                     this.previewBread.push({
                         id: this.template_id,
