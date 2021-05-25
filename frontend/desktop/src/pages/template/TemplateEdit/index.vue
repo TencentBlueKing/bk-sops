@@ -286,7 +286,8 @@
                         }
                     ]
                 },
-                initTemplateId: this.template_id // 初始模板id
+                initTemplateId: this.template_id, // 初始模板id
+                nodeNameNull: false // 新建流程节点名是否为空
             }
         },
         computed: {
@@ -795,14 +796,14 @@
              */
             validateAtomNode () {
                 let isAllValid = true
-                let nodeNameNull = false
+                this.nodeNameNull = false
                 Object.keys(this.activities).forEach(id => {
                     let isNodeValid = true
                     const node = this.activities[id]
                     if (node.type === 'ServiceActivity') {
                         if (!node.name) { // 节点名称为空
                             isNodeValid = false
-                            nodeNameNull = true
+                            this.nodeNameNull = true
                         }
                         if (node.component.code) {
                             if (!this.validateAtomInputForm(node.component)) {
@@ -823,7 +824,7 @@
                 })
                 if (!isAllValid) {
                     this.$bkMessage({
-                        message: nodeNameNull ? i18n.t('需配置最低1个节点插件') : i18n.t('任务节点参数错误，请点击错误节点查看详情'),
+                        message: this.nodeNameNull ? i18n.t('需配置最低1个节点插件') : i18n.t('任务节点参数错误，请点击错误节点查看详情'),
                         theme: 'error'
                     })
                 }
@@ -1163,7 +1164,7 @@
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    errorHandler({ message: i18n.t('任务节点参数错误，请点击错误节点查看详情') }, this)
+                    errorHandler({ message: this.nodeNameNull ? i18n.t('需配置最低1个节点插件') : i18n.t('任务节点参数错误，请点击错误节点查看详情') }, this)
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
