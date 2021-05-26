@@ -10,6 +10,7 @@ const en = {
     '操作流水': 'Operation flow',
     '编辑执行方案': 'Edit execution plan',
     '确定保存流程并去设置执行方案？': 'Are you sure to save template and go to set the execution plan?',
+    '确定保存克隆流程并去设置执行方案？': 'Are you sure to save clone template and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',
     '类别': 'Category',
     '请先保存已修改的信息': 'Please save the modified information first',
