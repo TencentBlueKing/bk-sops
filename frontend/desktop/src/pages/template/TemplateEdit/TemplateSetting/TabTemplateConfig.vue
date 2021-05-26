@@ -108,14 +108,14 @@
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('其他') }}</h4>
-                    <bk-form-item :label="$t('执行代理人')">
+                    <bk-form-item v-if="!common" :label="$t('执行代理人')">
                         <member-select
                             :multiple="false"
                             :value="formData.executorProxy"
                             @change="formData.executorProxy = $event">
                         </member-select>
                         <div class="executor-proxy-desc">
-                            <div v-if="!common">
+                            <div>
                                 {{ $t('仅支持本流程的执行代理，可在项目配置中') }}
                                 <span :class="{ 'project-management': authActions && authActions.length }" @click="jumpProjectManagement">{{ $t('设置项目执行代理人') }}</span>。
                             </div>
