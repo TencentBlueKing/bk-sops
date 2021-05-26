@@ -51,7 +51,11 @@ def get_task_list(request, project_id):
 
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
-    tasks, count = paginate_list_data(request, tasks)
+    try:
+        tasks, count = paginate_list_data(request, tasks)
+    except Exception as e:
+        return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
+
     response = {
         "result": True,
         "data": format_task_list_data(tasks, project),

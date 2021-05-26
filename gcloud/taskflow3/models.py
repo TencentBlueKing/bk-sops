@@ -875,7 +875,7 @@ class TaskFlowInstance(models.Model):
                 return {
                     "result": action_result.result,
                     "message": action_result.message,
-                    "code": err_code.OPERATION_FAIL.code,
+                    "code": err_code.SUCCESS.code,
                 }
 
             except ConvergeMatchError as e:

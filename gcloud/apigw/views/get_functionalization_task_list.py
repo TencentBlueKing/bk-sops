@@ -61,7 +61,10 @@ def get_functionalization_task_list(request):
         filter_kwargs["task__id__in"] = task_id_in
 
     function_tasks = FunctionTask.objects.select_related("task").filter(**filter_kwargs)
-    function_tasks, count = paginate_list_data(request, function_tasks)
+    try:
+        function_tasks, count = paginate_list_data(request, function_tasks)
+    except Exception as e:
+        return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
     data = format_function_task_list_data(function_tasks)
 
     response = {"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code}
