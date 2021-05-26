@@ -75,7 +75,6 @@
                 :entrance="entrance"
                 :template_id="template_id"
                 :exclude-node="excludeNode"
-                :init-template-id="initTemplateId"
                 :is-edit-process-page="isEditProcessPage"
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
@@ -286,7 +285,6 @@
                         }
                     ]
                 },
-                initTemplateId: this.template_id, // 初始模板id
                 typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
             }
         },
@@ -457,6 +455,7 @@
                 'getPipelineTree'
             ]),
             ...mapActions('task/', [
+                'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
             /**
@@ -662,6 +661,19 @@
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
+                    // 如果为克隆模式保存模板时需要保存执行方案(当前为根据源模板id获取方案列表)
+                    if (this.type === 'clone') {
+                        try {
+                            this.taskSchemeList = await this.loadTaskScheme({
+                                project_id: this.project_id,
+                                template_id: this.template_id,
+                                isCommon: this.common
+                            }) || []
+                        } catch (error) {
+                            errorHandler(error, this)
+                        }
+                    }
+
                     if (this.type !== 'edit') {
                         this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
@@ -672,6 +684,24 @@
                         }
                         this.$router.push(url)
 
+                        // 如果为克隆模式保存模板时需要保存执行方案(当前为根据已生成模板id保存方案列表)
+                        if (this.type === 'clone') {
+                            const schemes = this.taskSchemeList.map(item => {
+                                return {
+                                    data: item.data,
+                                    name: item.name
+                                }
+                            })
+                            try {
+                                await this.saveTaskSchemList({
+                                    project_id: this.project_id,
+                                    template_id: data.template_id,
+                                    schemes
+                                })
+                            } catch (error) {
+                                errorHandler(error, this)
+                            }
+                        }
                         // 新创建的流程模板需要增加本地浏览器计数信息
                         const tabQuerydata = {
                             user: this.username,
@@ -680,6 +710,7 @@
                         }
                         tplTabCount.setTab(tabQuerydata, 'add')
                     }
+                    
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     }
@@ -1099,8 +1130,6 @@
                         message: i18n.t('方案保存成功'),
                         theme: 'success'
                     })
-                    // 将初始模板id替换为当前模板id，此时不再是克隆执行方案而是正常保存执行方案了
-                    this.initTemplateId = this.template_id
                     this.allowLeave = true
                     this.isTemplateDataChanged = false
                     this.isEditProcessPage = true

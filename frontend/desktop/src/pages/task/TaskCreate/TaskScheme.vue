@@ -110,10 +110,6 @@
                 type: [String, Number],
                 default: ''
             },
-            initTemplateId: {
-                type: [String, Number],
-                default: ''
-            },
             project_id: {
                 type: [String, Number],
                 default: ''
@@ -212,7 +208,7 @@
                 try {
                     this.schemaList = await this.loadTaskScheme({
                         project_id: this.project_id,
-                        template_id: this.initTemplateId || this.template_id,
+                        template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
                     this.$emit('updateTaskSchemeList', this.schemaList)
