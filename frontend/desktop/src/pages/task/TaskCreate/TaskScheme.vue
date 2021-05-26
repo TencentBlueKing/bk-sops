@@ -214,7 +214,7 @@
                         project_id: this.project_id,
                         template_id: this.initTemplateId || this.template_id,
                         isCommon: this.isCommonProcess
-                    })
+                    }) || []
                 } catch (error) {
                     errorHandler(error, this)
                 }
