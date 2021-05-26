@@ -48,6 +48,7 @@
             attrs: {
                 name: gettext("模块"),
                 hookable: true,
+                default_expand_all: false,
                 remote: true,
                 remote_url: function () {
                     const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
