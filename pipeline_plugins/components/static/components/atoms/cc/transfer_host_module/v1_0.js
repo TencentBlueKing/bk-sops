@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-(function () {
+ (function () {
     $.atoms.cc_transfer_host_module = [
         {
             tag_code: "biz_cc_id",
@@ -75,6 +75,7 @@
             attrs: {
                 name: gettext("模块"),
                 hookable: true,
+                default_expand_all: false,
                 remote: true,
                 remote_url: function () {
                     const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
