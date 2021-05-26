@@ -156,7 +156,7 @@
                 :value="isExectueSchemeDialog"
                 @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
-                    <div class="save-tpl-tips">{{ isEditProcessPage ? $t('确定保存流程并去设置执行方案？') : $t('确定保存修改的内容？') }}</div>
+                    <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
                     <div class="action-wrapper">
                         <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
@@ -355,6 +355,15 @@
                     return this.subprocess_info.details
                 }
                 return []
+            },
+            tplEditDialogTip () {
+                let tip = this.$t('确定保存流程并去设置执行方案？')
+                if (this.type === 'clone') {
+                    tip = this.$t('确定保存克隆流程并去设置执行方案？')
+                } else if (!this.isEditProcessPage) {
+                    tip = this.$t('确定保存修改的内容？')
+                }
+                return tip
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -1070,8 +1079,7 @@
                     const schemes = this.taskSchemeList.map(item => {
                         return {
                             data: item.data,
-                            name: item.name,
-                            id: this.initTemplateId === this.template_id ? item.id : undefined // 克隆执行方案时不需要传id
+                            name: item.name
                         }
                     })
                     const resp = await this.saveTaskSchemList({
@@ -1182,7 +1190,7 @@
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
                         if (this.isExecuteScheme) {
-                            if (this.isTemplateDataChanged) {
+                            if (this.type === 'clone' || this.isTemplateDataChanged) {
                                 this.isExectueSchemeDialog = true
                             } else {
                                 this.isEditProcessPage = false

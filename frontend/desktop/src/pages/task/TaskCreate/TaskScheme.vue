@@ -23,7 +23,7 @@
                     <bk-input
                         ref="nameInput"
                         v-model="schemaName"
-                        v-validate="schemaNameRule"
+                        v-validate.persist="schemaNameRule"
                         name="schemaName"
                         class="bk-input-inline"
                         :clearable="true"
@@ -215,6 +215,7 @@
                         template_id: this.initTemplateId || this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
+                    this.$emit('updateTaskSchemeList', this.schemaList)
                 } catch (error) {
                     errorHandler(error, this)
                 }
