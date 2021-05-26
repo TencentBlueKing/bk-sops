@@ -287,7 +287,6 @@
                     ]
                 },
                 initTemplateId: this.template_id, // 初始模板id
-                initCloneType: false, // 一开始是否为clone流程类型
                 typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
             }
         },
@@ -359,7 +358,7 @@
             },
             tplEditDialogTip () {
                 let tip = this.$t('确定保存流程并去设置执行方案？')
-                if (this.initCloneType) {
+                if (this.type === 'clone') {
                     tip = this.$t('确定保存克隆流程并去设置执行方案？')
                 } else if (!this.isEditProcessPage) {
                     tip = this.$t('确定保存修改的内容？')
@@ -546,7 +545,6 @@
                     this.tplActions = templateData.auth_actions
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
-                        this.initCloneType = true
                     }
                     this.setTemplateData(templateData)
                 } catch (e) {
@@ -1192,7 +1190,7 @@
                         this.$refs.templateHeader.setProjectSelectDialogShow()
                     } else {
                         if (this.isExecuteScheme) {
-                            if (this.initCloneType || this.isTemplateDataChanged) {
+                            if (this.type === 'clone' || this.isTemplateDataChanged) {
                                 this.isExectueSchemeDialog = true
                             } else {
                                 this.isEditProcessPage = false
@@ -1459,7 +1457,6 @@
                     await this.saveTemplate()
                     this.isExectueSchemeDialog = false
                     this.isEditProcessPage = false
-                    this.initCloneType = false
                 } else {
                     this.onSaveExecuteSchemeClick()
                 }
