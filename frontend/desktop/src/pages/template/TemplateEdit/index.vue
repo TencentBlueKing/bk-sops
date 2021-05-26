@@ -662,7 +662,7 @@
                     })
                     this.isTemplateDataChanged = false
                     // 如果为克隆模式保存模板时需要保存执行方案
-                    if (this.type === 'clone') {
+                    if (this.type === 'clone' && !this.common) {
                         // 当前为根据源模板id获取方案列表
                         this.taskSchemeList = await this.loadTaskScheme({
                             project_id: this.project_id,
