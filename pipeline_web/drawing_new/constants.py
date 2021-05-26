@@ -32,6 +32,7 @@ PIPELINE_ELEMENT_TO_WEB = {
     PWE.EmptyEndEvent: PWE.endpoint,
     PWE.ExclusiveGateway: PWE.branchgateway,
     PWE.ParallelGateway: PWE.parallelgateway,
-    PWE.ConvergeGateway: PWE.convergegateway
+    PWE.ConvergeGateway: PWE.convergegateway,
+    PWE.ConditionalParallelGateway: PWE.conditionalparallelgateway
 }
 PIPELINE_WEB_TO_ELEMENT = {value: key for key, value in PIPELINE_ELEMENT_TO_WEB.items()}

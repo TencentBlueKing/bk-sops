@@ -113,6 +113,27 @@ WEB_PIPELINE_SCHEMA = {
                             },
                             "required": ["id", "type", "name", "incoming", "outgoing", "conditions"],
                         },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "id": {"type": "string"},
+                                "type": {"type": "string", "enum": ["ConditionalParallelGateway"]},
+                                "name": {"type": "string", "maxLength": ACT_MAX_LENGTH},
+                                "conditions": {
+                                    "type": "object",
+                                    "patternProperties": {
+                                        "^\\w+$": {
+                                            "type": "object",
+                                            "properties": {"evaluate": {"type": "string"}},
+                                            "required": ["evaluate"],
+                                        }
+                                    },
+                                },
+                                "incoming": MULTIPLE_FLOW,
+                                "outgoing": MULTIPLE_FLOW,
+                            },
+                            "required": ["id", "type", "name", "incoming", "outgoing", "conditions"],
+                        },
                     ]
                 }
             },

@@ -51,6 +51,7 @@
     import Subflow from './Subflow.vue'
     import BranchGateway from './BranchGateway.vue'
     import ParallelGateway from './ParallelGateway.vue'
+    import ConditionalParallelGateway from './ConditionalParallelGateway.vue'
     import ConvergeGateway from './ConvergeGateway.vue'
     import ShortcutPanel from './ShortcutPanel.vue'
     export default {
@@ -97,6 +98,7 @@
                     subflow: Subflow,
                     branchgateway: BranchGateway,
                     parallelgateway: ParallelGateway,
+                    conditionalparallelgateway: ConditionalParallelGateway,
                     convergegateway: ConvergeGateway
                 },
                 clickTimer: null

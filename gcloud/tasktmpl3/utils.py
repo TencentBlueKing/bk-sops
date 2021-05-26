@@ -110,7 +110,7 @@ def analysis_pipeline_constants_ref(pipeline_tree):
                     ref_counter(r)["activities"].append(act_id)
 
     for gateway in pipeline_tree.get("gateways", {}).values():
-        if gateway["type"] != "ExclusiveGateway":
+        if gateway["type"] not in ["ExclusiveGateway", "ConditionalParallelGateway"]:
             continue
 
         for condition_id, condition in gateway.get("conditions", {}).items():
