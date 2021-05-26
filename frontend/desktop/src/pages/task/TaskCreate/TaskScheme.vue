@@ -15,7 +15,7 @@
                 <span> {{$t('执行方案')}}</span>
                 <div>
                     <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" @click="onImportTemporaryPlan">导入临时方案</bk-button>
+                    <bk-button size="small" :disabled="isCommonProcess" @click="onImportTemporaryPlan">导入临时方案</bk-button>
                 </div>
             </div>
             <div class="scheme-header">
@@ -41,7 +41,7 @@
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div class="scheme-content">
+            <div :class="['scheme-content', { 'is-diasbled': isCommonProcess }]">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
@@ -543,6 +543,18 @@
                         color: #979ba5;
                     }
                 }
+            }
+        }
+        .is-diasbled {
+            &:after {
+                content: '';
+                position: absolute;
+                top: 55px;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0.3;
+                background-color: #e1e4e8;
             }
         }
         .scheme-preview-mode {
