@@ -109,7 +109,7 @@ class FormatSupportCurrentTime(LazyVariable):
     schema = StringItemSchema(description=_("系统当前时间变量(支持格式自定义)"))
 
     def get_value(self):
-        time_format = self.value.get("time_format", "%y-%m-%d %H:%M:%S").strip()
+        time_format = self.value.get("time_format", "%Y-%m-%d %H:%M:%S").strip()
         time_zone = self.value.get("time_zone", "Asia/Shanghai")
         now = datetime.datetime.now(timezone.pytz.timezone(time_zone))
         current_time = now.strftime(time_format)
@@ -181,6 +181,20 @@ class Time(LazyVariable):
         由于用户需要，这里的时间格式由“小时:分钟:秒”处理成“小时:分钟”
         """
         return self.value[:-3]
+
+
+class FormatSupportDateTime(LazyVariable):
+    code = "format_support_datetime"
+    name = _("日期时间（支持格式自定义）")
+    type = "general"
+    tag = "format_support_datetime.format_support_datetime"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, code)
+    desc = "默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式"
+
+    def get_value(self):
+        time_format = self.value.get("datetime_format", "%Y-%m-%d %H:%M:%S").strip()
+        time = datetime.datetime.strptime(self.value.get("datetime"), "%Y-%m-%d %H:%M:%S")
+        return time.strftime(time_format)
 
 
 class StaffGroupSelector(LazyVariable):
