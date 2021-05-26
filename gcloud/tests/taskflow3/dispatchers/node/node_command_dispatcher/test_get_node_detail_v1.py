@@ -54,7 +54,12 @@ class GetNodeDetailV1TestCase(TestCase):
             node_detail,
             {
                 "result": True,
-                "data": {"name": "node_name", "error_ignorable": True, "state": pipeline_states.READY},
+                "data": {
+                    "name": "node_name",
+                    "error_ignorable": True,
+                    "error_ignored": True,
+                    "state": pipeline_states.READY,
+                },
                 "message": "",
                 "code": err_code.SUCCESS.code,
             },

@@ -544,6 +544,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 hist.setdefault("state", pipeline_states.FAILED)
                 format_pipeline_status(hist)
 
+        if "error_ignorable" in detail:
+            detail["error_ignored"] = detail["error_ignorable"]
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
     def get_node_detail_v2(
