@@ -38,7 +38,6 @@
                 v-show="isEditProcessPage || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
-                :init-template-id="initTemplateId"
                 :template-name="templateName"
                 :is-scheme-show="isSchemeShow"
                 :is-scheme-editable="viewMode !== 'appmaker'"
@@ -83,7 +82,6 @@
         props: {
             project_id: [String, Number],
             template_id: [String, Number],
-            initTemplateId: [String, Number],
             common: String,
             excludeNode: Array,
             entrance: String,
