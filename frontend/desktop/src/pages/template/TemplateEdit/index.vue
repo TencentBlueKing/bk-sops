@@ -661,17 +661,26 @@
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
-                    // 如果为克隆模式保存模板时需要保存执行方案(当前为根据源模板id获取方案列表)
+                    // 如果为克隆模式保存模板时需要保存执行方案
                     if (this.type === 'clone') {
-                        try {
-                            this.taskSchemeList = await this.loadTaskScheme({
-                                project_id: this.project_id,
-                                template_id: this.template_id,
-                                isCommon: this.common
-                            }) || []
-                        } catch (error) {
-                            errorHandler(error, this)
-                        }
+                        // 当前为根据源模板id获取方案列表
+                        this.taskSchemeList = await this.loadTaskScheme({
+                            project_id: this.project_id,
+                            template_id: this.template_id,
+                            isCommon: this.common
+                        }) || []
+                        // 当前为根据已生成模板id保存方案列表
+                        const schemes = this.taskSchemeList.map(item => {
+                            return {
+                                data: item.data,
+                                name: item.name
+                            }
+                        })
+                        await this.saveTaskSchemList({
+                            project_id: this.project_id,
+                            template_id: data.template_id,
+                            schemes
+                        })
                     }
 
                     if (this.type !== 'edit') {
@@ -684,24 +693,6 @@
                         }
                         this.$router.push(url)
 
-                        // 如果为克隆模式保存模板时需要保存执行方案(当前为根据已生成模板id保存方案列表)
-                        if (this.type === 'clone') {
-                            const schemes = this.taskSchemeList.map(item => {
-                                return {
-                                    data: item.data,
-                                    name: item.name
-                                }
-                            })
-                            try {
-                                await this.saveTaskSchemList({
-                                    project_id: this.project_id,
-                                    template_id: data.template_id,
-                                    schemes
-                                })
-                            } catch (error) {
-                                errorHandler(error, this)
-                            }
-                        }
                         // 新创建的流程模板需要增加本地浏览器计数信息
                         const tabQuerydata = {
                             user: this.username,
