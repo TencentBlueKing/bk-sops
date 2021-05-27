@@ -370,18 +370,20 @@
                                 const newKey = nameToTagCode[key]
                                 const tag = this.columns.find(item => item.tag_code === newKey)
                                 let val = excelValue[i][key]
-                                console.log(val)
                                 if ( // 多选下拉框、勾选框导出数据为字符串需要转换为数组，并匹配选项名称得到value
                                     (tag.type === 'select' && tag.attrs.multiple)
                                     || tag.type === 'checkbox'
                                 ) {
-                                    val = JSON.parse(val).map(v => {
-                                        const option = tag.attrs.items.find(op => op.text === v || op.name === v)
-                                        if (option) {
-                                            return option.value
-                                        }
-                                        return v
-                                    })
+                                    const parsedVal = JSON.parse(val)
+                                    if (Array.isArray(parsedVal)) {
+                                        val = parsedVal.map(v => {
+                                            const option = tag.attrs.items.find(op => op.text === v || op.name === v)
+                                            if (option) {
+                                                return option.value
+                                            }
+                                            return v
+                                        })
+                                    }
                                 }
                                 if (tag.type === 'int') {
                                     val = Number(val)
