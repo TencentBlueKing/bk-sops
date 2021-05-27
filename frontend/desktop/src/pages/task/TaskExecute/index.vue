@@ -40,6 +40,7 @@
     import { mapActions } from 'vuex'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
+    import dom from '@/utils/dom.js'
 
     export default {
         name: 'TaskExecute',
@@ -59,6 +60,7 @@
                 taskStatusLoading: true,
                 isFunctional: this.routerType === 'function', // 是否为职能化任务
                 showParamsFill: false, // 显示参数填写页面
+                primaryTitle: '', // 浏览器tab页初始title
                 instanceName: '',
                 instanceFlow: '',
                 templateSource: '',
@@ -80,6 +82,9 @@
                     const { current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
+                    } else {
+                        this.primaryTitle = document.title
+                        document.title = name
                     }
                     this.instanceFlow = pipeline_tree
                     this.instanceName = name
@@ -92,6 +97,12 @@
                     this.taskDataLoading = false
                 }
             }
+        },
+        // 离开任务执行页面时，还原页面的title、icon
+        beforeRouteLeave (to, from, next) {
+            document.title = this.primaryTitle
+            dom.setPageTabIcon(`${window.SITE_URL}/static/core/images/bk_sops.png`)
+            next()
         }
     }
 </script>
