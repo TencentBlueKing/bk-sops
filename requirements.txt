@@ -34,6 +34,7 @@ bamboo-engine==1.1.4
 bamboo-pipeline==3.2.5
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
+django-prometheus==2.1.0
 
 # version log
 mistune==0.8.4
