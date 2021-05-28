@@ -127,6 +127,7 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -142,6 +143,7 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
