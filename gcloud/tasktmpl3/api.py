@@ -84,7 +84,7 @@ def form(request, project_id):
 @iam_intercept(BatchFormInterceptor())
 def batch_form(request, project_id):
     """
-    批量获取表单数据
+   项目流程批量获取表单数据
 
     通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
 
@@ -94,7 +94,7 @@ def batch_form(request, project_id):
             {
                 "id": "流程ID(integer)",
                 "version": "流程版本(string)"
-        }
+            }
         ]
     }
 
