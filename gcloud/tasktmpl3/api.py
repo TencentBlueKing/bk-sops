@@ -23,6 +23,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from gcloud.openapi.schema import AnnotationAutoSchema
+from gcloud.tasktmpl3.unified_api_utils import unified_batch_form
 from gcloud.tasktmpl3.utils import get_constant_values
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
@@ -110,37 +111,7 @@ def batch_form(request, project_id):
         ]
     }
     """
-    templates_data = request.data.get("templates")
-    template_ids = [int(template["id"]) for template in templates_data]
-    versions = [template["version"] for template in templates_data]
-
-    if len(template_ids) != len(versions):
-        return JsonResponse({"result": False, "data": "", "message": "", "code": err_code.REQUEST_PARAM_INVALID.code})
-
-    templates = TaskTemplate.objects.filter(id__in=template_ids, project_id=project_id, is_deleted=False)
-
-    data = {
-        template.id: [
-            {
-                "form": template.get_form(),
-                "outputs": template.get_outputs(),
-                "version": template.version,
-                "is_current": True,
-            }
-        ]
-        for template in templates
-    }
-    for template, version in zip(templates, versions):
-        data[template.id].append(
-            {
-                "form": template.get_form(version),
-                "outputs": template.get_outputs(version),
-                "version": version,
-                "is_current": False,
-            }
-        )
-
-    return JsonResponse({"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code})
+    return unified_batch_form(request, project_id)
 
 
 @require_POST
