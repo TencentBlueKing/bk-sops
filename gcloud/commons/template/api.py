@@ -29,6 +29,7 @@ from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
+from gcloud.tasktmpl3.unified_api_utils import unified_batch_form
 from gcloud.tasktmpl3.validators import BatchFormValidator
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import string_to_boolean
@@ -98,37 +99,7 @@ def batch_form(request):
         ]
     }
     """
-    templates_data = request.data.get("templates")
-    template_ids = [int(template["id"]) for template in templates_data]
-    versions = [template["version"] for template in templates_data]
-
-    if len(template_ids) != len(versions):
-        return JsonResponse({"result": False, "data": "", "message": "", "code": err_code.REQUEST_PARAM_INVALID.code})
-
-    templates = CommonTemplate.objects.filter(id__in=template_ids, is_deleted=False)
-
-    data = {
-        template.id: [
-            {
-                "form": template.get_form(),
-                "outputs": template.get_outputs(),
-                "version": template.version,
-                "is_current": True,
-            }
-        ]
-        for template in templates
-    }
-    for template, version in zip(templates, versions):
-        data[template.id].append(
-            {
-                "form": template.get_form(version),
-                "outputs": template.get_outputs(version),
-                "version": version,
-                "is_current": False,
-            }
-        )
-
-    return JsonResponse({"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code})
+    return unified_batch_form(request)
 
 
 @require_POST
