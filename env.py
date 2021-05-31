@@ -23,6 +23,8 @@ BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
 
 BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 
+BK_PAAS_DESKTOP_HOST = os.getenv("BKAPP_SOPS_PAAS_DESKTOP_HOST", "%sconsole/" % BK_PAAS_HOST)
+
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
