@@ -47,6 +47,8 @@ TASKFLOW_MODEL_NODE_CMD_DISPATCHER = "gcloud.taskflow3.models.NodeCommandDispatc
 
 TASKFLOW_CONTEXT_PROJECT_CONFIG = "gcloud.taskflow3.context.ProjectConfig"
 
+TASKFLOW_TASKS_TASKFLOW_INSTANCE = "gcloud.taskflow3.tasks.TaskFlowInstance"
+
 TASKFLOW_DISPATCHERS_NODE_PIPELINE_API = "gcloud.taskflow3.dispatchers.node.pipeline_api"
 TASKFLOW_DISPATCHERS_NODE_BAMBOO_API = "gcloud.taskflow3.dispatchers.node.bamboo_engine_api"
 TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME = "gcloud.taskflow3.dispatchers.node.BambooDjangoRuntime"
@@ -83,6 +85,8 @@ APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE = (
 APIGW_DECORATOR_CHECK_WHITE_LIST = "gcloud.apigw.decorators.check_white_apps"
 APIGW_DECORATOR_GET_USER_MODEL = "gcloud.apigw.decorators.get_user_model"
 APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
+APIGW_START_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.start_task.TaskFlowInstance"
+APIGW_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.start_task.prepare_and_start_task"
 
 MAIN_PACKAGE_SOURCE_GET = "gcloud.external_plugins.models.main_source.MainPackageSource.objects.get"
 

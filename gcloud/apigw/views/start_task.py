@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -20,6 +22,8 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.tasks import prepare_and_start_task
+from gcloud.taskflow3.queues import PrepareAndStartTaskQueueResolver
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.utils.throttle import check_task_operation_throttle
@@ -50,6 +54,22 @@ def start_task(request, task_id, project_id):
             }
         )
 
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
-    ctx = task.task_action("start", username)
-    return JsonResponse({"task_url": task.url, **ctx})
+    if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
+        return JsonResponse(
+            {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
+        )
+
+    queue, routing_key = PrepareAndStartTaskQueueResolver(
+        settings.API_TASK_QUEUE_NAME_V2
+    ).resolve_task_queue_and_routing_key()
+    prepare_and_start_task.apply_async(
+        kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
+    )
+
+    return JsonResponse(
+        {
+            "task_url": TaskFlowInstance.task_url(project_id=project.id, task_id=task_id),
+            "result": True,
+            "code": err_code.SUCCESS.code,
+        }
+    )
