@@ -22,7 +22,6 @@ class PrepareAndStartTaskQueueResolver:
         self.queue = queue
 
     def resolve_task_queue_and_routing_key(self) -> (str, str):
-
         queue_config = self.routes_config()
         return queue_config[self.TASK_NAME]["queue"], queue_config[self.TASK_NAME]["routing_key"]
 
