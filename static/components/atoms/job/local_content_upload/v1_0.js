@@ -79,6 +79,24 @@
                     }
                 ]
             },
-        }
+        },
+        {
+            tag_code: "job_across_biz",
+            type: "radio",
+            attrs: {
+                name: gettext("是否允许跨业务"),
+                hookable: true,
+                items: [
+                    { value: true, name: gettext("是") },
+                    { value: false, name: gettext("否") },
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
     ]
 })();
