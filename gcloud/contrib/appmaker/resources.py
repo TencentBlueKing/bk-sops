@@ -88,7 +88,7 @@ class AppMakerResource(GCloudModelResource):
     def alter_list_data_to_serialize(self, request, data):
         data = super(AppMakerResource, self).alter_list_data_to_serialize(request, data)
         for bundle in data["objects"]:
-            bundle.data["desktop_url"] = "{}{}".format(env.BK_PAAS_DESKTOP_HOST, bundle.data["code"])
+            bundle.data["desktop_url"] = "{}?app={}".format(env.BK_PAAS_DESKTOP_HOST, bundle.data["code"])
 
         return data
 
