@@ -176,7 +176,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             data.update(node_data)
 
         for gw_id, gw in list(pipeline_tree[PE.gateways].items()):
-            if gw["type"] == PE.ExclusiveGateway:
+            if gw["type"] in [PE.ExclusiveGateway, PE.ConditionalParallelGateway]:
                 gw_data = {
                     ("%s_%s" % (gw_id, key)): {"value": value["evaluate"]}
                     for key, value in list(gw["conditions"].items())
@@ -828,3 +828,19 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
     }
 
     return {"pipeline_tree": pipeline_tree, "constants_not_referred": constants_not_referred}
+
+
+class TaskOperationTimesConfig(models.Model):
+    project_id = models.IntegerField(_("项目 ID"))
+    operation = models.CharField(
+        _("任务操作"),
+        choices=(("start", _("启动")), ("pause", _("暂停")), ("resume", _("恢复")), ("revoke", _("撤销"))),
+        max_length=64,
+    )
+    times = models.IntegerField(_("限制操作次数"))
+    time_unit = models.CharField(_("限制时间单位"), choices=(("m", "分钟"), ("h", "小时"), ("d", "天")), max_length=10)
+
+    class Meta:
+        verbose_name = _("任务操作次数限制配置 TaskOperationTimesConfig")
+        verbose_name_plural = _("任务操作次数限制配置 TaskOperationTimesConfig")
+        unique_together = ("project_id", "operation")

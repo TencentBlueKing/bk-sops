@@ -1000,6 +1000,7 @@
                     case 'branchgateway':
                     case 'parallelgateway':
                     case 'convergegateway':
+                    case 'conditionalparallelgateway':
                         this.setGateways({ type: changeType, location })
                         break
                     case 'startpoint':

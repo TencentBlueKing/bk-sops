@@ -34,7 +34,6 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import (
     StringItemSchema,
     ObjectItemSchema,
@@ -42,17 +41,12 @@ from pipeline.core.flow.io import (
 )
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    get_job_instance_url,
-    get_node_callback_url,
-)
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
-
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
@@ -142,7 +136,9 @@ class JobFastExecuteScriptService(JobService):
                 key="log_outputs",
                 type="dict",
                 schema=ObjectItemSchema(
-                    description=_("输出日志中提取的全局变量"),
+                    description=_(
+                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+                    ),
                     property_schemas={
                         "name": StringItemSchema(description=_("全局变量名称")),
                         "value": StringItemSchema(description=_("全局变量值")),
@@ -163,29 +159,12 @@ class JobFastExecuteScriptService(JobService):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
-        if across_biz:
-            ip_info = {"ip_result": []}
-            for match in plat_ip_reg.finditer(original_ip_list):
-                if not match:
-                    continue
-                ip_str = match.group()
-                cloud_id, inner_ip = ip_str.split(":")
-                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
-        else:
-            ip_info = cc_get_ips_info_by_str(
-                username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
-            )
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-
-        if ip_is_exist and not across_biz:
-            # 如果ip校验开关打开且不允许跨业务，校验通过的ip数量减少，返回错误
-            input_ip_set = set(get_ip_by_regex(original_ip_list))
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
-            difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
-
-            if len(ip_list) != len(input_ip_set):
-                data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                return False
+        # 获取 IP
+        clean_result, ip_list = get_biz_ip_from_frontend(
+            original_ip_list, executor, biz_cc_id, data, self.logger, across_biz, ip_is_exist=ip_is_exist
+        )
+        if not clean_result:
+            return False
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,

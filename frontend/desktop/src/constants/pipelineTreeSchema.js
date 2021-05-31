@@ -233,6 +233,51 @@ const exclusiveGateway = {
     required: ['conditions', 'id', 'incoming', 'name', 'outgoing', 'type']
 }
 
+const conditionalParallelGateway = {
+    $id: '/ConditionalParallelGateway',
+    title: '条件并行网关节点字段',
+    type: 'object',
+    properties: {
+        conditions: {
+            type: 'object',
+            patternProperties: {
+                [LINE_ID_REG]: {
+                    type: 'object',
+                    properties: {
+                        evaluate: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['evaluate']
+                }
+            }
+        },
+        id: {
+            type: 'string',
+            pattern: NODE_ID_REG
+        },
+        incoming: {
+            type: ['string', 'array'],
+            pattern: LINE_ID_REG
+        },
+        name: {
+            type: 'string'
+        },
+        outgoing: {
+            type: 'array',
+            items: {
+                type: 'string',
+                pattern: LINE_ID_REG
+            }
+        },
+        type: {
+            type: 'string',
+            const: 'ConditionalParallelGateway'
+        }
+    },
+    required: ['conditions', 'id', 'incoming', 'name', 'outgoing', 'type']
+}
+
 const parallelGateway = {
     $id: '/ParallelGateway',
     title: '并行网关节点字段',
@@ -420,7 +465,7 @@ const gatewayFieldSchema = {
             properties: {
                 type: {
                     type: 'string',
-                    enum: ['ExclusiveGateway', 'ParallelGateway', 'ConvergeGateway']
+                    enum: ['ExclusiveGateway', 'ParallelGateway', 'ConvergeGateway', 'ConditionalParallelGateway']
                 }
             },
             allOf: [
@@ -435,6 +480,10 @@ const gatewayFieldSchema = {
                 {
                     if: { properties: { type: { const: 'ConvergeGateway' } } },
                     then: { $ref: '/ConvergeGateway' }
+                },
+                {
+                    if: { properties: { type: { const: 'ConditionalParallelGateway' } } },
+                    then: { $ref: '/ConditionalParallelGateway' }
                 }
             ]
         }
@@ -568,6 +617,7 @@ ajv.addSchema(flowItem, '/FlowItem')
 ajv.addSchema(parallelGateway, '/ParallelGateway')
 ajv.addSchema(convergeGateway, '/ConvergeGateway')
 ajv.addSchema(exclusiveGateway, '/ExclusiveGateway')
+ajv.addSchema(conditionalParallelGateway, '/ConditionalParallelGateway')
 ajv.addSchema(lineItem, '/LineItem')
 ajv.addSchema(locationItem, '/LocationItem')
 ajv.addSchema(activitiesFieldSchema, '/ActivitiesFieldSchema')
