@@ -10,6 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import traceback
+
+from django.db import connection
 
 
-HTTP_AUTH_FORBIDDEN_CODE = 9900403
+def finished_old_iam_migrations() -> set:
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute("SELECT name FROM django_migrations WHERE app = 'iam_migration'")
+        except Exception:
+            print("[finished_old_iam_migrations] fetch err", traceback.format_exc())
+            return set()
+
+        migration_names = cursor.fetchall()
+
+    return {item[0] for item in migration_names}

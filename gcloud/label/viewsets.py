@@ -23,6 +23,7 @@ from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.label.serilaziers import LabelSerializer
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.openapi.schema import AnnotationAutoSchema
+
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 

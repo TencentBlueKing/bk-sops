@@ -91,6 +91,7 @@ INSTALLED_APPS += (
     "django_filters",
     "iam",
     "iam.contrib.iam_migration",
+    "bksops_iam_migrations",
     "drf_yasg",
 )
 
@@ -311,6 +312,8 @@ BK_IAM_INNER_HOST = env.BK_IAM_INNER_HOST
 BK_IAM_SAAS_HOST = env.BK_IAM_SAAS_HOST
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = env.BK_IAM_API_PREFIX
+# 权限中心 migrations 存储 app
+BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
