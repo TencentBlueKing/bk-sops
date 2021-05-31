@@ -20,6 +20,7 @@ from django.contrib.auth import get_user_model
 from pipeline.parser.utils import replace_all_id
 
 from gcloud import err_code
+from gcloud.core.constant import TASK_FLOW_TYPE
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
@@ -139,6 +140,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTmplStatisticsMixin):
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
+    default_flow_type = models.CharField(_("偏好任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
 
     objects = TaskTemplateManager()
 
