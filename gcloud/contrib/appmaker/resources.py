@@ -17,6 +17,7 @@ from tastypie.exceptions import BadRequest
 
 from iam.contrib.tastypie.authorization import IAMAuthorization, IAMReadDetailAuthorizationMixin
 
+import env
 from gcloud.conf import settings
 from gcloud.tasktmpl3.resources import TaskTemplateResource
 from gcloud.commons.tastypie import GCloudModelResource
@@ -83,6 +84,13 @@ class AppMakerResource(GCloudModelResource):
                 IAMMeta.MINI_APP_CREATE_TASK_ACTION,
             ],
         )
+
+    def alter_list_data_to_serialize(self, request, data):
+        data = super(AppMakerResource, self).alter_list_data_to_serialize(request, data)
+        for bundle in data["objects"]:
+            bundle.data["desktop_url"] = "{}{}".format(env.BK_PAAS_DESKTOP_HOST, bundle.data["code"])
+
+        return data
 
     def obj_delete(self, bundle, **kwargs):
         try:
