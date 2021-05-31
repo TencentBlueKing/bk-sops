@@ -73,4 +73,3 @@ def start_task(request, task_id, project_id):
             "code": err_code.SUCCESS.code,
         }
     )
-
