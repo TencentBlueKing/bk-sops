@@ -30,11 +30,9 @@ from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
-    plat_ip_reg,
-    cc_get_ips_info_by_str,
+    get_biz_ip_from_frontend,
 )
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -101,14 +99,6 @@ class JobExecuteTaskService(JobService):
             ),
         ]
 
-    def _get_ip_from_cmdb(self, executor, biz_cc_id, ip_str, data):
-        var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
-        if ip_str and not ip_list:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
-            return False, ip_list
-        return True, ip_list
-
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -128,35 +118,44 @@ class JobExecuteTaskService(JobService):
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
                 if biz_across:
-                    # 跨业务，不校验IP归属
-                    plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
-                    ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+                    result, ip_list = get_biz_ip_from_frontend(
+                        ip_str=val,
+                        executor=executor,
+                        biz_cc_id=biz_cc_id,
+                        data=data,
+                        logger_handle=self.logger,
+                        is_across=True,
+                        ip_is_exist=ip_is_exist,
+                        ignore_ex_data=True,
+                    )
 
-                    # 执行作业允许某个 ip 字段不跨业务
-                    if not plat_ip:
-                        result, ip_list = self._get_ip_from_cmdb(
-                            executor=executor, biz_cc_id=biz_cc_id, ip_str=val, data=data
+                    # 匹配不到云区域IP格式IP，尝试从当前业务下获取
+                    if not result:
+                        result, ip_list = get_biz_ip_from_frontend(
+                            ip_str=val,
+                            executor=executor,
+                            biz_cc_id=biz_cc_id,
+                            data=data,
+                            logger_handle=self.logger,
+                            is_across=False,
+                            ip_is_exist=ip_is_exist,
                         )
-                        if not result:
-                            return False
+
+                    if not result:
+                        return False
                 else:
-                    result, ip_list = self._get_ip_from_cmdb(
-                        executor=executor, biz_cc_id=biz_cc_id, ip_str=val, data=data
+                    result, ip_list = get_biz_ip_from_frontend(
+                        ip_str=val,
+                        executor=executor,
+                        biz_cc_id=biz_cc_id,
+                        data=data,
+                        logger_handle=self.logger,
+                        is_across=False,
+                        ip_is_exist=ip_is_exist,
                     )
                     if not result:
                         return False
 
-                if ip_is_exist:
-                    # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-                    input_ip_set = set(get_ip_by_regex(val))
-                    self.logger.info(
-                        "from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set)
-                    )
-
-                    difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
-                    if len(ip_list) != len(input_ip_set):
-                        data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                        return False
                 if ip_list:
                     global_vars.append({"name": _value["name"], "ip_list": ip_list})
             else:

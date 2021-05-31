@@ -119,11 +119,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         for ip_info in ip_list:
             if (
-                "%s:%s"
-                % (
-                    ip_info["host"].get("bk_cloud_id", -1),
-                    ip_info["host"].get("bk_host_innerip", ""),
-                )
+                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
                 in plat_ip
             ):
                 ip_result.append(
@@ -212,7 +208,9 @@ def get_difference_ip_list(original_ip_list, ip_list):
     return difference_ip_list
 
 
-def get_biz_ip_from_frontend(ip_str, executor, biz_cc_id, data, logger_handle, is_across=False, ip_is_exist=False):
+def get_biz_ip_from_frontend(
+    ip_str, executor, biz_cc_id, data, logger_handle, is_across=False, ip_is_exist=False, ignore_ex_data=False
+):
     """
     从前端表单中获取有效IP
     """
@@ -233,9 +231,11 @@ def get_biz_ip_from_frontend(ip_str, executor, biz_cc_id, data, logger_handle, i
 
     if len(ip_list) != len(set(input_ip_set)):
         difference_ip_list.sort()
-        data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
+        if not ignore_ex_data:
+            data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
         return False, ip_list
     if not ip_list:
-        data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
+        if not ignore_ex_data:
+            data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
         return False, ip_list
     return True, ip_list
