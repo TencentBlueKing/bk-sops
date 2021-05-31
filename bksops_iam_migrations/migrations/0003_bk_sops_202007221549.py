@@ -11,16 +11,31 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from . import Request
-from .exceptions import AuthFailedException
+import os
+import json
+import codecs
+
+from django.db import migrations
+from django.conf import settings
+
+from iam.contrib.iam_migration.migrator import IAMMigrator
+
+from bksops_iam_migrations.utils import finished_old_iam_migrations
 
 
-def allow_or_raise_auth_failed(iam, system, subject, action, resources, environment=None, cache=False):
-    request = Request(system, subject, action, resources, environment)
+def forward_func(apps, schema_editor):
 
-    allowed = iam.is_allowed_with_cache(request) if cache else iam.is_allowed(request)
+    if "0003_bk_sops_202007221549" in finished_old_iam_migrations():
+        print("0003_bk_sops_202007221549 already run at iam_migrations, skip.")
+        return
 
-    if not allowed:
-        raise AuthFailedException(system, subject, action, resources)
+    migrator = IAMMigrator(Migration.migration_json)
+    migrator.migrate()
 
-    return
+
+class Migration(migrations.Migration):
+    migration_json = "03_add_related_actions.json"
+
+    dependencies = [("bksops_iam_migrations", "0002_bk_sops_202007091136")]
+
+    operations = [migrations.RunPython(forward_func)]

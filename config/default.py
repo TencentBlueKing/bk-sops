@@ -91,6 +91,7 @@ INSTALLED_APPS += (
     "django_filters",
     "iam",
     "iam.contrib.iam_migration",
+    "bksops_iam_migrations",
     "drf_yasg",
 )
 

@@ -11,29 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-migration_template = """# -*- coding: utf-8 -*-
-import os
-import json
-import codecs
 
-from django.db import migrations
-from django.conf import settings
-
-from iam.contrib.iam_migration.migrator import IAMMigrator
+from django.apps import AppConfig
 
 
-def forward_func(apps, schema_editor):
-
-    migrator = IAMMigrator(Migration.migration_json)
-    migrator.migrate()
-
-
-class Migration(migrations.Migration):
-    migration_json = "{{ migration_json }}"
-
-    dependencies = {% if initial %}[]{% else %}[('{{ app_label }}', '{{ last_migration_name }}')]{% endif %}
-
-    operations = [
-        migrations.RunPython(forward_func)
-    ]
-"""
+class BKSOPSIamMigrationsConfig(AppConfig):
+    name = "bksops_iam_migrations"

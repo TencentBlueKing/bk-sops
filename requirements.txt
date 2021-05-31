@@ -40,9 +40,7 @@ django-prometheus==2.1.0
 mistune==0.8.4
 
 # iam sdk
-cachetools==3.1.1
-curlify==2.2.1
-six==1.15.0
+bk-iam==1.1.10
 
 # celery 4
 celery==4.4.0
