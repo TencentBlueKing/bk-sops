@@ -1104,7 +1104,10 @@ const en = {
     '通知': 'Notify',
     '其他': 'Others',
     '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
-    '主机名': 'Host Name'
+    '主机名': 'Host Name',
+    '任务类型偏好': 'Task Type Preference',
+    '默认任务': 'Default Task',
+    '职能化任务': 'Functional Task'
 }
 
 export default en
