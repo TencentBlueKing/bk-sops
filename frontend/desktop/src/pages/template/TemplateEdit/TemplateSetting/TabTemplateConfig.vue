@@ -125,6 +125,12 @@
                     <bk-form-item property="notifyType" :label="$t('备注')">
                         <bk-input type="textarea" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
                     </bk-form-item>
+                    <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')">
+                        <bk-select v-model="formData.defaultFlowType" :clearable="false">
+                            <bk-option id="common" :name="$t('默认任务')"></bk-option>
+                            <bk-option id="common_func" :name="$t('职能化任务')"></bk-option>
+                        </bk-select>
+                    </bk-form-item>
                 </section>
             </bk-form>
             <div class="btn-wrap">
@@ -173,7 +179,7 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels
+                executor_proxy, template_labels, default_flow_type
             } = this.$store.state.template
             return {
                 formData: {
@@ -183,7 +189,8 @@
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
                     notifyType: notify_type.slice(0),
-                    labels: template_labels
+                    labels: template_labels,
+                    defaultFlowType: default_flow_type
                 },
                 notifyTypeList: [],
                 projectNotifyGroup: [],
@@ -305,7 +312,7 @@
                 }
             },
             getTemplateConfig () {
-                const { name, category, description, executorProxy, receiverGroup, notifyType, labels } = this.formData
+                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
                 return {
                     name,
                     category,
@@ -313,7 +320,8 @@
                     template_labels: labels,
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
-                    notify_type: notifyType
+                    notify_type: notifyType,
+                    default_flow_type: defaultFlowType
                 }
             },
             jumpProjectManagement () {
@@ -338,7 +346,7 @@
                 this.onSaveConfig()
             },
             beforeClose () {
-                const { name, category, description, template_labels, executor_proxy, notify_receivers, notify_type } = this.$store.state.template
+                const { name, category, description, template_labels, executor_proxy, notify_receivers, notify_type, default_flow_type } = this.$store.state.template
                 const originData = {
                     name,
                     category,
@@ -346,7 +354,8 @@
                     template_labels,
                     executor_proxy,
                     receiver_group: notify_receivers.receiver_group,
-                    notify_type
+                    notify_type,
+                    default_flow_type
                 }
                 const editingData = this.getTemplateConfig()
                 if (tools.isDataEqual(originData, editingData)) {
