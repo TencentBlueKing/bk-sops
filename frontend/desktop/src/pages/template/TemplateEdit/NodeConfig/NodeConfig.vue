@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -98,6 +98,7 @@
                 <!-- 插件/子流程选择面板 -->
                 <selector-panel
                     v-if="isSelectorPanelShow"
+                    :template-labels="templateLabels"
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
@@ -140,7 +141,7 @@
                             <!-- 输入参数 -->
                             <section class="config-section">
                                 <h3>{{$t('输入参数')}}</h3>
-                                <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
+                                <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                     <template v-if="!inputLoading">
                                         <input-params
                                             v-if="inputs.length > 0"
@@ -163,7 +164,7 @@
                             <!-- 输出参数 -->
                             <section class="config-section">
                                 <h3>{{$t('输出参数')}}</h3>
-                                <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
+                                <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                     <template v-if="!outputLoading">
                                         <output-params
                                             v-if="outputs.length"
@@ -235,6 +236,7 @@
             atomList: Array,
             subflowList: Array,
             atomTypeList: Object,
+            templateLabels: Array,
             common: [String, Number]
         },
         data () {
@@ -549,13 +551,11 @@
                     let templateName = i18n.t('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
-                        this.atomTypeList.subflow.groups.some(group => {
-                            return group.list.some(item => {
-                                if (item.template_id === Number(template_id)) {
-                                    templateName = item.name
-                                    return true
-                                }
-                            })
+                        this.atomTypeList.subflow.some(item => {
+                            if (item.template_id === Number(template_id)) {
+                                templateName = item.name
+                                return true
+                            }
                         })
                     }
                     return {
@@ -581,7 +581,7 @@
                     return {
                         version: item.version
                     }
-                })
+                }).reverse()
             },
             /**
              * 获取子流程任务节点输入参数值，有三种情况：

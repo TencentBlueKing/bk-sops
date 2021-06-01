@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -446,6 +446,18 @@ def flow_valid_edge_case_4():
     return build_tree(start)
 
 
+def flow_valid_edge_case_5():
+    start = EmptyStartEvent(id=start_event_id)
+    eg = ExclusiveGateway(id=exclusive_gw_id(1), conditions={0: "123", 1: "456", 2: "789"})
+    cg = ConvergeGateway(id=converge_gw_id(1))
+    end = EmptyEndEvent(id=end_event_id)
+
+    start.extend(eg).connect(cg, cg, end)
+    cg.connect(eg)
+
+    return build_tree(start)
+
+
 def flow_invalid_case_1():
     start = EmptyStartEvent(id=start_event_id)
     act_1 = ServiceActivity(id=act_id(1))
@@ -490,6 +502,7 @@ flow_valid_edge_cases = [
     {"case": flow_valid_edge_case_2},
     {"case": flow_valid_edge_case_3},
     {"case": flow_valid_edge_case_4},
+    {"case": flow_valid_edge_case_5},
 ]
 
 flow_invalid_cases = [

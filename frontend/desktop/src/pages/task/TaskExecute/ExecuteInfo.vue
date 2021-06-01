@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -23,7 +23,7 @@
                 'loading': loading,
                 'admin-view': adminView
             }]"
-            v-bkloading="{ isLoading: loading, opacity: 1 }">
+            v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <div class="excute-time" v-if="!adminView && isReadyStatus">
                 <span>{{$t('第')}}</span>
                 <bk-select
@@ -73,6 +73,10 @@
                         </tr>
                     </table>
                     <NoData v-else></NoData>
+                </section>
+                <section class="info-section" v-if="executeInfo.id">
+                    <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
+                    <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
                 <section class="info-section">
                     <div class="common-section-title input-parameter">
@@ -154,7 +158,7 @@
                 </section>
                 <section class="info-section">
                     <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
+                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
                         <NoData v-else></NoData>
                     </div>
@@ -191,7 +195,7 @@
                                 </div>
                                 <div class="common-form-item">
                                     <label>{{ $t('日志') }}</label>
-                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
                                         <div class="common-form-content" v-if="historyLog[props.row.history_id]">
                                             <div class="code-block-wrap" v-if="adminView">
                                                 <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
@@ -268,6 +272,7 @@
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import NodeTree from './NodeTree'
     import FullCodeEditor from './FullCodeEditor.vue'
+    import OperationFlow from './OperationFlow.vue'
 
     const EXECUTE_INFO_COL = [
         {
@@ -425,7 +430,8 @@
             NoData,
             IpLogContent,
             NodeTree,
-            FullCodeEditor
+            FullCodeEditor,
+            OperationFlow
         },
         props: {
             adminView: {
@@ -567,7 +573,7 @@
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
-                    this.theExecuteTime = 1
+                    this.theExecuteTime = undefined
                     this.loadNodeInfo()
                 }
             }

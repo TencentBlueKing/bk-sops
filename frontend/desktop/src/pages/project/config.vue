@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,126 +11,128 @@
 */
 <template>
     <div class="mandate-wrapper">
-        <header class="mandate-header">
+        <page-header class="mandate-header">
             <i class="back-icon bk-icon icon-arrows-left" @click="$router.push({ name: 'projectHome' })"></i>
             <span>{{ $t('项目配置') }}</span>
-        </header>
-        <section class="project-info" v-bkloading="{ isLoading: projectLoading, opacity: 1 }">
-            <template v-if="project.name">
-                <div class="icon">{{ project.name[0] }}</div>
-            </template>
-            <div class="info-wrap">
-                <div class="title">
-                    <h4>{{ project.name }}</h4>
-                    <div class="ext-info">
-                        <span>ID <span class="value">{{ project.id }}</span></span>
-                        <span>CC_ID <span class="value">{{ project.bk_biz_id }}</span></span>
-                        <span>时区 <span class="value">{{ project.time_zone }}</span></span>
+        </page-header>
+        <div class="mandate-page-content">
+            <section class="project-info" v-bkloading="{ isLoading: projectLoading, opacity: 1, zIndex: 100 }">
+                <template v-if="project.name">
+                    <div class="icon">{{ project.name[0] }}</div>
+                </template>
+                <div class="info-wrap">
+                    <div class="title">
+                        <h4>{{ project.name }}</h4>
+                        <div class="ext-info">
+                            <span>ID <span class="value">{{ project.id }}</span></span>
+                            <span>CC_ID <span class="value">{{ project.bk_biz_id }}</span></span>
+                            <span>时区 <span class="value">{{ project.time_zone }}</span></span>
+                        </div>
+                    </div>
+                    <div class="desc">
+                        <template v-if="!descEditing">
+                            <span>{{ project.desc || '--' }}</span>
+                            <span
+                                v-cursor="{ active: !hasPermission(['project_edit'], project.auth_actions) }"
+                                class="common-icon-edit icon-btn"
+                                :class="{ 'text-permission-disable': !hasPermission(['project_edit'], project.auth_actions) }"
+                                @click="onOpenDescEdit">
+                            </span>
+                        </template>
+                        <bk-form v-else ref="descForm" :model="descData" :rules="descRules">
+                            <bk-form-item :label-width="0" property="value">
+                                <bk-input
+                                    ref="descInput"
+                                    type="textarea"
+                                    :rows="4"
+                                    v-model="descData.value"
+                                    @blur="onEditDesc">
+                                </bk-input>
+                            </bk-form-item>
+                        </bk-form>
                     </div>
                 </div>
-                <div class="desc">
-                    <template v-if="!descEditing">
-                        <span>{{ project.desc || '--' }}</span>
-                        <span
-                            v-cursor="{ active: !hasPermission(['project_edit'], project.auth_actions) }"
-                            class="common-icon-edit icon-btn"
-                            :class="{ 'text-permission-disable': !hasPermission(['project_edit'], project.auth_actions) }"
-                            @click="onOpenDescEdit">
-                        </span>
-                    </template>
-                    <bk-form v-else ref="descForm" :model="descData" :rules="descRules">
-                        <bk-form-item :label-width="0" property="value">
-                            <bk-input
-                                ref="descInput"
-                                type="textarea"
-                                :rows="4"
-                                v-model="descData.value"
-                                @blur="onEditDesc">
-                            </bk-input>
-                        </bk-form-item>
-                    </bk-form>
+            </section>
+            <section class="mandate-section">
+                <div class="title">
+                    {{ $t('执行代理人设置') }}
+                    <bk-button theme="primary" @click="onEditAgent">{{ $t('编辑') }}</bk-button>
                 </div>
-            </div>
-        </section>
-        <section class="mandate-section">
-            <div class="title">
-                {{ $t('执行代理人设置') }}
-                <bk-button theme="primary" @click="onEditAgent">{{ $t('编辑') }}</bk-button>
-            </div>
-            <bk-form class="agent-form" v-bkloading="{ isLoading: agentLoading, opacity: 1 }">
-                <bk-form-item :label="$t('执行代理人')">
-                    <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
-                </bk-form-item>
-                <bk-form-item :label="$t('白名单用户')">
-                    <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
-                </bk-form-item>
-            </bk-form>
-        </section>
-        <section class="mandate-section">
-            <div class="title">
-                {{ $t('人员分组设置') }}({{ staffGroup.length }})
-                <bk-button theme="primary" @click="onEditStaffGroup('create')">{{ $t('增加分组') }}</bk-button>
-            </div>
-            <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1 }">
-                <bk-table-column :label="$t('序号')" :width="150" property="id"></bk-table-column>
-                <bk-table-column :label="$t('分组名称')" :width="300" property="name"></bk-table-column>
-                <bk-table-column :label="$t('成员')">
-                    <template slot-scope="props">
-                        {{props.row.members || '--'}}
-                    </template>
-                </bk-table-column>
-                <bk-table-column :label="$t('操作')" :width="300">
-                    <template slot-scope="props">
-                        <bk-button :text="true" @click="onEditStaffGroup('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                        <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
-                    </template>
-                </bk-table-column>
-            </bk-table>
-        </section>
-        <section class="mandate-section">
-            <div class="title">
-                {{ $t('标签设置') }}({{ labelList.length }})
-                <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
-            </div>
-            <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1 }">
-                <bk-table-column :label="$t('标签名称')" property="name" :width="150">
-                    <template slot-scope="props">
-                        <span class="label-name"
-                            :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
-                            {{ props.row.name }}</span>
-                    </template>
-                </bk-table-column>
-                <bk-table-column :label="$t('标签描述')" :width="300">
-                    <template slot-scope="props">
-                        {{ props.row.description || '--' }}
-                    </template>
-                </bk-table-column>
-                <bk-table-column :label="$t('标签引用')">
-                    <template slot-scope="props">
-                        {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
-                    </template>
-                </bk-table-column>
-                <bk-table-column :label="$t('系统默认标签')" :width="300">
-                    <template slot-scope="props">
-                        {{ props.row.is_default ? $t('是') : $t('否') }}
-                    </template>
-                </bk-table-column>
-                <bk-table-column :label="$t('操作')" :width="300">
-                    <template slot-scope="props">
-                        <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
-                            <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">
-                                {{ $t('编辑') }}
-                            </bk-button>
-                        </bk-popover>
-                        <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
-                            <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
-                                {{ $t('删除') }}
-                            </bk-button>
-                        </bk-popover>
-                    </template>
-                </bk-table-column>
-            </bk-table>
-        </section>
+                <bk-form class="agent-form" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
+                    <bk-form-item :label="$t('执行代理人')">
+                        <div class="user-list">{{ agent.executor_proxy || '--' }}</div>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('白名单用户')">
+                        <div class="user-list">{{ agent.executor_proxy_exempts || '--' }}</div>
+                    </bk-form-item>
+                </bk-form>
+            </section>
+            <section class="mandate-section">
+                <div class="title">
+                    {{ $t('人员分组设置') }}({{ staffGroup.length }})
+                    <bk-button theme="primary" @click="onEditStaffGroup('create')">{{ $t('增加分组') }}</bk-button>
+                </div>
+                <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1, zIndex: 100 }">
+                    <bk-table-column :label="$t('序号')" :width="150" property="id"></bk-table-column>
+                    <bk-table-column :label="$t('分组名称')" :width="300" property="name"></bk-table-column>
+                    <bk-table-column :label="$t('成员')">
+                        <template slot-scope="props">
+                            {{props.row.members || '--'}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('操作')" :width="300">
+                        <template slot-scope="props">
+                            <bk-button :text="true" @click="onEditStaffGroup('edit', props.row)">{{ $t('编辑') }}</bk-button>
+                            <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
+                        </template>
+                    </bk-table-column>
+                </bk-table>
+            </section>
+            <section class="mandate-section">
+                <div class="title">
+                    {{ $t('标签设置') }}({{ labelList.length }})
+                    <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
+                </div>
+                <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1, zIndex: 100 }">
+                    <bk-table-column :label="$t('标签名称')" property="name" :min-width="150">
+                        <template slot-scope="props">
+                            <span class="label-name"
+                                :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
+                                {{ props.row.name }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('标签描述')" :min-width="300">
+                        <template slot-scope="props">
+                            {{ props.row.description || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('标签引用')" :width="200">
+                        <template slot-scope="props">
+                            {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('系统默认标签')" :width="300">
+                        <template slot-scope="props">
+                            {{ props.row.is_default ? $t('是') : $t('否') }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('操作')" :width="200">
+                        <template slot-scope="props">
+                            <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
+                                <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">
+                                    {{ $t('编辑') }}
+                                </bk-button>
+                            </bk-popover>
+                            <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
+                                <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
+                                    {{ $t('删除') }}
+                                </bk-button>
+                            </bk-popover>
+                        </template>
+                    </bk-table-column>
+                </bk-table>
+            </section>
+        </div>
         <bk-dialog
             width="600"
             ext-cls="common-dialog"
@@ -265,14 +267,17 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import BkUserSelector from '@blueking/user-selector'
+    import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
+    import PageHeader from '@/components/layout/PageHeader.vue'
 
     export default {
         name: 'Mandate',
         components: {
-            BkUserSelector
+            BkUserSelector,
+            PageHeader
         },
         mixins: [permission],
         props: {
@@ -303,16 +308,8 @@
                 labelCount: {},
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`,
                 colorDropdownShow: false,
-                colorList: [
-                    '#f8d8d4', '#fff2c9', '#f4f8d4', '#d8edd9', '#c8e8e6',
-                    '#cde8fb', '#d0d6cc', '#dbd4ed', '#e3dddb', '#dedede',
-                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
-                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
-                ],
-                darkColorList: [
-                    '#e16a45', '#ee9f2d', '#c6c33c', '#79a649', '#1c9574',
-                    '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
-                ],
+                colorList: LABEL_COLOR_LIST,
+                darkColorList: DARK_COLOR_LIST,
                 descRules: {
                     value: [{
                         max: 512,
@@ -586,16 +583,24 @@
                 this.labelCount = {}
                 try {
                     const resp = await this.getProjectLabelsWithDefault(this.id)
-                    const defaultList = []
-                    const normalList = []
-                    resp.data.forEach(item => {
-                        item.is_default ? defaultList.push(item) : normalList.push(item)
-                    })
-                    this.labelList = [...normalList, ...defaultList]
-                    if (resp.data.length > 0) {
-                        const ids = resp.data.map(item => item.id).join(',')
-                        const labelData = await this.getlabelsCitedCount(ids)
-                        this.labelCount = labelData.data
+                    if (resp.result) {
+                        const defaultList = []
+                        const normalList = []
+                        resp.data.forEach(item => {
+                            item.is_default ? defaultList.push(item) : normalList.push(item)
+                        })
+                        this.labelList = [...normalList, ...defaultList]
+                        if (resp.data.length > 0) {
+                            const ids = resp.data.map(item => item.id).join(',')
+                            const labelData = await this.getlabelsCitedCount({ ids, project_id: this.id })
+                            if (labelData.result) {
+                                this.labelCount = labelData.data
+                            } else {
+                                errorHandler(labelData, this)
+                            }
+                        }
+                    } else {
+                        errorHandler(resp, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
@@ -604,8 +609,9 @@
                 }
             },
             onEditLabel (type, label) {
-                this.labelDetail = type === 'edit' ? { ...label, type: 'edit' } : { color: '#dcffe2', name: '', description: '' }
+                this.labelDetail = type === 'edit' ? { ...label, type: 'edit' } : { color: '#1c9574', name: '', description: '' }
                 this.isLabelDialogShow = true
+                this.colorDropdownShow = false
             },
             onSelectColor (val) {
                 this.labelDetail.color = val
@@ -674,30 +680,29 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
     .mandate-wrapper {
-        background: #ffffff;
-        min-height: calc(100vh - 50px);
+        min-height: calc(100vh - 52px);
         .mandate-header {
-            position: relative;
-            padding-left: 38px;
-            height: 47px;
-            line-height: 46px;
-            border-bottom: 1px solid #dcdee5;
-            font-size: 14px;
-            color: #313238;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
             .back-icon {
-                position: absolute;
-                left: 10px;
-                top: 8px;
-                font-size: 30px;
+                font-size: 28px;
                 color: #3a84ff;
                 cursor: pointer;
             }
         }
+        .mandate-page-content {
+            padding: 0 20px;
+            height: calc(100vh - 100px);
+            overflow: auto;
+            @include scrollbar;
+        }
         .project-info {
             display: flex;
             justify-content: flex-start;
-            padding: 40px 32px;
+            padding: 40px 0;
             background: #f4f7fa;
             .icon {
                 margin-right: 16px;
@@ -749,7 +754,7 @@
             }
         }
         .mandate-section {
-            padding: 32px;
+            padding: 32px 0;
             .title {
                 position: relative;
                 margin: 0 0 10px;

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -37,12 +37,14 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import CommonFlowIAMAuthorizationHelper
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 iam = get_iam_client()
 
 
 class PipelineTemplateResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelineTemplate.objects.filter(is_deleted=False)
         resource_name = "pipeline_template"
         authorization = ReadOnlyAuthorization()
@@ -70,7 +72,7 @@ class CommonTemplateResource(GCloudModelResource):
     subprocess_has_update = fields.BooleanField(attribute="subprocess_has_update", use_in="list", readonly=True)
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "common_template"
         filtering = {
@@ -132,6 +134,7 @@ class CommonTemplateResource(GCloudModelResource):
 
         return data
 
+    @record_operation(RecordType.common_template.name, OperateType.create.name, OperateSource.common.name)
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
@@ -160,6 +163,7 @@ class CommonTemplateResource(GCloudModelResource):
         kwargs["pipeline_template_id"] = pipeline_template.template_id
         return super(CommonTemplateResource, self).obj_create(bundle, **kwargs)
 
+    @record_operation(RecordType.common_template.name, OperateType.update.name, OperateSource.common.name)
     def obj_update(self, bundle, skip_errors=False, **kwargs):
         with transaction.atomic():
             obj = bundle.obj
@@ -182,6 +186,7 @@ class CommonTemplateResource(GCloudModelResource):
             bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % obj.pipeline_template.pk
             return super(CommonTemplateResource, self).obj_update(bundle, **kwargs)
 
+    @record_operation(RecordType.common_template.name, OperateType.delete.name, OperateSource.common.name)
     def obj_delete(self, bundle, **kwargs):
         try:
             common_tmpl = CommonTemplate.objects.get(id=kwargs["pk"], is_deleted=False)
@@ -212,7 +217,7 @@ class CommonTemplateResource(GCloudModelResource):
 class CommonTemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(attribute="data", use_in="detail",)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TemplateScheme.objects.all()
         resource_name = "common_scheme"
         authorization = Authorization()

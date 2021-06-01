@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -22,7 +21,8 @@ from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
-
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 try:
     from bkoauth.decorators import apigw_required
@@ -37,9 +37,10 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskOperateInterceptor())
+@record_operation(RecordType.task.name, OperateType.start.name, OperateSource.api.name)
 def start_task(request, task_id, project_id):
     username = request.user.username
     project = request.project
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
     ctx = task.task_action("start", username)
-    return JsonResponse({"task_url": task.url, **ctx})
+    return {"task_url": task.url, **ctx}

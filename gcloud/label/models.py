@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -31,7 +31,7 @@ class LabelManager(models.Manager):
 class Label(models.Model):
     name = models.CharField(_("标签名称"), max_length=255, db_index=True)
     creator = models.CharField(_("创建者"), max_length=255)
-    project_id = models.IntegerField(_("项目 ID"), default=-1)
+    project_id = models.IntegerField(_("项目 ID"), default=-1)  # project_id=-1为默认标签
     is_default = models.BooleanField(_("默认标签"), default=False)
     color = models.CharField(_("标签颜色"), max_length=7, default="#dcffe2")
     description = models.CharField(_("标签描述"), max_length=255, blank=True, null=True)

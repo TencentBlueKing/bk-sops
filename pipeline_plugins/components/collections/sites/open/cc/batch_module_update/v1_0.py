@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -28,7 +28,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     get_module_set_id,
 )
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 VERSION = "1.0"
 
@@ -41,7 +41,10 @@ class CCBatchModuleUpdateService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_tag_method", type="string", schema=StringItemSchema(description=_("填参方式")),
+                name=_("填参方式"),
+                key="cc_tag_method",
+                type="string",
+                schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
                 name=_("拓扑模块属性修改"),
@@ -66,12 +69,10 @@ class CCBatchModuleUpdateService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         bk_biz_name = parent_data.inputs.bk_biz_name
         cc_module_update_data = data.get_one_of_inputs("cc_module_update_data")
-        cc_template_break_line = data.get_one_of_inputs("cc_template_break_line")
+        cc_template_break_line = data.get_one_of_inputs("cc_template_break_line") or ","
         cc_tag_method = data.get_one_of_inputs("cc_tag_method")
 
-        # 如果用户没有输入分隔符，则默认为 ','
-        if not cc_template_break_line:
-            cc_template_break_line = ","
+        cc_module_update_data = convert_num_to_str(cc_module_update_data)
 
         attr_list = []
         # 如果用户选择了单行扩展
@@ -171,3 +172,8 @@ class CCBatchModuleUpdateComponent(Component):
     code = "cc_batch_module_update"
     bound_service = CCBatchModuleUpdateService
     form = "{static_url}components/atoms/cc/batch_module_update/v1_0.js".format(static_url=settings.STATIC_URL)
+    desc = _(
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

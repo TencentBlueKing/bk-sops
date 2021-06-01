@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,7 +12,34 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
+
 from six.moves.html_parser import HTMLParser
+
+
+"""
+Python 富文本XSS过滤类
+@package XssHtml
+@version 0.1
+@link http://phith0n.github.io/python-xss-filter
+@since 20150407
+@copyright (c) Phithon All Rights Reserved
+Based on native Python module HTMLParser purifier of HTML, To Clear all javascript in html
+You can use it in all python web framework
+Written by Phithon <root@leavesongs.com> in 2015 and placed in the public domain.
+phithon <root@leavesongs.com> 编写于20150407
+From: XDSEC <www.xdsec.org> & 离别歌 <www.leavesongs.com>
+GitHub Pages: https://github.com/phith0n/python-xss-filter
+Usage:
+    parser = XssHtml()
+    parser.feed('<html code>')
+    parser.close()
+    html = parser.get_html()
+    print html
+Requirements
+Python 2.6+ or 3.2+
+Cannot defense xss in browser which is belowed IE7
+浏览器版本：IE7+ 或其他浏览器，无法防御IE6及以下版本浏览器中的XSS
+"""
 
 
 class XssHtml(HTMLParser):
@@ -59,18 +86,20 @@ class XssHtml(HTMLParser):
     tags_own_attrs = {
         "img": ["src", "width", "height", "alt", "align"],
         "a": ["href", "target", "rel", "title"],
-        "embed": ["src", "width", "height", "type", "allowfullscreen", "loop", "play", "wmode", "menu"],
+        "embed": ["src", "width", "height", "type", "allowfullscreen", "loop", "play", "wmode", "menu",],
         "table": ["border", "cellpadding", "cellspacing"],
     }
 
     def __init__(self, allows=None):
         HTMLParser.__init__(self)
-        self.allow_tags = self.allow_tags if not allows else allows
+        if allows is None:
+            allows = []
+        self.allow_tags = allows if allows else self.allow_tags
         self.result = []
         self.start = []
         self.data = []
 
-    def getHtml(self):
+    def get_html(self):
         """
         Get the safe html code
         """
@@ -102,7 +131,7 @@ class XssHtml(HTMLParser):
 
         attrs = []
         for (key, value) in attdict.items():
-            attrs.append('%s="%s"' % (key, self.__htmlspecialchars(value)))
+            attrs.append('{}="{}"'.format(key, self.__htmlspecialchars(value)))
         attrs = (" " + " ".join(attrs)) if attrs else ""
         self.result.append("<" + tag + attrs + end_diagonal + ">")
 
@@ -216,4 +245,4 @@ if "__main__" == __name__:
         <embed src='javascript:alert(/hehe/)' allowscriptaccess=always />"""
     )
     parser.close()
-    print(parser.getHtml())
+    print(parser.get_html())

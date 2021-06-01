@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -43,10 +43,10 @@ from pipeline.core.flow.io import (
 )
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
-from pipeline_plugins.components.utils import batch_execute_func
 
 JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2

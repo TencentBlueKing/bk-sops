@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import abc
 import ujson as json
 
+from gcloud.taskflow3.models import TaskFlowInstance
 from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException
 
@@ -38,7 +39,7 @@ class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
         resources = res_factory.resources_for_task(task_id)
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
-        allowed = iam.is_allowed(request)
+        allowed = iam.is_allowed_with_cache(request)
 
         if not allowed:
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
@@ -95,3 +96,22 @@ class TaskFuncClaimInterceptor(TaskSingleActionPostInterceptor):
 
 class GetNodeLogInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION
+
+
+class StatusViewInterceptor(TaskSingleActionGetInterceptor):
+    action = IAMMeta.PROJECT_VIEW_ACTION
+
+    # 状态查询仅需要项目查看权限
+    def process(self, request, *args, **kwargs):
+        task_id = self.get_task_id(request, *args, **kwargs)
+        project_id = TaskFlowInstance.objects.filter(id=task_id).values_list("project_id", flat=True)[0]
+
+        subject = Subject("user", request.user.username)
+        action = Action(self.action)
+        resources = res_factory.resources_for_project(project_id)
+
+        request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
+        allowed = iam.is_allowed_with_cache(request)
+
+        if not allowed:
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)

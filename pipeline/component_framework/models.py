@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -32,6 +32,28 @@ class ComponentManager(models.Manager):
             name = _(name[1])
             component_dict[bundle.code] = "{}-{}".format(group_name, name)
         return component_dict
+
+    def get_component_dicts(self, other_component_list):
+        """
+        :param other_component_list: 结果集
+        :param index: 结果集中指标字段
+        :return:
+        """
+        components = self.filter(status=True).values("code", "version", "name")
+        total = components.count()
+        groups = []
+        for comp in components:
+            version = comp["version"]
+            # 插件名国际化
+            name = comp["name"].split("-")
+            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            code = "{}-{}".format(comp["code"], comp["version"])
+            value = 0
+            for oth_com_tmp in other_component_list:
+                if comp["code"] == oth_com_tmp[1] and comp["version"] == oth_com_tmp[2]:
+                    value = oth_com_tmp[0]
+            groups.append({"code": code, "name": name, "value": value})
+        return total, groups
 
 
 class ComponentModel(models.Model):

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -39,10 +39,22 @@ def _shield_words(sandbox, words):
         sandbox[shield_word] = None
 
 
+class ModuleObject:
+    def __init__(self, sub_paths, module):
+        if len(sub_paths) == 1:
+            setattr(self, sub_paths[0], module)
+            return
+        setattr(self, sub_paths[0], ModuleObject(sub_paths[1:], module))
+
+
 def _import_modules(sandbox, modules):
     for mod_path, alias in modules.items():
         mod = importlib.import_module(mod_path)
-        sandbox[alias] = mod
+        sub_paths = alias.split(".")
+        if len(sub_paths) == 1:
+            sandbox[alias] = mod
+        else:
+            sandbox[sub_paths[0]] = ModuleObject(sub_paths[1:], mod)
 
 
 def _mock_builtins():

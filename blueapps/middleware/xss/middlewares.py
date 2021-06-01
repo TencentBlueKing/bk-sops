@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,14 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
 import json
 import logging
+import re
 
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
-from .utils import html_escape, url_escape, html_escape_name, check_script
 
+from .utils import check_script, html_escape, html_escape_name, url_escape
 
 SITE_URL = settings.SITE_URL
 logger = logging.getLogger("app")
@@ -40,17 +40,17 @@ class CheckXssMiddleware(MiddlewareMixin):
                 getattr(view, "escape_exempt_param", []) if getattr(view, "escape_exempt_param", False) else []
             )
 
-            escapeType = None
+            escape_type = None
             if getattr(view, "escape_script", False):
-                escapeType = "script"
+                escape_type = "script"
             elif getattr(view, "escape_url", False):
-                escapeType = "url"
+                escape_type = "url"
             # get参数转换
-            request.GET = self.__escape_data(request.path, request.GET, escapeType)
+            request.GET = self.__escape_data(request.path, request.GET, escape_type)
             # post参数转换
-            request.POST = self.__escape_data(request.path, request.POST, escapeType)
-        except Exception as e:
-            logger.error(u"CheckXssMiddleware 转换失败！%s" % e)
+            request.POST = self.__escape_data(request.path, request.POST, escape_type)
+        except Exception as err:  # pylint: disable=broad-except
+            logger.error(u"CheckXssMiddleware 转换失败！%s" % err)
         return None
 
     def __escape_data(self, path, query_dict, escape_type=None):
@@ -66,7 +66,7 @@ class CheckXssMiddleware(MiddlewareMixin):
                 try:
                     json.loads(_get_value)
                     is_json = True
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     is_json = False
                 # 转义新数据
                 if not is_json:
@@ -86,14 +86,14 @@ class CheckXssMiddleware(MiddlewareMixin):
                             new_value = _get_value
                         else:
                             new_value = html_escape(_get_value, 1)
-                    except Exception as e:
-                        logger.error(u"CheckXssMiddleware GET/POST参数 转换失败！%s" % e)
+                    except Exception as err:  # pylint: disable=broad-except
+                        logger.error(u"CheckXssMiddleware GET/POST参数 转换失败！%s" % err)
                         new_value = _get_value
                 else:
                     try:
                         new_value = html_escape(_get_value, 1, True)
-                    except Exception as e:
-                        logger.error(u"CheckXssMiddleware GET/POST参数 转换失败！%s" % e)
+                    except Exception as err:  # pylint: disable=broad-except
+                        logger.error(u"CheckXssMiddleware GET/POST参数 转换失败！%s" % err)
                         new_value = _get_value
                 new_value_list.append(new_value)
             data_copy.setlist(_get_key, new_value_list)
@@ -129,8 +129,8 @@ class CheckXssMiddleware(MiddlewareMixin):
                     if is_path and param in script_v:
                         result = "script"
                         break
-        except Exception as e:
-            logger.error(u"CheckXssMiddleware 特殊path处理失败！%s" % e)
+        except Exception as err:  # pylint: disable=broad-except
+            logger.error(u"CheckXssMiddleware 特殊path处理失败！%s" % err)
             result = "html"
         return result
 

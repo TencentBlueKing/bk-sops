@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@
         <div class="search-input">
             <bk-input v-model.trim="searchStr" right-icon="bk-icon icon-search" @enter="onSearch"></bk-input>
         </div>
-        <div class="result-wrapper" v-bkloading="{ isLoading: searchLoading, opacity: 1 }">
+        <div class="result-wrapper" v-bkloading="{ isLoading: searchLoading, opacity: 1, zIndex: 100 }">
             <div class="result-title">
                 <h3>{{ $t('搜索结果') }}</h3>
                 <span>{{ $t('找到') }}</span>{{ searchResultTotal }}<span>{{ $t('条结果') }}</span>
@@ -22,7 +22,7 @@
             <template v-if="matchedList.length">
                 <div class="list-table template-list-table" v-if="tplDataLoading || tplData.length">
                     <bk-table
-                        v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: tplDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tplData"
                         :pagination="tplPagination"
                         @page-change="handlePageChange($event, 'tpl')"
@@ -91,7 +91,7 @@
                 </div>
                 <div class="list-table task-list-table" v-if="taskDataLoading || taskData.length">
                     <bk-table
-                        v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: taskDataLoading, opacity: 1, zIndex: 100 }"
                         :data="taskData"
                         :pagination="taskPagination"
                         @page-change="handlePageChange($event, 'task')"

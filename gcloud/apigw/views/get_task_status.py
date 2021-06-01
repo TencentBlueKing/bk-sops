@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -10,12 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from cachetools import cached, TTLCache
-from django.http import JsonResponse
+from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
-from gcloud.apigw.utils import api_hash_key
+from gcloud.apigw.utils import bucket_cached, BucketTTLCache, api_bucket_and_key
 from pipeline.engine import api as pipeline_api, states
 from pipeline.engine.exceptions import InvalidOperationException
 
@@ -39,7 +38,7 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
-@cached(cache=TTLCache(maxsize=1024, ttl=10), key=api_hash_key)
+@bucket_cached(BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}), bucket_and_key_func=api_bucket_and_key)
 def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")
@@ -57,7 +56,7 @@ def get_task_status(request, task_id, project_id):
                 "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
-            return JsonResponse(result)
+            return result
     else:
         # request subprocess
         try:
@@ -84,7 +83,7 @@ def get_task_status(request, task_id, project_id):
                 "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
-            return JsonResponse(result)
+            return result
 
     # 返回失败节点和对应调试信息
     if with_ex_data and task_status["state"] == states.FAILED:
@@ -103,4 +102,4 @@ def get_task_status(request, task_id, project_id):
         for node_id in failed_nodes:
             task_status["ex_data"].update({node_id: failed_nodes_outputs[node_id]["ex_data"]})
     result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
-    return JsonResponse(result)
+    return result

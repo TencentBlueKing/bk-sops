@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -28,7 +28,7 @@ STATIC_URL = "/static/"
 # REMOTE_STATIC_URL = '%sremote/' % STATIC_URL
 
 # Celery 消息队列设置 RabbitMQ
-# BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+# BROKER_URL = "amqp://guest:guest@localhost:5672/"
 # Celery 消息队列设置 Redis
 BROKER_URL = "redis://localhost:6379/0"
 
@@ -49,13 +49,11 @@ DATABASES = {
     },
 }
 
+CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
+
 LOG_PERSISTENT_DAYS = 1
 
-LOGGING["loggers"]["iam"] = {
-    "handlers": ["component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
+default.logging_addition_settings(LOGGING, environment="dev")
 
 # CELERY_ALWAYS_EAGER = True
 # TEST_RUNNER = 'djcelery.contrib.test_runner.' \
@@ -67,34 +65,3 @@ try:
     from local_settings import *  # noqa
 except ImportError:
     pass
-
-LOGGING["handlers"]["engine_component"] = {
-    "class": "pipeline.log.handlers.EngineContextLogHandler",
-    "formatter": "verbose",
-}
-
-LOGGING["loggers"]["component"] = {
-    "handlers": ["component", "engine_component"],
-    "level": "DEBUG",
-    "propagate": True,
-}
-
-LOGGING["formatters"]["light"] = {"format": "%(message)s"}
-
-LOGGING["handlers"]["engine"] = {
-    "class": "pipeline.log.handlers.EngineLogHandler",
-    "formatter": "light",
-}
-
-LOGGING["loggers"]["pipeline.logging"] = {
-    "handlers": ["engine"],
-    "level": "INFO",
-    "propagate": True,
-}
-
-# 多环境需要，celery的handler需要动态获取
-LOGGING["loggers"]["celery_and_engine_component"] = {
-    "handlers": ["engine_component", LOGGING["loggers"]["celery"]["handlers"][0]],
-    "level": "INFO",
-    "propagate": True,
-}

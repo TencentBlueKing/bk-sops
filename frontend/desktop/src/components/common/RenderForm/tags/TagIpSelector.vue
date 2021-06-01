@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8 }">
+    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8, zIndex: 100 }">
         <div v-if="formMode && typeof ipValue === 'object'" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
@@ -30,6 +30,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import IpSelector from '../IpSelector/index.vue'
@@ -63,7 +64,8 @@
                     topo: [],
                     filters: [],
                     excludes: [],
-                    with_cloud_id: false
+                    with_cloud_id: false,
+                    separator: ','
                 }
             }
         }
@@ -143,10 +145,37 @@
                     })
                 ]).then(values => {
                     if (Array.isArray(values)) {
-                        this.staticIpList = (values[0] && values[0].data) || []
-                        this.dynamicIpList = (values[1] && values[1].data) || []
-                        this.topoModelList = (values[2] && values[2].data) || []
-                        this.dynamicGroupList = (values[3] && values[3].data && values[3].data.info) || []
+                        values.forEach((v, index) => {
+                            if ('result' in v && !v.result) { // 异常处理
+                                errorHandler(v, this)
+                                return
+                            }
+                            switch (index) {
+                                case 0:
+                                    this.staticIpList = v.data
+                                    const value = tools.deepClone(this.value)
+                                    const ips = []
+                                    value.ip.forEach(item => {
+                                        // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则过滤掉
+                                        const ipItem = this.staticIpList.find(i => i.bk_host_innerip === item.bk_host_innerip)
+                                        if (ipItem) {
+                                            ips.push(tools.deepClone(ipItem))
+                                        }
+                                    })
+                                    value.ip = ips
+                                    this.updateForm(value)
+                                    break
+                                case 1:
+                                    this.dynamicIpList = v.data
+                                    break
+                                case 2:
+                                    this.topoModelList = v.data
+                                    break
+                                case 3:
+                                    this.dynamicGroupList = v.data.info
+                                    break
+                            }
+                        })
                     }
                     this.loading = false
                 }).catch(e => {

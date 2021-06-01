@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -458,7 +458,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 class TaskFlowInstance(models.Model):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
     pipeline_instance = models.ForeignKey(PipelineInstance, blank=True, null=True, on_delete=models.SET_NULL)
-    category = models.CharField(_("任务类型，继承自模板"), choices=TASK_CATEGORY, max_length=255, default="Other")
+    category = models.CharField(_("任务类型，继承自模板"), choices=TASK_CATEGORY, max_length=255, default="Default")
     template_id = models.CharField(_("创建任务所用的模板ID"), max_length=255, blank=True)
     template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
     create_method = models.CharField(_("创建方式"), max_length=30, choices=TASK_CREATE_METHOD, default="app")
@@ -875,7 +875,7 @@ class TaskFlowInstance(models.Model):
                 return {
                     "result": action_result.result,
                     "message": action_result.message,
-                    "code": err_code.OPERATION_FAIL.code,
+                    "code": err_code.SUCCESS.code,
                 }
 
             except ConvergeMatchError as e:

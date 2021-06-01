@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -79,6 +79,9 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         filters = {}
     orm_filters = produce_filter(filters)
     try:
+        # version 条件为插件版本，需要过滤掉
+        if "version" in orm_filters:
+            orm_filters.pop("version")
         tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
     except Exception as e:
         message = "query template params conditions[{filters}] have invalid key or value: {error}".format(

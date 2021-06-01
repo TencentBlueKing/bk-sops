@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,10 +14,10 @@ specific language governing permissions and limitations under the License.
 
 import jsonschema
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
@@ -26,6 +26,7 @@ from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import replace_template_id
 from gcloud.constants import PROJECT
+from gcloud.core.models import ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
@@ -52,6 +53,16 @@ except ImportError:
 @iam_intercept(CreatePeriodicTaskInterceptor())
 def create_periodic_task(request, template_id, project_id):
     project = request.project
+
+    # check if the periodic task of the project reach the limit
+    periodic_task_limit = env.PERIODIC_TASK_PROJECT_MAX_NUMBER
+    project_config = ProjectConfig.objects.filter(project_id=project.id).only("max_periodic_task_num").first()
+    if project_config and project_config.max_periodic_task_num > 0:
+        periodic_task_limit = project_config.max_periodic_task_num
+    if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
+        message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
+        return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
+
     params = json.loads(request.body)
     template_source = params.get("template_source", PROJECT)
     logger.info(
@@ -72,7 +83,7 @@ def create_periodic_task(request, template_id, project_id):
                 "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
     else:
         try:
@@ -83,7 +94,7 @@ def create_periodic_task(request, template_id, project_id):
                 "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
     params.setdefault("constants", {})
     params.setdefault("exclude_task_nodes_id", [])
@@ -92,7 +103,7 @@ def create_periodic_task(request, template_id, project_id):
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_periodic_task raise prams error: %s" % e)
         message = "task params is invalid: %s" % e
-        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     exclude_task_nodes_id = params["exclude_task_nodes_id"]
     pipeline_tree = template.pipeline_tree
@@ -100,7 +111,7 @@ def create_periodic_task(request, template_id, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     for key, val in list(params["constants"].items()):
         if key in pipeline_tree["constants"]:
@@ -113,7 +124,7 @@ def create_periodic_task(request, template_id, project_id):
         replace_template_id(TaskTemplate, pipeline_tree)
     except Exception as e:
         logger.exception("[API] create_periodic_task replace id error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     try:
         task = PeriodicTask.objects.create(
@@ -127,7 +138,7 @@ def create_periodic_task(request, template_id, project_id):
         )
     except Exception as e:
         logger.exception("[API] create_periodic_task create error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     data = info_data_from_period_task(task)
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}

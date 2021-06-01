@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,7 +13,7 @@
     <bk-sideslider
         :width="800"
         :is-show="isShow"
-        :quick-close="isReadonly"
+        :quick-close="true"
         :before-close="onBeforeClose">
         <div slot="header">
             <span>{{ $t('分支条件') }}</span>
@@ -31,7 +31,7 @@
                         v-validate="conditionRule"
                         name="conditionName">
                     </bk-input>
-                    <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
+                    <span v-show="veeErrors.has('conditionName')" class="common-error-tip error-msg">{{ veeErrors.first('conditionName') }}</span>
                 </div>
                 <div class="form-item">
                     <label class="label">
@@ -56,7 +56,7 @@
                             @input="onDataChange">
                         </code-editor>
                     </div>
-                    <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+                    <span v-show="veeErrors.has('expression')" class="common-error-tip error-msg">{{ veeErrors.first('expression') }}</span>
                 </div>
             </div>
             <div class="btn-wrap">
@@ -119,8 +119,16 @@
             },
             // 关闭配置面板
             onBeforeClose () {
-                this.close()
-                return true
+                if (this.isReadonly) {
+                    this.close()
+                    return true
+                }
+                const { name, value } = this.conditionData
+                if (this.conditionName === name && this.expression === value) {
+                    this.close()
+                    return true
+                }
+                this.$emit('onBeforeClose')
             },
             confirm () {
                 this.$validator.validateAll().then(result => {

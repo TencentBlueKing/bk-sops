@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -58,6 +58,7 @@
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
+            :template-labels="templateLabels"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -76,6 +77,7 @@
             NodeMenu
         },
         props: {
+            templateLabels: Array,
             atomTypeList: {
                 type: Object,
                 default () {
@@ -126,7 +128,7 @@
                 if (this.activeNodeListType === 'tasknode') {
                     return this.atomTypeList.tasknode
                 } else {
-                    return this.atomTypeList.subflow.groups
+                    return this.atomTypeList.subflow
                 }
             }
         },
@@ -247,7 +249,7 @@
                             },
                             {
                                 type: 'text',
-                                val: i18n.t('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                                val: i18n.t('当汇聚网关用于汇聚并行网关时，所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
                             }
                         ]
                     }

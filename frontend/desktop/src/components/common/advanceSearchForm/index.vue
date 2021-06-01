@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -62,6 +62,7 @@
                         <template v-if="item.type === 'select'">
                             <bk-select
                                 style="width: 260px;"
+                                :ext-popover-cls="item.key === 'label_ids' ? 'label-select' : ''"
                                 :placeholder="item.placeholder"
                                 :loading="item.loading"
                                 :clearable="true"
@@ -76,6 +77,14 @@
                                     :key="option.value"
                                     :id="option.value"
                                     :name="option.name">
+                                    <div v-if="item.key === 'label_ids'" class="label-select-option">
+                                        <span
+                                            class="label-select-color"
+                                            :style="{ background: option.color }">
+                                        </span>
+                                        <span>{{option.name}}</span>
+                                        <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                    </div>
                                 </bk-option>
                             </bk-select>
                         </template>
@@ -96,6 +105,7 @@
                                 :placeholder="item.placeholder">
                             </bk-input>
                         </template>
+                        <i v-if="item.tips" class="common-icon-info form-tips" v-bk-tooltips="item.tips"></i>
                     </bk-form-item>
                     <bk-form-item class="query-button">
                         <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
@@ -304,7 +314,7 @@
                 this.isAdvanceOpen = val === undefined ? !this.isAdvanceOpen : val
             },
             onClearFormItem (key) {
-                this.formData[key] = ''
+                this.formData[key] = key === 'label_ids' ? [] : ''
             },
             onChangeFormItem (val, key, type) {
                 if (type === 'dateRange') {
@@ -349,7 +359,7 @@
 .advance-search-wrapper {
     width: 100%;
     .operation-area {
-        margin: 20px 0;
+        margin: 0 0 20px 0;
         .operation-btn {
             float: left;
         }
@@ -429,11 +439,26 @@
                 min-width: 160px !important;
             }
         }
+        /deep/ .bk-select.is-focus {
+            background: #ffffff;
+            z-index: 1;
+        }
         .query-button {
             margin-left: 168px;
             .query-cancel {
                 margin-left: 5px;
             }
+        }
+    }
+    .form-tips {
+        position: absolute;
+        right: -20px;
+        top: 10px;
+        font-size: 16px;
+        color: #c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #f4aa1a;
         }
     }
 }

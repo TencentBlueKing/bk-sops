@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -31,6 +31,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
@@ -53,7 +54,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                initalRenderData: {}
             }
         },
         computed: {
@@ -89,6 +91,7 @@
                             for (const key in this.nodeInfo.data.inputs) {
                                 this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                             }
+                            this.initalRenderData = this.renderData
                         }
                     } else {
                         errorHandler(this.nodeInfo, this)
@@ -111,12 +114,15 @@
                     }
                 }
             },
+            judgeDataEqual () {
+                return tools.isDataEqual(this.initalRenderData, this.renderData)
+            },
             async onRetryTask () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.retrying) return
+                if (!formvalid || this.retrying) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
@@ -134,6 +140,7 @@
                             theme: 'success'
                         })
                         this.$emit('retrySuccess', node_id)
+                        return true
                     } else {
                         errorHandler(res, this)
                     }

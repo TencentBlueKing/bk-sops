@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -22,7 +22,7 @@ from .base import UploadRequestBartender
 
 logger = logging.getLogger("root")
 
-INVALID_CHAR_REGEX = re.compile('[\u4e00-\u9fa5\\/:*?"<>|,]')
+INVALID_CHAR_REGEX = re.compile('[\\/:*?"<>|,]')
 
 
 class UploadModuleBartender(UploadRequestBartender):
@@ -38,7 +38,7 @@ class UploadModuleBartender(UploadRequestBartender):
             return response
 
         if INVALID_CHAR_REGEX.findall(file_name):
-            message = _('文件上传失败，文件名不能包含中文和\\/:*?"<>|等特殊字符')
+            message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
             logger.error("[FILE_UPLOAD]invalid file_name: {}".format(message))
             response = JsonResponse({"result": False, "message": message})
             response.status_code = 400
