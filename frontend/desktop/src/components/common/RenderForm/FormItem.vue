@@ -36,7 +36,7 @@
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" class="rf-group-name">
-                <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
                 <span v-if="scheme.attrs.desc" class="rf-group-desc">
                     <i
                         v-bk-tooltips="{
