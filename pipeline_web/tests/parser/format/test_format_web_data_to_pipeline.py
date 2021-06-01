@@ -1677,7 +1677,8 @@ pipeline_tree = json.loads(
                                                         "is_param": false
                                                     }
                                                 },
-                                                "outputs": []
+                                                "outputs": [],
+                                                "pre_render_keys": ["${b}"]
                                             }
                                         },
                                         "params": {
@@ -1840,7 +1841,8 @@ pipeline_tree = json.loads(
                                             "is_param": true
                                         }
                                     },
-                                    "outputs": []
+                                    "outputs": [],
+                                    "pre_render_keys": []
                                 }
                             },
                             "params": {
@@ -1997,12 +1999,12 @@ pipeline_tree = json.loads(
                             },
                             "${v1}": {
                                 "type": "splice",
-                                "value": "12",
+                                "value": "${5 if int(h1) < 10 else h1}",
                                 "is_param": false
                             },
                             "${v2}": {
                                 "type": "splice",
-                                "value": "13",
+                                "value": "${int(v1) + 1}",
                                 "is_param": false
                             },
                             "${v3}": {
@@ -2028,7 +2030,8 @@ pipeline_tree = json.loads(
                                 "is_param": false
                             }
                         },
-                        "outputs": []
+                        "outputs": [],
+                        "pre_render_keys": ["${h1}", "${v1}", "${v2}", "${v3}", "${v4}", "${v5}", "${v6}"]
                     }
                 },
                 "params": {
@@ -2474,7 +2477,7 @@ pipeline_tree = json.loads(
                 },
                 "${time}": {
                     "type": "splice",
-                    "value": "3",
+                    "value": "${time2}",
                     "is_param": false
                 },
                 "${time2}": {
@@ -2496,12 +2499,12 @@ pipeline_tree = json.loads(
                 },
                 "${exp1}": {
                     "type": "splice",
-                    "value": "5",
+                    "value": "${5 if int(d) < 10 else d}",
                     "is_param": false
                 },
                 "${exp2}": {
                     "type": "splice",
-                    "value": "5",
+                    "value": "${5 if int(d) < 10 else d}",
                     "is_param": false
                 },
                 "${exp3}": {
@@ -2515,7 +2518,8 @@ pipeline_tree = json.loads(
                     "is_param": false
                 }
             },
-            "outputs": []
+            "outputs": [],
+            "pre_render_keys": ["${d}", "${exp1}", "${exp2}", "${exp3}", "${output_exp}", "${time2}", "${time}"]
         }
     }
     """
@@ -2537,7 +2541,6 @@ class FormatWebDataToPipelineTestCase(TestCase):
         全局变量引用输出变量解析
         子流程中隐藏变量 mako 预解析
         隐藏变量 mako 预解析
-        预渲染显示变量引用预渲染显示变量
-        预渲染显示变量引用预非渲染显示变量
+        得到预渲染变量key列表
         """
         self.assertEqual(format_web_data_to_pipeline(web_tree), pipeline_tree)
