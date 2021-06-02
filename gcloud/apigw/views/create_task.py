@@ -31,7 +31,7 @@ from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.utils.strings import pipeline_node_name_handle
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
 from gcloud.apigw.validators import CreateTaskValidator

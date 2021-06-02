@@ -17,7 +17,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.data.expression import ConstantTemplate
 
-from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.core.data import var
 from pipeline.core.data.context import Context
 from pipeline.core.data.converter import get_variable
@@ -25,20 +24,6 @@ from pipeline.core.data.library import VariableLibrary
 from pipeline_web.parser.format import calculate_constants_type
 
 logger = logging.getLogger("root")
-
-
-def get_template_context(pipeline_template, data_type, username=""):
-    try:
-        template = TaskTemplate.objects.get(pipeline_template=pipeline_template)
-    except TaskTemplate.DoesNotExist:
-        logger.warning("TaskTemplate Does not exist: pipeline_template.id=%s" % pipeline_template.pk)
-        return {}
-    context = {
-        "project_id": template.project.id,
-        "project_name": template.project.name,
-        "operator": template.pipeline_template.editor or username,
-    }
-    return context
 
 
 def get_constant_values(constants, extra_data):

@@ -29,8 +29,8 @@ from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.tasktmpl3.unified_api_utils import unified_batch_form
-from gcloud.tasktmpl3.validators import BatchFormValidator
+from gcloud.tasktmpl3.apis.django.unified_api_utils import unified_batch_form
+from gcloud.tasktmpl3.apis.django.validators import BatchFormValidator
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import string_to_boolean
 from gcloud.utils.decorators import request_validate

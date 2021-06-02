@@ -19,7 +19,7 @@ from iam.contrib.tastypie.authorization import IAMAuthorization, IAMReadDetailAu
 
 import env
 from gcloud.conf import settings
-from gcloud.tasktmpl3.resources import TaskTemplateResource
+from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker

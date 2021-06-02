@@ -19,20 +19,23 @@ from pipeline.core.flow.io import ItemSchema
 from pipeline.core.data.library import VariableLibrary
 from pipeline.component_framework.library import ComponentLibrary
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-VAR_SOURCE_TYPE_CUSTOM = 'custom'
-VAR_SOURCE_TYPE_INPUTS = 'component_inputs'
+VAR_SOURCE_TYPE_CUSTOM = "custom"
+VAR_SOURCE_TYPE_INPUTS = "component_inputs"
 
 
 def add_schema_for_input_vars(pipeline_tree):
     for var in list(pipeline_tree.get(PE.constants, {}).values()):
         try:
-            var['schema'] = SchemaFactory.schema_for_var(var)
+            var["schema"] = SchemaFactory.schema_for_var(var)
         except Exception:
-            var['schema'] = None
-            logger.error('error occurred when get schema for var {var}, error: {trace}'.format(
-                var=var, trace=traceback.format_exc()))
+            var["schema"] = None
+            logger.error(
+                "error occurred when get schema for var {var}, error: {trace}".format(
+                    var=var, trace=traceback.format_exc()
+                )
+            )
 
     return pipeline_tree
 
@@ -43,35 +46,38 @@ class SchemaFactory(object):
     @classmethod
     def _schema_check(cls, code, var, schema, type):
         if not schema:
-            return False, 'can not find schema for {type} {code}, var: {var}'.format(type=type, code=code, var=var)
+            return False, "can not find schema for {type} {code}, var: {var}".format(type=type, code=code, var=var)
 
         if not isinstance(schema, ItemSchema):
-            return False, 'schema of {type} {code} is not instance of ItemSchema'.format(type=type, code=code)
+            return False, "schema of {type} {code} is not instance of ItemSchema".format(type=type, code=code)
 
-        return True, ''
+        return True, ""
 
     @classmethod
     def decode_source_tag(cls, source_tag):
         if not source_tag:
             return None, None
 
-        segments = source_tag.split('.')
+        segments = source_tag.split(".")
         code, tag = segments[0], segments[1]
 
         return code, tag
 
     @classmethod
     def schema_for_var(cls, var):
-        source_type = var.get('source_type')
+        source_type = var.get("source_type")
         if source_type not in cls.accept_var_type:
             return None
 
-        source_tag = var.get('source_tag')
+        source_tag = var.get("source_tag")
         try:
             code, tag = cls.decode_source_tag(source_tag)
         except Exception:
-            logger.error('error occurred when decode source_tag for {key}, var: {var}, error: {trace}'.format(
-                key=var.get('key'), var=var, trace=traceback.format_exc()))
+            logger.error(
+                "error occurred when decode source_tag for {key}, var: {var}, error: {trace}".format(
+                    key=var.get("key"), var=var, trace=traceback.format_exc()
+                )
+            )
             return None
 
         if source_type == VAR_SOURCE_TYPE_INPUTS:
@@ -82,7 +88,7 @@ class SchemaFactory(object):
             else:
                 schema = component_cls.get_input_schema(key=tag)
 
-                ok, message = cls._schema_check(code=code, var=var, schema=schema, type='component')
+                ok, message = cls._schema_check(code=code, var=var, schema=schema, type="component")
                 if not ok:
                     logger.error(message)
                     return None
@@ -91,9 +97,9 @@ class SchemaFactory(object):
 
         if source_type == VAR_SOURCE_TYPE_CUSTOM:
             var_cls = VariableLibrary.get_var_class(code=code)
-            schema = getattr(var_cls, 'schema', None)
+            schema = getattr(var_cls, "schema", None)
 
-            ok, message = cls._schema_check(code=code, var=var, schema=schema, type='variable')
+            ok, message = cls._schema_check(code=code, var=var, schema=schema, type="variable")
             if not ok:
                 logger.error(message)
                 return None
