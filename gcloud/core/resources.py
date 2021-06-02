@@ -261,7 +261,7 @@ class ComponentModelResource(GCloudModelResource):
         bundle.data["group_icon"] = component.group_icon
         bundle.data["name"] = _(name[1])
         # 被前端插件继承js的地址
-        bundle.data["base"] = component.base
+        bundle.data["base"] = getattr(component, "base", None)
 
         return data
 

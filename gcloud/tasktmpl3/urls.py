@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
-from gcloud.tasktmpl3 import api
+from gcloud.tasktmpl3.apis.django import api
 
 urlpatterns = [
     url(r"^api/form/(?P<project_id>\d+)/$", api.form),

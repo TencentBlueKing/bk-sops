@@ -22,11 +22,9 @@ from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.tasktmpl3.unified_api_utils import unified_batch_form
-from gcloud.tasktmpl3.utils import get_constant_values
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
+
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
@@ -36,7 +34,18 @@ from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.validators import (
+from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
+from gcloud.contrib.analysis.analyse_items import task_template
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.template import (
+    FormInterceptor,
+    ExportInterceptor,
+    ImportInterceptor,
+    BatchFormInterceptor,
+)
+from gcloud.openapi.schema import AnnotationAutoSchema
+from gcloud.tasktmpl3.domains.constants import get_constant_values
+from .validators import (
     FormValidator,
     ExportValidator,
     ImportValidator,
@@ -46,15 +55,7 @@ from gcloud.tasktmpl3.validators import (
     AnalysisConstantsRefValidator,
     BatchFormValidator,
 )
-from gcloud.tasktmpl3.utils import analysis_pipeline_constants_ref
-from gcloud.contrib.analysis.analyse_items import task_template
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.template import (
-    FormInterceptor,
-    ExportInterceptor,
-    ImportInterceptor,
-    BatchFormInterceptor,
-)
+from .unified_api_utils import unified_batch_form
 
 logger = logging.getLogger("root")
 
@@ -85,31 +86,31 @@ def form(request, project_id):
 @iam_intercept(BatchFormInterceptor())
 def batch_form(request, project_id):
     """
-   项目流程批量获取表单数据
+    项目流程批量获取表单数据
 
-    通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+     通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
 
-    body: data
-    {
-        "templates(required)": [
-            {
-                "id": "流程ID(integer)",
-                "version": "流程版本(string)"
-            }
-        ]
-    }
+     body: data
+     {
+         "templates(required)": [
+             {
+                 "id": "流程ID(integer)",
+                 "version": "流程版本(string)"
+             }
+         ]
+     }
 
-    return: 每个流程当前版本和指定版本的表单数据列表
-    {
-        "template_id": [
-            {
-                "form": "流程表单(dict)",
-                "outputs": "流程输出(dict)",
-                "version": "版本号(string)",
-                "is_current": "是否当前版本(boolean)"
-            }
-        ]
-    }
+     return: 每个流程当前版本和指定版本的表单数据列表
+     {
+         "template_id": [
+             {
+                 "form": "流程表单(dict)",
+                 "outputs": "流程输出(dict)",
+                 "version": "版本号(string)",
+                 "is_current": "是否当前版本(boolean)"
+             }
+         ]
+     }
     """
     return unified_batch_form(request, project_id)
 

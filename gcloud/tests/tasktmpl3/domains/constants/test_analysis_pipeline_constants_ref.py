@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from gcloud.tasktmpl3.utils import analysis_pipeline_constants_ref
+from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 

@@ -10,16 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-PROJECT = "project"
-BUSINESS = "business"
-COMMON = "common"
-ONETIME = "onetime"
-
-TEMPLATE_EXPORTER_SOURCE_PROJECT = "project"
-TEMPLATE_EXPORTER_SOURCE_COMMON = "common"
-TEMPLATE_EXPORTER_VERSION = 1
-BIZ_INTERNAL_SET = "空闲机池"
-BIZ_INTERNAL_MODULE = ("空闲机", "待回收", "故障机")
-
-NON_COMMON_TEMPLATE_TYPES = {BUSINESS, PROJECT}

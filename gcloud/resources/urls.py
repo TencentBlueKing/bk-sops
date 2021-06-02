@@ -30,7 +30,7 @@ from gcloud.core.resources import (
 )
 from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.label.viewsets import LabelViewSet
-from gcloud.tasktmpl3.resources import (
+from gcloud.tasktmpl3.apis.tastypie.resources import (
     TaskTemplateResource,
     # TemplateSchemeResource,
 )

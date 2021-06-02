@@ -40,7 +40,7 @@ from gcloud.utils.dates import format_datetime
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import replace_template_id
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.context import TaskContext
 from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
