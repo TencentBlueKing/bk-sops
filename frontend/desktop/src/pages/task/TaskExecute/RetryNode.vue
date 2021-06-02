@@ -30,6 +30,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
