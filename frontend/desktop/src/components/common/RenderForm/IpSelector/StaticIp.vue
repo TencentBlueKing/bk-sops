@@ -340,6 +340,10 @@
                 const index = this.staticIps.findIndex(item => item.bk_host_id === id)
                 const staticIps = this.staticIps.slice(0)
                 staticIps.splice(index, 1)
+                if (this.isSearchMode) { // 搜索模式下移除 ip
+                    this.searchResult = []
+                    this.setDisplayList()
+                }
                 this.$emit('change', staticIps)
             },
             onAddIpConfirm (data) {

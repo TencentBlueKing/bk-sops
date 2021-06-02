@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-tree" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="tag-tree" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <no-data v-if="items.length === 0"></no-data>
         <template v-else>
             <bk-big-tree

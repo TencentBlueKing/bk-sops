@@ -25,20 +25,14 @@ class UserDefaultProjectTestCase(TestCase):
 
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_init_user_default_project__first_set(self):
-        project = Project.objects.create(name='name',
-                                         creator='creator',
-                                         desc='', )
-        dp = UserDefaultProject.objects.init_user_default_project('username', project)
+        project = Project.objects.create(name="name", creator="creator", desc="",)
+        dp = UserDefaultProject.objects.init_user_default_project("username", project)
         self.assertEqual(dp.default_project.id, project.id)
 
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_init_user_default_project__second_set(self):
-        project_1 = Project.objects.create(name='name',
-                                           creator='creator',
-                                           desc='', )
-        project_2 = Project.objects.create(name='name',
-                                           creator='creator',
-                                           desc='', )
-        UserDefaultProject.objects.init_user_default_project('username', project_1)
-        dp = UserDefaultProject.objects.init_user_default_project('username', project_2)
+        project_1 = Project.objects.create(name="name", creator="creator", desc="",)
+        project_2 = Project.objects.create(name="name2", creator="creator", desc="",)
+        UserDefaultProject.objects.init_user_default_project("username", project_1)
+        dp = UserDefaultProject.objects.init_user_default_project("username", project_2)
         self.assertEqual(dp.default_project.id, project_1.id)

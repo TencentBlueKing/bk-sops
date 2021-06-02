@@ -394,7 +394,8 @@
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
             validate (combineValue) {
-                if (!this.hook) {
+                // 表单未被勾选并且为显示状态
+                if (!this.hook && this.showForm) {
                     return this.$refs.tagComponent.validate(combineValue)
                 }
                 return true

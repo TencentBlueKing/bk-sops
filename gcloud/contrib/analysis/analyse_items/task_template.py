@@ -79,6 +79,9 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         filters = {}
     orm_filters = produce_filter(filters)
     try:
+        # version 条件为插件版本，需要过滤掉
+        if "version" in orm_filters:
+            orm_filters.pop("version")
         tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
     except Exception as e:
         message = "query template params conditions[{filters}] have invalid key or value: {error}".format(

@@ -64,6 +64,7 @@
                 renderConfig: [],
                 metaConfig: {},
                 renderData: {},
+                initalRenderData: {},
                 isConfigLoading: true,
                 isNoData: false
             }
@@ -174,6 +175,7 @@
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
                 }
+                this.initalRenderData = this.renderData
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)
@@ -182,7 +184,20 @@
             validate () {
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
+            judgeDataEqual () {
+                const formvalid = this.validate()
+                if (formvalid) {
+                    return tools.isDataEqual(this.initalRenderData, this.renderData)
+                } else {
+                    return false
+                }
+            },
             async getVariableData () {
+                // renderform表单校验
+                const formValid = this.validate()
+                if (!formValid) {
+                    return
+                }
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]

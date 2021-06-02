@@ -77,7 +77,7 @@
                 <bk-tab-panel v-for="tab in tabs" :key="tab.id" v-bind="{ name: tab.id, label: tab.name }">
                     <bk-table
                         class="tab-data-table"
-                        v-bkloading="{ isLoading: tableDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: tableDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tableData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
@@ -371,14 +371,14 @@
             async getTableData () {
                 try {
                     this.tableDataLoading = true
-                    const componentCode = this.tableAtom.split('&')[0]
-                    const selectedAtom = this.atomListData.find(item => item.id === componentCode)
+                    const componentCode = this.tableAtom.split('&')
+                    const selectedAtom = this.atomListData.find(item => item.id === componentCode[0] && item.version === componentCode[1])
                     const query = {
                         group_by: this.activeTab,
                         conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
-                            component_code: componentCode,
+                            component_code: componentCode[0],
                             version: selectedAtom ? selectedAtom.version : undefined,
                             project_id: this.tableProject,
                             category: this.tableCategory,

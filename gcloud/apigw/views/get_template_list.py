@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -49,7 +48,7 @@ def get_template_list(request, project_id):
             id_in = id_in.split(",")
         except Exception:
             id_in = None
-            logger.error("[API] id_in[{}] resolve fail, ignore.".format(id_in))
+            logger.exception("[API] id_in[{}] resolve fail, ignore.".format(id_in))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:
@@ -63,6 +62,4 @@ def get_template_list(request, project_id):
         templates = TaskTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
-    return JsonResponse(
-        {"result": True, "data": format_template_list_data(templates, project), "code": err_code.SUCCESS.code}
-    )
+    return {"result": True, "data": format_template_list_data(templates, project), "code": err_code.SUCCESS.code}

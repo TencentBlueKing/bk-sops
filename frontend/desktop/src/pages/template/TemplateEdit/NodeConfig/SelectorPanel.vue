@@ -55,64 +55,107 @@
                 <no-data v-else></no-data>
             </template>
             <div v-else class="subflow-list">
-                <div v-if="!common" class="label-select-wrap">
-                    <bk-select
-                        ext-popover-cls="label-select"
-                        style="width: 270px;"
-                        v-model="activeGroup"
-                        :placeholder="$t('请选择标签')"
-                        :display-tag="true"
-                        :multiple="true"
-                        :clearable="true"
-                        :searchable="true"
-                        @change="onSelectGroup">
-                        <bk-option
-                            v-for="(item, index) in templateLabels"
-                            class="node-item-option"
-                            :key="index"
-                            :id="item.id"
-                            :name="item.name">
-                            <div class="label-select-option">
-                                <span
-                                    class="label-select-color"
-                                    :style="{ background: item.color }">
-                                </span>
-                                <span>{{item.name}}</span>
-                                <i class="bk-option-icon bk-icon icon-check-1"></i>
-                            </div>
-                        </bk-option>
-                    </bk-select>
-                </div>
-                <div :class="['tpl-list', { 'has-label-select': !common }]">
-                    <template v-if="listInPanel.length > 0">
-                        <div
-                            v-for="item in listInPanel"
-                            v-cursor="{ active: !item.hasPermission }"
-                            :class="['tpl-item', {
-                                'active': getSelectedStatus(item),
-                                'text-permission-disable': !item.hasPermission
-                            }]"
-                            :key="item.id"
-                            @click="onTplClick(item)">
-                            <div class="name-content">
-                                <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
-                                <div class="name" v-else>{{ item.name }}</div>
-                                <span class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
-                                    <i class="common-icon-box-top-right-corner"></i>
-                                </span>
-                            </div>
-                            <div v-if="!common && item.template_labels.length > 0" class="labels-wrap">
-                                <span
-                                    v-for="label in item.template_labels"
-                                    class="label-item"
-                                    :key="label.id"
-                                    :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }">
-                                    {{ label.name }}
-                                </span>
+                <div class="list-table">
+                    <div class="table-head">
+                        <div class="th-item tpl-name">{{ $t('流程名称') }}</div>
+                        <div class="th-item tpl-label">
+                            <span>{{ $t('标签') }}</span>
+                            <div v-if="!common" class="label-select-wrap">
+                                <div
+                                    class="selected-label-name"
+                                    v-bk-tooltips="{
+                                        placement: 'bottom-left',
+                                        allowHtml: 'true',
+                                        theme: 'light',
+                                        hideOnClick: false,
+                                        extCls: 'tpl-label-popover',
+                                        content: '#tpl-label-popover-content',
+                                        onShow: handleLabelSelectorOpen,
+                                        onHide: handleLabelSelectorClose
+                                    }">
+                                    <span v-bk-overflow-tips class="label-content" :style="getLabelStyle(activeGroup)">{{ selectedLabelName }}</span>
+                                    <i :class="['bk-icon', 'icon-angle-down', { 'active': isLabelSelectorOpen }]"></i>
+                                </div>
+                                <div id="tpl-label-popover-content">
+                                    <div
+                                        v-for="item in labels"
+                                        v-bk-overflow-tips
+                                        :class="['tpl-label-item', { 'active': activeGroup === item.id }]"
+                                        :key="item.id"
+                                        @click="onSelectGroup(item.id)">
+                                        <span
+                                            class="label-content"
+                                            :style="getLabelStyle(item.id)">
+                                            {{ item.name }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <!-- <bk-popover
+                                    placement="bottom-left"
+                                    theme="light"
+                                    :arrow="false"
+                                    :width="200"
+                                    :on-show="handleLabelSelectorOpen"
+                                    :on-hide="handleLabelSelectorClose"
+                                    trigger="click"
+                                    :tippy-options="{
+                                        hideOnClick: false,
+                                        duration: [0, 0]
+                                    }"
+                                    ext-cls="tpl-label-popover">
+                                    <div class="selected-label-name">
+                                        <span class="label-content" :style="getLabelStyle(activeGroup)">{{ selectedLabelName }}</span>
+                                        <i :class="['bk-icon', 'icon-angle-down', { 'active': isLabelSelectorOpen }]"></i>
+                                    </div>
+                                    <div slot="content">
+                                        <div
+                                            v-for="item in labels"
+                                            :class="['tpl-label-item', { 'active': activeGroup === item.id }]"
+                                            :key="item.id"
+                                            @click="onSelectGroup(item.id)">
+                                            <span
+                                                class="label-content"
+                                                :style="getLabelStyle(item.id)">
+                                                {{ item.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </bk-popover> -->
                             </div>
                         </div>
-                    </template>
-                    <no-data v-else></no-data>
+                    </div>
+                    <div class="tpl-list">
+                        <template v-if="listInPanel.length > 0">
+                            <div
+                                v-for="item in listInPanel"
+                                v-cursor="{ active: !item.hasPermission }"
+                                :class="['tpl-item', {
+                                    'active': getSelectedStatus(item),
+                                    'text-permission-disable': !item.hasPermission
+                                }]"
+                                :key="item.id"
+                                @click="onTplClick(item)">
+                                <div class="tpl-name name-content">
+                                    <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
+                                    <div class="name" v-else>{{ item.name }}</div>
+                                    <span class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
+                                        <i class="common-icon-box-top-right-corner"></i>
+                                    </span>
+                                </div>
+                                <div v-if="!common && item.template_labels.length > 0" class="tpl-label labels-wrap">
+                                    <span
+                                        v-for="label in item.template_labels"
+                                        v-bk-overflow-tips
+                                        class="label-item"
+                                        :key="label.id"
+                                        :style="getLabelStyle(label.label_id)">
+                                        {{ label.name }}
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                        <no-data v-else></no-data>
+                    </div>
                 </div>
             </div>
         </div>
@@ -122,6 +165,7 @@
 <script>
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
+    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
 
@@ -146,7 +190,8 @@
                 darkColorList: DARK_COLOR_LIST,
                 searchStr: '',
                 searchResult: [],
-                activeGroup: this.isSubflow ? [] : this.getDefaultActiveGroup()
+                isLabelSelectorOpen: false,
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
             }
         },
         computed: {
@@ -156,6 +201,20 @@
                     return group ? group.list : []
                 }
                 return []
+            },
+            labels () {
+                const list = this.templateLabels.slice(0)
+                list.unshift({
+                    id: 0,
+                    name: i18n.t('默认全部')
+                })
+                return list
+            },
+            selectedLabelName () {
+                if (this.isSubflow && this.activeGroup) {
+                    return this.templateLabels.find(item => item.id === this.activeGroup).name
+                }
+                return ''
             }
         },
         created () {
@@ -191,6 +250,16 @@
                     return `common-icon-sys-${systemType.toLowerCase()}`
                 }
                 return 'common-icon-sys-default'
+            },
+            getLabelStyle (id) {
+                if (id) {
+                    const label = this.templateLabels.find(item => item.id === Number(id))
+                    return {
+                        background: label.color,
+                        color: this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
+                    }
+                }
+                return { color: '#000000', minWidth: 'unset', padding: '2px' }
             },
             /**
              * 选择插件分组
@@ -253,8 +322,8 @@
                         let matchName = true
                         const tplCopy = { ...tpl }
 
-                        if (this.activeGroup.length > 0) {
-                            matchLabel = this.activeGroup.every(item => tpl.template_labels.find(label => label.label_id === Number(item)))
+                        if (this.activeGroup) {
+                            matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
                         }
                         if (this.searchStr !== '') {
                             if (!reg.test(tpl.name)) {
@@ -270,6 +339,12 @@
                     })
                 }
                 this.listInPanel = result
+            },
+            handleLabelSelectorOpen () {
+                this.isLabelSelectorOpen = true
+            },
+            handleLabelSelectorClose () {
+                this.isLabelSelectorOpen = false
             },
             onTplClick (tpl) {
                 if (tpl.hasPermission) {
@@ -390,30 +465,72 @@
     }
 }
 .subflow-list {
+    padding: 17px 24px;
     height: 100%;
-    .label-select-wrap {
-        padding: 14px 20px;
-        height: 60px;
-        border-bottom: 1px solid #e2e4ed;
-        .bk-select.is-focus {
-            background: #ffffff;
+    .list-table {
+        border: 1px solid #dcdee5;
+        border-radius: 3px;
+        .table-head {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #fafbfd;
+            border-bottom: 1px solid hsl(227, 15%, 88%);
+            .th-item {
+                color: #313238;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            .tpl-name {
+                flex: 0 0 auto;
+                width: 420px;
+            }
+            .tpl-label {
+                display: flex;
+                align-items: center;
+                .label-select-wrap {
+                    cursor: pointer;
+                    .selected-label-name {
+                        display: flex;
+                        align-items: center;
+                        transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+                        & > i {
+                            font-size: 14px;
+                            &.active {
+                                transform: rotate(-180deg);
+                            }
+                        }
+                    }
+                    .label-content {
+                        display: inline-block;
+                        margin-left: 4px;
+                        max-width: 144px;
+                        min-width: 40px;
+                        padding: 2px 6px;
+                        font-size: 12px;
+                        line-height: 1;
+                        color: #63656e;
+                        border-radius: 8px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        cursor: pointer;
+                    }
+                }
+            }
         }
     }
     .tpl-list {
-        height: 100%;
+        max-height: calc(100vh - 160px);
         overflow: auto;
         @include scrollbar;
-        &.has-label-select {
-            height: calc(100% - 60px);
-        }
     }
     .tpl-item {
         display: flex;
-        padding: 0 20px;
         min-height: 40px;
         align-items: center;
-        justify-content: space-between;
         color: #63656e;
+        border-bottom: 1px solid #dcdee5;
         cursor: pointer;
         &:hover:not(.text-permission-disable), &.active:not(.text-permission-disable) {
             background: #e1ecff;
@@ -421,11 +538,17 @@
                 color: #3a84ff;
             }
         }
+        &:last-child {
+            border: none;
+        }
         .name-content {
             display: flex;
             align-items: center;
+            flex: 0 0 auto;
+            width: 420px;
         }
         .name {
+            padding: 0 13px;
             font-size: 12px;
             max-width: 400px;
             overflow: hidden;
@@ -438,18 +561,57 @@
             font-size: 14px;
         }
         .labels-wrap {
-            width: 240px;
+            padding-right: 13px;
             .label-item {
                 display: inline-block;
+                max-width: 144px;
+                min-width: 40px;
                 margin: 4px 0 4px 4px;
                 padding: 2px 6px;
                 font-size: 12px;
                 line-height: 1;
                 color: #63656e;
                 border-radius: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 cursor: pointer;
             }
         }
     }
 }
+</style>
+<style lang="scss">
+    .tpl-label-popover {
+        background: #ffffff;
+        .tippy-tooltip {
+            padding: 7px 0;
+            max-height: 180px;
+            overflow: auto;
+        }
+        .tpl-label-item {
+            padding: 4px 13px;
+            cursor: pointer;
+            &:hover {
+                background: #eaf3ff;
+            }
+            &.active {
+                background: #f4f6fa;
+            }
+            .label-content {
+                display: inline-block;
+                max-width: 144px;
+                min-width: 40px;
+                padding: 2px 6px;
+                font-size: 12px;
+                line-height: 1;
+                color: #63656e;
+                border-radius: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                cursor: pointer;
+            }
+        }
+    }
 </style>

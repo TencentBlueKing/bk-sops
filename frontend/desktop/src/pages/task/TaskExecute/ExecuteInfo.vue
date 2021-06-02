@@ -23,7 +23,7 @@
                 'loading': loading,
                 'admin-view': adminView
             }]"
-            v-bkloading="{ isLoading: loading, opacity: 1 }">
+            v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <div class="excute-time" v-if="!adminView && isReadyStatus">
                 <span>{{$t('第')}}</span>
                 <bk-select
@@ -74,9 +74,9 @@
                     </table>
                     <NoData v-else></NoData>
                 </section>
-                <section class="info-section">
+                <section class="info-section" v-if="executeInfo.id">
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
-                    <OperationFlow></OperationFlow>
+                    <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
                 <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title input-parameter">
@@ -157,7 +157,7 @@
                 </section>
                 <section class="info-section">
                     <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
+                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
                         <NoData v-else></NoData>
                     </div>
@@ -194,7 +194,7 @@
                                 </div>
                                 <div class="common-form-item">
                                     <label>{{ $t('日志') }}</label>
-                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
                                         <div class="common-form-content" v-if="historyLog[props.row.history_id]">
                                             <div class="code-block-wrap" v-if="adminView">
                                                 <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
@@ -571,7 +571,7 @@
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
-                    this.theExecuteTime = 1
+                    this.theExecuteTime = undefined
                     this.loadNodeInfo()
                 }
             }

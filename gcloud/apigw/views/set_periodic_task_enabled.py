@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -43,18 +42,18 @@ def set_periodic_task_enabled(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     enabled = params.get("enabled", False)
 
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
-        return JsonResponse(
-            {"result": False, "message": "task(%s) does not exist" % task_id, "code": err_code.CONTENT_NOT_EXIST.code}
-        )
+        return {
+            "result": False,
+            "message": "task(%s) does not exist" % task_id,
+            "code": err_code.CONTENT_NOT_EXIST.code,
+        }
 
     task.set_enabled(enabled)
-    return JsonResponse({"result": True, "data": {"enabled": task.enabled}, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": {"enabled": task.enabled}, "code": err_code.SUCCESS.code}

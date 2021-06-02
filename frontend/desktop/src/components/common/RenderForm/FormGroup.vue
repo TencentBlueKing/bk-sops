@@ -217,7 +217,8 @@
             },
             validate () {
                 let isValid = true
-                if (!this.hook) {
+                // 表单未被勾选并且为显示状态
+                if (!this.hook && this.showForm) {
                     this.$children.forEach(childComp => {
                         const compType = childComp.$options.name
 

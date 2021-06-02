@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock
 
@@ -55,22 +55,12 @@ GET_HOST_ID_BY_INNER_IP = (
 
 # mock clients
 CASE_FAIL_CLIENT = MockClient(
-    plugin_operate={
-        "result": False,
-        "code": "500",
-        "message": "fail",
-        "data": {"job_id": "1"},
-    },
+    plugin_operate={"result": False, "code": "500", "message": "fail", "data": {"job_id": "1"}},
     details_return={"result": False, "code": "500", "message": "fail", "data": {}},
 )
 
 INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
-    plugin_operate={
-        "result": True,
-        "code": "00",
-        "message": "success",
-        "data": {"job_id": "1"},
-    },
+    plugin_operate={"result": True, "code": "00", "message": "success", "data": {"plugin": "1"}},
     details_return={
         "result": True,
         "code": "00",
@@ -92,12 +82,7 @@ INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
 
 
 DETAILS_FAIL_CLIENT = MockClient(
-    plugin_operate={
-        "result": True,
-        "code": "00",
-        "message": "success",
-        "data": {"job_id": "1"},
-    },
+    plugin_operate={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
     details_return={
         "result": True,
         "code": "00",
@@ -150,14 +135,18 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(
-        success=True, outputs={"job_url": ["None/#/task-history/1/log/host|instance|host|1"], "job_id": "1"}
+        success=True,
+        outputs={
+            "job_url": ["{}/#/task-history/1/log/host|instance|host|1".format(settings.BK_NODEMAN_HOST)],
+            "job_id": "1",
+        },
     ),
     schedule_assertion=ScheduleAssertion(
         success=True,
         callback_data=None,
         schedule_finished=True,
         outputs={
-            "job_url": ["None/#/task-history/1/log/host|instance|host|1"],
+            "job_url": ["{}/#/task-history/1/log/host|instance|host|1".format(settings.BK_NODEMAN_HOST)],
             "job_id": "1",
             "success_num": 1,
             "fail_num": 0,
@@ -179,10 +168,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),

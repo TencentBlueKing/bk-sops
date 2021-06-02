@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -33,6 +32,8 @@ from gcloud.apigw.validators import FastCreateTaskValidator
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FastCreateTaskInterceptor
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 try:
     from bkoauth.decorators import apigw_required
@@ -48,6 +49,7 @@ except ImportError:
 @project_inject
 @request_validate(FastCreateTaskValidator)
 @iam_intercept(FastCreateTaskInterceptor())
+@record_operation(RecordType.task.name, OperateType.create.name, OperateSource.api.name)
 def fast_create_task(request, project_id):
 
     params = request.params_json
@@ -67,9 +69,7 @@ def fast_create_task(request, project_id):
             "description": params.get("description", ""),
         }
     except (KeyError, ValueError) as e:
-        return JsonResponse(
-            {"result": False, "message": "invalid params: %s" % str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid params: %s" % str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
 
     has_common_subprocess = params.get("has_common_subprocess", False)
     try:
@@ -82,7 +82,7 @@ def fast_create_task(request, project_id):
     except PipelineException as e:
         message = "[API] fast_create_task create pipeline error: %s" % str(e)
         logger.exception(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
     taskflow_kwargs = {
         "project": project,
@@ -101,10 +101,8 @@ def fast_create_task(request, project_id):
         taskflow_kwargs["flow_type"] = "common"
         taskflow_kwargs["current_flow"] = "execute_task"
     task = TaskFlowInstance.objects.create(**taskflow_kwargs)
-    return JsonResponse(
-        {
-            "result": True,
-            "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
-            "code": err_code.SUCCESS.code,
-        }
-    )
+    return {
+        "result": True,
+        "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
+        "code": err_code.SUCCESS.code,
+    }

@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -235,7 +235,7 @@
                                     attrs: {
                                         name: gettext("内网IP"),
                                         placeholder: gettext("多个用英文逗号 `,` 或换行分隔"),
-                                        width: "100px",
+                                        width: "180px",
                                         editable: true,
                                         validation: [
                                             {
@@ -250,7 +250,7 @@
                                     attrs: {
                                         name: gettext("外网IP"),
                                         placeholder: gettext("可选,如填写需与内网ip一一对应,多个用英文逗号 `,` 或换行分隔"),
-                                        width: "100px",
+                                        width: "180px",
                                         editable: true,
                                         validation: []
                                     }
@@ -261,7 +261,7 @@
                                     attrs: {
                                         name: gettext("登录IP"),
                                         placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写,多个用英文逗号 `,` 或换行分隔"),
-                                        width: "100px",
+                                        width: "180px",
                                         editable: true
                                     }
                                 },
@@ -271,7 +271,7 @@
                                     attrs: {
                                         name: gettext("数据IP"),
                                         placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写,多个用英文逗号 `,` 或换行分隔"),
-                                        width: "100px",
+                                        width: "180px",
                                         editable: true,
 
                                     }
@@ -281,7 +281,7 @@
                                     type: "select",
                                     attrs: {
                                         name: gettext("操作系统类型"),
-                                        width: "100px",
+                                        width: "180px",
                                         items: [
                                             {value: "LINUX", text: gettext("LINUX")},
                                             {value: "WINDOWS", text: gettext("WINDOWS")},
@@ -300,8 +300,13 @@
                                     type: "input",
                                     attrs: {
                                         name: gettext("登录账号"),
-                                        width: "100px",
-                                        editable: true
+                                        width: "180px",
+                                        editable: true,
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            }
+                                        ]
                                     }
                                 },
                                 {
@@ -323,7 +328,7 @@
                                     type: "select",
                                     attrs: {
                                         name: gettext("认证方式"),
-                                        width: "100px",
+                                        width: "180px",
                                         items: [
                                             {value: "PASSWORD", text: gettext("PASSWORD")},
                                             {value: "KEY", text: gettext("KEY")}
@@ -341,7 +346,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("认证密钥"),
-                                        width: "100px",
+                                        width: "400px",
                                         editable: true,
                                         validation: [
                                             {

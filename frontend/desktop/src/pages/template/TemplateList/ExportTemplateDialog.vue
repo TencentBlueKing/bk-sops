@@ -20,7 +20,7 @@
         :auto-close="false"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
+        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1, zIndex: 100 }">
             <div class="template-wrapper">
                 <div class="search-wrapper">
                     <div class="business-selector">
@@ -49,7 +49,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
+                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
                         <template v-for="group in templateInPanel">
                             <li

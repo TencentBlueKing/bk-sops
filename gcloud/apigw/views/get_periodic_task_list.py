@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -43,4 +42,4 @@ def get_periodic_task_list(request, project_id):
     for task in task_list:
         data.append(info_data_from_period_task(task, detail=False))
 
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
