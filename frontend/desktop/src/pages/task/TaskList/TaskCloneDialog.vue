@@ -20,7 +20,7 @@
         :value="isTaskCloneDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1 }">
+        <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1, zIndex: 100 }">
             <div class="common-form-item">
                 <label>{{ $t('任务名称') }}</label>
                 <div class="common-form-content">

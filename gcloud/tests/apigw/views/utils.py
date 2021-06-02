@@ -84,5 +84,5 @@ class APITest(TestCase, metaclass=abc.ABCMeta):
         self.bkoauth_decorator_jwt_client.stop()
 
     @abc.abstractmethod
-    def url(sel):
+    def url(self):
         pass

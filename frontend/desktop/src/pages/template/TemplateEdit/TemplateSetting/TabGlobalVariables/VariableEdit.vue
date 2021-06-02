@@ -63,6 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
+                    <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
@@ -100,7 +101,7 @@
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
-                            v-model="theEditingData.preRenderMako"
+                            v-model="theEditingData.pre_render_mako"
                             :clearable="false">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
@@ -128,7 +129,7 @@
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
                 <!-- 默认值 -->
                 <div class="form-item value-form clearfix">
-                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1, zIndex: 100 }">
                         <template v-if="!atomConfigLoading && renderConfig.length">
                             <RenderForm
                                 ref="renderForm"
@@ -286,15 +287,31 @@
                     delete rule.max
                 }
                 return rule
+            },
+            // 当前选中类型变量配置描述
+            variableDesc () {
+                let desc = ''
+                this.varTypeList.some(group => {
+                    const option = group.children.find(item => item.code === this.currentValType)
+                    if (option) {
+                        desc = option.description
+                        return true
+                    }
+                })
+                return desc
             }
         },
         created () {
-            // 设置模板预渲染默认值（兼容以前存在的模板）
+            /**
+             * 设置模板预渲染默认值（兼容以前存在的模板）
+             * 预渲染功能发布后新建变量时，预渲染默认为false
+             * 发布前用户不主动去修改变量，则不需要做处理
+             */
             const variableData = this.variableData
             if (variableData.hasOwnProperty('pre_render_mako')) {
-                this.theEditingData.preRenderMako = String(variableData.pre_render_mako)
-            } else if (variableData.show_type === 'hide') {
-                this.theEditingData.preRenderMako = 'true'
+                this.theEditingData.pre_render_mako = String(variableData.pre_render_mako)
+            } else if (!variableData.key) {
+                this.theEditingData.pre_render_mako = 'false'
             }
             this.extendFormValidate()
         },
@@ -553,6 +570,11 @@
              */
             onToggleShowType (showType, data) {
                 this.theEditingData.show_type = showType
+                // 预渲染功能发布前的模板主动修改变量的【显示类型】，预渲染默认值为false
+                const variableData = this.variableData
+                if (!variableData.hasOwnProperty('pre_render_mako')) {
+                    this.theEditingData.pre_render_mako = 'false'
+                }
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
@@ -608,8 +630,8 @@
                         return
                     }
 
-                    if (this.theEditingData.preRenderMako) {
-                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.preRenderMako)
+                    if (this.theEditingData.pre_render_mako) {
+                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
                     }
                     const variable = this.theEditingData
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
@@ -742,6 +764,11 @@
             font-size: 12px;
             color: #ffffff;
             background: #b8b8b8;
+        }
+        .variable-type-desc {
+            margin-left: 80px;
+            font-size: 12px;
+            color: #666;
         }
     }
     .btn-wrap {

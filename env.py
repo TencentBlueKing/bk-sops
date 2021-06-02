@@ -32,7 +32,7 @@ BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
-BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST")
+BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", "{}/o/bk_nodeman".format(BK_PAAS_HOST))
 
 # paas v2 open
 if RUN_VER == "open":
@@ -61,7 +61,7 @@ BKAPP_SOPS_IAM_APP_SECRET_KEY = os.getenv("BKAPP_SOPS_IAM_APP_SECRET_KEY", SECRE
 BKAPP_BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
 BKAPP_BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
 BK_IAM_V3_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
-BK_IAM_SKIP = os.getenv("BK_IAM_SKIP")
+BK_IAM_SKIP = os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_V3_APP_CODE))

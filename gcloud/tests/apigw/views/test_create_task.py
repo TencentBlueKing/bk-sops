@@ -79,7 +79,7 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id",
+                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -131,7 +131,7 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id",
+                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(

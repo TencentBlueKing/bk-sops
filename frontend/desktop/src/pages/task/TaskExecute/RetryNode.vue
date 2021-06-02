@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -52,7 +52,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                initalRenderData: {}
             }
         },
         computed: {
@@ -88,6 +89,7 @@
                             for (const key in this.nodeInfo.data.inputs) {
                                 this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                             }
+                            this.initalRenderData = this.renderData
                         }
                     }
                 } catch (e) {
@@ -108,12 +110,15 @@
                     }
                 }
             },
+            judgeDataEqual () {
+                return tools.isDataEqual(this.initalRenderData, this.renderData)
+            },
             async onRetryTask () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.retrying) return
+                if (!formvalid || this.retrying) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
@@ -131,6 +136,7 @@
                             theme: 'success'
                         })
                         this.$emit('retrySuccess', node_id)
+                        return true
                     }
                 } catch (e) {
                     console.log(e)

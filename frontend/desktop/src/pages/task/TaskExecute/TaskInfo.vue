@@ -14,7 +14,7 @@
         <div class="panel-title">
             <h3>{{ $t('任务执行信息') }}</h3>
         </div>
-        <div class="content-wrapper" v-bkloading="{ isLoading: taskflowDetailLoading, opacity: 1 }">
+        <div class="content-wrapper" v-bkloading="{ isLoading: taskflowDetailLoading, opacity: 1, zIndex: 100 }">
             <div class="context-data" v-if="taskDetail">
                 <vue-json-pretty :data="taskDetail"></vue-json-pretty>
             </div>

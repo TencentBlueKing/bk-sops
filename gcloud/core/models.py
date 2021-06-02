@@ -196,7 +196,7 @@ class ProjectManager(models.Manager):
                         bk_biz_id=cc_id,
                     )
                 )
-
+            # maybe have duplicate entry, caller function should cope with the exception
             self.bulk_create(projects, batch_size=5000)
 
     def update_business_project_status(self, archived_cc_ids, active_cc_ids):
@@ -205,7 +205,7 @@ class ProjectManager(models.Manager):
 
 
 class Project(models.Model):
-    name = models.CharField(_("项目名"), max_length=256)
+    name = models.CharField(_("项目名"), max_length=192)
     time_zone = models.CharField(_("项目时区"), max_length=100, blank=True)
     creator = models.CharField(_("创建者"), max_length=256)
     desc = models.CharField(_("项目描述"), max_length=512, blank=True)
@@ -220,6 +220,7 @@ class Project(models.Model):
     class Meta:
         verbose_name = _("项目 Project")
         verbose_name_plural = _("项目 Project")
+        unique_together = ("bk_biz_id", "name")
 
     def __unicode__(self):
         return "%s_%s" % (self.id, self.name)
@@ -233,7 +234,9 @@ class ProjectBasedComponentManager(models.Manager):
         return self.values_list("component_code", flat=True)
 
     def get_components_of_other_projects(self, project_id):
-        return self.exclude(project_id=project_id).values_list("component_code", flat=True)
+        pre_exclude_components = self.exclude(project_id=project_id).values_list("component_code", flat=True)
+        project_components = self.filter(project_id=project_id).values_list("component_code", flat=True)
+        return list(set(pre_exclude_components) - set(project_components))
 
 
 class ProjectBasedComponent(models.Model):

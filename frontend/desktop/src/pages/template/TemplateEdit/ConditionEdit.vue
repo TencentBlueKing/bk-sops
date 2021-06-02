@@ -13,7 +13,7 @@
     <bk-sideslider
         :width="800"
         :is-show="isShow"
-        :quick-close="isReadonly"
+        :quick-close="true"
         :before-close="onBeforeClose">
         <div slot="header">
             <span>{{ $t('分支条件') }}</span>
@@ -119,8 +119,16 @@
             },
             // 关闭配置面板
             onBeforeClose () {
-                this.close()
-                return true
+                if (this.isReadonly) {
+                    this.close()
+                    return true
+                }
+                const { name, value } = this.conditionData
+                if (this.conditionName === name && this.expression === value) {
+                    this.close()
+                    return true
+                }
+                this.$emit('onBeforeClose')
             },
             confirm () {
                 this.$validator.validateAll().then(result => {

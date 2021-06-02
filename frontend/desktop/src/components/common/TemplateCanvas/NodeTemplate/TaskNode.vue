@@ -65,7 +65,7 @@
             </i>
         </div>
         <!-- tooltip提示 -->
-        <div class="state-icon">
+        <div class="state-icon" v-if="node.mode === 'execute'">
             <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
                 <span
                     class="common-icon-retry"
@@ -146,13 +146,13 @@
                 return false
             },
             isShowSkipBtn () {
-                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.skippable === undefined)) { // 兼容旧模板跳过字段缺失的情况
+                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.errorIgnorable)) {
                     return true
                 }
                 return false
             },
             isShowRetryBtn () {
-                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.retryable === undefined)) { // 兼容旧模板重试字段缺失的情况
+                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
                     return true
                 }
                 return false

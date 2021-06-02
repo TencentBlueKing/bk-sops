@@ -1,4 +1,7 @@
 const en = {
+    '请选择节点的插件类型': 'Please select the plug-in type of the node',
+    '请选择节点的子流程': 'Please select the sub-process of the node',
+    '保存已修改的信息吗？': 'Save the modified information?',
     '操作名称': 'Operation name',
     '操作时间': 'Operating time',
     '操作来源': 'Operation source',
@@ -7,6 +10,7 @@ const en = {
     '操作流水': 'Operation flow',
     '编辑执行方案': 'Edit execution plan',
     '确定保存流程并去设置执行方案？': 'Are you sure to save template and go to set the execution plan?',
+    '确定保存克隆流程并去设置执行方案？': 'Are you sure to save clone template and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',
     '类别': 'Category',
     '请先保存已修改的信息': 'Please save the modified information first',
@@ -1104,7 +1108,8 @@ const en = {
     '通知': 'Notify',
     '其他': 'Others',
     '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
-    '主机名': 'Host Name'
+    '主机名': 'Host Name',
+    '默认全部': 'all'
 }
 
 export default en

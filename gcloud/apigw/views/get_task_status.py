@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from cachetools import TTLCache
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -49,7 +48,10 @@ def cache_decisioner(key, value):
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
-@bucket_cached(BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}), bucket_and_key_func=api_bucket_and_key)
+@bucket_cached(
+    BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}, decisioner=cache_decisioner),
+    bucket_and_key_func=api_bucket_and_key,
+)
 def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")
@@ -60,23 +62,22 @@ def get_task_status(request, task_id, project_id):
     except Exception as e:
         message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
         logger.error(message)
-        result = {
+        return {
             "result": False,
             "message": message,
             "code": err_code.UNKNOWN_ERROR.code,
         }
-        return JsonResponse(result)
 
     dispatcher = TaskCommandDispatcher(
         engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
     )
     result = dispatcher.get_task_status(subprocess_id=subprocess_id, with_ex_data=with_ex_data)
     if not result["result"]:
-        return JsonResponse(result)
+        return result
 
     # add node name
     if "name" not in result["data"]:
         add_node_name_to_status_tree(task.pipeline_instance.execution_data, result["data"].get("children", {}))
     result["data"]["name"] = task.name
 
-    return JsonResponse(result)
+    return result

@@ -15,7 +15,7 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.default_settings import ESB_GET_OLD_CLIENT_BY_USER as get_client_by_user
+from api.collections.monitor import BKMonitorClient
 from gcloud.conf import settings
 from gcloud.utils import cmdb
 from gcloud.core.models import Business
@@ -87,7 +87,7 @@ class MonitorAlarmShieldService(Service):
     def execute(self, data, parent_data):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        client = BKMonitorClient(username=executor)
         combine = data.get_one_of_inputs("bk_alarm_shield_info")
         scope_type = combine.get("bk_alarm_shield_scope")
         scope_value = combine.get(SCOPE[scope_type])
@@ -138,12 +138,11 @@ class MonitorAlarmShieldService(Service):
             "end_time": end_time,
             "notice_config": {},
             "shield_notice": False,
-            "source": settings.APP_ID,
         }
         return request_body
 
     def send_request(self, request_body, data, client):
-        response = client.monitor.create_shield(request_body)
+        response = client.add_shield(**request_body)
         if not response["result"]:
             message = monitor_handle_api_error("monitor.create_shield", request_body, response)
             self.logger.error(message)

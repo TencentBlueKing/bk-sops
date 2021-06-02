@@ -83,7 +83,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
+                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1, zIndex: 100 }">
                     <ul v-if="!isNoData" class="grouped-list">
                         <template v-if="selectedTplType === 'publicProcess'">
                             <template v-for="item in templateList">
@@ -515,7 +515,7 @@
         width: 850px;
         height: 100%;
         .task-list {
-            padding: 20px 20px 0;
+            padding: 20px 16px 0;
             height: 268px;
             overflow-y: auto;
             @include scrollbar;

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -52,7 +52,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                initalRenderData: {}
             }
         },
         computed: {
@@ -88,6 +89,7 @@
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
+                        this.initalRenderData = this.renderData
                     }
                 } catch (e) {
                     console.log(e)
@@ -107,12 +109,15 @@
                     }
                 }
             },
+            judgeDataEqual () {
+                return tools.isDataEqual(this.initalRenderData, this.renderData)
+            },
             async onModifyTime () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.modifyTimeLoading) return
+                if (!formvalid || this.modifyTimeLoading) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
