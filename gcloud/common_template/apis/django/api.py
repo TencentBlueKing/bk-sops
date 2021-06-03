@@ -29,18 +29,18 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.template_base.apis.django.api import base_batch_form, base_form
+from gcloud.template_base.apis.django.api import base_batch_form, base_form, base_check_before_import
 from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import string_to_boolean
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.common_template import FormInterceptor, ExportInterceptor, ImportInterceptor
-from .validators import (
-    ExportTemplateValidator,
-    ImportValidator,
-    CheckBeforeImportValidator,
+from gcloud.iam_auth.view_interceptors.common_template import (
+    FormInterceptor,
+    ExportInterceptor,
+    ImportInterceptor,
 )
+from .validators import ExportTemplateValidator, ImportValidator, CheckBeforeImportValidator
 
 logger = logging.getLogger("root")
 
@@ -148,8 +148,4 @@ def import_templates(request):
 @require_POST
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request):
-    r = read_template_data_file(request.FILES["data_file"])
-
-    check_info = CommonTemplate.objects.import_operation_check(r["data"]["template_data"])
-
-    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
+    return base_check_before_import(request, CommonTemplate, [])
