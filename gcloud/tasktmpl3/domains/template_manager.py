@@ -30,6 +30,20 @@ class TemplateManager:
         self.template_model_cls = template_model_cls
 
     def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
+        """
+        创建 pipeline 层模板
+
+        :param name: 模板名
+        :type name: str
+        :param creator: 创建者
+        :type creator: str
+        :param pipeline_tree: 模板数据
+        :type pipeline_tree: dict
+        :param description: 模板描述, defaults to ""
+        :type description: str, optional
+        :return: [description]
+        :rtype: dict
+        """
         name = standardize_name(name, TEMPLATE_NODE_NAME_MAX_LENGTH)
         standardize_pipeline_node_name(pipeline_tree)
 
@@ -70,7 +84,22 @@ class TemplateManager:
     def create(
         self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
     ) -> dict:
+        """
+        创建 template 层模板
 
+        :param name: 模板名
+        :type name: str
+        :param creator: 创建者
+        :type creator: str
+        :param pipeline_tree: 模板数据
+        :type pipeline_tree: dict
+        :param template_kwargs: template 层参数
+        :type template_kwargs: dict
+        :param description: 描述, defaults to ""
+        :type description: str, optional
+        :return: [description]
+        :rtype: dict
+        """
         create_result = self.create_pipeline(
             name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
         )
@@ -102,6 +131,22 @@ class TemplateManager:
         pipeline_tree: str = None,
         description: str = "",
     ) -> dict:
+        """
+        更新 pipeline 层模板
+
+        :param pipeline_template: pipeline 模板对象
+        :type pipeline_template: PipelineTemplate
+        :param editor: 编辑者
+        :type editor: str
+        :param name: 模板名, defaults to ""
+        :type name: str, optional
+        :param pipeline_tree: 模板结构, defaults to None
+        :type pipeline_tree: str, optional
+        :param description: 模板描述, defaults to ""
+        :type description: str, optional
+        :return: [description]
+        :rtype: dict
+        """
         update_kwargs = {"editor": editor}
         if name:
             update_kwargs["name"] = standardize_name(name, TEMPLATE_NODE_NAME_MAX_LENGTH)
@@ -155,11 +200,37 @@ class TemplateManager:
     def update(
         self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
     ) -> dict:
+        """
+        更新 template 层模板
+
+        :param template: template 对象
+        :type template: object
+        :param editor: 编辑者
+        :type editor: str
+        :param name: 模板名, defaults to ""
+        :type name: str, optional
+        :param pipeline_tree: 模板结构, defaults to None
+        :type pipeline_tree: str, optional
+        :param description: 模板描述, defaults to ""
+        :type description: str, optional
+        :return: [description]
+        :rtype: dict
+        """
         return self.update_pipeline(
             pipeline_template=template, editor=editor, name=name, pipeline_tree=pipeline_tree, description=description
         )
 
     def can_delete(self, template: object) -> (bool, str):
+        """
+        检测 template 是否能够删除
+
+        :param self: [description]
+        :type self: [type]
+        :param str: [description]
+        :type str: [type]
+        :return: [description]
+        :rtype: [type]
+        """
         referencer = template.referencer()
         if referencer:
             return (
@@ -181,6 +252,14 @@ class TemplateManager:
         return True, ""
 
     def delete(self, template: object) -> dict:
+        """
+        删除某个 template
+
+        :param template: template 对象
+        :type template: object
+        :return: [description]
+        :rtype: dict
+        """
         can_delete, message = self.can_delete(template)
         if not can_delete:
             return {"result": False, "data": None, "message": message, "verbose_message": message}
