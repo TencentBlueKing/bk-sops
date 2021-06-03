@@ -16,6 +16,7 @@ from django.http import HttpRequest
 from django.http import JsonResponse
 
 from gcloud import err_code
+from gcloud.template_base.utils import read_template_data_file
 
 
 def base_batch_form(request: HttpRequest, template_model_cls: object, filters: dict):
@@ -71,3 +72,11 @@ def base_form(request: HttpRequest, template_model_cls: object, filters: dict):
     }
 
     return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
+
+
+def base_check_before_import(request: HttpRequest, template_model_cls: object, import_args: list):
+    r = read_template_data_file(request.FILES["data_file"])
+
+    check_info = template_model_cls.objects.import_operation_check(r["data"]["template_data"], *import_args)
+
+    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})

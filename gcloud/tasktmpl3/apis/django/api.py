@@ -48,12 +48,12 @@ from gcloud.tasktmpl3.domains.constants import get_constant_values
 from .validators import (
     ExportValidator,
     ImportValidator,
-    CheckBeforeImportValidator,
     GetTemplateCountValidator,
     DrawPipelineValidator,
     AnalysisConstantsRefValidator,
+    CheckBeforeImportValidator,
 )
-from gcloud.template_base.apis.django.api import base_batch_form, base_form
+from gcloud.template_base.apis.django.api import base_batch_form, base_form, base_check_before_import
 from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator
 
 logger = logging.getLogger("root")
@@ -179,11 +179,7 @@ def _reset_biz_selector_value(templates_data, bk_biz_id):
 @require_POST
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request, project_id):
-    r = read_template_data_file(request.FILES["data_file"])
-
-    check_info = TaskTemplate.objects.import_operation_check(r["data"]["template_data"], project_id)
-
-    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
+    return base_check_before_import(request, TaskTemplate, [project_id])
 
 
 def replace_all_templates_tree_node_id(request):
