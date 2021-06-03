@@ -27,3 +27,11 @@ class BatchFormValidator(RequestValidator):
             return False, "template_id_list can not be empty"
 
         return True, ""
+
+
+class FormValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        if not request.GET.get("template_id"):
+            return False, "template_id can not be empty"
+
+        return True, ""

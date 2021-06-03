@@ -12,12 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 # unified_api_utils.py：项目流程和公共流程api接口的统一实现，减少重复代码
+from django.http import HttpRequest
 from django.http import JsonResponse
 
 from gcloud import err_code
 
 
-def base_batch_form(request, template_model_cls, filters):
+def base_batch_form(request: HttpRequest, template_model_cls: object, filters: dict):
     """批量获取表单数据统一接口"""
     templates_data = request.data.get("templates")
     template_ids = [int(template["id"]) for template in templates_data]
@@ -52,3 +53,21 @@ def base_batch_form(request, template_model_cls, filters):
         )
 
     return JsonResponse({"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code})
+
+
+def base_form(request: HttpRequest, template_model_cls: object, filters: dict):
+    template_id = request.GET["template_id"]
+    version = request.GET.get("version")
+
+    filters["pk"] = template_id
+    filters["is_deleted"] = False
+
+    template = template_model_cls.objects.get(**filters)
+
+    ctx = {
+        "form": template.get_form(version),
+        "outputs": template.get_outputs(version),
+        "version": version or template.version,
+    }
+
+    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})

@@ -29,15 +29,14 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.template_base.apis.django.api import base_batch_form
-from gcloud.template_base.apis.django.validators import BatchFormValidator
+from gcloud.template_base.apis.django.api import base_batch_form, base_form
+from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import string_to_boolean
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.common_template import FormInterceptor, ExportInterceptor, ImportInterceptor
 from .validators import (
-    FormValidator,
     ExportTemplateValidator,
     ImportValidator,
     CheckBeforeImportValidator,
@@ -50,18 +49,7 @@ logger = logging.getLogger("root")
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
 def form(request):
-    template_id = request.GET["template_id"]
-    version = request.GET.get("version")
-
-    template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
-
-    ctx = {
-        "form": template.get_form(version),
-        "outputs": template.get_outputs(version),
-        "version": version or template.version,
-    }
-
-    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
+    return base_form(request, CommonTemplate, filters={})
 
 
 @swagger_auto_schema(

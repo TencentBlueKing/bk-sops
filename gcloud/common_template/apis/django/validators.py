@@ -16,14 +16,6 @@ from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
 from gcloud.template_base.utils import read_template_data_file
 
 
-class FormValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        if not request.GET.get("template_id"):
-            return False, "template_id can not be empty"
-
-        return True, ""
-
-
 class ExportTemplateValidator(ObjectJsonBodyValidator):
     def validate(self, request, *args, **kwargs):
 

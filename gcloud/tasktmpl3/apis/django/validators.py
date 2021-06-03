@@ -19,16 +19,6 @@ from gcloud.utils.strings import check_and_rename_params
 from gcloud.template_base.utils import read_template_data_file
 
 
-class FormValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        template_id = request.GET.get("template_id")
-
-        if not template_id:
-            return False, "template_id can not be empty"
-
-        return True, ""
-
-
 class ExportValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
         try:
