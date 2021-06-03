@@ -17,7 +17,7 @@ import ujson as json
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from tastypie import fields
-from tastypie.authorization import ReadOnlyAuthorization, Authorization
+from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
@@ -26,9 +26,10 @@ from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
 
-from pipeline.models import PipelineTemplate, TemplateScheme
+from pipeline.models import TemplateScheme
 
 from gcloud.template_base.domains.template_manager import TemplateManager
+from gcloud.template_base.apis.tastypie.resources import PipelineTemplateResource
 from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
@@ -42,20 +43,6 @@ from gcloud.contrib.operate_record.constants import RecordType, OperateType, Ope
 
 iam = get_iam_client()
 logger = logging.getLogger("root")
-
-
-class PipelineTemplateResource(GCloudModelResource):
-    class Meta(GCloudModelResource.CommonMeta):
-        queryset = PipelineTemplate.objects.filter(is_deleted=False)
-        resource_name = "pipeline_template"
-        authorization = ReadOnlyAuthorization()
-        filtering = {
-            "name": ALL,
-            "creator": ALL,
-            "category": ALL,
-            "subprocess_has_update": ALL,
-            "edit_time": ["gte", "lte"],
-        }
 
 
 class CommonTemplateResource(GCloudModelResource):
