@@ -21,7 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.common_template.models import CommonTemplate
-from gcloud.common_template.utils import read_encoded_template_data
+from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.apigw.views.utils import logger
 
 try:

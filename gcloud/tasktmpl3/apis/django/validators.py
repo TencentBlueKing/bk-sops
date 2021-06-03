@@ -16,7 +16,7 @@ import ujson as json
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
 from gcloud.utils.strings import check_and_rename_params
-from gcloud.common_template.utils import read_template_data_file
+from gcloud.template_base.utils import read_template_data_file
 
 
 class FormValidator(RequestValidator):
