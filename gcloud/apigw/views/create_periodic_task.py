@@ -24,7 +24,7 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
 from gcloud.common_template.models import CommonTemplate
-from gcloud.common_template.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id
 from gcloud.constants import PROJECT
 from gcloud.core.models import ProjectConfig
 from gcloud.periodictask.models import PeriodicTask

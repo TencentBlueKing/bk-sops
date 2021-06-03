@@ -32,7 +32,7 @@ from gcloud.core.models import Project
 from gcloud.utils.strings import check_and_rename_params, string_to_boolean
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
-from gcloud.common_template.utils import read_template_data_file
+from gcloud.template_base.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.contrib.analysis.analyse_items import task_template
@@ -55,7 +55,7 @@ from .validators import (
     AnalysisConstantsRefValidator,
     BatchFormValidator,
 )
-from .unified_api_utils import unified_batch_form
+from gcloud.template_base.apis.django.api import base_batch_form
 
 logger = logging.getLogger("root")
 
@@ -112,7 +112,7 @@ def batch_form(request, project_id):
          ]
      }
     """
-    return unified_batch_form(request, project_id)
+    return base_batch_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
 @require_POST

@@ -30,7 +30,7 @@ from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
-from gcloud.common_template.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id
 
 WEB_TREE_FIELDS = {"location", "line"}
 

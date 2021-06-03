@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_COMMON
 from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
-from gcloud.common_template.utils import read_template_data_file
+from gcloud.template_base.utils import read_template_data_file
 
 
 class FormValidator(RequestValidator):

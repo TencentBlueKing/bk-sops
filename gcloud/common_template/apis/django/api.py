@@ -26,10 +26,10 @@ from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.common_template.models import CommonTemplate
-from gcloud.common_template.utils import read_template_data_file
+from gcloud.template_base.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.tasktmpl3.apis.django.unified_api_utils import unified_batch_form
+from gcloud.template_base.apis.django.api import base_batch_form
 from gcloud.tasktmpl3.apis.django.validators import BatchFormValidator
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.strings import string_to_boolean
@@ -98,7 +98,7 @@ def batch_form(request):
         ]
     }
     """
-    return unified_batch_form(request)
+    return base_batch_form(request, CommonTemplate, {})
 
 
 @require_POST
