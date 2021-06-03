@@ -53,9 +53,9 @@ from .validators import (
     GetTemplateCountValidator,
     DrawPipelineValidator,
     AnalysisConstantsRefValidator,
-    BatchFormValidator,
 )
 from gcloud.template_base.apis.django.api import base_batch_form
+from gcloud.template_base.apis.django.validators import BatchFormValidator
 
 logger = logging.getLogger("root")
 
