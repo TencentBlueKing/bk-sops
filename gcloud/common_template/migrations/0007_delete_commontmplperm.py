@@ -19,11 +19,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('template', '0006_auto_20200325_1458'),
+        ("template", "0006_auto_20200325_1458"),
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='CommonTmplPerm',
-        ),
+        migrations.DeleteModel(name="CommonTmplPerm",),
     ]

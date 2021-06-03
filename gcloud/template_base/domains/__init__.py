@@ -10,16 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from django.conf.urls import url
-
-from gcloud.commons.template import api
-
-
-urlpatterns = [
-    url(r"^api/form/$", api.form),
-    url(r"^api/batch_form/$", api.batch_form),
-    url(r"^api/export/$", api.export_templates),
-    url(r"^api/import/$", api.import_templates),
-    url(r"^api/import_check/$", api.check_before_import),
-]

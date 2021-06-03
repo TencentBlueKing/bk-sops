@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from __future__ import unicode_literals
 
 from django.db import migrations, models
 
@@ -19,16 +19,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('template', '0002_auto_20181204_1813'),
+        ("template", "0005_auto_20190523_1509"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='commontemplate',
-            options={'ordering': ['-id'], 'verbose_name': '\u516c\u5171\u6d41\u7a0b\u6a21\u677f CommonTemplate', 'verbose_name_plural': '\u516c\u5171\u6d41\u7a0b\u6a21\u677f CommonTemplate'},
-        ),
-        migrations.AlterModelOptions(
-            name='commontmplperm',
-            options={'verbose_name': '\u516c\u5171\u6d41\u7a0b\u6a21\u677f\u6743\u9650 CommonTmplPerm', 'verbose_name_plural': '\u516c\u5171\u6d41\u7a0b\u6a21\u677f\u6743\u9650 CommonTmplPerm', 'permissions': [('common_create_task', 'common template create task'), ('common_fill_params', 'common template fill params'), ('common_execute_task', 'common template execute task')]},
+        migrations.AlterField(
+            model_name="commontemplate",
+            name="category",
+            field=models.CharField(
+                choices=[
+                    ("OpsTools", "运维工具"),
+                    ("MonitorAlarm", "监控告警"),
+                    ("ConfManage", "配置管理"),
+                    ("DevTools", "开发工具"),
+                    ("EnterpriseIT", "企业IT"),
+                    ("OfficeApp", "办公应用"),
+                    ("Other", "其它"),
+                ],
+                default="Other",
+                max_length=255,
+                verbose_name="模板类型",
+            ),
         ),
     ]

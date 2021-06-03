@@ -14,7 +14,7 @@ import sys
 
 from django.core.management.base import BaseCommand
 
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.collection.models import Collection
 from gcloud.periodictask.models import PeriodicTask

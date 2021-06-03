@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import ujson as json
 
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from tastypie import fields
-from tastypie.authorization import ReadOnlyAuthorization, Authorization
+from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
@@ -24,15 +25,15 @@ from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
-from pipeline.exceptions import PipelineException
-from pipeline.models import PipelineTemplate, TemplateScheme
-from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.commons.template.models import CommonTemplate
+from pipeline.models import TemplateScheme
+
+from gcloud.template_base.domains.template_manager import TemplateManager
+from gcloud.template_base.apis.tastypie.resources import PipelineTemplateResource
+from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
-from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.utils.strings import name_handler
-from gcloud.utils.strings import pipeline_node_name_handle
+from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.utils.strings import standardize_name
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
@@ -41,20 +42,7 @@ from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 iam = get_iam_client()
-
-
-class PipelineTemplateResource(GCloudModelResource):
-    class Meta(GCloudModelResource.CommonMeta):
-        queryset = PipelineTemplate.objects.filter(is_deleted=False)
-        resource_name = "pipeline_template"
-        authorization = ReadOnlyAuthorization()
-        filtering = {
-            "name": ALL,
-            "creator": ALL,
-            "category": ALL,
-            "subprocess_has_update": ALL,
-            "edit_time": ["gte", "lte"],
-        }
+logger = logging.getLogger("root")
 
 
 class CommonTemplateResource(GCloudModelResource):
@@ -71,6 +59,7 @@ class CommonTemplateResource(GCloudModelResource):
     version = fields.CharField(attribute="version", readonly=True, null=True)
     subprocess_has_update = fields.BooleanField(attribute="subprocess_has_update", use_in="list", readonly=True)
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
+    description = fields.CharField(attribute="pipeline_template__description", readonly=True, null=True)
 
     class Meta(GCloudModelResource.CommonMeta):
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
@@ -111,11 +100,6 @@ class CommonTemplateResource(GCloudModelResource):
             ],
         )
 
-    @staticmethod
-    def handle_template_name_attr(data):
-        data["name"] = name_handler(data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
-        pipeline_node_name_handle(data["pipeline_tree"])
-
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
 
@@ -136,70 +120,72 @@ class CommonTemplateResource(GCloudModelResource):
 
     @record_operation(RecordType.common_template.name, OperateType.create.name, OperateSource.common.name)
     def obj_create(self, bundle, **kwargs):
-        model = bundle.obj.__class__
+        manager = TemplateManager(template_model_cls=bundle.obj.__class__)
         try:
-            pipeline_template_kwargs = {
-                "name": bundle.data.pop("name"),
-                "creator": bundle.request.user.username,
-                "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
-                "description": bundle.data.pop("description", ""),
-            }
+            name = bundle.data.pop("name")
+            creator = bundle.request.user.username
+            pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
+            description = bundle.data.pop("description", "")
         except (KeyError, ValueError) as e:
             raise BadRequest(str(e))
-        # XSS handle
-        self.handle_template_name_attr(pipeline_template_kwargs)
-        # validate pipeline tree
-        try:
-            validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
-        except PipelineException as e:
-            raise BadRequest(str(e))
-        # Note: tastypie won't use model's create method
-        try:
-            pipeline_template = model.objects.create_pipeline_template(**pipeline_template_kwargs)
-        except PipelineException as e:
-            raise BadRequest(str(e))
-        except CommonTemplate.DoesNotExist:
-            raise BadRequest("flow template referred as SubProcess does not exist")
-        kwargs["pipeline_template_id"] = pipeline_template.template_id
-        return super(CommonTemplateResource, self).obj_create(bundle, **kwargs)
+
+        with transaction.atomic():
+            result = manager.create_pipeline(
+                name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
+            )
+
+            if not result["result"]:
+                logger.error(result["verbose_message"])
+                raise BadRequest(result["verbose_message"])
+
+            kwargs["pipeline_template_id"] = result["data"].template_id
+
+            bundle = super(CommonTemplateResource, self).obj_create(bundle, **kwargs)
+
+            return bundle
 
     @record_operation(RecordType.common_template.name, OperateType.update.name, OperateSource.common.name)
     def obj_update(self, bundle, skip_errors=False, **kwargs):
+        template = bundle.obj
+        manager = TemplateManager(template_model_cls=bundle.obj.__class__)
+
+        try:
+            name = bundle.data.pop("name")
+            editor = bundle.request.user.username
+            pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
+            description = bundle.data.pop("description")
+        except (KeyError, ValueError) as e:
+            raise BadRequest(str(e))
+
         with transaction.atomic():
-            obj = bundle.obj
-            try:
-                pipeline_template_kwargs = {
-                    "name": bundle.data.pop("name"),
-                    "editor": bundle.request.user.username,
-                    "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
-                }
-                if "description" in bundle.data:
-                    pipeline_template_kwargs["description"] = bundle.data.pop("description")
-            except (KeyError, ValueError) as e:
-                raise BadRequest(str(e))
-            # XSS handle
-            self.handle_template_name_attr(pipeline_template_kwargs)
-            try:
-                obj.update_pipeline_template(**pipeline_template_kwargs)
-            except PipelineException as e:
-                raise BadRequest(str(e))
-            bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % obj.pipeline_template.pk
+            result = manager.update_pipeline(
+                pipeline_template=template.pipeline_template,
+                editor=editor,
+                name=name,
+                pipeline_tree=pipeline_tree,
+                description=description,
+            )
+
+            if not result["result"]:
+                logger.error(result["verbose_message"])
+                raise BadRequest(result["verbose_message"])
+
+            bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % template.pipeline_template.pk
             return super(CommonTemplateResource, self).obj_update(bundle, **kwargs)
 
     @record_operation(RecordType.common_template.name, OperateType.delete.name, OperateSource.common.name)
     def obj_delete(self, bundle, **kwargs):
         try:
-            common_tmpl = CommonTemplate.objects.get(id=kwargs["pk"], is_deleted=False)
+            template = CommonTemplate.objects.get(id=kwargs["pk"], is_deleted=False)
         except CommonTemplate.DoesNotExist:
             raise NotFound("flow template does not exist")
-        referencer = common_tmpl.referencer()
-        if referencer:
-            flat = ",".join(["%s:%s" % (item["id"], item["name"]) for item in referencer])
-            raise BadRequest("flow template are referenced by other templates[%s], please delete them first" % flat)
-        result = super(CommonTemplateResource, self).obj_delete(bundle, **kwargs)
-        if result:
-            common_tmpl.set_deleted()
-        return result
+
+        manager = TemplateManager(template_model_cls=bundle.obj.__class__)
+        can_delete, message = manager.can_delete(template)
+        if not can_delete:
+            raise BadRequest(message)
+
+        return super(CommonTemplateResource, self).obj_delete(bundle, **kwargs)
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         filters = super(CommonTemplateResource, self).build_filters(
@@ -260,7 +246,7 @@ class CommonTemplateSchemeResource(GCloudModelResource):
             resources=res_factory.resources_for_common_flow_obj(common_template),
         )
 
-        bundle.data["name"] = name_handler(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
+        bundle.data["name"] = standardize_name(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs["unique_id"] = "%s-%s-%s" % (project_id, template_id, bundle.data["name"])
         if TemplateScheme.objects.filter(unique_id=kwargs["unique_id"]).exists():
             raise BadRequest("common template scheme name has existed, please change the name")

@@ -10,22 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from __future__ import unicode_literals
-
-from django.db import migrations, models
-
-
-class Migration(migrations.Migration):
-
-    dependencies = [
-        ('template', '0005_auto_20190523_1509'),
-    ]
-
-    operations = [
-        migrations.AlterField(
-            model_name='commontemplate',
-            name='category',
-            field=models.CharField(choices=[('OpsTools', '运维工具'), ('MonitorAlarm', '监控告警'), ('ConfManage', '配置管理'), ('DevTools', '开发工具'), ('EnterpriseIT', '企业IT'), ('OfficeApp', '办公应用'), ('Other', '其它')], default='Other', max_length=255, verbose_name='模板类型'),
-        ),
-    ]

@@ -15,11 +15,9 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 
 from gcloud import err_code
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
 
 
-def unified_batch_form(request, project_id=None):
+def base_batch_form(request, template_model_cls, filters):
     """批量获取表单数据统一接口"""
     templates_data = request.data.get("templates")
     template_ids = [int(template["id"]) for template in templates_data]
@@ -28,10 +26,9 @@ def unified_batch_form(request, project_id=None):
     if len(template_ids) != len(versions):
         return JsonResponse({"result": False, "data": "", "message": "", "code": err_code.REQUEST_PARAM_INVALID.code})
 
-    if project_id:
-        templates = TaskTemplate.objects.filter(id__in=template_ids, project_id=project_id, is_deleted=False)
-    else:
-        templates = CommonTemplate.objects.filter(id__in=template_ids, is_deleted=False)
+    filters["id__in"] = template_ids
+    filters["is_deleted"] = False
+    templates = template_model_cls.objects.filter(**filters)
 
     data = {
         template.id: [

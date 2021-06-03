@@ -16,7 +16,7 @@ import ujson as json
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
 from gcloud.utils.strings import check_and_rename_params
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.template_base.utils import read_template_data_file
 
 
 class FormValidator(RequestValidator):
@@ -25,21 +25,6 @@ class FormValidator(RequestValidator):
 
         if not template_id:
             return False, "template_id can not be empty"
-
-        return True, ""
-
-
-class BatchFormValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        data = request.data
-
-        template_list = data.get("templates")
-
-        if not isinstance(template_list, list):
-            return False, "invalid template_list"
-
-        if not template_list:
-            return False, "template_id_list can not be empty"
 
         return True, ""
 

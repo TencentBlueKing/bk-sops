@@ -10,22 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from django.db import migrations
-
-
-def set_min_template_id(apps, schema_editor):
-    CommmonTemplate = apps.get_model("template", "CommonTemplate")
-    CommmonTemplate.objects.create(
-        id=10000,
-        is_deleted=True,
-    )
-
-
-class Migration(migrations.Migration):
-    dependencies = [
-        ('template', '0003_auto_20181205_1153')
-    ]
-    operations = [
-        migrations.RunPython(set_min_template_id)
-    ]

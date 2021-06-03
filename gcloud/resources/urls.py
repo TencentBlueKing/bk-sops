@@ -28,7 +28,7 @@ from gcloud.core.resources import (
     LabelModelResource,
     UserProjectResource,
 )
-from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
+from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.label.viewsets import LabelViewSet
 from gcloud.tasktmpl3.apis.tastypie.resources import (
     TaskTemplateResource,

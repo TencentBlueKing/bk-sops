@@ -24,12 +24,12 @@ from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurr
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
-from gcloud.constants import TEMPLATE_EXPORTER_VERSION, TEMPLATE_EXPORTER_SOURCE_COMMON
+from gcloud.constants import TEMPLATE_EXPORTER_VERSION
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
-from gcloud.core.constant import TASK_CATEGORY
+from gcloud.constants import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 
@@ -299,11 +299,6 @@ class BaseTemplate(models.Model):
     def has_subprocess(self):
         return self.pipeline_template.has_subprocess
 
-    def set_deleted(self):
-        self.is_deleted = True
-        PipelineTemplate.objects.delete_model(self.pipeline_template_id)
-        self.save()
-
     def referencer(self):
         pipeline_template_referencer = self.pipeline_template.referencer()
         if not pipeline_template_referencer:
@@ -317,24 +312,14 @@ class BaseTemplate(models.Model):
         return result
 
     def referencer_appmaker(self):
+        if not hasattr(self, "appmaker_set"):
+            return []
+
         appmaker_referencer = self.appmaker_set.filter(is_deleted=False).values("id", "name")
         if not appmaker_referencer.exists():
             return []
 
         return appmaker_referencer
-
-    def update_pipeline_template(self, **kwargs):
-        pipeline_template = self.pipeline_template
-        if pipeline_template is None:
-            return
-        pipeline_tree = kwargs.pop("pipeline_tree")
-        replace_template_id(self.__class__, pipeline_tree)
-
-        pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
-        pipeline_web_tree.clean()
-        pipeline_template.update_template(pipeline_tree, **kwargs)
-        # create node in template
-        NodeInTemplate.objects.update_nodes_in_template(pipeline_template, pipeline_web_tree.origin_data)
 
     def get_clone_pipeline_tree(self):
         clone_tree = self.pipeline_template.clone_data()
@@ -366,76 +351,3 @@ class BaseTemplate(models.Model):
         nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
         pipeline_web_clean.to_web(nodes_attr)
         return tree
-
-
-class CommonTemplateManager(BaseTemplateManager):
-    def create(self, **kwargs):
-        pipeline_template = self.create_pipeline_template(**kwargs)
-        task_template = self.model(
-            category=kwargs["category"],
-            pipeline_template=pipeline_template,
-            notify_type=kwargs["notify_type"],
-            notify_receivers=kwargs["notify_receivers"],
-            time_out=kwargs["time_out"],
-        )
-        task_template.save()
-        return task_template
-
-    def import_operation_check(self, template_data):
-        data = super(CommonTemplateManager, self).import_operation_check(template_data)
-
-        # business template cannot override common template
-        has_business_template = any(
-            [tmpl.get("business_id") or tmpl.get("project_id") for _, tmpl in list(template_data["template"].items())]
-        )
-        if has_business_template:
-            data["can_override"] = False
-            data["override_template"] = []
-        return data
-
-    def import_templates(self, template_data, override, operator=None):
-        check_info = self.import_operation_check(template_data)
-
-        # operation validation check
-        if override and (not check_info["can_override"]):
-            return {
-                "result": False,
-                "message": "Unable to override common flows or keep ID when importing business flows data",
-                "data": 0,
-                "code": err_code.INVALID_OPERATION.code,
-            }
-
-        def defaults_getter(template_dict):
-            return {
-                "category": template_dict["category"],
-                "notify_type": template_dict["notify_type"],
-                "notify_receivers": template_dict["notify_receivers"],
-                "time_out": template_dict["time_out"],
-                "pipeline_template_id": template_dict["pipeline_template_id"],
-                "is_deleted": False,
-            }
-
-        return super(CommonTemplateManager, self)._perform_import(
-            template_data=template_data,
-            check_info=check_info,
-            override=override,
-            defaults_getter=defaults_getter,
-            operator=operator,
-        )
-
-    def export_templates(self, template_id_list):
-        data = super(CommonTemplateManager, self).export_templates(template_id_list)
-        data["template_source"] = TEMPLATE_EXPORTER_SOURCE_COMMON
-        return data
-
-
-class CommonTemplate(BaseTemplate):
-    """
-    @summary: common templates maintained by admin, which all businesses could use to creating tasks
-    """
-
-    objects = CommonTemplateManager()
-
-    class Meta(BaseTemplate.Meta):
-        verbose_name = _("公共流程模板 CommonTemplate")
-        verbose_name_plural = _("公共流程模板 CommonTemplate")
