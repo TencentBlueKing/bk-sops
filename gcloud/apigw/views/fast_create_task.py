@@ -24,7 +24,7 @@ from gcloud.constants import ONETIME
 from gcloud.constants import TASK_CATEGORY
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud.utils.strings import standardize_name
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger

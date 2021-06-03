@@ -37,8 +37,8 @@ from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
 from gcloud.core.models import Project, EngineConfig
 from gcloud.core.utils import convert_readable_username
 from gcloud.utils.dates import format_datetime
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.models import CommonTemplate
+from gcloud.common_template.utils import replace_template_id
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.context import TaskContext

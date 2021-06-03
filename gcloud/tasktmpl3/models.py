@@ -28,7 +28,7 @@ from pipeline.models import PipelineInstance, TemplateRelationship
 from gcloud import err_code
 from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT, AE
-from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
+from gcloud.common_template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime, timestamp_to_datetime
