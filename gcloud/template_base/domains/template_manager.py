@@ -216,9 +216,18 @@ class TemplateManager:
         :return: [description]
         :rtype: dict
         """
-        return self.update_pipeline(
-            pipeline_template=template, editor=editor, name=name, pipeline_tree=pipeline_tree, description=description
+        data = self.update_pipeline(
+            pipeline_template=template.pipeline_template,
+            editor=editor,
+            name=name,
+            pipeline_tree=pipeline_tree,
+            description=description,
         )
+        if not data["result"]:
+            return data
+
+        data["data"] = template
+        return data
 
     def can_delete(self, template: object) -> (bool, str):
         """
