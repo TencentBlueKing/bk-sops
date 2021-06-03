@@ -20,7 +20,7 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
-from gcloud.core.constant import TASK_CATEGORY
+from gcloud.constants import TASK_CATEGORY
 from gcloud import err_code
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate

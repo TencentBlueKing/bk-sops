@@ -22,19 +22,17 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 
 from gcloud.label.models import TemplateLabelRelation, Label
-from pipeline.exceptions import PipelineException
 from pipeline.models import TemplateScheme
-from pipeline.validators.base import validate_pipeline_tree
-from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
+from gcloud.utils.strings import standardize_name
 from gcloud.commons.template.resources import PipelineTemplateResource
-from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.utils.strings import name_handler, pipeline_node_name_handle
+from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.domains.manager import TemplateManager
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.resources import ProjectResource
 from gcloud.iam_auth import res_factory
@@ -105,11 +103,6 @@ class TaskTemplateResource(GCloudModelResource):
             ],
         )
 
-    @staticmethod
-    def handle_template_name_attr(data):
-        data["name"] = name_handler(data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
-        pipeline_node_name_handle(data["pipeline_tree"])
-
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
 
@@ -140,35 +133,25 @@ class TaskTemplateResource(GCloudModelResource):
 
     @record_operation(RecordType.template.name, OperateType.create.name, OperateSource.project.name)
     def obj_create(self, bundle, **kwargs):
+        manager = TemplateManager(template_model_cls=bundle.obj.__class__)
+        try:
+            name = bundle.data.pop("name")
+            creator = bundle.request.user.username
+            pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
+            description = bundle.data.pop("description", "")
+        except (KeyError, ValueError) as e:
+            raise BadRequest(str(e))
+
         with transaction.atomic():
-            model = bundle.obj.__class__
-            try:
-                pipeline_template_kwargs = {
-                    "name": bundle.data.pop("name"),
-                    "creator": bundle.request.user.username,
-                    "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
-                    "description": bundle.data.pop("description", ""),
-                }
-            except (KeyError, ValueError) as e:
-                raise BadRequest(str(e))
-            # XSS handle
-            self.handle_template_name_attr(pipeline_template_kwargs)
+            result = manager.create_pipeline(
+                name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
+            )
 
-            # validate pipeline tree
-            try:
-                validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
-                validate_pipeline_tree(pipeline_template_kwargs["pipeline_tree"], cycle_tolerate=True)
-            except PipelineException as e:
-                raise BadRequest(str(e))
+            if not result["result"]:
+                logger.error(result["verbose_message"])
+                raise BadRequest(result["verbose_message"])
 
-            # Note: tastypie won't use model's create method
-            try:
-                pipeline_template = model.objects.create_pipeline_template(**pipeline_template_kwargs)
-            except PipelineException as e:
-                raise BadRequest(str(e))
-            except TaskTemplate.DoesNotExist:
-                raise BadRequest("flow template referred as SubProcess does not exist")
-            kwargs["pipeline_template_id"] = pipeline_template.template_id
+            kwargs["pipeline_template_id"] = result["data"].template_id
 
             bundle = super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
             self._sync_template_labels(bundle)
@@ -177,54 +160,48 @@ class TaskTemplateResource(GCloudModelResource):
 
     @record_operation(RecordType.template.name, OperateType.update.name, OperateSource.project.name)
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-        with transaction.atomic():
-            obj = bundle.obj
-            try:
-                pipeline_template_kwargs = {
-                    "name": bundle.data.pop("name"),
-                    "editor": bundle.request.user.username,
-                    "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
-                }
-                if "description" in bundle.data:
-                    pipeline_template_kwargs["description"] = bundle.data.pop("description")
-            except (KeyError, ValueError) as e:
-                raise BadRequest(str(e))
-            # XSS handle
-            self.handle_template_name_attr(pipeline_template_kwargs)
+        template = bundle.obj
+        manager = TemplateManager(template_model_cls=bundle.obj.__class__)
 
-            # validate pipeline tree
-            try:
-                validate_web_pipeline_tree(pipeline_template_kwargs["pipeline_tree"])
-            except PipelineException as e:
-                raise BadRequest(str(e))
-            try:
-                obj.update_pipeline_template(**pipeline_template_kwargs)
-            except PipelineException as e:
-                raise BadRequest(str(e))
-            bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % obj.pipeline_template.pk
+        try:
+            name = bundle.data.pop("name")
+            editor = bundle.request.user.username
+            pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
+            description = bundle.data.pop("description")
+        except (KeyError, ValueError) as e:
+            raise BadRequest(str(e))
+
+        with transaction.atomic():
+            result = manager.update_pipeline(
+                pipeline_template=template.pipeline_template,
+                editor=editor,
+                name=name,
+                pipeline_tree=pipeline_tree,
+                description=description,
+            )
+
+            if not result["result"]:
+                logger.error(result["verbose_message"])
+                raise BadRequest(result["verbose_message"])
+            bundle.data["pipeline_template"] = "/api/v3/pipeline_template/%s/" % template.pipeline_template.pk
+
             self._sync_template_labels(bundle)
+
             return super(TaskTemplateResource, self).obj_update(bundle, **kwargs)
 
     @record_operation(RecordType.template.name, OperateType.delete.name, OperateSource.project.name)
     def obj_delete(self, bundle, **kwargs):
         try:
-            task_tmpl = TaskTemplate.objects.get(id=kwargs["pk"])
+            template = TaskTemplate.objects.get(id=kwargs["pk"])
         except TaskTemplate.DoesNotExist:
             raise BadRequest("template does not exist")
-        template_referencer = task_tmpl.referencer()
-        if template_referencer:
-            flat = ",".join(["{}:{}".format(item["id"], item["name"]) for item in template_referencer])
-            raise BadRequest("flow template are referenced by other templates[%s], please delete them first" % flat)
 
-        appmaker_referencer = task_tmpl.referencer_appmaker()
-        if appmaker_referencer:
-            flat = ",".join(["{}:{}".format(item["id"], item["name"]) for item in appmaker_referencer])
-            raise BadRequest("flow template are referenced by mini apps[%s], please delete them first" % flat)
+        manager = TemplateManager(template_model_cls=bundle.obj.__class__)
+        can_delete, message = manager.can_delete(template)
+        if not can_delete:
+            raise BadRequest(message)
 
-        result = super(TaskTemplateResource, self).obj_delete(bundle, **kwargs)
-        if result:
-            task_tmpl.set_deleted()
-        return result
+        return super(TaskTemplateResource, self).obj_delete(bundle, **kwargs)
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         label_ids = filters.get("label_ids")
@@ -323,7 +300,7 @@ class TemplateSchemeResource(GCloudModelResource):
             raise BadRequest(message)
         _, template = self._check_user_scheme_permission(bundle.request.user.username, template_id, project_id)
 
-        bundle.data["name"] = name_handler(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
+        bundle.data["name"] = standardize_name(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs["unique_id"] = "{}-{}".format(template_id, bundle.data["name"])
         if TemplateScheme.objects.filter(unique_id=kwargs["unique_id"]).exists():
             raise BadRequest("template scheme name has existed, please change the name")

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.core.constant import TASK_FLOW, PERIOD_TASK_NAME_MAX_LENGTH, TASK_NAME_MAX_LENGTH
+from gcloud.constants import TASK_FLOW, PERIOD_TASK_NAME_MAX_LENGTH, TASK_NAME_MAX_LENGTH
 
 APIGW_CREATE_TASK_PARAMS = {
     "type": "object",

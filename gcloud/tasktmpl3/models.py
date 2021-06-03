@@ -26,8 +26,8 @@ from pipeline.contrib.periodic_task.models import PeriodicTask
 from pipeline.models import PipelineInstance, TemplateRelationship
 
 from gcloud import err_code
-from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
-from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
+from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
+from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT, AE
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin

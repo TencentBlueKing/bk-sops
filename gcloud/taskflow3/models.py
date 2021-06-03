@@ -33,7 +33,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY
+from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
 from gcloud.core.models import Project, EngineConfig
 from gcloud.core.utils import convert_readable_username
 from gcloud.utils.dates import format_datetime

@@ -28,7 +28,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud.core import roles
 from gcloud.conf import settings
 from gcloud.core.footer import FOOTER
-from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
+from gcloud.constants import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
 from gcloud.core.models import (
     UserDefaultProject,
     ProjectCounter,

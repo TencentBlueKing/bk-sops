@@ -62,7 +62,7 @@ PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = "gcloud.periodictask.models.P
 PERIODIC_TASK_HISTORY_CREATE = "gcloud.periodictask.models.PeriodicTaskHistory.objects.create"
 
 APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE = "gcloud.apigw.views.create_task.jsonschema.validate"
-APIGW_CREATE_TASK_NODE_NAME_HANDLE = "gcloud.apigw.views.create_task.pipeline_node_name_handle"
+APIGW_CREATE_TASK_NODE_NAME_HANDLE = "gcloud.apigw.views.create_task.standardize_pipeline_node_name"
 APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE = "gcloud.apigw.views.create_task.validate_web_pipeline_tree"
 APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE = "gcloud.apigw.views.create_periodic_task.jsonschema.validate"
 APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID = "gcloud.apigw.views.create_periodic_task.replace_template_id"
