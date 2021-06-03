@@ -27,7 +27,7 @@ from gcloud import err_code
 from gcloud.constants import TEMPLATE_EXPORTER_VERSION, TEMPLATE_EXPORTER_SOURCE_COMMON
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
-from gcloud.core.constant import TASK_CATEGORY
+from gcloud.constants import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
 from gcloud.commons.template.utils import replace_template_id
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
@@ -299,11 +299,6 @@ class BaseTemplate(models.Model):
     def has_subprocess(self):
         return self.pipeline_template.has_subprocess
 
-    def set_deleted(self):
-        self.is_deleted = True
-        PipelineTemplate.objects.delete_model(self.pipeline_template_id)
-        self.save()
-
     def referencer(self):
         pipeline_template_referencer = self.pipeline_template.referencer()
         if not pipeline_template_referencer:
@@ -317,24 +312,14 @@ class BaseTemplate(models.Model):
         return result
 
     def referencer_appmaker(self):
+        if not hasattr(self, "appmaker_set"):
+            return []
+
         appmaker_referencer = self.appmaker_set.filter(is_deleted=False).values("id", "name")
         if not appmaker_referencer.exists():
             return []
 
         return appmaker_referencer
-
-    def update_pipeline_template(self, **kwargs):
-        pipeline_template = self.pipeline_template
-        if pipeline_template is None:
-            return
-        pipeline_tree = kwargs.pop("pipeline_tree")
-        replace_template_id(self.__class__, pipeline_tree)
-
-        pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
-        pipeline_web_tree.clean()
-        pipeline_template.update_template(pipeline_tree, **kwargs)
-        # create node in template
-        NodeInTemplate.objects.update_nodes_in_template(pipeline_template, pipeline_web_tree.origin_data)
 
     def get_clone_pipeline_tree(self):
         clone_tree = self.pipeline_template.clone_data()

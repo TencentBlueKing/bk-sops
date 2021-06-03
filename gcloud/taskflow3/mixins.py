@@ -22,7 +22,7 @@ from gcloud.utils.managermixins import ClassificationCountMixin
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentExecuteData
 from gcloud.core.models import Project
-from gcloud.core.constant import TASK_CATEGORY
+from gcloud.constants import TASK_CATEGORY
 from gcloud.utils.dates import timestamp_to_datetime, format_datetime
 from gcloud.contrib.appmaker.models import AppMaker
 

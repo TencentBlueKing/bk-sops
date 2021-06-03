@@ -15,7 +15,7 @@ import re
 import logging
 import datetime
 
-from gcloud.core.constant import AE
+from gcloud.constants import AE
 from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -83,8 +83,7 @@ def produce_filter(filters):
 def format_create_and_finish_time(filters):
     create_time = timestamp_to_datetime(
         filters.get(
-            "create_time",
-            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
+            "create_time", datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
         )
     )
     finish_time = timestamp_to_datetime(filters.get("finish_time", datetime.datetime.now().timestamp()))
