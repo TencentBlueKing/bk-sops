@@ -11,27 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import base64
-import hashlib
 import logging
 import traceback
 
-import ujson as json
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from gcloud import err_code
-from gcloud.conf import settings
-from gcloud.exceptions import FlowExportError
 from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.template_base.apis.django.api import base_batch_form, base_form, base_check_before_import
-from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator
-from gcloud.utils.dates import time_now_str
+from gcloud.template_base.apis.django.api import (
+    base_batch_form,
+    base_form,
+    base_check_before_import,
+    base_export_templates,
+)
+from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
 from gcloud.utils.strings import string_to_boolean
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
@@ -40,7 +39,7 @@ from gcloud.iam_auth.view_interceptors.common_template import (
     ExportInterceptor,
     ImportInterceptor,
 )
-from .validators import ExportTemplateValidator, ImportValidator, CheckBeforeImportValidator
+from .validators import ImportValidator, CheckBeforeImportValidator
 
 logger = logging.getLogger("root")
 
@@ -93,30 +92,7 @@ def batch_form(request):
 @request_validate(ExportTemplateValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request):
-    data = json.loads(request.body)
-    template_id_list = data["template_id_list"]
-
-    # wash
-    try:
-        templates_data = json.loads(
-            json.dumps(CommonTemplate.objects.export_templates(template_id_list), sort_keys=True)
-        )
-    except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
-
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
-    digest = hashlib.md5(data_string).hexdigest()
-
-    file_data = base64.b64encode(
-        json.dumps({"template_data": templates_data, "digest": digest}, sort_keys=True).encode("utf-8")
-    )
-    filename = "bk_sops_%s_%s.dat" % ("common", time_now_str())
-    response = HttpResponse()
-    response["Content-Disposition"] = "attachment; filename=%s" % filename
-    response["mimetype"] = "application/octet-stream"
-    response["Content-Type"] = "application/octet-stream"
-    response.write(file_data)
-    return response
+    return base_export_templates(request, CommonTemplate, "common", [])
 
 
 @require_POST

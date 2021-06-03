@@ -19,24 +19,6 @@ from gcloud.utils.strings import check_and_rename_params
 from gcloud.template_base.utils import read_template_data_file
 
 
-class ExportValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        try:
-            data = json.loads(request.body)
-        except Exception:
-            return False, "request body is not a valid json"
-
-        template_id_list = data.get("template_id_list")
-
-        if not isinstance(template_id_list, list):
-            return False, "invalid template_id_list"
-
-        if not template_id_list:
-            return False, "template_id_list can not be empty"
-
-        return True, ""
-
-
 class ImportValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
         f = request.FILES.get("data_file", None)

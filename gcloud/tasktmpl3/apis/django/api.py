@@ -11,13 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import hashlib
-import base64
 import logging
 import traceback
 
 import ujson as json
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -26,11 +24,8 @@ from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
 
 from gcloud import err_code
-from gcloud.conf import settings
-from gcloud.exceptions import FlowExportError
 from gcloud.core.models import Project
 from gcloud.utils.strings import check_and_rename_params, string_to_boolean
-from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -46,15 +41,19 @@ from gcloud.iam_auth.view_interceptors.template import (
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import get_constant_values
 from .validators import (
-    ExportValidator,
     ImportValidator,
     GetTemplateCountValidator,
     DrawPipelineValidator,
     AnalysisConstantsRefValidator,
     CheckBeforeImportValidator,
 )
-from gcloud.template_base.apis.django.api import base_batch_form, base_form, base_check_before_import
-from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator
+from gcloud.template_base.apis.django.api import (
+    base_batch_form,
+    base_form,
+    base_check_before_import,
+    base_export_templates,
+)
+from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
 
 logger = logging.getLogger("root")
 
@@ -104,33 +103,10 @@ def batch_form(request, project_id):
 
 
 @require_POST
-@request_validate(ExportValidator)
+@request_validate(ExportTemplateValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request, project_id):
-    data = json.loads(request.body)
-    template_id_list = data["template_id_list"]
-
-    # wash
-    try:
-        templates_data = json.loads(
-            json.dumps(TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True)
-        )
-    except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
-
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
-    digest = hashlib.md5(data_string).hexdigest()
-
-    file_data = base64.b64encode(
-        json.dumps({"template_data": templates_data, "digest": digest}, sort_keys=True).encode("utf-8")
-    )
-    filename = "bk_sops_%s_%s.dat" % (project_id, time_now_str())
-    response = HttpResponse()
-    response["Content-Disposition"] = "attachment; filename=%s" % filename
-    response["mimetype"] = "application/octet-stream"
-    response["Content-Type"] = "application/octet-stream"
-    response.write(file_data)
-    return response
+    return base_export_templates(request, TaskTemplate, project_id, [project_id])
 
 
 @require_POST
