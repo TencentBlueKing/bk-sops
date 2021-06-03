@@ -32,7 +32,7 @@ from gcloud.utils.strings import standardize_name
 from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.domains.manager import TemplateManager
+from gcloud.tasktmpl3.domains.template_manager import TemplateManager
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.resources import ProjectResource
 from gcloud.iam_auth import res_factory
