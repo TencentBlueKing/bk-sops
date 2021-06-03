@@ -46,7 +46,6 @@ from gcloud.iam_auth.view_interceptors.template import (
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import get_constant_values
 from .validators import (
-    FormValidator,
     ExportValidator,
     ImportValidator,
     CheckBeforeImportValidator,
@@ -54,8 +53,8 @@ from .validators import (
     DrawPipelineValidator,
     AnalysisConstantsRefValidator,
 )
-from gcloud.template_base.apis.django.api import base_batch_form
-from gcloud.template_base.apis.django.validators import BatchFormValidator
+from gcloud.template_base.apis.django.api import base_batch_form, base_form
+from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator
 
 logger = logging.getLogger("root")
 
@@ -64,18 +63,7 @@ logger = logging.getLogger("root")
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
 def form(request, project_id):
-    template_id = request.GET["template_id"]
-    version = request.GET.get("version")
-
-    template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
-
-    ctx = {
-        "form": template.get_form(version),
-        "outputs": template.get_outputs(version),
-        "version": version or template.version,
-    }
-
-    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
+    return base_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
 @swagger_auto_schema(
