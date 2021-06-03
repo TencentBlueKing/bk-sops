@@ -29,7 +29,7 @@ from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 from pipeline.models import PipelineTemplate, TemplateScheme
 
 from gcloud.tasktmpl3.domains.template_manager import TemplateManager
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.utils.strings import standardize_name

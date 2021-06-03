@@ -32,7 +32,7 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud.core.models import EngineConfig
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance

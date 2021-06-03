@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,19 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+from django.conf.urls import url
 
-from django.db import migrations
+from gcloud.common_template.apis.django import api
 
 
-class Migration(migrations.Migration):
-
-    dependencies = [
-        ('template', '0006_auto_20200325_1458'),
-    ]
-
-    operations = [
-        migrations.DeleteModel(
-            name='CommonTmplPerm',
-        ),
-    ]
+urlpatterns = [
+    url(r"^api/form/$", api.form),
+    url(r"^api/batch_form/$", api.batch_form),
+    url(r"^api/export/$", api.export_templates),
+    url(r"^api/import/$", api.import_templates),
+    url(r"^api/import_check/$", api.check_before_import),
+]

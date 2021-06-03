@@ -26,7 +26,7 @@ from gcloud.core.models import EngineConfig
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.utils.strings import standardize_pipeline_node_name

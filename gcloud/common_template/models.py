@@ -29,7 +29,7 @@ from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.constants import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.utils import replace_template_id
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 

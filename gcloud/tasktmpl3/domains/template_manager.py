@@ -16,7 +16,7 @@ import traceback
 from pipeline.exceptions import PipelineException
 
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.utils import replace_template_id
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 
 from pipeline.models import PipelineTemplate

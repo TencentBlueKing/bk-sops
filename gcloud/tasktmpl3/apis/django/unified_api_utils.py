@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 
 from gcloud import err_code
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 
 

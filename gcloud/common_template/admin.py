@@ -11,4 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'gcloud.commons.template.apps.CommonTemplateConfig'
+from django.contrib import admin
+
+from gcloud.common_template import models
+
+
+@admin.register(models.CommonTemplate)
+class CommonTemplateAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "category", "pipeline_template", "is_deleted"]
+    list_filter = ["category", "is_deleted"]
+    search_fields = ["id", "pipeline_template__name"]
+    raw_id_fields = ["pipeline_template"]
+    actions = ["fake_delete"]
+
+    def fake_delete(self, request, queryset):
+        queryset.update(is_deleted=True)
+
+    fake_delete.short_description = "Fake delete"

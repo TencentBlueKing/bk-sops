@@ -18,7 +18,7 @@ from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
 from gcloud.utils.strings import string_to_boolean
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.common_template.utils import read_template_data_file
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client

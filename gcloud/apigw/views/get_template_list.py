@@ -18,7 +18,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate

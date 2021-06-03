@@ -60,7 +60,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
     "gcloud.apigw",
-    "gcloud.commons.template",
+    "gcloud.common_template",
     "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",

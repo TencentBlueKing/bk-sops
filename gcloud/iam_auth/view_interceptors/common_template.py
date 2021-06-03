@@ -17,8 +17,8 @@ from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
 from gcloud.utils.strings import string_to_boolean
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.common_template.models import CommonTemplate
+from gcloud.common_template.utils import read_template_data_file
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import res_factory

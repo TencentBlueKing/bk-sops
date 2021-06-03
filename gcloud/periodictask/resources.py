@@ -38,8 +38,8 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.strings import standardize_name
 from gcloud.constants import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.core.resources import ProjectResource
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.models import CommonTemplate
+from gcloud.common_template.utils import replace_template_id
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
