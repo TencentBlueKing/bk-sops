@@ -12,16 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import traceback
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.template_base.apis.django.api import (
@@ -29,9 +25,9 @@ from gcloud.template_base.apis.django.api import (
     base_form,
     base_check_before_import,
     base_export_templates,
+    base_import_templates,
 )
 from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
-from gcloud.utils.strings import string_to_boolean
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.common_template import (
@@ -99,26 +95,7 @@ def export_templates(request):
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
 def import_templates(request):
-    f = request.FILES["data_file"]
-    override = string_to_boolean(request.POST["override"])
-
-    r = read_template_data_file(f)
-    templates_data = r["data"]["template_data"]
-
-    try:
-        result = CommonTemplate.objects.import_templates(templates_data, override, request.user.username)
-    except Exception as e:
-        logger.error(traceback.format_exc(e))
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOWN_ERROR.code,
-                "data": None,
-            }
-        )
-
-    return JsonResponse(result)
+    return base_import_templates(request, CommonTemplate, {})
 
 
 @require_POST

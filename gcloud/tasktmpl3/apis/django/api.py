@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import traceback
 
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse
@@ -24,10 +23,8 @@ from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
 
 from gcloud import err_code
-from gcloud.core.models import Project
-from gcloud.utils.strings import check_and_rename_params, string_to_boolean
+from gcloud.utils.strings import check_and_rename_params
 from gcloud.utils.decorators import request_validate
-from gcloud.template_base.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.contrib.analysis.analyse_items import task_template
@@ -52,6 +49,7 @@ from gcloud.template_base.apis.django.api import (
     base_form,
     base_check_before_import,
     base_export_templates,
+    base_import_templates,
 )
 from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
 
@@ -113,43 +111,7 @@ def export_templates(request, project_id):
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
 def import_templates(request, project_id):
-    f = request.FILES["data_file"]
-    override = string_to_boolean(request.POST["override"])
-
-    r = read_template_data_file(f)
-    templates_data = r["data"]["template_data"]
-
-    # reset biz_cc_id select in templates
-    project = Project.objects.get(id=project_id)
-    _reset_biz_selector_value(templates_data, project.bk_biz_id)
-
-    try:
-        result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
-    except Exception:
-        logger.error(traceback.format_exc())
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOWN_ERROR.code,
-                "data": None,
-            }
-        )
-
-    return JsonResponse(result)
-
-
-def _reset_biz_selector_value(templates_data, bk_biz_id):
-    for template in templates_data["pipeline_template_data"]["template"].values():
-        for act in [act for act in template["tree"]["activities"].values() if act["type"] == "ServiceActivity"]:
-            act_info = act["component"]["data"]
-            biz_cc_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
-            if biz_cc_id_field and (not biz_cc_id_field["hook"]):
-                biz_cc_id_field["value"] = bk_biz_id
-
-        for constant in template["tree"]["constants"].values():
-            if constant["source_tag"].endswith(".biz_cc_id") and constant["value"]:
-                constant["value"] = bk_biz_id
+    return base_import_templates(request, TaskTemplate, {"project_id": project_id})
 
 
 @require_POST

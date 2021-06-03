@@ -11,19 +11,24 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 import ujson as json
 import hashlib
 import base64
+import traceback
 
 from django.http import HttpRequest
 from django.http import JsonResponse, HttpResponse
 
-
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.utils.dates import time_now_str
+from gcloud.utils.strings import string_to_boolean
 from gcloud.exceptions import FlowExportError
 from gcloud.template_base.utils import read_template_data_file
+
+logger = logging.getLogger("root")
 
 
 def base_batch_form(request: HttpRequest, template_model_cls: object, filters: dict):
@@ -114,3 +119,28 @@ def base_export_templates(request: HttpRequest, template_model_cls: object, file
     response["Content-Type"] = "application/octet-stream"
     response.write(file_data)
     return response
+
+
+def base_import_templates(request: HttpRequest, template_model_cls: object, import_kwargs: dict):
+    f = request.FILES["data_file"]
+    override = string_to_boolean(request.POST["override"])
+
+    r = read_template_data_file(f)
+    templates_data = r["data"]["template_data"]
+
+    try:
+        result = template_model_cls.objects.import_templates(
+            template_data=templates_data, override=override, operator=request.user.username, **import_kwargs
+        )
+    except Exception:
+        logger.error(traceback.format_exc())
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid flow data or error occur, please contact administrator",
+                "code": err_code.UNKNOWN_ERROR.code,
+                "data": None,
+            }
+        )
+
+    return JsonResponse(result)
