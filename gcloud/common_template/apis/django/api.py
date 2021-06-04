@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
@@ -40,10 +39,28 @@ from .validators import ImportValidator, CheckBeforeImportValidator
 logger = logging.getLogger("root")
 
 
-@require_GET
+@swagger_auto_schema(
+    methods=["get"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
 def form(request):
+    """
+    公共流程获取表单数据
+
+    通过输入流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+
+    param: template_id: 流程ID, integer, query, required
+    param: version: 流程版本, string, query
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "form": "流程表单(dict)",
+        "outputs": "流程输出(dict)",
+        "version": "版本号(string)"
+    }
+    """
     return base_form(request, CommonTemplate, filters={})
 
 
@@ -55,9 +72,7 @@ def form(request):
 @iam_intercept(BatchFormInterceptor())
 def batch_form(request):
     """
-    公共流程批量获取表单数据
-
-    通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+    以 DAT 格式导出公共流程模板
 
     body: data
     {
@@ -84,21 +99,94 @@ def batch_form(request):
     return base_batch_form(request, CommonTemplate, {})
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ExportTemplateValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request):
+    """
+    以 DAT 格式导出公共流程数据
+
+    body: data
+    {
+        "templates(required)": [
+            {
+                "id": "流程ID(integer)",
+                "version": "流程版本(string)"
+            }
+        ]
+    }
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "template_id": [
+            {
+                "form": "流程表单(dict)",
+                "outputs": "流程输出(dict)",
+                "version": "版本号(string)",
+                "is_current": "是否当前版本(boolean)"
+            }
+        ]
+    }
+    """
     return base_export_templates(request, CommonTemplate, "common", [])
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
 def import_templates(request):
+    """
+    导入 DAT 文件到公共流程中
+
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
+
+    return: 检测结果
+    {
+        "data(integer)": "成功导入的流程数"
+    }
+    """
     return base_import_templates(request, CommonTemplate, {})
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request):
+    """
+    检测 DAT 文件是否支持导入
+
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
+
+    return: 检测结果
+    {
+        "can_override": "是否能够进行覆盖操作(bool)",
+        "new_template": [
+            {
+                "id": "能够新建的模板ID(integer)",
+                "name": "能够新建的模板名(string)"
+            }
+        ],
+        "override_template": [
+            {
+                "id": "能够覆盖的模板ID(integer)",
+                "name": "能够覆盖的模板名(string)",
+                "template_id": "模板UUID(string)"
+            }
+        ]
+    }
+    """
     return base_check_before_import(request, CommonTemplate, [])
