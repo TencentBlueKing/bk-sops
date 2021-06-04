@@ -19,11 +19,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_list_data
-
-try:
-    from bkoauth.decorators import apigw_required
-except ImportError:
-    from packages.bkoauth.decorators import apigw_required
+from packages.bkoauth.decorators import apigw_required
 
 
 @login_exempt

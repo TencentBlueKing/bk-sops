@@ -16,9 +16,12 @@ from functools import wraps
 
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
-
-from .jwt_client import JWTClient, jwt_invalid_view
 from .utils import FancyDict
+
+try:
+    from bkoauth.jwt_client import JWTClient, jwt_invalid_view
+except ImportError:
+    from packages.bkoauth.jwt_client import JWTClient, jwt_invalid_view
 
 
 def apigw_required(view_func):
