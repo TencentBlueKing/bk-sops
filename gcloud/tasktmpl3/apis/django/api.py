@@ -56,10 +56,29 @@ from gcloud.template_base.apis.django.validators import BatchFormValidator, Form
 logger = logging.getLogger("root")
 
 
-@require_GET
+@swagger_auto_schema(
+    methods=["get"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
 def form(request, project_id):
+    """
+    项目流程获取表单数据
+
+    通过输入流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+
+    param: project_id: 项目ID, integer, path, required
+    param: template_id: 流程ID, integer, query, required
+    param: version: 流程版本(string), string, query
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "form": "流程表单(dict)",
+        "outputs": "流程输出(dict)",
+        "version": "版本号(string)"
+    }
+    """
     return base_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
@@ -73,50 +92,117 @@ def batch_form(request, project_id):
     """
     项目流程批量获取表单数据
 
-     通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+    通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
 
-     body: data
-     {
-         "templates(required)": [
-             {
-                 "id": "流程ID(integer)",
-                 "version": "流程版本(string)"
-             }
-         ]
-     }
+    body: data
+    {
+        "templates(required)": [
+            {
+                "id": "流程ID(integer)",
+                "version": "流程版本(string)"
+            }
+        ]
+    }
 
-     return: 每个流程当前版本和指定版本的表单数据列表
-     {
-         "template_id": [
-             {
-                 "form": "流程表单(dict)",
-                 "outputs": "流程输出(dict)",
-                 "version": "版本号(string)",
-                 "is_current": "是否当前版本(boolean)"
-             }
-         ]
-     }
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "template_id": [
+            {
+                "form": "流程表单(dict)",
+                "outputs": "流程输出(dict)",
+                "version": "版本号(string)",
+                "is_current": "是否当前版本(boolean)"
+            }
+        ]
+    }
     """
     return base_batch_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ExportTemplateValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request, project_id):
+    """
+    以 DAT 格式导出项目流程模板
+
+    param: project_id: 项目ID, integer, path, required
+
+    body: data
+    {
+        "template_id_list(required)": [
+            "流程ID(integer)"
+        ]
+    }
+
+    return: DAT 文件
+    {}
+    """
     return base_export_templates(request, TaskTemplate, project_id, [project_id])
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
 def import_templates(request, project_id):
+    """
+    导入 DAT 文件到项目流程中
+
+    param: project_id: 项目ID, integer, path, required
+
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
+
+    return: 检测结果
+    {
+        "data(integer)": "成功导入的流程数"
+    }
+    """
     return base_import_templates(request, TaskTemplate, {"project_id": project_id})
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request, project_id):
+    """
+    检测 DAT 文件是否支持导入
+
+    param: project_id: 项目ID, integer, path, required
+
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
+
+    return: 检测结果
+    {
+        "can_override": "是否能够进行覆盖操作(bool)",
+        "new_template": [
+            {
+                "id": "能够新建的模板ID(integer)",
+                "name": "能够新建的模板名(string)"
+            }
+        ],
+        "override_template": [
+            {
+                "id": "能够覆盖的模板ID(integer)",
+                "name": "能够覆盖的模板名(string)",
+                "template_id": "模板UUID(string)"
+            }
+        ]
+    }
+    """
     return base_check_before_import(request, TaskTemplate, [project_id])
 
 
