@@ -17,24 +17,28 @@ from gcloud.template_base.domains.schema_converter import YamlSchemaConverter
 class YamlSchemaConverterHandler:
     _schema_converters = {YamlSchemaConverter.VERSION: YamlSchemaConverter}
 
-    def __init__(self, version):
+    def __init__(self, version: str):
         if version not in self._schema_converters:
             raise Exception("schema converter of version {} does not found.".format(version))
         self.converter = self._schema_converters.get(version)()
 
     def convert(self, data: dict):
+        """从原始数据字段转换成Yaml数据字段"""
         return self.converter.convert(data)
 
-    def reconvert(self, data: dict):
-        return self.converter.reconvert(data)
+    def reconvert(self, yaml_docs: list):
+        """从Yaml数据字段转换成原始数据字段"""
+        return self.converter.reconvert(yaml_docs)
 
-    def reconvert_with_override_id(self, data, override_mappings):
-        reconvert_result = self.reconvert(data)
+    def reconvert_with_override_id(self, yaml_docs: list, override_mappings: dict):
+        """从Yaml数据字段转换成原始数据字段，同时添加"""
+        reconvert_result = self.reconvert(yaml_docs)
         if not reconvert_result["result"]:
             return reconvert_result
         templates, orders = reconvert_result["templates"], reconvert_result["template_order"]
         reconverted_templates = []
         for template_id in orders:
-            templates[template_id].update({"override_template_id": override_mappings[template_id]})
+            if template_id in override_mappings:
+                templates[template_id].update({"override_template_id": override_mappings[template_id]})
             reconverted_templates.append(templates[template_id])
         return {"result": True, "data": reconverted_templates, "message": []}

@@ -14,6 +14,7 @@ import copy
 from abc import ABCMeta, abstractmethod
 
 import yaml
+import jsonschema
 
 from pipeline.parser.utils import replace_all_id
 from pipeline_web.drawing_new.drawing import draw_pipeline
@@ -33,11 +34,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
     VERSION = "v1"
     TEMPLATE_DEFAULT_META = {
         "description": "",
-        "default_flow_type": "common",
-        "executor_proxy": "",
-        "notify_receivers": '{"receiver_group":[],"more_receiver":""}',
-        "notify_type": "[]",
-        "time_out": 20,
     }
     NODE_NECESSARY_FIELDS = {
         "ServiceActivity": ["id", "type", "name", "component"],
@@ -99,23 +95,38 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "show_type": "show",
         "value": "",
     }
+    YAML_DOC_SCHEMA = {
+        "type": "object",
+        "required": ["meta", "spec", "schema_version"],
+        "properties": {
+            "meta": {"type": "object", "required": ["name", "id"]},
+            "spec": {"type": "object", "required": ["nodes"]},
+        },
+    }
 
-    def validate_data(self, yaml_data: dict):
+    def validate_data(self, yaml_docs: list):
         """检查导入yaml数据结构合法性"""
+        yaml_data = {}
+        try:
+            for yaml_doc in yaml_docs:
+                jsonschema.validate(yaml_doc, self.YAML_DOC_SCHEMA)
+                template_id = yaml_doc["meta"].pop("id")
+                yaml_data[template_id] = yaml_doc
+        except jsonschema.ValidationError as e:
+            return {"result": False, "data": yaml_data, "message": ["YAML数据格式有误: {}".format(e)]}
         errors = {}
         template_set = set()
         for template_id, template in yaml_data.items():
-            # 忽略模版外的其他字段
-            if not template_id.startswith("template"):
-                continue
             error = []
             template_set.add(template_id)
             # template 必须字段检查
             if not template.get("meta", {}).get("name"):
                 error.append("模版下meta字段需包含模版名称(name字段)")
             # nodes的类型必须是list
-            if not isinstance(template.get("nodes"), list):
-                error.append("模版nodes字段必须为列表")
+            if not isinstance(template.get("spec", {}).get("nodes"), list):
+                error.append("模版spec下nodes字段必须为列表")
+                continue
+            template = template["spec"]
             # template 下 nodes字段 & 连接 检查
             nodes_set = set([node["id"] for node in template["nodes"] if "id" in node])
             for i, node in enumerate(template["nodes"]):
@@ -148,28 +159,33 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 errors[template_id] = error
         # 检查相同key的constant属性是否相同
         if errors:
-            return {"result": False, "data": [], "message": errors}
-        return {"result": True, "data": [], "message": []}
+            return {"result": False, "data": yaml_data, "message": errors}
+        return {"result": True, "data": yaml_data, "message": []}
 
     def convert(self, full_data: dict):
         """将原始流程数据转换成只保留YAML字段的数据"""
         data = copy.deepcopy(full_data)
-        yaml_data = {"schema_version": self.VERSION}
+        template_data = {}
         templates = data["pipeline_template_data"]["template"]
         for _, template_meta in data["template"].items():
             templates[template_meta["pipeline_template_id"]].update(template_meta)
         for pipeline_id, template in templates.items():
-            yaml_data[pipeline_id] = self._convert_template(template)
-        self._generate_readable_id(yaml_data)
-        return {"result": True, "data": yaml_data, "message": ""}
+            template_data[pipeline_id] = self._convert_template(template)
+        self._generate_readable_id(template_data)
+        yaml_docs = []
+        for template_id, template in template_data.items():
+            meta = template.pop("meta")
+            meta["id"] = template_id
+            yaml_docs.append({"schema_version": "v1", "meta": meta, "spec": template})
+        return {"result": True, "data": yaml_docs, "message": ""}
 
-    def reconvert(self, yaml_data: dict):
+    def reconvert(self, yaml_docs: list):
         """将YAML字段流程数据转换成原始字段"""
-        validate_result = self.validate_data(yaml_data)
+        validate_result = self.validate_data(yaml_docs)
         if not validate_result["result"]:
             return {"result": False, "data": [], "message": validate_result["message"]}
+        yaml_data = validate_result["data"]
         data = copy.deepcopy(yaml_data)
-        data.pop("schema_version")
         templates = {}
         template_order = self._calculate_template_orders(data)
         for template_id in template_order:
@@ -177,10 +193,10 @@ class YamlSchemaConverter(BaseSchemaConverter):
         return {"result": True, "data": {"templates": templates, "template_order": template_order}, "message": []}
 
     @staticmethod
-    def dump_yaml_file(yaml_data: dict, file_name: str):
+    def dump_yaml_file(yaml_data: list, file_name: str):
         """将YAML格式数据保存为文件"""
         with open(file_name, "w") as yaml_file:
-            yaml.dump(yaml_data, yaml_file, allow_unicode=True, sort_keys=False)
+            yaml.dump_all(yaml_data, yaml_file, allow_unicode=True, sort_keys=False)
         return {"result": True, "data": "", "message": ""}
 
     def _reconvert_template(self, template_id: str, data: dict, cur_templates: dict):
@@ -188,7 +204,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         template = data[template_id]
         reconverted_template = {**self.TEMPLATE_DEFAULT_META}
         reconverted_template.update(template["meta"])
-        reconverted_template["tree"] = self._reconvert_tree(template, cur_templates)
+        reconverted_template["tree"] = self._reconvert_tree(template["spec"], cur_templates)
         return reconverted_template
 
     def _reconvert_nodes_in_tree(self, nodes: dict, reconverted_tree: dict, cur_templates: dict):
@@ -379,7 +395,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         """计算templates顺序，保证子流程会在父流程之前"""
         dependence_num = {key: 0 for key in templates.keys()}
         for template_id, template in templates.items():
-            for node in template["nodes"]:
+            for node in template["spec"]["nodes"]:
                 if node["type"] == "SubProcess":
                     dependence_num[template_id] += 1
         count = {}
@@ -544,6 +560,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         node_id_queue = [start_node_id]
         cur_path_queue = [[start_node_id]]
         visited_node_ids = set()
+        # 通过bfs遍历，并记录从开始节点到当前节点的路径
         while len(node_id_queue) > 0:
             cur_node_id = node_id_queue.pop(0)
             cur_path = cur_path_queue.pop(0)
@@ -553,6 +570,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 if next_node_id not in visited_node_ids:
                     node_id_queue.append(next_node_id)
                     cur_path_queue.append(cur_path + [next_node_id])
+                # 如果下一个节点已经出现在当前路径中，则说明成环，去掉当前节点对下一个节点的连接
                 elif next_node_id in cur_path:
                     next_node_to_remove.append(next_node_id)
             for node_to_remove in next_node_to_remove:
@@ -562,22 +580,30 @@ class YamlSchemaConverter(BaseSchemaConverter):
 
     def _calculate_nodes_orders(self, nodes: dict, start_node_id: str):
         """根据节点关系计算出可读性较强的节点顺序列表，考虑分支情况和带环情况"""
+        # 先去除可能成环的边
         nodes = self._remove_loop_by_bfs(nodes, start_node_id)
         multi_next_node_stack = []
         cur_node_id = start_node_id
         ordered_node_ids = []
+        ordered_node_set = set()
         node_number = len(nodes)
         while len(ordered_node_ids) < node_number:
             node = nodes[cur_node_id]
+            # 如果还有其他节点的出度是该节点，则从多出度栈中拿一个节点作为下一个节点
             if len(node["last"]) > 0:
                 cur_node_id = multi_next_node_stack.pop()
                 continue
-            if cur_node_id not in ordered_node_ids:
+            # 如果当前节点是新节点，则添加到顺序队列中
+            if cur_node_id not in ordered_node_set:
                 ordered_node_ids.append(cur_node_id)
+                ordered_node_set.add(cur_node_id)
+            # 如果当前节点有多个出度，则随机选择一个作为下一个节点
             if len(node["next"]) >= 1:
                 next_node_id = node["next"].pop()
+                # 如果pop完之后还有出度, 则放入多出度栈中
                 if len(node["next"]) > 0:
                     multi_next_node_stack.append(cur_node_id)
+                # 去除下一个节点的入度
                 nodes[next_node_id]["last"].remove(cur_node_id)
                 cur_node_id = next_node_id
         return ordered_node_ids
