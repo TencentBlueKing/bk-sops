@@ -25,7 +25,7 @@ class YamlSchemaConverterTestCase(TestCase):
         with open("{}/test_original_data.json".format(dir_path)) as infile:
             self.original_data = json.load(infile)
         with open("{}/test_yaml_data.yaml".format(dir_path)) as infile:
-            self.yaml_data = yaml.load(infile, Loader=yaml.FullLoader)
+            self.yaml_docs = list(yaml.load_all(infile, Loader=yaml.FullLoader))
 
         self.convert_handler = YamlSchemaConverterHandler(version="v1")
 
@@ -49,10 +49,10 @@ class YamlSchemaConverterTestCase(TestCase):
     def test_convert_yaml(self):
         convert_result = self.convert_handler.convert(self.original_data)
         yaml_data = convert_result["data"]
-        self.assertEqual(yaml_data, self.yaml_data)
+        self.assertEqual(yaml_data, self.yaml_docs)
 
     def test_reconvert_yaml(self):
-        reconvert_result = self.convert_handler.reconvert(self.yaml_data)
+        reconvert_result = self.convert_handler.reconvert(self.yaml_docs)
         generated_data = reconvert_result["data"]["templates"]
         self.assertTrue(self._check_reconvert_correct(generated_data, self.original_data))
 
@@ -89,7 +89,7 @@ class YamlSchemaConverterTestCase(TestCase):
         self.assertIn(ordered_node_ids, [[1, 2, 3, 4, 5, 6], [1, 4, 5, 2, 3, 6]])
 
     def test_converter_convert_constants(self):
-        yaml_constants = self.yaml_data["template1"]["constants"]
+        yaml_constants = self.yaml_docs[0]["spec"]["constants"]
         yaml_param_constants = {
             "component_inputs": {},
             "component_outputs": {

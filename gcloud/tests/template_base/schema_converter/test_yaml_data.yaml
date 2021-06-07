@@ -1,7 +1,8 @@
 schema_version: v1
-template1:
-  meta:
-    name: 循环样例
+meta:
+  name: 循环样例
+  id: template1
+spec:
   nodes:
   - id: t1_node1
     type: EmptyStartEvent
