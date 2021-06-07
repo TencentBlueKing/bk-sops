@@ -11,13 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import hashlib
-import base64
 import logging
-import traceback
 
 import ujson as json
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -26,13 +23,8 @@ from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
 
 from gcloud import err_code
-from gcloud.conf import settings
-from gcloud.exceptions import FlowExportError
-from gcloud.core.models import Project
-from gcloud.utils.strings import check_and_rename_params, string_to_boolean
-from gcloud.utils.dates import time_now_str
+from gcloud.utils.strings import check_and_rename_params
 from gcloud.utils.decorators import request_validate
-from gcloud.template_base.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.contrib.analysis.analyse_items import task_template
@@ -46,36 +38,48 @@ from gcloud.iam_auth.view_interceptors.template import (
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import get_constant_values
 from .validators import (
-    FormValidator,
-    ExportValidator,
     ImportValidator,
-    CheckBeforeImportValidator,
     GetTemplateCountValidator,
     DrawPipelineValidator,
     AnalysisConstantsRefValidator,
+    CheckBeforeImportValidator,
 )
-from gcloud.template_base.apis.django.api import base_batch_form
-from gcloud.template_base.apis.django.validators import BatchFormValidator
+from gcloud.template_base.apis.django.api import (
+    base_batch_form,
+    base_form,
+    base_check_before_import,
+    base_export_templates,
+    base_import_templates,
+)
+from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
 
 logger = logging.getLogger("root")
 
 
-@require_GET
+@swagger_auto_schema(
+    methods=["get"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
 def form(request, project_id):
-    template_id = request.GET["template_id"]
-    version = request.GET.get("version")
+    """
+    项目流程获取表单数据
 
-    template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
+    通过输入流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
 
-    ctx = {
-        "form": template.get_form(version),
-        "outputs": template.get_outputs(version),
-        "version": version or template.version,
+    param: project_id: 项目ID, integer, path, required
+    param: template_id: 流程ID, integer, query, required
+    param: version: 流程版本(string), string, query
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "form": "流程表单(dict)",
+        "outputs": "流程输出(dict)",
+        "version": "版本号(string)"
     }
-
-    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
+    """
+    return base_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
 @swagger_auto_schema(
@@ -88,114 +92,118 @@ def batch_form(request, project_id):
     """
     项目流程批量获取表单数据
 
-     通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+    通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
 
-     body: data
-     {
-         "templates(required)": [
-             {
-                 "id": "流程ID(integer)",
-                 "version": "流程版本(string)"
-             }
-         ]
-     }
+    body: data
+    {
+        "templates(required)": [
+            {
+                "id": "流程ID(integer)",
+                "version": "流程版本(string)"
+            }
+        ]
+    }
 
-     return: 每个流程当前版本和指定版本的表单数据列表
-     {
-         "template_id": [
-             {
-                 "form": "流程表单(dict)",
-                 "outputs": "流程输出(dict)",
-                 "version": "版本号(string)",
-                 "is_current": "是否当前版本(boolean)"
-             }
-         ]
-     }
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "template_id": [
+            {
+                "form": "流程表单(dict)",
+                "outputs": "流程输出(dict)",
+                "version": "版本号(string)",
+                "is_current": "是否当前版本(boolean)"
+            }
+        ]
+    }
     """
     return base_batch_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
-@require_POST
-@request_validate(ExportValidator)
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
+@request_validate(ExportTemplateValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request, project_id):
-    data = json.loads(request.body)
-    template_id_list = data["template_id_list"]
+    """
+    以 DAT 格式导出项目流程模板
 
-    # wash
-    try:
-        templates_data = json.loads(
-            json.dumps(TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True)
-        )
-    except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
+    param: project_id: 项目ID, integer, path, required
 
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
-    digest = hashlib.md5(data_string).hexdigest()
+    body: data
+    {
+        "template_id_list(required)": [
+            "流程ID(integer)"
+        ]
+    }
 
-    file_data = base64.b64encode(
-        json.dumps({"template_data": templates_data, "digest": digest}, sort_keys=True).encode("utf-8")
-    )
-    filename = "bk_sops_%s_%s.dat" % (project_id, time_now_str())
-    response = HttpResponse()
-    response["Content-Disposition"] = "attachment; filename=%s" % filename
-    response["mimetype"] = "application/octet-stream"
-    response["Content-Type"] = "application/octet-stream"
-    response.write(file_data)
-    return response
+    return: DAT 文件
+    {}
+    """
+    return base_export_templates(request, TaskTemplate, project_id, [project_id])
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
 def import_templates(request, project_id):
-    f = request.FILES["data_file"]
-    override = string_to_boolean(request.POST["override"])
+    """
+    导入 DAT 文件到项目流程中
 
-    r = read_template_data_file(f)
-    templates_data = r["data"]["template_data"]
+    param: project_id: 项目ID, integer, path, required
 
-    # reset biz_cc_id select in templates
-    project = Project.objects.get(id=project_id)
-    _reset_biz_selector_value(templates_data, project.bk_biz_id)
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
 
-    try:
-        result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
-    except Exception:
-        logger.error(traceback.format_exc())
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOWN_ERROR.code,
-                "data": None,
-            }
-        )
-
-    return JsonResponse(result)
+    return: 检测结果
+    {
+        "data(integer)": "成功导入的流程数"
+    }
+    """
+    return base_import_templates(request, TaskTemplate, {"project_id": project_id})
 
 
-def _reset_biz_selector_value(templates_data, bk_biz_id):
-    for template in templates_data["pipeline_template_data"]["template"].values():
-        for act in [act for act in template["tree"]["activities"].values() if act["type"] == "ServiceActivity"]:
-            act_info = act["component"]["data"]
-            biz_cc_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
-            if biz_cc_id_field and (not biz_cc_id_field["hook"]):
-                biz_cc_id_field["value"] = bk_biz_id
-
-        for constant in template["tree"]["constants"].values():
-            if constant["source_tag"].endswith(".biz_cc_id") and constant["value"]:
-                constant["value"] = bk_biz_id
-
-
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request, project_id):
-    r = read_template_data_file(request.FILES["data_file"])
+    """
+    检测 DAT 文件是否支持导入
 
-    check_info = TaskTemplate.objects.import_operation_check(r["data"]["template_data"], project_id)
+    param: project_id: 项目ID, integer, path, required
 
-    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
+
+    return: 检测结果
+    {
+        "can_override": "是否能够进行覆盖操作(bool)",
+        "new_template": [
+            {
+                "id": "能够新建的模板ID(integer)",
+                "name": "能够新建的模板名(string)"
+            }
+        ],
+        "override_template": [
+            {
+                "id": "能够覆盖的模板ID(integer)",
+                "name": "能够覆盖的模板名(string)",
+                "template_id": "模板UUID(string)"
+            }
+        ]
+    }
+    """
+    return base_check_before_import(request, TaskTemplate, [project_id])
 
 
 def replace_all_templates_tree_node_id(request):

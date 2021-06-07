@@ -327,9 +327,23 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         }
         return result
 
+    def _reset_biz_selector_value(self, templates_data, bk_biz_id):
+        for template in templates_data["pipeline_template_data"]["template"].values():
+            for act in [act for act in template["tree"]["activities"].values() if act["type"] == "ServiceActivity"]:
+                act_info = act["component"]["data"]
+                biz_cc_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
+                if biz_cc_id_field and (not biz_cc_id_field["hook"]):
+                    biz_cc_id_field["value"] = bk_biz_id
+
+            for constant in template["tree"]["constants"].values():
+                if constant["source_tag"].endswith(".biz_cc_id") and constant["value"]:
+                    constant["value"] = bk_biz_id
+
     def import_templates(self, template_data, override, project_id, operator=None):
         project = Project.objects.get(id=project_id)
         check_info = self.import_operation_check(template_data, project_id)
+        # reset biz_cc_id select in templates
+        self._reset_biz_selector_value(template_data, project.bk_biz_id)
 
         # operation validation check
         if override and (not check_info["can_override"]):

@@ -11,57 +11,57 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import base64
-import hashlib
 import logging
-import traceback
 
-import ujson as json
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-from gcloud import err_code
-from gcloud.conf import settings
-from gcloud.exceptions import FlowExportError
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import read_template_data_file
 from gcloud.iam_auth.view_interceptors.template import BatchFormInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
-from gcloud.template_base.apis.django.api import base_batch_form
-from gcloud.template_base.apis.django.validators import BatchFormValidator
-from gcloud.utils.dates import time_now_str
-from gcloud.utils.strings import string_to_boolean
+from gcloud.template_base.apis.django.api import (
+    base_batch_form,
+    base_form,
+    base_check_before_import,
+    base_export_templates,
+    base_import_templates,
+)
+from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.common_template import FormInterceptor, ExportInterceptor, ImportInterceptor
-from .validators import (
-    FormValidator,
-    ExportTemplateValidator,
-    ImportValidator,
-    CheckBeforeImportValidator,
+from gcloud.iam_auth.view_interceptors.common_template import (
+    FormInterceptor,
+    ExportInterceptor,
+    ImportInterceptor,
 )
+from .validators import ImportValidator, CheckBeforeImportValidator
 
 logger = logging.getLogger("root")
 
 
-@require_GET
+@swagger_auto_schema(
+    methods=["get"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
 def form(request):
-    template_id = request.GET["template_id"]
-    version = request.GET.get("version")
+    """
+    公共流程获取表单数据
 
-    template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+    通过输入流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
 
-    ctx = {
-        "form": template.get_form(version),
-        "outputs": template.get_outputs(version),
-        "version": version or template.version,
+    param: template_id: 流程ID, integer, query, required
+    param: version: 流程版本, string, query
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "form": "流程表单(dict)",
+        "outputs": "流程输出(dict)",
+        "version": "版本号(string)"
     }
-
-    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
+    """
+    return base_form(request, CommonTemplate, filters={})
 
 
 @swagger_auto_schema(
@@ -72,9 +72,7 @@ def form(request):
 @iam_intercept(BatchFormInterceptor())
 def batch_form(request):
     """
-    公共流程批量获取表单数据
-
-    通过输入批量流程id和对应指定版本，获取对应流程指定版本和当前版本的表单、输出等信息。
+    以 DAT 格式导出公共流程模板
 
     body: data
     {
@@ -101,67 +99,94 @@ def batch_form(request):
     return base_batch_form(request, CommonTemplate, {})
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ExportTemplateValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request):
-    data = json.loads(request.body)
-    template_id_list = data["template_id_list"]
+    """
+    以 DAT 格式导出公共流程数据
 
-    # wash
-    try:
-        templates_data = json.loads(
-            json.dumps(CommonTemplate.objects.export_templates(template_id_list), sort_keys=True)
-        )
-    except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
+    body: data
+    {
+        "templates(required)": [
+            {
+                "id": "流程ID(integer)",
+                "version": "流程版本(string)"
+            }
+        ]
+    }
 
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
-    digest = hashlib.md5(data_string).hexdigest()
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "template_id": [
+            {
+                "form": "流程表单(dict)",
+                "outputs": "流程输出(dict)",
+                "version": "版本号(string)",
+                "is_current": "是否当前版本(boolean)"
+            }
+        ]
+    }
+    """
+    return base_export_templates(request, CommonTemplate, "common", [])
 
-    file_data = base64.b64encode(
-        json.dumps({"template_data": templates_data, "digest": digest}, sort_keys=True).encode("utf-8")
-    )
-    filename = "bk_sops_%s_%s.dat" % ("common", time_now_str())
-    response = HttpResponse()
-    response["Content-Disposition"] = "attachment; filename=%s" % filename
-    response["mimetype"] = "application/octet-stream"
-    response["Content-Type"] = "application/octet-stream"
-    response.write(file_data)
-    return response
 
-
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(ImportValidator)
 @iam_intercept(ImportInterceptor())
 def import_templates(request):
-    f = request.FILES["data_file"]
-    override = string_to_boolean(request.POST["override"])
+    """
+    导入 DAT 文件到公共流程中
 
-    r = read_template_data_file(f)
-    templates_data = r["data"]["template_data"]
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
 
-    try:
-        result = CommonTemplate.objects.import_templates(templates_data, override, request.user.username)
-    except Exception as e:
-        logger.error(traceback.format_exc(e))
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOWN_ERROR.code,
-                "data": None,
-            }
-        )
-
-    return JsonResponse(result)
+    return: 检测结果
+    {
+        "data(integer)": "成功导入的流程数"
+    }
+    """
+    return base_import_templates(request, CommonTemplate, {})
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
 def check_before_import(request):
-    r = read_template_data_file(request.FILES["data_file"])
+    """
+    检测 DAT 文件是否支持导入
 
-    check_info = CommonTemplate.objects.import_operation_check(r["data"]["template_data"])
+    body: data
+    {
+        "data_file(required)": "DAT格式模板数据文件"
+    }
 
-    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
+    return: 检测结果
+    {
+        "can_override": "是否能够进行覆盖操作(bool)",
+        "new_template": [
+            {
+                "id": "能够新建的模板ID(integer)",
+                "name": "能够新建的模板名(string)"
+            }
+        ],
+        "override_template": [
+            {
+                "id": "能够覆盖的模板ID(integer)",
+                "name": "能够覆盖的模板名(string)",
+                "template_id": "模板UUID(string)"
+            }
+        ]
+    }
+    """
+    return base_check_before_import(request, CommonTemplate, [])

@@ -12,32 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_COMMON
-from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
+from gcloud.utils.validate import RequestValidator
 from gcloud.template_base.utils import read_template_data_file
-
-
-class FormValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        if not request.GET.get("template_id"):
-            return False, "template_id can not be empty"
-
-        return True, ""
-
-
-class ExportTemplateValidator(ObjectJsonBodyValidator):
-    def validate(self, request, *args, **kwargs):
-
-        super().validate(request, *args, **kwargs)
-
-        template_id_list = self.data.get("template_id_list")
-
-        if not isinstance(template_id_list, list):
-            return False, "invalid template_id_list"
-
-        if not template_id_list:
-            return False, "template_id_list can not be empty"
-
-        return True, ""
 
 
 class ImportValidator(RequestValidator):
