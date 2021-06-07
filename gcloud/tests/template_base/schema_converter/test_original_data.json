@@ -1,0 +1,321 @@
+{
+    "exporter_version": 1,
+    "pipeline_template_data": {
+        "refs": {},
+        "template": {
+            "n2125aebb4c8334f8ba4d575315a8d94": {
+                "create_time": "2021-05-31 11:35:26 UTC",
+                "creator": "admin",
+                "description": "",
+                "edit_time": "2021-05-31 11:35:26 UTC",
+                "editor": null,
+                "is_deleted": false,
+                "name": "循环样例",
+                "template_id": "n2125aebb4c8334f8ba4d575315a8d94",
+                "tree": {
+                    "activities": {
+                        "node413dba1a74e3045da403e3be9cd5": {
+                            "component": {
+                                "code": "sleep_timer",
+                                "data": {
+                                    "bk_timing": {
+                                        "hook": false,
+                                        "value": "1"
+                                    },
+                                    "force_check": {
+                                        "hook": false,
+                                        "value": true
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "node413dba1a74e3045da403e3be9cd5",
+                            "incoming": [
+                                "line70bd3ac5698935b28dc0defedf80",
+                                "line8f16375bf90d2f65dd2ce5bcacbd"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "循环前置节点",
+                            "optional": true,
+                            "outgoing": "line158fb147ad44ba357522fdf86dfa",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        },
+                        "nodeb268d09815476dd8a37d373b89ff": {
+                            "component": {
+                                "code": "sleep_timer",
+                                "data": {
+                                    "bk_timing": {
+                                        "hook": false,
+                                        "value": "${time_list.split(\",\")[_loop-1]}"
+                                    },
+                                    "force_check": {
+                                        "hook": false,
+                                        "value": true
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "nodeb268d09815476dd8a37d373b89ff",
+                            "incoming": [
+                                "line158fb147ad44ba357522fdf86dfa"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "定时",
+                            "optional": true,
+                            "outgoing": "line3cb1352ebe8015d4f3e789d71578",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        }
+                    },
+                    "constants": {
+                        "${_loop}": {
+                            "custom_type": "",
+                            "desc": "",
+                            "index": 1,
+                            "key": "${_loop}",
+                            "name": "循环次数",
+                            "show_type": "hide",
+                            "source_info": {
+                                "node413dba1a74e3045da403e3be9cd5": [
+                                    "_loop"
+                                ]
+                            },
+                            "source_tag": "",
+                            "source_type": "component_outputs",
+                            "validation": "",
+                            "value": "",
+                            "version": "legacy"
+                        },
+                        "${time_list}": {
+                            "custom_type": "textarea",
+                            "desc": "",
+                            "form_schema": {
+                                "attrs": {
+                                    "hookable": true,
+                                    "name": "文本框",
+                                    "validation": [
+                                        {
+                                            "type": "required"
+                                        }
+                                    ]
+                                },
+                                "type": "textarea"
+                            },
+                            "index": 0,
+                            "is_meta": false,
+                            "key": "${time_list}",
+                            "name": "time_list",
+                            "show_type": "show",
+                            "source_info": {},
+                            "source_tag": "textarea.textarea",
+                            "source_type": "custom",
+                            "validation": "",
+                            "value": "1,2,3,4",
+                            "version": "legacy"
+                        }
+                    },
+                    "end_event": {
+                        "id": "node09dc5c1a5c9ca6dc5ef8bdfff9a7",
+                        "incoming": [
+                            "linebe77200f4db2ff69db37a37570da"
+                        ],
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "",
+                        "type": "EmptyEndEvent"
+                    },
+                    "flows": {
+                        "line158fb147ad44ba357522fdf86dfa": {
+                            "id": "line158fb147ad44ba357522fdf86dfa",
+                            "is_default": false,
+                            "source": "node413dba1a74e3045da403e3be9cd5",
+                            "target": "nodeb268d09815476dd8a37d373b89ff"
+                        },
+                        "line3cb1352ebe8015d4f3e789d71578": {
+                            "id": "line3cb1352ebe8015d4f3e789d71578",
+                            "is_default": false,
+                            "source": "nodeb268d09815476dd8a37d373b89ff",
+                            "target": "node6a7188644302395222cd8b94b701"
+                        },
+                        "line70bd3ac5698935b28dc0defedf80": {
+                            "id": "line70bd3ac5698935b28dc0defedf80",
+                            "is_default": false,
+                            "source": "node35061a03a927f28cab4297889487",
+                            "target": "node413dba1a74e3045da403e3be9cd5"
+                        },
+                        "line8f16375bf90d2f65dd2ce5bcacbd": {
+                            "id": "line8f16375bf90d2f65dd2ce5bcacbd",
+                            "is_default": false,
+                            "source": "node6a7188644302395222cd8b94b701",
+                            "target": "node413dba1a74e3045da403e3be9cd5"
+                        },
+                        "linebe77200f4db2ff69db37a37570da": {
+                            "id": "linebe77200f4db2ff69db37a37570da",
+                            "is_default": false,
+                            "source": "node6a7188644302395222cd8b94b701",
+                            "target": "node09dc5c1a5c9ca6dc5ef8bdfff9a7"
+                        }
+                    },
+                    "gateways": {
+                        "node6a7188644302395222cd8b94b701": {
+                            "conditions": {
+                                "line8f16375bf90d2f65dd2ce5bcacbd": {
+                                    "evaluate": "${_loop} < ${len(time_list.split(\",\"))}",
+                                    "name": "循环未结束",
+                                    "tag": "branch_node6a7188644302395222cd8b94b701_node413dba1a74e3045da403e3be9cd5"
+                                },
+                                "linebe77200f4db2ff69db37a37570da": {
+                                    "evaluate": "${_loop} == ${len(time_list.split(\",\"))}",
+                                    "name": "循环结束",
+                                    "tag": "branch_node6a7188644302395222cd8b94b701_node09dc5c1a5c9ca6dc5ef8bdfff9a7"
+                                }
+                            },
+                            "id": "node6a7188644302395222cd8b94b701",
+                            "incoming": [
+                                "line3cb1352ebe8015d4f3e789d71578"
+                            ],
+                            "labels": [],
+                            "name": "",
+                            "outgoing": [
+                                "linebe77200f4db2ff69db37a37570da",
+                                "line8f16375bf90d2f65dd2ce5bcacbd"
+                            ],
+                            "type": "ExclusiveGateway"
+                        }
+                    },
+                    "line": [
+                        {
+                            "id": "line3cb1352ebe8015d4f3e789d71578",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "nodeb268d09815476dd8a37d373b89ff"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "node6a7188644302395222cd8b94b701"
+                            }
+                        },
+                        {
+                            "id": "linebe77200f4db2ff69db37a37570da",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "node6a7188644302395222cd8b94b701"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "node09dc5c1a5c9ca6dc5ef8bdfff9a7"
+                            }
+                        },
+                        {
+                            "id": "line158fb147ad44ba357522fdf86dfa",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "node413dba1a74e3045da403e3be9cd5"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "nodeb268d09815476dd8a37d373b89ff"
+                            }
+                        },
+                        {
+                            "id": "line70bd3ac5698935b28dc0defedf80",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "node35061a03a927f28cab4297889487"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "node413dba1a74e3045da403e3be9cd5"
+                            }
+                        },
+                        {
+                            "id": "line8f16375bf90d2f65dd2ce5bcacbd",
+                            "source": {
+                                "arrow": "Bottom",
+                                "id": "node6a7188644302395222cd8b94b701"
+                            },
+                            "target": {
+                                "arrow": "Bottom",
+                                "id": "node413dba1a74e3045da403e3be9cd5"
+                            }
+                        }
+                    ],
+                    "location": [
+                        {
+                            "id": "node35061a03a927f28cab4297889487",
+                            "type": "startpoint",
+                            "x": 20,
+                            "y": 155
+                        },
+                        {
+                            "group": "蓝鲸服务(BK)",
+                            "icon": "",
+                            "id": "node413dba1a74e3045da403e3be9cd5",
+                            "name": "循环前置节点",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 105,
+                            "y": 150
+                        },
+                        {
+                            "group": "蓝鲸服务(BK)",
+                            "icon": "",
+                            "id": "nodeb268d09815476dd8a37d373b89ff",
+                            "name": "定时",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 305,
+                            "y": 150
+                        },
+                        {
+                            "id": "node6a7188644302395222cd8b94b701",
+                            "name": "",
+                            "type": "branchgateway",
+                            "x": 498,
+                            "y": 160
+                        },
+                        {
+                            "id": "node09dc5c1a5c9ca6dc5ef8bdfff9a7",
+                            "type": "endpoint",
+                            "x": 702,
+                            "y": 155
+                        }
+                    ],
+                    "outputs": [],
+                    "start_event": {
+                        "id": "node35061a03a927f28cab4297889487",
+                        "incoming": "",
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "line70bd3ac5698935b28dc0defedf80",
+                        "type": "EmptyStartEvent"
+                    }
+                }
+            }
+        }
+    },
+    "template": {
+        "6": {
+            "category": "OpsTools",
+            "executor_proxy": "",
+            "id": 6,
+            "is_deleted": false,
+            "notify_receivers": "{\"receiver_group\":[],\"more_receiver\":\"\"}",
+            "notify_type": "[]",
+            "pipeline_template_id": "n2125aebb4c8334f8ba4d575315a8d94",
+            "pipeline_template_str_id": "n2125aebb4c8334f8ba4d575315a8d94",
+            "project_id": 1,
+            "time_out": 20
+        }
+    },
+    "template_source": "project"
+}
