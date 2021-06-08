@@ -40,7 +40,7 @@ pyyaml==5.4.1
 mistune==0.8.4
 
 # iam sdk
-bk-iam==1.1.10
+bk-iam==1.1.13
 
 # celery 4
 celery==4.4.0
