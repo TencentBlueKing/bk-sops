@@ -12,10 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 import time
 import gevent
+from django.conf import settings
 from fakeredis import FakeRedis
 from mock import MagicMock, patch
 
-from django.conf import settings
 from django.test import TestCase
 
 from gcloud.tests.mock import MockTaskOperationTimesConfig
