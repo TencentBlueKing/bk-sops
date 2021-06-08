@@ -26,7 +26,11 @@ from gcloud.template_base.apis.django.api import (
     base_export_templates,
     base_import_templates,
 )
-from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
+from gcloud.template_base.apis.django.validators import (
+    BatchFormValidator,
+    FormValidator,
+    ExportTemplateApiViewValidator,
+)
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.common_template import (
@@ -103,7 +107,7 @@ def batch_form(request):
     methods=["post"], auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
-@request_validate(ExportTemplateValidator)
+@request_validate(ExportTemplateApiViewValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request):
     """

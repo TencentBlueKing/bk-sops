@@ -95,7 +95,7 @@ def base_check_before_import(request: HttpRequest, template_model_cls: object, i
 
 
 def base_export_templates(request: HttpRequest, template_model_cls: object, file_prefix: str, export_args: list):
-    data = json.loads(request.body)
+    data = request.data
     template_id_list = data["template_id_list"]
 
     # wash
