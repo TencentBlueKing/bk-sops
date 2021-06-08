@@ -1097,7 +1097,7 @@ const en = {
     '默认标签不支持编辑删除': 'The default label does not support editing and deleting',
     '颜色': 'Color',
     '个流程在引用': 'template in reference',
-    '预览值': 'Preview Value',
+    '预览值': 'Val.',
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
     '退出': 'Quit',
