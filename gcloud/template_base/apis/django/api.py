@@ -20,6 +20,7 @@ import traceback
 
 from django.http import HttpRequest
 from django.http import JsonResponse, HttpResponse
+from pipeline.models import TemplateRelationship
 
 from gcloud import err_code
 from gcloud.conf import settings
@@ -144,3 +145,40 @@ def base_import_templates(request: HttpRequest, template_model_cls: object, impo
         )
 
     return JsonResponse(result)
+
+
+def base_template_parents(request: HttpRequest, template_model_cls: object, filters: dict):
+    filters["id"] = request.GET["template_id"]
+    qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
+
+    if len(qs) != 1:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "find {} template for filters: {}".format(len(qs), filters),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+                "data": None,
+            }
+        )
+
+    pipeline_id = qs[0].pipeline_template_id
+
+    rel_list = TemplateRelationship.objects.filter(descendant_template_id=pipeline_id)
+    pipeline_id_map = {
+        t.pipeline_template_id: {"id": t.id, "name": t.pipeline_template.name}
+        for t in template_model_cls.objects.filter(
+            pipeline_template_id__in=[rel.ancestor_template_id for rel in rel_list]
+        ).only("id", "pipeline_template__name", "pipeline_template_id")
+    }
+    data = [
+        {
+            "template_id": pipeline_id_map[rel.ancestor_template_id]["id"],
+            "template_name": pipeline_id_map[rel.ancestor_template_id]["name"],
+            "subprocess_node_id": rel.subprocess_node_id,
+            "version": rel.version,
+            "always_use_latest": rel.always_use_latest,
+        }
+        for rel in rel_list
+    ]
+
+    return JsonResponse({"result": True, "message": "success", "code": err_code.SUCCESS.code, "data": data})
