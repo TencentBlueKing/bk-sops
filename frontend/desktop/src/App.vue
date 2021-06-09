@@ -44,6 +44,7 @@
     import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
+    import ErrorNotify from '@/utils/errorNotify.js'
     import Navigation from '@/components/layout/Navigation.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
@@ -121,23 +122,16 @@
             bus.$on('showPermissionModal', data => {
                 this.$refs.permissionModal.show(data)
             })
-            bus.$on('showMessage', info => {
-                this.$bkMessage({
-                    message: info.message,
-                    ellipsisLine: info.lines || 1,
-                    theme: info.theme || 'error'
-                })
+            bus.$on('showErrMessage', msg => {
+                window.show_msg(msg)
             })
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
-            window.show_msg = (message, type) => {
-                this.$bkMessage({
-                    message,
-                    ellipsisLine: 2,
-                    theme: type
-                })
+            window.show_msg = (msg) => {
+                /* eslint-disable-next-line */
+                new ErrorNotify(msg, this)
             }
             this.getPageFooter()
         },

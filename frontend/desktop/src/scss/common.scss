@@ -1,3 +1,5 @@
+@import './mixins/scrollbar.scss';
+
 .common-section-title {
     position: relative;
     margin: 0;
@@ -253,4 +255,8 @@
             font-size: 12px;
         }
     }
+}
+
+.bk-notify-content-text {
+    @include scrollbar;
 }
