@@ -79,7 +79,7 @@
                         </template>
                     </el-table-column>
                 </template>
-                <el-table-column v-if="editable && formMode"
+                <el-table-column v-if="editable && formEdit && formMode"
                     prop="operation"
                     fixed="right"
                     align="center"
