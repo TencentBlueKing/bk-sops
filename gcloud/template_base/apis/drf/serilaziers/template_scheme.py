@@ -28,6 +28,6 @@ class ParamsSerializer(serializers.Serializer):
     查询及批量创建序列化使用
     """
 
-    project_id = serializers.IntegerField(help_text="项目ID")
+    project_id = serializers.IntegerField(help_text="项目ID", required=False)
     template_id = serializers.IntegerField(help_text="流程ID")
     schemes = serializers.ListField(required=False, child=SchemesSerizlializer(), help_text="执行方案列表")
