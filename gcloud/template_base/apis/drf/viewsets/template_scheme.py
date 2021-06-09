@@ -36,22 +36,21 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
     @staticmethod
     def get_pipeline_template_id(template_id, *args, **kwargs):
-        model_cls = CommonTemplate
-        _filter = {"pk": template_id}
+        # 如果是项目流程执行方案
         if "project_id" in kwargs:
             model_cls = TaskTemplate
             _filter = {"pk": template_id, "project_id": kwargs["project_id"]}
+        # 如果是公共流程执行方案
+        else:
+            model_cls = CommonTemplate
+            _filter = {"pk": template_id}
         try:
             return model_cls.objects.filter(**_filter).only("pipeline_template__id").first().pipeline_template.id
         except model_cls.DoesNotExist:
-            if "project_id" in kwargs:
-                message = "flow template[id={template_id}] in common_template does not exist".format(
-                    template_id=template_id
-                )
-            else:
-                message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
-                    template_id=template_id, project_id=kwargs["project_id"]
-                )
+            template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
+            message = "flow template[id={template_id}] in {template_type} does not exist".format(
+                template_id=template_id, template_type=template_type
+            )
             logger.error(message)
             raise model_cls.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
 
@@ -69,7 +68,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     @swagger_auto_schema(
         method="post",
         operation_summary="执行方案批量更新",
-        request_body=params_serializer_class,
+        request_body=ParamsSerializer,
         responses={200: TemplateSchemeSerializer(many=True)},
     )
     @action(methods=["post"], detail=False)
