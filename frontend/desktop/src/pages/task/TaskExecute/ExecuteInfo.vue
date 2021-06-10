@@ -829,8 +829,8 @@
                     this.getHistoryLog(id)
                 }
             },
-            onSelectNode (nodeHeirarchy, isClick, nodeType) {
-                this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
+            onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+                this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {

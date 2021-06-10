@@ -92,9 +92,9 @@
                 }
                 return false
             },
-            onSelectNode (node, isClick, type) {
-                const nodeType = node.children ? 'subflow' : 'tasknode'
-                node.selected = nodeType !== 'subflow'
+            onSelectNode (node) {
+                const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
+                node.selected = nodeType === 'tasknode'
                 let rootNode = node
                 let nodeHeirarchy = ''
                 while (rootNode.parent) {
@@ -105,8 +105,7 @@
                     }
                     rootNode = rootNode.parent
                 }
-                const selectNodeId = node.id
-                this.$emit('onSelectNode', nodeHeirarchy, selectNodeId, nodeType)
+                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
         }
     }

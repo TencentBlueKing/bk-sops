@@ -815,16 +815,16 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, firstNodeData) {
-                const nodeActivities = firstNodeData || this.pipelineData.activities[id]
+            async setNodeDetailConfig (id) {
+                const tasknode = this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.nodeDetailConfig = {
-                    component_code: nodeActivities.component.code,
-                    version: nodeActivities.component.version || 'legacy',
-                    node_id: nodeActivities.id,
+                    component_code: tasknode ? tasknode.component.code : '',
+                    version: tasknode ? tasknode.component.version || 'legacy' : '',
+                    node_id: id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
@@ -973,29 +973,24 @@
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
-                    let nodeData = tools.deepClone(this.nodeData)
-                    let firstNodeId = null
-                    let firstNodeData = null
-                    const rootNode = []
-                    while (nodeData[0]) {
-                        if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-                            firstNodeId = nodeData[0].id
-                            firstNodeData = nodeData[0]
-                            nodeData[0] = false
+                    let nodeData = tools.deepClone(this.nodeData[0].children)
+                    let firstTaskNode = null
+                    const subprocessStack = []
+                    while (nodeData) {
+                        const activityNode = nodeData.find(item => item.type === 'ServiceActivity' || item.type === 'SubProcess')
+                        if (activityNode.type === 'ServiceActivity') {
+                            firstTaskNode = activityNode
+                            nodeData = null
                         } else {
-                            rootNode.push(nodeData[0])
-                            nodeData = nodeData[0].children
+                            subprocessStack.push(activityNode.id)
+                            nodeData = activityNode.children
                         }
                     }
-                    this.defaultActiveId = firstNodeId
-                    let subprocessStack = []
-                    if (rootNode.length > 1) {
-                        subprocessStack = rootNode.map(item => item.id).slice(1)
-                    }
+                    this.defaultActiveId = firstTaskNode.id
                     this.nodeDetailConfig = {
-                        component_code: firstNodeData.component.code,
-                        version: firstNodeData.component.version || 'legacy',
-                        node_id: firstNodeData.id,
+                        component_code: firstTaskNode.component.code,
+                        version: firstTaskNode.component.version || 'legacy',
+                        node_id: firstTaskNode.id,
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
