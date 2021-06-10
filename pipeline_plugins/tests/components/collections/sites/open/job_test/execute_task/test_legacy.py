@@ -29,8 +29,6 @@ from pipeline_plugins.components.collections.sites.open.job import JobExecuteTas
 from pipeline_plugins.components.collections.sites.open.job import base
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
-print(base.LOG_VAR_SEARCH_CONFIGS)
-print(base.JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS)
 
 
 class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
