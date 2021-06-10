@@ -116,7 +116,6 @@
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import bus from '@/utils/bus.js'
 
     export const attrs = {
@@ -336,9 +335,12 @@
             },
             importExcel (file) {
                 const types = file.name.split('.')[1]
-                const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
-                if (!fileType) {
-                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                const fileTypeValid = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
+                if (!fileTypeValid) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件')
+                    })
                     return
                 }
                 this.file2Xce(file).then(tabJson => {
