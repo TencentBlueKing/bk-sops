@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 # 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
+import json
 from blueapps.conf.default_settings import *  # noqa
 
 
@@ -122,3 +123,11 @@ RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
 
 # 单业务下最大周期任务数量
 PERIODIC_TASK_PROJECT_MAX_NUMBER = int(os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50))
+
+# JOB 日志提取额外模式配置
+try:
+    JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = json.loads(os.getenv("BKAPP_JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS", "[]"))
+    if not isinstance(JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS, list):
+        JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
+except Exception:
+    JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []

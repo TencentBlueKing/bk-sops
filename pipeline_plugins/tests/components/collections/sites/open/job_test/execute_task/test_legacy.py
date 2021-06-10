@@ -26,6 +26,11 @@ from pipeline.component_framework.test import (
     Patcher,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobExecuteTaskComponent
+from pipeline_plugins.components.collections.sites.open.job import base
+
+base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
+print(base.LOG_VAR_SEARCH_CONFIGS)
+print(base.JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS)
 
 
 class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
@@ -74,51 +79,6 @@ GET_NODE_CALLBACK_URL = (
 )
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_job_instance_url"
 
-EXECUTE_SUCCESS_GET_LOG_RETURN = {
-    "code": 0,
-    "result": True,
-    "message": "success",
-    "data": [
-        {
-            "status": 3,
-            "step_results": [
-                {
-                    "tag": "",
-                    "ip_logs": [
-                        {
-                            "ip": "1.1.1.1",
-                            "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"
-                            "<SOPS_VAR>key4:   v   </SOPS_VAR><SOPS_VAR>key5:  </SOPS_VAR>"
-                            "<SOPS_VAR>key6:v:v</SOPS_VAR><SOPS_VAR>key empty</SOPS_VAR>"
-                            "<SOPS_VAR>:1</SOPS_VAR><SOPS_VAR>:1   fgdshgdsh</SOPS_VAR>",
-                        },
-                        {"ip": "1.1.1.2", "log_content": ""},
-                    ],
-                    "ip_status": 9,
-                }
-            ],
-        },
-        {
-            "status": 3,
-            "step_results": [
-                {
-                    "tag": "",
-                    "ip_logs": [
-                        {
-                            "ip": "1.1.1.1",
-                            "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;"
-                            "&lt;SOPS_VAR&gt;k: v  &lt;/SOPS_VAR&gt;"
-                            "&lt;SOPS_VAR&gt;k1: :v  &lt;/SOPS_VAR&gt;"
-                            "&lt;SOPS_VAR&gt;k1      &lt;/SOPS_VAR&gt;",
-                        },
-                    ],
-                    "ip_status": 9,
-                }
-            ],
-        },
-    ],
-}
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
 
@@ -182,7 +142,21 @@ EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
     "result": True,
     "code": 0,
     "message": "",
-    "data": {"ip": "10.0.0.1", "bk_cloud_id": 0, "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"},
+    "data": {
+        "ip": "10.0.0.1",
+        "bk_cloud_id": 0,
+        "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"
+        "<SOPS_VAR>key4:   v   </SOPS_VAR><SOPS_VAR>key5:  </SOPS_VAR>"
+        "<SOPS_VAR>key6:v:v</SOPS_VAR><SOPS_VAR>key empty</SOPS_VAR>"
+        "<SOPS_VAR>:1</SOPS_VAR><SOPS_VAR>:1   fgdshgdsh</SOPS_VAR>"
+        "<##{key}=v##><##{key}notvar##>"
+        "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
+        "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;"
+        "&lt;SOPS_VAR&gt;k: v  &lt;/SOPS_VAR&gt;"
+        "&lt;SOPS_VAR&gt;k1: :v  &lt;/SOPS_VAR&gt;"
+        "&lt;SOPS_VAR&gt;k1      &lt;/SOPS_VAR&gt;"
+        "&lt;##{key2}=v##&gt;&lt;##{key3}=var##&gt;",
+    },
 }
 
 # mock clients
@@ -212,7 +186,6 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
             ]
         },
     },
-    get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
     get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
@@ -560,7 +533,19 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "client": EXECUTE_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
-            "log_outputs": {},
+            "log_outputs": {
+                "key1": "value1",
+                "key4": "   v   ",
+                "key5": "  ",
+                "key6": "v:v",
+                "key2": "value2",
+                "{key}": "v",
+                "key3": "value3",
+                "k": " v  ",
+                "k1": " :v  ",
+                "{key2}": "v",
+                "{key3}": "var",
+            },
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
@@ -637,7 +622,19 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "client": GET_VAR_ERROR_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
-            "log_outputs": {},
+            "log_outputs": {
+                "key1": "value1",
+                "key4": "   v   ",
+                "key5": "  ",
+                "key6": "v:v",
+                "key2": "value2",
+                "{key}": "v",
+                "key3": "value3",
+                "k": " v  ",
+                "k1": " :v  ",
+                "{key2}": "v",
+                "{key3}": "var",
+            },
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
