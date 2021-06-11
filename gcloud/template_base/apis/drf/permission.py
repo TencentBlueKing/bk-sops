@@ -36,8 +36,8 @@ class SchemeEditPermission(permissions.BasePermission):
     @staticmethod
     def scheme_allow_or_raise_auth_failed(request, template_id=None):
         data = request.query_params or request.data
-        if "template_id" in data:
-            template_id = data["template_id"]
+        if template_id is None:
+            template_id = data.get("template_id")
 
         # 项目流程方案的权限控制
         if "project_id" in data or data.get("template_type") != "common":
