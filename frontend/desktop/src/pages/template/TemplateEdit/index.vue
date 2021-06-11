@@ -679,7 +679,8 @@
                         await this.saveTaskSchemList({
                             project_id: this.project_id,
                             template_id: data.template_id,
-                            schemes
+                            schemes,
+                            isCommon: this.common
                         })
                     }
 
@@ -1111,7 +1112,8 @@
                     const resp = await this.saveTaskSchemList({
                         project_id: this.project_id,
                         template_id: this.template_id,
-                        schemes
+                        schemes,
+                        isCommon: this.common
                     })
                     this.isExectueSchemeDialog = false
                     if (!resp.result) {

@@ -21,17 +21,14 @@ const task = {
          */
         loadTaskScheme ({ commit }, payload) {
             const { isCommon, project_id, template_id } = payload
-            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
-            const params = {
-                template_id
-            }
+            const params = { template_id }
             if (isCommon) {
-                params.project__id = project_id
+                params.template_type = 'common'
             } else {
                 params.project_id = project_id
             }
-            return axios.get(url, { params }).then(response => {
-                const data = isCommon ? response.data.objects : response.data.data
+            return axios.get('api/v3/scheme/', { params }).then(response => {
+                const data = response.data.data
                 return data
             })
         },
@@ -41,18 +38,17 @@ const task = {
          */
         createTaskScheme ({ commit }, payload) {
             const { isCommon, project_id, template_id, data, name } = payload
-            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
             const params = {
                 template_id,
                 data,
                 name
             }
             if (isCommon) {
-                params.project__id = project_id
+                params.template_type = 'common'
             } else {
                 params.project_id = project_id
             }
-            return axios.post(url, params).then(response => response.data)
+            return axios.post('api/v3/scheme/', params).then(response => response.data)
         },
         /**
          * 删除任务节点选择方案
@@ -60,9 +56,12 @@ const task = {
          */
         deleteTaskScheme ({ commit }, payload) {
             const { isCommon, id } = payload
-            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
+            const params = {}
+            if (isCommon) {
+                params.template_type = 'common'
+            }
 
-            return axios.delete(`${url}${id}/`).then(response => response.data)
+            return axios.delete(`api/v3/scheme/${id}/`, { params }).then(response => response.data)
         },
         /**
          * 获取任务节点选择方案详情
@@ -70,21 +69,29 @@ const task = {
          */
         getSchemeDetail ({ commit }, payload) {
             const { isCommon, id } = payload
-            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
+            const params = {}
+            if (isCommon) {
+                params.template_type = 'common'
+            }
 
-            return axios.get(`${url}${id}/`).then(response => response.data.data)
+            return axios.get(`api/v3/scheme/${id}/`, { params }).then(response => response.data.data)
         },
         /**
          * 保存所有执行方案
          * @param {String} payload 方案参数
          */
         saveTaskSchemList ({ commit }, payload) {
-            const { project_id, template_id, schemes } = payload
-            return axios.post('api/v3/scheme/batch_operate/', {
-                project_id,
+            const { project_id, template_id, schemes, isCommon } = payload
+            const params = {
                 template_id,
                 schemes
-            }).then(response => response.data)
+            }
+            if (isCommon) {
+                params.template_type = 'common'
+            } else {
+                params.project_id = project_id
+            }
+            return axios.post('api/v3/scheme/batch_operate/', params).then(response => response.data)
         },
         /**
          * 获取任务节点预览数据
