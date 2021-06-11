@@ -1229,16 +1229,16 @@
                     font-size: 14px;
                     color: #313238;
                 }
-                /deep/ i {
+                i {
                     font-size: 18px;
                 }
             }
-            /deep/.bk-link-text {
+            .bk-link-text {
                 font-size: 12px;
             }
         }
         .list-change {
-            /deep/ .bk-table-body-wrapper {
+            .bk-table-body-wrapper {
                 padding-bottom: 25px;
             }
         }

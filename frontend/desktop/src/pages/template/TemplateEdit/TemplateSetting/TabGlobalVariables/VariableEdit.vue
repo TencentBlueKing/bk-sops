@@ -25,7 +25,7 @@
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
                             :readonly="isSystemVar"
-                            :disabled="isHookedVar">
+                            :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
@@ -282,8 +282,8 @@
                     keyLength: true,
                     keyRepeat: true
                 }
-                // 勾选的变量不做长度校验
-                if (this.isHookedVar) {
+                // 勾选的变量编辑时不做长度校验
+                if (this.isHookedVar && this.variableData.key !== '') {
                     delete rule.max
                 }
                 return rule
@@ -656,11 +656,13 @@
                     this.theEditingData.name = this.theEditingData.name.trim()
                     
                     if (!this.variableData.key) { // 新增变量
-                        variable.version = 'legacy'
-                        variable.form_schema = formSchema.getSchema(
-                            variable.custom_type,
-                            this.atomFormConfig[this.atomTypeKey][variable.version]
-                        )
+                        if (!this.isHookedVar) { // 自定义变量
+                            variable.version = 'legacy'
+                            variable.form_schema = formSchema.getSchema(
+                                variable.custom_type,
+                                this.atomFormConfig[this.atomTypeKey][variable.version]
+                            )
+                        }
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })
