@@ -59,6 +59,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
+            :loading="activeNodeListType === 'subflow' && subAtomListLoading"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -78,6 +79,10 @@
         },
         props: {
             templateLabels: Array,
+            subAtomListLoading: {
+                type: Boolean,
+                default: true
+            },
             atomTypeList: {
                 type: Object,
                 default () {

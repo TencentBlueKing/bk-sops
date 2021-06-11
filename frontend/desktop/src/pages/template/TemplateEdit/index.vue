@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading || subAtomListLoading }">
-        <div v-if="!templateDataLoading && !singleAtomListLoading && !subAtomListLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading }">
+        <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -53,6 +53,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
+                    :subflow-list-loading="subAtomListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"

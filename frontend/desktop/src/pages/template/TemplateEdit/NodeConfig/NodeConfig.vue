@@ -119,71 +119,73 @@
                 </div>
                 <!-- 插件/子流程表单面板 -->
                 <template v-else>
-                    <div class="node-config">
-                        <div class="config-form">
-                            <!-- 基础信息 -->
-                            <section class="config-section">
-                                <h3>{{$t('基础信息')}}</h3>
-                                <basic-info
-                                    ref="basicInfo"
-                                    :basic-info="basicInfo"
-                                    :node-config="nodeConfig"
-                                    :version-list="versionList"
-                                    :is-subflow="isSubflow"
-                                    :update-subflow="updateSubflow"
-                                    :input-loading="inputLoading"
-                                    @openSelectorPanel="isSelectorPanelShow = true"
-                                    @versionChange="versionChange"
-                                    @viewSubflow="onViewSubflow"
-                                    @updateSubflowVersion="updateSubflowVersion"
-                                    @update="updateBasicInfo">
-                                </basic-info>
-                            </section>
-                            <!-- 输入参数 -->
-                            <section class="config-section">
-                                <h3>{{$t('输入参数')}}</h3>
-                                <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
-                                    <template v-if="!inputLoading">
-                                        <input-params
-                                            v-if="inputs.length > 0"
-                                            ref="inputParams"
-                                            :node-id="nodeId"
-                                            :scheme="inputs"
-                                            :plugin="basicInfo.plugin"
-                                            :version="basicInfo.version"
-                                            :subflow-forms="subflowForms"
-                                            :value="inputsParamValue"
-                                            :is-subflow="isSubflow"
-                                            :constants="localConstants"
-                                            @hookChange="onHookChange"
-                                            @update="updateInputsValue">
-                                        </input-params>
-                                        <no-data v-else></no-data>
-                                    </template>
-                                </div>
-                            </section>
-                            <!-- 输出参数 -->
-                            <section class="config-section">
-                                <h3>{{$t('输出参数')}}</h3>
-                                <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
-                                    <template v-if="!outputLoading">
-                                        <output-params
-                                            v-if="outputs.length"
-                                            :constants="localConstants"
-                                            :params="outputs"
-                                            :version="basicInfo.version"
-                                            :node-id="nodeId"
-                                            @hookChange="onHookChange">
-                                        </output-params>
-                                        <no-data v-else></no-data>
-                                    </template>
-                                </div>
-                            </section>
-                        </div>
-                        <div class="btn-footer">
-                            <bk-button theme="primary" :disabled="inputLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                            <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
-                        </div>
+                    <div class="node-config" v-bkloading="{ isLoading: isSubflow && subflowListLoading, opacity: 1 }">
+                        <template v-if="!isSubflow || !subflowListLoading">
+                            <div class="config-form">
+                                <!-- 基础信息 -->
+                                <section class="config-section">
+                                    <h3>{{$t('基础信息')}}</h3>
+                                    <basic-info
+                                        ref="basicInfo"
+                                        :basic-info="basicInfo"
+                                        :node-config="nodeConfig"
+                                        :version-list="versionList"
+                                        :is-subflow="isSubflow"
+                                        :update-subflow="updateSubflow"
+                                        :input-loading="inputLoading"
+                                        @openSelectorPanel="isSelectorPanelShow = true"
+                                        @versionChange="versionChange"
+                                        @viewSubflow="onViewSubflow"
+                                        @updateSubflowVersion="updateSubflowVersion"
+                                        @update="updateBasicInfo">
+                                    </basic-info>
+                                </section>
+                                <!-- 输入参数 -->
+                                <section class="config-section">
+                                    <h3>{{$t('输入参数')}}</h3>
+                                    <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
+                                        <template v-if="!inputLoading">
+                                            <input-params
+                                                v-if="inputs.length > 0"
+                                                ref="inputParams"
+                                                :node-id="nodeId"
+                                                :scheme="inputs"
+                                                :plugin="basicInfo.plugin"
+                                                :version="basicInfo.version"
+                                                :subflow-forms="subflowForms"
+                                                :value="inputsParamValue"
+                                                :is-subflow="isSubflow"
+                                                :constants="localConstants"
+                                                @hookChange="onHookChange"
+                                                @update="updateInputsValue">
+                                            </input-params>
+                                            <no-data v-else></no-data>
+                                        </template>
+                                    </div>
+                                </section>
+                                <!-- 输出参数 -->
+                                <section class="config-section">
+                                    <h3>{{$t('输出参数')}}</h3>
+                                    <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
+                                        <template v-if="!outputLoading">
+                                            <output-params
+                                                v-if="outputs.length"
+                                                :constants="localConstants"
+                                                :params="outputs"
+                                                :version="basicInfo.version"
+                                                :node-id="nodeId"
+                                                @hookChange="onHookChange">
+                                            </output-params>
+                                            <no-data v-else></no-data>
+                                        </template>
+                                    </div>
+                                </section>
+                            </div>
+                            <div class="btn-footer">
+                                <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                                <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
+                            </div>
+                        </template>
                     </div>
                 </template>
             </template>
@@ -298,6 +300,11 @@
         watch: {
             constants (val) {
                 this.localConstants = tools.deepClone(val)
+            },
+            subflowListLoading (val) {
+                if (!val) {
+                    this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
+                }
             }
         },
         created () {
