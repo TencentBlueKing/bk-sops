@@ -13,7 +13,7 @@
     <div class="rf-form-group" :class="{ 'rf-has-hook': option.showHook }" v-show="showForm">
         <!-- 分组名称和描述 -->
         <div v-if="showFormTitle" class="rf-group-name">
-            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+            <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
