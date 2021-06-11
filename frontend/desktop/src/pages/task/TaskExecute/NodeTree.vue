@@ -94,7 +94,7 @@
             },
             onSelectNode (node) {
                 const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
-                node.selected = nodeType === 'tasknode'
+                node.selected = nodeType !== 'subflow'
                 let rootNode = node
                 let nodeHeirarchy = ''
                 while (rootNode.parent) {
