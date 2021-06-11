@@ -291,7 +291,7 @@
         },
         {
             title: i18n.t('失败后自动忽略'),
-            id: 'error_ignorable'
+            id: 'error_ignored'
         },
         {
             title: i18n.t('重试次数'),
@@ -326,7 +326,7 @@
         },
         {
             title: i18n.t('失败后自动忽略'),
-            id: 'error_ignorable'
+            id: 'error_ignored'
         },
         {
             title: i18n.t('重试次数'),

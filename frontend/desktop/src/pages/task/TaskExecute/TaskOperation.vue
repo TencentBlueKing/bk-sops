@@ -830,7 +830,7 @@
                         errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, errorIgnorable, skip: currentNode.skip, retry: currentNode.retry }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable }
 
                     this.setTaskNodeStatus(id, data)
                 }
