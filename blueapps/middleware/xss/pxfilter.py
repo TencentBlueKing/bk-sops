@@ -129,7 +129,7 @@ class XssHtml(HTMLParser):
 
         attrs = []
         for (key, value) in attdict.items():
-            attrs.append('%s="%s"' % (key, self.__htmlspecialchars(value)))
+            attrs.append('{}="{}"'.format(key, self.__htmlspecialchars(value)))
         attrs = (" " + " ".join(attrs)) if attrs else ""
         self.result.append("<" + tag + attrs + end_diagonal + ">")
 

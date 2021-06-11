@@ -16,7 +16,7 @@ import copy
 from pipeline.core.constants import PE
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 
-from gcloud.commons.template.models import replace_template_id
+from gcloud.template_base.utils import replace_template_id
 
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from pipeline_web.plugin_management.models import DeprecatedPlugin

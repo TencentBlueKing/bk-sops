@@ -91,10 +91,14 @@
                 </span>
                 <template v-else>
                     <span
-                        v-if="!isSystemVar"
                         class="col-operation-item"
                         @click.stop="onPreviewValue(variableData.key)">
                         {{ $t('预览值') }}
+                    </span>
+                    <span
+                        class="col-operation-item"
+                        @click.stop="onCloneVariable()">
+                        {{ $t('克隆') }}
                     </span>
                     <i class="bk-icon icon-close delete-icon" @click.stop="onDeleteVariable(variableData.key)"></i>
                 </template>
@@ -256,6 +260,9 @@
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
+            },
+            onCloneVariable () {
+                this.$emit('onCloneVariable', this.variableData)
             }
         }
     }
@@ -314,7 +321,7 @@ $localBorderColor: #d8e2e7;
         }
     }
     .col-attributes {
-        width: 77px;
+        width: 64px;
         .icon-wrap {
             vertical-align: middle;
             line-height: 1;
@@ -341,7 +348,7 @@ $localBorderColor: #d8e2e7;
         }
     }
     .col-output {
-        width: 58px;
+        width: 54px;
     }
     .col-cited {
         width: 54px;
@@ -395,7 +402,7 @@ $localBorderColor: #d8e2e7;
         color: #3a84ff;
         cursor: pointer;
         &:not(:first-child) {
-            margin-left: 10px;
+            margin-left: 8px;
         }
     }
     .delete-icon {

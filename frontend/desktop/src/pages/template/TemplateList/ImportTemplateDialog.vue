@@ -19,7 +19,7 @@
         :title="$t('导入流程')"
         :value="isImportDialogShow"
         @cancel="onCancel">
-        <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1 }">
+        <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1, zIndex: 100 }">
             <div class="import-wrapper">
                 <div class="common-form-item">
                     <label class="required">{{ $t('上传文件') }}</label>

@@ -13,11 +13,12 @@ specific language governing permissions and limitations under the License.
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
 from gcloud.iam_auth.resource_creator_action.utils import (
-    register_grant_resource_creator_actions, register_batch_grant_resource_creator_actions
+    register_grant_resource_creator_actions,
+    register_batch_grant_resource_creator_actions,
 )
 
 

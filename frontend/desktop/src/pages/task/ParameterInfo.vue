@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['parameter-info-wrap', { 'no-data': isNoData }]" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
+    <div :class="['parameter-info-wrap', { 'no-data': isNoData }]" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1, zIndex: 100 }">
         <TaskParamEdit
             v-if="isReferencedShow"
             class="task-param-wrapper"

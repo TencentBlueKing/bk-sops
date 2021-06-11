@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
@@ -43,13 +42,11 @@ def claim_functionalization_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "request body is not a valid json",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "request body is not a valid json",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     constants = params.get("constants", {})
     name = params.get("name", "")
@@ -59,14 +56,12 @@ def claim_functionalization_task(request, task_id, project_id):
         result = task.task_claim(request.user.username, constants, name)
     except Exception as e:
         logger.exception("[API] claim_functionalization_task fail: {}".format(e))
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "claim_functionalization_task fail: {}".format(e),
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "claim_functionalization_task fail: {}".format(e),
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
 
     if result["result"] is False:
-        return JsonResponse({"result": False, "message": result["message"], "code": err_code.UNKNOWN_ERROR.code})
-    return JsonResponse({"result": True, "data": result["message"], "code": err_code.SUCCESS.code})
+        return {"result": False, "message": result["message"], "code": err_code.UNKNOWN_ERROR.code}
+    return {"result": True, "data": result["message"], "code": err_code.SUCCESS.code}

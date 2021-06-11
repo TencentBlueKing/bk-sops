@@ -1,0 +1,2 @@
+improvement:
+  - 批量修改主机属性插件表格添加inner_ip必填校验

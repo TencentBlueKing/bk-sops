@@ -43,7 +43,7 @@
                         :data="projectList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange">
                         <bk-table-column

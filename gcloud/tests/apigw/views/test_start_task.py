@@ -58,6 +58,8 @@ class StartTaskAPITest(APITest):
 
             data = json.loads(response.content)
 
+            if "trace_id" in data:
+                data.pop("trace_id")
             self.assertFalse(data["result"])
             self.assertEqual(data["message"], "task already started")
 
@@ -96,4 +98,7 @@ class StartTaskAPITest(APITest):
 
                 data = json.loads(response.content)
 
-                self.assertEqual(data, assert_return)
+            if "trace_id" in data:
+                data.pop("trace_id")
+
+            self.assertEqual(data, assert_return)

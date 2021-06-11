@@ -16,7 +16,7 @@
         width="1105"
         :show-footer="false">
         <template>
-            <div class="log-version" v-bkloading="{ isLoading: loading }">
+            <div class="log-version" v-bkloading="{ isLoading: loading, zIndex: 100 }">
                 <div class="log-version-left">
                     <ul class="left-list">
                         <li class="left-list-item"

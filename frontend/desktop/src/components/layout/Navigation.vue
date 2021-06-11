@@ -3,7 +3,8 @@
         navigation-type="left-right"
         :side-title="$t('标准运维')"
         :need-menu="true"
-        :default-open="true">
+        :default-open="sideNavOpen"
+        @toggle="toggleSideNav">
         <div slot="side-icon" class="logo-area">
             <img :src="logo" class="logo" />
         </div>
@@ -35,7 +36,7 @@
                                 :disabled="child.disabled"
                                 :icon="child.icon"
                                 :default-active="child.active"
-                                @click="onHandleSubNavClick($event, groupIndex, routeIndex, childIndex)">
+                                @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
                                 <span>{{child.name}}</span>
                             </bk-navigation-menu-item>
                         </div>
@@ -53,12 +54,16 @@
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
 
     export default {
+        inject: ['reload'],
         name: 'Navigation',
         components: {
             NavigatorHeadRight
         },
         data () {
+            const sideNavDefault = localStorage.getItem('sideNav')
+            const sideNavOpen = sideNavDefault ? sideNavDefault === 'open' : true
             return {
+                sideNavOpen,
                 title: '',
                 currentNav: '',
                 logo: require('../../assets/images/logo/logo_icon.svg')
@@ -92,10 +97,8 @@
             '$route' (val) {
                 this.setNavigationTitle(val)
             },
-            hasAdminPerm (val) {
-                if (val) {
-                    this.setNavigationTitle(this.$route)
-                }
+            routerList (val) {
+                this.setNavigationTitle(this.$route)
             }
         },
         methods: {
@@ -132,7 +135,14 @@
                 if (nav.hasProjectId) {
                     route.path = `${nav.url}${this.project_id}/`
                 }
-                this.$router.push(route)
+                if (this.$route.name === nav.id) {
+                    this.$router.push(route)
+                    this.$nextTick(() => {
+                        this.reload()
+                    })
+                } else {
+                    this.$router.push(route)
+                }
             },
             onHandleNavClick (id, groupIndex, routeIndex) {
                 if (this.view_mode === 'appmaker') { // 轻应用跳转特殊处理
@@ -161,8 +171,22 @@
                     this.changeRoute(this.routerList[groupIndex][routeIndex])
                 }
             },
-            onHandleSubNavClick (id, groupIndex, routeIndex, childIndex) {
-                this.changeRoute(this.routerList[groupIndex][routeIndex].children[childIndex])
+            // onHandleSubNavClick (groupIndex, routeIndex, childIndex) {
+            //     if (this.$route.name === route.routerName) {
+            //         if (tools.isDataEqual(this.$route.query, config.query)) {
+            //             return this.reload()
+            //         } else {
+            //             this.$router.push(config)
+            //             this.$nextTick(() => {
+            //                 this.reload()
+            //             })
+            //             return
+            //         }
+            //     }
+            //     this.changeRoute(this.routerList[groupIndex][routeIndex].children[childIndex])
+            // },
+            toggleSideNav (val) {
+                localStorage.setItem('sideNav', val ? 'open' : 'close')
             }
         }
     }
@@ -185,8 +209,11 @@
                     @include scrollbar;
                 }
             }
-            .navigation-nav .nav-slider-list {
-                padding-top: 0;
+            .navigation-nav {
+                z-index: 111;
+                .nav-slider-list {
+                    padding-top: 0;
+                }
             }
             .container-header {
                 justify-content: space-between;

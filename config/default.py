@@ -58,8 +58,9 @@ INSTALLED_APPS += (
     "gcloud.contrib.audit",
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
+    "gcloud.contrib.operate_record",
     "gcloud.apigw",
-    "gcloud.commons.template",
+    "gcloud.common_template",
     "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",
@@ -160,7 +161,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.38"
+STATIC_VERSION = "3.6.40"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -337,7 +338,7 @@ REST_FRAMEWORK = {
 }
 
 # pipeline settings
-PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
+PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.domains.context.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.models.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"

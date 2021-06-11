@@ -78,20 +78,8 @@
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
-.rf-view-textarea-value {
+.tag-textarea {
     .el-textarea__inner {
-        padding: 6px 0;
-        border: none;
-        resize: none;
-        &[disabled = "disabled"] {
-            background: inherit;
-            color: inherit;
-            cursor: text;
-        }
-    }
-}
-.el-textarea {
-    /deep/ .el-textarea__inner {
         padding-left: 10px;
         padding-right: 10px;
         font-size: 12px;
@@ -100,10 +88,17 @@
     }
 }
 .rf-view-textarea-value {
-    /deep/ .el-textarea__inner {
-        padding: 6px 0 0;
+    .el-textarea__inner {
+        padding: 6px 0;
         line-height: 24px;
         color: #333333;
+        border: none;
+        resize: none;
+        &[disabled = "disabled"] {
+            background: inherit;
+            color: inherit;
+            cursor: text;
+        }
     }
 }
 </style>

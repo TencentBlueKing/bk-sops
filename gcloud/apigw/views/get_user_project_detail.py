@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from cachetools import cached, TTLCache
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -42,30 +41,26 @@ def get_user_project_detail(request, project_id):
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:
         logger.exception("[API] get_user_business_detail call fail: {}".format(e))
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "can not get business[{}] detail for user[{}]".format(
-                    request.user.username, request.project.bk_biz_id
-                ),
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
-        )
-
-    return JsonResponse(
-        {
-            "result": True,
-            "data": {
-                "project_id": request.project.id,
-                "project_name": request.project.name,
-                "from_cmdb": request.project.from_cmdb,
-                "bk_biz_id": biz_detail["bk_biz_id"],
-                "bk_biz_name": biz_detail["bk_biz_name"],
-                "bk_biz_developer": biz_detail["bk_biz_developer"],
-                "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
-                "bk_biz_tester": biz_detail["bk_biz_tester"],
-                "bk_biz_productor": biz_detail["bk_biz_productor"],
-            },
-            "code": err_code.SUCCESS.code,
+        return {
+            "result": False,
+            "message": "can not get business[{}] detail for user[{}]".format(
+                request.user.username, request.project.bk_biz_id
+            ),
+            "code": err_code.UNKNOWN_ERROR.code,
         }
-    )
+
+    return {
+        "result": True,
+        "data": {
+            "project_id": request.project.id,
+            "project_name": request.project.name,
+            "from_cmdb": request.project.from_cmdb,
+            "bk_biz_id": biz_detail["bk_biz_id"],
+            "bk_biz_name": biz_detail["bk_biz_name"],
+            "bk_biz_developer": biz_detail["bk_biz_developer"],
+            "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
+            "bk_biz_tester": biz_detail["bk_biz_tester"],
+            "bk_biz_productor": biz_detail["bk_biz_productor"],
+        },
+        "code": err_code.SUCCESS.code,
+    }
