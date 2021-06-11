@@ -188,7 +188,8 @@ const template = {
             details: [],
             subproc_has_update: false
         },
-        systemConstants: []
+        systemConstants: [],
+        default_flow_type: 'common'
     },
     mutations: {
         setTemplateName (state, name) {
@@ -207,7 +208,7 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels, default_flow_type } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
@@ -215,6 +216,7 @@ const template = {
             state.description = description
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels
+            state.default_flow_type = default_flow_type
         },
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
@@ -283,7 +285,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels,
-                notify_type, description, executor_proxy, time_out, category, subprocess_info
+                notify_type, description, executor_proxy, time_out, category, subprocess_info, default_flow_type
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
@@ -298,6 +300,7 @@ const template = {
             state.time_out = time_out
             state.category = category
             state.subprocess_info = subprocess_info
+            state.default_flow_type = default_flow_type
             this.commit('template/setPipelineTree', pipelineData)
         },
         setProjectBaseInfo (state, data) {
@@ -331,6 +334,7 @@ const template = {
             state.description = ''
             state.executor_proxy = ''
             state.template_labels = []
+            state.default_flow_type = 'common'
         },
         // 重置模板数据
         resetTemplateData (state) {
@@ -354,6 +358,7 @@ const template = {
             state.description = ''
             state.executor_proxy = ''
             state.template_labels = []
+            state.default_flow_type = 'common'
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -814,7 +819,7 @@ const template = {
         saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
-                time_out, category, description, executor_proxy, template_labels
+                time_out, category, description, executor_proxy, template_labels, default_flow_type
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => {
@@ -879,6 +884,7 @@ const template = {
                 description,
                 executor_proxy,
                 template_labels,
+                default_flow_type,
                 pipeline_tree: pipelineTree,
                 notify_receivers: notifyReceivers,
                 notify_type: notifyType
