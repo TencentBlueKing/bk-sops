@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -44,13 +44,15 @@ from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
 
 
 class PipelineInstanceResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = "pipeline_instance"
         authorization = ReadOnlyAuthorization()
@@ -86,7 +88,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
     subprocess_info = fields.DictField(attribute="subprocess_info", use_in="detail", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = "taskflow"
         filtering = {
@@ -201,7 +203,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         if filters is None:
             filters = {}
 
-        orm_filters = super(GCloudModelResource, self).build_filters(filters, ignore_bad_filters)
+        orm_filters = super(TaskFlowInstanceResource, self).build_filters(filters, ignore_bad_filters)
         if filters.get("creator_or_executor", "").strip():
             if getattr(self.Meta, "creator_or_executor_fields", []):
                 queries = [
@@ -225,6 +227,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
 
+    @record_operation(RecordType.task.name, OperateType.create.name)
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
@@ -320,6 +323,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
 
+    @record_operation(RecordType.task.name, OperateType.delete.name)
     def obj_delete(self, bundle, **kwargs):
         try:
             taskflow = TaskFlowInstance.objects.get(id=kwargs["pk"])

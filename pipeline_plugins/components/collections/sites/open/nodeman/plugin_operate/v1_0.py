@@ -24,6 +24,8 @@ from pipeline.core.flow.io import (
 
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
+from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
+
 from ..base import NodeManBaseService, get_host_id_by_inner_ip
 
 __group_name__ = _("节点管理(Nodeman)")
@@ -36,10 +38,7 @@ class NodemanPluginOperateService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -82,6 +81,17 @@ class NodemanPluginOperateService(NodeManBaseService):
                 ),
             ),
         ]
+
+    def outputs_format(self):
+        outputs_format = super(NodemanPluginOperateService, self).outputs_format()
+        outputs_format.extend(
+            [
+                self.OutputItem(
+                    name=_("任务链接"), key="job_url", type="string", schema=StringItemSchema(description=_("任务链接")),
+                ),
+            ]
+        )
+        return outputs_format
 
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
@@ -130,7 +140,15 @@ class NodemanPluginOperateService(NodeManBaseService):
 
         result = client.plugin_operate(params)
 
-        return self.get_job_result(result, data, "plugin_operate", params)
+        job_is_plugin = True
+        if result["result"]:
+            # 这里兼容节点管理新老接口
+            if plugin not in result["data"]:
+                job_is_plugin = False
+            job_id = result["data"].get(plugin, None) or result["data"].get("job_id", None)
+            data.outputs.job_url = [get_nodeman_job_url(job_id, host_id) for host_id in host]
+
+        return self.get_job_result(result, data, "plugin_operate", params, job_is_plugin=job_is_plugin)
 
 
 class NodemanPluginOperateComponent(Component):

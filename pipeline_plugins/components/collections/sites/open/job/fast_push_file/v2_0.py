@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,13 +20,12 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
-    get_node_callback_url,
     loose_strip,
     chunk_table_data,
-    batch_execute_func,
 )
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
@@ -185,7 +184,6 @@ class JobFastPushFileService(JobScheduleService):
                     "ip_list": ip_list,
                     "account": job_account,
                     "file_target_path": job_target_path,
-                    "bk_callback_url": get_node_callback_url(self.id),
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
@@ -197,14 +195,14 @@ class JobFastPushFileService(JobScheduleService):
         task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
-        job_instance_id, job_inst_name, job_inst_url = [], [], []
+        job_instance_id_list, job_inst_name, job_inst_url = [], [], []
         data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):
             job_result = res["result"]
             if job_result["result"]:
-                job_instance_id.append(job_result["data"]["job_instance_id"])
+                job_instance_id_list.append(job_result["data"]["job_instance_id"])
                 job_inst_name.append(job_result["data"]["job_instance_name"])
-                job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
+                job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id_list))
             else:
                 message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
                 self.logger.error(message)
@@ -212,12 +210,14 @@ class JobFastPushFileService(JobScheduleService):
         if data.outputs.requests_error:
             data.outputs.requests_error = "Request Error:\n{}".format(data.outputs.requests_error)
 
-        data.outputs.job_instance_id_list = job_instance_id
+        # 总任务数
+        data.outputs.task_count = task_count
+        data.outputs.job_instance_id_list = job_instance_id_list
         # 批量请求使用
-        data.outputs.job_id_of_batch_execute = job_instance_id
-        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id]
+        data.outputs.job_id_of_batch_execute = job_instance_id_list
+        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id_list]
         # 请求成功数
-        data.outputs.request_success_count = len(job_result_list)
+        data.outputs.request_success_count = len(job_instance_id_list)
         # 执行成功数
         data.outputs.success_count = 0
         # 所有请求都失败，则返回
@@ -262,4 +262,9 @@ class JobFastPushFileComponent(Component):
     bound_service = JobFastPushFileService
     form = "%scomponents/atoms/job/fast_push_file/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
-    desc = "跨业务分发文件时需要在作业平台添加 IP 白名单"
+    desc = (
+        "跨业务分发文件时需要在作业平台添加 IP 白名单\n"
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

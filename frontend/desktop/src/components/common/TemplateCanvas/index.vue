@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -40,6 +40,7 @@
                 <palette-panel
                     :common="common"
                     :atom-type-list="atomTypeList"
+                    :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
                     @updateNodeMenuState="updateNodeMenuState">
@@ -170,14 +171,6 @@
                 type: Boolean,
                 default: false
             },
-            singleAtomListLoading: {
-                type: Boolean,
-                default: false
-            },
-            subAtomListLoading: {
-                type: Boolean,
-                default: false
-            },
             hasAdminPerm: {
                 type: Boolean,
                 default: false
@@ -185,6 +178,10 @@
             common: {
                 type: [String, Number],
                 default: ''
+            },
+            templateLabels: {
+                type: Array,
+                default: () => ([])
             },
             canvasData: {
                 type: Object,
@@ -1229,6 +1226,8 @@
                         const canvasDom = clone.querySelector('#canvas-flow')
                         canvasDom.style.left = offsetX + 30 + 'px'
                         canvasDom.style.top = offsetY + 30 + 'px'
+                        canvasDom.style.right = 0 + 'px'
+                        canvasDom.style.bottom = 0 + 'px'
                         canvasDom.style.transform = 'inherit'
                         canvasDom.style.border = 0
                     }

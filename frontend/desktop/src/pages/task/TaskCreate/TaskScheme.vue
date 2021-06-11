@@ -10,74 +10,89 @@
                 </i>
             </div>
         </div>
-        <div class="schema-list-panel" v-if="showPanel">
-            <template v-if="!isEditSchemeShow">
-                <div class="scheme-title">
-                    <span> {{$t('执行方案')}}</span>
-                    <div>
-                        <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                        <bk-button size="small" @click="isEditSchemeShow = true">导入临时方案</bk-button>
-                    </div>
+        <div class="schema-list-panel" v-if="showPanel && !isEditSchemeShow">
+            <div class="scheme-title">
+                <span> {{$t('执行方案')}}</span>
+                <div>
+                    <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
+                    <bk-button size="small" :disabled="isCommonProcess" @click="onImportTemporaryPlan">导入临时方案</bk-button>
                 </div>
-                <div :class="['scheme-header', { 'disabled-btn': !hasPermission(['flow_edit'], tplActions) }]">
-                    <div class="scheme-form" v-if="nameEditing">
-                        <bk-input
-                            ref="nameInput"
-                            v-model="schemaName"
-                            v-validate="schemaNameRule"
-                            data-vv-validate-on=" "
-                            name="schemaName"
-                            class="bk-input-inline"
-                            :clearable="true"
-                            @keyup.enter.native="onAddScheme"
-                            :placeholder="$t('方案名称')">
-                        </bk-input>
-                        <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
-                    </div>
-                    <div
-                        v-else
-                        class="add-plan"
-                        @click="onCreateScheme">
-                        <span class="common-icon-add"></span>
-                        {{ $t('新增方案') }}
-                    </div>
+            </div>
+            <div class="scheme-header">
+                <div class="scheme-form" v-if="nameEditing">
+                    <bk-input
+                        ref="nameInput"
+                        v-model="schemaName"
+                        v-validate.persist="schemaNameRule"
+                        name="schemaName"
+                        class="bk-input-inline"
+                        :clearable="true"
+                        @blur="handlerBlur"
+                        @keyup.enter.native="onAddScheme"
+                        :placeholder="$t('方案名称')">
+                    </bk-input>
+                    <span v-if="veeErrors.has('schemaName')" class="common-error-tip error-msg">{{ veeErrors.first('schemaName') }}</span>
                 </div>
-                <div :class="['scheme-content', { 'disable-scheme-list': isPreviewMode }]">
-                    <ul class="schemeList">
-                        <li
-                            v-for="item in schemaList"
-                            class="scheme-item"
-                            :key="item.id">
-                            <bk-checkbox @change="onCheckChange($event, item.id)"></bk-checkbox>
-                            <span class="scheme-name" :title="item.name">{{item.name}}</span>
-                            <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
-                        </li>
-                    </ul>
+                <div
+                    v-else
+                    class="add-plan"
+                    @click="onCreateScheme">
+                    <span class="common-icon-add"></span>
+                    {{ $t('新增方案') }}
                 </div>
-            </template>
-            <bk-sideslider
-                v-else
-                :is-show="isEditSchemeShow"
-                :width="800"
-                :quick-close="false"
-                :before-close="onCloseEditScheme">
-                <div slot="header">
-                    <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
-                    >
-                    <span>{{ $t('导入临时方案') }}</span>
-                </div>
-                <edit-scheme
-                    slot="content"
-                    :is-show.sync="isEditSchemeShow"
-                    :ordered-node-data="orderedNodeData"
-                    @importTextScheme="$emit('importTextScheme', $event)">
-                </edit-scheme>
-            </bk-sideslider>
+            </div>
+            <div :class="['scheme-content', { 'is-diasbled': isCommonProcess }]">
+                <ul class="schemeList">
+                    <li
+                        v-for="item in schemaList"
+                        class="scheme-item"
+                        :key="item.id">
+                        <bk-checkbox @change="onCheckChange($event, item)"></bk-checkbox>
+                        <span class="scheme-name" :title="item.name">{{item.name}}</span>
+                        <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item)"></i>
+                    </li>
+                </ul>
+            </div>
         </div>
+        <bk-sideslider
+            :is-show="showPanel && isEditSchemeShow"
+            :width="800"
+            :quick-close="true"
+            :before-close="onCloseEditScheme">
+            <div slot="header">
+                <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
+                >
+                <span>{{ $t('导入临时方案') }}</span>
+            </div>
+            <edit-scheme
+                ref="editScheme"
+                slot="content"
+                :is-show.sync="isEditSchemeShow"
+                :ordered-node-data="orderedNodeData"
+                @importTextScheme="$emit('importTextScheme', $event)">
+            </edit-scheme>
+        </bk-sideslider>
+        <bk-dialog
+            width="400"
+            ext-cls="task-scheme-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-scheme-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import { uuid } from '@/utils/uuid.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -119,6 +134,10 @@
                 type: Boolean,
                 default: false
             },
+            isEditProcessPage: {
+                type: Boolean,
+                default: true
+            },
             selectedNodes: {
                 type: Array,
                 default () {
@@ -140,6 +159,8 @@
         },
         data () {
             return {
+                isSaveLoading: false,
+                isShowDialog: false,
                 showPanel: true,
                 nameEditing: false,
                 schemaName: '',
@@ -155,6 +176,10 @@
             }
         },
         computed: {
+            haveCreateSchemeTpl () {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                return this.hasPermission([tplAction], this.tplActions)
+            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -175,17 +200,18 @@
                 'deleteTaskScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
-            onCheckChange (e, id) {
-                this.$emit('selectScheme', id, e)
+            onCheckChange (e, scheme) {
+                this.$emit('selectScheme', scheme, e)
             },
             // 获取方案列表
             async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
-                        project__id: this.project_id,
+                        project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
-                    })
+                    }) || []
+                    this.$emit('updateTaskSchemeList', this.schemaList)
                 } catch (error) {
                     errorHandler(error, this)
                 }
@@ -197,16 +223,39 @@
                 this.showPanel = !this.showPanel
             },
             /**
+             * 导入临时方案
+            */
+            onImportTemporaryPlan () {
+                let hasCreatePermission = true
+                if (!this.haveCreateSchemeTpl) {
+                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
+                }
+                if (hasCreatePermission) {
+                    this.isEditSchemeShow = true
+                }
+            },
+            /**
              * 创建任务方案弹窗
              */
             onCreateScheme () {
-                const hasCreatePermission = this.checkSchemeRelativePermission(['flow_edit'])
+                let hasCreatePermission = true
+                if (!this.haveCreateSchemeTpl) {
+                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
+                }
                 if (hasCreatePermission && !this.isPreviewMode) {
                     this.nameEditing = true
                     this.$nextTick(() => {
                         this.$refs.nameInput.focus()
                     })
                 }
+            },
+            /**
+             * 添加方案输入框失焦事件
+             */
+            handlerBlur () {
+                this.nameEditing = this.schemaName.trim() !== ''
             },
             /**
              * 添加方案
@@ -230,6 +279,21 @@
                     }
                     this.schemaName = this.schemaName.trim()
                     const selectedNodes = this.selectedNodes.slice()
+                    if (!this.isEditProcessPage) {
+                        this.schemaList.push({
+                            data: JSON.stringify(selectedNodes),
+                            name: this.schemaName,
+                            id: uuid()
+                        })
+                        this.$bkMessage({
+                            message: i18n.t('方案添加成功'),
+                            theme: 'success'
+                        })
+                        this.$emit('updateTaskSchemeList', this.schemaList)
+                        this.schemaName = ''
+                        this.nameEditing = false
+                        return
+                    }
                     const scheme = {
                         project_id: this.project_id,
                         template_id: this.template_id,
@@ -255,13 +319,23 @@
             /**
              * 删除方案
              */
-            async onDeleteScheme (id) {
+            async onDeleteScheme (scheme) {
                 const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
 
                 if (this.deleting || !hasPermission) return
+                if (!this.isEditProcessPage) {
+                    const index = this.schemaList.findIndex(item => item.id === scheme.id)
+                    this.schemaList.splice(index, 1)
+                    this.$bkMessage({
+                        message: i18n.t('方案删除成功'),
+                        theme: 'success'
+                    })
+                    this.$emit('updateTaskSchemeList', this.schemaList)
+                    return
+                }
                 this.deleting = true
                 try {
-                    await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
+                    await this.deleteTaskScheme({ id: scheme.id, isCommon: this.isCommonProcess })
                     this.loadSchemeList()
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
@@ -308,11 +382,49 @@
                 this.$emit('togglePreviewMode', this.isPreview)
             },
             onCloseEditScheme () {
+                const editScheme = this.$refs.editScheme
+                const isEqual = editScheme.judgeDataEqual()
+                if (isEqual) {
+                    this.isEditSchemeShow = false
+                } else {
+                    this.isShowDialog = true
+                }
+            },
+            onConfirmClick () {
+                this.isSaveLoading = true
+                try {
+                    const editScheme = this.$refs.editScheme
+                    editScheme.onSaveScheme()
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                    if (!editScheme.errorMsg) {
+                        this.isEditSchemeShow = false
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isSaveLoading = false
+                }
+            },
+            onCancelClick () {
+                this.isShowDialog = false
                 this.isEditSchemeShow = false
             }
         }
     }
 </script>>
+<style lang="scss">
+    .task-scheme-confirm-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        .leave-tips {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .action-wrapper .bk-button {
+            margin-right: 6px;
+        }
+    }
+</style>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
     @import '@/scss/config.scss';
@@ -336,7 +448,7 @@
         background: $whiteDefault;
         border-left: 1px solid $commonBorderColor;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-        z-index: 2500;
+        z-index: 5;
         transition: right 0.5s ease-in-out;
         .scheme-title {
             display: flex;
@@ -356,8 +468,6 @@
             .scheme-form {
                 margin-bottom: 4px;
                 position: relative;
-                display: flex;
-                align-items: center;
                 .bk-input-inline {
                     margin-right: 10px;
                 }
@@ -379,18 +489,6 @@
                 height: 32px;
                 line-height: 32px;
                 padding-bottom: 2px;
-            }
-        }
-        .disabled-btn {
-            &:after {
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 0px;
-                width: 100%;
-                height: 100%;
-                opacity: 0.4;
-                background-color: #e1e4e8;
             }
         }
         .scheme-content {
@@ -443,7 +541,7 @@
                 }
             }
         }
-        .disable-scheme-list {
+        .is-diasbled {
             &:after {
                 content: '';
                 position: absolute;

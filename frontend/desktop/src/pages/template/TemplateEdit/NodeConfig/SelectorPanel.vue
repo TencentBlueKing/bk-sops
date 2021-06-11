@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -21,51 +21,143 @@
             @clear="onClearSearch">
         </bk-input>
         <div class="list-wrapper">
-            <template v-if="listInPanel.length > 0">
-                <div class="group-area">
-                    <div
-                        :class="['group-item', {
-                            active: group.type === activeGroup
-                        }]"
-                        v-for="group in listInPanel"
-                        :key="group.type"
-                        @click="onSelectGroup(group.type)">
-                        <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
-                        <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
-                        <span v-html="group.group_name"></span>
-                        <span>{{ `(${group.list.length})` }}</span>
+            <template v-if="!isSubflow">
+                <template v-if="listInPanel.length > 0">
+                    <div class="group-area">
+                        <div
+                            :class="['group-item', {
+                                active: group.type === activeGroup
+                            }]"
+                            v-for="group in listInPanel"
+                            :key="group.type"
+                            @click="onSelectGroup(group.type)">
+                            <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
+                            <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
+                            <span v-html="group.group_name"></span>
+                            <span>{{ `(${group.list.length})` }}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="selector-area" ref="selectorArea">
-                    <template v-if="activeList.length > 0">
-                        <template v-for="(item, index) in activeList">
+                    <div class="selector-area" ref="selectorArea">
+                        <template v-if="activeList.length > 0">
                             <li
-                                v-if="!isSubflow || item.hasPermission"
+                                v-for="(item, index) in activeList"
                                 :class="['list-item', { active: getSelectedStatus(item) }]"
                                 :key="index"
                                 :title="item.name"
-                                @click="onSelect(item)">
+                                @click="$emit('select', item)">
                                 <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
                                 <span class="node-name" v-else>{{ item.name }}</span>
-                                <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
-                                    <i class="common-icon-box-top-right-corner"></i>
-                                </span>
-                            </li>
-                            <li
-                                v-else
-                                class="list-item text-permission-disable"
-                                :key="item.id"
-                                :title="item.name"
-                                v-cursor
-                                v-html="item.name"
-                                @click="onApplyPermission(item)">
                             </li>
                         </template>
-                    </template>
-                    <no-data v-else></no-data>
-                </div>
+                        <no-data v-else></no-data>
+                    </div>
+                </template>
+                <no-data v-else></no-data>
             </template>
-            <no-data v-else></no-data>
+            <div v-else class="subflow-list">
+                <div class="list-table">
+                    <div class="table-head">
+                        <div class="th-item tpl-name">{{ $t('流程名称') }}</div>
+                        <div class="th-item tpl-label">
+                            <span>{{ $t('标签') }}</span>
+                            <div v-if="!common" class="label-select-wrap">
+                                <div
+                                    class="selected-label-name"
+                                    v-bk-tooltips="{
+                                        placement: 'bottom-left',
+                                        allowHtml: 'true',
+                                        theme: 'light',
+                                        hideOnClick: false,
+                                        extCls: 'tpl-label-popover',
+                                        content: '#tpl-label-popover-content',
+                                        onShow: handleLabelSelectorOpen,
+                                        onHide: handleLabelSelectorClose
+                                    }">
+                                    <span v-bk-overflow-tips class="label-content" :style="getLabelStyle(activeGroup)">{{ selectedLabelName }}</span>
+                                    <i :class="['bk-icon', 'icon-angle-down', { 'active': isLabelSelectorOpen }]"></i>
+                                </div>
+                                <div id="tpl-label-popover-content">
+                                    <div
+                                        v-for="item in labels"
+                                        v-bk-overflow-tips
+                                        :class="['tpl-label-item', { 'active': activeGroup === item.id }]"
+                                        :key="item.id"
+                                        @click="onSelectGroup(item.id)">
+                                        <span
+                                            class="label-content"
+                                            :style="getLabelStyle(item.id)">
+                                            {{ item.name }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <!-- <bk-popover
+                                    placement="bottom-left"
+                                    theme="light"
+                                    :arrow="false"
+                                    :width="200"
+                                    :on-show="handleLabelSelectorOpen"
+                                    :on-hide="handleLabelSelectorClose"
+                                    trigger="click"
+                                    :tippy-options="{
+                                        hideOnClick: false,
+                                        duration: [0, 0]
+                                    }"
+                                    ext-cls="tpl-label-popover">
+                                    <div class="selected-label-name">
+                                        <span class="label-content" :style="getLabelStyle(activeGroup)">{{ selectedLabelName }}</span>
+                                        <i :class="['bk-icon', 'icon-angle-down', { 'active': isLabelSelectorOpen }]"></i>
+                                    </div>
+                                    <div slot="content">
+                                        <div
+                                            v-for="item in labels"
+                                            :class="['tpl-label-item', { 'active': activeGroup === item.id }]"
+                                            :key="item.id"
+                                            @click="onSelectGroup(item.id)">
+                                            <span
+                                                class="label-content"
+                                                :style="getLabelStyle(item.id)">
+                                                {{ item.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </bk-popover> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tpl-list">
+                        <template v-if="listInPanel.length > 0">
+                            <div
+                                v-for="item in listInPanel"
+                                v-cursor="{ active: !item.hasPermission }"
+                                :class="['tpl-item', {
+                                    'active': getSelectedStatus(item),
+                                    'text-permission-disable': !item.hasPermission
+                                }]"
+                                :key="item.id"
+                                @click="onTplClick(item)">
+                                <div class="tpl-name name-content">
+                                    <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
+                                    <div class="name" v-else>{{ item.name }}</div>
+                                    <span class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
+                                        <i class="common-icon-box-top-right-corner"></i>
+                                    </span>
+                                </div>
+                                <div v-if="!common && item.template_labels.length > 0" class="tpl-label labels-wrap">
+                                    <span
+                                        v-for="label in item.template_labels"
+                                        v-bk-overflow-tips
+                                        class="label-item"
+                                        :key="label.id"
+                                        :style="getLabelStyle(label.label_id)">
+                                        {{ label.name }}
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                        <no-data v-else></no-data>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -73,8 +165,9 @@
 <script>
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
+    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
-    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
+    import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
 
     export default {
         name: 'SelectorPanel',
@@ -83,25 +176,45 @@
         },
         mixins: [permission],
         props: {
+            templateLabels: Array,
             atomTypeList: Object,
             isSubflow: Boolean,
             basicInfo: Object,
             common: [String, Number]
         },
         data () {
-            const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
+            const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             return {
                 listData,
                 listInPanel: listData,
+                darkColorList: DARK_COLOR_LIST,
                 searchStr: '',
                 searchResult: [],
-                activeGroup: this.getDefaultActiveGroup()
+                isLabelSelectorOpen: false,
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
             }
         },
         computed: {
             activeList () {
-                const group = this.listInPanel.find(item => item.type === this.activeGroup)
-                return group ? group.list : []
+                if (!this.isSubflow) {
+                    const group = this.listInPanel.find(item => item.type === this.activeGroup)
+                    return group ? group.list : []
+                }
+                return []
+            },
+            labels () {
+                const list = this.templateLabels.slice(0)
+                list.unshift({
+                    id: 0,
+                    name: i18n.t('默认全部')
+                })
+                return list
+            },
+            selectedLabelName () {
+                if (this.isSubflow && this.activeGroup) {
+                    return this.templateLabels.find(item => item.id === this.activeGroup).name
+                }
+                return ''
             }
         },
         created () {
@@ -138,59 +251,107 @@
                 }
                 return 'common-icon-sys-default'
             },
+            getLabelStyle (id) {
+                if (id) {
+                    const label = this.templateLabels.find(item => item.id === Number(id))
+                    return {
+                        background: label.color,
+                        color: this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
+                    }
+                }
+                return { color: '#000000', minWidth: 'unset', padding: '2px' }
+            },
+            /**
+             * 选择插件分组
+             */
             onSelectGroup (val) {
                 this.activeGroup = val
-                this.$refs.selectorArea.scrollTop = 0
+                if (this.isSubflow) {
+                    this.searchInputhandler()
+                } else {
+                    this.$refs.selectorArea.scrollTop = 0
+                }
             },
             onClearSearch () {
                 this.searchInputhandler()
             },
             searchInputhandler () {
                 let result = []
-                if (this.searchStr === '') {
-                    result = this.listData.slice(0)
-                    this.activeGroup = this.getDefaultActiveGroup()
+                if (!this.isSubflow) {
+                    if (this.searchStr === '') {
+                        result = this.listData.slice(0)
+                        this.activeGroup = this.getDefaultActiveGroup()
+                    } else {
+                        const reg = new RegExp(this.searchStr, 'i')
+                        this.listData.forEach(group => {
+                            const { group_icon, group_name, type } = group
+                            const list = []
+    
+                            if (reg.test(group_name)) { // 分组名称匹配
+                                const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                result.push({
+                                    ...group,
+                                    group_name: hglGroupName
+                                })
+                            } else if (group.list.length > 0) { // 单个插件或者子流程名称匹配
+                                group.list.forEach(item => {
+                                    if (reg.test(item.name)) {
+                                        const node = { ...item }
+                                        node.highlightName = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                        list.push(node)
+                                    }
+                                })
+                                if (list.length > 0) {
+                                    result.push({
+                                        group_icon,
+                                        group_name,
+                                        type,
+                                        list
+                                    })
+                                }
+                            }
+                        })
+                        if (result.length > 0) {
+                            this.activeGroup = result[0].type
+                        }
+                    }
                 } else {
                     const reg = new RegExp(this.searchStr, 'i')
-                    this.listData.forEach(group => {
-                        const { group_icon, group_name, type } = group
-                        const list = []
+                    this.listData.forEach(tpl => {
+                        let matchLabel = true
+                        let matchName = true
+                        const tplCopy = { ...tpl }
 
-                        if (reg.test(group_name)) { // 分组名称匹配
-                            const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
-                            result.push({
-                                ...group,
-                                group_name: hglGroupName
-                            })
-                        } else if (group.list.length > 0) { // 单个插件或者子流程名称匹配
-                            group.list.forEach(item => {
-                                if (reg.test(item.name)) {
-                                    const node = { ...item }
-                                    node.highlightName = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
-                                    list.push(node)
-                                }
-                            })
-                            if (list.length > 0) {
-                                result.push({
-                                    group_icon,
-                                    group_name,
-                                    type,
-                                    list
-                                })
+                        if (this.activeGroup) {
+                            matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
+                        }
+                        if (this.searchStr !== '') {
+                            if (!reg.test(tpl.name)) {
+                                matchName = false
+                            } else {
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
                             }
                         }
+
+                        if (matchLabel && matchName) {
+                            result.push(tplCopy)
+                        }
                     })
-                    if (result.length > 0) {
-                        this.activeGroup = result[0].type
-                    }
                 }
                 this.listInPanel = result
             },
-            /**
-             * 选择插件/子流程
-             */
-            onSelect (val) {
-                this.$emit('select', val)
+            handleLabelSelectorOpen () {
+                this.isLabelSelectorOpen = true
+            },
+            handleLabelSelectorClose () {
+                this.isLabelSelectorOpen = false
+            },
+            onTplClick (tpl) {
+                if (tpl.hasPermission) {
+                    this.$emit('select', tpl)
+                } else {
+                    this.onApplyPermission(tpl)
+                }
             },
             /**
              * 插件/子流程选中状态
@@ -302,10 +463,155 @@
             }
         }
     }
-    .common-icon-box-top-right-corner {
-        position: absolute;
-        right: 20px;
-        top: 14px;
+}
+.subflow-list {
+    padding: 17px 24px;
+    height: 100%;
+    .list-table {
+        border: 1px solid #dcdee5;
+        border-radius: 3px;
+        .table-head {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #fafbfd;
+            border-bottom: 1px solid hsl(227, 15%, 88%);
+            .th-item {
+                color: #313238;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            .tpl-name {
+                flex: 0 0 auto;
+                width: 420px;
+            }
+            .tpl-label {
+                display: flex;
+                align-items: center;
+                .label-select-wrap {
+                    cursor: pointer;
+                    .selected-label-name {
+                        display: flex;
+                        align-items: center;
+                        transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+                        & > i {
+                            font-size: 14px;
+                            &.active {
+                                transform: rotate(-180deg);
+                            }
+                        }
+                    }
+                    .label-content {
+                        display: inline-block;
+                        margin-left: 4px;
+                        max-width: 144px;
+                        min-width: 40px;
+                        padding: 2px 6px;
+                        font-size: 12px;
+                        line-height: 1;
+                        color: #63656e;
+                        border-radius: 8px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+    }
+    .tpl-list {
+        max-height: calc(100vh - 160px);
+        overflow: auto;
+        @include scrollbar;
+    }
+    .tpl-item {
+        display: flex;
+        min-height: 40px;
+        align-items: center;
+        color: #63656e;
+        border-bottom: 1px solid #dcdee5;
+        cursor: pointer;
+        &:hover:not(.text-permission-disable), &.active:not(.text-permission-disable) {
+            background: #e1ecff;
+            .name, .view-tpl {
+                color: #3a84ff;
+            }
+        }
+        &:last-child {
+            border: none;
+        }
+        .name-content {
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+            width: 420px;
+        }
+        .name {
+            padding: 0 13px;
+            font-size: 12px;
+            max-width: 400px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .view-tpl {
+            margin-left: 10px;
+            color: #9796a5;
+            font-size: 14px;
+        }
+        .labels-wrap {
+            padding-right: 13px;
+            .label-item {
+                display: inline-block;
+                max-width: 144px;
+                min-width: 40px;
+                margin: 4px 0 4px 4px;
+                padding: 2px 6px;
+                font-size: 12px;
+                line-height: 1;
+                color: #63656e;
+                border-radius: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                cursor: pointer;
+            }
+        }
     }
 }
+</style>
+<style lang="scss">
+    .tpl-label-popover {
+        background: #ffffff;
+        .tippy-tooltip {
+            padding: 7px 0;
+            max-height: 180px;
+            overflow: auto;
+        }
+        .tpl-label-item {
+            padding: 4px 13px;
+            cursor: pointer;
+            &:hover {
+                background: #eaf3ff;
+            }
+            &.active {
+                background: #f4f6fa;
+            }
+            .label-content {
+                display: inline-block;
+                max-width: 144px;
+                min-width: 40px;
+                padding: 2px 6px;
+                font-size: 12px;
+                line-height: 1;
+                color: #63656e;
+                border-radius: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                cursor: pointer;
+            }
+        }
+    }
 </style>

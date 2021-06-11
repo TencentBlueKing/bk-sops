@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,15 +20,20 @@ const task = {
          * @param {Object} data 筛选条件
          */
         loadTaskScheme ({ commit }, payload) {
-            const { isCommon, project__id, template_id } = payload
+            const { isCommon, project_id, template_id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
-
-            return axios.get(url, {
-                params: {
-                    template_id,
-                    project__id: project__id
-                }
-            }).then(response => response.data.objects)
+            const params = {
+                template_id
+            }
+            if (isCommon) {
+                params.project__id = project_id
+            } else {
+                params.project_id = project_id
+            }
+            return axios.get(url, { params }).then(response => {
+                const data = isCommon ? response.data.objects : response.data.data
+                return data
+            })
         },
         /**
          * 创建任务可选节点的选择方案
@@ -37,13 +42,17 @@ const task = {
         createTaskScheme ({ commit }, payload) {
             const { isCommon, project_id, template_id, data, name } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
-
-            return axios.post(url, {
-                project__id: project_id,
+            const params = {
                 template_id,
                 data,
                 name
-            }).then(response => response.data)
+            }
+            if (isCommon) {
+                params.project__id = project_id
+            } else {
+                params.project_id = project_id
+            }
+            return axios.post(url, params).then(response => response.data)
         },
         /**
          * 删除任务节点选择方案
@@ -63,7 +72,19 @@ const task = {
             const { isCommon, id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.get(`${url}${id}/`).then(response => response.data)
+            return axios.get(`${url}${id}/`).then(response => response.data.data)
+        },
+        /**
+         * 保存所有执行方案
+         * @param {String} payload 方案参数
+         */
+        saveTaskSchemList ({ commit }, payload) {
+            const { project_id, template_id, schemes } = payload
+            return axios.post('api/v3/scheme/batch_operate/', {
+                project_id,
+                template_id,
+                schemes
+            }).then(response => response.data)
         },
         /**
          * 获取任务节点预览数据
@@ -251,6 +272,33 @@ const task = {
             return axios.get(`taskflow/api/nodes/log/${project_id}/${node_id}/`, {
                 params: {
                     instance_id
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 获取模版操作记录
+         * @param {Object} data 节点配置数据
+         */
+        getOperationRecordTemplate ({ commit }, data) {
+            const { project_id, instance_id } = data
+            return axios.get(`/api/v3/operate_record_template/`, {
+                params: {
+                    project_id,
+                    instance_id
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 获取任务操作记录
+         * @param {Object} data 节点配置数据
+         */
+        getOperationRecordTask ({ commit }, data) {
+            const { project_id, instance_id, node_id } = data
+            return axios.get(`/api/v3/operate_record_task/`, {
+                params: {
+                    project_id,
+                    instance_id,
+                    node_id
                 }
             }).then(response => response.data)
         },

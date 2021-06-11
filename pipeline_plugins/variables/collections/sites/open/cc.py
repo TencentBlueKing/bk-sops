@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -110,12 +110,15 @@ class VarCmdbIpSelector(LazyVariable):
 
         ip_selector = self.value
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
+        separator = self.value.get("separator", ",")
 
         # get for old value compatible
         if self.value.get("with_cloud_id", False):
-            ip = ",".join(["{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in ip_result["data"]])
+            ip = separator.join(
+                ["{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in ip_result["data"]]
+            )
         else:
-            ip = ",".join([host["bk_host_innerip"] for host in ip_result["data"]])
+            ip = separator.join([host["bk_host_innerip"] for host in ip_result["data"]])
         return ip
 
 

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 # 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
+import json
 from blueapps.conf.default_settings import *  # noqa
 
 
@@ -26,6 +27,8 @@ BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
+
+BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", "{}/o/bk_nodeman".format(BK_PAAS_HOST))
 
 # paas v2 open
 if RUN_VER == "open":
@@ -54,7 +57,7 @@ BKAPP_SOPS_IAM_APP_SECRET_KEY = os.getenv("BKAPP_SOPS_IAM_APP_SECRET_KEY", SECRE
 BKAPP_BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
 BKAPP_BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
 BK_IAM_V3_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
-BK_IAM_SKIP = os.getenv("BK_IAM_SKIP")
+BK_IAM_SKIP = os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_V3_APP_CODE))
@@ -76,6 +79,7 @@ BKAPP_PYINSTRUMENT_ENABLE = os.getenv("BKAPP_PYINSTRUMENT_ENABLE", None)
 SOPS_MAKO_IMPORT_MODULES = os.getenv("BKAPP_SOPS_MAKO_IMPORT_MODULES", "")
 
 MIGRATE_TOKEN = os.getenv("BKAPP_MIGRATE_TOKEN", "24302cf6-e6a1-11ea-a158-acde48001122")
+MIGRATE_ALLOW = os.getenv("BKAPP_MIGRATE_ALLOW", False)
 
 BKAPP_LOG_SHIELDING_KEYWORDS = os.getenv("BKAPP_LOG_SHIELDING_KEYWORDS", "")
 
@@ -112,3 +116,18 @@ BKAPP_FILE_UPLOAD_ENTRY = os.getenv("BKAPP_FILE_UPLOAD_ENTRY", "")
 BKAPP_WEIXIN_APP_ID = os.getenv("BKAPP_WEIXIN_APP_ID", "")
 BKAPP_WEIXIN_APP_SECRET = os.getenv("BKAPP_WEIXIN_APP_SECRET", "")
 BKAPP_WEIXIN_APP_EXTERNAL_HOST = os.getenv("BKAPP_WEIXIN_APP_EXTERNAL_HOST", "")
+
+# RSA KEYS, 保存的是密钥的base64加密形式, 使用base64.b64encode(KEY.encode("utf-8"))进行处理后保存为环境变量
+RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
+RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
+
+# 单业务下最大周期任务数量
+PERIODIC_TASK_PROJECT_MAX_NUMBER = int(os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50))
+
+# JOB 日志提取额外模式配置
+try:
+    JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = json.loads(os.getenv("BKAPP_JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS", "[]"))
+    if not isinstance(JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS, list):
+        JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
+except Exception:
+    JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []

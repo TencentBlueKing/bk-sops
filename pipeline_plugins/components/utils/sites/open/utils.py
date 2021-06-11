@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -24,7 +24,13 @@ from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
 
-__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url", "plat_ip_reg"]
+__all__ = [
+    "cc_get_ips_info_by_str",
+    "get_job_instance_url",
+    "get_node_callback_url",
+    "plat_ip_reg",
+    "get_nodeman_job_url",
+]
 
 JOB_APP_CODE = "bk_job"
 
@@ -183,6 +189,10 @@ def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_l
     # 调用find_module_with_relation接口根据set id list, service_template_id_list查询模块id
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
     return module_id_list
+
+
+def get_nodeman_job_url(instance_id, bk_host_id):
+    return "{}/#/task-history/{}/log/host|instance|host|{}".format(settings.BK_NODEMAN_HOST, instance_id, bk_host_id)
 
 
 def get_difference_ip_list(original_ip_list, ip_list):

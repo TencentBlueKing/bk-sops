@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import os
 from functools import wraps
 
+from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
 from .jwt_client import JWTClient, jwt_invalid_view
@@ -36,6 +37,13 @@ def apigw_required(view_func):
             if not request.jwt.is_valid:
                 return jwt_invalid_view(request)
 
-        return view_func(request, *args, **kwargs)
+        result = view_func(request, *args, **kwargs)
+
+        # 如果返回的是dict且request中有trace_id，则在响应中加上
+        if isinstance(result, dict):
+            if hasattr(request, "trace_id"):
+                result["trace_id"] = request.trace_id
+            result = JsonResponse(result)
+        return result
 
     return _wrapped_view

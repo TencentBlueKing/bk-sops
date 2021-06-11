@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -41,24 +41,22 @@ from pipeline.core.flow.io import (
     StringItemSchema,
     IntItemSchema,
 )
+
+from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
-from pipeline_plugins.components.utils import batch_execute_func
 
 JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
-# 全局变量标签中key-value分隔符
-LOG_VAR_SEPARATOR = ":"
+LOG_VAR_SEARCH_CONFIGS = [{"re": r"<SOPS_VAR>(.+?)</SOPS_VAR>", "kv_sep": ":"}]
 
-# 全局变量标签匹配正则（<>字符已转义），用于提取key{separator}value
-LOG_VAR_LABEL_ESCAPE_RE = r"&lt;SOPS_VAR&gt;(.+?)&lt;/SOPS_VAR&gt;"
-
-# 全局变量标签匹配正则，用于提取key{separator}value
-LOG_VAR_LABEL_RE = r"<SOPS_VAR>(.+?)</SOPS_VAR>"
+for custom_patterns in JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS:
+    LOG_VAR_SEARCH_CONFIGS.append(custom_patterns)
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -80,22 +78,28 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     """
     sops_var_dict = {}
     # 逐行匹配以便打印全局变量所在行
+    service_logger.info("search log var with config: {}".format(LOG_VAR_SEARCH_CONFIGS))
     for index, log_line in enumerate(log_text.splitlines(), 1):
-        sops_key_val_list = re.findall(LOG_VAR_LABEL_RE, log_line)
-        sops_key_val_list.extend(re.findall(LOG_VAR_LABEL_ESCAPE_RE, log_line))
-        if len(sops_key_val_list) == 0:
-            continue
-        for sops_key_val in sops_key_val_list:
-            if LOG_VAR_SEPARATOR not in sops_key_val:
+        for var_search_config in LOG_VAR_SEARCH_CONFIGS:
+            reg = var_search_config["re"]
+            excape_reg = reg.replace("<", "&lt;").replace(">", "&gt;")
+            kv_sep = var_search_config["kv_sep"]
+
+            sops_key_val_list = re.findall(reg, log_line)
+            sops_key_val_list.extend(re.findall(excape_reg, log_line))
+            if len(sops_key_val_list) == 0:
                 continue
-            sops_key, sops_val = sops_key_val.split(LOG_VAR_SEPARATOR, 1)
-            # 限制变量名不为空
-            if len(sops_key) == 0:
-                continue
-            sops_var_dict.update({sops_key: sops_val})
-        service_logger.info(
-            _("[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]").format(group=__group_name__, index=index, line=log_line)
-        )
+            for sops_key_val in sops_key_val_list:
+                if kv_sep not in sops_key_val:
+                    continue
+                sops_key, sops_val = sops_key_val.split(kv_sep, 1)
+                # 限制变量名不为空
+                if len(sops_key) == 0:
+                    continue
+                sops_var_dict.update({sops_key: sops_val})
+            service_logger.info(
+                _("[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]").format(group=__group_name__, index=index, line=log_line)
+            )
     return sops_var_dict
 
 

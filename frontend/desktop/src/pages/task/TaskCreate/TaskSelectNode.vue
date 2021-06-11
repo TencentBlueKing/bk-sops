@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -35,6 +35,7 @@
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
             <task-scheme
+                v-show="isEditProcessPage || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
                 :template-name="templateName"
@@ -45,12 +46,15 @@
                 :selected-nodes="selectedNodes"
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
+                :is-edit-process-page="isEditProcessPage"
+                @updateTaskSchemeList="updateTaskSchemeList"
+                @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
                 @importTextScheme="importTextScheme"
                 @togglePreviewMode="togglePreviewMode">
             </task-scheme>
         </div>
-        <div class="action-wrapper" slot="action-wrapper">
+        <div class="action-wrapper" slot="action-wrapper" v-if="isEditProcessPage">
             <bk-button
                 theme="primary"
                 class="next-button"
@@ -75,7 +79,17 @@
             TemplateCanvas,
             NodePreview
         },
-        props: ['project_id', 'template_id', 'common', 'excludeNode', 'entrance'],
+        props: {
+            project_id: [String, Number],
+            template_id: [String, Number],
+            common: String,
+            excludeNode: Array,
+            entrance: String,
+            isEditProcessPage: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 selectedNodes: [], // 已选中节点
@@ -170,11 +184,16 @@
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = appmakerData.template_scheme_id
+                        this.previewBread = [{
+                            id: this.template_id,
+                            name: this.templateName,
+                            version: this.version
+                        }]
                         if (schemeId === '') {
                             this.isAppmakerHasScheme = false
-                            await this.getPreviewNodeData(this.template_id)
+                            await this.getPreviewNodeData(this.template_id, this.version)
                         } else {
-                            this.selectScheme(schemeId)
+                            this.selectScheme({ id: schemeId })
                         }
                     }
                     this.setTemplateData(templateData)
@@ -201,16 +220,17 @@
             },
             /**
              * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
-             * @params {String} templateId  模板 ID
+             * @params {Number|String} templateId  模板 ID
+             * @params {String} version  模板版本
              */
-            async getPreviewNodeData (templateId) {
+            async getPreviewNodeData (templateId, version) {
                 this.previewDataLoading = true
                 const excludeNodes = this.getExcludeNode()
                 const params = {
-                    templateId: templateId,
+                    templateId: Number(templateId),
                     excludeTaskNodesId: excludeNodes,
                     common: this.common,
-                    version: this.version
+                    version
                 }
                 try {
                     const resp = await this.loadPreviewNodeData(params)
@@ -230,7 +250,7 @@
              */
             async onGotoParamFill () {
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
                 }
@@ -335,12 +355,13 @@
                 if (this.viewMode === 'appmaker' || !activity || activity.type !== 'SubProcess') {
                     return
                 }
-                const templateId = activity.template_id
+                const { template_id, name, version } = activity
                 this.previewBread.push({
-                    data: templateId,
-                    name: activity.name
+                    id: template_id,
+                    name,
+                    version
                 })
-                this.getPreviewNodeData(templateId)
+                this.getPreviewNodeData(template_id, activity.version)
             },
             /**
              * 选中节点
@@ -368,8 +389,8 @@
              * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
              * @params {Number} index  点击的面包屑的下标
              */
-            onSelectSubflow (id, index) {
-                this.getPreviewNodeData(id)
+            onSelectSubflow (id, version, index) {
+                this.getPreviewNodeData(id, version)
                 this.previewBread.splice(index + 1, this.previewBread.length)
             },
             getExcludeNode () {
@@ -387,13 +408,13 @@
             /**
              * 选择执行方案
              */
-            async selectScheme (scheme, e) {
+            async selectScheme (scheme, isChecked) {
                 let allNodeId = []
                 let selectNodeArr = []
                 // 取消已选择方案
-                if (e === false) {
+                if (isChecked === false) {
                     selectNodeArr = []
-                    this.$delete(this.planDataObj, scheme)
+                    this.$delete(this.planDataObj, scheme.id)
                     if (Object.keys(this.planDataObj).length) {
                         for (const key in this.planDataObj) {
                             allNodeId = this.planDataObj[key]
@@ -406,9 +427,13 @@
                     }
                 } else {
                     try {
-                        const data = await this.getSchemeDetail({ id: scheme, isCommon: this.isCommonProcess })
-                        allNodeId = JSON.parse(data.data)
-                        this.planDataObj[scheme] = allNodeId
+                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
+                        if (this.isCommonProcess) {
+                            allNodeId = JSON.parse(result)
+                        } else {
+                            allNodeId = JSON.parse(result.data)
+                        }
+                        this.planDataObj[scheme.id] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
                             selectNodeArr.push(...planNodeId)
@@ -427,7 +452,7 @@
                     }
                 })
                 if (this.isPreviewMode) {
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
             // 导入临时方案
@@ -441,8 +466,11 @@
                     }
                 })
                 if (this.isPreviewMode) {
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 }
+            },
+            updateTaskSchemeList (val) {
+                this.$emit('updateTaskSchemeList', val)
             },
             // 导出当前方案
             onExportScheme () {
@@ -462,13 +490,15 @@
                 this.isPreviewMode = isPreview
                 if (isPreview) {
                     this.previewBread.push({
-                        data: this.template_id,
-                        name: this.templateName
+                        id: this.template_id,
+                        name: this.templateName,
+                        version: this.version
                     })
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 } else {
                     this.previewBread = []
                 }
+                this.$emit('togglePreviewMode', isPreview)
             },
             updateExcludeNodes () {
                 const excludeNodes = this.getExcludeNode()
@@ -481,7 +511,12 @@
 @import '@/scss/config.scss';
 
 .select-node-wrapper {
-    height: calc(100% - 90px);
+    height: calc(100vh - 100px);
+}
+.task-create-page {
+    .canvas-content {
+        height: 100%;
+    }
 }
 .canvas-content {
     position: relative;
@@ -495,18 +530,20 @@
         height: 100%;
     }
 }
-.next-button {
-    width:140px;
-}
-.action-wrapper {
-    padding-left: 40px;
-    border-top: 1px solid #cacedb;
-    background-color: #ffffff;
-}
 /deep/ .pipeline-canvas {
     .tool-wrapper {
         top: 19px;
         left: 40px;
+    }
+}
+.action-wrapper {
+    padding-left: 40px;
+    height: 72px;
+    line-height: 72px;
+    border-top: 1px solid #cacedb;
+    background-color: #ffffff;
+    .next-button {
+        width: 140px;
     }
 }
 </style>

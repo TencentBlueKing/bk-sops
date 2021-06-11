@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
@@ -49,21 +48,17 @@ def get_task_node_data(request, task_id, project_id):
     try:
         subprocess_stack = json.loads(request.GET.get("subprocess_stack", "[]"))
     except Exception:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "subprocess_stack is not a valid array json",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "subprocess_stack is not a valid array json",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     data = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack, loop)
 
-    return JsonResponse(
-        {
-            "result": data["result"],
-            "data": data["data"],
-            "message": data["message"],
-            "code": err_code.SUCCESS.code if data["result"] else err_code.UNKNOWN_ERROR.code,
-        }
-    )
+    return {
+        "result": data["result"],
+        "data": data["data"],
+        "message": data["message"],
+        "code": err_code.SUCCESS.code if data["result"] else err_code.UNKNOWN_ERROR.code,
+    }

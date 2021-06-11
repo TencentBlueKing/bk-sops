@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -152,6 +152,48 @@ class TestConstantTemplate(TestCase):
         self.assertEqual(template.resolve_data({"t": True}), "a-1-c")
 
     def test_mako_attack(self):
+        shield_words = [
+            "ascii",
+            "bytearray",
+            "bytes",
+            "callable",
+            "chr",
+            "classmethod",
+            "compile",
+            "delattr",
+            "dir",
+            "divmod",
+            "exec",
+            "eval",
+            "filter",
+            "frozenset",
+            "getattr",
+            "globals",
+            "hasattr",
+            "hash",
+            "help",
+            "id",
+            "input",
+            "isinstance",
+            "issubclass",
+            "iter",
+            "locals",
+            "map",
+            "memoryview",
+            "next",
+            "object",
+            "open",
+            "print",
+            "property",
+            "repr",
+            "setattr",
+            "staticmethod",
+            "super",
+            "type",
+            "vars",
+            "__import__",
+        ]
+        sandbox._shield_words(sandbox.SANDBOX, shield_words)
         attack_templates = [
             '${"".__class__.__mro__[-1].__subclasses__()[127].__init__.__globals__["system"]("whoami")}',  # noqa
             '${getattr("", dir(0)[0][0] + dir(0)[0][0] + "class" + dir(0)[0][0]+ dir(0)[0][0])}',  # noqa

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,6 +18,7 @@
         :value="isAddCollectionDialogShow"
         :header-position="'left'"
         :auto-close="false"
+        :loading="savePending"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="export-container">
@@ -34,39 +35,24 @@
                         @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
+                <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
-                        <template v-for="group in panelList">
+                        <template v-for="item in panelList">
                             <li
-                                v-if="group.children.length"
-                                :key="group.id"
-                                class="template-group">
-                                <h5 class="group-name" v-if="group.name">
-                                    {{group.name}}
-                                    (<span class="list-count">{{group.children.length}}</span>)
-                                </h5>
-                                <ul>
-                                    <li
-                                        v-for="template in group.children"
-                                        :key="template.id"
-                                        :title="template.name"
-                                        :class="[
-                                            'template-item',
-                                            {
-                                                'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission([viewPermission], template.auth_actions)
-                                            }
-                                        ]"
-                                        @click="onSelectItem(template)">
-                                        <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
-                                        <div class="item-name-box">
-                                            <div class="template-item-name">{{template.name}}</div>
-                                        </div>
-                                        <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
-                                        </div>
-                                    </li>
-                                </ul>
+                                :class="['template-item', {
+                                    'template-item-selected': getTplIndexInSelected(item) > -1,
+                                    'permission-disable': !hasPermission([viewPermission], item.auth_actions)
+                                }]"
+                                :key="item.id"
+                                :title="item.name"
+                                @click="onSelectItem(item)">
+                                <div class="template-item-icon">{{getTemplateIcon(item)}}</div>
+                                <div class="item-name-box">
+                                    <div class="template-item-name">{{item.name}}</div>
+                                </div>
+                                <div class="apply-permission-mask">
+                                    <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
+                                </div>
                             </li>
                         </template>
                         <NoData v-if="!panelList.length" class="empty-template"></NoData>
@@ -98,12 +84,6 @@
                 <span class="error-info">{{$t('请选择收藏项')}}</span>
             </div>
         </div>
-        <DialogLoadingBtn
-            slot="footer"
-            :dialog-footer-data="dialogFooterData"
-            @onConfirm="onConfirm"
-            @onCancel="onCancel">
-        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -113,7 +93,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
 
     const FILTER_LIST = [
         {
@@ -148,8 +127,7 @@
     export default {
         name: 'AddCollectionDialog',
         components: {
-            NoData,
-            DialogLoadingBtn
+            NoData
         },
         mixins: [permission],
         props: {
@@ -168,17 +146,7 @@
                 collectionPending: false,
                 panelList: [],
                 selectedList: [],
-                dialogFooterData: [
-                    {
-                        type: 'primary',
-                        loading: false,
-                        btnText: i18n.t('确认'),
-                        click: 'onConfirm'
-                    }, {
-                        btnText: i18n.t('取消'),
-                        click: 'onCancel'
-                    }
-                ],
+                savePending: false,
                 filterList: [],
                 searchValue: [ // 搜索值
                     {
@@ -221,6 +189,15 @@
         watch: {
             isAddCollectionDialogShow (val) {
                 if (val) {
+                    this.searchValue = [ // 搜索值
+                        {
+                            id: 'type',
+                            name: i18n.t('选择类型'),
+                            values: [{ id: 'common_flow', name: i18n.t('公共流程') }]
+                        }
+                    ]
+                    this.selectError = false
+                    this.savePending = false
                     this.panelList = []
                     this.selectedList = []
                     this.getData()
@@ -278,6 +255,7 @@
                     }
                     const displayList = this.getFilterCollected(panelList)
                     this.panelList = this.getGroupData(displayList, reqType)
+                    this.panelList = displayList
                     this.collectionPending = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -416,7 +394,7 @@
                     this.selectError = true
                     return false
                 }
-                this.dialogFooterData[0].loading = true
+                this.savePending = true
                 const project = this.searchValue.find(m => m.id === 'project')
                 let projectId
                 if (project) {
@@ -431,7 +409,6 @@
                 })
                 try {
                     const res = await this.addToCollectList(saveList)
-                    this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({
                             message: i18n.t('保存成功'),
@@ -443,6 +420,8 @@
                     }
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.savePending = false
                 }
             },
             // 保存参数
@@ -515,24 +494,17 @@
     }
     .template-wrapper {
         float: left;
-        padding: 40px 4px 20px 0;
+        padding: 40px 0 20px;
         width: 557px;
         height: 100%;
         .template-list {
-            padding: 0 14px 0 20px;
+            padding: 30px 14px 30px 20px;
             height: 268px;
             overflow-y: auto;
             @include scrollbar;
         }
-        .template-group {
-            margin: 30px 0;
-        }
         .search-list {
             padding-top: 40px;
-        }
-        .group-name {
-            margin: 0 0 8px;
-            font-size: 12px;
         }
     }
     .template-item {
@@ -710,7 +682,7 @@
     }
     .task-footer {
         position: absolute;
-        right: 290px;
+        right: 200px;
         bottom: -40px;
         .error-info {
             margin-right: 20px;

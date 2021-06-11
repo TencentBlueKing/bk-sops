@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -78,20 +78,8 @@
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
-.rf-view-textarea-value {
+.tag-textarea {
     .el-textarea__inner {
-        padding: 6px 0;
-        border: none;
-        resize: none;
-        &[disabled = "disabled"] {
-            background: inherit;
-            color: inherit;
-            cursor: text;
-        }
-    }
-}
-.el-textarea {
-    /deep/ .el-textarea__inner {
         padding-left: 10px;
         padding-right: 10px;
         font-size: 12px;
@@ -100,10 +88,17 @@
     }
 }
 .rf-view-textarea-value {
-    /deep/ .el-textarea__inner {
-        padding: 6px 0 0;
+    .el-textarea__inner {
+        padding: 6px 0;
         line-height: 24px;
         color: #333333;
+        border: none;
+        resize: none;
+        &[disabled = "disabled"] {
+            background: inherit;
+            color: inherit;
+            cursor: text;
+        }
     }
 }
 </style>

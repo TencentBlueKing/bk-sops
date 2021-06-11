@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,6 +19,11 @@ from pipeline.celery.queues import ScalableQueues
 from pipeline.constants import PIPELINE_MAX_PRIORITY
 
 default_exchange = Exchange("default", type="direct")
+
+# 设置时区
+CELERY_TIMEZONE = "Asia/Shanghai"
+# 启动时区设置
+CELERY_ENABLE_UTC = False
 
 # new priority queues
 PUSH_DEFAULT_QUEUE_NAME = "pipeline_priority"
@@ -38,9 +43,15 @@ SCALABLE_QUEUES_CONFIG = {
     SCHEDULE_DEFAULT_QUEUE_NAME: {"name": SCHEDULE_DEFAULT_QUEUE_NAME, "routing_key": SCHEDULE_DEFAULT_ROUTING_KEY},
 }
 
-PIPELINE_PRIORITY_ROUTING = {"queue": PUSH_DEFAULT_QUEUE_NAME, "routing_key": PUSH_DEFAULT_ROUTING_KEY}
+PIPELINE_PRIORITY_ROUTING = {
+    "queue": PUSH_DEFAULT_QUEUE_NAME,
+    "routing_key": PUSH_DEFAULT_ROUTING_KEY,
+}
 
-PIPELINE_SCHEDULE_PRIORITY_ROUTING = {"queue": SCHEDULE_DEFAULT_QUEUE_NAME, "routing_key": SCHEDULE_DEFAULT_ROUTING_KEY}
+PIPELINE_SCHEDULE_PRIORITY_ROUTING = {
+    "queue": SCHEDULE_DEFAULT_QUEUE_NAME,
+    "routing_key": SCHEDULE_DEFAULT_ROUTING_KEY,
+}
 
 PIPELINE_ADDITIONAL_PRIORITY_ROUTING = {
     "queue": ADDITIONAL_DEFAULT_QUEUE_NAME,
@@ -125,7 +136,7 @@ for name, queue in ScalableQueues.queues().items():
 
 CELERY_QUEUES = (
     # user queues
-    *USER_QUEUES,
+    *USER_QUEUES,  # noqa
     # keep old queue to process message left in broker, remove on next version
     Queue("default", default_exchange, routing_key="default"),
     Queue("pipeline", default_exchange, routing_key="pipeline_push"),
@@ -161,3 +172,7 @@ CELERY_QUEUES = (
 CELERY_DEFAULT_QUEUE = "default"
 CELERY_DEFAULT_EXCHANGE = "default"
 CELERY_DEFAULT_ROUTING_KEY = "default"
+
+CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
+
+CELERY_ACCEPT_CONTENT = ["json", "pickle", "msgpack", "yaml"]

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -45,6 +45,8 @@ TASK_GROUP_BY_METHODS = {
     AE.instance_node: TaskFlowInstance.objects.group_by_instance_node,
     #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
     AE.instance_time: TaskFlowInstance.objects.group_by_instance_time,
+    #  按分类对任务执行数进行统计
+    AE.category: TaskFlowInstance.objects.group_by_category,
 }
 
 
@@ -78,6 +80,18 @@ def produce_filter(filters):
     return orm_filters
 
 
+def format_create_and_finish_time(filters):
+    create_time = timestamp_to_datetime(
+        filters.get(
+            "create_time",
+            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
+        )
+    )
+    finish_time = timestamp_to_datetime(filters.get("finish_time", datetime.datetime.now().timestamp()))
+    filters["create_time_datetime"] = create_time
+    filters["finish_time_datetime"] = finish_time
+
+
 def dispatch(group_by, filters=None, page=None, limit=None):
     """
     @summary: 根据不同group_by指派任务
@@ -89,8 +103,14 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     """
     if filters is None:
         filters = {}
+
     orm_filters = produce_filter(filters)
+    format_create_and_finish_time(filters)
+
     try:
+        # version 条件为插件版本，需要过滤掉
+        if "version" in orm_filters:
+            orm_filters.pop("version")
         taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
     except Exception as e:
         message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(
@@ -100,7 +120,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         return False, message
 
     # 查询不同类别、创建方式、流程类型对应的流程数
-    if group_by in [AE.category, AE.create_method, AE.flow_type]:
+    if group_by in [AE.create_method, AE.flow_type]:
         result, message, total, groups = TaskFlowInstance.objects.general_group_by(orm_filters, group_by)
         if not result:
             return False, message

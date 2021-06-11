@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils import managermixins
+from gcloud.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
@@ -208,7 +208,7 @@ class BaseTemplate(models.Model):
     @summary: base abstract template，without containing business info
     """
 
-    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Other")
+    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
     pipeline_template = models.ForeignKey(
         PipelineTemplate, blank=True, null=True, on_delete=models.SET_NULL, to_field="template_id"
     )

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -35,6 +35,8 @@ from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 from gcloud.taskflow3.utils import preview_template_tree
 from gcloud.taskflow3.validators import (
     StatusValidator,
@@ -63,6 +65,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     TaskModifyInputsInterceptor,
     TaskFuncClaimInterceptor,
     GetNodeLogInterceptor,
+    StatusViewInterceptor,
 )
 
 logger = logging.getLogger("root")
@@ -83,6 +86,7 @@ def context(request):
 
 @require_GET
 @request_validate(StatusValidator)
+@iam_intercept(StatusViewInterceptor())
 def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
@@ -175,6 +179,7 @@ def get_job_instance_log(request, biz_cc_id):
 @require_POST
 @request_validate(TaskActionValidator)
 @iam_intercept(TaskActionInterceptor())
+@record_operation(RecordType.task.name, OperateType.task_action.name)
 def task_action(request, action, project_id):
     task_id = json.loads(request.body)["instance_id"]
     username = request.user.username
@@ -188,6 +193,7 @@ def task_action(request, action, project_id):
 @require_POST
 @request_validate(NodesActionValidator)
 @iam_intercept(NodesActionInpterceptor())
+@record_operation(RecordType.task.name, OperateType.nodes_action.name)
 def nodes_action(request, action, project_id):
     data = json.loads(request.body)
 
@@ -207,6 +213,7 @@ def nodes_action(request, action, project_id):
 @require_POST
 @request_validate(SpecNodesTimerResetValidator)
 @iam_intercept(SpecNodesTimerResetInpterceptor())
+@record_operation(RecordType.task.name, OperateType.spec_nodes_timer_reset.name)
 def spec_nodes_timer_reset(request, project_id):
     data = json.loads(request.body)
 
@@ -223,6 +230,7 @@ def spec_nodes_timer_reset(request, project_id):
 @require_POST
 @request_validate(TaskCloneValidator)
 @iam_intercept(TaskCloneInpterceptor())
+@record_operation(RecordType.task.name, OperateType.task_clone.name)
 def task_clone(request, project_id):
     data = json.loads(request.body)
 
@@ -246,6 +254,7 @@ def task_clone(request, project_id):
 @require_POST
 @request_validate(TaskModifyInputsValidator)
 @iam_intercept(TaskModifyInputsInterceptor())
+@record_operation(RecordType.task.name, OperateType.update.name)
 def task_modify_inputs(request, project_id):
     data = json.loads(request.body)
 

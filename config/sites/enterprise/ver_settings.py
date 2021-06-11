@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import base64
 
 import env
 
@@ -19,7 +20,7 @@ REMOTE_API_URL = "%s/console/static/bk_api/api.js" % env.BK_PAAS_HOST
 ESB_SDK_NAME = "packages.blueking.component"
 
 CALLBACK_KEY = b"5w15CAhkRsjp5SF2Jk_ypzi4jVgsDtzSro1-7Gnl2hQ="
-RSA_PRIV_KEY = """
+DEFAULT_RSA_PRIV_KEY = """
 -----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQCr5dIZVAp6ia+tLVlDKPUZP4RD7sH+Rbc9eHIy46OoBQeLgRhp
 93MEarByPlSdO0BveWi/o7PzAxTX3aev2PobfuDkCG0xQNpyXtq7NMU9GP4lo9MD
@@ -36,9 +37,10 @@ bRygzYs0+XLTESzyPE0TOdV7Kl5yPcph9WjZD+Goye4tgLhv/qpWlwlxzNYK5n9T
 T8ow3nMSbvx5X28wOjbk04tmfM/kVqcVhFWhDHjHZzlt
 -----END RSA PRIVATE KEY-----
 """
+RSA_PRIV_KEY = base64.b64decode(env.RSA_PRIV_KEY).decode("utf-8") if env.RSA_PRIV_KEY else DEFAULT_RSA_PRIV_KEY
 
 # PUB_KEY for frontend, which can not use three quotes
-RSA_PUB_KEY = (
+DEFAULT_RSA_PUB_KEY = (
     "-----BEGIN PUBLIC KEY-----\\n"
     + "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCr5dIZVAp6ia+tLVlDKPUZP4RD\\n"
     + "7sH+Rbc9eHIy46OoBQeLgRhp93MEarByPlSdO0BveWi/o7PzAxTX3aev2PobfuDk\\n"
@@ -46,6 +48,7 @@ RSA_PUB_KEY = (
     + "iymoAVK67gfTOTvckQIDAQAB\\n"
     + "-----END PUBLIC KEY-----"
 )
+RSA_PUB_KEY = base64.b64decode(env.RSA_PUB_KEY).decode("utf-8") if env.RSA_PUB_KEY else DEFAULT_RSA_PUB_KEY
 
 # APIGW Auth
 APIGW_APP_CODE_KEY = "bk_app_code"

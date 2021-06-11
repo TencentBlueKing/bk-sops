@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -578,12 +578,12 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
         },
     },
     parent_data={"executor": "tester"},
-    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": None}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": ""}),
     schedule_assertion=ScheduleAssertion(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={"job_id": None},
+        outputs={"job_id": ""},
     ),
     execute_call_assertion=[
         CallAssertion(

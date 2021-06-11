@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,6 +16,8 @@ from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
+from gcloud.tasktmpl3.apis.drf.viewsets import TemplateSchemeViewSet
+from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import (
     BusinessResource,
     ProjectResource,
@@ -30,7 +32,7 @@ from gcloud.commons.template.resources import CommonTemplateResource, CommonTemp
 from gcloud.label.viewsets import LabelViewSet
 from gcloud.tasktmpl3.resources import (
     TaskTemplateResource,
-    TemplateSchemeResource,
+    # TemplateSchemeResource,
 )
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
@@ -47,7 +49,7 @@ v3_api.register(CommonProjectResource())
 v3_api.register(TaskTemplateResource())
 v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
-v3_api.register(TemplateSchemeResource())
+# v3_api.register(TemplateSchemeResource())
 v3_api.register(TaskFlowInstanceResource())
 v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
@@ -64,7 +66,10 @@ drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
 drf_router.register(r"resource_config", ResourceConfigViewSet)
 drf_router.register(r"staff_group", StaffGroupSetViewSet)
+drf_router.register(r"operate_record_task", TaskOperateRecordSetViewSet)
+drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 drf_router.register(r"new_label", LabelViewSet)
+drf_router.register(r"scheme", TemplateSchemeViewSet)
 
 # Standard bits...
 urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]

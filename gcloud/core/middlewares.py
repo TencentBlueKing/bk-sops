@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -10,18 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import logging
 import traceback
+import uuid
 
 import pytz
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
 
 from gcloud import err_code
 from gcloud.core.models import Project
+from gcloud.core.logging import local
 
 logger = logging.getLogger("root")
 
@@ -65,3 +66,19 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }
             )
+
+
+class TraceIDInjectMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        request.trace_id = uuid.uuid4().hex
+        local.trace_id = request.trace_id
+
+    def process_response(self, request, response):
+        delattr(local, "trace_id")
+        if (
+            isinstance(response, HttpResponse)
+            and response.get("Content-Type") == "application/json"
+            and hasattr(request, "trace_id")
+        ):
+            response.setdefault("Sops-Trace-Id", request.trace_id)
+        return response

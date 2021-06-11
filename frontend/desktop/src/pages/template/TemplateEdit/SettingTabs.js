@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,6 +12,11 @@
 import i18n from '@/config/i18n/index.js'
 
 const SETTING_TABS = [
+    {
+        id: 'operationFlowTab',
+        icon: 'common-icon-branchs',
+        title: i18n.t('操作流水')
+    },
     {
         id: 'globalVariableTab',
         icon: 'common-icon-square-code',
