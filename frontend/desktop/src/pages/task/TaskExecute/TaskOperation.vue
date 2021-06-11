@@ -190,6 +190,7 @@
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
+    import dom from '@/utils/dom.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo.vue'
@@ -495,6 +496,7 @@
                             this.setTaskStatusTimer()
                         }
                     }
+                    this.modifyPageIcon()
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     if (e.message !== 'cancelled') {
@@ -1246,6 +1248,27 @@
                     params: params,
                     func
                 })
+            },
+            // 根据当前任务的状态修改页面对应浏览器tab的icon
+            modifyPageIcon () {
+                let nameSuffix = ''
+                switch (this.state) {
+                    case 'CREATED':
+                        nameSuffix = 'created'
+                        break
+                    case 'FINISHED':
+                        nameSuffix = 'finished'
+                        break
+                    case 'FAILED':
+                    case 'REVOKED':
+                        nameSuffix = 'failed'
+                        break
+                    default:
+                        nameSuffix = 'running'
+                }
+                const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
+                const path = `${window.SITE_URL}/static/core/images/${picName}.png`
+                dom.setPageTabIcon(path)
             },
             // 下次画布组件更新后执行队列
             onTemplateCanvasMounted () {
