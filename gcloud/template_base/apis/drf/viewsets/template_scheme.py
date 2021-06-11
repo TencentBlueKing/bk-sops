@@ -23,7 +23,7 @@ from gcloud import err_code
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.apis.drf.permissions import SchemeEditPermission
+from gcloud.template_base.apis.drf.permission import SchemeEditPermission
 from gcloud.template_base.apis.drf.serilaziers.template_scheme import TemplateSchemeSerializer, ParamsSerializer
 
 logger = logging.getLogger("root")
