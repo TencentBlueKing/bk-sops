@@ -53,9 +53,11 @@
             orderedNodeData: Array
         },
         data () {
+            const orderedNodeData = this.transformToText(this.orderedNodeData)
             return {
                 excludeNodes: [],
-                schemeText: this.transformToText(this.orderedNodeData),
+                schemeText: orderedNodeData,
+                initSchemeText: orderedNodeData,
                 errorMsg: ''
             }
         },
@@ -68,6 +70,9 @@
                     text += `${stage_name === '' ? '' : stage_name + '：'}${name} ${status}\n`
                 })
                 return text
+            },
+            judgeDataEqual () {
+                return this.initSchemeText.trim() === this.schemeText.trim()
             },
             updateSelected () {
                 this.errorMsg = ''

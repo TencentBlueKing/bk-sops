@@ -15,7 +15,7 @@ import re
 import logging
 import datetime
 
-from gcloud.core.constant import AE
+from gcloud.constants import AE
 from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -107,6 +107,9 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     format_create_and_finish_time(filters)
 
     try:
+        # version 条件为插件版本，需要过滤掉
+        if "version" in orm_filters:
+            orm_filters.pop("version")
         taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
     except Exception as e:
         message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(

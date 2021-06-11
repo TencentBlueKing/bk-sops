@@ -12,7 +12,7 @@
 <template>
     <div
         class="modify-params-container"
-        v-bkloading="{ isLoading: loading, opacity: 1 }"
+        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
@@ -116,6 +116,12 @@
                     this.cntLoading = false
                 }
             },
+            judgeDataEqual () {
+                if (!this.paramsCanBeModify) {
+                    return true
+                }
+                return this.$refs.TaskParamEdit.judgeDataEqual()
+            },
             async onModifyParams () {
                 if (!this.hasSavePermission) {
                     const resourceData = {
@@ -140,7 +146,7 @@
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
-                    if (!formValid) return
+                    if (!formValid) return false
                     const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         formData[key] = variables[key].value

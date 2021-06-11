@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -52,8 +51,15 @@ def get_task_list(request, project_id):
 
     tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
 
-    tasks, count = paginate_list_data(request, tasks)
-    response = JsonResponse(
-        {"result": True, "data": format_task_list_data(tasks, project), "count": count, "code": err_code.SUCCESS.code}
-    )
+    try:
+        tasks, count = paginate_list_data(request, tasks)
+    except Exception as e:
+        return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
+
+    response = {
+        "result": True,
+        "data": format_task_list_data(tasks, project),
+        "count": count,
+        "code": err_code.SUCCESS.code,
+    }
     return response

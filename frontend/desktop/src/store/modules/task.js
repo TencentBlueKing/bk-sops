@@ -22,13 +22,18 @@ const task = {
         loadTaskScheme ({ commit }, payload) {
             const { isCommon, project_id, template_id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
-
-            return axios.get(url, {
-                params: {
-                    template_id,
-                    project_id
-                }
-            }).then(response => response.data.data)
+            const params = {
+                template_id
+            }
+            if (isCommon) {
+                params.project__id = project_id
+            } else {
+                params.project_id = project_id
+            }
+            return axios.get(url, { params }).then(response => {
+                const data = isCommon ? response.data.objects : response.data.data
+                return data
+            })
         },
         /**
          * 创建任务可选节点的选择方案
@@ -37,13 +42,17 @@ const task = {
         createTaskScheme ({ commit }, payload) {
             const { isCommon, project_id, template_id, data, name } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
-
-            return axios.post(url, {
-                project_id,
+            const params = {
                 template_id,
                 data,
                 name
-            }).then(response => response.data)
+            }
+            if (isCommon) {
+                params.project__id = project_id
+            } else {
+                params.project_id = project_id
+            }
+            return axios.post(url, params).then(response => response.data)
         },
         /**
          * 删除任务节点选择方案
@@ -63,7 +72,7 @@ const task = {
             const { isCommon, id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.get(`${url}${id}/`).then(response => response.data)
+            return axios.get(`${url}${id}/`).then(response => response.data.data)
         },
         /**
          * 保存所有执行方案
@@ -284,11 +293,12 @@ const task = {
          * @param {Object} data 节点配置数据
          */
         getOperationRecordTask ({ commit }, data) {
-            const { project_id, instance_id } = data
+            const { project_id, instance_id, node_id } = data
             return axios.get(`/api/v3/operate_record_task/`, {
                 params: {
                     project_id,
-                    instance_id
+                    instance_id,
+                    node_id
                 }
             }).then(response => response.data)
         },

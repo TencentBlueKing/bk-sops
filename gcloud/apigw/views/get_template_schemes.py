@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -45,4 +44,4 @@ def get_template_schemes(request, project_id, template_id):
     for s in schemes:
         data.append({"id": s.unique_id, "name": s.name, "data": s.data})
 
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}

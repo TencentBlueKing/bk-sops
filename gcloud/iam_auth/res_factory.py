@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from iam import Resource
 
 from gcloud.core.models import Project
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask

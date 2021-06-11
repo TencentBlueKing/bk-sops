@@ -12,16 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger, format_template_list_data
 from gcloud.iam_auth.intercept import iam_intercept
@@ -49,7 +48,7 @@ def get_template_list(request, project_id):
             id_in = id_in.split(",")
         except Exception:
             id_in = None
-            logger.error("[API] id_in[{}] resolve fail, ignore.".format(id_in))
+            logger.exception("[API] id_in[{}] resolve fail, ignore.".format(id_in))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:
@@ -63,6 +62,4 @@ def get_template_list(request, project_id):
         templates = TaskTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
-    return JsonResponse(
-        {"result": True, "data": format_template_list_data(templates, project), "code": err_code.SUCCESS.code}
-    )
+    return {"result": True, "data": format_template_list_data(templates, project), "code": err_code.SUCCESS.code}

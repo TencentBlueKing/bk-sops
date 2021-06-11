@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+from copy import deepcopy
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
@@ -136,8 +137,10 @@ class CCBatchUpdateHostService(Service):
         for host in ip_list["ip_result"]:
             ip_dir.update({host["InnerIP"]: host["HostID"]})
 
+        # do not operate inputs data directly
+        host_property_copy = deepcopy(host_property_custom)
         update_host_message = []
-        for host_property_dir in host_property_custom:
+        for host_property_dir in host_property_copy:
             inner_host_ip = host_property_dir["bk_host_innerip"]
             # 兼容填写云区域ID：IP的情况, 只获取对应IP
             if ":" in inner_host_ip:

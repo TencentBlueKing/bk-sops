@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -38,7 +38,6 @@
                 v-show="isEditProcessPage || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
-                :init-template-id="initTemplateId"
                 :template-name="templateName"
                 :is-scheme-show="isSchemeShow"
                 :is-scheme-editable="viewMode !== 'appmaker'"
@@ -82,7 +81,6 @@
         props: {
             project_id: [String, Number],
             template_id: [String, Number],
-            initTemplateId: [String, Number],
             common: String,
             excludeNode: Array,
             entrance: String,
@@ -426,8 +424,12 @@
                     }
                 } else {
                     try {
-                        const data = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
-                        allNodeId = JSON.parse(data.data)
+                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
+                        if (this.isCommonProcess) {
+                            allNodeId = JSON.parse(result)
+                        } else {
+                            allNodeId = JSON.parse(result.data)
+                        }
                         this.planDataObj[scheme.id] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]

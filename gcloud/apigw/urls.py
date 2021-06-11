@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
+from gcloud.apigw.views.register_project import register_project
 from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
 from gcloud.apigw.views.claim_functionalization_task import claim_functionalization_task
@@ -92,4 +93,5 @@ urlpatterns = [
     url(r"^claim_functionalization_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", claim_functionalization_task),
     url(r"^get_functionalization_task_list/$", get_functionalization_task_list),
     url(r"^preview_common_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_common_task_tree),
+    url(r"^register_project/$", register_project),
 ]

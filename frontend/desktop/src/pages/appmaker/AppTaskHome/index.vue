@@ -25,7 +25,7 @@
                     <bk-table
                         :data="appmakerList"
                         :pagination="pagination"
-                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange">
                         <bk-table-column label="ID" prop="id" width="80"></bk-table-column>

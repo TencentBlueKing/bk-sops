@@ -27,7 +27,7 @@ logger = logging.getLogger("root")
 
 
 def page_not_found(request, exception):
-    if request.is_ajax() or request.path.startswith(settings.STATIC_URL):
+    if request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
 
     user = _user_authenticate(request)

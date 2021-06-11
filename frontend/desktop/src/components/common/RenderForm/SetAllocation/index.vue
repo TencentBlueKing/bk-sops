@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
+    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1, zIndex: 100 }">
         <resource-list
             v-if="!showFilter"
             ref="resourceList"
@@ -319,6 +319,7 @@
             },
             updateSeparator (val) {
                 this.localSeparator = val
+                this.validate()
                 this.updatePropsData()
             },
             // 同步本地组件数据到父组件

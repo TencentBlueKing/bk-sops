@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_list_data
 
 try:
@@ -32,14 +31,10 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 def get_common_template_list(request):
-    templates = CommonTemplate.objects.select_related("pipeline_template").filter(
-        is_deleted=False
-    )
+    templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)
 
-    return JsonResponse(
-        {
-            "result": True,
-            "data": format_template_list_data(templates),
-            "code": err_code.SUCCESS.code,
-        }
-    )
+    return {
+        "result": True,
+        "data": format_template_list_data(templates),
+        "code": err_code.SUCCESS.code,
+    }
