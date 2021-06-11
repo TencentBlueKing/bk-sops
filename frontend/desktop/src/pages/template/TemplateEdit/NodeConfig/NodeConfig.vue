@@ -238,7 +238,7 @@
             atomTypeList: Object,
             templateLabels: Array,
             common: [String, Number],
-            subflowLoading: Boolean
+            subflowListLoading: Boolean
         },
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
