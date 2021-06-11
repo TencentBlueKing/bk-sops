@@ -35,11 +35,11 @@ from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthor
 from gcloud.constants import PROJECT, COMMON
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.utils.strings import name_handler
-from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
+from gcloud.utils.strings import standardize_name
+from gcloud.constants import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.core.resources import ProjectResource
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import replace_template_id
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
@@ -203,7 +203,7 @@ class PeriodicTaskResource(GCloudModelResource):
             raise BadRequest("invalid template_source[%s]" % template_source)
 
         # XSS handle
-        name = name_handler(name, PERIOD_TASK_NAME_MAX_LENGTH)
+        name = standardize_name(name, PERIOD_TASK_NAME_MAX_LENGTH)
         creator = bundle.request.user.username
 
         # validate pipeline tree

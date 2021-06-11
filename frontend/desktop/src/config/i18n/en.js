@@ -1,12 +1,17 @@
 const en = {
+    '请选择节点的插件类型': 'Please select the plug-in type of the node',
+    '请选择节点的子流程': 'Please select the sub-process of the node',
+    '保存已修改的信息吗？': 'Save the modified information?',
     '操作名称': 'Operation name',
     '操作时间': 'Operating time',
     '操作来源': 'Operation source',
     '历史记录': 'History record',
     '流水操作记录': 'Pipeline operation record',
     '操作流水': 'Operation flow',
+    '已过期': 'Expired',
     '编辑执行方案': 'Edit execution plan',
     '确定保存流程并去设置执行方案？': 'Are you sure to save template and go to set the execution plan?',
+    '确定保存克隆流程并去设置执行方案？': 'Are you sure to save clone template and go to set the execution plan?',
     '方案保存成功': 'The plan was saved successfully',
     '类别': 'Category',
     '请先保存已修改的信息': 'Please save the modified information first',
@@ -699,7 +704,10 @@ const en = {
     '分支条件': 'Condition',
     '分支名称': 'Name',
     '表达式': 'Expression:',
-    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：${key1} >= 3 and "${key2}" == "Test"': 'Supports binary operators such as "==,! =,>,> =, <, <=, in, notin " and keyword syntax such as "and,or,True/true,False/false".Also supports global variable reference via "${key}". e.g.: ${key1} >= 3 and "${key2}" == "Test"',
+    '支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 ${key} 方式引用全局变量。': 'Supports binary operators such as "==,! =,>,> =, <, <=, in, notin " and keyword syntax such as "and,or,True/true,False/false".Also supports global variable reference via "${key}".',
+    '示例：': 'example:',
+    '字符串比较：': 'String Compare:',
+    '数值比较：': 'Number Compare:',
     '请选择插件': 'Please select plugin',
     '请选择插件版本': 'Please select plugin version',
     '请选择流程模板': 'Please select a flow',
@@ -1093,7 +1101,7 @@ const en = {
     '默认标签不支持编辑删除': 'The default label does not support editing and deleting',
     '颜色': 'Color',
     '个流程在引用': 'template in reference',
-    '预览值': 'Preview Value',
+    '预览值': 'Val.',
     '动态分组': 'Dynamic Group',
     '全屏': 'Full Screen',
     '退出': 'Quit',
@@ -1104,7 +1112,8 @@ const en = {
     '通知': 'Notify',
     '其他': 'Others',
     '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
-    '主机名': 'Host Name'
+    '主机名': 'Host Name',
+    '默认全部': 'all'
 }
 
 export default en

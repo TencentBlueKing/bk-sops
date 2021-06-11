@@ -34,13 +34,15 @@ class MonitorAlarmShieldComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, create_shield_result=None):
-        self.monitor = MagicMock()
-        self.monitor.create_shield = MagicMock(return_value=create_shield_result)
+    def __init__(self, add_shield_result=None):
+        self.add_shield = MagicMock(return_value=add_shield_result)
+
+    def __call__(self, *args, **kwargs):
+        return self
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1.get_client_by_user"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1.BKMonitorClient"
 GET_MODULE_ID_LIST_BY_NAME = (
     "pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.v1_1" ".get_module_id_list_by_name"
 )
@@ -56,11 +58,9 @@ GET_SERVICE_TEMPLATE_LIST_BY_NAMES = (
 )
 
 # mock client
-CREATE_SHIELD_FAIL_CLIENT = MockClient(create_shield_result={"result": False, "message": "create shield fail"})
+CREATE_SHIELD_FAIL_CLIENT = MockClient(add_shield_result={"result": False, "message": "create shield fail"})
 
-CREATE_SHIELD_SUCCESS_CLIENT = MockClient(
-    create_shield_result={"result": True, "data": {"id": "1"}, "message": "success"}
-)
+CREATE_SHIELD_SUCCESS_CLIENT = MockClient(add_shield_result={"result": True, "data": {"id": "1"}, "message": "success"})
 
 INPUT_DATA = {
     "bk_alarm_shield_info": {
@@ -142,16 +142,16 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
             '"bk_inst_id":2},{"bk_obj_id":"module","bk_inst_id":3},{"bk_obj_id":"module","bk_inst_id":4},'
             '{"bk_obj_id":"module","bk_inst_id":5}],"metric_id":["bk_monitor.system.load.load5",'
             '"bk_monitor.system.cpu_summary.usage"]},"end_time":"2020-09-28 11:18:58","notice_config":{},'
-            '"shield_notice":false,"source":"bk_sops"}, error=create shield fail',
+            '"shield_notice":false}, error=create shield fail',
         },
     ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_SHIELD_FAIL_CLIENT.monitor.create_shield,
+            func=CREATE_SHIELD_FAIL_CLIENT.add_shield,
             calls=[
                 Call(
-                    {
+                    **{
                         "begin_time": "2020-09-28 11:18:58",
                         "bk_biz_id": 2,
                         "category": "scope",
@@ -171,7 +171,6 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
                         "end_time": "2020-09-28 11:18:58",
                         "notice_config": {},
                         "shield_notice": False,
-                        "source": "bk_sops",
                     }
                 )
             ],
@@ -195,10 +194,10 @@ ALTER_BILL_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
-            func=CREATE_SHIELD_SUCCESS_CLIENT.monitor.create_shield,
+            func=CREATE_SHIELD_SUCCESS_CLIENT.add_shield,
             calls=[
                 Call(
-                    {
+                    **{
                         "begin_time": "2020-09-28 11:18:58",
                         "bk_biz_id": 2,
                         "category": "scope",
@@ -218,7 +217,6 @@ ALTER_BILL_SUCCESS_CASE = ComponentTestCase(
                         "end_time": "2020-09-28 11:18:58",
                         "notice_config": {},
                         "shield_notice": False,
-                        "source": "bk_sops",
                     }
                 )
             ],

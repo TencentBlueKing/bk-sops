@@ -33,14 +33,15 @@ prometheus-client==0.9.0
 bamboo-engine==1.1.4
 bamboo-pipeline==3.2.5
 drf-yasg==1.20.0
+typing-extensions==3.7.4.3
+django-prometheus==2.1.0
+six==1.15.0
 
 # version log
 mistune==0.8.4
 
 # iam sdk
-cachetools==3.1.1
-curlify==2.2.1
-six==1.15.0
+bk-iam==1.1.13
 
 # celery 4
 celery==4.4.0

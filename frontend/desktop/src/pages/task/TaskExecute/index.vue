@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }">
+    <div class="task-execute-container" v-bkloading="{ isLoading: taskDataLoading, opacity: 1, zIndex: 100 }">
         <template v-if="!taskDataLoading">
             <TaskFunctionalization
                 v-if="isFunctional && showParamsFill"
@@ -40,6 +40,7 @@
     import { mapActions } from 'vuex'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
+    import dom from '@/utils/dom.js'
 
     export default {
         name: 'TaskExecute',
@@ -59,6 +60,7 @@
                 taskStatusLoading: true,
                 isFunctional: this.routerType === 'function', // 是否为职能化任务
                 showParamsFill: false, // 显示参数填写页面
+                primaryTitle: '', // 浏览器tab页初始title
                 instanceName: '',
                 instanceFlow: '',
                 templateSource: '',
@@ -77,9 +79,21 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
+                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
+                    // 职能化任务通过普通任务执行链接访问时，重定向到职能化任务链接
+                    if (this.$route.name === 'taskExecute' && flow_type === 'common_func') {
+                        this.$router.push({
+                            name: 'functionTaskExecute',
+                            params: { project_id: this.project_id },
+                            query: { instance_id: this.$route.query.instance_id }
+                        })
+                        return
+                    }
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
+                    } else {
+                        this.primaryTitle = document.title
+                        document.title = name
                     }
                     this.instanceFlow = pipeline_tree
                     this.instanceName = name
@@ -92,6 +106,12 @@
                     this.taskDataLoading = false
                 }
             }
+        },
+        // 离开任务执行页面时，还原页面的title、icon
+        beforeRouteLeave (to, from, next) {
+            document.title = this.primaryTitle
+            dom.setPageTabIcon(`${window.SITE_URL}/static/core/images/bk_sops.png`)
+            next()
         }
     }
 </script>

@@ -48,7 +48,7 @@
                 </bk-select>
             </bk-form-item>
         </bk-form>
-        <div class="content-wrapper" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
+        <div class="content-wrapper" v-bkloading="{ isLoading: dataLoading, opacity: 1, zIndex: 100 }">
             <div class="chart-content">
                 <template v-if="dataLoading || sortedData.length > 0">
                     <div

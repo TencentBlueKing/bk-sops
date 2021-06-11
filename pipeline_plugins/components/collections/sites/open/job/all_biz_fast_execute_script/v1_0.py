@@ -94,16 +94,10 @@ class AllBizJobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"),
-                key="job_target_account",
-                type="int",
-                schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"),
-                key="job_target_account",
-                type="int",
-                schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
                 name=_("执行目标信息"),
@@ -129,7 +123,9 @@ class AllBizJobFastExecuteScriptService(JobService):
                 key="log_outputs",
                 type="object",
                 schema=ObjectItemSchema(
-                    description=_("输出日志中提取的全局变量"),
+                    description=_(
+                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+                    ),
                     property_schemas={
                         "name": StringItemSchema(description=_("全局变量名称")),
                         "value": StringItemSchema(description=_("全局变量值")),

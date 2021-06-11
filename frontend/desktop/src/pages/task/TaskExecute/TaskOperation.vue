@@ -52,10 +52,11 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
+                    ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
@@ -80,18 +81,21 @@
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
+                    ref="retryNode"
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
                 <ModifyTime
+                    ref="modifyTime"
                     v-if="nodeInfoType === 'modifyTime'"
                     :node-detail-config="nodeDetailConfig"
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
                 <OperationFlow
+                    :locations="canvasData.locations"
                     v-if="nodeInfoType === 'operateFlow'"
                     class="operation-flow">
                 </OperationFlow>
@@ -162,6 +166,22 @@
             :is-show.sync="isShowConditionEdit"
             :condition-data="conditionData">
         </condition-edit>
+        <bk-dialog
+            width="400"
+            ext-cls="task-operation-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-operation-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -170,6 +190,7 @@
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
+    import dom from '@/utils/dom.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo.vue'
@@ -259,7 +280,6 @@
                 locations: [],
                 setNodeDetail: true,
                 atomList: [],
-                quickClose: true,
                 sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
@@ -299,7 +319,9 @@
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
                 isShowConditionEdit: false, // 条件分支侧栏
-                conditionData: {}
+                conditionData: {},
+                isShowDialog: false,
+                isSaveLoading: false
             }
         },
         computed: {
@@ -475,6 +497,7 @@
                             this.setTaskStatusTimer()
                         }
                     }
+                    this.modifyPageIcon()
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     if (e.message !== 'cancelled') {
@@ -797,7 +820,7 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    let code, skippable, retryable
+                    let code, skippable, retryable, errorIgnorable
                     const currentNode = nodes[id]
                     const nodeActivities = this.pipelineData.activities[id]
 
@@ -805,9 +828,10 @@
                         code = nodeActivities.component ? nodeActivities.component.code : ''
                         skippable = nodeActivities.isSkipped || nodeActivities.skippable
                         retryable = nodeActivities.can_retry || nodeActivities.retryable
+                        errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -1005,10 +1029,6 @@
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
-                this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    this.quickClose = false
-                }
             },
             
             onToggleNodeInfoPanel () {
@@ -1237,6 +1257,27 @@
                     func
                 })
             },
+            // 根据当前任务的状态修改页面对应浏览器tab的icon
+            modifyPageIcon () {
+                let nameSuffix = ''
+                switch (this.state) {
+                    case 'CREATED':
+                        nameSuffix = 'created'
+                        break
+                    case 'FINISHED':
+                        nameSuffix = 'finished'
+                        break
+                    case 'FAILED':
+                    case 'REVOKED':
+                        nameSuffix = 'failed'
+                        break
+                    default:
+                        nameSuffix = 'running'
+                }
+                const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
+                const path = `${window.SITE_URL}/static/core/images/${picName}.png`
+                dom.setPageTabIcon(path)
+            },
             // 下次画布组件更新后执行队列
             onTemplateCanvasMounted () {
                 this.canvasMountedQueues.forEach(action => {
@@ -1292,6 +1333,47 @@
             onshutDown () {
                 this.isNodeInfoPanelShow = false
                 this.templateData = ''
+            },
+            onBeforeClose () {
+                // 除修改参数/修改时间/重试外  其余侧滑没有操作修改功能，支持自动关闭
+                if (!['modifyParams', 'modifyTime', 'retryNode'].includes(this.nodeInfoType)) {
+                    this.isShowDialog = false
+                    this.isNodeInfoPanelShow = false
+                } else {
+                    const isEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
+                    if (isEqual === true) {
+                        this.isNodeInfoPanelShow = false
+                    } else if (isEqual === false) {
+                        this.isShowDialog = true
+                    }
+                }
+            },
+            async onConfirmClick () {
+                this.isSaveLoading = true
+                try {
+                    let result = true
+                    if (this.nodeInfoType === 'modifyParams') {
+                        result = await this.$refs.modifyParams.onModifyParams()
+                    }
+                    if (this.nodeInfoType === 'modifyTime') {
+                        result = await this.$refs.modifyTime.onModifyTime()
+                    }
+                    if (this.nodeInfoType === 'retryNode') {
+                        result = await this.$refs.retryNode.onRetryTask()
+                    }
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                    if (result) {
+                        this.isNodeInfoPanelShow = false
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isSaveLoading = false
+                }
+            },
+            onCancelClick () {
+                this.isShowDialog = false
+                this.isNodeInfoPanelShow = false
             },
             onHiddenSideslider () {
                 this.nodeInfoType = ''
@@ -1351,6 +1433,17 @@
     height: 100%;
     .operation-flow {
         padding: 20px 30px;
+    }
+}
+.task-operation-confirm-dialog-content {
+    padding: 40px 0;
+    text-align: center;
+    .leave-tips {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    .action-wrapper .bk-button {
+        margin-right: 6px;
     }
 }
 

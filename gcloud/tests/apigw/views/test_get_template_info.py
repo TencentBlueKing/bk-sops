@@ -18,7 +18,7 @@ import ujson as json
 
 from gcloud.utils.dates import format_datetime
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 

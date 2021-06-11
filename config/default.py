@@ -58,8 +58,9 @@ INSTALLED_APPS += (
     "gcloud.contrib.audit",
     "gcloud.contrib.develop",
     "gcloud.contrib.collection",
+    "gcloud.contrib.operate_record",
     "gcloud.apigw",
-    "gcloud.commons.template",
+    "gcloud.common_template",
     "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",
@@ -91,6 +92,7 @@ INSTALLED_APPS += (
     "django_filters",
     "iam",
     "iam.contrib.iam_migration",
+    "bksops_iam_migrations",
     "drf_yasg",
 )
 
@@ -127,6 +129,7 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -142,6 +145,7 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
@@ -157,7 +161,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.38"
+STATIC_VERSION = "3.6.40"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -309,6 +313,8 @@ BK_IAM_INNER_HOST = env.BK_IAM_INNER_HOST
 BK_IAM_SAAS_HOST = env.BK_IAM_SAAS_HOST
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = env.BK_IAM_API_PREFIX
+# 权限中心 migrations 存储 app
+BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
@@ -332,7 +338,7 @@ REST_FRAMEWORK = {
 }
 
 # pipeline settings
-PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
+PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.domains.context.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.models.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
@@ -429,12 +435,14 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
+from gcloud.taskflow3.queues import PrepareAndStartTaskQueueResolver  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
 CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
 CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60

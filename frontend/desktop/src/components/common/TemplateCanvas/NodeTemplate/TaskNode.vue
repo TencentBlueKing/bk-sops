@@ -51,6 +51,10 @@
             <i v-if="node.skip" class="bk-icon icon-arrows-right-shape"></i>
             <span v-else-if="node.retry > 0" class="retry-times">{{ node.retry > 99 ? '100+' : node.retry }}</span>
         </div>
+        <!-- 节点失败后自动忽略icon -->
+        <div v-else-if="node.status === 'FINISHED' && node.error_ignorable" class="task-status-icon node-subscript">
+            <i class="bk-icon icon-arrows-right-shape"></i>
+        </div>
         <!-- 节点顶部右侧生命周期 icon -->
         <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
             <i
@@ -65,7 +69,7 @@
             </i>
         </div>
         <!-- tooltip提示 -->
-        <div class="state-icon">
+        <div class="state-icon" v-if="node.mode === 'execute'">
             <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
                 <span
                     class="common-icon-retry"
@@ -146,13 +150,13 @@
                 return false
             },
             isShowSkipBtn () {
-                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.skippable === undefined)) { // 兼容旧模板跳过字段缺失的情况
+                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.errorIgnorable)) {
                     return true
                 }
                 return false
             },
             isShowRetryBtn () {
-                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.retryable === undefined)) { // 兼容旧模板重试字段缺失的情况
+                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
                     return true
                 }
                 return false

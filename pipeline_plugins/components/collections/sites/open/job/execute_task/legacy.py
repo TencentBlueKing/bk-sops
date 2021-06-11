@@ -90,7 +90,9 @@ class JobExecuteTaskService(JobService):
                 key="log_outputs",
                 type="object",
                 schema=ObjectItemSchema(
-                    description=_("输出日志中提取的全局变量"),
+                    description=_(
+                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+                    ),
                     property_schemas={
                         "name": StringItemSchema(description=_("全局变量名称")),
                         "value": StringItemSchema(description=_("全局变量值")),
@@ -117,12 +119,47 @@ class JobExecuteTaskService(JobService):
             val = loose_strip(_value["value"])
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
-                clean_result, ip_list = get_biz_ip_from_frontend(
-                    val, executor, biz_cc_id, data, self.logger, biz_across, ip_is_exist
-                )
-                if not clean_result:
-                    return False
-                global_vars.append({"name": _value["name"], "ip_list": ip_list})
+                if biz_across:
+                    result, ip_list = get_biz_ip_from_frontend(
+                        ip_str=val,
+                        executor=executor,
+                        biz_cc_id=biz_cc_id,
+                        data=data,
+                        logger_handle=self.logger,
+                        is_across=True,
+                        ip_is_exist=ip_is_exist,
+                        ignore_ex_data=True,
+                    )
+
+                    # 匹配不到云区域IP格式IP，尝试从当前业务下获取
+                    if not result:
+                        result, ip_list = get_biz_ip_from_frontend(
+                            ip_str=val,
+                            executor=executor,
+                            biz_cc_id=biz_cc_id,
+                            data=data,
+                            logger_handle=self.logger,
+                            is_across=False,
+                            ip_is_exist=ip_is_exist,
+                        )
+
+                    if not result:
+                        return False
+                else:
+                    result, ip_list = get_biz_ip_from_frontend(
+                        ip_str=val,
+                        executor=executor,
+                        biz_cc_id=biz_cc_id,
+                        data=data,
+                        logger_handle=self.logger,
+                        is_across=False,
+                        ip_is_exist=ip_is_exist,
+                    )
+                    if not result:
+                        return False
+
+                if ip_list:
+                    global_vars.append({"name": _value["name"], "ip_list": ip_list})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 
@@ -158,3 +195,4 @@ class JobExecuteTaskComponent(Component):
     bound_service = JobExecuteTaskService
     form = "%scomponents/atoms/job/job_execute_task.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
+    desc = _("跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息")

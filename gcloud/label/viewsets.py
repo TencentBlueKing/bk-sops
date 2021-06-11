@@ -23,8 +23,9 @@ from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.label.serilaziers import LabelSerializer
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.openapi.schema import AnnotationAutoSchema
-from iam.contrib.drf.shortcuts import allow_or_raise_immediate_response
+
 from iam import Subject, Action
+from iam.shortcuts import allow_or_raise_auth_failed
 
 iam = get_iam_client()
 
@@ -47,7 +48,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         project_id = request.query_params.get("project_id")
         if not project_id:
             raise ValidationException("project_id should be provided.")
-        allow_or_raise_immediate_response(
+        allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
@@ -61,7 +62,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         if label.is_default:
             raise ValidationException("default label cannot be updated.")
         project_id = label.project_id
-        allow_or_raise_immediate_response(
+        allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
@@ -75,7 +76,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         if label.is_default:
             raise ValidationException("default label cannot be deleted.")
         project_id = label.project_id
-        allow_or_raise_immediate_response(
+        allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
@@ -96,7 +97,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         project_id = request.query_params.get("project_id")
         if not project_id:
             raise ValidationException("project_id should be provided.")
-        allow_or_raise_immediate_response(
+        allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
@@ -156,7 +157,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
         if not base_ids:
             raise ValidationException("{} must be provided.".format(base_id_name))
         project_id = request.query_params.get("project_id")
-        allow_or_raise_immediate_response(
+        allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),

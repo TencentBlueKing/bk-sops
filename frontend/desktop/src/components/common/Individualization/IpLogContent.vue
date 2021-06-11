@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="ip-log-content" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="ip-log-content" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="detail-ip-log">
             <log-display
                 :log-content="logContent"

@@ -535,9 +535,11 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             {"category": 1, "name": "key_1", "value": "value_1"},
             {"category": 1, "name": "key_2", "value": "value_2"},
             {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
+            {"category": 3, "name": "key_3", "value": "0:4.4.4.4,0:3.3.3.3"},
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
+        "biz_across": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -580,6 +582,13 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                            },
+                            {
+                                "name": "key_3",
+                                "ip_list": [
+                                    {"ip": "4.4.4.4", "bk_cloud_id": "0"},
+                                    {"ip": "3.3.3.3", "bk_cloud_id": "0"},
+                                ],
                             },
                         ],
                         "bk_callback_url": "url_token",
@@ -688,20 +697,20 @@ INVALID_IP_CASE = ComponentTestCase(
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
             {"category": 1, "name": "key_2", "value": "value_2"},
-            {"category": 3, "name": "key_3", "value": "1.1.1.1"},
+            {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
-        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1"}
+        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"}
     ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1", use_cache=False)],
+            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
     ],
     patchers=[
