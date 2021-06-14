@@ -10,8 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from typing import Any
+import logging
+import yaml
 
 from gcloud.template_base.domains.schema_converter import YamlSchemaConverter
+
+logger = logging.getLogger("root")
 
 
 class YamlSchemaConverterHandler:
@@ -30,15 +35,12 @@ class YamlSchemaConverterHandler:
         """从Yaml数据字段转换成原始数据字段"""
         return self.converter.reconvert(yaml_docs)
 
-    def reconvert_with_override_id(self, yaml_docs: list, override_mappings: dict):
-        """从Yaml数据字段转换成原始数据字段，同时添加"""
-        reconvert_result = self.reconvert(yaml_docs)
-        if not reconvert_result["result"]:
-            return reconvert_result
-        templates, orders = reconvert_result["templates"], reconvert_result["template_order"]
-        reconverted_templates = []
-        for template_id in orders:
-            if template_id in override_mappings:
-                templates[template_id].update({"override_template_id": override_mappings[template_id]})
-            reconverted_templates.append(templates[template_id])
-        return {"result": True, "data": reconverted_templates, "message": []}
+    @staticmethod
+    def load_yaml_docs(stream: Any):
+        """导入Yaml数据文件，返回Yaml字段格式流程列表"""
+        try:
+            yaml_docs = list(yaml.load_all(stream, Loader=yaml.FullLoader))
+        except yaml.YAMLError as e:
+            logger.exception("[load_yaml_docs]: {}".format(e))
+            return {"result": False, "data": None, "message": e}
+        return {"result": True, "data": yaml_docs, "message": ""}

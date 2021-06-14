@@ -23,6 +23,7 @@ urlpatterns_custom = [
     url(r"^apigw/", include("gcloud.apigw.urls")),
     url(r"^common_template/", include("gcloud.common_template.urls")),
     url(r"^template/", include("gcloud.tasktmpl3.urls")),
+    url(r"^template/", include("gcloud.template_base.urls")),
     url(r"^taskflow/", include("gcloud.taskflow3.urls")),
     url(r"^appmaker/", include("gcloud.contrib.appmaker.urls")),
     url(r"^develop/", include("gcloud.contrib.develop.urls")),
