@@ -56,12 +56,16 @@ JOB_VAR_TYPE_IP = 2
 
 # 全局变量标签中key-value分隔符
 LOG_VAR_SEPARATOR = ":"
+V1_LOG_VAR_SEPARATOR = "="
 
 # 全局变量标签匹配正则（<>字符已转义），用于提取key{separator}value
 LOG_VAR_LABEL_ESCAPE_RE = r"&lt;SOPS_VAR&gt;(.+?)&lt;/SOPS_VAR&gt;"
+V1_LOG_VAR_LABEL_ESCAPE_RE = r"&lt;##(.+?)##&gt;"
+
 
 # 全局变量标签匹配正则，用于提取key{separator}value
 LOG_VAR_LABEL_RE = r"<SOPS_VAR>(.+?)</SOPS_VAR>"
+V1_LOG_VAR_LABEL_RE = r"<##(.+?)##>"
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -86,12 +90,14 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     for index, log_line in enumerate(log_text.splitlines(), 1):
         sops_key_val_list = re.findall(LOG_VAR_LABEL_RE, log_line)
         sops_key_val_list.extend(re.findall(LOG_VAR_LABEL_ESCAPE_RE, log_line))
+        sops_key_val_list.extend(re.findall(V1_LOG_VAR_LABEL_RE, log_line))
+        sops_key_val_list.extend(re.findall(V1_LOG_VAR_LABEL_ESCAPE_RE, log_line))
         if len(sops_key_val_list) == 0:
             continue
         for sops_key_val in sops_key_val_list:
-            if LOG_VAR_SEPARATOR not in sops_key_val:
+            if LOG_VAR_SEPARATOR not in sops_key_val and V1_LOG_VAR_SEPARATOR not in sops_key_val:
                 continue
-            sops_key, sops_val = sops_key_val.split(LOG_VAR_SEPARATOR, 1)
+            sops_key, sops_val = re.split("{}|{}".format(LOG_VAR_SEPARATOR, V1_LOG_VAR_SEPARATOR), sops_key_val, 1)
             # 限制变量名不为空
             if len(sops_key) == 0:
                 continue
@@ -230,9 +236,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message

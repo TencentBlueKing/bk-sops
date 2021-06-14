@@ -1,0 +1,2 @@
+improvement:
+  - job节点日志提取变量兼容<\#\#key=value\#\#>格式
