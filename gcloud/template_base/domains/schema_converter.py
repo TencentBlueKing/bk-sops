@@ -16,6 +16,7 @@ from abc import ABCMeta, abstractmethod
 import yaml
 import jsonschema
 
+from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
@@ -100,7 +101,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "required": ["meta", "spec", "schema_version"],
         "properties": {
             "meta": {"type": "object", "required": ["name", "id"]},
-            "spec": {"type": "object", "required": ["nodes"]},
+            "spec": {"type": "object", "required": ["nodes"], "properties": {"nodes": {"type": "array"}}},
         },
     }
 
@@ -110,10 +111,12 @@ class YamlSchemaConverter(BaseSchemaConverter):
         try:
             for yaml_doc in yaml_docs:
                 jsonschema.validate(yaml_doc, self.YAML_DOC_SCHEMA)
-                template_id = yaml_doc["meta"].pop("id")
+                template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            return {"result": False, "data": yaml_data, "message": ["YAML数据格式有误: {}".format(e)]}
+            return {"result": False, "data": yaml_data, "message": {"file": ["YAML数据格式有误: {}".format(e)]}}
+        # 检查流程间是否有环引用的情况
+
         errors = {}
         template_set = set()
         for template_id, template in yaml_data.items():
@@ -140,7 +143,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                         )
                     )
                     continue
-                if node["type"] == "SubProcess":
+                if node["type"] == "ExclusiveGateway":
                     for condition in node["conditions"].keys():
                         if condition not in nodes_set:
                             error.append("分支网关{} 条件{}无法找到对应节点".format(node["id"], condition))
@@ -157,10 +160,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                                 error.append("节点{}无法找到下一个节点{}".format(node["id"], next_node))
             if error:
                 errors[template_id] = error
-        # 检查相同key的constant属性是否相同
         if errors:
             return {"result": False, "data": yaml_data, "message": errors}
-        return {"result": True, "data": yaml_data, "message": []}
+        return {"result": True, "data": yaml_data, "message": {}}
 
     def convert(self, full_data: dict):
         """将原始流程数据转换成只保留YAML字段的数据"""
@@ -231,19 +233,25 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 outputs = node.pop("output") if "output" in node else {}
                 activity.update(node)
                 component_constants = {"component_inputs": activity["component"]["data"], "component_outputs": outputs}
-                for source_tag, data in component_constants.items():
+                for source_type, data in component_constants.items():
+
                     for form_key, param in data.items():
                         if "key" in param:
-                            source_info = {node["id"]: form_key}
+                            source_info = (node["id"], form_key)
                             constant, is_create = self._reconvert_constant(
                                 constant=param,
                                 cur_constants=reconverted_tree["constants"],
                                 source_info=source_info,
-                                source_tag=source_tag,
+                                source_tag="{}.{}".format(activity["component"]["code"], form_key),
+                                source_type=source_type,
                             )
                             if is_create:
                                 reconverted_tree["constants"][param["key"]] = constant
-                        param["hook"] = True if source_tag == "component_inputs" and "key" in param else False
+                            param["value"] = param["key"]
+                        param["hook"] = True if source_type == "component_inputs" and "key" in param else False
+                        for key in list(param.keys()):
+                            if key not in ["value", "hook"]:
+                                param.pop(key)
                         reconverted_tree["activities"][node["id"]] = activity
             elif node["type"] == "SubProcess":
                 subprocess = {
@@ -254,21 +262,27 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 outputs = node.pop("output") if "output" in node else {}
                 subprocess.update(node)
                 constants = dict(
-                    filter(
-                        lambda x: x[1]["source_type"] != "component_outputs",
-                        cur_templates[node["template_id"]]["constants"].items(),
-                    )
+                    [
+                        (key, value)
+                        for key, value in cur_templates[node["template_id"]]["tree"]["constants"].items()
+                        if value["source_type"] != "component_outputs"
+                    ]
                 )
+                constants = copy.deepcopy(constants)
+                for key, constant in constants.items():
+                    if key in inputs:
+                        constant["value"] = inputs[key]["key"]
+
                 subprocess["constants"] = constants
                 subprocess_constants = {"component_inputs": inputs, "component_outputs": outputs}
-                for source_tag, data in subprocess_constants.items():
+                for source_type, data in subprocess_constants.items():
                     for form_key, param in data.items():
-                        source_info = {node["id"]: form_key}
+                        source_info = (node["id"], form_key)
                         constant, is_create = self._reconvert_constant(
                             constant=param,
                             cur_constants=reconverted_tree["constants"],
                             source_info=source_info,
-                            source_tag=source_tag,
+                            source_type=source_type,
                         )
                         if is_create:
                             reconverted_tree["constants"][param["key"]] = constant
@@ -350,30 +364,37 @@ class YamlSchemaConverter(BaseSchemaConverter):
         self._reconvert_flows_in_tree(nodes, reconverted_tree)
 
         # 恢复constants格式
-        for constant_key, constant_attrs in template["constants"].items():
-            reconverted_constant, is_create = self._reconvert_constant(
-                constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
-            )
-            if is_create:
-                reconverted_tree["constants"][constant_key] = reconverted_constant
+        if "constants" in template:
+            for constant_key, constant_attrs in template["constants"].items():
+                reconverted_constant, is_create = self._reconvert_constant(
+                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
+                )
+                if is_create:
+                    reconverted_tree["constants"][constant_key] = reconverted_constant
 
         replace_all_id(reconverted_tree)
         draw_pipeline(reconverted_tree)
         return reconverted_tree
 
     def _reconvert_constant(
-        self, constant: dict, cur_constants: dict, source_info: dict = None, source_tag: str = None
+        self,
+        constant: dict,
+        cur_constants: dict,
+        source_info: tuple = None,
+        source_tag: str = None,
+        source_type: str = None,
     ) -> (dict, bool):
         """reconvert单流程树中的constant字段"""
         if constant["key"] in cur_constants:
             if source_info:
-                cur_constants[constant["key"]]["source_info"].update(source_info)
+                key, value = source_info
+                cur_constants[constant["key"]]["source_info"].setdefault(key, []).append(value)
             return cur_constants[constant["key"]], False
         reconverted_constant = {
             **self.CONSTANT_DEFAULT_FIELD_VALUE,
             "source_info": {},
             "source_tag": "",
-            "source_type": "custom",
+            "source_type": "custom" if not source_type else source_type,
         }
         if "type" in constant:
             reconverted_constant["custom_type"] = constant.pop("type")
@@ -382,12 +403,14 @@ class YamlSchemaConverter(BaseSchemaConverter):
             constant.pop("hide")
         reconverted_constant.update(constant)
         if source_info:
-            reconverted_constant["source_info"] = source_info
-        reconverted_constant["source_tag"] = (
-            source_tag
-            if source_tag
+            reconverted_constant["source_info"] = {source_info[0]: [source_info[1]]}
+        var_cls = library.VariableLibrary.get_var_class(reconverted_constant["custom_type"])
+        var_tag = (
+            var_cls.tag
+            if var_cls
             else "{}.{}".format(reconverted_constant["custom_type"], reconverted_constant["custom_type"])
         )
+        reconverted_constant["source_tag"] = source_tag if source_tag else var_tag
         return reconverted_constant, True
 
     @staticmethod
