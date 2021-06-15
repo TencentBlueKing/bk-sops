@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -28,7 +28,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     get_module_set_id,
 )
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 VERSION = "1.0"
 
@@ -66,12 +66,10 @@ class CCBatchModuleUpdateService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         bk_biz_name = parent_data.inputs.bk_biz_name
         cc_module_update_data = data.get_one_of_inputs("cc_module_update_data")
-        cc_template_break_line = data.get_one_of_inputs("cc_template_break_line")
+        cc_template_break_line = data.get_one_of_inputs("cc_template_break_line") or ","
         cc_tag_method = data.get_one_of_inputs("cc_tag_method")
 
-        # 如果用户没有输入分隔符，则默认为 ','
-        if not cc_template_break_line:
-            cc_template_break_line = ","
+        cc_module_update_data = convert_num_to_str(cc_module_update_data)
 
         attr_list = []
         # 如果用户选择了单行扩展
@@ -98,15 +96,50 @@ class CCBatchModuleUpdateService(Service):
         success_update = []
         failed_update = []
 
+        search_attr_kwargs = {"bk_obj_id": "module", "bk_supplier_account": supplier_account}
+        attr_result = client.cc.search_object_attribute(search_attr_kwargs)
+        if not attr_result["result"]:
+            message = handle_api_error("cc", "cc.search_object_attribute", search_attr_kwargs, attr_result)
+            self.logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
+
+        attr_type_mapping = {}
+        for item in attr_result["data"]:
+            attr_type_transformer = None
+            if item["bk_property_type"] == "bool":
+                attr_type_transformer = bool
+            elif item["bk_property_type"] == "int":
+                attr_type_transformer = int
+            if attr_type_transformer:
+                attr_type_mapping[item["bk_property_id"]] = attr_type_transformer
+
         for update_item in attr_list:
+            # 过滤,去除用户没有填的字段
             update_params = {key: value for key, value in update_item.items() if value}
+            # 对字段类型进行转换
+            transform_success = True
+            for attr, value in update_params.items():
+                if attr in attr_type_mapping:
+                    try:
+                        update_params[attr] = attr_type_mapping[attr](value)
+                    except Exception as e:
+                        transform_success = False
+                        message = "item: {}, 转换属性{}为{}类型时出错: {}".format(update_item, attr, attr_type_mapping[attr], e)
+                        self.logger.error(message)
+                        failed_update.append(message)
+                        break
+            if not transform_success:
+                continue
+
             try:
                 # 处理用户没有输出模块拓扑的情况
                 # 拼接完整路径，biz>set>module
                 cc_module_select_text = "{}>{}".format(bk_biz_name, update_params.pop("cc_module_select_text"))
-            except Exception:
-                failed_update.append(update_item)
-                self.logger.error("module 属性更新失败,用户未输入模块拓扑的值 " "data={}".format(update_item))
+            except Exception as e:
+                message = "module 属性更新失败,用户未输入模块拓扑的值 item={} message={}".format(update_item, e)
+                failed_update.append(message)
+                self.logger.error(message)
                 continue
 
             supplier_account = supplier_account_for_business(biz_cc_id)
@@ -114,12 +147,11 @@ class CCBatchModuleUpdateService(Service):
                 executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
-                failed_update.append(update_item)
-                self.logger.error(
-                    "module 属性更新失败, message={}, data={}".format(
-                        update_item, cc_list_select_node_inst_id_return["message"]
-                    )
+                message = "module 属性更新失败, item={}, message={}".format(
+                    update_item, cc_list_select_node_inst_id_return["message"]
                 )
+                failed_update.append(message)
+                self.logger.error(message)
                 continue
             bk_module_id = cc_list_select_node_inst_id_return["data"][0]
             bk_set_id = get_module_set_id(tree_data["data"], bk_module_id)
@@ -133,19 +165,21 @@ class CCBatchModuleUpdateService(Service):
             # 更新module属性
             update_result = client.cc.update_module(kwargs)
             if update_result["result"]:
-                self.logger.info("module 属性更新成功, data={}".format(kwargs))
+                self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                self.logger.error("module 属性更新失败, data={}".format(kwargs))
-                failed_update.append(update_item)
+                message = "module 属性更新失败, item={}, data={}, message: {}".format(
+                    update_item, kwargs, update_result["message"]
+                )
+                self.logger.error(message)
+                failed_update.append(message)
 
         data.set_outputs("module_update_success", success_update)
         data.set_outputs("module_update_failed", failed_update)
         # 如果没有更新失败的行
         if not failed_update:
             return True
-
-        data.set_outputs("ex_data", "插件执行失败，原因:有更新失败的数据，data={}".format(failed_update))
+        data.set_outputs("ex_data", failed_update)
         return False
 
     def outputs_format(self):
@@ -171,3 +205,8 @@ class CCBatchModuleUpdateComponent(Component):
     code = "cc_batch_module_update"
     bound_service = CCBatchModuleUpdateService
     form = "{static_url}components/atoms/cc/batch_module_update/v1_0.js".format(static_url=settings.STATIC_URL)
+    desc = _(
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

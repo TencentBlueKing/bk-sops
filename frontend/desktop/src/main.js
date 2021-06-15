@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -30,7 +30,11 @@ import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
 import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
-Vue.use(VeeValidate)
+const config = {
+    errorBagName: 'veeErrors',
+    fieldsBagName: 'veeFields'
+}
+Vue.use(VeeValidate, config)
 
 Vue.use(bkMagicVue)
 
@@ -60,6 +64,8 @@ Vue.use(Pagination)
 Vue.use(Tooltip)
 Vue.use(Cascader)
 Vue.use(autocomplete)
+
+window.reportInfo = function () {}
 
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)

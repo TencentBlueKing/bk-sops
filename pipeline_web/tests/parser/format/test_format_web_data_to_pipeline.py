@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -348,44 +348,6 @@ web_tree = json.loads(
                                         "validator": [],
                                         "value": "${c}",
                                         "version": "legacy"
-                                    },
-                                    "${ip}": {
-                                        "custom_type": "ip_selector",
-                                        "desc": "",
-                                        "form_schema": {
-                                            "type": "ip_selector",
-                                            "attrs": {
-                                                "name": "选择服务器",
-                                                "hookable": true,
-                                                "isMultiple": false,
-                                                "validation": [
-                                                    {
-                                                        "type": "required"
-                                                    }
-                                                ],
-                                                "default": {
-                                                    "selectors": [
-                                                        "ip"
-                                                    ],
-                                                    "topo": [],
-                                                    "ip": [],
-                                                    "filters": [],
-                                                    "excludes": [],
-                                                    "with_cloud_id": false
-                                                }
-                                            }
-                                        },
-                                        "index": 2,
-                                        "key": "${ip}",
-                                        "name": "ip",
-                                        "show_type": "show",
-                                        "source_info": {},
-                                        "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                        "source_type": "custom",
-                                        "validation": "",
-                                        "value": "${ip}",
-                                        "version": "legacy",
-                                        "is_meta": false
                                     }
                                 },
                                 "end_event": {
@@ -520,83 +482,6 @@ web_tree = json.loads(
                             "validator": [],
                             "value": "${d}",
                             "version": "legacy"
-                        },
-                        "${ip}": {
-                            "name": "ip",
-                            "key": "${ip}",
-                            "desc": "",
-                            "custom_type": "ip_selector",
-                            "source_info": {
-                                "nab4fa758628344f9d7c3435d62571f4": [
-                                    "${ip}"
-                                ]
-                            },
-                            "source_tag": "var_cmdb_ip_selector.ip_selector",
-                            "value": {
-                                "selectors": [
-                                    "ip"
-                                ],
-                                "topo": [],
-                                "ip": [
-                                    {
-                                        "bk_cloud_id": 0,
-                                        "bk_host_name": "jobdev-1",
-                                        "bk_host_id": 4,
-                                        "bk_host_innerip": "1.1.1.1",
-                                        "cloud": [
-                                            {
-                                                "id": "0",
-                                                "bk_inst_name": "default area"
-                                            }
-                                        ],
-                                        "agent": 1
-                                    },
-                                    {
-                                        "bk_cloud_id": 0,
-                                        "bk_host_name": "",
-                                        "bk_host_id": 9,
-                                        "bk_host_innerip": "2.2.2.2",
-                                        "cloud": [
-                                            {
-                                                "id": "0",
-                                                "bk_inst_name": "default area"
-                                            }
-                                        ],
-                                        "agent": 0
-                                    }
-                                ],
-                                "filters": [],
-                                "excludes": [],
-                                "with_cloud_id": false
-                            },
-                            "show_type": "show",
-                            "source_type": "component_inputs",
-                            "validation": "",
-                            "index": 1,
-                            "version": "legacy",
-                            "form_schema": {
-                                "type": "ip_selector",
-                                "attrs": {
-                                    "name": "ip",
-                                    "hookable": true,
-                                    "isMultiple": false,
-                                    "validation": [
-                                        {
-                                            "type": "required"
-                                        }
-                                    ],
-                                    "default": {
-                                        "selectors": [
-                                            "ip"
-                                        ],
-                                        "topo": [],
-                                        "ip": [],
-                                        "filters": [],
-                                        "excludes": [],
-                                        "with_cloud_id": false
-                                    }
-                                }
-                            }
                         },
                         "${s1}": {
                             "custom_type": "input",
@@ -1018,6 +903,31 @@ web_tree = json.loads(
                 "key": "${d}",
                 "name": "d",
                 "show_type": "show",
+                "pre_render_mako": true,
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "validator": [],
+                "value": "3",
+                "version": "legacy"
+            },
+            "${d1}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {
+                    "attrs": {
+                        "hookable": true,
+                        "name": "输入框",
+                        "validation": []
+                    },
+                    "type": "input"
+                },
+                "index": 0,
+                "key": "${d1}",
+                "name": "d",
+                "show_type": "show",
+                "pre_render_mako": false,
                 "source_info": {},
                 "source_tag": "input.input",
                 "source_type": "custom",
@@ -1130,6 +1040,52 @@ web_tree = json.loads(
                 "source_type": "custom",
                 "validation": "^.+$",
                 "value": "${5 if int(d) < 10 else d}",
+                "version": "legacy"
+            },
+            "${exp2}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {
+                    "type": "input",
+                    "attrs": {
+                        "name": "输入框",
+                        "hookable": true,
+                        "validation": []
+                    }
+                },
+                "index": 5,
+                "key": "${exp2}",
+                "name": "exp2",
+                "show_type": "show",
+                "pre_render_mako": true,
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "value": "${5 if int(d) < 10 else d}",
+                "version": "legacy"
+            },
+            "${exp3}": {
+                "custom_type": "input",
+                "desc": "",
+                "form_schema": {
+                    "type": "input",
+                    "attrs": {
+                        "name": "输入框",
+                        "hookable": true,
+                        "validation": []
+                    }
+                },
+                "index": 5,
+                "key": "${exp3}",
+                "name": "exp3",
+                "show_type": "show",
+                "pre_render_mako": true,
+                "source_info": {},
+                "source_tag": "input.input",
+                "source_type": "custom",
+                "validation": "^.+$",
+                "value": "${5 if int(d1) < 10 else d}",
                 "version": "legacy"
             },
             "${output_exp}": {
@@ -1606,7 +1562,8 @@ pipeline_tree = json.loads(
                                                         "is_param": false
                                                     }
                                                 },
-                                                "outputs": []
+                                                "outputs": [],
+                                                "pre_render_keys": ["${b}"]
                                             }
                                         },
                                         "params": {
@@ -1760,28 +1717,16 @@ pipeline_tree = json.loads(
                                             "type": "splice",
                                             "value": "${c}",
                                             "is_param": true
-                                        },
-                                        "${ip}": {
-                                            "type": "lazy",
-                                            "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                            "custom_type": "ip_selector",
-                                            "value": "${ip}",
-                                            "is_param": true
                                         }
                                     },
-                                    "outputs": []
+                                    "outputs": [],
+                                    "pre_render_keys": []
                                 }
                             },
                             "params": {
                                 "${b}": {
                                     "type": "splice",
                                     "value": "${c}"
-                                },
-                                "${ip}": {
-                                    "type": "lazy",
-                                    "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                    "custom_type": "ip_selector",
-                                    "value": "${ip}"
                                 }
                             }
                         }
@@ -1871,49 +1816,6 @@ pipeline_tree = json.loads(
                                 "value": "${d}",
                                 "is_param": true
                             },
-                            "${ip}": {
-                                "type": "lazy",
-                                "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                "custom_type": "ip_selector",
-                                "value": {
-                                    "selectors": [
-                                        "ip"
-                                    ],
-                                    "topo": [],
-                                    "ip": [
-                                        {
-                                            "bk_cloud_id": 0,
-                                            "bk_host_name": "jobdev-1",
-                                            "bk_host_id": 4,
-                                            "bk_host_innerip": "1.1.1.1",
-                                            "cloud": [
-                                                {
-                                                    "id": "0",
-                                                    "bk_inst_name": "default area"
-                                                }
-                                            ],
-                                            "agent": 1
-                                        },
-                                        {
-                                            "bk_cloud_id": 0,
-                                            "bk_host_name": "",
-                                            "bk_host_id": 9,
-                                            "bk_host_innerip": "2.2.2.2",
-                                            "cloud": [
-                                                {
-                                                    "id": "0",
-                                                    "bk_inst_name": "default area"
-                                                }
-                                            ],
-                                            "agent": 0
-                                        }
-                                    ],
-                                    "filters": [],
-                                    "excludes": [],
-                                    "with_cloud_id": false
-                                },
-                                "is_param": true
-                            },
                             "${h1}": {
                                 "type": "plain",
                                 "value": "12",
@@ -1926,12 +1828,12 @@ pipeline_tree = json.loads(
                             },
                             "${v1}": {
                                 "type": "splice",
-                                "value": "12",
+                                "value": "${5 if int(h1) < 10 else h1}",
                                 "is_param": false
                             },
                             "${v2}": {
                                 "type": "splice",
-                                "value": "13",
+                                "value": "${int(v1) + 1}",
                                 "is_param": false
                             },
                             "${v3}": {
@@ -1957,55 +1859,14 @@ pipeline_tree = json.loads(
                                 "is_param": false
                             }
                         },
-                        "outputs": []
+                        "outputs": [],
+                        "pre_render_keys": ["${h1}", "${v1}", "${v2}", "${v3}", "${v4}", "${v5}", "${v6}"]
                     }
                 },
                 "params": {
                     "${c}": {
                         "type": "splice",
                         "value": "${d}"
-                    },
-                    "${ip}": {
-                        "type": "lazy",
-                        "source_tag": "var_cmdb_ip_selector.ip_selector",
-                        "custom_type": "ip_selector",
-                        "value": {
-                            "selectors": [
-                                "ip"
-                            ],
-                            "topo": [],
-                            "ip": [
-                                {
-                                    "bk_cloud_id": 0,
-                                    "bk_host_name": "jobdev-1",
-                                    "bk_host_id": 4,
-                                    "bk_host_innerip": "1.1.1.1",
-                                    "cloud": [
-                                        {
-                                            "id": "0",
-                                            "bk_inst_name": "default area"
-                                        }
-                                    ],
-                                    "agent": 1
-                                },
-                                {
-                                    "bk_cloud_id": 0,
-                                    "bk_host_name": "",
-                                    "bk_host_id": 9,
-                                    "bk_host_innerip": "2.2.2.2",
-                                    "cloud": [
-                                        {
-                                            "id": "0",
-                                            "bk_inst_name": "default area"
-                                        }
-                                    ],
-                                    "agent": 0
-                                }
-                            ],
-                            "filters": [],
-                            "excludes": [],
-                            "with_cloud_id": false
-                        }
                     },
                     "${s1}": {
                         "type": "splice",
@@ -2396,9 +2257,14 @@ pipeline_tree = json.loads(
                     "value": "3",
                     "is_param": false
                 },
+                "${d1}": {
+                    "type": "plain",
+                    "value": "3",
+                    "is_param": false
+                },
                 "${time}": {
                     "type": "splice",
-                    "value": "3",
+                    "value": "${time2}",
                     "is_param": false
                 },
                 "${time2}": {
@@ -2423,13 +2289,24 @@ pipeline_tree = json.loads(
                     "value": "${5 if int(d) < 10 else d}",
                     "is_param": false
                 },
+                "${exp2}": {
+                    "type": "splice",
+                    "value": "${5 if int(d) < 10 else d}",
+                    "is_param": false
+                },
+                "${exp3}": {
+                    "type": "splice",
+                    "value": "${5 if int(d1) < 10 else d}",
+                    "is_param": false
+                },
                 "${output_exp}": {
                     "type": "splice",
                     "value": "${1 if _result else xxx}",
                     "is_param": false
                 }
             },
-            "outputs": []
+            "outputs": [],
+            "pre_render_keys": ["${d}", "${exp1}", "${exp2}", "${exp3}", "${output_exp}", "${time2}", "${time}"]
         }
     }
     """
@@ -2451,5 +2328,6 @@ class FormatWebDataToPipelineTestCase(TestCase):
         全局变量引用输出变量解析
         子流程中隐藏变量 mako 预解析
         隐藏变量 mako 预解析
+        得到预渲染变量key列表
         """
         self.assertEqual(format_web_data_to_pipeline(web_tree), pipeline_tree)

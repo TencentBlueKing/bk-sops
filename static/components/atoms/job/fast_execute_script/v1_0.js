@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-(function () {
+ (function () {
     $.atoms.job_fast_execute_script = [
         {
             tag_code: "biz_cc_id",
@@ -392,7 +392,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("目标IP"),
-                placeholder: gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 hookable: true,
                 validation: [
                     {
@@ -406,9 +406,9 @@
                     type: "change",
                     action: function (value) {
                         if (value === true) {
-                            this.placeholder = gettext("格式为【云区域ID:IP】，多个用换行分隔");
+                            this.placeholder = gettext("输入 CLOUD_ID:IP, 多个用英文逗号 `,` 或换行分隔");
                         } else {
-                            this.placeholder = gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的");
+                            this.placeholder = gettext("输入IP, 多个用英文逗号 `,` 或换行分隔");
                         }
                     }
                 },

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -30,7 +30,7 @@ from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id
 
 WEB_TREE_FIELDS = {"location", "line"}
 
@@ -292,53 +292,48 @@ class PipelineTemplateWebWrapper(object):
 
         if not override:
             template_id_list = list(template.keys())
-            exist_str_id = PipelineTemplate.objects.filter(template_id__in=template_id_list).values_list(
-                "template_id", flat=True
-            )
             old_id_list = list(template.keys())
             template_node_id_old_to_new = {}
 
             # replace id
-            if exist_str_id:
+            # 1st round: replace template id
+            for tid in template_id_list:
+                old_template_id = tid
+                new_template_id = uniqid()
+                temp_id_old_to_new[old_template_id] = new_template_id
 
-                # 1st round: replace template id
-                for tid in exist_str_id:
-                    old_template_id = tid
-                    new_template_id = uniqid()
-                    temp_id_old_to_new[old_template_id] = new_template_id
+                # update subprocess template id
+                for referencer_id, act_ids in list(refs.get(tid, {}).items()):
+                    for act_id in act_ids:
+                        template[referencer_id]["tree"][PWE.activities][act_id]["template_id"] = new_template_id
 
-                    # update subprocess template id
-                    for referencer_id, act_ids in list(refs.get(tid, {}).items()):
-                        for act_id in act_ids:
-                            template[referencer_id]["tree"][PWE.activities][act_id]["template_id"] = new_template_id
-
-                # 2nd round: replace all node id
-                for tid in exist_str_id:
-                    temp = template[tid]
-                    new_id = temp_id_old_to_new[temp["template_id"]]
-                    temp["template_id"] = new_id
-                    node_id_maps = replace_all_id(temp["tree"])
-                    template_node_id_old_to_new[new_id] = node_id_maps
-                    # replace subprocess constants field
-                    for referencer_id, act_ids in list(refs.get(tid, {}).items()):
-                        # can not sure parent id is replaced or not
-                        new_referencer_id = temp_id_old_to_new[referencer_id]
-                        referencer_id = new_referencer_id if referencer_id not in template else referencer_id
-                        for act_id in act_ids:
-                            # can not sure parent node id is replaced or not
-                            act_id = (
-                                template_node_id_old_to_new.get(referencer_id, {})
-                                .get(PWE.activities, {})
-                                .get(act_id, act_id)
-                            )
-                            constant_dict = template[referencer_id]["tree"][PWE.activities][act_id].get("constants", {})
-                            for key, constant in list(constant_dict.items()):
-                                source_info = constant["source_info"]
-                                source_id_list = list(source_info.keys())
-                                for old_source_id in source_id_list:
-                                    new_source_id = node_id_maps[PWE.activities][old_source_id]
-                                    source_info[new_source_id] = source_info.pop(old_source_id)
-                    template[new_id] = template.pop(tid)
+            # 2nd round: replace all node id
+            for tid in template_id_list:
+                temp = template[tid]
+                new_id = temp_id_old_to_new[temp["template_id"]]
+                temp["template_id"] = new_id
+                node_id_maps = replace_all_id(temp["tree"])
+                template_node_id_old_to_new[new_id] = node_id_maps
+                # replace subprocess constants field
+                for referencer_id, act_ids in list(refs.get(tid, {}).items()):
+                    # can not sure parent id is replaced or not
+                    new_referencer_id = temp_id_old_to_new[referencer_id]
+                    referencer_id = new_referencer_id if referencer_id not in template else referencer_id
+                    for act_id in act_ids:
+                        # can not sure parent node id is replaced or not
+                        act_id = (
+                            template_node_id_old_to_new.get(referencer_id, {})
+                            .get(PWE.activities, {})
+                            .get(act_id, act_id)
+                        )
+                        constant_dict = template[referencer_id]["tree"][PWE.activities][act_id].get("constants", {})
+                        for _, constant in list(constant_dict.items()):
+                            source_info = constant["source_info"]
+                            source_id_list = list(source_info.keys())
+                            for old_source_id in source_id_list:
+                                new_source_id = node_id_maps[PWE.activities][old_source_id]
+                                source_info[new_source_id] = source_info.pop(old_source_id)
+                template[new_id] = template.pop(tid)
 
             # add id which do not conflict
             for old_id in old_id_list:
@@ -414,9 +409,7 @@ class PipelineTemplateWebWrapper(object):
             # override
             for tid, template_dict in list(template.items()):
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=False)
-                pipeline_template, no_use = PipelineTemplate.objects.update_or_create(
-                    template_id=tid, defaults=defaults
-                )
+                pipeline_template, _ = PipelineTemplate.objects.update_or_create(template_id=tid, defaults=defaults)
                 temp_id_old_to_new[template_dict.get("old_id", tid)] = tid
 
                 # create node in template

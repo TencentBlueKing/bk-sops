@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -83,7 +83,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import serializeObj from '@/utils/serializeObj.js'
     import FormConfig from './FormConfig.vue'
     import ContextEdit from './ContextEdit.vue'
@@ -191,11 +190,9 @@
                             })
                         }
                         this.systemList = systemList
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.systemListLoading = false
                 }
@@ -210,11 +207,9 @@
                     if (res.result) {
                         const apiCodeStr = res.data
                         this.apiCodeUpdate(apiCodeStr)
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.apiCodeLoading = false
                 }
@@ -298,7 +293,7 @@
     .config-panel {
         position: relative;
         padding: 20px;
-        height: 100%;
+        height: calc(100% - 52px);
         overflow-y: auto;
         @include scrollbar;
 

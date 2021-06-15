@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -50,6 +50,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         PWE.EmptyStartEvent: event_shift_y,
         PWE.EmptyEndEvent: event_shift_y,
         PWE.ExclusiveGateway: gateway_shift_y,
+        PWE.ConditionalParallelGateway: gateway_shift_y,
         PWE.ParallelGateway: gateway_shift_y,
         PWE.ConvergeGateway: gateway_shift_y,
     }
@@ -61,6 +62,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         PWE.EmptyStartEvent: event_size[0] * 2,
         PWE.EmptyEndEvent: event_size[0] * 2,
         PWE.ExclusiveGateway: gateway_size[0] * 6,
+        PWE.ConditionalParallelGateway: gateway_size[0] * 6,
         PWE.ParallelGateway: gateway_size[0] * 2,
         PWE.ConvergeGateway: gateway_size[0] * 2,
     }

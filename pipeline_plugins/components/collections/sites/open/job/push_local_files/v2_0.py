@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,11 +20,9 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    batch_execute_func,
-    get_job_instance_url,
-)
+from pipeline_plugins.components.utils.common import batch_execute_func
+from pipeline_plugins.components.utils import get_job_instance_url, get_biz_ip_from_frontend
+
 from files.factory import ManagerFactory
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -129,7 +127,7 @@ class JobPushLocalFilesService(JobScheduleService):
         local_files_and_target_path = data.inputs.job_local_files_info["job_push_multi_local_files_table"]
         target_ip_list = data.inputs.job_target_ip_list
         target_account = data.inputs.job_target_account
-
+        across_biz = data.get_one_of_inputs("job_across_biz", False)
         task_count = len(local_files_and_target_path)
 
         file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
@@ -147,8 +145,13 @@ class JobPushLocalFilesService(JobScheduleService):
 
         client = get_client_by_user(executor)
 
-        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+        # filter 跨业务 IP
+        clean_result, ip_list = get_biz_ip_from_frontend(
+            target_ip_list, executor, biz_cc_id, data, self.logger, across_biz
+        )
+        if not clean_result:
+            return False
+
         params_list = [
             {
                 "esb_client": client,

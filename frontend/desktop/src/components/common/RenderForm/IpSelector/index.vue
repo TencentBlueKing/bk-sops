@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div id="ip-selector">
+    <div id="ip-selector" ref="ipSelect">
         <div class="select-area">
             <multiple-ip-selector
                 v-if="isMultiple"
@@ -30,6 +30,7 @@
                 v-else
                 ref="singleIpSelector"
                 :editable="editable"
+                :allow-unfold-input="allowUnfoldInput"
                 :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
@@ -60,6 +61,7 @@
                     @change="updateValue('with_cloud_id', $event)">
                 </bk-switcher>
             </div>
+            <separator-select :editable="editable" :value="separator" @change="updateSeparator"></separator-select>
         </div>
     </div>
 </template>
@@ -68,6 +70,7 @@
     import SingleIpSelector from './SingleIpSelector.vue'
     import MultipleIpSelector from './MultipleIpSelector.vue'
     import SelectCondition from './SelectCondition.vue'
+    import SeparatorSelect from '../SeparatorSelect.vue'
 
     const i18n = {
         staticIp: gettext('静态 IP'),
@@ -87,6 +90,7 @@
     export default {
         name: 'IpSelector',
         components: {
+            SeparatorSelect,
             SingleIpSelector,
             MultipleIpSelector,
             SelectCondition
@@ -106,7 +110,8 @@
                         group: [],
                         filters: [],
                         excludes: [],
-                        with_cloud_id: false
+                        with_cloud_id: false,
+                        separator: ','
                     }
                 }
             },
@@ -174,7 +179,7 @@
             }
         },
         data () {
-            const { selectors, ip, topo, group, filters, excludes, with_cloud_id } = this.value
+            const { selectors, ip, topo, group, filters, excludes, with_cloud_id, separator } = this.value
             const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
@@ -183,7 +188,9 @@
                 group: (group || []).slice(0), // 后增加字段，兼容旧数据
                 with_cloud_id,
                 conditions,
-                i18n
+                separator,
+                i18n,
+                allowUnfoldInput: false
             }
         },
         computed: {
@@ -210,6 +217,11 @@
                 },
                 deep: true
             }
+        },
+        mounted () {
+            // ip选择器搜索框是否扩宽
+            this.allowUnfoldInput = this.$refs.ipSelect.offsetWidth <= 641
+            // 641为新建全局变量默认宽 不包含padding border
         },
         methods: {
             getConditions (filters, excludes) {
@@ -256,6 +268,10 @@
                 }
 
                 this.$emit('change', this.value)
+            },
+            updateSeparator (val) {
+                this.separator = val
+                this.updateValue('separator', val)
             },
             validate () {
                 const selector = this.isMultiple ? this.$refs.multipleIpSelector : this.$refs.singleIpSelector

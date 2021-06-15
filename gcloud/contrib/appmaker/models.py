@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@ from django.db import models
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils import managermixins
+from gcloud.utils import managermixins
 
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
@@ -31,12 +31,12 @@ from gcloud.core.api_adapter import (
     modify_app_logo,
     get_app_logo_url,
 )
-from gcloud.core.constant import AE
+from gcloud.constants import AE, TASK_CATEGORY
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.dates import time_now_str
 from gcloud.core.utils import convert_readable_username
-from gcloud.utils.strings import name_handler
+from gcloud.utils.strings import standardize_name
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
@@ -61,8 +61,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         if app_id == "0" or not app_id:
             app_id = None
         template_id = app_params["template_id"]
-        app_params["name"] = name_handler(app_params["name"], 20)
-        app_params["desc"] = name_handler(app_params.get("desc", ""), 30)
+        app_params["name"] = standardize_name(app_params["name"], 20)
+        app_params["desc"] = standardize_name(app_params.get("desc", ""), 30)
         proj = Project.objects.get(id=project_id)
         try:
             task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
@@ -244,7 +244,8 @@ class AppMaker(models.Model):
     create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
     editor = models.CharField(_("编辑人"), max_length=100, null=True)
     edit_time = models.DateTimeField(_("编辑时间"), auto_now=True, null=True)
-    task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"))
+    task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"), on_delete=models.CASCADE)
+    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255)
     template_scheme_id = models.CharField(_("执行方案"), max_length=100, blank=True)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
 
@@ -261,10 +262,6 @@ class AppMaker(models.Model):
     @property
     def task_template_name(self):
         return self.task_template.name
-
-    @property
-    def category(self):
-        return self.task_template.category
 
     def __unicode__(self):
         return "%s_%s" % (self.project, self.name)

@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -43,7 +43,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("目标IP"),
-                placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 hookable: true,
                 validation: [
                     {
@@ -79,6 +79,24 @@
                     }
                 ]
             },
-        }
+        },
+        {
+            tag_code: "job_across_biz",
+            type: "radio",
+            attrs: {
+                name: gettext("是否允许跨业务"),
+                hookable: true,
+                items: [
+                    { value: true, name: gettext("是") },
+                    { value: false, name: gettext("否") },
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
     ]
 })();

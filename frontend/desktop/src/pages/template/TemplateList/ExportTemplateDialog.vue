@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@
         :auto-close="false"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
+        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1, zIndex: 100 }">
             <div class="template-wrapper">
                 <div class="search-wrapper">
                     <div class="business-selector">
@@ -49,7 +49,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
+                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
                         <template v-for="group in templateInPanel">
                             <li
@@ -104,7 +104,6 @@
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import BaseCard from '@/components/common/base/BaseCard.vue'
@@ -205,7 +204,7 @@
                     this.templateList = this.getGroupedList(list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.exportPending = false
                     this.isCheckedDisabled = false

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,7 +21,8 @@ from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.utils import chunk_table_data
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -75,13 +76,14 @@ class CCBatchUpdateSetService(Service):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
-        cc_set_update_data = data.get_one_of_inputs("cc_set_update_data")
+        cc_set_update_data_list = data.get_one_of_inputs("cc_set_update_data")
         cc_set_template_break_line = data.get_one_of_inputs("cc_set_template_break_line") or ","
-
+        cc_set_update_data = convert_num_to_str(cc_set_update_data_list)
         attr_list = []
         # 如果用户选择了单行扩展
-        if cc_set_select_method == "template":
+        if cc_set_select_method == "auto":
             for cc_set_item in cc_set_update_data:
                 chunk_result = chunk_table_data(cc_set_item, cc_set_template_break_line)
                 if not chunk_result["result"]:
@@ -95,9 +97,47 @@ class CCBatchUpdateSetService(Service):
         success_update = []
         failed_update = []
 
+        search_attr_kwargs = {"bk_obj_id": "set", "bk_supplier_account": supplier_account}
+        attr_result = client.cc.search_object_attribute(search_attr_kwargs)
+        if not attr_result["result"]:
+            message = handle_api_error("cc", "cc.search_object_attribute", search_attr_kwargs, attr_result)
+            logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
+
+        attr_type_mapping = {}
+        for item in attr_result["data"]:
+            attr_type_transformer = None
+            if item["bk_property_type"] == "bool":
+                attr_type_transformer = bool
+            elif item["bk_property_type"] == "int":
+                attr_type_transformer = int
+            if attr_type_transformer:
+                attr_type_mapping[item["bk_property_id"]] = attr_type_transformer
+
         for update_item in attr_list:
             # 过滤,去除用户没有填的字段
             update_params = {key: value for key, value in update_item.items() if value}
+            # 对字段类型进行转换
+            transform_success = True
+            for attr, value in update_params.items():
+                if attr in attr_type_mapping:
+                    try:
+                        update_params[attr] = attr_type_mapping[attr](value)
+                    except Exception as e:
+                        transform_success = False
+                        message = "item: {}, 转换属性{}为{}类型时出错: {}".format(update_item, attr, attr_type_mapping[attr], e)
+                        logger.error(message)
+                        failed_update.append(message)
+                        break
+            if not transform_success:
+                continue
+
+            if "bk_set_name" not in update_params:
+                message = "item: {}, 目前Set名称未填写".format(update_item)
+                logger.error(message)
+                failed_update.append(message)
+                continue
             bk_set_name = update_params["bk_set_name"]
             if "bk_new_set_name" in update_params:
                 update_params["bk_set_name"] = update_params["bk_new_set_name"]
@@ -105,8 +145,9 @@ class CCBatchUpdateSetService(Service):
 
             # 检查set name是否存在
             if not bk_set_name:
-                failed_update.append(update_item)
-                self.logger.info("set 属性更新失败, set name有空值, data={}".format(update_item))
+                message = "set 属性更新失败, set name有空值, item={}".format(update_item)
+                failed_update.append(message)
+                self.logger.info(message)
                 continue
             # 根据set name查询set  id
             kwargs = {
@@ -128,18 +169,21 @@ class CCBatchUpdateSetService(Service):
             }
             update_result = client.cc.update_set(kwargs)
             if update_result["result"]:
-                self.logger.info("set 属性更新成功, data={}".format(kwargs))
+                self.logger.info("set 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                self.logger.info("set 属性更新失败, data={}".format(kwargs))
-                failed_update.append(update_item)
+                message = "set 属性更新失败, item={}, data={}, message: {}".format(
+                    update_item, kwargs, update_result["message"]
+                )
+                self.logger.info(message)
+                failed_update.append(message)
 
         data.set_outputs("set_update_success", success_update)
         data.set_outputs("set_update_failed", failed_update)
         # 如果没有更新失败的行
         if not failed_update:
             return True
-
+        data.set_outputs("ex_data", failed_update)
         return False
 
 
@@ -155,3 +199,8 @@ class CCBatchUpdateSetComponent(Component):
         static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
     )
     version = VERSION
+    desc = _(
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

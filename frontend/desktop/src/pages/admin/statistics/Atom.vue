@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -35,7 +35,7 @@
                                 v-for="option in atomListData"
                                 :key="option.id"
                                 :name="option.name"
-                                :id="option.id">
+                                :id="option.id + '&' + option.version">
                             </bk-option>
                         </bk-select>
                     </bk-form-item>
@@ -77,7 +77,7 @@
                 <bk-tab-panel v-for="tab in tabs" :key="tab.id" v-bind="{ name: tab.id, label: tab.name }">
                     <bk-table
                         class="tab-data-table"
-                        v-bkloading="{ isLoading: tableDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: tableDataLoading, opacity: 1, zIndex: 100 }"
                         :data="tableData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
@@ -123,7 +123,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -329,11 +328,9 @@
                             this.pagination.count = res.data.total
                         }
                         return res.data.groups
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e)
+                    console.log(e)
                 }
             },
             async getAtomList () {
@@ -343,11 +340,12 @@
                     this.atomListData = res.map(item => {
                         return {
                             id: item.code,
-                            name: `${item.group_name}-${item.name}`
+                            name: `${item.group_name}-${item.name}-${item.version}`,
+                            version: item.version
                         }
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomListLoading = false
                 }
@@ -365,7 +363,7 @@
                     }
                     this.rankData = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.rankDataLoading = false
                 }
@@ -373,12 +371,15 @@
             async getTableData () {
                 try {
                     this.tableDataLoading = true
+                    const componentCode = this.tableAtom.split('&')
+                    const selectedAtom = this.atomListData.find(item => item.id === componentCode[0] && item.version === componentCode[1])
                     const query = {
                         group_by: this.activeTab,
                         conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
-                            component_code: this.tableAtom,
+                            component_code: componentCode[0],
+                            version: selectedAtom ? selectedAtom.version : undefined,
                             project_id: this.tableProject,
                             category: this.tableCategory,
                             order_by: this.tableSort
@@ -391,7 +392,7 @@
                     }
                     this.tableData = await this.loadAnalysisData(query, 'table')
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.tableDataLoading = false
                 }

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,14 +17,25 @@ import logging
 from cryptography.fernet import Fernet
 
 import env
+from django.utils.translation import ugettext_lazy as _
+
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
 from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
+from gcloud.core.models import EngineConfig
 
-__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url", "plat_ip_reg"]
+__all__ = [
+    "cc_get_ips_info_by_str",
+    "get_job_instance_url",
+    "get_node_callback_url",
+    "plat_ip_reg",
+    "get_nodeman_job_url",
+    "get_difference_ip_list",
+    "get_biz_ip_from_frontend",
+]
 
 JOB_APP_CODE = "bk_job"
 
@@ -42,7 +53,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
     @param username
     @param biz_cc_id
     @param ip_str
-    @param use_cache
+    @param use_cache(deprecated)
     @note: 需要兼容的ip_str格式有
         1： IP，纯IP格式
         2： 集群名称|模块名称|IP，集群名称|模块名称|IP  这种格式可以唯一定位到一
@@ -58,11 +69,15 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
     supplier_account = supplier_account_for_business(biz_cc_id)
 
     ip_list = cmdb.get_business_host_topo(
-        username, biz_cc_id, supplier_account, ["bk_host_innerip", "bk_host_id", "bk_cloud_id"]
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+        ip_list=ip_input_list,
     )
     ip_result = []
 
-    # 如果是格式2，可以返回IP的集群、模块、平台信息
+    # 如果是格式2 集群名称|模块名称|IP
     if set_module_ip_reg.match(ip_str):
         set_module_ip_list = []
         for match in set_module_ip_reg.finditer(ip_str):
@@ -100,7 +115,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                             }
                         )
 
-    # 如果是格式3，返回IP的平台信息
+    # 格式3 云区域ID:IP
     elif plat_ip_reg.match(ip_str):
         plat_ip = []
         for match in plat_ip_reg.finditer(ip_str):
@@ -121,15 +136,15 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                     }
                 )
 
-    # 格式1
+    # 格式1 纯IP格式
     else:
         ip = []
         for match in ip_pattern.finditer(ip_str):
             ip.append(match.group())
 
-        host_id_list = []
+        proccessed = set()
         for ip_info in ip_list:
-            if ip_info["host"].get("bk_host_innerip", "") in ip and ip_info["host"]["bk_host_id"] not in host_id_list:
+            if ip_info["host"].get("bk_host_innerip", "") in ip and ip_info["host"]["bk_host_id"] not in proccessed:
                 ip_result.append(
                     {
                         "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
@@ -139,7 +154,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                         "Modules": ip_info["module"],
                     }
                 )
-                host_id_list.append(ip_info["host"]["bk_host_id"])
+                proccessed.add(ip_info["host"]["bk_host_id"])
 
     valid_ip = [ip_info["InnerIP"] for ip_info in ip_result]
     invalid_ip = list(set(ip_input_list) - set(valid_ip))
@@ -157,11 +172,12 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
     return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
 
-def get_node_callback_url(node_id):
+def get_node_callback_url(node_id, node_version=""):
+    engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2
     f = Fernet(settings.CALLBACK_KEY)
-    return "%staskflow/api/nodes/callback/%s/" % (
+    return "%staskflow/api/v4/nodes/callback/%s/" % (
         env.BKAPP_INNER_CALLBACK_HOST,
-        f.encrypt(bytes(node_id, encoding="utf8")).decode(),
+        f.encrypt(bytes("{}:{}:{}".format(engine_ver, node_id, node_version), encoding="utf8")).decode(),
     )
 
 
@@ -181,6 +197,10 @@ def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_l
     return module_id_list
 
 
+def get_nodeman_job_url(instance_id, bk_host_id):
+    return "{}/#/task-history/{}/log/host|instance|host|{}".format(settings.BK_NODEMAN_HOST, instance_id, bk_host_id)
+
+
 def get_difference_ip_list(original_ip_list, ip_list):
     """
     @summary IP存在性校验
@@ -188,6 +208,38 @@ def get_difference_ip_list(original_ip_list, ip_list):
     @param ip_list: 查询到的IP列表
     @return:
     """
-    input_ip_list = set(get_ip_by_regex(original_ip_list))
-    difference_ip_list = set(input_ip_list).difference(set(ip_list))
+    difference_ip_list = set(original_ip_list).difference(set(ip_list))
     return difference_ip_list
+
+
+def get_biz_ip_from_frontend(
+    ip_str, executor, biz_cc_id, data, logger_handle, is_across=False, ip_is_exist=False, ignore_ex_data=False
+):
+    """
+    从前端表单中获取有效IP
+    """
+    # 跨业务，不校验IP归属
+    if is_across:
+        plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
+        ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+        err_msg = _("允许跨业务时IP格式需满足：【云区域ID:IP】。失败 IP： {}")
+    else:
+        var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
+        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
+        err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
+
+    # 校验Ip是否存在, 格式是否符合要求
+    input_ip_set = get_ip_by_regex(ip_str)
+    logger_handle.info("The valid IP list is:{}, User input IP list is:{}".format(ip_list, input_ip_set))
+    difference_ip_list = list(get_difference_ip_list(input_ip_set, [ip_item["ip"] for ip_item in ip_list]))
+
+    if len(ip_list) != len(set(input_ip_set)):
+        difference_ip_list.sort()
+        if not ignore_ex_data:
+            data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
+        return False, ip_list
+    if not ip_list:
+        if not ignore_ex_data:
+            data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
+        return False, ip_list
+    return True, ip_list

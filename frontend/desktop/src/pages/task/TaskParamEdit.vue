@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -64,6 +64,7 @@
                 renderConfig: [],
                 metaConfig: {},
                 renderData: {},
+                initalRenderData: {},
                 isConfigLoading: true,
                 isNoData: false
             }
@@ -161,7 +162,7 @@
                         }
 
                         if (
-                            variable.custom_type === 'input'
+                            ['input', 'textarea'].includes(variable.custom_type)
                             && variable.validation !== ''
                         ) {
                             currentFormConfig.attrs.validation.push({
@@ -174,6 +175,7 @@
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
                 }
+                this.initalRenderData = this.renderData
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)
@@ -182,7 +184,20 @@
             validate () {
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
+            judgeDataEqual () {
+                const formvalid = this.validate()
+                if (formvalid) {
+                    return tools.isDataEqual(this.initalRenderData, this.renderData)
+                } else {
+                    return false
+                }
+            },
             async getVariableData () {
+                // renderform表单校验
+                const formValid = this.validate()
+                if (!formValid) {
+                    return
+                }
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]

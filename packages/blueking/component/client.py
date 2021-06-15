@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,8 +18,8 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-import ujson as json
 import requests
+import ujson as json
 
 from . import conf
 from . import collections
@@ -32,7 +32,7 @@ except Exception:
     pass
 
 
-logger = logging.getLogger('component')
+logger = logging.getLogger("component")
 
 
 class BaseComponentClient(object):
@@ -42,8 +42,16 @@ class BaseComponentClient(object):
     def setup_components(cls, components):
         cls.available_collections = components
 
-    def __init__(self, app_code=None, app_secret=None, common_args=None, use_test_env=False, language=None,
-                 bk_app_code=None, bk_app_secret=None):
+    def __init__(
+        self,
+        app_code=None,
+        app_secret=None,
+        common_args=None,
+        use_test_env=False,
+        language=None,
+        bk_app_code=None,
+        bk_app_secret=None,
+    ):
         """
         :param str app_code: App code to use
         :param str app_secret: App secret to use
@@ -71,6 +79,7 @@ class BaseComponentClient(object):
     def get_cur_language(self):
         try:
             from django.utils import translation
+
             return translation.get_language()
         except Exception:
             return None
@@ -82,35 +91,32 @@ class BaseComponentClient(object):
         return self.bk_api_ver
 
     def merge_params_data_with_common_args(self, method, params, data, enable_app_secret=False):
-        """get common args when request
-        """
+        """get common args when request"""
         common_args = dict(bk_app_code=self.app_code, **self.common_args)
         if enable_app_secret:
-            common_args['bk_app_secret'] = self.app_secret
-        if method == 'GET':
+            common_args["bk_app_secret"] = self.app_secret
+        if method == "GET":
             _params = common_args.copy()
             _params.update(params or {})
             params = _params
-        elif method == 'POST':
+        elif method == "POST":
             _data = common_args.copy()
             _data.update(data or {})
             data = json.dumps(_data)
         return params, data
 
     def request(self, method, url, params=None, data=None, **kwargs):
-        """Send request
-        """
+        """Send request"""
         # determine whether access test environment of third-party system
-        headers = kwargs.pop('headers', {})
+        headers = kwargs.pop("headers", {})
         if self.use_test_env:
-            headers['x-use-test-env'] = '1'
+            headers["x-use-test-env"] = "1"
         if self.language:
-            headers['blueking-language'] = self.language
+            headers["blueking-language"] = self.language
 
         params, data = self.merge_params_data_with_common_args(method, params, data, enable_app_secret=True)
-        logger.debug('Calling %s %s with params=%s, data=%s, headers=%s', method, url, params, data, headers)
-        return requests.request(method, url, params=params, data=data, verify=False,
-                                headers=headers, **kwargs)
+        logger.debug("Calling %s %s with params=%s, data=%s, headers=%s", method, url, params, data, headers)
+        return requests.request(method, url, params=params, data=data, verify=False, headers=headers, **kwargs)
 
     def __getattr__(self, key):
         if key not in self.available_collections:
@@ -126,30 +132,25 @@ class ComponentClientWithSignature(BaseComponentClient):
     """Client class for component with signature"""
 
     def request(self, method, url, params=None, data=None, **kwargs):
-        """Send request, will add "signature" parameter.
-        """
+        """Send request, will add "signature" parameter."""
         # determine whether access test environment of third-party system
-        headers = kwargs.pop('headers', {})
+        headers = kwargs.pop("headers", {})
         if self.use_test_env:
-            headers['x-use-test-env'] = '1'
+            headers["x-use-test-env"] = "1"
         if self.language:
-            headers['blueking-language'] = self.language
+            headers["blueking-language"] = self.language
 
         params, data = self.merge_params_data_with_common_args(method, params, data, enable_app_secret=False)
-        if method == 'POST':
+        if method == "POST":
             params = {}
 
         url_path = urllib.parse.urlparse(url).path
         # signature always in GET params
-        params.update({
-            'bk_timestamp': int(time.time()),
-            'bk_nonce': random.randint(1, 2147483647),
-        })
-        params['bk_signature'] = get_signature(method, url_path, self.app_secret, params=params, data=data)
+        params.update({"bk_timestamp": int(time.time()), "bk_nonce": random.randint(1, 2147483647)})
+        params["bk_signature"] = get_signature(method, url_path, self.app_secret, params=params, data=data)
 
-        logger.debug('Calling %s %s with params=%s, data=%s', method, url, params, data)
-        return requests.request(method, url, params=params, data=data, verify=False,
-                                headers=headers, **kwargs)
+        logger.debug("Calling %s %s with params=%s, data=%s", method, url, params, data)
+        return requests.request(method, url, params=params, data=data, verify=False, headers=headers, **kwargs)
 
 
 # 根据是否开启signature来判断使用的Client版本

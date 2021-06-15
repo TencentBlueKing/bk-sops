@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-(function () {
+ (function () {
     $.atoms.nodeman_plugin_operate = [
         {
             tag_code: "biz_cc_id",
@@ -104,8 +104,25 @@
                             },
                             validation: [
                                 {
-                                    type: "required",
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('nodeman_host_input_type')) {
+                                            if (self.get_parent().get_child('nodeman_host_input_type').value === "host_ip" && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("请选云区域");
+                                            }
+                                        }
+                                        return result
+                                    }
                                 }
+
                             ],
 
                         },
@@ -139,7 +156,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("主机IP"),
-                            placeholder: gettext("多个用英文逗号 `,` 分隔"),
+                            placeholder: gettext("多个用英文逗号 `,` 或换行分隔"),
                             hookable: true,
                             validation: []
                         },
@@ -325,6 +342,7 @@
                                         this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_version/' + value + '/' + os + '/';
                                         this.remoteMethod()
                                     }
+
                                 }
                             },
                             {

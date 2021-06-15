@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <div
         class="modify-params-container"
-        v-bkloading="{ isLoading: loading, opacity: 1 }"
+        v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
@@ -53,7 +53,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
@@ -112,10 +111,16 @@
                     })
                     this.constants = constants
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.cntLoading = false
                 }
+            },
+            judgeDataEqual () {
+                if (!this.paramsCanBeModify) {
+                    return true
+                }
+                return this.$refs.TaskParamEdit.judgeDataEqual()
             },
             async onModifyParams () {
                 if (!this.hasSavePermission) {
@@ -141,7 +146,7 @@
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
-                    if (!formValid) return
+                    if (!formValid) return false
                     const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         formData[key] = variables[key].value
@@ -160,11 +165,9 @@
                             theme: 'success'
                         })
                         this.$emit('packUp')
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending = false
                 }

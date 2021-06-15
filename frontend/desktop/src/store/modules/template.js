@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -24,7 +24,8 @@ const ATOM_TYPE_DICT = {
     subflow: 'SubProcess',
     parallelgateway: 'ParallelGateway',
     branchgateway: 'ExclusiveGateway',
-    convergegateway: 'ConvergeGateway'
+    convergegateway: 'ConvergeGateway',
+    conditionalparallelgateway: 'ConditionalParallelGateway'
 }
 // 默认流程模板，默认节点
 const generateInitLocation = () => {
@@ -206,7 +207,8 @@ const template = {
             state.category = data
         },
         setTplConfig (state, data) {
-            const { category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            const { name, category, notify_type, receiver_group, description, executor_proxy, template_labels } = data
+            state.name = name
             state.category = category
             state.notify_type = notify_type
             state.notify_receivers.receiver_group = receiver_group
@@ -322,7 +324,7 @@ const template = {
             state.start_event = start_event
             state.template_id = ''
             state.constants = {}
-            state.category = ''
+            state.category = 'Default'
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
@@ -345,7 +347,7 @@ const template = {
             state.start_event = {}
             state.template_id = ''
             state.constants = {}
-            state.category = ''
+            state.category = 'Default'
             state.notify_type = []
             state.notify_receivers = {
                 receiver_group: [],
@@ -521,7 +523,7 @@ const template = {
                     if (Array.isArray(gatewayNode.outgoing)) {
                         const len = gatewayNode.outgoing.length
                         Vue.set(gatewayNode.outgoing, len, id)
-                        if (gatewayNode.type === ATOM_TYPE_DICT.branchgateway) {
+                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway'] || gatewayNode.type === ATOM_TYPE_DICT['conditionalparallelgateway']) {
                             const { conditions } = gatewayNode
                             let evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             let name = evaluate
@@ -582,7 +584,7 @@ const template = {
                     const gatewayNode = state.gateways[sourceNode]
                     if (Array.isArray(gatewayNode.outgoing)) {
                         gatewayNode.outgoing = gatewayNode.outgoing.filter(item => item !== deletedLine.id)
-                        if (gatewayNode.type === ATOM_TYPE_DICT.branchgateway) {
+                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway'] || gatewayNode.type === ATOM_TYPE_DICT['conditionalparallelgateway']) {
                             const { conditions } = gatewayNode
                             conditions[deletedLine.id] && Vue.delete(conditions, deletedLine.id)
                         }
@@ -709,7 +711,7 @@ const template = {
                         outgoing: location.type === 'convergegateway' ? '' : [],
                         type: ATOM_TYPE_DICT[location.type]
                     }
-                    if (location.type === 'branchgateway') {
+                    if (location.type === 'branchgateway' || location.type === 'conditionalparallelgateway') {
                         state.gateways[location.id].conditions = {}
                     }
                 }
@@ -898,11 +900,14 @@ const template = {
         },
         // 获取变量预览值
         getConstantsPreviewResult ({ commit }, data) {
-            return axios.post('/template/api/get_constant_preview_result/', data).then(response => response.data)
+            return axios.post('template/api/get_constant_preview_result/', data).then(response => response.data)
         },
         // 获取全局变量被引用数据
         getVariableCite ({ commit }, data) {
-            return axios.post('/template/api/analysis_constants_ref/', data).then(response => response.data)
+            return axios.post('template/api/analysis_constants_ref/', data).then(response => response.data)
+        },
+        checkKey ({ commit }, data) {
+            return axios.get('core/api/check_variable_key/', { params: data }).then(response => response.data)
         }
     },
     getters: {

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -30,7 +30,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
+    import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
@@ -53,7 +53,8 @@
                     showHook: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                initalRenderData: {}
             }
         },
         computed: {
@@ -89,11 +90,10 @@
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
-                    } else {
-                        errorHandler(nodeDetailRes, this)
+                        this.initalRenderData = this.renderData
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -106,16 +106,19 @@
                         await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 }
+            },
+            judgeDataEqual () {
+                return tools.isDataEqual(this.initalRenderData, this.renderData)
             },
             async onModifyTime () {
                 let formvalid = true
                 if (this.$refs.renderForm) {
                     formvalid = this.$refs.renderForm.validate()
                 }
-                if (!formvalid || this.modifyTimeLoading) return
+                if (!formvalid || this.modifyTimeLoading) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
                 const data = {
@@ -133,11 +136,9 @@
                             message: i18n.t('修改成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.modifyTimeLoading = false
                 }

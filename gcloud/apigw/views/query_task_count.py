@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -49,24 +48,22 @@ def query_task_count(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
     project = request.project
     conditions = params.get("conditions", {})
     group_by = params.get("group_by")
     if not isinstance(conditions, dict):
         message = "[API] query_task_list params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
     if group_by not in ["category", "create_method", "flow_type", "status"]:
         message = "[API] query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     filters = {"project_id": project.id, "is_deleted": False}
     filters.update(conditions)
     success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
-        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOWN_ERROR.code})
-    return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS.code})
+        return {"result": False, "message": content, "code": err_code.UNKNOWN_ERROR.code}
+    return {"result": True, "data": content, "code": err_code.SUCCESS.code}

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -25,8 +25,9 @@
         <TabTemplateConfig
             v-if="activeTab === 'templateConfigTab'"
             :common="common"
-            :is-template-config-valid="isTemplateConfigValid"
             :project-info-loading="projectInfoLoading"
+            :template-label-loading="templateLabelLoading"
+            :template-labels="templateLabels"
             @templateDataChanged="$emit('templateDataChanged')"
             @closeTab="closeTab">
         </TabTemplateConfig>
@@ -63,7 +64,8 @@
         },
         props: {
             projectInfoLoading: Boolean,
-            isTemplateConfigValid: Boolean,
+            templateLabelLoading: Boolean,
+            templateLabels: Array,
             activeTab: String,
             snapshoots: Array,
             common: [String, Number]

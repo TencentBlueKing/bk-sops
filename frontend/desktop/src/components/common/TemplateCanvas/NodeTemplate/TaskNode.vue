@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -65,7 +65,7 @@
             </i>
         </div>
         <!-- tooltip提示 -->
-        <div class="state-icon">
+        <div class="state-icon" v-if="node.mode === 'execute'">
             <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
                 <span
                     class="common-icon-retry"
@@ -146,13 +146,13 @@
                 return false
             },
             isShowSkipBtn () {
-                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.skippable === undefined)) { // 兼容旧模板跳过字段缺失的情况
+                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.errorIgnorable)) {
                     return true
                 }
                 return false
             },
             isShowRetryBtn () {
-                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.retryable === undefined)) { // 兼容旧模板重试字段缺失的情况
+                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
                     return true
                 }
                 return false

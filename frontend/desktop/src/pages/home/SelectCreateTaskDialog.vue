@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@
         :header-position="'left'"
         :auto-close="false"
         @cancel="onCancel">
-        <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1 }">
+        <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1, zIndex: 100 }">
             <bk-form :model="formData" :rules="rules" ref="taskCreateForm">
                 <bk-form-item :label="$t('任务类型')" :required="true" :property="'taskType'">
                     <bk-select
@@ -78,7 +78,6 @@
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     export default {
         name: 'SelectCreateTaskDialog',
         components: {
@@ -163,7 +162,7 @@
                 }
                 const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
                 this.$router.push({
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { project_id: this.formData.selectedProject, step: 'selectnode' },
                     query: { template_id: templateId, common: '1', entrance }
                 })
@@ -209,8 +208,8 @@
                         } else {
                             this.hasUseCommonTplPerm = false
                         }
-                    } catch (error) {
-                        errorHandler(error, this)
+                    } catch (e) {
+                        console.log(e)
                     } finally {
                         this.permissionLoading = false
                     }

@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-(function () {
+ (function () {
     $.atoms.cc_transfer_host_module = [
         {
             tag_code: "biz_cc_id",
@@ -75,6 +75,7 @@
             attrs: {
                 name: gettext("模块"),
                 hookable: true,
+                default_expand_all: false,
                 remote: true,
                 remote_url: function () {
                     const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
@@ -207,7 +208,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),
-                placeholder: gettext("请输入主机内网IP，多个用换行分隔"),
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 hookable: true,
                 validation: [
                     {

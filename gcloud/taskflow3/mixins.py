@@ -14,21 +14,69 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
-from django.db.models import Count, Avg
+from django.db import connection
+from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
-from blueapps.utils.managermixins import ClassificationCountMixin
+from gcloud.utils.managermixins import ClassificationCountMixin
 from pipeline.component_framework.models import ComponentModel
-from pipeline.contrib.statistics.models import ComponentExecuteData, InstanceInPipeline
-from pipeline.engine.utils import calculate_elapsed_time
-from gcloud.core.constant import TASK_CATEGORY, AE
-from gcloud.utils.dates import timestamp_to_datetime, format_datetime, gen_day_dates, get_month_dates
+from pipeline.contrib.statistics.models import ComponentExecuteData
+from gcloud.core.models import Project
+from gcloud.constants import TASK_CATEGORY
+from gcloud.utils.dates import timestamp_to_datetime, format_datetime
 from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
 
 class TaskFlowStatisticsMixin(ClassificationCountMixin):
+
+    GB_INSTANCE_NODE_ORDER_PARAMS = {
+        "-instanceId": ("T.id", "DESC"),
+        "-atomTotal": ("I.atom_total", "DESC"),
+        "-subprocessTotal": ("I.subprocess_total", "DESC"),
+        "-gatewaysTotal": ("I.gateways_total", "DESC"),
+        "-elapsedTime": ("elapsed_time", "DESC"),
+        "instanceId": ("T.id", "ASC"),
+        "atomTotal": ("I.atom_total", "ASC"),
+        "subprocessTotal": ("I.subprocess_total", "ASC"),
+        "gatewaysTotal": ("I.gateways_total", "ASC"),
+        "elapsedTime": ("elapsed_time", "ASC"),
+    }
+
+    GB_INSTANCE_TIME_GROUP_PARAMS = {"day": "DATE(create_time)", "month": "YEAR(create_time), MONTH(create_time)"}
+
+    TASK_CATEGORY_DICT = dict(TASK_CATEGORY)
+
+    def _assemble_where_statement(self, filters):
+        category = filters.get("category")
+        project_id = filters.get("project_id")
+
+        conditions = []
+        if category:
+            conditions.append(
+                '`category` = "%s"' % (category if category in self.TASK_CATEGORY_DICT else TASK_CATEGORY[-1][0])
+            )
+
+        if project_id:
+            conditions.append("`project_id` = %s" % int(project_id))
+
+        if conditions:
+            return " WHERE %s" % (" AND ".join(conditions))
+        else:
+            return ""
+
+    def _filter_project(self, project_id=""):
+        return (
+            "INNER JOIN (SELECT `pipeline_instance_id` FROM `taskflow3_taskflowinstance` \
+                  WHERE `project_id`={}) T \
+                  ON (P.id = T.pipeline_instance_id)".format(
+                project_id
+            )
+            if project_id
+            else ""
+        )
+
     def group_by_state(self, taskflow, *args):
         # 按流程执行状态查询流程个数
         total = taskflow.count()
@@ -51,17 +99,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "value": taskflow.filter(pipeline_instance__is_finished=True).count(),
             },
         ]
-        return total, groups
-
-    def group_by_project_id(self, taskflow, *args):
-        # 查询不同业务对应的流程数
-        total = taskflow.count()
-        taskflow_list = taskflow.values(AE.project_id, AE.project__name).annotate(value=Count("project_id")).order_by()
-        groups = []
-        for data in taskflow_list:
-            groups.append(
-                {"code": data.get(AE.project_id), "name": data.get(AE.project__name), "value": data.get("value", 0)}
-            )
         return total, groups
 
     def group_by_appmaker_instance(self, taskflow, filters, page, limit):
@@ -137,137 +174,70 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_atom_execute_times(self, taskflow, *args):
         # 查询各标准插件被执行次数
-        # 获得标准插件dict列表
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
-        # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
-        component_data = (
-            component.values("component_code")
-            .annotate(execute_times=Count("component_code"))
-            .order_by("component_code")
+        statement = 'SELECT COUNT(*),`component_code`, `version`\
+        FROM `statistics_componentexecutedata` S\
+        INNER JOIN (SELECT `instance_id`, `id` FROM `pipeline_pipelineinstance`\
+        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}") P\
+        ON (`S`.`instance_id` = `P`.`instance_id`){filter_project}\
+        GROUP BY `S`.`component_code`,`S`.`version`'.format(
+            create_time=args[0]["create_time_datetime"],
+            finish_time=args[0]["finish_time_datetime"],
+            filter_project=self._filter_project(args[0]["project_id"]),
         )
-        total = component_list.count()
-        execute_data = {}
-        for component in component_data:
-            value = component["execute_times"]
-            execute_data[component["component_code"]] = value
-
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-
-            processed_components.add(code)
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": execute_data.get(code, 0)})
-        return total, groups
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+            return ComponentModel.objects.get_component_dicts(cursor.fetchall())
 
     def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件失败次数
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
-        # 获得标准插件
-        component_data = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
-        component_failed_data = (
-            component_data.filter(status=False)
-            .values("component_code")
-            .annotate(failed_times=Count("component_code"))
-            .order_by("component_code")
+        statement = 'SELECT COUNT(*),`component_code`, `version`\
+        FROM `statistics_componentexecutedata` S\
+        INNER JOIN (SELECT `instance_id`, `id` FROM `pipeline_pipelineinstance`\
+        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}") P\
+        ON (`S`.`instance_id` = `P`.`instance_id` AND `S`.`status` = FALSE ){filter_project}\
+        GROUP BY `S`.`component_code`,`S`.`version`'.format(
+            create_time=args[0]["create_time_datetime"],
+            finish_time=args[0]["finish_time_datetime"],
+            filter_project=self._filter_project(args[0]["project_id"]),
         )
-        failed_dict = {item["component_code"]: item["failed_times"] for item in component_failed_data}
-
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": failed_dict.get(code, 0)})
-        return component_list.count(), groups
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+            return ComponentModel.objects.get_component_dicts(cursor.fetchall())
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
-        # 查询各标准插件被执行次数
-        # 获得标准插件dict列表
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
-        # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
-        component_data = (
-            component.values("component_code").annotate(avg_execute_time=Avg("elapsed_time")).order_by("component_code")
+        # 查询各标准插件执行平均时间
+        statement = 'SELECT ROUND(AVG(`elapsed_time`),2),`component_code`, `version`\
+        FROM `statistics_componentexecutedata` S\
+        INNER JOIN (SELECT `instance_id`, `id` FROM `pipeline_pipelineinstance`\
+        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}") P\
+        ON (`S`.`instance_id` = `P`.`instance_id`){filter_project}\
+        GROUP BY `S`.`component_code`,`S`.`version`'.format(
+            create_time=args[0]["create_time_datetime"],
+            finish_time=args[0]["finish_time_datetime"],
+            filter_project=self._filter_project(args[0]["project_id"]),
         )
-        total = component_list.count()
-        execute_data = {}
-        for component in component_data:
-            value = component["avg_execute_time"]
-            execute_data[component["component_code"]] = value
-
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": execute_data.get(code, 0)})
-        return total, groups
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+            return ComponentModel.objects.get_component_dicts(cursor.fetchall())
 
     def group_by_atom_fail_percent(self, taskflow, *args):
-        # 查询各标准插件重试次数
-        component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
-        total = component_list.count()
-
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
-        # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
-        component_data = (
-            component.values("component_code")
-            .annotate(execute_times=Count("component_code"))
-            .order_by("component_code")
+        # 查询各标准插件执行失败率
+        statement = 'SELECT ROUND(sum(if(status=0,1,0))/count(*)*100,2) fail_percent, `component_code`, `version`\
+        FROM `statistics_componentexecutedata` S\
+        INNER JOIN (SELECT `instance_id`, `id` FROM `pipeline_pipelineinstance`\
+        WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}" AND `is_deleted` = FALSE) P\
+        ON (`S`.`instance_id` = `P`.`instance_id`){filter_project}\
+        GROUP BY `S`.`component_code`,`S`.`version` \
+        HAVING sum(if(status=0,1,0))/count(*)*100 >0\
+        ORDER BY fail_percent DESC'.format(
+            create_time=args[0]["create_time_datetime"],
+            finish_time=args[0]["finish_time_datetime"],
+            filter_project=self._filter_project(args[0]["project_id"]),
         )
-        component_failed_data = (
-            component_data.filter(status=False)
-            .values("component_code")
-            .annotate(failed_times=Count("component_code"))
-            .order_by("component_code")
-        )
-        failed_dict = {item["component_code"]: item["failed_times"] for item in component_failed_data}
-        fail_percent = {}
-        for component in component_data:
-            component_code = component["component_code"]
-            if component_code in failed_dict:
-                execute_times = component["execute_times"]
-                fail_percent[component_code] = "%.2f" % ((failed_dict[component_code] * 1.00 / execute_times) * 100)
 
-        groups = []
-        # todo 多版本插件先聚合到一起显示，暂不分开
-        processed_components = set()
-        for data in component_list:
-            code = data.get("code")
-
-            if code in processed_components:
-                continue
-            processed_components.add(code)
-
-            groups.append({"code": code, "name": component_dict.get(code, None), "value": fail_percent.get(code, 0)})
-        return total, groups
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+            return ComponentModel.objects.get_component_dicts(cursor.fetchall())
 
     def group_by_atom_instance(self, taskflow, filters, page, limit):
         # 被引用的任务实例列表
@@ -277,15 +247,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
         # 获得参数中的标准插件code
         component_code = filters.get("component_code")
+        version = filters.get("version")
         # 获取到组件code对应的instance_id_list
         instance_id_list = ComponentExecuteData.objects.filter(is_sub=False)
         # 对code进行二次查找
         if component_code:
-            instance_id_list = (
-                instance_id_list.filter(component_code=component_code).distinct().values_list("instance_id")
+            instance_id_list = instance_id_list.filter(component_code=component_code, version=version).values_list(
+                "instance_id"
             )
         else:
             instance_id_list = instance_id_list.values_list("instance_id")
+
         taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
         # 获得总数
         total = taskflow_list.count()
@@ -319,6 +291,42 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             )
         return total, groups
 
+    def group_by_category(self, taskflow, filters, page, limit):
+        """
+        根据分类对任务进行聚合
+
+        :param taskflow: 上层传入的初始筛选 queryset，此处不使用
+        :type taskflow: [type]
+        :param filters: 过滤参数
+        :type filters: [type]
+        :param page: 数据页
+        :type page: [type]
+        :param limit: 返回数据条数
+        :type limit: [type]
+        """
+
+        statement = 'SELECT COUNT(*), `category` \
+        FROM `taskflow3_taskflowinstance` T  INNER JOIN (\
+            SELECT `id`\
+            FROM `pipeline_pipelineinstance`\
+            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`){where}\
+        GROUP BY `T`.`category`;'.format(
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+
+            result = [
+                {"code": row[1], "name": self.TASK_CATEGORY_DICT.get(row[1], row[1]), "value": row[0]}
+                for row in cursor.fetchall()
+            ]
+
+        return 1, result
+
     def group_by_instance_node(self, taskflow, filters, page, limit):
         """
         @summary: 各任务实例执行的标准插件节点个数、子流程节点个数、网关节点数、执行耗时统计（支持排序）
@@ -328,92 +336,128 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @param limit:
         @return:
         """
-        total = taskflow.count()
-        # 查询所有任务的统计数据
-        instance_id_list = list(taskflow.values_list("pipeline_instance__instance_id", flat=True))
-        instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list).values()
-        instance_in_pipeline_dict = {}
-        for instance in instance_pipeline_data:
-            instance_in_pipeline_dict[instance["instance_id"]] = {
-                "atomTotal": instance["atom_total"],
-                "subprocessTotal": instance["subprocess_total"],
-                "gatewaysTotal": instance["gateways_total"],
-            }
+        order_by, order_method = self.GB_INSTANCE_NODE_ORDER_PARAMS.get(
+            filters.get("order_by", "-instanceId"), self.GB_INSTANCE_NODE_ORDER_PARAMS["-instanceId"]
+        )
 
-        # 返回数据字段到相关数据库模型字段的映射表
-        mapping = {
-            "instanceId": "id",
-            "instanceName": "pipeline_instance__name",
-            "pipelineInstanceId": "pipeline_instance__instance_id",
-            "projectId": "project__id",
-            "projectName": "project__name",
-            "categoryKey": "category",
-            "createTime": "pipeline_instance__create_time",
-            "creator": "pipeline_instance__creator",
-            "startTime": "pipeline_instance__start_time",
-            "finishTime": "pipeline_instance__finish_time",
-        }
-        tasks = taskflow.values(*list(mapping.values()))
-        groups = []
-        task_category = dict(TASK_CATEGORY)
-        for task in tasks:
-            item = {
-                "instanceId": task[mapping["instanceId"]],
-                "instanceName": task[mapping["instanceName"]],
-                "projectId": task[mapping["projectId"]],
-                "projectName": task[mapping["projectName"]],
-                "category": task_category[task[mapping["categoryKey"]]],
-                "createTime": format_datetime(task[mapping["createTime"]],),
-                "creator": task[mapping["creator"]],
-                "elapsedTime": calculate_elapsed_time(task[mapping["startTime"]], task[mapping["finishTime"]]),
-                "atomTotal": 0,
-                "subprocessTotal": 0,
-                "gatewaysTotal": 0,
-            }
-            if task[mapping["pipelineInstanceId"]] in instance_in_pipeline_dict:
-                item.update(instance_in_pipeline_dict[task[mapping["pipelineInstanceId"]]])
-            groups.append(item)
+        count_statement = 'SELECT COUNT(*)\
+        FROM `taskflow3_taskflowinstance` T INNER JOIN (\
+            SELECT `id`, `instance_id`, `name`, `create_time`, `finish_time`, `start_time`, `creator`\
+            FROM `pipeline_pipelineinstance`\
+            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
+        INNER JOIN `statistics_instanceinpipeline` I ON (`I`.`instance_id` = `P`.`instance_id`){where};'.format(
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
+        )
 
-        order_by = filters.get("order_by", "-instanceId")
-        if order_by.startswith("-"):
-            # 需要去除负号
-            order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: -group.get(order_by))
-        else:
-            groups = sorted(groups, key=lambda group: group.get(order_by))
+        statement = 'SELECT T.id,\
+        `name`,\
+        `project_id`,\
+        `category`,\
+        `create_time`,\
+        `creator`,\
+        UNIX_TIMESTAMP(`finish_time`) - UNIX_TIMESTAMP(`start_time`) AS elapsed_time,\
+        `atom_total`,\
+        `subprocess_total`,\
+        `gateways_total`\
+        FROM `taskflow3_taskflowinstance` T INNER JOIN (\
+            SELECT `id`, `instance_id`, `name`, `create_time`, `finish_time`, `start_time`, `creator`\
+            FROM `pipeline_pipelineinstance`\
+            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
+        INNER JOIN `statistics_instanceinpipeline` I ON (`I`.`instance_id` = `P`.`instance_id`){where}\
+        ORDER BY {order_by} {order_method} LIMIT {start},{end};\
+        '.format(
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            order_by=order_by,
+            order_method=order_method,
+            start=int((page - 1) * limit),
+            end=limit,
+            where=self._assemble_where_statement(filters),
+        )
 
-        return total, groups[(page - 1) * limit : page * limit]
+        with connection.cursor() as cursor:
+            cursor.execute(count_statement)
+            count = cursor.fetchone()[0]
+            if not count:
+                return count, []
 
-    def group_by_instance_time(self, taskflow, filters, *args):
+            cursor.execute(statement)
+            projects = {p.id: p.name for p in Project.objects.all().only("id", "name")}
+            result = [
+                {
+                    "instanceId": row[0],
+                    "instanceName": row[1],
+                    "projectId": row[2],
+                    "projectName": projects.get(row[2], row[2]),
+                    "category": self.TASK_CATEGORY_DICT.get(row[3], row[3]),
+                    "createTime": row[4],
+                    "creator": row[5],
+                    "elapsedTime": row[6],
+                    "atomTotal": row[7],
+                    "subprocessTotal": row[8],
+                    "gatewaysTotal": row[9],
+                }
+                for row in cursor.fetchall()
+            ]
+
+            return count, result
+
+    def group_by_instance_time(self, taskflow, filters, page, limit):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
-        instance_create_time_list = taskflow.values("pipeline_instance__create_time")
-        total = instance_create_time_list.count()
+        default_group = self.GB_INSTANCE_TIME_GROUP_PARAMS["day"]
         group_type = filters.get("type", "day")
-        create_time = timestamp_to_datetime(filters["create_time"])
-        end_time = timestamp_to_datetime(filters["finish_time"]) + datetime.timedelta(days=1)
 
-        groups = []
-        date_list = []
-        for instance in instance_create_time_list:
-            instance_time = instance["pipeline_instance__create_time"]
-            date_key = ""
-            # 添加在一个list中 之后使用count方法获取对应的数量
+        statement = 'SELECT COUNT(*), {group_param}\
+        FROM `taskflow3_taskflowinstance` T  INNER JOIN (\
+            SELECT `id`, `create_time`\
+            FROM `pipeline_pipelineinstance`\
+            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`){where}\
+        GROUP BY {group_param};'.format(
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
+            group_param=self.GB_INSTANCE_TIME_GROUP_PARAMS.get(group_type, default_group),
+        )
+
+        result = []
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+
             if group_type == "day":
-                date_key = instance_time.strftime("%Y-%m-%d")
+                result = [{"time": row[1], "value": row[0]} for row in cursor.fetchall()]
             elif group_type == "month":
-                date_key = instance_time.strftime("%Y-%m")
-            date_list.append(date_key)
-        if group_type == "day":
-            #  日视图
-            for d in gen_day_dates(create_time, (end_time - create_time).days + 1):
-                date_key = d.strftime("%Y-%m-%d")
-                groups.append({"time": date_key, "value": date_list.count(date_key)})
-        elif group_type == "month":
-            # 月视图
-            # 直接拿到对应的（年-月），不需要在字符串拼接
-            for date_key in get_month_dates(create_time, end_time):
-                groups.append({"time": date_key, "value": date_list.count(date_key)})
-        return total, groups
+                result = [{"time": "%s-%s" % (row[1], row[2]), "value": row[0]} for row in cursor.fetchall()]
+
+        total = sum([i["value"] for i in result])
+
+        return total, result
+
+    def group_by_project_id(self, taskflow, filters, page, limit):
+        # 查询不同业务对应的流程数
+        statement = 'SELECT COUNT(*), `J`.`id`, `J`.`name` \
+        FROM `taskflow3_taskflowinstance` T  INNER JOIN (\
+            SELECT `id`\
+            FROM `pipeline_pipelineinstance`\
+            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
+        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`)\
+        INNER JOIN `core_project` J ON (`T`.`project_id` = `J`.`id`){where}\
+        GROUP BY `J`.`id`;'.format(
+            create_time=filters["create_time_datetime"],
+            finish_time=filters["finish_time_datetime"],
+            where=self._assemble_where_statement(filters),
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute(statement)
+
+            result = [{"code": row[1], "name": row[2], "value": row[0]} for row in cursor.fetchall()]
+
+        return 1, result
 
     def general_group_by(self, prefix_filters, group_by):
         try:

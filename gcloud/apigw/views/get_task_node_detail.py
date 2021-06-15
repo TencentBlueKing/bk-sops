@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -56,7 +55,7 @@ def get_task_node_detail(request, task_id, project_id):
             )
         )
         logger.exception(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+        return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     node_id = request.GET.get("node_id")
     component_code = request.GET.get("component_code")
@@ -64,12 +63,10 @@ def get_task_node_detail(request, task_id, project_id):
     try:
         subprocess_stack = json.loads(request.GET.get("subprocess_stack", "[]"))
     except Exception:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "subprocess_stack is not a valid array json",
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "subprocess_stack is not a valid array json",
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
     result = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
-    return JsonResponse(result)
+    return result

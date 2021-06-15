@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -43,9 +42,7 @@ def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     project = request.project
 
@@ -59,9 +56,10 @@ def node_callback(request, task_id, project_id):
             )
         )
         logger.exception(message)
-        return JsonResponse({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+        return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     node_id = params.get("node_id")
     callback_data = params.get("callback_data")
+    version = params.get("version")
 
-    return JsonResponse(task.callback(node_id, callback_data))
+    return task.callback(node_id, callback_data, version)

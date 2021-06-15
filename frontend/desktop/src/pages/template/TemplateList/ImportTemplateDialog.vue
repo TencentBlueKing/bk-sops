@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,7 +19,7 @@
         :title="$t('导入流程')"
         :value="isImportDialogShow"
         @cancel="onCancel">
-        <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1 }">
+        <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1, zIndex: 100 }">
             <div class="import-wrapper">
                 <div class="common-form-item">
                     <label class="required">{{ $t('上传文件') }}</label>
@@ -125,7 +125,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
 
@@ -209,7 +208,7 @@
                         this.dataConflict = false
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                     this.templateFileError = true
                 } finally {
                     this.pending.upload = false
@@ -229,12 +228,9 @@
                     if (resp.result) {
                         this.$emit('onImportConfirm')
                         this.resetData()
-                    } else {
-                        this.templateFileError = true
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.submit = false
                 }

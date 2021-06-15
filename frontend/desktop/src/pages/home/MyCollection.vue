@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
+    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">
             {{ $t('我的收藏') }}
             <span class="add-btn" @click="onAddCollection">{{ $t('添加') }}</span>
@@ -69,7 +69,7 @@
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1 }">
+            <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除收藏？')}}
             </div>
         </bk-dialog>
@@ -83,7 +83,6 @@
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
     import toolsUtils from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions } from 'vuex'
     export default {
         name: 'MyCollection',
@@ -132,7 +131,7 @@
                     this.collectionGrounpList = this.getGrounpList(res.objects)
                     this.collectionBodyLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             getLimit () {
@@ -202,6 +201,11 @@
                 if (this.getRourcePerm(template)) {
                     return this.checkForPermission(template)
                 }
+                window.reportInfo({
+                    page: 'home',
+                    zone: 'collectedCard',
+                    event: 'click'
+                })
                 const type = template.category
                 // 有权限执行
                 const { project_id, template_id, app_id, name } = template.extra_info
@@ -211,7 +215,7 @@
                         break
                     case 'flow':
                         this.$router.push({
-                            name: 'taskStep',
+                            name: 'taskCreate',
                             params: { step: 'selectnode', project_id },
                             query: { template_id }
                         })

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,6 +17,7 @@ import traceback
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from gcloud.core.models import EngineConfig
 from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTaskHistory
@@ -40,6 +41,7 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         create_info=periodic_task.id,
         flow_type="common",
         current_flow="execute_task",
+        engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),
     )
 
 

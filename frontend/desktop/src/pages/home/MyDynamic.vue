@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -33,7 +33,7 @@
         </h3>
         <bk-table
             class="tab-data-table"
-            v-bkloading="{ isLoading: isTableLoading, opacity: 1 }"
+            v-bkloading="{ isLoading: isTableLoading, opacity: 1, zIndex: 100 }"
             :data="dynamicData"
             :pagination="pagination">
             <bk-table-column
@@ -42,6 +42,7 @@
                 :label="item.label"
                 :prop="item.prop"
                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                :min-width="item.min_width"
                 :sortable="item.sortable">
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">
@@ -85,7 +86,6 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapState, mapActions } from 'vuex'
     import task from '@/mixins/task.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -94,12 +94,12 @@
         {
             label: 'ID',
             prop: 'id',
-            width: '100'
+            width: 100
         },
         {
             label: i18n.t('任务名称'),
             prop: 'name',
-            width: '300'
+            min_width: 300
         },
         {
             label: i18n.t('项目'),
@@ -107,21 +107,23 @@
         },
         {
             label: i18n.t('执行开始'),
-            prop: 'start_time'
+            prop: 'start_time',
+            width: 200
         },
         {
             label: i18n.t('执行结束'),
-            prop: 'finish_time'
+            prop: 'finish_time',
+            width: 200
         },
         {
             label: i18n.t('创建方式'),
             prop: 'create_method',
-            width: '150'
+            width: 150
         },
         {
             label: i18n.t('状态'),
             prop: 'status',
-            width: '100'
+            width: 100
         }
     ]
     export default {
@@ -190,7 +192,7 @@
                     })
                     this.isTableLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             async getCreateMethods () {
@@ -200,7 +202,7 @@
                     this.createMethods = [...this.createMethods, ...res.data]
                     this.isCreateMethodsLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onSelectMethod (val) {

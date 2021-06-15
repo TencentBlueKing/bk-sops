@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -34,7 +34,6 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import (
     StringItemSchema,
     ObjectItemSchema,
@@ -42,17 +41,12 @@ from pipeline.core.flow.io import (
 )
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    get_job_instance_url,
-    get_node_callback_url,
-)
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
-
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
@@ -142,7 +136,9 @@ class JobFastExecuteScriptService(JobService):
                 key="log_outputs",
                 type="dict",
                 schema=ObjectItemSchema(
-                    description=_("输出日志中提取的全局变量"),
+                    description=_(
+                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+                    ),
                     property_schemas={
                         "name": StringItemSchema(description=_("全局变量名称")),
                         "value": StringItemSchema(description=_("全局变量值")),
@@ -163,36 +159,19 @@ class JobFastExecuteScriptService(JobService):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
-        if across_biz:
-            ip_info = {"ip_result": []}
-            for match in plat_ip_reg.finditer(original_ip_list):
-                if not match:
-                    continue
-                ip_str = match.group()
-                cloud_id, inner_ip = ip_str.split(":")
-                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
-        else:
-            ip_info = cc_get_ips_info_by_str(
-                username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
-            )
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-
-        if ip_is_exist and not across_biz:
-            # 如果ip校验开关打开且不允许跨业务，校验通过的ip数量减少，返回错误
-            input_ip_set = set(get_ip_by_regex(original_ip_list))
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
-            difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
-
-            if len(ip_list) != len(input_ip_set):
-                data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                return False
+        # 获取 IP
+        clean_result, ip_list = get_biz_ip_from_frontend(
+            original_ip_list, executor, biz_cc_id, data, self.logger, across_biz, ip_is_exist=ip_is_exist
+        )
+        if not clean_result:
+            return False
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
             "script_timeout": data.get_one_of_inputs("job_script_timeout"),
             "account": data.get_one_of_inputs("job_account"),
             "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.id),
+            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
 
         script_param = str(data.get_one_of_inputs("job_script_param"))
@@ -209,19 +188,30 @@ class JobFastExecuteScriptService(JobService):
             else:
                 scripts = client.job.get_public_script_list(kwargs)
 
-            if scripts["result"] is False or len(scripts["data"]["data"]) != 1:
+            if scripts["result"] is False:
                 api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
                 message = job_handle_api_error(api_name, job_kwargs, scripts)
-                # 防止出现某个名字出现多个脚本版本或重名脚本的情况
-                if len(scripts["data"]["data"]) != 1:
-                    message += "Data validation error: the number of script named {} should be exactly one.".format(
-                        script_name
-                    )
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
 
-            script_id = scripts["data"]["data"][0]["id"]
+            # job V2接口使用的是模糊匹配，这里需要做一次精确匹配
+            script_list = scripts["data"]["data"]
+            selected_script = None
+            for script in script_list:
+                if script["name"] == script_name:
+                    selected_script = script
+                    break
+
+            if not selected_script:
+                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, scripts)
+                message += "Data validation error: can not find a script exactly named {}".format(script_name)
+                self.logger.error(message)
+                data.outputs.ex_data = message
+                return False
+
+            script_id = selected_script["id"]
             job_kwargs.update({"script_id": script_id})
         else:
             job_kwargs.update(

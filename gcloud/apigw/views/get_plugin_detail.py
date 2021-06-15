@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from cachetools import cached, TTLCache
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -41,9 +40,11 @@ def get_plugin_detail(request, project_id):
     version = request.GET.get("version", "legacy")
 
     if not code:
-        return JsonResponse(
-            {"result": False, "message": "parameter code need to be provided.", "code": err_code.VALIDATION_ERROR.code}
-        )
+        return {
+            "result": False,
+            "message": "parameter code need to be provided.",
+            "code": err_code.VALIDATION_ERROR.code,
+        }
 
     # 排除基于业务的插件，只支持公共插件
     exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
@@ -52,13 +53,11 @@ def get_plugin_detail(request, project_id):
             status=True, code=code, version=version
         )
     except ComponentModel.DoesNotExist:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "can not find suitable component with code: {} and version: {}".format(code, version),
-                "code": err_code.VALIDATION_ERROR.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "can not find suitable component with code: {} and version: {}".format(code, version),
+            "code": err_code.VALIDATION_ERROR.code,
+        }
 
     component_info = ComponentLibrary.get_component_class(component.code, component.version)
     data = {
@@ -72,4 +71,4 @@ def get_plugin_detail(request, project_id):
         "form": component_info.form,
     }
 
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}

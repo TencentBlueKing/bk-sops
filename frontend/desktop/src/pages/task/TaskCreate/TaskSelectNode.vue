@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+    <div class="select-node-wrapper" :class="{ 'task-create-page': !isEditProcessPage }" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -31,7 +31,6 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
-                :is-edit-process-page="isEditProcessPage"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
@@ -39,7 +38,6 @@
                 v-show="isEditProcessPage || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
-                :init-template-id="initTemplateId"
                 :template-name="templateName"
                 :is-scheme-show="isSchemeShow"
                 :is-scheme-editable="viewMode !== 'appmaker'"
@@ -70,7 +68,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import XLSX from 'xlsx'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import TaskScheme from './TaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
@@ -84,7 +81,6 @@
         props: {
             project_id: [String, Number],
             template_id: [String, Number],
-            initTemplateId: [String, Number],
             common: String,
             excludeNode: Array,
             entrance: String,
@@ -187,9 +183,14 @@
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = appmakerData.template_scheme_id
+                        this.previewBread = [{
+                            id: this.template_id,
+                            name: this.templateName,
+                            version: this.version
+                        }]
                         if (schemeId === '') {
                             this.isAppmakerHasScheme = false
-                            await this.getPreviewNodeData(this.template_id)
+                            await this.getPreviewNodeData(this.template_id, this.version)
                         } else {
                             this.selectScheme({ id: schemeId })
                         }
@@ -211,33 +212,32 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateLoading = false
                 }
             },
             /**
              * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
-             * @params {String} templateId  模板 ID
+             * @params {Number|String} templateId  模板 ID
+             * @params {String} version  模板版本
              */
-            async getPreviewNodeData (templateId) {
+            async getPreviewNodeData (templateId, version) {
                 this.previewDataLoading = true
                 const excludeNodes = this.getExcludeNode()
                 const params = {
-                    templateId: templateId,
+                    templateId: Number(templateId),
                     excludeTaskNodesId: excludeNodes,
                     common: this.common,
-                    version: this.version
+                    version
                 }
                 try {
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         this.previewData = resp.data.pipeline_tree
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.previewDataLoading = false
                 }
@@ -247,7 +247,7 @@
              */
             async onGotoParamFill () {
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
                 }
@@ -352,12 +352,13 @@
                 if (this.viewMode === 'appmaker' || !activity || activity.type !== 'SubProcess') {
                     return
                 }
-                const templateId = activity.template_id
+                const { template_id, name, version } = activity
                 this.previewBread.push({
-                    data: templateId,
-                    name: activity.name
+                    id: template_id,
+                    name,
+                    version
                 })
-                this.getPreviewNodeData(templateId)
+                this.getPreviewNodeData(template_id, activity.version)
             },
             /**
              * 选中节点
@@ -385,8 +386,8 @@
              * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
              * @params {Number} index  点击的面包屑的下标
              */
-            onSelectSubflow (id, index) {
-                this.getPreviewNodeData(id)
+            onSelectSubflow (id, version, index) {
+                this.getPreviewNodeData(id, version)
                 this.previewBread.splice(index + 1, this.previewBread.length)
             },
             getExcludeNode () {
@@ -423,8 +424,12 @@
                     }
                 } else {
                     try {
-                        const data = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
-                        allNodeId = JSON.parse(data.data)
+                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
+                        if (this.isCommonProcess) {
+                            allNodeId = JSON.parse(result)
+                        } else {
+                            allNodeId = JSON.parse(result.data)
+                        }
                         this.planDataObj[scheme.id] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
@@ -433,7 +438,7 @@
                             this.selectedNodes = nodeIdArr
                         }
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 }
                 this.updateExcludeNodes()
@@ -444,7 +449,7 @@
                     }
                 })
                 if (this.isPreviewMode) {
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
             // 导入临时方案
@@ -458,7 +463,7 @@
                     }
                 })
                 if (this.isPreviewMode) {
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
             updateTaskSchemeList (val) {
@@ -482,10 +487,11 @@
                 this.isPreviewMode = isPreview
                 if (isPreview) {
                     this.previewBread.push({
-                        data: this.template_id,
-                        name: this.templateName
+                        id: this.template_id,
+                        name: this.templateName,
+                        version: this.version
                     })
-                    this.getPreviewNodeData(this.template_id)
+                    this.getPreviewNodeData(this.template_id, this.version)
                 } else {
                     this.previewBread = []
                 }
@@ -502,10 +508,9 @@
 @import '@/scss/config.scss';
 
 .select-node-wrapper {
-    height: calc(100% - 90px);
+    height: calc(100vh - 100px);
 }
 .task-create-page {
-    height: 100%;
     .canvas-content {
         height: 100%;
     }
@@ -522,18 +527,20 @@
         height: 100%;
     }
 }
-.next-button {
-    width:140px;
-}
-.action-wrapper {
-    padding-left: 40px;
-    border-top: 1px solid #cacedb;
-    background-color: #ffffff;
-}
 /deep/ .pipeline-canvas {
     .tool-wrapper {
         top: 19px;
         left: 40px;
+    }
+}
+.action-wrapper {
+    padding-left: 40px;
+    height: 72px;
+    line-height: 72px;
+    border-top: 1px solid #cacedb;
+    background-color: #ffffff;
+    .next-button {
+        width: 140px;
     }
 }
 </style>

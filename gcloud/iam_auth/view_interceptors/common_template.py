@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,14 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
-
 from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
 from gcloud.utils.strings import string_to_boolean
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import read_template_data_file
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import res_factory
@@ -46,7 +44,7 @@ class FormInterceptor(ViewInterceptor):
 class ExportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
 
-        data = json.loads(request.body)
+        data = request.data
         template_id_list = data["template_id_list"]
 
         subject = Subject("user", request.user.username)

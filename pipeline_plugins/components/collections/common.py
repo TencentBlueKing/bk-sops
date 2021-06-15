@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -75,7 +75,7 @@ class HttpRequestService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         method = data.get_one_of_inputs("bk_http_request_method")
-        url = data.get_one_of_inputs("bk_http_request_url")
+        url = data.get_one_of_inputs("bk_http_request_url").strip()
         body = data.get_one_of_inputs("bk_http_request_body")
         other = {}
 

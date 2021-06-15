@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -492,11 +492,19 @@ def cc_find_host_by_topo(request, biz_cc_id):
     ]
 
     result_list = batch_execute_func(client.cc.find_host_by_topo, params_list)
-    data = [
-        {"bk_inst_id": result["params"]["bk_inst_id"], "host_count": result["result"]["data"]["count"]}
-        for result in result_list
-        if result["result"]["result"]
-    ]
+
+    data = []
+    failed_request_message = []
+    for result in result_list:
+        func_result = result["result"]
+        if not func_result["result"]:
+            message = handle_api_error("cc", "find_host_by_topo", result["params"], func_result)
+            failed_request_message.append(message)
+        else:
+            data.append({"bk_inst_id": result["params"]["bk_inst_id"], "host_count": func_result["data"]["count"]})
+
+    if failed_request_message:
+        return JsonResponse({"result": False, "data": [], "message": "\n".join(failed_request_message)})
 
     return JsonResponse({"result": True, "data": data})
 

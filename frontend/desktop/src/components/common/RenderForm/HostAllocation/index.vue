@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
+    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1, zIndex: 100 }">
         <resource-list
             v-if="!showFilter"
             ref="resourceList"
@@ -42,7 +42,6 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import HostFilter from './HostFilter.vue'
     import ResourceList from '../SetAllocation/ResourceList.vue'
 
@@ -173,11 +172,9 @@
                     if (resp.result) {
                         this.originalCols = resp.data
                         this.joinCols()
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.colsLoading = false
                     this.$nextTick(() => {

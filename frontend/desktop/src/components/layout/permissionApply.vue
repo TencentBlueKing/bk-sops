@@ -11,7 +11,7 @@
                     theme="primary"
                     :loading="loading"
                     @click="applyBtnClick">
-                    {{$t('去申请')}}
+                    {{ hasClicked ? $t('已申请') : $t('去申请') }}
                 </bk-button>
             </div>
         </div>
@@ -21,7 +21,6 @@
     import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
@@ -42,6 +41,7 @@
             return {
                 url: '',
                 loading: false,
+                hasClicked: false,
                 authActions: [],
                 lock: require('../../assets/images/lock-radius.svg')
             }
@@ -84,11 +84,16 @@
                 if (this.loading) {
                     return
                 }
-                let url = this.url
-                if (this.permissionData.type === 'project' & !this.url) {
-                    url = window.BK_IAM_SAAS_HOST + '/perm-apply'
+                if (this.hasClicked) {
+                    window.location.reload()
+                } else {
+                    this.hasClicked = true
+                    let url = this.url
+                    if (this.permissionData.type === 'project' & !this.url) {
+                        url = window.BK_IAM_SAAS_HOST + '/perm-apply'
+                    }
+                    openOtherApp(window.BK_IAM_APP_CODE, url)
                 }
-                openOtherApp(window.BK_IAM_APP_CODE, url)
             },
             async queryProjectCreatePerm () {
                 try {
@@ -99,8 +104,8 @@
                     if (res.data.is_allow) {
                         this.authActions.push('project_create')
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async loadPermissionUrl () {
@@ -109,11 +114,9 @@
                     const res = await this.getIamUrl(this.permissionData.permission)
                     if (res.result) {
                         this.url = res.data.url
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }

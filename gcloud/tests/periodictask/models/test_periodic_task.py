@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,8 +21,9 @@ from django.conf import settings
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
+from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 
-from gcloud.core.models import Project
+from gcloud.core.models import Project, EngineConfig
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTask, PipelinePeriodicTask
@@ -123,9 +124,54 @@ class PeriodicTaskTestCase(TestCase):
                 "template_id": self.template.pipeline_template.template_id,
                 "template_source": "project",
                 "template_num_id": self.template.id,
+                "pipeline_formator": "pipeline_web.parser.format.format_web_data_to_pipeline",
+                "engine_ver": 1,
             },
             spread=True,
             queue=settings.PERIODIC_TASK_QUEUE_NAME,
+            trigger_task="",
+        )
+
+    @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
+    @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
+    def test_create_pipeline_task_v2(self):
+        pipeline_tree = self.pipeline_tree
+        EngineConfig.objects.create(
+            template_source="project",
+            scope_id=self.template.id,
+            scope=EngineConfig.SCOPE_TYPE_TEMPLATE,
+            engine_ver=EngineConfig.ENGINE_VER_V2,
+        )
+        PeriodicTask.objects.create_pipeline_task(
+            project=self.project,
+            template=self.template,
+            name=self.name,
+            cron={},
+            pipeline_tree=pipeline_tree,
+            creator=self.creator,
+        )
+
+        PipelineTemplateWebWrapper.unfold_subprocess.assert_called_once_with(pipeline_tree, self.template.__class__)
+
+        PipelinePeriodicTask.objects.create_task.assert_called_once_with(
+            name=self.name,
+            template=self.template.pipeline_template,
+            cron={},
+            data=pipeline_tree,
+            creator=self.creator,
+            timezone=self.project.time_zone,
+            extra_info={
+                "project_id": self.project.id,
+                "category": self.template.category,
+                "template_id": self.template.pipeline_template.template_id,
+                "template_source": "project",
+                "template_num_id": self.template.id,
+                "pipeline_formator": "pipeline_web.parser.format.format_web_data_to_pipeline",
+                "engine_ver": 2,
+            },
+            spread=True,
+            queue=settings.PERIODIC_TASK_QUEUE_NAME_V2,
+            trigger_task=BAMBOO_ENGINE_TRIGGER_TASK,
         )
 
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())

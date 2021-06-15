@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,15 +20,14 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
     get_job_instance_url,
-    get_node_callback_url,
     loose_strip,
     chunk_table_data,
-    batch_execute_func,
+    get_biz_ip_from_frontend,
 )
-from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -65,10 +64,7 @@ class JobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"),
-                key="upload_speed_limit",
-                type="string",
-                schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -83,10 +79,7 @@ class JobFastPushFileService(JobScheduleService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -98,20 +91,6 @@ class JobFastPushFileService(JobScheduleService):
                 name=_("超时时间"), key="job_timeout", type="string", schema=StringItemSchema(description=_("超时时间"))
             ),
         ]
-
-    def get_ip_info(self, ip, break_line):
-        if plat_ip_reg.match(ip):
-            ip_result = []
-            for line in ip.split(break_line):
-                line = line.split(":")
-                ip_result.append({"Source": line[0], "InnerIP": line[1]})
-            result = {
-                "result": True,
-                "ip_result": ip_result,
-                "ip_count": len(ip_result),
-            }
-            return result
-        return {"result": False}
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -128,30 +107,15 @@ class JobFastPushFileService(JobScheduleService):
         job_timeout = data.get_one_of_inputs("job_timeout")
         file_source = []
         for item in original_source_files:
-            if across_biz:
-                ip_info = {"ip_result": []}
-                ip_str = item["ip"]
-                if plat_ip_reg.match(ip_str):
-                    for match in plat_ip_reg.finditer(ip_str):
-                        ip = match.group()
-                        cloud_id, inner_ip = ip.strip().split(":")
-                        ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
-                else:
-                    message = _("允许跨业务时IP格式需满足：【云区域ID:IP】")
-                    self.logger.error(message)
-                    data.set_outputs("ex_data", message)
-                    return False
-            else:
-                ip_info = cc_get_ips_info_by_str(
-                    username=executor,
-                    biz_cc_id=biz_cc_id,
-                    ip_str=item["ip"],
-                    use_cache=False,
-                )
+            clean_source_ip_result, source_ip_list = get_biz_ip_from_frontend(
+                item["ip"], executor, biz_cc_id, data, self.logger, across_biz
+            )
+            if not clean_source_ip_result:
+                return False
             file_source.append(
                 {
                     "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "ip_list": [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]],
+                    "ip_list": source_ip_list,
                     "account": loose_strip(item["account"]),
                 }
             )
@@ -175,26 +139,21 @@ class JobFastPushFileService(JobScheduleService):
         params_list = []
         for source in file_source:
             for attr in attr_list:
-                original_ip_list = attr["job_ip_list"]
-                job_account = attr["job_account"]
                 # 将[FILESRCIP]替换成源IP
                 job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"])
-                # 如果允许跨业务，则调用不去查云区域ID的方法
-                target_ip_info = (
-                    self.get_ip_info(original_ip_list, break_line)
-                    if across_biz
-                    else cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
+                # 获取目标IP
+                original_ip_list = attr["job_ip_list"]
+                clean_result, ip_list = get_biz_ip_from_frontend(
+                    original_ip_list, executor, biz_cc_id, data, self.logger, across_biz
                 )
-
-                ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in target_ip_info["ip_result"]]
-
+                if not clean_result:
+                    return False
                 job_kwargs = {
                     "bk_biz_id": biz_cc_id,
                     "file_source": [source],
                     "ip_list": ip_list,
-                    "account": job_account,
+                    "account": attr["job_account"],
                     "file_target_path": job_target_path,
-                    "bk_callback_url": get_node_callback_url(self.id),
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
@@ -206,14 +165,14 @@ class JobFastPushFileService(JobScheduleService):
         task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
-        job_instance_id, job_inst_name, job_inst_url = [], [], []
+        job_instance_id_list, job_inst_name, job_inst_url = [], [], []
         data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):
             job_result = res["result"]
             if job_result["result"]:
-                job_instance_id.append(job_result["data"]["job_instance_id"])
+                job_instance_id_list.append(job_result["data"]["job_instance_id"])
                 job_inst_name.append(job_result["data"]["job_instance_name"])
-                job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id))
+                job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id_list))
             else:
                 message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
                 self.logger.error(message)
@@ -221,12 +180,14 @@ class JobFastPushFileService(JobScheduleService):
         if data.outputs.requests_error:
             data.outputs.requests_error = "Request Error:\n{}".format(data.outputs.requests_error)
 
-        data.outputs.job_instance_id_list = job_instance_id
+        # 总任务数
+        data.outputs.task_count = task_count
+        data.outputs.job_instance_id_list = job_instance_id_list
         # 批量请求使用
-        data.outputs.job_id_of_batch_execute = job_instance_id
-        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id]
+        data.outputs.job_id_of_batch_execute = job_instance_id_list
+        data.outputs.job_inst_url = [get_job_instance_url(biz_cc_id, job_id) for job_id in job_instance_id_list]
         # 请求成功数
-        data.outputs.request_success_count = len(job_result_list)
+        data.outputs.request_success_count = len(job_instance_id_list)
         # 执行成功数
         data.outputs.success_count = 0
         # 所有请求都失败，则返回
@@ -271,4 +232,9 @@ class JobFastPushFileComponent(Component):
     bound_service = JobFastPushFileService
     form = "%scomponents/atoms/job/fast_push_file/v2_0.js" % settings.STATIC_URL
     version = "v2.0"
-    desc = "跨业务分发文件时需要在作业平台添加白名单"
+    desc = (
+        "跨业务分发文件时需要在作业平台添加 IP 白名单\n"
+        "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+    )

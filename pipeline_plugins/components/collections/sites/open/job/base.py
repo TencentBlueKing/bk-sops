@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -41,12 +41,15 @@ from pipeline.core.flow.io import (
     StringItemSchema,
     IntItemSchema,
 )
+
 from gcloud.conf import settings
+
 from gcloud.utils.handlers import handle_api_error
+
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
-from pipeline_plugins.components.utils import batch_execute_func
 
 JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
@@ -158,7 +161,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
         if "step_ip_result_list" not in step_instance:
             continue
-        for step_ip_result in step_instance["step_ip_result_list"]:
+        # 为了防止查询时间过长，每个步骤只取一个IP的日志进行记录
+        if step_instance["step_ip_result_list"]:
+            step_ip_result = step_instance["step_ip_result_list"][0]
             get_job_instance_ip_log_kwargs = {
                 "job_instance_id": job_instance_id,
                 "bk_biz_id": bk_biz_id,
@@ -225,7 +230,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message

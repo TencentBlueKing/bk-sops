@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,6 +20,8 @@
             :task-operation-btns="taskOperationBtns"
             :instance-actions="instanceActions"
             :admin-view="adminView"
+            :state-str="taskState"
+            :state="state"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
@@ -27,11 +29,6 @@
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick">
         </task-operation-header>
-        <div :class="['task-status', state]">
-            <span class="task-status-name">
-                {{taskState}}
-            </span>
-        </div>
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
@@ -55,10 +52,11 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose" @hidden="onHiddenSideslider">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
+                    ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
@@ -83,18 +81,21 @@
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
+                    ref="retryNode"
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
                 <ModifyTime
+                    ref="modifyTime"
                     v-if="nodeInfoType === 'modifyTime'"
                     :node-detail-config="nodeDetailConfig"
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
                 <OperationFlow
+                    :locations="canvasData.locations"
                     v-if="nodeInfoType === 'operateFlow'"
                     class="operation-flow">
                 </OperationFlow>
@@ -165,6 +166,22 @@
             :is-show.sync="isShowConditionEdit"
             :condition-data="conditionData">
         </condition-edit>
+        <bk-dialog
+            width="400"
+            ext-cls="task-operation-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-operation-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
+                <div class="action-wrapper">
+                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -172,7 +189,6 @@
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
@@ -263,7 +279,6 @@
                 locations: [],
                 setNodeDetail: true,
                 atomList: [],
-                quickClose: true,
                 sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
@@ -303,7 +318,9 @@
                 retrievedCovergeGateways: [], // 遍历过的汇聚节点
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
                 isShowConditionEdit: false, // 条件分支侧栏
-                conditionData: {}
+                conditionData: {},
+                isShowDialog: false,
+                isSaveLoading: false
             }
         },
         computed: {
@@ -427,7 +444,6 @@
             ]),
             async loadTaskStatus () {
                 try {
-                    this.$emit('taskStatusLoadChange', true)
                     let instanceStatus = {}
                     if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
@@ -478,16 +494,14 @@
                         } else {
                             this.setTaskStatusTimer()
                         }
-                        errorHandler(instanceStatus, this)
                     }
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     if (e.message !== 'cancelled') {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 } finally {
                     source = null
-                    this.$emit('taskStatusLoadChange', false)
                 }
             },
             /**
@@ -521,7 +535,7 @@
                     this.atomList = atomList
                     this.markNodesPhase()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.singleAtomListLoading = false
                 }
@@ -594,11 +608,9 @@
                             message: i18n.t('任务开始执行'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -621,11 +633,9 @@
                             message: i18n.t('任务暂停成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -649,11 +659,9 @@
                             message: i18n.t('任务继续成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -670,11 +678,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -703,11 +709,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.skip = false
                 }
@@ -735,11 +739,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.forceFail = false
                 }
@@ -756,11 +758,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.selectGateway = false
                 }
@@ -789,11 +789,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.parseNodeResume = false
                 }
@@ -819,7 +817,7 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    let code, skippable, retryable
+                    let code, skippable, retryable, errorIgnorable
                     const currentNode = nodes[id]
                     const nodeActivities = this.pipelineData.activities[id]
 
@@ -827,9 +825,10 @@
                         code = nodeActivities.component ? nodeActivities.component.code : ''
                         skippable = nodeActivities.isSkipped || nodeActivities.skippable
                         retryable = nodeActivities.can_retry || nodeActivities.retryable
+                        errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry }
+                    const data = { status: currentNode.state, code, skippable, retryable, errorIgnorable, skip: currentNode.skip, retry: currentNode.retry }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -1020,10 +1019,6 @@
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
-                this.quickClose = true
-                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    this.quickClose = false
-                }
             },
             
             onToggleNodeInfoPanel () {
@@ -1072,7 +1067,7 @@
             },
             handleSingleNodeClick (id, type) {
                 // 节点执行状态
-                const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
+                // const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 // 任务节点
                 if (type === 'singleAtom') {
                     // updateNodeActived 设置节点选中态
@@ -1083,21 +1078,18 @@
                     this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
                 } else {
-                    // 分支网关节点失败时展开侧滑面板
-                    if (nodeState && nodeState.state === 'FAILED') {
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                        }
-                        this.nodeDetailConfig = {
-                            component_code: '',
-                            version: undefined,
-                            node_id: id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
-                        }
-                        this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
+                    let subprocessStack = []
+                    if (this.selectedFlowPath.length > 1) {
+                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
+                    this.nodeDetailConfig = {
+                        component_code: '',
+                        version: undefined,
+                        node_id: id,
+                        instance_id: this.instance_id,
+                        subprocess_stack: JSON.stringify(subprocessStack)
+                    }
+                    this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                 }
             },
             onOpenConditionEdit (data) {
@@ -1311,6 +1303,47 @@
                 this.isNodeInfoPanelShow = false
                 this.templateData = ''
             },
+            onBeforeClose () {
+                // 除修改参数/修改时间/重试外  其余侧滑没有操作修改功能，支持自动关闭
+                if (!['modifyParams', 'modifyTime', 'retryNode'].includes(this.nodeInfoType)) {
+                    this.isShowDialog = false
+                    this.isNodeInfoPanelShow = false
+                } else {
+                    const isEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
+                    if (isEqual === true) {
+                        this.isNodeInfoPanelShow = false
+                    } else if (isEqual === false) {
+                        this.isShowDialog = true
+                    }
+                }
+            },
+            async onConfirmClick () {
+                this.isSaveLoading = true
+                try {
+                    let result = true
+                    if (this.nodeInfoType === 'modifyParams') {
+                        result = await this.$refs.modifyParams.onModifyParams()
+                    }
+                    if (this.nodeInfoType === 'modifyTime') {
+                        result = await this.$refs.modifyTime.onModifyTime()
+                    }
+                    if (this.nodeInfoType === 'retryNode') {
+                        result = await this.$refs.retryNode.onRetryTask()
+                    }
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                    if (result) {
+                        this.isNodeInfoPanelShow = false
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isSaveLoading = false
+                }
+            },
+            onCancelClick () {
+                this.isShowDialog = false
+                this.isNodeInfoPanelShow = false
+            },
             onHiddenSideslider () {
                 this.nodeInfoType = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
@@ -1327,63 +1360,6 @@
     min-height: 500px;
     overflow: hidden;
     background: #f4f7fa;
-    .task-status {
-        height: 30px;
-        line-height: 30px;
-        font-size: 14px;
-        color: #63656e;
-        border-right: 1px solid #d2d4dd;
-        text-align: center;
-        background-color: #dcdee5;
-        &.CREATED {
-            border-top: 1px solid #d2d4dd;
-            border-bottom: 1px solid #d2d4dd;
-            .task-status-name {
-                color: #63656e;
-            }
-        }
-        &.FINISHED {
-            background-color: #cceed9;
-            border-top: 1px solid #b6e4c7;
-            border-bottom: 1px solid #b6e4c7;
-            .task-status-name {
-                color: #2dcb56;
-            }
-        }
-        &.RUNNING,
-        &.READY {
-            background-color: #cfdffb;
-            border-top: 1px solid #c0d4f8;
-            border-bottom: 1px solid #c0d4f8;
-            .task-status-name {
-                color: #3a84ff;
-            }
-        }
-        &.SUSPENDED, &.NODE_SUSPENDED {
-            background-color: #ffe8c3;
-            border-top: 1px solid #e6cfaa;
-            border-bottom: 1px solid #e6cfaa;
-            .task-status-name {
-                color: #d78300;
-            }
-        }
-        &.FAILED {
-            background-color: #f2d0d3;
-            border-top: 1px solid #efb9be;
-            border-bottom: 1px solid #efb9be;
-            .task-status-name {
-                color: #ea3636;
-            }
-        }
-        &.REVOKED {
-            background-color: #f2d0d3;
-            border-top: 1px solid #efb9be;
-            border-bottom: 1px solid #efb9be;
-            .task-status-name {
-                color: #ea3636;
-            }
-        }
-    }
 }
 
 /deep/ .atom-failed {
@@ -1393,7 +1369,7 @@
 .task-container {
     position: relative;
     width: 100%;
-    height: calc(100% - 80px);
+    height: calc(100vh - 100px);
     background: $whiteDefault;
     overflow: hidden;
     .pipeline-nodes {
@@ -1426,6 +1402,17 @@
     height: 100%;
     .operation-flow {
         padding: 20px 30px;
+    }
+}
+.task-operation-confirm-dialog-content {
+    padding: 40px 0;
+    text-align: center;
+    .leave-tips {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    .action-wrapper .bk-button {
+        margin-right: 6px;
     }
 }
 

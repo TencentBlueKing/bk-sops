@@ -13,9 +13,9 @@
         <div class="task-container">
             <div class="task-wrapper">
                 <div class="filtrate-wrapper">
-                    <div class="task-search flow-types">
+                    <div class="task-search">
                         <bk-select
-                            v-model="selectedTplType"
+                            :value="selectedTplType"
                             class="bk-select-inline"
                             :popover-width="260"
                             :disabled="!categoryListPending"
@@ -31,7 +31,8 @@
                     </div>
                     <div class="task-search">
                         <bk-select
-                            v-model="selectedTplCategory"
+                            v-if="selectedTplType === 'publicProcess'"
+                            :value="selectedTplCategory"
                             class="bk-select-inline"
                             :popover-width="260"
                             :disabled="!categoryListPending"
@@ -42,6 +43,32 @@
                                 :key="index"
                                 :id="option.value"
                                 :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                        <bk-select
+                            v-else
+                            v-model="selectedTplLabel"
+                            class="bk-select-inline"
+                            ext-popover-cls="label-select"
+                            key="label-select"
+                            :placeholder="$t('请选择标签')"
+                            :popover-width="260"
+                            :display-tag="true"
+                            :multiple="true"
+                            @change="onLabelChange">
+                            <bk-option
+                                v-for="(item, index) in templateLabels"
+                                :key="index"
+                                :id="item.id"
+                                :name="item.name">
+                                <div class="label-select-option">
+                                    <span
+                                        class="label-select-color"
+                                        :style="{ background: item.color }">
+                                    </span>
+                                    <span>{{item.name}}</span>
+                                    <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                </div>
                             </bk-option>
                         </bk-select>
                     </div>
@@ -56,39 +83,63 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
+                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1, zIndex: 100 }">
                     <ul v-if="!isNoData" class="grouped-list">
-                        <template v-for="item in templateList">
+                        <template v-if="selectedTplType === 'publicProcess'">
+                            <template v-for="item in templateList">
+                                <li
+                                    v-if="item.children.length"
+                                    :key="item.id"
+                                    class="task-group">
+                                    <h5 class="task-name">
+                                        {{item.name}}
+                                        (<span class="list-count">{{item.children.length}}</span>)
+                                    </h5>
+                                    <ul>
+                                        <li
+                                            v-for="template in item.children"
+                                            :key="template.id"
+                                            :title="template.name"
+                                            :class="[
+                                                'task-item',
+                                                {
+                                                    'task-item-selected': selectedTpl.id === template.id,
+                                                    'permission-disable': selectedTplType === 'businessProcess' && !hasPermission(action, template.auth_actions)
+                                                }
+                                            ]"
+                                            @click="onSelectTpl(template)">
+                                            <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
+                                            <div class="task-item-name-box">
+                                                <div class="task-item-name">{{template.name}}</div>
+                                            </div>
+                                            <div class="apply-permission-mask">
+                                                <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </template>
+                        </template>
+                        <template v-else>
                             <li
-                                v-if="item.children.length"
-                                :key="item.id"
-                                class="task-group">
-                                <h5 class="task-name">
-                                    {{item.name}}
-                                    (<span class="list-count">{{item.children.length}}</span>)
-                                </h5>
-                                <ul>
-                                    <li
-                                        v-for="template in item.children"
-                                        :key="template.id"
-                                        :title="template.name"
-                                        :class="[
-                                            'task-item',
-                                            {
-                                                'task-item-selected': selectedTpl.id === template.id,
-                                                'permission-disable': selectedTplType === 'businessProcess' && !hasPermission(action, template.auth_actions)
-                                            }
-                                        ]"
-                                        @click="onSelectTpl(template)">
-                                        <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
-                                        <div class="task-item-name-box">
-                                            <div class="task-item-name">{{template.name}}</div>
-                                        </div>
-                                        <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
-                                        </div>
-                                    </li>
-                                </ul>
+                                v-for="template in templateList"
+                                :key="template.id"
+                                :title="template.name"
+                                :class="[
+                                    'task-item',
+                                    {
+                                        'task-item-selected': selectedTpl.id === template.id,
+                                        'permission-disable': selectedTplType === 'businessProcess' && !hasPermission(action, template.auth_actions)
+                                    }
+                                ]"
+                                @click="onSelectTpl(template)">
+                                <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
+                                <div class="task-item-name-box">
+                                    <div class="task-item-name">{{template.name}}</div>
+                                </div>
+                                <div class="apply-permission-mask">
+                                    <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
+                                </div>
                             </li>
                         </template>
                     </ul>
@@ -119,7 +170,6 @@
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -157,8 +207,11 @@
                 ],
                 selectedTplType: 'businessProcess',
                 selectedTplCategory: 'all',
+                selectedTplLabel: [],
                 searchWord: '',
                 nowTypeList: [],
+                templateLabels: [],
+                templateLabelLoading: false,
                 permissionLoading: false,
                 hasCommonTplCreateTaskPerm: true, // 有公共流程创建任务/周期任务权限
                 tplOperations: [],
@@ -207,6 +260,9 @@
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
+            ...mapActions('project/', [
+                'getProjectLabelsWithDefault'
+            ]),
             async getBusinessData () {
                 this.taskListPending = true
                 try {
@@ -214,10 +270,10 @@
                     const businessList = respData.objects
                     this.tplOperations = respData.meta.auth_operations
                     this.tplResource = respData.meta.auth_resource
-                    this.businessTplList = this.getGroupedList(businessList)
-                    this.templateList = this.businessTplList
+                    this.businessTplList = businessList
+                    this.templateList = businessList
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskListPending = false
                 }
@@ -234,9 +290,23 @@
                     this.commonTplResource = respData.meta.auth_resource
                     this.commonTplList = this.getGroupedList(commonList)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskListPending = false
+                }
+            },
+            /**
+             * 加载模板标签列表
+             */
+            async getTemplateLabelList () {
+                try {
+                    this.templateLabelLoading = true
+                    const res = await this.getProjectLabelsWithDefault(this.project_id)
+                    this.templateLabels = res.data
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.templateLabelLoading = false
                 }
             },
             getGroupedList (list) {
@@ -267,6 +337,7 @@
             },
             async toggleShow (val) {
                 if (val) {
+                    this.getTemplateLabelList()
                     await this.getBusinessData()
                     this.onFiltrationTemplate()
                 }
@@ -286,7 +357,7 @@
                 }
 
                 const url = {
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: {
                         project_id: this.project_id,
                         step: 'selectnode'
@@ -304,6 +375,7 @@
                 this.selectedTplCategory = 'all'
                 this.selectedTpl = {}
                 this.selectError = false
+                this.selectedTplLabel = []
                 this.$emit('onCreateTaskCancel')
             },
             onSelectTpl (template) {
@@ -353,8 +425,8 @@
                     }
                     const resp = await this.queryUserPermission(data)
                     this.hasCommonTplCreateTaskPerm = resp.data.is_allow
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.permissionLoading = false
                 }
@@ -376,20 +448,34 @@
                 this.applyForPermission(reqPermission, curPermission, resourceData)
             },
             searchInputhandler () {
+                let result = []
+                const reg = new RegExp(this.searchWord, 'i')
                 const list = toolsUtils.deepClone(this.nowTypeList)
-                this.templateList = list.filter(group => {
-                    group.children = group.children.filter(template => template.name.includes(this.searchWord))
-                    return group.children.length
-                })
+                if (this.selectedTplType === 'publicProcess') {
+                    result = list.filter(group => {
+                        group.children = group.children.filter(template => reg.test(template.name))
+                        return group.children.length
+                    })
+                } else {
+                    result = list.filter(tpl => reg.test(tpl.name))
+                }
+                this.templateList = result
             },
             async onChooseTplType (value) {
                 this.selectedTplType = value
                 this.selectedTpl = {}
+                this.templateList = []
+                this.searchWord = ''
                 if (value === 'businessProcess') {
+                    this.selectedTplLabel = []
                     await this.getBusinessData()
                 } else {
+                    this.selectedTplCategory = 'all'
                     await this.getcommonData()
                 }
+                this.onFiltrationTemplate()
+            },
+            onLabelChange () {
                 this.onFiltrationTemplate()
             },
             onChooseTplCategory (value) {
@@ -399,12 +485,15 @@
             },
             onFiltrationTemplate () {
                 const list = this.selectedTplType === 'businessProcess' ? this.businessTplList : this.commonTplList
-                const sourceList = toolsUtils.deepClone(list)
-                let filteredList = []
-                if (this.selectedTplCategory === 'all') {
-                    filteredList = sourceList
+                let filteredList = toolsUtils.deepClone(list)
+                if (this.selectedTplType === 'businessProcess') {
+                    filteredList = filteredList.filter(tpl => {
+                        return this.selectedTplLabel.every(item => tpl.template_labels.find(label => label.label_id === Number(item)))
+                    })
                 } else {
-                    filteredList = sourceList.filter(item => item.id === this.selectedTplCategory)
+                    if (this.selectedTplCategory !== 'all') {
+                        filteredList = filteredList.filter(item => item.id === this.selectedTplCategory)
+                    }
                 }
                 this.templateList = filteredList
                 this.nowTypeList = filteredList
@@ -423,21 +512,16 @@
 .task-container {
     position: relative;
     .task-wrapper {
-        padding: 20px 20px 0;
         width: 850px;
         height: 100%;
         .task-list {
-            width: 830px;
+            padding: 20px 16px 0;
             height: 268px;
-            overflow: hidden;
+            overflow-y: auto;
+            @include scrollbar;
         }
         .task-group {
             margin-bottom: 30px;
-        }
-        .grouped-list {
-            height: 100%;
-            overflow-y: auto;
-            @include scrollbar;
         }
         .search-list {
             padding-top: 40px;
@@ -449,19 +533,18 @@
         }
         .filtrate-wrapper {
             display: flex;
-            margin-bottom: 20px;
+            align-items: center;
+            justify-content: space-around;
+            height: 60px;
+            border-bottom: 1px solid #e2e4ed;
         }
     }
     .task-search {
         position: relative;
-        margin-left: 15px;
-        flex: 1;
+        height: 32px;
         .search-input {
             width: 260px;
         }
-    }
-    .flow-types {
-        margin-left: 0px;
     }
     .bk-selector {
         width: 260px;

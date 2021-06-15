@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,93 +10,72 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-header-wrapper">
-        <base-title class="template-title" :title="isEditProcessPage ? title : $t('编辑执行方案')"></base-title>
-        <div class="template-name-input">
-            <div class="name-show-mode" v-if="isShowMode">
-                <h3 class="canvas-name" :title="tName">{{tName}}</h3>
-                <span v-if="isEditProcessPage" class="common-icon-edit" @click="onNameEditing"></span>
-            </div>
-            <template v-else>
-                <bk-input
-                    ref="canvasNameInput"
-                    v-validate="templateNameRule"
-                    data-vv-name="templateName"
-                    :class="['name-input', errors.first('templateName') ? 'name-error' : '']"
-                    :name="'templateName'"
-                    :has-error="errors.has('templateName')"
-                    :value="name"
-                    :placeholder="$t('请输入名称')"
-                    @input="onInputName"
-                    @enter="onInputBlur"
-                    @blur="onInputBlur">
-                </bk-input>
-                <i
-                    v-if="errors.first('templateName')"
-                    class="bk-icon icon-exclamation-circle-shape error-tip-icon"
-                    v-bk-tooltips="errors.first('templateName')">
-                </i>
-            </template>
+    <page-header class="template-header-wrapper">
+        <div class="header-left-area">
+            <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
+            <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
+            <h3 class="template-name">{{ name }}</h3>
+            <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
-                v-if="isEditProcessPage"
+                v-if="!common && isEditProcessPage"
                 class="common-icon-file-setting execute-scheme-icon"
-                :title="$t('执行方案')"
+                v-bk-tooltips.bottom="$t('执行方案')"
                 @click="onOpenExecuteScheme">
             </span>
         </div>
-        <div class="button-area" v-if="isEditProcessPage">
-            <div class="setting-tab-wrap">
-                <span
-                    v-for="tab in settingTabs"
-                    :key="tab.id"
-                    :class="['setting-item', {
-                        'active': activeTab === tab.id,
-                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+        <div class="header-right-area" slot="expand">
+            <div class="button-area" v-if="isEditProcessPage">
+                <div class="setting-tab-wrap">
+                    <span
+                        v-for="tab in settingTabs"
+                        :key="tab.id"
+                        :class="['setting-item', {
+                            'active': activeTab === tab.id,
+                            'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                        }]"
+                        @click="$emit('onChangePanel', tab.id)">
+                        <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
+                    </span>
+                </div>
+                <bk-button
+                    theme="primary"
+                    :class="[
+                        'save-canvas',
+                        'task-btn',
+                        { 'btn-permission-disable': !saveBtnActive }]"
+                    :loading="templateSaving"
+                    v-cursor="{ active: !saveBtnActive }"
+                    @click.stop="onSaveClick(false)">
+                    {{$t('保存')}}
+                </bk-button>
+                <bk-button
+                    theme="primary"
+                    :class="['task-btn', {
+                        'btn-permission-disable': !createTaskBtnActive
                     }]"
-                    @click="$emit('onChangePanel', tab.id)">
-                    <i :class="tab.icon" :title="tab.title"></i>
-                </span>
+                    :loading="createTaskSaving"
+                    v-cursor="{ active: !createTaskBtnActive }"
+                    @click.stop="onSaveClick(true)">
+                    {{createTaskBtnText}}
+                </bk-button>
             </div>
-            <bk-button
-                theme="primary"
-                :class="[
-                    'save-canvas',
-                    'task-btn',
-                    { 'btn-permission-disable': !saveBtnActive }]"
-                :loading="templateSaving"
-                v-cursor="{ active: !saveBtnActive }"
-                @click.stop="onSaveClick(false)">
-                {{$t('保存')}}
-            </bk-button>
-            <bk-button
-                theme="primary"
-                :class="['task-btn', {
-                    'btn-permission-disable': !createTaskBtnActive
-                }]"
-                :loading="createTaskSaving"
-                v-cursor="{ active: !createTaskBtnActive }"
-                @click.stop="onSaveClick(true)">
-                {{createTaskBtnText}}
-            </bk-button>
-            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
-        </div>
-        <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
-            <bk-button
-                theme="primary"
-                :class="[
-                    'save-execute-scheme',
-                    'task-btn',
-                    { 'btn-permission-disable': !saveBtnActive }]"
-                :loading="executeSchemeSaving"
-                v-cursor="{ active: !saveBtnActive }"
-                @click.stop="onSaveExecuteSchemeClick">
-                {{$t('保存')}}
-            </bk-button>
-            <bk-button theme="default" @click="goBackToTplEdit">{{$t('返回')}}</bk-button>
-        </div>
-        <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
-            <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
+            <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
+                <bk-button
+                    theme="primary"
+                    :class="[
+                        'save-execute-scheme',
+                        'task-btn',
+                        { 'btn-permission-disable': !saveBtnActive }]"
+                    :loading="executeSchemeSaving"
+                    v-cursor="{ active: !saveBtnActive }"
+                    @click.stop="onSaveExecuteSchemeClick">
+                    {{$t('保存')}}
+                </bk-button>
+            </div>
+            <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
+                <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
+            </div>
         </div>
         <SelectProjectModal
             :title="$t('创建任务')"
@@ -107,22 +86,20 @@
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
         </SelectProjectModal>
-    </div>
+    </page-header>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapActions, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { mapState, mapActions } from 'vuex'
     import permission from '@/mixins/permission.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import PageHeader from '@/components/layout/PageHeader.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     import SETTING_TABS from './SettingTabs.js'
 
     export default {
         name: 'TemplateHeader',
         components: {
-            BaseTitle,
+            PageHeader,
             SelectProjectModal
         },
         mixins: [permission],
@@ -150,14 +127,7 @@
         },
         data () {
             return {
-                tName: this.name.trim(),
                 settingTabs: SETTING_TABS.slice(0),
-                templateNameRule: {
-                    required: true,
-                    max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
-                },
-                isShowMode: true,
                 isSelectProjectShow: false, // 是否显示项目选择弹窗
                 saveBtnActive: false, // 保存按钮是否激活
                 createTaskBtnActive: false, // 新建任务按钮是否激活
@@ -205,9 +175,6 @@
             }
         },
         watch: {
-            name (val) {
-                this.tName = val
-            },
             type (val, oldVal) {
                 if (['new', 'clone'].includes(oldVal) && val === 'edit' && this.common && this.isSelectProjectShow) {
                     this.queryCommonTplCreateTaskPerm().then(() => {
@@ -233,12 +200,6 @@
             ...mapActions([
                 'queryUserPermission'
             ]),
-            ...mapMutations('template/', [
-                'setTemplateName'
-            ]),
-            onInputName (val) {
-                this.$emit('onChangeName', val)
-            },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
              * @param {Boolean} saveAndCreate 是否为新建/保存并新建任务按钮
@@ -276,13 +237,11 @@
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
                     const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
-                    this.tName = this.tName.trim()
-                    this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
                         if (this.common && pid === undefined) {
                             this.setProjectSelectDialogShow()
                         } else {
-                            this.goToTaskUrl(pid)
+                            this.goTaskCreate(pid)
                         }
                     } else {
                         this.$emit('onSaveTemplate', saveAndCreate, pid)
@@ -308,16 +267,18 @@
                 }
                 return { resourceData, actions }
             },
+            // 返回按钮点击
+            onBackClick () {
+                if (this.isEditProcessPage) {
+                    this.goBackTplList()
+                } else {
+                    this.goBackToTplEdit()
+                }
+            },
             onSaveExecuteSchemeClick () {
                 this.$emit('onSaveExecuteSchemeClick')
             },
-            goBackToTplEdit () {
-                this.$emit('goBackToTplEdit')
-            },
-            onClosePreview () {
-                this.$emit('onClosePreview')
-            },
-            getHomeUrl () {
+            goBackTplList () {
                 if (this.isFromTplListRoute) {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
                 } else {
@@ -325,9 +286,12 @@
                     this.$router.push(url)
                 }
             },
-            goToTaskUrl (pid) {
+            goBackToTplEdit () {
+                this.$emit('goBackToTplEdit')
+            },
+            goTaskCreate (pid) {
                 this.$router.push({
-                    name: 'taskStep',
+                    name: 'taskCreate',
                     params: { step: 'selectnode', project_id: pid },
                     query: {
                         template_id: this.template_id,
@@ -336,21 +300,8 @@
                     }
                 })
             },
-            onNameEditing () {
-                this.isShowMode = false
-                this.$nextTick(() => {
-                    const inputEl = this.$refs.canvasNameInput.$el.getElementsByClassName('bk-form-input')[0]
-                    this.$refs.canvasNameInput.focus()
-                    inputEl.select()
-                })
-            },
-            onInputBlur () {
-                this.$validator.validateAll().then((result) => {
-                    if (!result) {
-                        return
-                    }
-                    this.isShowMode = true
-                })
+            onClosePreview () {
+                this.$emit('onClosePreview')
             },
             handleProjectChange (project) {
                 this.selectedProject = project
@@ -401,8 +352,8 @@
                         action: 'common_flow_create'
                     })
                     this.hasCreateCommonTplPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.createCommonTplPermLoading = false
                 }
@@ -430,8 +381,8 @@
                         ]
                     })
                     this.hasCommonTplCreateTaskPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }
@@ -483,56 +434,41 @@
 </script>
 <style lang="scss" scoped>
     .template-header-wrapper {
-        position: relative;
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        padding: 0 20px;
-        height: 59px;
-        background: #f4f7fa;
-        border: 1px solid #cacedb;
-        .template-name-input {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 300px; // 354
-            text-align: center;
+        padding: 0 20px 0 10px;
+        .header-left-area {
             display: flex;
             align-items: center;
-            justify-content: center;
+            .back-icon {
+                font-size: 28px;
+                color: #3a84ff;
+                cursor: pointer;
+            }
+            .title {
+                font-size: 14px;
+                color: #313238;
+            }
         }
-        .name-show-mode {
+        .header-right-area {
             display: flex;
-            justify-content: center;
             align-items: center;
-            overflow: hidden;
+            height: 100%;
         }
-        .canvas-name {
-            display: inline-block;
-            margin: 0;
-            max-width: 400px;
+        .template-name {
+            margin: 0 0 0 20px;
+            max-width: 300px;
             font-size: 14px;
             font-weight: normal;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: #606266;
-        }
-        .name-input.name-error /deep/.bk-form-input {
-            border-color: #ea3636;
-        }
-        .error-tip-icon {
-            position: absolute;
-            right: 15px;
-            top: 8px;
-            font-size: 16px;
-            color: #ea3636;
-            cursor: pointer;
+            color: #63656e;
         }
         .common-icon-edit {
-            margin-left: 4px;
+            margin-left: 10px;
             font-size: 12px;
-            color: #546a9e;
+            color: #979ba5;
             cursor: pointer;
             &:hover {
                 color: #3480ff;
@@ -541,8 +477,11 @@
         .execute-scheme-icon {
             margin-left: 20px;
             font-size: 14px;
-            color: #546a9e;
+            color: #979ba5;
             cursor: pointer;
+            &:hover {
+                color: #3480ff;
+            }
         }
         .setting-tab-wrap {
             display: inline-block;
@@ -577,7 +516,7 @@
             }
         }
         .task-btn {
-            margin-right: 5px;
+            margin-left: 5px;
         }
     }
 </style>

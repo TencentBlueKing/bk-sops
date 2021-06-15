@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,6 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+
+from django.db import IntegrityError
 
 from gcloud.conf import settings
 from gcloud.core.utils import get_user_business_list
@@ -69,7 +71,10 @@ def sync_projects_from_cmdb(username, use_cache=True):
         }
 
     # sync projects from business
-    Project.objects.sync_project_from_cmdb_business(business_dict)
+    try:
+        Project.objects.sync_project_from_cmdb_business(business_dict)
+    except IntegrityError as e:
+        logger.warning("[sync_project_from_cmdb_business] create projects failed due to: {}".format(e))
 
     # update project's status which sync from cmdb
     Project.objects.update_business_project_status(archived_cc_ids=archived_biz_cc_ids, active_cc_ids=active_biz_cc_ids)

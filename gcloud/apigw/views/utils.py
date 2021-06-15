@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,8 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import traceback
 
-from gcloud.tasktmpl3 import varschema
+from gcloud.tasktmpl3.domains import varschema
 from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")  # noqa
@@ -161,22 +162,16 @@ def paginate_list_data(request, queryset):
     try:
         offset = int(request.GET.get("offset", 0))
         limit = int(request.GET.get("limit", 100))
-        list_data = list(queryset)
-        count = len(list_data)
+        # limit 最大数量为200
+        limit = 200 if limit > 200 else limit
+        count = queryset.count()
 
         if offset < 0 or limit < 0:
             raise Exception("offset and limit must be greater or equal to 0.")
-        # 全量拉取情况
-        if limit == 0 and offset == 0:
-            results = list_data
         else:
-            results = list_data[offset : offset + limit]
+            results = queryset[offset : offset + limit]
         return results, count
-    except ValueError as e:
-        logger.error("[API] pagination value error: {}, request: {}".format(e, request))
-        return [], 0
     except Exception as e:
-        logger.error(
-            "[API] pagination parameter error: {}, request: {}, offset: {}, limit: {}".format(e, request, offset, limit)
-        )
-        return [], 0
+        message = "[API] pagination error: {}".format(e)
+        logger.error(message + "\n traceback: {}".format(traceback.format_exc()))
+        raise Exception(message)

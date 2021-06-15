@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -35,7 +35,7 @@ const NODE_DICT = {
 
 const INVALID_NAME_CHAR = '\'‘"”$&<>'
 
-const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM']
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM', 'WechatWork']
 const BK_PLUGIN_ICON = {
     'bk_http_request': 'common-icon-bk-plugin-http',
     'bk_notify': 'common-icon-bk-plugin-notify',
@@ -54,7 +54,7 @@ const PROJECT_DESC_LENGTH = 512
 const SCHEME_NAME_MAX_LENGTH = 30
 const APP_NAME_MAX_LENGTH = 20
 const APP_DESCRIPTION_MAX_LENGTH = 30
-const VARIABLE_NAME_MAX_LENGTH = 20
+const VARIABLE_NAME_MAX_LENGTH = 50
 const VARIABLE_KEY_MAX_LENGTH = 50
 const SOURCE_NAME_MAX_LENGTH = 50
 

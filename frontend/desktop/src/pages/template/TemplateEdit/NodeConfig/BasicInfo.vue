@@ -1,6 +1,6 @@
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -127,7 +127,7 @@
                 <!-- 子流程版本更新 -->
                 <i
                     class="common-icon-clock-inversion update-tooltip"
-                    v-if="!inputLoading && subflowHasUpdate"
+                    v-if="!inputLoading && subflowHasUpdate && !updateSubflow"
                     v-bk-tooltips="{
                         content: $t('版本更新'),
                         placements: ['bottom-end']
@@ -156,7 +156,6 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler'
 
     export default {
         name: 'BasicInfo',
@@ -165,6 +164,7 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
+            updateSubflow: Boolean,
             inputLoading: Boolean
         },
         data () {
@@ -300,8 +300,8 @@
                     this.labelLoading = true
                     const resp = await this.getLabels({ limit: 0 })
                     this.labelData = this.transLabelListToGroup(resp.objects)
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.labelLoading = false
                 }

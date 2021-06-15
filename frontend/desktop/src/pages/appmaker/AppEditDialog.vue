@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -21,7 +21,7 @@
         :value="isEditDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
             <div class="common-form-item">
                 <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">
@@ -53,18 +53,25 @@
                         class="ui-form-item"
                         :clearable="true">
                     </bk-input>
-                    <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
+                    <span v-show="veeErrors.has('appName')" class="common-error-tip error-msg">{{ veeErrors.first('appName') }}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{$t('类别')}}</label>
                 <div class="common-form-content">
-                    <bk-input
+                    <bk-select
                         v-model="appData.appCategory"
-                        name="appCategory"
                         class="ui-form-item"
+                        :searchable="true"
+                        :placeholder="$t('请选择')"
                         :clearable="true">
-                    </bk-input>
+                        <bk-option
+                            v-for="(option, index) in taskCategories"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                 </div>
             </div>
             <div class="common-form-item">
@@ -165,7 +172,7 @@
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
                     </bk-input>
-                    <span v-show="errors.has('appDesc')" class="common-error-tip error-msg">{{ errors.first('appDesc') }}</span>
+                    <span v-show="veeErrors.has('appDesc')" class="common-error-tip error-msg">{{ veeErrors.first('appDesc') }}</span>
                 </div>
             </div>
         </div>
@@ -189,7 +196,6 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
@@ -246,6 +252,20 @@
             }
         },
         computed: {
+            ...mapState({
+                'projectBaseInfo': state => state.template.projectBaseInfo
+            }),
+            taskCategories () {
+                if (this.projectBaseInfo.task_categories) {
+                    return this.projectBaseInfo.task_categories.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.name
+                        }
+                    })
+                }
+                return []
+            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -318,7 +338,7 @@
                     const templateListData = await this.loadTemplateList({ project__id: this.project_id })
                     this.templateList = templateListData.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateLoading = false
                 }
@@ -333,7 +353,7 @@
                     this.schemeList = await this.loadTaskScheme(data)
                     this.schemeLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onSelectTemplate (id) {
@@ -403,7 +423,7 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
-                this.errors.clear()
+                this.veeErrors.clear()
                 this.appTemplateEmpty = false
             },
             resetAppData () {

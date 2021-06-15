@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -150,17 +150,18 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
                 host["agent"] = agent_info.get("bk_agent_alive", -1)
 
         # search host lock status
-        bk_host_id_list = [host_detail["bk_host_id"] for host_detail in data]
-        host_lock_status_result = client.cc.search_host_lock({"id_list": bk_host_id_list})
-        if not host_lock_status_result["result"]:
-            message = handle_api_error(_("配置平台(CMDB)"), "cc.search_host_lock", {}, host_lock_status_result)
-            result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
-            return JsonResponse(result)
-        host_lock_status_data = {int(k): v for k, v in host_lock_status_result["data"].items()}
-        for host_detail in data:
-            host_lock_status = host_lock_status_data.get(host_detail["bk_host_id"])
-            if host_lock_status is not None:
-                host_detail["bk_host_lock_status"] = host_lock_status
+        if request.GET.get("search_host_lock", None):
+            bk_host_id_list = [host_detail["bk_host_id"] for host_detail in data]
+            host_lock_status_result = client.cc.search_host_lock({"id_list": bk_host_id_list})
+            if not host_lock_status_result["result"]:
+                message = handle_api_error(_("配置平台(CMDB)"), "cc.search_host_lock", {}, host_lock_status_result)
+                result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
+                return JsonResponse(result)
+            host_lock_status_data = {int(k): v for k, v in host_lock_status_result["data"].items()}
+            for host_detail in data:
+                host_lock_status = host_lock_status_data.get(host_detail["bk_host_id"])
+                if host_lock_status is not None:
+                    host_detail["bk_host_lock_status"] = host_lock_status
     result = {"result": True, "code": NO_ERROR, "data": data}
     return JsonResponse(result)
 

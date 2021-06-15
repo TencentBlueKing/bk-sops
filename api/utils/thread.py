@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -90,12 +90,12 @@ class ThreadPool(_ThreadPool):
 
         return results
 
-    def map_async(self, func, iterable, chunksize=None, callback=None):
+    def map_async(self, func, iterable, chunksize=None, callback=None, error_callback=None):
         return super(ThreadPool, self).map_async(
             self.get_func_with_local(func), iterable, chunksize=chunksize, callback=callback
         )
 
-    def apply_async(self, func, args=(), kwds={}, callback=None):
+    def apply_async(self, func, args=(), kwds={}, callback=None, error_callback=None):
         return super(ThreadPool, self).apply_async(
             self.get_func_with_local(func), args=args, kwds=kwds, callback=callback
         )

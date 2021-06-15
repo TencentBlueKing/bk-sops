@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,17 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import requests
 import traceback
 
+import requests
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
-
 from pipeline.conf import settings
 from pipeline.core.flow.io import StringItemSchema
-
 from gcloud.core.models import EnvironmentVariables
 
 __group_name__ = _("企业微信(WechatWork)")
@@ -57,7 +55,7 @@ class WechatWorkSendMessageService(Service):
         chat_id = data.inputs.wechat_work_chat_id
         content = data.inputs.message_content
         mentioned_members = data.inputs.wechat_work_mentioned_members
-        msgtype = data.inputs.msgtype
+        msgtype = data.get_one_of_inputs("msgtype", "text")
 
         chat_id_list = chat_id.split("\n")
 
@@ -130,3 +128,4 @@ class WechatWorkSendMessageComponent(Component):
     bound_service = WechatWorkSendMessageService
     form = "%scomponents/atoms/wechat_work/wechat_work_send_message/v1_0.js" % settings.STATIC_URL
     version = "1.0"
+    desc = _("1.部署环境与企业微信服务器网络必须联通 " "2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770")

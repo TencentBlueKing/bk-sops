@@ -4,7 +4,7 @@
             "@babel/preset-env",
             {
                 "modules": false,
-                "corejs": 2,
+                "corejs": 3,
                 "spec": true,
                 "targets": {
                     "browsers": [

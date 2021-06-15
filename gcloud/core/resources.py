@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -33,6 +33,7 @@ from pipeline.variable_framework.models import VariableModel
 from pipeline_web.label.models import LabelGroup, Label
 from pipeline_web.plugin_management.utils import DeprecatedPlugin
 from pipeline.exceptions import ComponentNotExistException
+from pipeline.core.data.library import VariableLibrary
 
 from gcloud.core.models import Business, Project, ProjectCounter, ProjectBasedComponent
 from gcloud.commons.tastypie import GCloudModelResource
@@ -47,7 +48,7 @@ group_en_pattern = re.compile(r"(?:\()(.*)(?:\))")
 
 
 class BusinessResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Business.objects.exclude(status="disabled").exclude(
             life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")]
         )
@@ -78,7 +79,7 @@ class ProjectResource(GCloudModelResource):
 
     ALLOW_UPDATE_FIELD = ["desc", "is_disable"]
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Project.objects.all().order_by("-id")
         validation = FormValidation(form_class=ProjectForm)
         resource_name = "project"
@@ -135,7 +136,7 @@ class ProjectResource(GCloudModelResource):
 
 
 class UserProjectResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Project.objects.all().order_by("-id")
         resource_name = "user_project"
         filtering = {"is_disable": ALL}
@@ -174,7 +175,7 @@ class UserProjectResource(GCloudModelResource):
 
 
 class ComponentModelResource(GCloudModelResource):
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = ComponentModel.objects.filter(status=True).order_by("name")
         resource_name = "component"
         excludes = ["status", "id"]
@@ -237,15 +238,14 @@ class ComponentModelResource(GCloudModelResource):
                 bundle.data["version"], DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
             )
             group_name_en = group_en_pattern.findall(name[0] or "")
-            bundle.data["sort_key_group_en"] = group_name_en[0] if len(group_name_en) else "#"
+            bundle.data["sort_key_group_en"] = group_name_en[0] if group_name_en else "#"
             altered_objects.append(bundle)
 
         data["objects"] = altered_objects
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
-        data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
-        bundle = data
+        bundle = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         try:
             component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
         except ComponentNotExistException:
@@ -260,6 +260,8 @@ class ComponentModelResource(GCloudModelResource):
         bundle.data["group_name"] = _(name[0])
         bundle.data["group_icon"] = component.group_icon
         bundle.data["name"] = _(name[1])
+        # 被前端插件继承js的地址
+        bundle.data["base"] = getattr(component, "base", None)
 
         return data
 
@@ -271,12 +273,19 @@ class VariableModelResource(GCloudModelResource):
     tag = fields.CharField(attribute="tag", readonly=True, null=True)
     meta_tag = fields.CharField(attribute="meta_tag", readonly=True, null=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = VariableModel.objects.filter(status=True)
         resource_name = "variable"
         excludes = ["status", "id"]
         detail_uri_name = "code"
         authorization = ReadOnlyAuthorization()
+
+    def alter_detail_data_to_serialize(self, request, data):
+        bundle = super(VariableModelResource, self).alter_detail_data_to_serialize(request, data)
+        var_cls = VariableLibrary.get_var_class(bundle.data["code"])
+        bundle.data["description"] = getattr(var_cls, "desc", "") if var_cls else ""
+
+        return data
 
     def alter_list_data_to_serialize(self, request, data):
 
@@ -286,6 +295,8 @@ class VariableModelResource(GCloudModelResource):
             bundle.data["phase"] = variable_phase_dict.get(bundle.data["code"], {}).get(
                 LEGACY_PLUGINS_VERSION, DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
             )
+            var_cls = VariableLibrary.get_var_class(bundle.data["code"])
+            bundle.data["description"] = getattr(var_cls, "desc", "") if var_cls else ""
 
         return data
 
@@ -293,7 +304,7 @@ class VariableModelResource(GCloudModelResource):
 class CommonProjectResource(GCloudModelResource):
     project = fields.ForeignKey(ProjectResource, "project", full=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = ProjectCounter.objects.all().order_by("-count")
         resource_name = "common_use_project"
         allowed_methods = ["get"]
@@ -337,7 +348,7 @@ class LabelGroupModelResource(GCloudModelResource):
     code = fields.CharField(attribute="code", readonly=True)
     name = fields.CharField(attribute="name", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = LabelGroup.objects.all()
         resource_name = "label_group"
         detail_uri_name = "id"
@@ -350,7 +361,7 @@ class LabelModelResource(GCloudModelResource):
     code = fields.CharField(attribute="code", readonly=True)
     name = fields.CharField(attribute="name", readonly=True)
 
-    class Meta(GCloudModelResource.Meta):
+    class Meta(GCloudModelResource.CommonMeta):
         queryset = Label.objects.all()
         resource_name = "label"
         detail_uri_name = "id"

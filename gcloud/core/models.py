@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,6 +17,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.utils import timezone
+
+from gcloud.taskflow3.constants import TEMPLATE_SOURCE
 
 
 class BusinessManager(models.Manager):
@@ -54,7 +56,7 @@ class Business(models.Model):
         verbose_name = _("业务 Business")
         verbose_name_plural = _("业务 Business")
         permissions = (
-            ("view_business", "Can view business"),
+            ("get_business", "Can get business"),
             ("manage_business", "Can manage business"),
         )
 
@@ -85,8 +87,8 @@ class UserBusiness(models.Model):
 
 
 class BusinessGroupMembership(models.Model):
-    business = models.ForeignKey(Business)
-    group = models.ForeignKey(Group)
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
     date_created = models.DateTimeField(default=timezone.now)
 
@@ -194,7 +196,7 @@ class ProjectManager(models.Manager):
                         bk_biz_id=cc_id,
                     )
                 )
-
+            # maybe have duplicate entry, caller function should cope with the exception
             self.bulk_create(projects, batch_size=5000)
 
     def update_business_project_status(self, archived_cc_ids, active_cc_ids):
@@ -203,7 +205,7 @@ class ProjectManager(models.Manager):
 
 
 class Project(models.Model):
-    name = models.CharField(_("项目名"), max_length=256)
+    name = models.CharField(_("项目名"), max_length=192)
     time_zone = models.CharField(_("项目时区"), max_length=100, blank=True)
     creator = models.CharField(_("创建者"), max_length=256)
     desc = models.CharField(_("项目描述"), max_length=512, blank=True)
@@ -218,6 +220,7 @@ class Project(models.Model):
     class Meta:
         verbose_name = _("项目 Project")
         verbose_name_plural = _("项目 Project")
+        unique_together = ("bk_biz_id", "name")
 
     def __unicode__(self):
         return "%s_%s" % (self.id, self.name)
@@ -231,7 +234,9 @@ class ProjectBasedComponentManager(models.Manager):
         return self.values_list("component_code", flat=True)
 
     def get_components_of_other_projects(self, project_id):
-        return self.exclude(project_id=project_id).values_list("component_code", flat=True)
+        pre_exclude_components = self.exclude(project_id=project_id).values_list("component_code", flat=True)
+        project_components = self.filter(project_id=project_id).values_list("component_code", flat=True)
+        return list(set(pre_exclude_components) - set(project_components))
 
 
 class ProjectBasedComponent(models.Model):
@@ -259,7 +264,7 @@ class UserDefaultProjectManager(models.Manager):
 
 class UserDefaultProject(models.Model):
     username = models.CharField(_("用户名"), max_length=255, unique=True)
-    default_project = models.ForeignKey(verbose_name=_("用户默认项目"), to=Project)
+    default_project = models.ForeignKey(verbose_name=_("用户默认项目"), to=Project, on_delete=models.CASCADE)
 
     objects = UserDefaultProjectManager()
 
@@ -285,7 +290,7 @@ class ProjectCounterManager(models.Manager):
 
 class ProjectCounter(models.Model):
     username = models.CharField(_("用户名"), max_length=255)
-    project = models.ForeignKey(verbose_name=_("项目"), to=Project)
+    project = models.ForeignKey(verbose_name=_("项目"), to=Project, on_delete=models.CASCADE)
     count = models.IntegerField(_("项目访问次数"), default=1)
 
     objects = ProjectCounterManager()
@@ -353,9 +358,46 @@ class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
     executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
+    max_periodic_task_num = models.IntegerField(_("项目下最大周期任务数"), default=-1, blank=True)
 
     objects = ProjectConfigManager()
 
     class Meta:
         verbose_name = _("项目配置 ProjectConfig")
         verbose_name_plural = _("项目配置 ProjectConfig")
+
+
+class EngineConfigManager(models.Manager):
+    def get_engine_ver(self, project_id, template_id, template_source):
+        template_config = self.filter(
+            scope_id=template_id, scope=EngineConfig.SCOPE_TYPE_TEMPLATE, template_source=template_source
+        ).only("engine_ver")
+        if template_config:
+            return template_config.first().engine_ver
+
+        project_config = self.filter(scope_id=project_id, scope=EngineConfig.SCOPE_TYPE_PROJECT).only("engine_ver")
+        if project_config:
+            return project_config.first().engine_ver
+
+        return EngineConfig.ENGINE_VER_V1
+
+
+class EngineConfig(models.Model):
+    SCOPE_TYPE_PROJECT = 1
+    SCOPE_TYPE_TEMPLATE = 2
+    SCOPE_TYPE = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"))
+    ENGINE_VER_V1 = 1
+    ENGINE_VER_V2 = 2
+    ENGINE_VER = ((ENGINE_VER_V1, "v1"), (ENGINE_VER_V2, "v2"))
+
+    scope_id = models.IntegerField(_("范围对象ID"))
+    scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPE)
+    engine_ver = models.IntegerField(_("引擎版本"), choices=ENGINE_VER)
+    template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE)
+
+    objects = EngineConfigManager()
+
+    class Meta:
+        verbose_name = _("引擎版本配置 EngineConfig")
+        verbose_name_plural = _("引擎版本配置 EngineConfig")
+        index_together = ["scope", "scope_id"]

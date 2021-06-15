@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -60,7 +60,13 @@
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
-                <bk-button theme="primary" :disabled="hasAbnormalReturn" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    :disabled="hasAbnormalReturn"
+                    :loading="loading"
+                    @click="goToApply">
+                    {{ hasClicked ? $t('已申请') : $t('去申请') }}
+                </bk-button>
                 <bk-button theme="default" @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
@@ -68,7 +74,6 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
@@ -79,6 +84,7 @@
                 isModalShow: false,
                 permissionData: {},
                 loading: false,
+                hasClicked: false,
                 lock: require('../../../assets/images/lock-radius.svg'),
                 hasAbnormalReturn: false // 接口是否返回异常
             }
@@ -102,10 +108,9 @@
                         this.url = res.data.url
                     } else {
                         this.hasAbnormalReturn = true
-                        errorHandler(res, this)
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -136,7 +141,12 @@
                     return
                 }
 
-                openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                if (this.hasClicked) {
+                    window.location.reload()
+                } else {
+                    this.hasClicked = true
+                    openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                }
             },
             onCloseDialog () {
                 this.isModalShow = false

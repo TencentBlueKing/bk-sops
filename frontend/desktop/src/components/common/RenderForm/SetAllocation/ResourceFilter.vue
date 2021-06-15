@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -59,7 +59,16 @@
                         :loading="pending.set"
                         :disabled="setSelectDisable"
                         :placeholder="setSelectDisable ? i18n.setPlaceholder : i18n.pleaseSelect "
-                        ext-popover-cls="common-bk-select-hide-option">
+                        ext-popover-cls="common-bk-select-hide-option"
+                        @toggle="handlerSetSelectToggle">
+                        <bk-input
+                            ext-cls="input-search"
+                            clearable
+                            :placeholder="i18n.set"
+                            :left-icon="'bk-icon icon-search'"
+                            v-model="setValue"
+                            @change="handlerSetInputChange">
+                        </bk-input>
                         <template v-if="formData.set.length > 0">
                             <bk-option
                                 v-for="item in formData.set"
@@ -72,8 +81,8 @@
                             ref="setTree"
                             default-expand-all
                             show-checkbox
-                            :height="216"
-                            :check-strictly="false"
+                            :height="180"
+                            :check-strictly="true"
                             :disable-strictly="false"
                             :data="setList"
                             :options="{ nameKey: 'label' }"
@@ -88,7 +97,16 @@
                         ext-popover-cls="common-bk-select-hide-option"
                         :value="formData.resource|filterResourceId"
                         :loading="pending.resource"
-                        @clear="onResourceClear">
+                        @clear="onResourceClear"
+                        @toggle="handlerResourceSelectToggle">
+                        <bk-input
+                            ext-cls="input-search"
+                            clearable
+                            :placeholder="i18n.resource"
+                            :left-icon="'bk-icon icon-search'"
+                            v-model="resourceValue"
+                            @change="handlerResourceInputChange">
+                        </bk-input>
                         <template v-if="formData.resource.length > 0">
                             <bk-option
                                 v-for="item in formData.resource"
@@ -100,8 +118,8 @@
                         <bk-big-tree
                             ref="resourceTree"
                             show-checkbox
-                            :height="216"
-                            :check-strictly="false"
+                            :height="180"
+                            :check-strictly="true"
                             :options="{ nameKey: 'label' }"
                             :default-expanded-nodes="defaultExpandNodes"
                             :data="resourceList"
@@ -135,7 +153,7 @@
                     </bk-select>
                 </bk-form-item>
             </bk-form>
-            <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1 }">
+            <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1, zIndex: 100 }">
                 <bk-tab
                     v-if="moduleList.length > 0 && formData.modules.length > 0"
                     class="module-tabs"
@@ -284,6 +302,9 @@
             const { set_count, host_resources, mute_attribute = '', filter_lock = false, shareEqually = '', module_detail } = tools.deepClone(this.config)
             const $this = this
             return {
+                checkedNode: null,
+                setValue: '',
+                resourceValue: '',
                 formData: {
                     scheme: '',
                     clusterCount: set_count,
@@ -516,11 +537,9 @@
                     })
                     if (resp.result) {
                         this.schemes = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.scheme = false
                 }
@@ -552,11 +571,9 @@
                                 this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -594,11 +611,9 @@
                                 }
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.resource = false
                 }
@@ -622,18 +637,18 @@
                                 url: this.urls['cc_find_host_by_topo'],
                                 ids: ids.join(',')
                             })
-                            resp.data.info.forEach(md => {
-                                const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
-                                md.count = mdInfo ? mdInfo.host_count : 0
-                            })
+                            if (respCount.result) {
+                                resp.data.info.forEach(md => {
+                                    const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
+                                    md.count = mdInfo ? mdInfo.host_count : 0
+                                })
+                            }
                         }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -654,11 +669,9 @@
                                 name: item.text
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.condition = false
                 }
@@ -734,16 +747,23 @@
                                 this.isSchemeDialogShow = false
                                 this.formData.scheme = resp.data.id
                                 this.gitResourceSchemes()
-                            } else {
-                                errorHandler(resp, this)
                             }
-                        } catch (error) {
-                            errorHandler(error, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.saveScheme = false
                         }
                     }
                 })
+            },
+            handlerSetSelectToggle (val) {
+                if (val) {
+                    this.setValue = ''
+                    this.handlerSetInputChange()
+                }
+            },
+            handlerSetInputChange () {
+                this.$refs.setTree.filter(String(this.setValue).toLowerCase())
             },
             async onSetSelect (ids, checked) {
                 this.formData.set = [{ ...checked.data }]
@@ -810,16 +830,16 @@
                 return list
             },
             // 主机资源所属，选中父节点后取消所有子节点的选中态
-            changeChildrenNodeState (node, checkedList, isChecked) {
+            changeChildrenNodeState (node, isChecked) {
                 node.children.forEach(item => {
-                    const index = checkedList.findIndex(id => id === item.id)
+                    const index = this.formData.resource.findIndex(val => val.id === item.id)
                     if (index > -1) {
-                        checkedList.splice(index, 1)
-                        this.$refs.resourceTree.setChecked(item.id, { checked: false })
+                        this.formData.resource.splice(index, 1)
                     }
+                    this.$refs.resourceTree.setChecked(item.id, { checked: false })
                     this.$refs.resourceTree.setDisabled(item.id, { disabled: isChecked })
                     if (item.children && item.children.length > 0) {
-                        this.changeChildrenNodeState(item, checkedList, isChecked)
+                        this.changeChildrenNodeState(item, isChecked)
                     }
                 })
             },
@@ -828,17 +848,33 @@
                 this.formData.resource = []
                 this.$refs.resourceTree.setData(this.resourceList)
             },
+            handlerResourceSelectToggle (val) {
+                if (val) {
+                    this.resourceValue = ''
+                    this.handlerResourceInputChange()
+                }
+            },
+            handlerResourceInputChange () {
+                this.$refs.resourceTree.filter(String(this.resourceValue).toLowerCase())
+            },
             onResourceSelect (selectedNodes, node) {
-                const checkedList = selectedNodes.slice(0)
                 const isChecked = selectedNodes.includes(node.id)
                 if (node.children && node.children.length) {
-                    this.changeChildrenNodeState(node, checkedList, isChecked)
+                    this.changeChildrenNodeState(node, isChecked)
                 }
-                this.formData.resource = checkedList.map(id => {
-                    const label = this.filterSetName(id, this.resourceList)
-                    return { id, label }
-                })
-                this.$refs.resourceTree.setChecked(checkedList, { checked: true })
+                if (isChecked) {
+                    const label = this.filterSetName(node.id, this.resourceList)
+                    this.formData.resource.push({
+                        id: node.id,
+                        label
+                    })
+                    this.$refs.resourceTree.setChecked(node.id, { checked: true })
+                } else {
+                    const index = this.formData.resource.findIndex(item => item.id === node.id)
+                    if (index > -1) {
+                        this.formData.resource.splice(index, 1)
+                    }
+                }
             },
             // 清除互斥属性后，所有模板默认的互斥方法置为不互斥
             onMuteAttributeClear () {
@@ -942,18 +978,21 @@
                     const hostData = await this.getHostInCC({ // 加载所有主机列表
                         url: this.urls['cc_search_host'],
                         fields,
-                        topo
+                        topo,
+                        search_host_lock: this.formData.filterLock || undefined
                     })
-                    if (this.formData.filterLock) { // 过滤已经加锁主机
-                        hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
+                    if (hostData.result) {
+                        if (this.formData.filterLock) { // 过滤已经加锁主机
+                            hostData.data = hostData.data.filter(item => !item.bk_host_lock_status)
+                        }
+    
+                        const moduleHosts = this.filterModuleHost(hostData.data)
+                        const configData = this.getConfigData()
+                        this.$emit('update', configData, moduleHosts)
+                        this.$emit('update:showFilter', false)
                     }
-
-                    const moduleHosts = this.filterModuleHost(hostData.data)
-                    const configData = this.getConfigData()
-                    this.$emit('update', configData, moduleHosts)
-                    this.$emit('update:showFilter', false)
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.log(error)
                 } finally {
                     this.pending.host = false
                 }
@@ -984,7 +1023,7 @@
 
                         if (md.count > 0) {
                             item.list.some(h => {
-                                if (moduleHosts[md.name].length === md.count) {
+                                if (moduleHosts[md.name].length === Number(md.count)) {
                                     return true
                                 }
                                 if (!usedHosts.includes(h.bk_host_innerip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
@@ -1268,6 +1307,18 @@
     }
     /deep/ .bk-big-tree-node .node-content {
         font-size: 12px;
+    }
+    .input-search {
+        width: calc(100% - 10px);
+        margin: 0 5px 2px;
+        border-bottom: 1px solid #dcdee5;
+        /deep/ .bk-form-input {
+            border: none;
+            border-radius: 0;
+        }
+        /deep/ .left-icon {
+            left: 5px;
+        }
     }
 </style>
 <style lang="scss">

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -68,7 +68,7 @@
                     </bk-form>
                     <bk-table
                         class="tab-data-table"
-                        v-bkloading="{ isLoading: appmakerDataLoading, opacity: 1 }"
+                        v-bkloading="{ isLoading: appmakerDataLoading, opacity: 1, zIndex: 100 }"
                         :data="appmakerData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
@@ -106,7 +106,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -237,11 +236,9 @@
                             this.pagination.count = res.data.total
                         }
                         return res.data.groups
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e)
+                    console.log(e)
                 }
             },
             async getCategoryData () {
@@ -257,7 +254,7 @@
                     }
                     this.categoryData = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.categoryDataLoading = false
                 }
@@ -275,7 +272,7 @@
                     }
                     this.projectData = await this.loadAnalysisData(query)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectDataLoading = false
                 }
@@ -300,7 +297,7 @@
                     }
                     this.appmakerData = await this.loadAnalysisData(query, 'appmaker')
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.appmakerDataLoading = false
                 }

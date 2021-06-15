@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,14 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-manage" v-bkloading="{ isLoading: hasAdminPerm === null, opacity: 0 }">
+    <div class="page-manage" v-bkloading="{ isLoading: hasAdminPerm === null, opacity: 0, zIndex: 100 }">
         <template v-if="hasViewPerm">
-            <base-title
-                class="title"
-                :tab-list="routers"
-                :title="title">
-            </base-title>
-            <router-view :has-edit-perm="hasEditPerm" :edit-perm-loading="editPermLoading"></router-view>
+            <page-header v-if="!hideRoutersNav" :tab-list="routers"></page-header>
+            <div :class="['page-manage-content', { 'has-nav': !hideRoutersNav }]">
+                <router-view :has-edit-perm="hasEditPerm" :edit-perm-loading="editPermLoading"></router-view>
+            </div>
         </template>
     </div>
 </template>
@@ -25,8 +23,7 @@
     import { mapActions, mapState } from 'vuex'
     import bus from '@/utils/bus.js'
     import i18n from '@/config/i18n/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import PageHeader from '@/components/layout/PageHeader.vue'
     const ROUTERS = [
         {
             name: i18n.t('搜索'),
@@ -49,13 +46,14 @@
     export default {
         name: 'Manage',
         components: {
-            BaseTitle
+            PageHeader
         },
         data () {
             return {
                 editPermLoading: true,
                 hasViewPerm: false,
-                hasEditPerm: false
+                hasEditPerm: false,
+                routers: ROUTERS
             }
         },
         computed: {
@@ -63,11 +61,8 @@
                 hasAdminPerm: state => state.hasAdminPerm,
                 permissionMeta: state => state.permissionMeta
             }),
-            routers () {
-                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? [] : ROUTERS
-            },
-            title () {
-                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? i18n.t('编辑包源') : i18n.t('后台管理')
+            hideRoutersNav () {
+                return ['packageEdit', 'cacheEdit'].includes(this.$route.name)
             }
         },
         watch: {
@@ -102,8 +97,8 @@
                     })
                     this.hasEditPerm = res.data.is_allow
                     this.editPermLoading = false
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**
@@ -130,13 +125,18 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
+
     .page-manage {
-        padding: 0 60px;
-        min-width: 1320px;
-        height: 100%;
+        height: calc(100vh - 52px);
         background: #f4f7fa;
-        .header-wrapper {
-            margin: 0 60px 0;
+        .page-manage-content {
+            height: 100%;
+            overflow: auto;
+            @include scrollbar;
+            &.has-nav {
+                height: calc(100vh - 100px);
+            }
         }
     }
 </style>

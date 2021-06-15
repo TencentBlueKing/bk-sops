@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -79,7 +79,7 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id",
+                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -92,6 +92,7 @@ class CreateTaskAPITest(APITest):
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
+                    engine_ver=1,
                 )
 
                 data = json.loads(response.content)
@@ -130,7 +131,7 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id",
+                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -143,6 +144,7 @@ class CreateTaskAPITest(APITest):
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
+                    engine_ver=1,
                 )
 
                 data = json.loads(response.content)
@@ -207,6 +209,7 @@ class CreateTaskAPITest(APITest):
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
+                    engine_ver=1,
                 )
 
                 data = json.loads(response.content)
@@ -449,9 +452,9 @@ class CreateTaskAPITest(APITest):
             self.assertTrue("message" in data)
             self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
-            create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.standardize_pipeline_node_name.assert_called_once_with(TEST_PIPELINE_TREE)
             create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
-            create_task.pipeline_node_name_handle.reset_mock()
+            create_task.standardize_pipeline_node_name.reset_mock()
             create_task.validate_web_pipeline_tree.reset_mock()
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
@@ -481,7 +484,7 @@ class CreateTaskAPITest(APITest):
             self.assertTrue("message" in data)
             self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
-            create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.standardize_pipeline_node_name.assert_called_once_with(TEST_PIPELINE_TREE)
             create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
 
     @mock.patch(

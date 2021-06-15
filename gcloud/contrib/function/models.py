@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -33,7 +33,9 @@ class FunctionTask(models.Model):
     职能化认领单
     """
 
-    task = models.ForeignKey(TaskFlowInstance, related_name="function_task", help_text=_("职能化单"))
+    task = models.ForeignKey(
+        TaskFlowInstance, related_name="function_task", help_text=_("职能化单"), on_delete=models.CASCADE
+    )
     creator = models.CharField(_("提单人"), max_length=32)
     create_time = models.DateTimeField(_("提单时间"), auto_now_add=True)
     claimant = models.CharField(_("认领人"), max_length=32, blank=True)

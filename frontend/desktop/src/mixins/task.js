@@ -1,4 +1,3 @@
-import { errorHandler } from '@/utils/errorHandler.js'
 import { mapActions } from 'vuex'
 import i18n from '@/config/i18n/index.js'
 
@@ -69,11 +68,9 @@ const task = {
                             status.text = i18n.t('未知')
                     }
                     this[acceptVarName].splice(index, 1, status)
-                } else {
-                    errorHandler(detailInfo, this)
                 }
             } catch (e) {
-                errorHandler(e, this)
+                console.log(e)
             }
         }
 

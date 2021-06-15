@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,6 +16,7 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
+                allowCreate: true,
                 hookable: true,
                 remote: true,
                 remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
@@ -43,7 +44,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),
-                placeholder: gettext("需要加锁的主机内网 IP，多个用换行符分隔"),
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 hookable: true,
                 validation: [
                     {

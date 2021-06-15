@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,8 +17,8 @@ from django.views.decorators.http import require_POST, require_GET
 
 from gcloud.contrib.analysis.decorators import standardize_params
 
-from gcloud.core.constant import AE
-from gcloud.core.constant import TASK_CATEGORY
+from gcloud.constants import AE
+from gcloud.constants import TASK_CATEGORY
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
 
 from gcloud.iam_auth.intercept import iam_intercept

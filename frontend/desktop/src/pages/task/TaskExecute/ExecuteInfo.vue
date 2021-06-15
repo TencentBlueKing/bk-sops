@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -23,7 +23,7 @@
                 'loading': loading,
                 'admin-view': adminView
             }]"
-            v-bkloading="{ isLoading: loading, opacity: 1 }">
+            v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <div class="excute-time" v-if="!adminView && isReadyStatus">
                 <span>{{$t('第')}}</span>
                 <bk-select
@@ -74,11 +74,11 @@
                     </table>
                     <NoData v-else></NoData>
                 </section>
-                <section class="info-section">
+                <section class="info-section" v-if="executeInfo.id">
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
-                    <OperationFlow></OperationFlow>
+                    <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
-                <section class="info-section">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title input-parameter">
                         <div class="input-title">{{ $t('输入参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -102,8 +102,7 @@
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                     </div>
                 </section>
-                
-                <section class="info-section">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title output-parameter">
                         <div class="output-title">{{ $t('输出参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -158,7 +157,7 @@
                 </section>
                 <section class="info-section">
                     <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1 }">
+                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
                         <NoData v-else></NoData>
                     </div>
@@ -195,7 +194,7 @@
                                 </div>
                                 <div class="common-form-item">
                                     <label>{{ $t('日志') }}</label>
-                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
                                         <div class="common-form-content" v-if="historyLog[props.row.history_id]">
                                             <div class="code-block-wrap" v-if="adminView">
                                                 <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
@@ -266,7 +265,6 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
@@ -573,7 +571,7 @@
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
-                    this.theExecuteTime = 1
+                    this.theExecuteTime = undefined
                     this.loadNodeInfo()
                 }
             }
@@ -695,7 +693,7 @@
                         this.isShowRetryBtn = data.retryable
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -719,8 +717,8 @@
                     if (res.result) {
                         return res.data
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 非admin 用户执行记录
@@ -729,8 +727,8 @@
                     this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.isLogLoading = false
                 }
@@ -779,11 +777,9 @@
                         } else {
                             this.$set(this.historyLog, id, resp.data)
                         }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.historyLogLoading[id] = false
                 }

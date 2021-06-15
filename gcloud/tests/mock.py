@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -112,6 +112,8 @@ class MockTaskFlowInstance(object):
         self.flow_type = kwargs.get("flow_type", "flow_type")
         self.current_flow = kwargs.get("current_flow", "current_flow")
         self.is_deleted = True
+        self.engine_ver = kwargs.get("engine_ver", 1)
+        self.pipeline_instance = kwargs.get("pipeline_instance", MagicMock())
 
 
 class MockPeriodicTask(object):
@@ -210,3 +212,11 @@ class MockJwtClient(object):
     @property
     def is_valid(self):
         return True
+
+
+class MockTaskOperationTimesConfig(object):
+    def __init__(self, kwargs):
+        self.kwargs = kwargs
+
+    def __getattr__(self, item):
+        return self.kwargs[item]

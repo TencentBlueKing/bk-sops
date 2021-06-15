@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,7 +19,7 @@ const NODE_RULE = {
         max_in: 0,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'subflow'],
+        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'subflow'],
         unique: true
     },
     'endpoint': {
@@ -35,7 +35,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'subflow': {
@@ -43,7 +43,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'branchgateway': {
@@ -51,7 +51,15 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
+        unique: false
+    },
+    'conditionalparallelgateway': {
+        min_in: 1,
+        max_in: 1000,
+        min_out: 1,
+        max_out: 1000,
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'parallelgateway': {
@@ -59,7 +67,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway'],
         unique: false
     },
     'convergegateway': {
@@ -67,7 +75,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     }
 }
