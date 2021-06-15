@@ -160,7 +160,7 @@ def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
                 "name": get_biz_internal_module_option["bk_module_name"],
             }
         )
-    return result
+    return {"result": True, "data": result, "message": "success"}
 
 
 def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
