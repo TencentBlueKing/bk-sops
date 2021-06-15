@@ -14,7 +14,6 @@ import copy
 
 import jsonschema
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -27,18 +26,20 @@ from gcloud.core.models import EngineConfig
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
-from gcloud.utils.strings import pipeline_node_name_handle
+from gcloud.utils.strings import standardize_pipeline_node_name
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 try:
     from bkoauth.decorators import apigw_required
@@ -54,6 +55,7 @@ except ImportError:
 @project_inject
 @request_validate(CreateTaskValidator)
 @iam_intercept(CreateTaskInterceptor())
+@record_operation(RecordType.task.name, OperateType.create.name, OperateSource.api.name)
 def create_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project
@@ -79,7 +81,7 @@ def create_task(request, template_id, project_id):
                 "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
     else:
         try:
@@ -90,22 +92,23 @@ def create_task(request, template_id, project_id):
                 "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = "app_code cannot be empty, make sure api gateway has sent correct params"
-        return JsonResponse({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+        return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     try:
         params.setdefault("flow_type", "common")
         params.setdefault("constants", {})
         params.setdefault("exclude_task_nodes_id", [])
+        params.setdefault("simplify_vars", [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_task raise prams error: %s" % e)
         message = "task params is invalid: %s" % e
-        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     create_with_tree = "pipeline_tree" in params
 
@@ -124,12 +127,12 @@ def create_task(request, template_id, project_id):
                         meta = copy.deepcopy(pipeline_tree["constants"][key])
                         pipeline_tree["constants"][key]["meta"] = meta
                     pipeline_tree["constants"][key]["value"] = value
-            pipeline_node_name_handle(pipeline_tree)
+            standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:
             message = "[API] create_task get invalid pipeline_tree: %s" % str(e)
             logger.exception(message)
-            return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+            return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
         pipeline_instance_kwargs["pipeline_tree"] = pipeline_tree
 
@@ -138,14 +141,18 @@ def create_task(request, template_id, project_id):
         except PipelineException as e:
             message = "[API] create_task create pipeline error: %s" % str(e)
             logger.exception(message)
-            return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+            return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
     else:
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"],
+                tmpl,
+                pipeline_instance_kwargs,
+                params["constants"],
+                params["exclude_task_nodes_id"],
+                params["simplify_vars"],
             )
         except Exception as e:
-            return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+            return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     task = TaskFlowInstance.objects.create(
         project=project,
@@ -161,10 +168,8 @@ def create_task(request, template_id, project_id):
             project_id=project.id, template_id=template_id, template_source=template_source
         ),
     )
-    return JsonResponse(
-        {
-            "result": True,
-            "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
-            "code": err_code.SUCCESS.code,
-        }
-    )
+    return {
+        "result": True,
+        "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
+        "code": err_code.SUCCESS.code,
+    }

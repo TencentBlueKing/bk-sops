@@ -1231,6 +1231,8 @@
                         const canvasDom = clone.querySelector('#canvas-flow')
                         canvasDom.style.left = offsetX + 30 + 'px'
                         canvasDom.style.top = offsetY + 30 + 'px'
+                        canvasDom.style.right = 0 + 'px'
+                        canvasDom.style.bottom = 0 + 'px'
                         canvasDom.style.transform = 'inherit'
                         canvasDom.style.border = 0
                     }

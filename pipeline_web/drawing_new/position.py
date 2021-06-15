@@ -50,6 +50,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         PWE.EmptyStartEvent: event_shift_y,
         PWE.EmptyEndEvent: event_shift_y,
         PWE.ExclusiveGateway: gateway_shift_y,
+        PWE.ConditionalParallelGateway: gateway_shift_y,
         PWE.ParallelGateway: gateway_shift_y,
         PWE.ConvergeGateway: gateway_shift_y,
     }
@@ -61,6 +62,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         PWE.EmptyStartEvent: event_size[0] * 2,
         PWE.EmptyEndEvent: event_size[0] * 2,
         PWE.ExclusiveGateway: gateway_size[0] * 6,
+        PWE.ConditionalParallelGateway: gateway_size[0] * 6,
         PWE.ParallelGateway: gateway_size[0] * 2,
         PWE.ConvergeGateway: gateway_size[0] * 2,
     }

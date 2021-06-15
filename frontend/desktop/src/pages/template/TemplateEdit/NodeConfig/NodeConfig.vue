@@ -143,7 +143,7 @@
                                 <!-- 输入参数 -->
                                 <section class="config-section">
                                     <h3>{{$t('输入参数')}}</h3>
-                                    <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
+                                    <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100  }">
                                         <template v-if="!inputLoading">
                                             <input-params
                                                 v-if="inputs.length > 0"
@@ -166,7 +166,7 @@
                                 <!-- 输出参数 -->
                                 <section class="config-section">
                                     <h3>{{$t('输出参数')}}</h3>
-                                    <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
+                                    <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100  }">
                                         <template v-if="!outputLoading">
                                             <output-params
                                                 v-if="outputs.length"
@@ -495,6 +495,7 @@
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
                         if (!variable.meta) {
+                            variable.meta = tools.deepClone(variable)
                             variable.value = formItemConfig.attrs.value
                         }
                     }
@@ -590,7 +591,7 @@
                     return {
                         version: item.version
                     }
-                })
+                }).reverse()
             },
             /**
              * 获取子流程任务节点输入参数值，有三种情况：
@@ -1237,16 +1238,16 @@
                     font-size: 14px;
                     color: #313238;
                 }
-                /deep/ i {
+                i {
                     font-size: 18px;
                 }
             }
-            /deep/.bk-link-text {
+            .bk-link-text {
                 font-size: 12px;
             }
         }
         .list-change {
-            /deep/ .bk-table-body-wrapper {
+            .bk-table-body-wrapper {
                 padding-bottom: 25px;
             }
         }

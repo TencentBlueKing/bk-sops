@@ -29,10 +29,10 @@ from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.utils.strings import name_handler, pipeline_node_name_handle
-from gcloud.core.constant import TASK_NAME_MAX_LENGTH
+from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
+from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud.core.models import EngineConfig
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -44,6 +44,8 @@ from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -220,12 +222,13 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
     @staticmethod
     def handle_task_name_attr(data):
-        data["name"] = name_handler(data["name"], TASK_NAME_MAX_LENGTH)
-        pipeline_node_name_handle(data["pipeline_tree"])
+        data["name"] = standardize_name(data["name"], TASK_NAME_MAX_LENGTH)
+        standardize_pipeline_node_name(data["pipeline_tree"])
 
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
 
+    @record_operation(RecordType.task.name, OperateType.create.name)
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
@@ -327,6 +330,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
 
+    @record_operation(RecordType.task.name, OperateType.delete.name)
     def obj_delete(self, bundle, **kwargs):
         try:
             taskflow = TaskFlowInstance.objects.get(id=kwargs["pk"])

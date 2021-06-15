@@ -114,6 +114,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { PERIODIC_REG } from '@/constants/index.js'
+    import tools from '@/utils/tools.js'
     const autoRuleList = [
         {
             key: 'min',
@@ -236,7 +237,7 @@
                 expressionList: ['*', '*', '*', '*', '*'],
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 // 规则列表
-                autoRuleList: autoRuleList,
+                autoRuleList: [],
                 // 循环选择方式
                 autoWay: autoWay,
                 // manualInput 手动 / selectGeneration 选择生成
@@ -271,6 +272,7 @@
             }
         },
         created () {
+            this.autoRuleList = tools.deepClone(autoRuleList)
             this.initializeAutoRuleListData()
             this.renderRule()
         },
@@ -391,7 +393,7 @@
              */
             validationExpression () {
                 let flag = true
-                autoRuleList.forEach(m => {
+                this.autoRuleList.forEach(m => {
                     if (this.$validator.errors.has(m.key + 'Rule') && this.currentWay === 'selectGeneration') {
                         this.tabName = m.key
                         flag = false

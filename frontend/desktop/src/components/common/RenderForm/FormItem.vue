@@ -36,7 +36,7 @@
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" class="rf-group-name">
-                <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
                 <span v-if="scheme.attrs.desc" class="rf-group-desc">
                     <i
                         v-bk-tooltips="{
@@ -394,7 +394,8 @@
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
             validate (combineValue) {
-                if (!this.hook) {
+                // 表单未被勾选并且为显示状态
+                if (!this.hook && this.showForm) {
                     return this.$refs.tagComponent.validate(combineValue)
                 }
                 return true

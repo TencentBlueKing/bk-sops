@@ -20,7 +20,7 @@
         :header-position="'left'"
         :auto-close="false"
         @cancel="onCancel">
-        <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1 }">
+        <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1, zIndex: 100 }">
             <bk-form :model="formData" :rules="rules" ref="taskCreateForm">
                 <bk-form-item :label="$t('任务类型')" :required="true" :property="'taskType'">
                     <bk-select

@@ -23,7 +23,7 @@
                         <bk-button theme="primary" style="min-width: 120px;" @click="onCreateApp">{{$t('新建')}}</bk-button>
                     </template>
                 </advance-search-form>
-                <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1 }">
+                <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1, zIndex: 100 }">
                     <div v-if="appList.length" class="app-list">
                         <app-card
                             v-for="item in appList"
@@ -77,7 +77,7 @@
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除轻应用？')}}
             </div>
         </bk-dialog>
@@ -223,7 +223,7 @@
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
-                if (data.length) {
+                if (data.length || this.requestData.editor || this.requestData.updateTime.every(item => item !== '')) {
                     this.searchMode = true
                     const reg = new RegExp(this.requestData.flowName, 'i')
                     this.searchList = this.list.filter(item => {
@@ -311,10 +311,11 @@
                     logo_url: undefined
                 }
             },
-            onSearchFormSubmit (data) {
+            async onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
                 this.updateUrl()
-                this.loadData()
+                await this.loadData()
+                this.searchInputhandler(this.requestData.flowName)
             },
             updateUrl () {
                 const { updateTime, editor, flowName } = this.requestData

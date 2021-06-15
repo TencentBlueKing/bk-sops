@@ -12,16 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import format_template_data
 from gcloud.iam_auth.intercept import iam_intercept
@@ -54,7 +53,7 @@ def get_template_info(request, template_id, project_id):
                 "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
     else:
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
@@ -64,6 +63,6 @@ def get_template_info(request, template_id, project_id):
                 "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
-    return JsonResponse({"result": True, "data": format_template_data(tmpl, project), "code": err_code.SUCCESS.code})
+    return {"result": True, "data": format_template_data(tmpl, project), "code": err_code.SUCCESS.code}

@@ -16,9 +16,9 @@ from functools import partial
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema
+from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, plat_ip_reg
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -60,6 +60,12 @@ class JobLocalContentUploadService(Service):
             self.InputItem(
                 name=_("目标路径"), key="file_path", type="string", schema=StringItemSchema(description=_("目标路径")),
             ),
+            self.InputItem(
+                name=_("是否允许跨业务"),
+                key="job_across_biz",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+            ),
         ]
 
     def outputs_format(self):
@@ -69,7 +75,9 @@ class JobLocalContentUploadService(Service):
                 key="log_outputs",
                 type="object",
                 schema=ObjectItemSchema(
-                    description=_("输出日志中提取的全局变量"),
+                    description=_(
+                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+                    ),
                     property_schemas={
                         "name": StringItemSchema(description=_("全局变量名称")),
                         "value": StringItemSchema(description=_("全局变量值")),
@@ -96,9 +104,19 @@ class JobLocalContentUploadService(Service):
         client = get_client_by_user(executor)
 
         original_ip_list = data.get_one_of_inputs("job_ip_list")
-        ip_info = cc_get_ips_info_by_str(
-            username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
-        )
+        across_biz = data.get_one_of_inputs("job_across_biz", False)
+        if across_biz:
+            ip_info = {"ip_result": []}
+            for match in plat_ip_reg.finditer(original_ip_list):
+                if not match:
+                    continue
+                ip_str = match.group()
+                cloud_id, inner_ip = ip_str.split(":")
+                ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
+        else:
+            ip_info = cc_get_ips_info_by_str(
+                username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
+            )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
         job_kwargs = {

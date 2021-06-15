@@ -45,9 +45,7 @@ class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
 
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0.cc_get_ips_info_by_str"
-)
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0.get_node_callback_url"
 )
@@ -133,7 +131,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                 {"response": {"result": True, "tag": "tag_1"}},
                 {"response": {"result": True, "tag": "tag_2"}},
             ],
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
@@ -144,7 +142,10 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         schedule_assertion=None,
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "biz_cc_id", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=PUSH_FAIL_MANAGER.push_files_to_ips,
                 calls=[
@@ -185,7 +186,7 @@ def CALLBACK_INVALID_CASE():
                 {"response": {"result": True, "tag": "tag_1"}},
                 {"response": {"result": True, "tag": "tag_2"}},
             ],
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1:2.2.2.2",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
@@ -206,7 +207,10 @@ def CALLBACK_INVALID_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "biz_cc_id", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1:2.2.2.2", use_cache=False)],
+            ),
             CallAssertion(
                 func=CALLBACK_INVALID_MANAGER.push_files_to_ips,
                 calls=[
@@ -215,7 +219,7 @@ def CALLBACK_INVALID_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}],
                         account="job_target_account",
                         callback_url="callback_url",
                     )
@@ -226,9 +230,17 @@ def CALLBACK_INVALID_CASE():
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=CALLBACK_INVALID_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=CALLBACK_INVALID_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
+            Patcher(
+                target=CC_GET_IPS_INFO_BY_STR,
+                return_value={
+                    "ip_result": [
+                        {"InnerIP": "1.1.1.1", "Source": 0},
+                        {"InnerIP": "2.2.2.2", "Source": 0},
+                    ]
+                },
+            ),
         ],
     )
 
@@ -248,7 +260,7 @@ def CALLBACK_STRUCT_ERR_CASE():
                 {"response": {"result": True, "tag": "tag_1"}},
                 {"response": {"result": True, "tag": "tag_2"}},
             ],
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
@@ -269,7 +281,10 @@ def CALLBACK_STRUCT_ERR_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "biz_cc_id", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=CALLBACK_STRUCT_ERR_MANAGER.push_files_to_ips,
                 calls=[
@@ -289,9 +304,9 @@ def CALLBACK_STRUCT_ERR_CASE():
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=CALLBACK_STRUCT_ERR_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=CALLBACK_STRUCT_ERR_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
+            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         ],
     )
 
@@ -311,7 +326,7 @@ def CALLBACK_FAIL_CASE():
                 {"response": {"result": True, "tag": "tag_1"}},
                 {"response": {"result": True, "tag": "tag_2"}},
             ],
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
@@ -335,7 +350,10 @@ def CALLBACK_FAIL_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "biz_cc_id", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=CALLBACK_FAIL_MANAGER.push_files_to_ips,
                 calls=[
@@ -355,9 +373,9 @@ def CALLBACK_FAIL_CASE():
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=CALLBACK_FAIL_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=CALLBACK_FAIL_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
+            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         ],
     )
 
@@ -377,7 +395,7 @@ def SUCCESS_CASE():
                 {"response": {"result": True, "tag": "tag_1"}},
                 {"response": {"result": True, "tag": "tag_2"}},
             ],
-            "job_target_ip_list": "job_target_ip_list",
+            "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
             "job_target_path": "job_target_path",
         },
@@ -393,7 +411,10 @@ def SUCCESS_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor")]),
-            CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", "biz_cc_id", "job_target_ip_list")]),
+            CallAssertion(
+                func=CC_GET_IPS_INFO_BY_STR,
+                calls=[Call(username="executor", biz_cc_id="biz_cc_id", ip_str="1.1.1.1", use_cache=False)],
+            ),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
                 calls=[
@@ -413,8 +434,8 @@ def SUCCESS_CASE():
             Patcher(target=ENVIRONMENT_VAR_GET, return_value="a_type"),
             Patcher(target=FACTORY_GET_MANAGER, return_value=SUCCESS_MANAGER),
             Patcher(target=GET_CLIENT_BY_USER, return_value=SUCCESS_ESB_CLIENT),
-            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
             Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="url_token"),
+            Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 0}]}),
         ],
     )

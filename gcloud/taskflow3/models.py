@@ -33,14 +33,14 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY
+from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
 from gcloud.core.models import Project, EngineConfig
 from gcloud.core.utils import convert_readable_username
 from gcloud.utils.dates import format_datetime
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import replace_template_id
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.context import TaskContext
 from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
@@ -82,20 +82,35 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         return pipeline_instance
 
     @staticmethod
-    def create_pipeline_instance_exclude_task_nodes(template, task_info, constants=None, exclude_task_nodes_id=None):
+    def create_pipeline_instance_exclude_task_nodes(
+        template, task_info, constants=None, exclude_task_nodes_id=None, simplify_vars=None
+    ):
         """
-        @param template:
-        @param task_info: {
+        :param template: 任务模板
+        :type template: TaskTemplate
+        :param task_info: 任务信息 {
             'name': '',
             'creator': '',
             'description': '',
         }
-        @param constants: 覆盖参数，如 {'${a}': '1', '${b}': 2}
-        @param exclude_task_nodes_id: 取消执行的可选节点
-        @return:
+        :type task_info: dict
+        :param constants: 覆盖参数，如 {'${a}': '1', '${b}': 2}
+        :type constants: dict, optional
+        :param exclude_task_nodes_id: 取消执行的可选节点
+        :type exclude_task_nodes_id: list
+        :param simplify_vars: 需要进行类型简化的变量的 key 列表
+        :type simplify_vars: list, optional
+        :return: pipeline instance
+        :rtype: PipelineInstance
         """
         if constants is None:
             constants = {}
+
+        if simplify_vars is None:
+            simplify_vars = {}
+        else:
+            simplify_vars = set(simplify_vars)
+
         pipeline_tree = template.pipeline_tree
 
         TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
@@ -103,7 +118,38 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         # change constants
         for key, value in list(constants.items()):
             if key in pipeline_tree[PE.constants]:
-                pipeline_tree[PE.constants][key]["value"] = value
+                var = pipeline_tree[PE.constants][key]
+                # set meta field for meta var, so frontend can render meta form
+                if var.get("is_meta"):
+                    var["meta"] = deepcopy(var)
+                var["value"] = value
+
+        # simplify var
+        for key in simplify_vars:
+            if key in pipeline_tree[PE.constants]:
+                var = pipeline_tree[PE.constants][key]
+
+                # 非自定义类型变量不允许简化
+                if var["source_type"] != "custom":
+                    continue
+
+                var["custom_type"] = "textarea"
+                var[
+                    "form_schema"
+                ] = """{
+                    "type": "textarea",
+                    "attrs": {
+                        "name": "文本框",
+                        "hookable": true,
+                        "validation": [
+                            {
+                                "type": "required"
+                            }
+                        ]
+                    }
+                }"""
+                var["source_tag"] = "textarea.textarea"
+                var["is_meta"] = False
 
         task_info["pipeline_tree"] = pipeline_tree
         pipeline_inst = TaskFlowInstanceManager.create_pipeline_instance(template, **task_info)
@@ -176,7 +222,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             data.update(node_data)
 
         for gw_id, gw in list(pipeline_tree[PE.gateways].items()):
-            if gw["type"] == PE.ExclusiveGateway:
+            if gw["type"] in [PE.ExclusiveGateway, PE.ConditionalParallelGateway]:
                 gw_data = {
                     ("%s_%s" % (gw_id, key)): {"value": value["evaluate"]}
                     for key, value in list(gw["conditions"].items())
@@ -370,6 +416,14 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         return qs.first()
 
+    def is_task_started(self, project_id, id):
+        qs = self.filter(project_id=project_id, id=id).only("pipeline_instance")
+
+        if not qs:
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
+
+        return qs.first().pipeline_instance.is_started
+
 
 class TaskFlowInstance(models.Model):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
@@ -477,7 +531,7 @@ class TaskFlowInstance(models.Model):
 
     @property
     def url(self):
-        return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, self.project.id, self.id)
+        return self.__class__.task_url(project_id=self.project_id, task_id=self.id)
 
     @property
     def subprocess_info(self):
@@ -545,6 +599,10 @@ class TaskFlowInstance(models.Model):
 
         return False
 
+    @classmethod
+    def task_url(cls, project_id, task_id):
+        return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
+
     def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
@@ -561,7 +619,9 @@ class TaskFlowInstance(models.Model):
             subprocess_stack=subprocess_stack or [],
         )
 
-    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
+    def get_node_detail(
+        self, node_id, username, component_code=None, subprocess_stack=None, loop=None, include_data=True
+    ):
         if not self.has_node(node_id):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
@@ -569,15 +629,19 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
-        node_data_result = dispatcher.get_node_data(
-            username=username,
-            component_code=component_code,
-            loop=loop,
-            pipeline_instance=self.pipeline_instance,
-            subprocess_stack=subprocess_stack,
-        )
-        if not node_data_result["result"]:
-            return node_data_result
+
+        node_data = {}
+        if include_data:
+            node_data_result = dispatcher.get_node_data(
+                username=username,
+                component_code=component_code,
+                loop=loop,
+                pipeline_instance=self.pipeline_instance,
+                subprocess_stack=subprocess_stack,
+            )
+            if not node_data_result["result"]:
+                return node_data_result
+            node_data = node_data_result["data"]
 
         node_detail_result = dispatcher.get_node_detail(
             username=username,
@@ -590,7 +654,7 @@ class TaskFlowInstance(models.Model):
             return node_detail_result
 
         detail = node_detail_result["data"]
-        detail.update(node_data_result["data"])
+        detail.update(node_data)
 
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
@@ -810,3 +874,19 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
     }
 
     return {"pipeline_tree": pipeline_tree, "constants_not_referred": constants_not_referred}
+
+
+class TaskOperationTimesConfig(models.Model):
+    project_id = models.IntegerField(_("项目 ID"))
+    operation = models.CharField(
+        _("任务操作"),
+        choices=(("start", _("启动")), ("pause", _("暂停")), ("resume", _("恢复")), ("revoke", _("撤销"))),
+        max_length=64,
+    )
+    times = models.IntegerField(_("限制操作次数"))
+    time_unit = models.CharField(_("限制时间单位"), choices=(("m", "分钟"), ("h", "小时"), ("d", "天")), max_length=10)
+
+    class Meta:
+        verbose_name = _("任务操作次数限制配置 TaskOperationTimesConfig")
+        verbose_name_plural = _("任务操作次数限制配置 TaskOperationTimesConfig")
+        unique_together = ("project_id", "operation")

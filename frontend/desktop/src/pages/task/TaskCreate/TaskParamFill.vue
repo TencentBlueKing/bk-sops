@@ -19,7 +19,7 @@
                 <div class="task-basic-info">
                     <div class="common-form-item">
                         <label class="required">{{ $t('任务名称') }}</label>
-                        <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+                        <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1, zIndex: 100 }">
                             <bk-input
                                 v-model="taskName"
                                 v-validate="taskNameRule"
@@ -281,12 +281,13 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
-                    if (!templateData.result) {
+                    if ('result' in templateData && !templateData.result) {
                         this.nextBtnDisable = true
                         return
                     }
 
                     this.tplActions = templateData.auth_actions
+                    this.isSelectFunctionalType = templateData.default_flow_type === 'common_func'
                     this.setTemplateData(templateData)
 
                     let schemeId = ''
@@ -316,7 +317,7 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    if (!previewData.result) {
+                    if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
                         return
                     }

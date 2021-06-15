@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-(function () {
+ (function () {
     $.atoms.nodeman_plugin_operate = [
         {
             tag_code: "biz_cc_id",
@@ -156,7 +156,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("主机IP"),
-                            placeholder: gettext("多个用英文逗号 `,` 分隔"),
+                            placeholder: gettext("多个用英文逗号 `,` 或换行分隔"),
                             hookable: true,
                             validation: []
                         },

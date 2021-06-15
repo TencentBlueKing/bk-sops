@@ -33,7 +33,7 @@
         </h3>
         <bk-table
             class="tab-data-table"
-            v-bkloading="{ isLoading: isTableLoading, opacity: 1 }"
+            v-bkloading="{ isLoading: isTableLoading, opacity: 1, zIndex: 100 }"
             :data="dynamicData"
             :pagination="pagination">
             <bk-table-column

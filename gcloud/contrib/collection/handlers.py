@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.collection.models import Collection
 from gcloud.periodictask.models import PeriodicTask
