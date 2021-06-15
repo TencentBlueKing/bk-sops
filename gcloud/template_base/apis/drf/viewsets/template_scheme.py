@@ -23,6 +23,7 @@ from gcloud import err_code
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.apis.drf.permission import SchemeEditPermission
 from gcloud.template_base.apis.drf.serilaziers.template_scheme import TemplateSchemeSerializer, ParamsSerializer
 
 logger = logging.getLogger("root")
@@ -30,7 +31,7 @@ logger = logging.getLogger("root")
 
 class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     queryset = TemplateScheme.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, SchemeEditPermission]
     serializer_class = TemplateSchemeSerializer
     params_serializer_class = ParamsSerializer
 

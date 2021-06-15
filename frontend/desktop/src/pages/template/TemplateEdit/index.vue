@@ -92,6 +92,7 @@
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
+                    :subflow-list-loading="subAtomListLoading"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -525,7 +526,7 @@
             /**
              * 加载子流程列表
              */
-            async getSubflowList (subAtomData) {
+            async getSubflowList () {
                 this.subAtomListLoading = true
                 try {
                     const data = {

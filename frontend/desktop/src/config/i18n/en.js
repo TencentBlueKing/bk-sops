@@ -1117,6 +1117,7 @@ const en = {
     '原版本': 'Current Version',
     '待更新版本': 'Lastest Version',
     '条件并行网关': 'Conditional Parallel Gateway',
+    '复制链接': 'Copy URL',
     '任务类型偏好': 'Task Type Preference',
     '默认任务': 'Default Task',
     '职能化任务': 'Functional Task',
