@@ -8,7 +8,7 @@ const permission = {
          */
         hasPermission (reqPermission = [], curPermission = []) {
             const { actions } = this.$store.state.permissionMeta
-            return reqPermission.every(item => {
+            return reqPermission.every((item) => {
                 const permActionData = actions.find(action => action.id === item)
                 if (!permActionData) { // 权限没有在 meta 数据中返回，判定为无对应权限
                     return false
@@ -18,9 +18,8 @@ const permission = {
                 }
                 if (permActionData.relate_actions.length > 0) {
                     return this.hasPermission(permActionData.relate_actions, curPermission)
-                } else {
-                    return true
                 }
+                return true
             })
         },
         /**
@@ -54,7 +53,7 @@ const permission = {
          */
         assembleActionsData (reqPermission, curPermission, resourceData, actions, resources, systemId, systemName) {
             const actionsData = []
-            reqPermission.forEach(requiredItem => {
+            reqPermission.forEach((requiredItem) => {
                 const permActionData = actions.find(action => action.id === requiredItem)
                 // 权限字典里不存在该权限时
                 if (!permActionData) {
@@ -63,7 +62,7 @@ const permission = {
                 // 用户没有该权限
                 if (!curPermission.includes(requiredItem)) {
                     const relateResources = []
-                    permActionData.relate_resources.forEach(reItem => {
+                    permActionData.relate_resources.forEach((reItem) => {
                         const resourceMap = resources.find(item => item.id === reItem)
                         const instances = this.assembleInstances(resources, resourceMap, resourceData)
                         relateResources.push({
@@ -91,7 +90,7 @@ const permission = {
                         systemId,
                         systemName
                     )
-                    relateActions.forEach(item => {
+                    relateActions.forEach((item) => {
                         if (actionsData.findIndex(action => action.id === item.id) === -1) { // 避免操作权限重复
                             actionsData.push(item)
                         }
@@ -113,7 +112,7 @@ const permission = {
                 data = data.concat(this.assembleInstances(resources, parentMap, resourceData))
             }
             const instanceData = resourceData[resourceMap.id]
-            instanceData.forEach(item => {
+            instanceData.forEach((item) => {
                 data.push({
                     type: resourceMap.id,
                     type_name: resourceMap.name,
