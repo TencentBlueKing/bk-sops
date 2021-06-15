@@ -28,7 +28,9 @@ const NODE_DICT = {
     // 'startPoint': i18n.t('开始节点'),
     // 'endPoint': i18n.t('结束节点'),
     'parallelgateway': i18n.t('并行网关'),
+    'conditionalparallelgateway': i18n.t('条件并行网关'),
     'branchgateway': i18n.t('分支网关'),
+    'exclusivegateway': i18n.t('分支网关'),
     'convergegateway': i18n.t('汇聚网关'),
     'tasknode': i18n.t('标准插件节点'),
     'subflow': i18n.t('子流程节点')

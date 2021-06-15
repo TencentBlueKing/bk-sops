@@ -11,7 +11,7 @@
 */
 
 const path = require('path')
-const pathToRegexp = require('path-to-regexp')
+const pathToRegexp = require('path-to-regex')
 const chokidar = require('chokidar')
 let config = require('./config/')
 
@@ -37,13 +37,14 @@ module.exports = function (app) {
         }
 
         Object.keys(config).some(item => {
-            if (pathToRegexp(item).exec(req.path) && req.method === config[item].method) {
+            if (item === req.path && req.method === config[item].method) {
                 pathKey = item
                 return true
             }
         })
         if (pathKey) {
            const mock = config[pathKey]
+           console.log('[mock]', mock)
             if (mock.type === 'file') {
                 res.sendFile(path.resolve(__dirname, './config/', mock.data))
             } else {

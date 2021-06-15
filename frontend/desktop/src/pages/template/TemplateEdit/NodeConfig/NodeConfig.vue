@@ -360,8 +360,7 @@
                 'setSubprocessUpdated',
                 'setActivities',
                 'addVariable',
-                'deleteVariable',
-                'setContants',
+                'setConstants',
                 'setOutputs'
             ]),
             // 初始化节点数据
@@ -1014,7 +1013,7 @@
                     })
                 }
 
-                this.setContants(this.localConstants)
+                this.setConstants(this.localConstants)
             },
             /**
              * 获取标准插件生命周期状态

@@ -755,7 +755,7 @@ const template = {
             }
         },
         // 更新全局变量
-        setContants (state, data) {
+        setConstants (state, data) {
             state.constants = tools.deepClone(data)
         },
         // 全局变量勾选是否为输出
@@ -916,6 +916,10 @@ const template = {
         },
         checkKey ({ commit }, data) {
             return axios.get('core/api/check_variable_key/', { params: data }).then(response => response.data)
+        },
+        getBatchForms ({ commit }, data) {
+            const { projectId, tpls } = data
+            return axios.post(`template/api/batch_form/${projectId}/`, { templates: tpls }).then(response => response.data)
         }
     },
     getters: {
