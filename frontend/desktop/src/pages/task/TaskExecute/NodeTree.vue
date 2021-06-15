@@ -92,8 +92,8 @@
                 }
                 return false
             },
-            onSelectNode (node, isClick, type) {
-                const nodeType = node.children ? 'subflow' : 'tasknode'
+            onSelectNode (node) {
+                const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
                 node.selected = nodeType !== 'subflow'
                 let rootNode = node
                 let nodeHeirarchy = ''
@@ -105,8 +105,7 @@
                     }
                     rootNode = rootNode.parent
                 }
-                const selectNodeId = node.id
-                this.$emit('onSelectNode', nodeHeirarchy, selectNodeId, nodeType)
+                this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
         }
     }

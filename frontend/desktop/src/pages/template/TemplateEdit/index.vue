@@ -44,6 +44,7 @@
                     :locations="locations"
                     :node-menu-open="nodeMenuOpen"
                     @viewClick="viewUpdatedNode"
+                    @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
                 </SubflowUpdateTips>
                 <TemplateCanvas
@@ -91,6 +92,7 @@
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
+                    :subflow-list-loading="subAtomListLoading"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -118,6 +120,12 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
+            <batch-update-dialog
+                :show.sync="isBatchUpdateDialogShow"
+                :project-id="project_id"
+                :list="subflowShouldUpdated"
+                @globalVariableUpdate="globalVariableUpdate">
+            </batch-update-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -205,6 +213,7 @@
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
+    import BatchUpdateDialog from './BatchUpdateDialog.vue'
 
     export default {
         name: 'TemplateEdit',
@@ -215,7 +224,8 @@
             NodeConfig,
             ConditionEdit,
             TemplateSetting,
-            SubflowUpdateTips
+            SubflowUpdateTips,
+            BatchUpdateDialog
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
@@ -264,6 +274,7 @@
                 conditionData: {},
                 multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
+                isBatchUpdateDialogShow: false,
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -515,7 +526,7 @@
             /**
              * 加载子流程列表
              */
-            async getSubflowList (subAtomData) {
+            async getSubflowList () {
                 this.subAtomListLoading = true
                 try {
                     const data = {

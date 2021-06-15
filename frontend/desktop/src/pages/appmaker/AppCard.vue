@@ -64,6 +64,7 @@
                                 @click="onCollectAppMaker(appData, $event)">
                                 {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
                             </li>
+                            <li class="opt-btn" @click="onCopyUrl(appData)">{{$t('复制链接')}}</li>
                             <li
                                 :class="{
                                     'opt-btn': true,
@@ -117,7 +118,8 @@
                 isShowEdit: false,
                 mouseAccess: true,
                 collectingId: '', // 正在被收藏/取消收藏的轻应用id
-                collectionList: []
+                collectionList: [],
+                copyText: ''
             }
         },
         computed: {
@@ -167,6 +169,18 @@
                     return
                 }
                 this.$emit('onCardEdit', this.appData)
+            },
+            onCopyUrl () {
+                this.copyText = this.appData.desktop_url
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
             },
             onCardDelete () {
                 if (!this.hasPermission(['mini_app_delete'], this.appData.auth_actions)) {

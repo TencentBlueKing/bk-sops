@@ -54,7 +54,7 @@
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
             <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
-                <div class="node-type-icon common-icon-node-branchgateway"></div>
+                <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
             </div>
         </div>
         <node-menu
