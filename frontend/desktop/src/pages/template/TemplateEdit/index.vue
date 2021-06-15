@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100  }">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100 }">
         <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"

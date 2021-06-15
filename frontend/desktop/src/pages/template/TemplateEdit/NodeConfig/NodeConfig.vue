@@ -143,7 +143,7 @@
                                 <!-- 输入参数 -->
                                 <section class="config-section">
                                     <h3>{{$t('输入参数')}}</h3>
-                                    <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100  }">
+                                    <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
                                             <input-params
                                                 v-if="inputs.length > 0"
@@ -166,7 +166,7 @@
                                 <!-- 输出参数 -->
                                 <section class="config-section">
                                     <h3>{{$t('输出参数')}}</h3>
-                                    <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100  }">
+                                    <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                         <template v-if="!outputLoading">
                                             <output-params
                                                 v-if="outputs.length"
