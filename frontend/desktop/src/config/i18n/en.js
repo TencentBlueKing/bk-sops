@@ -1107,7 +1107,8 @@ const en = {
     '主机名': 'Host Name',
     '批量更新': 'Batch Update',
     '原版本': 'Current Version',
-    '待更新版本': 'Lastest Version'
+    '待更新版本': 'Lastest Version',
+    '条件并行网关': 'Conditional Parallel Gateway'
 }
 
 export default en

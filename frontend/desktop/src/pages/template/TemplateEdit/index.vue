@@ -122,7 +122,8 @@
             <batch-update-dialog
                 :show.sync="isBatchUpdateDialogShow"
                 :project-id="project_id"
-                :list="subflowShouldUpdated">
+                :list="subflowShouldUpdated"
+                @globalVariableUpdate="globalVariableUpdate">
             </batch-update-dialog>
             <bk-dialog
                 width="400"

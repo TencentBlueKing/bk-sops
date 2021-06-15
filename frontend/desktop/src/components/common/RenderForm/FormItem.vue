@@ -15,6 +15,7 @@
         :class="[
             'rf-form-item',
             'clearfix',
+            scheme.status || '',
             {
                 'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
@@ -87,6 +88,7 @@
                         zIndex: 2002
                     }"
                     :value="hook"
+                    :disabled="!option.formEdit"
                     @change="onHookForm">
                 </bk-checkbox>
             </div>
@@ -431,6 +433,12 @@
     }
     &.rf-section-item {
         min-height: initial;
+    }
+    &.added {
+        background: rgba(220,255,226,0.30);
+    }
+    &.deleted {
+        background: #ffeeec;
     }
     .rf-tag-label {
         float: left;

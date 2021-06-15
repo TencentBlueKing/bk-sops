@@ -749,7 +749,7 @@ const template = {
             }
         },
         // 更新全局变量
-        setContants (state, data) {
+        setConstants (state, data) {
             state.constants = tools.deepClone(data)
         },
         // 全局变量勾选是否为输出

@@ -45,6 +45,14 @@
         },
         props: {
             scheme: Array,
+            showHook: {
+                type: Boolean,
+                default: true
+            },
+            editable: {
+                type: Boolean,
+                default: true
+            },
             value: Object,
             plugin: String, // 标准插件
             version: String, // 标准插件版本或子流程版本
@@ -63,9 +71,10 @@
                 reuseableVarList: [],
                 option: {
                     showGroup: false,
-                    showHook: true,
+                    showHook: this.showHook,
                     showLabel: true,
-                    showVarList: true
+                    showVarList: true,
+                    formEdit: this.editable
                 }
             }
         },
