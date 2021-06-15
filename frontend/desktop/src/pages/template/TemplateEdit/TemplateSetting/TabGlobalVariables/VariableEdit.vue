@@ -292,13 +292,20 @@
             // 当前选中类型变量配置描述
             variableDesc () {
                 let desc = ''
-                this.varTypeList.some(group => {
-                    const option = group.children.find(item => item.code === this.currentValType)
-                    if (option) {
-                        desc = option.description
-                        return true
+                if (this.isHookedVar) {
+                    const item = this.varTypeList.find(i => i.code === this.currentValType)
+                    if (item) {
+                        desc = item.description
                     }
-                })
+                } else {
+                    this.varTypeList.some(group => {
+                        const option = group.children.find(item => item.code === this.currentValType)
+                        if (option) {
+                            desc = option.description
+                            return true
+                        }
+                    })
+                }
                 return desc
             }
         },
