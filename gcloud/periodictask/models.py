@@ -27,10 +27,10 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud.core.models import Project, EngineConfig
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.shortcuts.cmdb import get_business_group_members
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 
 logger = logging.getLogger("root")

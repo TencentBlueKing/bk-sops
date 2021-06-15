@@ -234,10 +234,12 @@ export function getFormMixins (attrs = {}) {
                             }
                             break
                         case 'regex':
-                            const reg = new RegExp(config.args)
-                            if (!reg.test(value)) {
-                                valid = false
-                                message = config.error_message
+                            if (!/^\${[^${}]+}$/.test(value)) {
+                                const reg = new RegExp(config.args)
+                                if (!reg.test(value)) {
+                                    valid = false
+                                    message = config.error_message
+                                }
                             }
                             break
                         case 'custom':

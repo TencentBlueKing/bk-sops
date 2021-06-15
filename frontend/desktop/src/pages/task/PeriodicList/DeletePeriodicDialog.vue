@@ -21,7 +21,7 @@
         :draggable="true"
         @confirm="onDeletePeriodicConfrim"
         @cancel="onDeletePeriodicCancel">
-        <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1 }">
+        <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1, zIndex: 100 }">
             <div class="information-tips">{{deleteInfo}}</div>
         </div>
     </bk-dialog>

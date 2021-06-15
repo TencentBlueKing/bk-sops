@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -21,7 +20,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.decorators import mark_request_whether_is_trust
-from gcloud.commons.template.utils import read_encoded_template_data
+from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
 
@@ -39,29 +38,27 @@ except ImportError:
 @mark_request_whether_is_trust
 def import_project_template(request, project_id):
     if not request.is_trust:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "you have no permission to call this api.",
-                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "you have no permission to call this api.",
+            "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+        }
 
     try:
         req_data = json.loads(request.body)
     except Exception:
-        return JsonResponse(
-            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     template_data = req_data.get("template_data", None)
     if not template_data:
-        return JsonResponse(
-            {"result": False, "message": "template data can not be none", "code": err_code.REQUEST_PARAM_INVALID.code}
-        )
+        return {
+            "result": False,
+            "message": "template data can not be none",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
     r = read_encoded_template_data(template_data)
     if not r["result"]:
-        return JsonResponse(r)
+        return r
 
     try:
         import_result = TaskTemplate.objects.import_templates(
@@ -72,12 +69,10 @@ def import_project_template(request, project_id):
         )
     except Exception as e:
         logger.exception("[API] import common tempalte error: {}".format(e))
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
-        )
+        return {
+            "result": False,
+            "message": "invalid flow data or error occur, please contact administrator",
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
 
-    return JsonResponse(import_result)
+    return import_result

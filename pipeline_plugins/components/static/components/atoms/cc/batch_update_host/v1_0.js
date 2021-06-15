@@ -55,7 +55,12 @@
                             type: 'textarea',
                             attrs: {
                                 name: gettext("内网IP"),
-                                editable: true
+                                editable: true,
+                                validation: [
+                                    {
+                                        type: "required"
+                                    }
+                                ]
                             }
                         }
                     ];

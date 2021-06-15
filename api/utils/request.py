@@ -23,6 +23,19 @@ logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
+def local_wrapper(target_func, request_params, node_id=None, node_info=None):
+    from bamboo_engine import local as bamboo_local
+    from pipeline.engine.core import context as pipeline_context
+
+    if node_info:
+        bamboo_local.set_node_info(node_info)
+
+    if node_id:
+        pipeline_context.set_node_id(node_id)
+
+    return target_func(**request_params)
+
+
 def batch_request(
     func,
     params,
@@ -69,10 +82,18 @@ def batch_request(
     # 根据请求总数并发请求
     pool = ThreadPool()
     params_and_future_list = []
+    from bamboo_engine import local as bamboo_local
+    from pipeline.engine.core import context as pipeline_context
+
+    node_info = bamboo_local.get_node_info()
+    node_id = pipeline_context.get_node_id()
     while start < count:
         request_params = {"page": {page_size_param: limit, cur_page_param: start}}
         request_params.update(params)
-        params_and_future_list.append({"params": request_params, "future": pool.apply_async(func, kwds=request_params)})
+        kwds = {"target_func": func, "node_id": node_id, "node_info": node_info, "request_params": request_params}
+        params_and_future_list.append(
+            {"params": request_params, "future": pool.apply_async(func=local_wrapper, kwds=kwds)}
+        )
 
         start += limit
 

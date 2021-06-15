@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 
 import jsonschema
 import ujson as json
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -24,13 +23,13 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import replace_template_id
 from gcloud.constants import PROJECT
 from gcloud.core.models import ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger, info_data_from_period_task
 from gcloud.apigw.validators import CreatePriodicTaskValidator
@@ -62,7 +61,7 @@ def create_periodic_task(request, template_id, project_id):
         periodic_task_limit = project_config.max_periodic_task_num
     if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
         message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
-        return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
+        return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
 
     params = json.loads(request.body)
     template_source = params.get("template_source", PROJECT)
@@ -84,7 +83,7 @@ def create_periodic_task(request, template_id, project_id):
                 "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
     else:
         try:
@@ -95,7 +94,7 @@ def create_periodic_task(request, template_id, project_id):
                 "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
-            return JsonResponse(result)
+            return result
 
     params.setdefault("constants", {})
     params.setdefault("exclude_task_nodes_id", [])
@@ -104,7 +103,7 @@ def create_periodic_task(request, template_id, project_id):
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_periodic_task raise prams error: %s" % e)
         message = "task params is invalid: %s" % e
-        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     exclude_task_nodes_id = params["exclude_task_nodes_id"]
     pipeline_tree = template.pipeline_tree
@@ -112,7 +111,7 @@ def create_periodic_task(request, template_id, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     for key, val in list(params["constants"].items()):
         if key in pipeline_tree["constants"]:
@@ -125,7 +124,7 @@ def create_periodic_task(request, template_id, project_id):
         replace_template_id(TaskTemplate, pipeline_tree)
     except Exception as e:
         logger.exception("[API] create_periodic_task replace id error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     try:
         task = PeriodicTask.objects.create(
@@ -139,7 +138,7 @@ def create_periodic_task(request, template_id, project_id):
         )
     except Exception as e:
         logger.exception("[API] create_periodic_task create error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+        return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     data = info_data_from_period_task(task)
-    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}

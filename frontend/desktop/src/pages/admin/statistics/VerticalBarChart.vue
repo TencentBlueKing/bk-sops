@@ -34,7 +34,7 @@
                 </bk-select>
             </bk-form-item>
         </bk-form>
-        <div class="chart-wrapper" ref="chartWrap" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
+        <div class="chart-wrapper" ref="chartWrap" v-bkloading="{ isLoading: dataLoading, opacity: 1, zIndex: 100 }">
             <canvas v-if="dataList.length > 0" class="bar-chart-canvas" style="height: 100%;"></canvas>
             <no-data v-else></no-data>
         </div>

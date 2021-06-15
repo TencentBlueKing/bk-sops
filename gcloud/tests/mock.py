@@ -212,3 +212,11 @@ class MockJwtClient(object):
     @property
     def is_valid(self):
         return True
+
+
+class MockTaskOperationTimesConfig(object):
+    def __init__(self, kwargs):
+        self.kwargs = kwargs
+
+    def __getattr__(self, item):
+        return self.kwargs[item]

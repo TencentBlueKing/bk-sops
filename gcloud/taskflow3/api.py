@@ -22,7 +22,9 @@ from django.utils.translation import ugettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
+import env
 from blueapps.account.decorators import login_exempt
+from gcloud.utils.throttle import check_task_operation_throttle
 
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
@@ -36,6 +38,8 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.taskflow3.models import preview_template_tree
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType
 from gcloud.taskflow3.validators import (
     StatusValidator,
     DataValidator,
@@ -211,11 +215,20 @@ def get_job_instance_log(request, biz_cc_id):
 @require_POST
 @request_validate(TaskActionValidator)
 @iam_intercept(TaskActionInterceptor())
+@record_operation(RecordType.task.name, OperateType.task_action.name)
 def task_action(request, action, project_id):
     task_id = json.loads(request.body)["instance_id"]
     username = request.user.username
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
+    if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project_id, action):
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "project id: {} reach the limit of starting tasks".format(project_id),
+                "code": err_code.INVALID_OPERATION.code,
+            }
+        )
 
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
@@ -224,6 +237,7 @@ def task_action(request, action, project_id):
 @require_POST
 @request_validate(NodesActionValidator)
 @iam_intercept(NodesActionInpterceptor())
+@record_operation(RecordType.task.name, OperateType.nodes_action.name)
 def nodes_action(request, action, project_id):
     data = json.loads(request.body)
 
@@ -243,6 +257,7 @@ def nodes_action(request, action, project_id):
 @require_POST
 @request_validate(SpecNodesTimerResetValidator)
 @iam_intercept(SpecNodesTimerResetInpterceptor())
+@record_operation(RecordType.task.name, OperateType.spec_nodes_timer_reset.name)
 def spec_nodes_timer_reset(request, project_id):
     data = json.loads(request.body)
 
@@ -259,6 +274,7 @@ def spec_nodes_timer_reset(request, project_id):
 @require_POST
 @request_validate(TaskCloneValidator)
 @iam_intercept(TaskCloneInpterceptor())
+@record_operation(RecordType.task.name, OperateType.task_clone.name)
 def task_clone(request, project_id):
     data = json.loads(request.body)
 
@@ -282,6 +298,7 @@ def task_clone(request, project_id):
 @require_POST
 @request_validate(TaskModifyInputsValidator)
 @iam_intercept(TaskModifyInputsInterceptor())
+@record_operation(RecordType.task.name, OperateType.update.name)
 def task_modify_inputs(request, project_id):
     data = json.loads(request.body)
 

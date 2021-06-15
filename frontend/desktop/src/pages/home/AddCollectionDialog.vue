@@ -18,6 +18,7 @@
         :value="isAddCollectionDialogShow"
         :header-position="'left'"
         :auto-close="false"
+        :loading="savePending"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="export-container">
@@ -34,7 +35,7 @@
                         @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
+                <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
                         <template v-for="item in panelList">
                             <li
@@ -83,12 +84,6 @@
                 <span class="error-info">{{$t('请选择收藏项')}}</span>
             </div>
         </div>
-        <DialogLoadingBtn
-            slot="footer"
-            :dialog-footer-data="dialogFooterData"
-            @onConfirm="onConfirm"
-            @onCancel="onCancel">
-        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -97,7 +92,6 @@
     import { mapActions, mapState } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
 
     const FILTER_LIST = [
         {
@@ -132,8 +126,7 @@
     export default {
         name: 'AddCollectionDialog',
         components: {
-            NoData,
-            DialogLoadingBtn
+            NoData
         },
         mixins: [permission],
         props: {
@@ -152,17 +145,7 @@
                 collectionPending: false,
                 panelList: [],
                 selectedList: [],
-                dialogFooterData: [
-                    {
-                        type: 'primary',
-                        loading: false,
-                        btnText: i18n.t('确认'),
-                        click: 'onConfirm'
-                    }, {
-                        btnText: i18n.t('取消'),
-                        click: 'onCancel'
-                    }
-                ],
+                savePending: false,
                 filterList: [],
                 searchValue: [ // 搜索值
                     {
@@ -205,6 +188,15 @@
         watch: {
             isAddCollectionDialogShow (val) {
                 if (val) {
+                    this.searchValue = [ // 搜索值
+                        {
+                            id: 'type',
+                            name: i18n.t('选择类型'),
+                            values: [{ id: 'common_flow', name: i18n.t('公共流程') }]
+                        }
+                    ]
+                    this.selectError = false
+                    this.savePending = false
                     this.panelList = []
                     this.selectedList = []
                     this.getData()
@@ -261,7 +253,7 @@
                             panelList = []
                     }
                     const displayList = this.getFilterCollected(panelList)
-                    // this.panelList = this.getGroupData(displayList, reqType)
+                    this.panelList = this.getGroupData(displayList, reqType)
                     this.panelList = displayList
                     this.collectionPending = false
                 } catch (e) {
@@ -401,7 +393,7 @@
                     this.selectError = true
                     return false
                 }
-                this.dialogFooterData[0].loading = true
+                this.savePending = true
                 const project = this.searchValue.find(m => m.id === 'project')
                 let projectId
                 if (project) {
@@ -416,7 +408,6 @@
                 })
                 try {
                     const res = await this.addToCollectList(saveList)
-                    this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({
                             message: i18n.t('保存成功'),
@@ -426,6 +417,8 @@
                     }
                 } catch (e) {
                     console.log(e)
+                } finally {
+                    this.savePending = false
                 }
             },
             // 保存参数
@@ -686,7 +679,7 @@
     }
     .task-footer {
         position: absolute;
-        right: 290px;
+        right: 200px;
         bottom: -40px;
         .error-info {
             margin-right: 20px;
