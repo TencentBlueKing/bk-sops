@@ -162,7 +162,7 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
+                    "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
                     "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
                         traceback.format_exc()
                     ),

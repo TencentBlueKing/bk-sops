@@ -328,9 +328,11 @@ def export_yaml_templates(request: Request):
         templates_data = TEMPLATE_TYPE_MODEL[template_type].objects.export_templates(template_ids, *export_args)
         convert_result = converter_handler.convert(templates_data)
     except FlowExportError as e:
+        logger.exception("[export_yaml_templates] convert yaml file error: {}".format(e))
         return JsonResponse({"result": False, "message": str(e), "data": None})
 
     if convert_result["result"] is False:
+        logger.error("[export_yaml_templates] convert yaml error with message: {}".format(convert_result["message"]))
         return JsonResponse(convert_result)
 
     yaml_data = convert_result["data"]
