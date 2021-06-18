@@ -35,18 +35,26 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onExportTemplate">
-                            {{$t('导出')}}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onImportTemplate">
-                            {{ $t('导入') }}
-                        </bk-button>
+                        <bk-dropdown-menu style="margin-left: 20px;">
+                            <div class="export-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('导出') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="export-option-list" slot="dropdown-content">
+                                <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
+                                <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
+                            </ul>
+                        </bk-dropdown-menu>
+                        <bk-dropdown-menu style="margin-left: 20px;">
+                            <div class="import-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('导入') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="import-option-list" slot="dropdown-content">
+                                <li>{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li>{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                            </ul>
+                        </bk-dropdown-menu>
                     </template>
                 </advance-search-form>
                 <div class="template-table-content">
@@ -222,12 +230,10 @@
             @onImportCancel="onImportCancel">
         </ImportTemplateDialog>
         <ExportTemplateDialog
-            :is-export-dialog-show="isExportDialogShow"
+            :is-export-dialog-show.sync="isExportDialogShow"
             :project-info-loading="projectInfoLoading"
-            :pending="pending.export"
             :project_id="project_id"
-            @onExportConfirm="onExportConfirm"
-            @onExportCancel="onExportCancel">
+            :type="exportType">
         </ExportTemplateDialog>
         <bk-dialog
             width="400"
@@ -406,6 +412,7 @@
                 searchStr: '',
                 searchForm,
                 isSearchFormOpen, // 高级搜索表单默认展开
+                exportType: 'dat', // 模板导出类型
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
@@ -415,7 +422,6 @@
                 theAuthorityManageId: undefined,
                 active: true,
                 pending: {
-                    export: false, // 导出
                     delete: false // 删除
                 },
                 editEndTime: undefined,
@@ -504,7 +510,6 @@
                 'loadTemplateList',
                 'deleteTemplate',
                 'templateImport',
-                'templateExport',
                 'getExpiredSubProcess'
             ]),
             ...mapActions('project/', [
@@ -669,25 +674,9 @@
             onImportCancel () {
                 this.isImportDialogShow = false
             },
-            onExportTemplate () {
+            onExportTemplate (type) {
+                this.exportType = type
                 this.isExportDialogShow = true
-            },
-            async onExportConfirm (list) {
-                if (this.pending.export) return
-                this.pending.export = true
-                try {
-                    const resp = await this.templateExport({ list })
-                    if (resp.result) {
-                        this.isExportDialogShow = false
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.pending.export = false
-                }
-            },
-            onExportCancel () {
-                this.isExportDialogShow = false
             },
             onDeleteTemplate (template) {
                 if (!this.hasPermission(['flow_delete'], template.auth_actions)) {
@@ -936,6 +925,57 @@
 }
 .create-template-btn {
     min-width: 120px;
+}
+.export-tpl-btn,
+.import-tpl-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 4px 0 20px;
+    height: 32px;
+    line-height: 32px;
+    min-width: 88px;
+    text-align: center;
+    font-size: 14px;
+    background: #ffffff;
+    border: 1px solid #c4c6cc;
+    border-radius: 3px;
+    cursor: pointer;
+    .bk-icon {
+        font-size: 24px;
+        transition: ease-in-out 0.4s;
+    }
+}
+.bk-dropdown-menu{
+    &:hover {
+        .export-tpl-btn,
+        .import-tpl-btn {
+            border-color: #979ba5;
+            .bk-icon {
+                transform: rotate(180deg);
+            }
+        }
+    }
+    /deep/.bk-dropdown-content {
+        z-index: 1;
+    }
+}
+.export-option-list,
+.import-option-list {
+    & > li {
+        padding: 0 10px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+        text-align: left;
+        white-space: nowrap;
+        background: #ffffff;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            background: #f4f6fa;
+        }
+    }
 }
 .dialog-content {
     padding: 30px;
