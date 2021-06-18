@@ -308,7 +308,7 @@
                 })
             },
             onSearchInput (val) {
-                this.$emit('onSearchInput', val)
+                this.$emit('onSearchInput', Array.from(val))
             },
             onAdvanceOpen (val) {
                 this.isAdvanceOpen = val === undefined ? !this.isAdvanceOpen : val
