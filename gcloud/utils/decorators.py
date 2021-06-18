@@ -40,25 +40,3 @@ def request_validate(validator_cls):
         return _wrapped_view
 
     return decorator
-
-
-def request_validate_with_instance(validator_instance):
-
-    if not isinstance(validator_instance, RequestValidator):
-        raise TypeError("validator_instance must be instance of {}".format("gcloud.utils.validate.RequestValidator"))
-
-    def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
-        def _wrapped_view(request, *args, **kwargs):
-
-            is_valid, err = validator_instance.validate(request, *args, **kwargs)
-            if not is_valid:
-                return JsonResponse(
-                    {"result": False, "message": err, "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
-                )
-
-            return view_func(request, *args, **kwargs)
-
-        return _wrapped_view
-
-    return decorator
