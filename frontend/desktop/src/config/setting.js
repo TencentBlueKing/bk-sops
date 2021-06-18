@@ -94,13 +94,7 @@ export function setJqueryAjaxConfig () {
         const code = xhr.status
         switch (code) {
             case 400:
-                const message = xhr.responseText
-                const info = {
-                    theme: 'error',
-                    lines: 2,
-                    message
-                }
-                bus.$emit('showMessage', info)
+                bus.$emit('showErrMessage', xhr.responseText)
                 break
             case 401:
                 const { has_plain, login_url, width, height } = xhr.responseJSON

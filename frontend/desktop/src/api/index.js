@@ -47,12 +47,8 @@ axios.interceptors.response.use(
 
         switch (response.status) {
             case 400:
-                const info = {
-                    message: response.data.error || response.data.msg.error,
-                    lines: 2,
-                    theme: 'error'
-                }
-                bus.$emit('showMessage', info)
+                const msg = response.data.error || response.data.msg.error
+                bus.$emit('showErrMessage', msg)
                 break
             case 401:
                 const data = response.data
