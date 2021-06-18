@@ -30,70 +30,66 @@
 在本地安装 mysql，并启动 mysql-server，服务监听的端口保持默认（3306）。
 
 
-## 安装 python 和包
+## 安装 python 和依赖库
 在本地安装 python3.6.7 和 pip，通过 git 拉取源代码到工程目录后，并进入目录下运行 pip 命令安装 python 包。
 ```bash
 pip install -r requirements.txt
 ```
 
 
-## 配置本地环境变量和数据库
+## 环境配置及数据库准备
 
-1) 设置环境变量  
-设置环境变量的目的是让项目运行时能正确获取以下变量的值：
-BK_PAAS_HOST、BK_CC_HOST、BK_JOB_HOST 分别改为你部署的蓝鲸PaaS平台域名、配置平台域名、作业平台域名（需要加上 http 前缀；如果是 https 域名，请改为 https 前缀）。
-APP_ID 设置为你的社区版标准运维应用ID，默认设置为 bk_sops。APP_TOKEN 设置为你的社区版标准运维应用 TOKEN，默认可以访问 http://{BK_PAAS_HOST}/admin/app/app/，找到名为"标准运维"的应用，查看详情获取 Token 字段值。
+1)
 
-有三种方式设置本地开发需要的环境变量，一是手动设置，即执行如下命令
+在执行任何 django `manage.py` 命令时，需要保证环境中有以下环境变量
 
-```bash
-export APP_ID="bk_sops"
-export APP_TOKEN="{APP_TOKEN}"
-export BK_PAAS_HOST="{BK_PAAS_HOST}"
-export BK_CC_HOST="{BK_CC_HOST}"
-export BK_JOB_HOST="{BK_JOB_HOST}"
+```
+export APP_ID = "bk_sops"
+export APP_TOKEN = "{你的标准运维应用 TOKEN}"
+export BK_PAAS_HOST = "{开发环境 PAAS 域名}"
+export RUN_VER = "open"
+export DB_NAME = "{你的 DB 名}"
+export BKAPP_PYINSTRUMENT_ENABLE = "1"
+export BKAPP_BK_IAM_SYSTEM_ID="bk_sops"
+export BKAPP_API_JWT_EXEMPT="1"
+export BK_IAM_SKIP="True"
+export BKAPP_IAM_SKIP="True"
 ```
 
-二是直接修改 scripts/develop/sites/community/env.sh，然后执行
 
-```bash
-source scripts/develop/sites/community/env.sh
-```
-
-第三种方式，你可以直接修改项目的 settings 配置，先修改 `config/__init__.py` ，设置项目的基础信息
+2) 在项目根目录下添加本地配置 local_settings.py
 
 ```python
-APP_ID = 'bk_sops'
-APP_TOKEN = '{APP_TOKEN}'
-BK_PAAS_HOST = '{BK_PAAS_HOST}'
-```
+# -*- coding: utf-8 -*-
+import os
 
-然后修改 config/dev.py ，追加配置平台域名、作业平台域名配置
-```python
-BK_CC_HOST = '{BK_CC_HOST}'
-BK_JOB_HOST = '{BK_JOB_HOST}'
-```
-
-
-
-2) 修改 config/dev.py，设置本地开发用的数据库信息，添加 Redis 本地信息
-
-```python
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # 默认用mysql
-        'NAME': APP_ID,       # 数据库名 (默认与APP_ID相同)
-        'USER': 'root',       # 你的数据库user
-        'PASSWORD': '',       # 你的数据库password
-        'HOST': 'localhost',  # 数据库HOST
-        'PORT': '3306',       # 默认3306
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': '',  # 本地数据库账号
+        'PASSWORD': '',  # 本地数据库密码
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'TEST_CHARSET': "utf8",
+        'TEST_COLLATION': "utf8_general_ci",
+        'TEST': {
+            'CHARSET': 'utf8',
+            'COLLATION': 'utf8_general_ci',
+        }
     },
 }
 
 REDIS = {
     'host': 'localhost',
     'port': 6379,
+    'db': 0
 }
+
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = False
+BK_IAM_SYNC_TEMPLATES = False
+
+STATIC_ROOT = 'staticfiles'
 ```
 
 
@@ -146,8 +142,7 @@ mac: 执行 “sudo vim /etc/hosts”，添加“127.0.0.1 dev.{BK_PAAS_HOST}”
 
 ## 启动进程
 ```bash
-python manage.py celery worker -l info
-python manage.py celery beat -l info
+python manage.py celery worker -l info -B
 python manage.py runserver 8000
 ```
 

@@ -17,13 +17,12 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
-from gcloud.constants import BIZ_INTERNAL_MODULE
 from gcloud.core.models import StaffGroupSet
 from api.utils.request import batch_request
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_inject
 from pipeline_plugins.variables.query.sites.open import select
-from pipeline_plugins.variables.utils import get_service_template_list, get_set_list
+from pipeline_plugins.variables.utils import get_service_template_list, get_set_list, get_biz_internal_module
 
 logger = logging.getLogger("root")
 
@@ -114,10 +113,14 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
             - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
         - 请求失败 {"result": False, "data": [], "message": message}
     """
+    internal_module_result = get_biz_internal_module(request.user.username, biz_cc_id, supplier_account)
+    logger.info("[cc_list_service_template] get_biz_internal_module return: {}".format(internal_module_result))
+    internal_module_names = [m["name"] for m in internal_module_result["data"]]
+
     service_templates_untreated = get_service_template_list(request.user.username, biz_cc_id, supplier_account)
     service_templates = []
     for template_untreated in service_templates_untreated:
-        if template_untreated["name"] not in BIZ_INTERNAL_MODULE:
+        if template_untreated["name"] not in internal_module_names:
             template = {
                 "value": template_untreated["name"],
                 "text": template_untreated["name"],
@@ -128,13 +131,7 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
         service_templates.insert(0, {"value": "all", "text": _("所有模块(all)")})
 
     # 添加空闲机, 故障机和待回收模块选项
-    service_templates.extend(
-        [
-            {"value": _("空闲机"), "text": _("空闲机")},
-            {"value": _("待回收"), "text": _("待回收")},
-            {"value": _("故障机"), "text": _("故障机")},
-        ]
-    )
+    service_templates.extend([{"value": name, "text": name} for name in internal_module_names])
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 
