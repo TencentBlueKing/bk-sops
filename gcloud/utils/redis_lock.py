@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from uuid import uuid4
 
 from django.conf import settings
+from redis.exceptions import LockError
 
 MAX_RETRY = getattr(settings, "REDIS_LOCK_MAX_RETRY", None) or 100
 
@@ -24,8 +25,13 @@ def redis_lock(redis_instance, key):
     lock_key = "lock_{}".format(key)
     lock_id = str(uuid4())
     try:
-        acquire_redis_lock(redis_instance, lock_key, lock_id)
-        yield
+        lock_acquired = acquire_redis_lock(redis_instance, lock_key, lock_id)
+        err = (
+            None
+            if lock_acquired
+            else LockError(f"Unable to acquire redis lock in max tries, lock key: {lock_key}, lock_id: {lock_id}")
+        )
+        yield lock_acquired, err
     finally:
         release_redis_lock(redis_instance, lock_key, lock_id)
 
@@ -34,9 +40,10 @@ def acquire_redis_lock(redis_instance, lock_key, lock_id):
     cnt = 1
     while cnt < MAX_RETRY:
         if redis_instance.set(lock_key, lock_id, ex=5, nx=True):
-            return
+            return True
         cnt += 1
         time.sleep(0.05)
+    return False
 
 
 def release_redis_lock(redis_instance, lock_key, lock_id):
