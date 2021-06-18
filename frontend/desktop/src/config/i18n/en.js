@@ -1109,7 +1109,17 @@ const en = {
     '其他': 'Others',
     '变量KEY为特殊标志符变量，请修改': 'The variable KEY is a special identifier variable, please change it',
     '主机名': 'Host Name',
-    '默认全部': 'all'
+    '默认全部': 'all',
+    '批量更新': 'Batch Update',
+    '原版本': 'Current Version',
+    '待更新版本': 'Lastest Version',
+    '条件并行网关': 'Conditional Parallel Gateway',
+    '复制链接': 'Copy URL',
+    '任务类型偏好': 'Task Type Preference',
+    '默认任务': 'Default Task',
+    '职能化任务': 'Functional Task',
+    '默认全部': 'all',
+    '总是使用最新版本': 'Always Use Latest'
 }
 
 export default en
