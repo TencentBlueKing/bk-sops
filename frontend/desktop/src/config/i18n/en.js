@@ -1006,7 +1006,8 @@ const en = {
     '即将下线': 'coming offline',
     '已下线': 'offline',
     '当前插件即将停止维护，请更新插件版本': 'The current plugin is about to stop maintenance, please update the plugin version',
-    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version'
+    '当前插件已停止维护，请更新插件版本': 'The current plugin has stopped maintenance, please update the plugin version',
+    '主机名': 'Host Name'
 }
 
 export default en
