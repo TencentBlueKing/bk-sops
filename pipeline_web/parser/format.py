@@ -38,12 +38,8 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
 
     pool = {}
     for key in pre_render_keys:
-        # TODO 这里先支持一层的 lazy 变量渲染，后续修改为在开始节点进行预渲染
         var_info = classification["data_inputs"][key]
-        if var_info == "lazy":
-            lazy_var = library.VariableLibrary.get_var_class(var_info["custom_type"])(key, var_info["value"], {}, {})
-            pool[key] = {"value": lazy_var.get_value()}
-        else:
+        if var_info["type"] != "lazy":
             pool[key] = {"value": var_info["value"]}
 
     pre_render_pool = ConstantPool(pool=pool)
