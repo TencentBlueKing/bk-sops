@@ -18,8 +18,8 @@ import hashlib
 import base64
 import traceback
 
-from django.http import HttpRequest
 from django.http import JsonResponse, HttpResponse
+from rest_framework.request import Request
 from pipeline.models import TemplateRelationship
 
 from gcloud import err_code
@@ -32,7 +32,7 @@ from gcloud.template_base.utils import read_template_data_file
 logger = logging.getLogger("root")
 
 
-def base_batch_form(request: HttpRequest, template_model_cls: object, filters: dict):
+def base_batch_form(request: Request, template_model_cls: object, filters: dict):
     """批量获取表单数据统一接口"""
     templates_data = request.data.get("templates")
     template_ids = [int(template["id"]) for template in templates_data]
@@ -69,9 +69,9 @@ def base_batch_form(request: HttpRequest, template_model_cls: object, filters: d
     return JsonResponse({"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code})
 
 
-def base_form(request: HttpRequest, template_model_cls: object, filters: dict):
-    template_id = request.GET["template_id"]
-    version = request.GET.get("version")
+def base_form(request: Request, template_model_cls: object, filters: dict):
+    template_id = request.query_params["template_id"]
+    version = request.query_params.get("version")
 
     filters["pk"] = template_id
     filters["is_deleted"] = False
@@ -87,7 +87,7 @@ def base_form(request: HttpRequest, template_model_cls: object, filters: dict):
     return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
 
 
-def base_check_before_import(request: HttpRequest, template_model_cls: object, import_args: list):
+def base_check_before_import(request: Request, template_model_cls: object, import_args: list):
     r = read_template_data_file(request.FILES["data_file"])
 
     check_info = template_model_cls.objects.import_operation_check(r["data"]["template_data"], *import_args)
@@ -95,7 +95,7 @@ def base_check_before_import(request: HttpRequest, template_model_cls: object, i
     return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
 
 
-def base_export_templates(request: HttpRequest, template_model_cls: object, file_prefix: str, export_args: list):
+def base_export_templates(request: Request, template_model_cls: object, file_prefix: str, export_args: list):
     data = json.loads(request.body)
     template_id_list = data["template_id_list"]
 
@@ -122,7 +122,7 @@ def base_export_templates(request: HttpRequest, template_model_cls: object, file
     return response
 
 
-def base_import_templates(request: HttpRequest, template_model_cls: object, import_kwargs: dict):
+def base_import_templates(request: Request, template_model_cls: object, import_kwargs: dict):
     f = request.FILES["data_file"]
     override = string_to_boolean(request.POST["override"])
 
@@ -147,8 +147,8 @@ def base_import_templates(request: HttpRequest, template_model_cls: object, impo
     return JsonResponse(result)
 
 
-def base_template_parents(request: HttpRequest, template_model_cls: object, filters: dict):
-    filters["id"] = request.GET["template_id"]
+def base_template_parents(request: Request, template_model_cls: object, filters: dict):
+    filters["id"] = request.query_params["template_id"]
     qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
 
     if len(qs) != 1:
