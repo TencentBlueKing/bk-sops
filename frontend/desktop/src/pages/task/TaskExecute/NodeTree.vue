@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="nodeBkTree">
+    <div class="node-tree-wrapper">
         <bk-tree
             class="node-tree"
             ref="tree1"
@@ -113,7 +113,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-.nodeBkTree{
+.node-tree-wrapper {
     display: inline-block;
     width: 229px;
     min-width: 229px;
@@ -124,11 +124,5 @@
     white-space: nowrap;
     overflow-x: auto;
     @include scrollbar;
-    /deep/.tree-drag-node {
-        padding-bottom: 17px;
-    }
-    /deep/.bk-icon {
-            margin-right: 8px;
-    }
 }
 </style>
