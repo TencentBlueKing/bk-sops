@@ -11,11 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import time
+import logging
 
 from django.conf import settings
 
 from gcloud.taskflow3.models import TaskOperationTimesConfig
 from gcloud.utils.redis_lock import redis_lock
+
+logger = logging.getLogger("root")
 
 
 def get_redis_with_default(redis_instance, key, default_value):
@@ -42,7 +45,10 @@ def check_task_operation_throttle(project_id, operation):
     last_time_key = "{}_last_time_{}_{}".format(cache_prefix, project_id, operation)
 
     redis_instance = settings.redis_inst
-    with redis_lock(redis_instance, "{}_{}".format(project_id, operation)):
+    with redis_lock(redis_instance, "{}_{}".format(project_id, operation)) as (acquired_result, err):
+        if not acquired_result:
+            logger.error(err)
+            return False
         token_num = float(get_redis_with_default(redis_instance, token_num_key, allowed_times))
         now = time.time()
         last_time = float(get_redis_with_default(redis_instance, last_time_key, now))
