@@ -28,7 +28,7 @@ from gcloud.iam_auth.intercept import ViewInterceptor
 iam = get_iam_client()
 
 
-class FormInterceptor(ViewInterceptor):
+class CommonTemplateViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         template_id = request.GET.get("template_id")
 
@@ -41,6 +41,14 @@ class FormInterceptor(ViewInterceptor):
 
         if not allowed:
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
+
+
+class FormInterceptor(CommonTemplateViewInterceptor):
+    pass
+
+
+class ParentsInterceptor(CommonTemplateViewInterceptor):
+    pass
 
 
 class ExportInterceptor(ViewInterceptor):

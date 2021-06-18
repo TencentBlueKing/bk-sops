@@ -34,6 +34,7 @@ from gcloud.iam_auth.view_interceptors.template import (
     ExportInterceptor,
     ImportInterceptor,
     BatchFormInterceptor,
+    ParentsInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.tasktmpl3.domains.constants import get_constant_values
@@ -50,8 +51,14 @@ from gcloud.template_base.apis.django.api import (
     base_check_before_import,
     base_export_templates,
     base_import_templates,
+    base_template_parents,
 )
-from gcloud.template_base.apis.django.validators import BatchFormValidator, FormValidator, ExportTemplateValidator
+from gcloud.template_base.apis.django.validators import (
+    BatchFormValidator,
+    FormValidator,
+    ExportTemplateValidator,
+    TemplateParentsValidator,
+)
 
 logger = logging.getLogger("root")
 
@@ -311,3 +318,28 @@ def analysis_constants_ref(request):
                 data["nodefined"][k] = v
 
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
+
+
+@swagger_auto_schema(
+    methods=["get"], auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
+@request_validate(TemplateParentsValidator)
+@iam_intercept(ParentsInterceptor())
+def parents(request, project_id):
+    """
+    获取引用了某个项目流程的所有父流程
+
+    param: project_id: 项目ID, integer, path, required
+    param: template_id: 流程ID, integer, query, required
+
+    return: 每个流程当前版本和指定版本的表单数据列表
+    {
+        "template_id": "父流程 ID(string)",
+        "template_name": "模板名(string)",
+        "subprocess_node_id": "子流程节点 ID(string)",
+        "version": "版本号(string)",
+        "always_use_latest": "是否总是使用最新版本的子流程(bool)"
+    }
+    """
+    return base_template_parents(request, TaskTemplate, filters={"project_id": project_id})

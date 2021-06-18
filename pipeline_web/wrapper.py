@@ -96,9 +96,15 @@ class PipelineTemplateWebWrapper(object):
 
             for act_id, act in list(activities.items()):
                 if act[PWE.type] == PWE.SubProcess:
+                    always_use_latest = act.get("always_use_latest", False)
+                    if always_use_latest:
+                        version = None
+                    else:
+                        version = act.get("version")
+
                     subproc_data = template_model.objects.get(
                         pipeline_template__template_id=act["template_id"]
-                    ).get_pipeline_tree_by_version(act.get("version"))
+                    ).get_pipeline_tree_by_version(version)
 
                     if "constants" in pipeline_data:
                         subproc_inputs = act.pop("constants")
