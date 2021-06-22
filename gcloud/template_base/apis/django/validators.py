@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 
 from gcloud.utils.validate import RequestValidator
 
@@ -67,6 +68,16 @@ class YamlTemplateImportValidator(RequestValidator):
             return False, "template_type can not be empty"
         if data["template_type"] == "project" and not data.get("project_id"):
             return False, "project_id can not be empty when template_type=project"
+        if data.get("override_mappings") and isinstance(data["override_mappings"], str):
+            try:
+                request.data.update({"override_mappings": json.loads(data["override_mappings"])})
+            except Exception as e:
+                return False, e
+        if data.get("template_kwargs") and isinstance(data["template_kwargs"], str):
+            try:
+                request.data.update({"template_kwargs": json.loads(data["template_kwargs"])})
+            except Exception as e:
+                return False, e
         return True, ""
 
 
