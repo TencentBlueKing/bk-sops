@@ -79,7 +79,27 @@ const templateList = {
             }).then(response => response.data)
         },
         /**
-         * 导入模板
+         * yaml类型文件导入检查
+         */
+        yamlTplImportCheck ({ commit }, data) {
+            return axios.post('template/api/upload_yaml_templates/', data, {
+                headers: {
+                    'content-type': 'application/form-data'
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 导入yaml模板
+         */
+        yamlTplImport ({ commit }, data) {
+            return axios.post('template/api/import_yaml_templates/', data, {
+                headers: {
+                    'content-type': 'application/form-data'
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 导入dat模板
          * @param {Object} data {common是否是公共流程,formData数据}
          */
         templateImport ({ commit }, data) {
@@ -100,18 +120,25 @@ const templateList = {
          * @param {String} data 模板列表数组字符串
          */
         templateExport ({ commit }, data) {
-            const { common, list } = data
+            const { common, list, type } = data
             const { project_id } = store.state.project
             let url = ''
-            if (common) {
-                url = 'common_template/api/export/'
+            const params = {
+                template_id_list: list
+            }
+            if (type === 'dat') {
+                url = common ? 'common_template/api/export/' : `/template/api/export/${project_id}/`
             } else {
-                url = `template/api/export/${project_id}/`
+                url = '/template/api/export_yaml_templates/'
+                if (common) {
+                    params.template_type = 'common'
+                } else {
+                    params.template_type = 'project'
+                    params.project_id = project_id
+                }
             }
 
-            return axios.post(url, {
-                template_id_list: list
-            }, {
+            return axios.post(url, params, {
                 headers: {
                     responseType: 'arraybuffer'
                 }
