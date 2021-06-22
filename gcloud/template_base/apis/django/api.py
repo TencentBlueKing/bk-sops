@@ -184,7 +184,12 @@ def upload_and_check_yaml_templates(request: Request):
             }
         ],
         "relationship": {
-            "template_id": ["父流程id"]
+            "template_id": [
+                {
+                    "id": "父流程ID",
+                    "name": "父流程名称"
+                }
+            ]
         },
         "error": {
             "file(非固定字段)": ["对应YAML文件结构错误信息"],
@@ -204,13 +209,17 @@ def upload_and_check_yaml_templates(request: Request):
         logger.exception("[upload_and_check_yaml_templates]: {}".format(e))
         return JsonResponse({"result": False, "code": err_code.UNKNOWN_ERROR.code, "data": {}, "message": e})
 
+    # 组装前端所需的关系数据
     relations = {}
     validate_errors = validate_result["message"]
     if "file" not in validate_errors:
         for template_id, template_data in validate_result["data"].items():
             for node in template_data["spec"]["nodes"]:
                 if node.get("type") == "SubProcess" and node.get("template_id"):
-                    relations.setdefault(node.get("template_id"), []).append(template_id)
+                    relations.setdefault(node.get("template_id"), []).append(
+                        {"id": template_id, "name": template_data["meta"].get("name", "")}
+                    )
+
     return JsonResponse(
         {
             "result": True,
