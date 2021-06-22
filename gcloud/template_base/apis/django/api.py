@@ -274,7 +274,11 @@ def import_yaml_templates(request: Request):
         return JsonResponse(load_yaml_result)
 
     yaml_docs = load_yaml_result["data"]
-    convert_result = convertor_handler.reconvert(yaml_docs)
+    try:
+        convert_result = convertor_handler.reconvert(yaml_docs)
+    except Exception as e:
+        logger.exception("[import_yaml_templates] error: {}".format(e))
+        return JsonResponse({"result": False, "data": None, "message": f"模版转换过程出错: {e}"})
 
     if not convert_result["result"]:
         return JsonResponse({"result": False, "data": None, "message": convert_result["message"]})
@@ -301,11 +305,19 @@ def import_yaml_templates(request: Request):
         logger.exception("[import_yaml_templates] error: {}".format(e))
         return JsonResponse({"result": False, "data": None, "message": e})
 
-    detail = [{"result": result["result"], "message": result["message"]} for result in import_result["data"]]
-    if all([data["result"] for data in detail]):
-        result = {"result": True, "data": detail, "message": ""}
+    results = [{"result": result["result"], "message": result["message"]} for result in import_result["data"]]
+    if all([data["result"] for data in results]):
+        result = {
+            "result": True,
+            "data": {template_id: results[idx] for idx, template_id in enumerate(template_order)},
+            "message": "",
+        }
     else:
-        result = {"result": False, "data": None, "message": detail}
+        result = {
+            "result": False,
+            "data": None,
+            "message": {template_id: results[idx] for idx, template_id in enumerate(template_order)},
+        }
     return JsonResponse(result)
 
 
