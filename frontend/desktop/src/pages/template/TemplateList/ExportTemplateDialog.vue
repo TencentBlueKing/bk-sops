@@ -131,7 +131,6 @@
         props: {
             isExportDialogShow: Boolean,
             businessInfoLoading: Boolean,
-            projectInfoLoading: Boolean,
             common: String,
             project_id: [Number, String],
             type: String
@@ -347,7 +346,7 @@
                 const list = this.selectedTemplates.map(item => item.id)
                 try {
                     this.exportPending = true
-                    const resp = await this.templateExport({ list, type: this.type })
+                    const resp = await this.templateExport({ list, type: this.type, common: this.common })
                     if (resp.result) {
                         this.closeDialog()
                     }

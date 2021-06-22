@@ -51,8 +51,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="import-option-list" slot="dropdown-content">
-                                <li>{{ $t('导入') }}DAT{{ $t('文件') }}</li>
-                                <li>{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                                <li @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                     </template>
@@ -223,15 +223,20 @@
                 </div>
             </div>
         </skeleton>
-        <ImportTemplateDialog
+        <ImportDatTplDialog
             :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
-        </ImportTemplateDialog>
+        </ImportDatTplDialog>
+        <ImportYamlTplDialog
+            :auth-actions="authActions"
+            :project_id="project_id"
+            :is-show.sync="isImportYamlDialogShow"
+            @confirm="onImportYamlSuccess">
+        </ImportYamlTplDialog>
         <ExportTemplateDialog
             :is-export-dialog-show.sync="isExportDialogShow"
-            :project-info-loading="projectInfoLoading"
             :project_id="project_id"
             :type="exportType">
         </ExportTemplateDialog>
@@ -257,7 +262,8 @@
     import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
-    import ImportTemplateDialog from './ImportTemplateDialog.vue'
+    import ImportDatTplDialog from './ImportDatTplDialog.vue'
+    import ImportYamlTplDialog from './ImportYamlTplDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
@@ -370,7 +376,8 @@
         name: 'TemplateList',
         components: {
             Skeleton,
-            ImportTemplateDialog,
+            ImportDatTplDialog,
+            ImportYamlTplDialog,
             ExportTemplateDialog,
             ListPageTipsTitle,
             AdvanceSearchForm,
@@ -416,6 +423,7 @@
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
+                isImportYamlDialogShow: false,
                 isExportDialogShow: false,
                 isAuthorityDialogShow: false,
                 theDeleteTemplateId: undefined,
@@ -664,15 +672,16 @@
                 this.pagination.current = 1
                 this.getTemplateList()
             },
-            onImportTemplate () {
-                this.isImportDialogShow = true
-            },
             onImportConfirm () {
                 this.isImportDialogShow = false
                 this.getTemplateList()
             },
             onImportCancel () {
                 this.isImportDialogShow = false
+            },
+            onImportYamlSuccess () {
+                this.isImportYamlDialogShow = false
+                this.getTemplateList()
             },
             onExportTemplate (type) {
                 this.exportType = type

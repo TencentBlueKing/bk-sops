@@ -79,7 +79,27 @@ const templateList = {
             }).then(response => response.data)
         },
         /**
-         * 导入模板
+         * yaml类型文件导入检查
+         */
+        yamlTplImportCheck ({ commit }, data) {
+            return axios.post('template/api/upload_yaml_templates/', data, {
+                headers: {
+                    'content-type': 'application/form-data'
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 导入yaml模板
+         */
+        yamlTplImport ({ commit }, data) {
+            return axios.post('template/api/import_yaml_templates/', data, {
+                headers: {
+                    'content-type': 'application/form-data'
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 导入dat模板
          * @param {Object} data {common是否是公共流程,formData数据}
          */
         templateImport ({ commit }, data) {
