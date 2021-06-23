@@ -27,4 +27,5 @@ urlpatterns = [
     url(r"^api/get_templates_with_expired_subprocess/(?P<project_id>\d+)/$", api.get_templates_with_expired_subprocess),
     url(r"^api/get_constant_preview_result/$", api.get_constant_preview_result),
     url(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
+    url(r"^api/parents/(?P<project_id>\d+)/$", api.parents),
 ]
