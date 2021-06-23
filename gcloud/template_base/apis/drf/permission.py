@@ -14,9 +14,7 @@ specific language governing permissions and limitations under the License.
 from rest_framework import permissions
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
-
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam import Subject, Action, Request
 
 iam = get_iam_client()
 
@@ -51,12 +49,8 @@ class SchemeEditPermission(permissions.BasePermission):
             scheme_action = IAMMeta.COMMON_FLOW_VIEW_ACTION
             scheme_resources = res_factory.resources_for_common_flow(template_id)
 
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(scheme_action),
-            resources=scheme_resources,
+        request = Request(
+            IAMMeta.SYSTEM_ID, Subject("user", request.user.username), Action(scheme_action), scheme_resources, None
         )
 
-        return True
+        return iam.is_allowed_with_cache(request)
