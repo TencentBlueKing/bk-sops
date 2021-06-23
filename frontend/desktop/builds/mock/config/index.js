@@ -67,4 +67,9 @@ module.exports = {
     //     method: 'GET',
     //     data: permission
     // }
+    '/o/bk_sops/static/variables/select.js': {
+        type: 'file',
+        method: 'GET',
+        data: './select.js'
+    }
 }

@@ -13,11 +13,9 @@ import Ajv from 'ajv'
 import importTag from './importTag'
 
 const { components } = importTag()
-const tagNames = Object.keys(components).map(item => {
-    return item.slice(3).replace(/[A-Z]/g, match => {
-        return `_${match.toLowerCase()}`
-    }).slice(1)
-})
+const tagNames = Object.keys(components).map(item => item.slice(3).replace(/[A-Z]/g, match => `_${match.toLowerCase()}`)
+    .slice(1)
+)
 
 const NAME_REG = '^[a-zA-Z_][a-zA-Z0-9_]*'
 

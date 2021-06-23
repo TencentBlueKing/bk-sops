@@ -125,7 +125,7 @@ const store = new Vuex.Store({
          */
         userInfo ({ commit, state, dispatch }, config) {
             // return http.get(`/app/index?invoke=userInfo`, config).then(response => {
-            return http.get(`${AJAX_URL_PREFIX}/api/user/`, config).then(response => {
+            return http.get(`${AJAX_URL_PREFIX}/api/user/`, config).then((response) => {
                 const userData = response.data || {}
                 commit('updateUser', userData)
                 return userData
@@ -155,9 +155,7 @@ store.dispatch = function (_type, _payload, config = {}) {
         return
     }
 
-    store._actionSubscribers.forEach(sub => {
-        return sub(action, store.state)
-    })
+    store._actionSubscribers.forEach(sub => sub(action, store.state))
 
     return entry.length > 1
         ? Promise.all(entry.map(handler => handler(payload, config)))

@@ -24,6 +24,8 @@ from django.http import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
+from django.db.models import Model
+from pipeline.models import TemplateRelationship
 
 from gcloud import err_code
 from gcloud.conf import settings
@@ -47,14 +49,11 @@ from gcloud.template_base.utils import read_template_data_file
 logger = logging.getLogger("root")
 
 
-def base_batch_form(request: Request, template_model_cls: object, filters: dict):
+def base_batch_form(request: Request, template_model_cls: Model, filters: dict):
     """批量获取表单数据统一接口"""
     templates_data = request.data.get("templates")
     template_ids = [int(template["id"]) for template in templates_data]
-    versions = [template["version"] for template in templates_data]
-
-    if len(template_ids) != len(versions):
-        return JsonResponse({"result": False, "data": "", "message": "", "code": err_code.REQUEST_PARAM_INVALID.code})
+    versions = {int(template["id"]): template["version"] for template in templates_data}
 
     filters["id__in"] = template_ids
     filters["is_deleted"] = False
@@ -71,7 +70,8 @@ def base_batch_form(request: Request, template_model_cls: object, filters: dict)
         ]
         for template in templates
     }
-    for template, version in zip(templates, versions):
+    for template in templates:
+        version = versions[template.id]
         data[template.id].append(
             {
                 "form": template.get_form(version),
@@ -84,9 +84,9 @@ def base_batch_form(request: Request, template_model_cls: object, filters: dict)
     return JsonResponse({"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code})
 
 
-def base_form(request: HttpRequest, template_model_cls: object, filters: dict):
-    template_id = request.GET["template_id"]
-    version = request.GET.get("version")
+def base_form(request: Request, template_model_cls: object, filters: dict):
+    template_id = request.query_params["template_id"]
+    version = request.query_params.get("version")
 
     filters["pk"] = template_id
     filters["is_deleted"] = False
@@ -102,7 +102,7 @@ def base_form(request: HttpRequest, template_model_cls: object, filters: dict):
     return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
 
 
-def base_check_before_import(request: HttpRequest, template_model_cls: object, import_args: list):
+def base_check_before_import(request: Request, template_model_cls: object, import_args: list):
     r = read_template_data_file(request.FILES["data_file"])
 
     check_info = template_model_cls.objects.import_operation_check(r["data"]["template_data"], *import_args)
@@ -137,7 +137,7 @@ def base_export_templates(request: Request, template_model_cls: object, file_pre
     return response
 
 
-def base_import_templates(request: HttpRequest, template_model_cls: object, import_kwargs: dict):
+def base_import_templates(request: Request, template_model_cls: object, import_kwargs: dict):
     f = request.FILES["data_file"]
     override = string_to_boolean(request.POST["override"])
 
@@ -365,3 +365,41 @@ def export_yaml_templates(request: Request):
     response["Content-Type"] = "application/octet-stream"
     response.write(file_data)
     return response
+
+
+def base_template_parents(request: Request, template_model_cls: object, filters: dict):
+    filters["id"] = request.query_params["template_id"]
+    qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
+
+    if len(qs) != 1:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "find {} template for filters: {}".format(len(qs), filters),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+                "data": None,
+            }
+        )
+
+    pipeline_id = qs[0].pipeline_template_id
+
+    rel_list = TemplateRelationship.objects.filter(descendant_template_id=pipeline_id)
+    pipeline_id_map = {
+        t.pipeline_template_id: {"id": t.id, "name": t.pipeline_template.name}
+        for t in template_model_cls.objects.filter(
+            pipeline_template_id__in=[rel.ancestor_template_id for rel in rel_list]
+        ).only("id", "pipeline_template__name", "pipeline_template_id")
+    }
+    data = [
+        {
+            "template_id": pipeline_id_map[rel.ancestor_template_id]["id"],
+            "template_name": pipeline_id_map[rel.ancestor_template_id]["name"],
+            "subprocess_node_id": rel.subprocess_node_id,
+            "version": rel.version,
+            "always_use_latest": rel.always_use_latest,
+        }
+        for rel in rel_list
+    ]
+
+    return JsonResponse({"result": True, "message": "success", "code": err_code.SUCCESS.code, "data": data})
+
