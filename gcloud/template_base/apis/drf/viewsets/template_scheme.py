@@ -19,32 +19,41 @@ from rest_framework.decorators import action
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ErrorDetail
 from pipeline.models import TemplateScheme
-
 from gcloud import err_code
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.apis.drf.serilaziers.template_scheme import TemplateSchemeSerializer, ParamsSerializer
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.apis.drf.permission import SchemeEditPermission
+from gcloud.template_base.apis.drf.serilaziers.template_scheme import TemplateSchemeSerializer, ParamsSerializer
 
 logger = logging.getLogger("root")
 
 
-def get_pipeline_template_id(template_id, project_id, *args, **kwargs):
-    try:
-        _filter = {"pk": template_id, "project_id": project_id}
-        return TaskTemplate.objects.filter(**_filter).only("pipeline_template__id").first().pipeline_template.id
-    except TaskTemplate.DoesNotExist:
-        message = "flow template[id={template_id}] in project[id={project_id}] does not exist".format(
-            template_id=template_id, project_id=project_id
-        )
-        logger.error(message)
-        raise TaskTemplate.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
-
-
 class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     queryset = TemplateScheme.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser | SchemeEditPermission]
     serializer_class = TemplateSchemeSerializer
     params_serializer_class = ParamsSerializer
+
+    @staticmethod
+    def get_pipeline_template_id(template_id, *args, **kwargs):
+        # 如果是项目流程执行方案
+        if "project_id" in kwargs:
+            model_cls = TaskTemplate
+            _filter = {"pk": template_id, "project_id": kwargs["project_id"]}
+        # 如果是公共流程执行方案
+        else:
+            model_cls = CommonTemplate
+            _filter = {"pk": template_id}
+        try:
+            return model_cls.objects.filter(**_filter).only("pipeline_template__id").first().pipeline_template.id
+        except model_cls.DoesNotExist:
+            template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
+            message = "flow template[id={template_id}] in {template_type} does not exist".format(
+                template_id=template_id, template_type=template_type
+            )
+            logger.error(message)
+            raise model_cls.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
 
     def get_serializer_data(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -70,7 +79,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         template_id = validated_data.get("template_id")
 
         # 筛选待处理方案
-        pipeline_template_id = get_pipeline_template_id(**validated_data)
+        pipeline_template_id = self.get_pipeline_template_id(**validated_data)
         need_create_schemes = []
         for scheme in current_schemes:
             if "id" in scheme:
@@ -99,7 +108,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         validated_data = self.get_serializer_params_data(request)
-        pipeline_template_id = get_pipeline_template_id(**validated_data)
+        pipeline_template_id = self.get_pipeline_template_id(**validated_data)
         queryset = self.get_queryset().filter(template__id=pipeline_template_id)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -107,7 +116,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         validated_data = self.get_serializer_data(request)
         params_validated_data = self.get_serializer_params_data(request)
-        pipeline_template_id = get_pipeline_template_id(**params_validated_data)
+        pipeline_template_id = self.get_pipeline_template_id(**params_validated_data)
         validated_data.update(
             {
                 "unique_id": "{}-{}".format(params_validated_data["template_id"], validated_data["name"]),
@@ -120,5 +129,4 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
-
         return super(TemplateSchemeViewSet, self).destroy(request, *args, **kwargs)

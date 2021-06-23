@@ -45,5 +45,5 @@ urlpatterns = [
     # iam api
     url(r"^iam/api/", include("gcloud.iam_auth.urls")),
     # django prom
-    url(r"", include("django_prometheus.urls")),
+    url(r"^metrics/$", views.metrics),
 ]

@@ -75,7 +75,7 @@ export const COMMON_ATTRS = {
     }
 }
 
-export function getFormMixins (attrs = {}) {
+export const getFormMixins = (attrs = {}) => {
     attrs = tools.deepClone(attrs)
     const inheritAttrs = {} // 继承属性
     const noInheritAttrs = {} // 非继承属性
@@ -132,8 +132,8 @@ export function getFormMixins (attrs = {}) {
             const noInheritData = {}
             // 非 prop 属性注册到 data 对象
             // 优先取标准插件配置项里的值
-            Object.keys(noInheritAttrs).forEach(item => {
-                noInheritData[item] = this.$attrs.hasOwnProperty(item) ? this.$attrs[item] : noInheritAttrs[item]
+            Object.keys(noInheritAttrs).forEach((item) => {
+                noInheritData[item] = Object.prototype.hasOwnProperty.call(this.$attrs, item) ? this.$attrs[item] : noInheritAttrs[item]
             })
 
             return {
@@ -149,7 +149,7 @@ export function getFormMixins (attrs = {}) {
         created () {
             // 注册标准插件配置项里的事件函数到父父组件实例
             // 父父组件目前包括 RenderForm(根组件)、FormGroup(combine 类型)、TagDataTable(表格类型)
-            this.atomEvents.map(item => {
+            this.atomEvents.forEach((item) => {
                 const eventSource = `${item.source}_${item.type}`
                 this.eventActions[eventSource] = item.action
                 this.$parent.$parent.$on(eventSource, (data) => {
@@ -159,7 +159,7 @@ export function getFormMixins (attrs = {}) {
 
             // 注册标准插件配置项 methods 属性里的方法到 Tag 实例组件
             // 标准插件配置项里的方法会重载 mixins 里定义的方法
-            Object.keys(this.atomMethods).map(item => {
+            Object.keys(this.atomMethods).forEach((item) => {
                 if (typeof this.atomMethods[item] === 'function') {
                     this[item] = this.atomMethods[item]
                 }
@@ -198,7 +198,7 @@ export function getFormMixins (attrs = {}) {
                 }
                 if (!this.validation) return true
 
-                const isValid = this.validation.every(item => {
+                const isValid = this.validation.every((item) => {
                     const result = this.getValidateResult(item, this.value, this.parentValue)
                     this.validateInfo = result
                     return result.valid
@@ -218,7 +218,7 @@ export function getFormMixins (attrs = {}) {
                 let message = ''
                 if (this.validateSet.includes(config.type)) {
                     switch (config.type) {
-                        case 'required':
+                        case 'required': {
                             const valueType = checkDataType(value)
                             let valueEmpty = false
                             if (valueType === 'Object') {
@@ -233,11 +233,14 @@ export function getFormMixins (attrs = {}) {
                                 message = gettext('必填项')
                             }
                             break
+                        }
                         case 'regex':
-                            const reg = new RegExp(config.args)
-                            if (!reg.test(value)) {
-                                valid = false
-                                message = config.error_message
+                            if (!/^\${[^${}]+}$/.test(value)) {
+                                const reg = new RegExp(config.args)
+                                if (!reg.test(value)) {
+                                    valid = false
+                                    message = config.error_message
+                                }
                             }
                             break
                         case 'custom':
@@ -288,16 +291,18 @@ export function getFormMixins (attrs = {}) {
                 return this._get_value(keepValKey)
             },
             _get_value (keepValKey = false) {
+                let value
                 if (keepValKey) {
-                    return this.value
+                    value = this.value
                 } else {
                     if (this.hook && this.constants) {
                         const key = /^\$\{(\w+)\}$/.test(this.tagCode) ? this.tagCode : `\${${this.tagCode}}`
                         const variable = this.constants[key]
                         return variable ? variable.value : this.value
                     }
-                    return this.value
+                    value = this.value
                 }
+                return value
             },
             /**
              * 获取标准插件任意表单项的值
@@ -309,11 +314,13 @@ export function getFormMixins (attrs = {}) {
                 if (!(tag in data)) {
                     throw new Error(`表单值中不存在 ${tag} 属性`)
                 }
+                let result
                 if (path.length === 1) {
-                    return tools.deepClone(data[tag])
+                    result = tools.deepClone(data[tag])
                 } else {
-                    return this.get_tag_value(path.slice(1), data[tag])
+                    result = this.get_tag_value(path.slice(1), data[tag])
                 }
+                return result
             },
             /**
              * 设置当前 tag 组件值

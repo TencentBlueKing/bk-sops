@@ -18,6 +18,7 @@
                 :content="tips">
                 <template v-slot:buttons>
                     <bk-button :text="true" size="small" @click="onViewClick">{{ $t('查看需要更新的子流程') }}</bk-button>
+                    <bk-button :text="true" size="small" @click="onBatchUpdateClick">{{ $t('批量更新') }}</bk-button>
                     <bk-button :text="true" size="small" @click="onFoldClick">{{ $t('收起') }}</bk-button>
                 </template>
             </notify-info>
@@ -104,6 +105,9 @@
                 if (id) {
                     this.$emit('viewClick', id)
                 }
+            },
+            onBatchUpdateClick () {
+                this.$emit('batchUpdate')
             },
             onFoldClick () {
                 this.showDetail = false

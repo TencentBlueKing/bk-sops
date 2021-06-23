@@ -25,9 +25,10 @@ const axiosInstance = axios.create({
 /**
  * request interceptor
  */
-axiosInstance.interceptors.request.use(config => {
-    return config
-}, error => Promise.reject(error))
+axiosInstance.interceptors.request.use(
+    config => config,
+    error => Promise.reject(error)
+)
 
 /**
  * response interceptor
@@ -40,9 +41,7 @@ axiosInstance.interceptors.response.use(
 const http = {
     queue: new RequestQueue(),
     cache: new CachedPromise(),
-    cancelRequest: requestId => {
-        return http.queue.cancel(requestId)
-    },
+    cancelRequest: requestId => http.queue.cancel(requestId),
     cancelCache: requestId => http.cache.delete(requestId),
     cancel: requestId => Promise.all([http.cancelRequest(requestId), http.cancelCache(requestId)])
 }
@@ -52,7 +51,7 @@ const methodsWithData = ['post', 'put', 'patch']
 const allMethods = [...methodsWithoutData, ...methodsWithData]
 
 // 在自定义对象 http 上添加各请求方法
-allMethods.forEach(method => {
+allMethods.forEach((method) => {
     Object.defineProperty(http, method, {
         get () {
             return getRequest(method)
@@ -68,7 +67,7 @@ allMethods.forEach(method => {
  *
  * @return {Function} 实际调用的请求函数
  */
-function getRequest (method) {
+const getRequest = (method) => {
     if (methodsWithData.includes(method)) {
         return (url, data, config) => getPromise(method, url, data, config)
     }
@@ -85,7 +84,7 @@ function getRequest (method) {
  *
  * @return {Promise} 本次http请求的Promise
  */
-async function getPromise (method, url, data, userConfig = {}) {
+const getPromise = async (method, url, data, userConfig = {}) => {
     const config = initConfig(method, url, userConfig)
     let promise
     if (config.cancelPrevious) {
@@ -114,11 +113,10 @@ async function getPromise (method, url, data, userConfig = {}) {
             Object.assign(config, error.config)
             reject(error)
         }
-    }).catch(error => {
-        return handleReject(error, config)
-    }).finally(() => {
-        // console.log('finally', config)
-    })
+    }).catch(error => handleReject(error, config))
+        .finally(() => {
+            // console.log('finally', config)
+        })
 
     // 添加请求队列
     http.queue.set(config)
@@ -136,7 +134,7 @@ async function getPromise (method, url, data, userConfig = {}) {
  * @param {Function} promise 完成函数
  * @param {Function} promise 拒绝函数
  */
-function handleResponse ({ config, response, resolve, reject }) {
+const handleResponse = ({ config, response, resolve, reject }) => {
     resolve(config.originalResponse ? response : response.data, config)
     http.queue.delete(config.requestId)
 }
@@ -149,10 +147,11 @@ function handleResponse ({ config, response, resolve, reject }) {
  *
  * @return {Promise} promise 对象
  */
-function handleReject (error, config) {
+const handleReject = (error, config) => {
     if (axios.isCancel(error)) {
-        error.isCancel = true
-        return Promise.reject(error)
+        const newError = error
+        newError.isCancel = true
+        return Promise.reject(newError)
     }
 
     http.queue.delete(config.requestId)
@@ -183,7 +182,7 @@ function handleReject (error, config) {
  *
  * @return {Promise} 本次 http 请求的 Promise
  */
-function initConfig (method, url, userConfig) {
+const initConfig = (method, url, userConfig) => {
     const defaultConfig = {
         ...getCancelToken(),
         // http 请求默认 id
@@ -209,9 +208,9 @@ function initConfig (method, url, userConfig) {
  *
  * @return {Object} {cancelToken: axios 实例使用的 cancelToken, cancelExcutor: 取消http请求的可执行函数}
  */
-function getCancelToken () {
+const getCancelToken = () => {
     let cancelExcutor
-    const cancelToken = new axios.CancelToken(excutor => {
+    const cancelToken = new axios.CancelToken((excutor) => {
         cancelExcutor = excutor
     })
     return {
@@ -225,7 +224,7 @@ Vue.prototype.$http = http
 export default http
 
 // 跨域处理
-export function injectCSRFTokenToHeaders () {
+export const injectCSRFTokenToHeaders = () => {
     const CSRFToken = cookie.parse(document.cookie).bkiam_csrftoken
     if (CSRFToken !== undefined) {
         axiosInstance.defaults.headers.common['X-CSRFToken'] = CSRFToken

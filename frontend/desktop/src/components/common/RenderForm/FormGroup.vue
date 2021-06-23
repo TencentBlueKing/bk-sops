@@ -10,10 +10,10 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="rf-form-group" :class="{ 'rf-has-hook': option.showHook }" v-show="showForm">
+    <div class="rf-form-group" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
         <!-- 分组名称和描述 -->
         <div v-if="showFormTitle" class="rf-group-name">
-            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+            <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
@@ -57,6 +57,7 @@
                     customClass: 'offset-left-tooltip'
                 }"
                 :value="hook"
+                :disabled="!option.formEdit"
                 @change="onHookForm">
             </bk-checkbox>
         </div>
@@ -242,6 +243,12 @@
 <style lang="scss">
 .rf-form-group {
     position: relative;
+    &.added {
+        background: rgba(220,255,226,0.30);
+    }
+    &.deleted {
+        background: #ffeeec;
+    }
     &.rf-has-hook .rf-tag-form {
         margin-right: 30px;
     }

@@ -297,6 +297,7 @@
         color: #63656e;
         border-radius: 10px;
         background-color: #dcdee5;
+        &.EXPIRED,
         &.CREATED {
             color: #63656e;
         }
