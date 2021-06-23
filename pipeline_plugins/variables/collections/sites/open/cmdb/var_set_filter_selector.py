@@ -82,11 +82,16 @@ class VarSetFilterSelector(LazyVariable):
     type = "general"
     tag = "var_set_filter_selector.set_filter_selector"
     form = "%svariables/cmdb/var_set_filter_selector.js" % settings.STATIC_URL
+    desc = _(
+        "该变量返回对象类型，可通过${KEY.bk_sets}获得筛选的所有集群信息，对于所有集群都有的属性(如attr)，"
+        "可以通过${KEY.attr}获得所有集群该属性的值列表，可以通过${KEY.flat__attr}获得所有集群该属性的值拼接结果字符串"
+    )
 
     def get_value(self):
         """
         获取该变量中对应属性值
         example:
+            bk_sets: ${var.bk_sets}
             set_name: ${var.bk_set_name}
             set_id: ${var.bk_set_id}
         """
