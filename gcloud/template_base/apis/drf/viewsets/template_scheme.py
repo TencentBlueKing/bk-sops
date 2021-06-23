@@ -18,6 +18,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ErrorDetail
+
+from gcloud.iam_auth.drf_permission_helpers.permission import AdminViewPermission
 from pipeline.models import TemplateScheme
 from gcloud import err_code
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
@@ -31,7 +33,7 @@ logger = logging.getLogger("root")
 
 class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     queryset = TemplateScheme.objects.all()
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser | SchemeEditPermission]
+    permission_classes = [permissions.IsAuthenticated, AdminViewPermission | SchemeEditPermission]
     serializer_class = TemplateSchemeSerializer
     params_serializer_class = ParamsSerializer
 
