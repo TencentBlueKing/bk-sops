@@ -5,7 +5,7 @@
 * http://opensource.org/licenses/MIT
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
-export function randomInt (n, m) {
+export const randomInt = (n, m) => {
     return Math.floor(Math.random() * (m - n + 1) + n)
 }
 
@@ -14,7 +14,7 @@ export function randomInt (n, m) {
  *
  * @param {number} ms 毫秒数
  */
-export function sleep (ms) {
+export const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
@@ -23,7 +23,9 @@ export function sleep (ms) {
  *
  * @param {number} delay 毫秒数
  */
-export function sleep1 (delay) {
+export const sleep1 = (delay) => {
     const start = +new Date()
-    while (+new Date().getTime() < start + delay) {}
+    while (+new Date().getTime() < start + delay) {
+        // console.log(delay)
+    }
 }

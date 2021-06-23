@@ -66,7 +66,7 @@
                     </bk-option>
                 </bk-select>
             </div>
-            <div class="node-list-wrap">
+            <div class="node-list-wrap" v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <template v-if="listInPanel.length > 0">
                     <template v-if="!isSearchMode">
                         <template v-if="activeNodeListType === 'tasknode'">
@@ -180,6 +180,7 @@
         mixins: [permission],
         props: {
             templateLabels: Array,
+            loading: Boolean,
             showNodeMenu: {
                 type: Boolean,
                 default: false
@@ -206,7 +207,6 @@
         data () {
             const selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
             return {
-                loading: false,
                 isPinActived: false,
                 selectedGroup,
                 searchStr: '',

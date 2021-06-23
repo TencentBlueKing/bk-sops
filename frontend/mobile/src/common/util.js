@@ -16,11 +16,10 @@
  *
  * @return {Function} 柯里化后的函数
  */
-export function curry (fn) {
+export const curry = (fn) => {
     const judge = (...args) => {
-        return args.length === fn.length
-            ? fn(...args)
-            : arg => judge(...args, arg)
+        const result = args.length === fn.length ? fn(...args) : arg => judge(...args, arg)
+        return result
     }
     return judge
 }
@@ -32,7 +31,7 @@ export function curry (fn) {
  *
  * @return {boolean} 判断结果
  */
-export function isObject (obj) {
+export const isObject = (obj) => {
     return obj !== null && typeof obj === 'object'
 }
 
@@ -45,11 +44,14 @@ export function isObject (obj) {
  *
  * @return {Object} 规范化后的参数
  */
-export function unifyObjectStyle (type, payload, options) {
+export const unifyObjectStyle = (type, payload, options) => {
+    let newType = type
+    let newPayload = payload
+    let newOptions = options
     if (isObject(type) && type.type) {
-        options = payload
-        payload = type
-        type = type.type
+        newOptions = newPayload
+        newPayload = newType
+        newType = newType.type
     }
 
     if (NODE_ENV !== 'production') {
@@ -58,7 +60,7 @@ export function unifyObjectStyle (type, payload, options) {
         }
     }
 
-    return { type, payload, options }
+    return { newType, newPayload, newOptions }
 }
 
 /**
@@ -69,7 +71,7 @@ export function unifyObjectStyle (type, payload, options) {
  *
  * @return {Array} 颜色数组
  */
-export function randomColor (baseColor, count) {
+export const randomColor = (baseColor, count) => {
     const segments = baseColor.match(/[\da-z]{2}/g)
     // 转换成 rgb 数字
     for (let i = 0; i < segments.length; i++) {
@@ -94,7 +96,7 @@ export function randomColor (baseColor, count) {
  *
  * @return {number} 随机数
  */
-export function randomInt (min, max) {
+export const randomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
@@ -104,8 +106,8 @@ export function randomInt (min, max) {
  * @param {Object} err 错误对象
  * @param {Object} ctx 上下文对象，这里主要指当前的 Vue 组件
  */
-export function catchErrorHandler (err, ctx) {
-    const data = err.data
+export const catchErrorHandler = (err, ctx) => {
+    const { data } = err
     if (data) {
         if (!data.code || data.code === 404) {
             ctx.exceptionCode = {
@@ -140,13 +142,13 @@ export function catchErrorHandler (err, ctx) {
  *
  * @return {number} 结果
  */
-export function getStringLen (str) {
+export const getStringLen = (str) => {
     let len = 0
     for (let i = 0; i < str.length; i++) {
         if (str.charCodeAt(i) > 127 || str.charCodeAt(i) === 94) {
             len += 2
         } else {
-            len++
+            len += 1
         }
     }
     return len
@@ -169,7 +171,7 @@ export const escape = str => String(str).replace(/([.*+?^=!:${}()|[\]\/\\])/g, '
  *
  * @return {string} url query 字符串
  */
-export function json2Query (param, key) {
+export const json2Query = (param, key) => {
     const mappingOperator = '='
     const separator = '&'
     let paramStr = ''
@@ -180,7 +182,7 @@ export function json2Query (param, key) {
     ) {
         paramStr += separator + key + mappingOperator + encodeURIComponent(param)
     } else {
-        Object.keys(param).forEach(p => {
+        Object.keys(param).forEach((p) => {
             const value = param[p]
             const k = (key === null || key === '' || key === undefined)
                 ? p
@@ -198,7 +200,7 @@ export function json2Query (param, key) {
  *
  * @return {string} 转换后字符串
  */
-export function camelize (str) {
+export const camelize = (str) => {
     return str.replace(/-(\w)/g, (strMatch, p1) => p1.toUpperCase())
 }
 
@@ -210,7 +212,7 @@ export function camelize (str) {
  *
  * @return {string} 样式值
  */
-export function getStyle (elem, prop) {
+export const getStyle = (elem, prop) => {
     if (!elem || !prop) {
         return false
     }
@@ -235,7 +237,7 @@ export function getStyle (elem, prop) {
  *
  *  @param {Object} node 指定的 DOM 元素
  */
-export function getActualTop (node) {
+export const getActualTop = (node) => {
     let actualTop = node.offsetTop
     let current = node.offsetParent
 
@@ -252,7 +254,7 @@ export function getActualTop (node) {
  *
  *  @param {Object} node 指定的 DOM 元素
  */
-export function getActualLeft (node) {
+export const getActualLeft = (node) => {
     let actualLeft = node.offsetLeft
     let current = node.offsetParent
 
@@ -269,7 +271,7 @@ export function getActualLeft (node) {
  *
  * @return {number} 总高度
  */
-export function getScrollHeight () {
+export const getScrollHeight = () => {
     let scrollHeight = 0
     let bodyScrollHeight = 0
     let documentScrollHeight = 0
@@ -292,7 +294,7 @@ export function getScrollHeight () {
  *
  * @return {number} y 轴上的滚动距离
  */
-export function getScrollTop () {
+export const getScrollTop = () => {
     let scrollTop = 0
     let bodyScrollTop = 0
     let documentScrollTop = 0
@@ -315,7 +317,7 @@ export function getScrollTop () {
  *
  * @return {number} 浏览器视口的高度
  */
-export function getWindowHeight () {
+export const getWindowHeight = () => {
     const windowHeight = document.compatMode === 'CSS1Compat'
         ? document.documentElement.clientHeight
         : document.body.clientHeight
@@ -328,11 +330,16 @@ export function getWindowHeight () {
  * @param date
  * @returns {string}
  */
-export function dateFormatter (date) {
-    const month = (date.getMonth() + 1).toString().padStart(2, '0')
-    const strDate = date.getDate().toString().padStart(2, '0')
-    const hh = date.getHours().toString().padStart(2, '0')
-    const mm = date.getMinutes().toString().padStart(2, '0')
-    const ss = date.getSeconds().toString().padStart(2, '0')
+export const dateFormatter = (date) => {
+    const month = (date.getMonth() + 1).toString()
+        .padStart(2, '0')
+    const strDate = date.getDate().toString()
+        .padStart(2, '0')
+    const hh = date.getHours().toString()
+        .padStart(2, '0')
+    const mm = date.getMinutes().toString()
+        .padStart(2, '0')
+    const ss = date.getSeconds().toString()
+        .padStart(2, '0')
     return `${date.getFullYear()}-${month}-${strDate} ${hh}:${mm}:${ss}`
 }

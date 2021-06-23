@@ -115,7 +115,8 @@ const templateList = {
                 headers: {
                     responseType: 'arraybuffer'
                 }
-            }).then(res => {
+            }).then((res) => {
+                let result
                 if (res.headers['content-type'].indexOf('json') === -1) { // 处理arraybuffer数据
                     const { site_url } = store.state
                     const { project_id } = store.state.project
@@ -123,15 +124,16 @@ const templateList = {
                     const disposition = res.headers['content-disposition'].split(',')
                     const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
                     const matches = filenameRegex.exec(disposition)
-                    if (matches != null && matches[1]) {
+                    if (matches !== null && matches[1]) {
                         filename = matches[1].replace(/['"]/g, '')
                     }
                     fileDownload(res.data, filename)
-                    return { result: true }
+                    result = { result: true }
                 } else { // 处理json格式数据
                     const text = Buffer.from(JSON.stringify(res.data)).toString('utf8')
-                    return JSON.parse(text)
+                    result = JSON.parse(text)
                 }
+                return result
             })
         },
         /**

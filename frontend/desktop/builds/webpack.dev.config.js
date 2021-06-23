@@ -39,7 +39,7 @@ const proxyPath = [
     'iam/*'
 ]
 const proxyRule = {}
-proxyPath.forEach(item => {
+proxyPath.forEach((item) => {
     proxyRule[SITE_URL + item] = {
         target: 'http://dev.{BK_PAAS_HOST}:8000',
         secure: false,
@@ -106,7 +106,7 @@ module.exports = merge(webpackBaseConfig, {
             modules: false
         },
         // 数据 mock
-        before: function (app) {
+        before (app) {
             mocker(app)
         }
     }
