@@ -19,7 +19,6 @@ import base64
 import traceback
 
 import yaml
-from django.http import HttpRequest
 from django.http import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -402,4 +401,3 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
     ]
 
     return JsonResponse({"result": True, "message": "success", "code": err_code.SUCCESS.code, "data": data})
-
