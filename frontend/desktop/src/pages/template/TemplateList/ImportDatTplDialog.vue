@@ -129,7 +129,7 @@
     import permission from '@/mixins/permission.js'
 
     export default {
-        name: 'ImportTemplateDialog',
+        name: 'ImportDatTplDialog',
         components: {
             NoData
         },
