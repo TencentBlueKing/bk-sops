@@ -1118,7 +1118,6 @@ const en = {
     '任务类型偏好': 'Task Type Preference',
     '默认任务': 'Default Task',
     '职能化任务': 'Functional Task',
-    '默认全部': 'all',
     '总是使用最新版本': 'Always Use Latest'
 }
 
