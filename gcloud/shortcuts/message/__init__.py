@@ -38,12 +38,12 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
         title, content, email_content = title_and_content_for_atom_failed(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
-        notify_type = notify_types["fail"]
+        notify_type = notify_types.get("fail", [])
     elif msg_type == "task_finished":
         title, content, email_content = title_and_content_for_flow_finished(
             taskflow, taskflow.pipeline_instance, node_name, executor
         )
-        notify_type = notify_types["success"]
+        notify_type = notify_types.get("success", [])
     else:
         return False
 
@@ -59,7 +59,7 @@ def send_task_flow_message(taskflow, msg_type, node_name=""):
 
 def send_periodic_task_message(periodic_task, history):
     gcloud_periodic_task = PeriodicTask.objects.get(task=periodic_task)
-    notify_type = gcloud_periodic_task.get_notify_type()["fail"]
+    notify_type = gcloud_periodic_task.get_notify_type().get("fail", [])
     receivers_list = gcloud_periodic_task.get_stakeholders()
     receivers = ",".join(receivers_list)
 
