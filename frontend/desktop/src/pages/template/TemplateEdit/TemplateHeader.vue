@@ -18,7 +18,7 @@
             <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
-                v-if="!common && isEditProcessPage"
+                v-if="isEditProcessPage"
                 class="common-icon-file-setting execute-scheme-icon"
                 v-bk-tooltips.bottom="$t('执行方案')"
                 @click="onOpenExecuteScheme">
