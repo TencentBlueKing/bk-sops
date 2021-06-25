@@ -83,7 +83,7 @@
                 <section class="form-section">
                     <h4>{{ $t('通知') }}</h4>
                     <bk-form-item :label="$t('通知方式')">
-                        <bk-table class="notify-type-table" :data="formData.notifyType">
+                        <bk-table v-bkloading="{ isLoading: notifyTypeLoading }" class="notify-type-table" :data="formData.notifyType">
                             <bk-table-column v-for="(col, index) in notifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
                                 <template slot-scope="props">
                                     <bk-switcher
