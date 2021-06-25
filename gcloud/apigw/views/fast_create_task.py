@@ -34,11 +34,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FastCreateTaskInterceptor
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-
-try:
-    from bkoauth.decorators import apigw_required
-except ImportError:
-    from packages.bkoauth.decorators import apigw_required
+from packages.bkoauth.decorators import apigw_required
 
 
 @login_exempt
