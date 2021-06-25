@@ -276,6 +276,8 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return failed_nodes
 
     def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if self.pipeline_instance.is_expired:
+            return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
             return {
                 "result": True,
@@ -328,6 +330,8 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
 
     def get_task_status_v2(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if self.pipeline_instance.is_expired:
+            return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
             return {
                 "result": True,
