@@ -44,7 +44,8 @@
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
                     :subflow-list-loading="subAtomListLoading"
-                    @updateNodeMenuState="updateNodeMenuState">
+                    @updateNodeMenuState="updateNodeMenuState"
+                    @getAtomList="getAtomList">
                 </palette-panel>
             </template>
             <template v-slot:toolPanel>
@@ -89,7 +90,8 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @addNodesToDragSelection="addNodeToSelectedList"
-                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
+                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
+                    @getAtomList="getAtomList">
                 </node-template>
             </template>
         </js-flow>
@@ -300,6 +302,9 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            getAtomList (val) {
+                this.$emit('getAtomList', val)
+            },
             handlerWindowResize () {
                 this.windowWidth = document.documentElement.offsetWidth - 60
                 this.windowHeight = document.documentElement.offsetHeight - 60 - 50

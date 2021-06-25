@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100 }">
-        <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading , zIndex: 100 }">
+        <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -66,7 +66,8 @@
                     @onLocationMoveDone="onLocationMoveDone"
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
-                    @onShowNodeConfig="onShowNodeConfig">
+                    @onShowNodeConfig="onShowNodeConfig"
+                    @getAtomList="getAtomList">
                 </TemplateCanvas>
             </template>
             <TaskSelectNode
@@ -97,7 +98,8 @@
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
-                    @close="closeConfigPanel">
+                    @close="closeConfigPanel"
+                    @selectPanleShow="selectPanleShow">
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
@@ -230,6 +232,11 @@
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
+        provide: function () {
+            return {
+                templateThis: this
+            }
+        },
         data () {
             return {
                 isShowDialog: false,
@@ -253,7 +260,8 @@
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateDataChanged: false,
                 isShowConditionEdit: false,
-                isNodeConfigPanelShow: false,
+                isNodeConfigPanelShow: false, // 右侧模板是否展开
+                isSelectorPanelShow: false, // 右侧子流程模板是否展开
                 isFromTplListRoute: false, // 是否由模板列表页跳转进入
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
@@ -261,11 +269,12 @@
                 allowLeave: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
+                isGetAtomList: false,
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
-                },
+                }, // 左侧边栏菜单数据
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -297,7 +306,16 @@
                         }
                     ]
                 },
-                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
+                typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                totalPage: 0,
+                currentPage: 0,
+                limit: 25,
+                offset: 0,
+                pollingTimer: null,
+                isPageOver: false,
+                isThrottled: false, // 滚动节流 是否进入cd
+                getListNode: false,
+                tableScroller: null
             }
         },
         computed: {
@@ -374,6 +392,36 @@
                     tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
+            }
+        },
+        watch: {
+            isNodeConfigPanelShow (val) {
+                if (val) {
+                    this.getSubflowList()
+                    this.getNode('.tpl-list')
+                } else {
+                    this.initPage()
+                    this.initList()
+                    this.isPageOver = false
+                }
+            },
+            isSelectorPanelShow (val) {
+                if (val) {
+                    this.getSubflowList()
+                    this.getNode('.tpl-list')
+                } else {
+                    this.initPage()
+                    this.initList()
+                }
+            },
+            nodeMenuOpen (val) {
+                if (val) {
+                    this.getSubflowList()
+                    this.getNode('.node-list-wrap')
+                } else {
+                    this.initPage()
+                    this.initList()
+                }
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -470,10 +518,33 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
+            ...mapActions('templateList', [
+                'loadTemplateList'
+            ]),
+            getAtomList  (val) {
+                this.isGetAtomList = val
+            },
+            getNode (node) {
+                return this.$nextTick(() => {
+                    this.tableScroller = this.$el.querySelector(node)
+                    this.tableScroller.addEventListener('scroll', this.handleTableScroll, { passive: true })
+                })
+            },
+            initPage () {
+                this.currentPage = 0
+                return this.currentPage
+            },
+            initList () {
+                this.atomTypeList.subflow.length = 0
+                return this.atomTypeList.subflow
+            },
+            selectPanleShow (val) {
+                this.isSelectorPanelShow = val
+            },
             /**
              * 加载标准插件列表
              */
-            async getSingleAtomList () {
+            async getSingleAtomList (val) {
                 this.singleAtomListLoading = true
                 try {
                     const params = {}
@@ -517,7 +588,7 @@
                 try {
                     const resp = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(resp.data)
-                    this.getSubflowList()
+                    // this.getSubflowList()
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -525,7 +596,7 @@
                 }
             },
             /**
-             * 加载子流程列表
+             * 滚动加载子流程列表
              */
             async getSubflowList () {
                 this.subAtomListLoading = true
@@ -533,14 +604,32 @@
                     const data = {
                         project_id: this.project_id,
                         common: this.common,
-                        templateId: this.template_id
+                        templateId: this.template_id,
+                        limit: this.limit,
+                        offset: this.currentPage * this.limit
                     }
-                    const resp = await this.loadSubflowList(data)
+                    const resp = await this.loadTemplateList(data)
+                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
                     this.handleSubflowList(resp)
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.subAtomListLoading = false
+                }
+            },
+            handleTableScroll () {
+                if (!this.isPageOver && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.tableScroller
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            this.isPageOver = this.currentPage === this.totalPage
+                            clearTimeout(this.pollingTimer)
+                            this.getSubflowList()
+                        }
+                    }, 200)
                 }
             },
             /**
@@ -809,7 +898,8 @@
                         list.push(item)
                     }
                 })
-                this.atomTypeList.subflow = list
+                this.atomTypeList.subflow.push(...list)
+                // this.atomTypeList.subflow = list
             },
             /**
              * 打开节点配置面板
