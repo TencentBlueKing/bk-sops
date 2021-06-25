@@ -15,6 +15,7 @@
         :class="[
             'rf-form-item',
             'clearfix',
+            scheme.status || '',
             {
                 'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
@@ -36,7 +37,7 @@
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" class="rf-group-name">
-                <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
                 <span v-if="scheme.attrs.desc" class="rf-group-desc">
                     <i
                         v-bk-tooltips="{
@@ -87,6 +88,7 @@
                         zIndex: 2002
                     }"
                     :value="hook"
+                    :disabled="!option.formEdit"
                     @change="onHookForm">
                 </bk-checkbox>
             </div>
@@ -432,6 +434,12 @@
     }
     &.rf-section-item {
         min-height: initial;
+    }
+    &.added {
+        background: rgba(220,255,226,0.30);
+    }
+    &.deleted {
+        background: #ffeeec;
     }
     .rf-tag-label {
         float: left;

@@ -14,9 +14,7 @@ import { uuid } from './uuid.js'
 const nodeFilter = {
     isNodeExisted (type, data) {
         if (type && data) {
-            return data.some(item => {
-                return item.type === type
-            })
+            return data.some(item => item.type === type)
         }
     },
     getNodeTypeById (id, data) {
@@ -26,6 +24,7 @@ const nodeFilter = {
                 nodeIndex = index
                 return true
             }
+            return false
         })
         return data[nodeIndex].type
     },
@@ -43,35 +42,33 @@ const nodeFilter = {
             case 'activities':
             case 'flows':
             case 'gateways':
-                for (const key in primaryData) {
+                Object.keys(primaryData).forEach((key) => {
                     const newKey = this.getNewValidId(key)
                     newData[newKey] = primaryData[key]
-                    keysOfIdRelated.forEach(item => {
+                    keysOfIdRelated.forEach((item) => {
                         const val = newData[newKey][item]
                         if (val !== undefined && val !== '') {
                             if (typeof val === 'string') {
                                 newData[newKey][item] = this.getNewValidId(val)
                             } else if (Array.isArray(val)) {
-                                newData[newKey][item] = val.map(v => {
-                                    return this.getNewValidId(v)
-                                })
+                                newData[newKey][item] = val.map(v => this.getNewValidId(v))
                             }
                             if (item === 'conditions') {
                                 const newVal = {}
-                                for (const conditionId in val) {
+                                Object.keys(val).forEach((conditionId) => {
                                     const newConditionId = this.getNewValidId(conditionId)
                                     newVal[newConditionId] = val[conditionId]
-                                }
+                                })
                                 newData[newKey][item] = newVal
                             }
                         }
                     })
-                }
+                })
                 return newData
             case 'end_event':
             case 'start_event':
                 newData = Object.assign({}, primaryData)
-                keysOfIdRelated.forEach(item => {
+                keysOfIdRelated.forEach((item) => {
                     const val = newData[item]
                     if (val !== undefined && val !== '') {
                         newData[item] = this.getNewValidId(val)

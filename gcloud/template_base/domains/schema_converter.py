@@ -234,7 +234,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 activity.update(node)
                 component_constants = {"component_inputs": activity["component"]["data"], "component_outputs": outputs}
                 for source_type, data in component_constants.items():
-
                     for form_key, param in data.items():
                         if "key" in param:
                             source_info = (node["id"], form_key)
@@ -252,7 +251,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                         for key in list(param.keys()):
                             if key not in ["value", "hook"]:
                                 param.pop(key)
-                        reconverted_tree["activities"][node["id"]] = activity
+                reconverted_tree["activities"][node["id"]] = activity
             elif node["type"] == "SubProcess":
                 subprocess = {
                     **self.NODE_DEFAULT_FIELD_VALUE["SubProcess"],

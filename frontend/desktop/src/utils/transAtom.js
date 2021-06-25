@@ -17,20 +17,22 @@ import tools from '@/utils/tools.js'
  * @param {String} name // 当前标准插件名称
  */
 export default function transAtoms (atoms = {}, name = '') {
-    if (Object.prototype.toString.call(atoms) !== '[object Object]') {
-        atoms = {}
+    let plugAtoms = atoms
+    let plugName = name
+    if (Object.prototype.toString.call(plugAtoms) !== '[object Object]') {
+        plugAtoms = {}
         throw new TypeError('"atoms" should be an object type')
     }
-    if (typeof name !== 'string') {
-        name = ''
+    if (typeof plugName !== 'string') {
+        plugName = ''
         throw new TypeError('"name" should be a string type')
     }
-    if (!atoms[name] || !Array.isArray(atoms[name])) {
+    if (!plugAtoms[plugName] || !Array.isArray(plugAtoms[plugName])) {
         return
     }
 
     const atomConfig = []
-    atoms[name].forEach(conf => {
+    plugAtoms[plugName].forEach((conf) => {
         const tagItem = tools.deepClone(conf)
         if ('extend' in tagItem) {
             if (typeof tagItem.extend === 'string' && tagItem.extend) {
@@ -40,15 +42,17 @@ export default function transAtoms (atoms = {}, name = '') {
                 }
 
                 const targetConfig = extendPath.reduce((acc, crt) => {
+                    let result
                     if (Object.prototype.toString.call(acc) === '[object Object]') {
                         if (acc.type === 'combine') {
                             return acc.attrs.children.find(item => item.tag_code === crt)
                         }
-                        return acc[crt]
+                        result = acc[crt]
                     } else if (Array.isArray(acc)) {
-                        return acc.find(item => item.tag_code === crt)
+                        result = acc.find(item => item.tag_code === crt)
                     }
-                }, atoms)
+                    return result
+                }, plugAtoms)
                 const sourceConfig = 'config' in tagItem ? tagItem.config : null
                 let mergedConfig = targetConfig
                 if (Array.isArray(targetConfig)) {
@@ -56,7 +60,7 @@ export default function transAtoms (atoms = {}, name = '') {
                         if (!Array.isArray(sourceConfig)) {
                             throw new TypeError('"config" should be an array type')
                         } else {
-                            sourceConfig.forEach(sourceItem => {
+                            sourceConfig.forEach((sourceItem) => {
                                 const index = targetConfig.findIndex(item => item.tag_code === sourceItem.tag_code)
                                 if (index > -1) {
                                     const mergedTag = tools.assign(targetConfig[index], sourceItem)

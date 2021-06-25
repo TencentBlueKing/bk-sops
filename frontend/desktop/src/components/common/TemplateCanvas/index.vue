@@ -43,6 +43,7 @@
                     :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
+                    :subflow-list-loading="subAtomListLoading"
                     @updateNodeMenuState="updateNodeMenuState">
                 </palette-panel>
             </template>
@@ -178,6 +179,10 @@
             common: {
                 type: [String, Number],
                 default: ''
+            },
+            subAtomListLoading: {
+                type: Boolean,
+                default: true
             },
             templateLabels: {
                 type: Array,

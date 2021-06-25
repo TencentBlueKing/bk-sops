@@ -189,7 +189,8 @@
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
-    import { TASK_STATE_DICT } from '@/constants/index.js'
+    import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
+    import dom from '@/utils/dom.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo.vue'
@@ -359,12 +360,13 @@
                 }
             },
             nodeData () {
+                const data = this.getOrderedTree(this.completePipelineData)
                 return [{
                     id: this.instance_id,
                     name: this.instanceName,
                     title: this.instanceName,
                     expanded: true,
-                    children: this.getOrderedTree(this.completePipelineData)
+                    children: data
                 }]
             },
             taskState () {
@@ -495,6 +497,7 @@
                             this.setTaskStatusTimer()
                         }
                     }
+                    this.modifyPageIcon()
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     if (e.message !== 'cancelled') {
@@ -828,7 +831,7 @@
                         errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, errorIgnorable, skip: currentNode.skip, retry: currentNode.retry }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -836,16 +839,16 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, firstNodeData) {
-                const nodeActivities = firstNodeData || this.pipelineData.activities[id]
+            async setNodeDetailConfig (id) {
+                const tasknode = this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.nodeDetailConfig = {
-                    component_code: nodeActivities.component.code,
-                    version: nodeActivities.component.version || 'legacy',
-                    node_id: nodeActivities.id,
+                    component_code: tasknode ? tasknode.component.code : '',
+                    version: tasknode ? tasknode.component.version || 'legacy' : '',
+                    node_id: id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
@@ -927,7 +930,8 @@
                 }
             },
             getOrderedTree (data) {
-                const fstLine = data.start_event.outgoing
+                const startNode = tools.deepClone(data.start_event)
+                const fstLine = startNode.outgoing
                 const orderedData = []
                 const passedNodes = []
                 this.retrieveLines(data, fstLine, orderedData, passedNodes)
@@ -944,16 +948,23 @@
              *
              */
             retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
-                const { activities, gateways, flows } = data
+                const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
-                const activity = activities[currentNode]
-                const gateway = gateways[currentNode]
-                const node = activity || gateway
+                const endEvent = tools.deepClone(end_event[currentNode])
+                const activity = tools.deepClone(activities[currentNode])
+                const gateway = tools.deepClone(gateways[currentNode])
+                const node = endEvent || activity || gateway
 
                 if (node && !passedNodes.includes(node.id)) {
                     passedNodes.push(node.id)
-
-                    if (activity) {
+                    if (endEvent) {
+                        const name = this.$t('结束节点')
+                        endEvent.level = level
+                        endEvent.title = name
+                        endEvent.name = name
+                        endEvent.expanded = false
+                        ordered.push(endEvent)
+                    } else if (activity) { // 任务节点
                         const isExistInList = ordered.find(item => item.id === activity.id)
                         if (!isExistInList) {
                             if (activity.pipeline) {
@@ -964,13 +975,17 @@
                             activity.expanded = activity.pipeline
                             ordered.push(activity)
                         }
+                    } else if (gateway) { // 网关节点
+                        const name = NODE_DICT[gateway.type.toLowerCase()]
+                        gateway.level = level
+                        gateway.title = name
+                        gateway.name = name
+                        gateway.expanded = false
+                        level += 1
+                        ordered.push(gateway)
                     }
 
                     const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
-                    // 分支网关
-                    if (gateway) {
-                        level += 1
-                    }
                     outgoing.forEach((line, index, arr) => {
                         this.retrieveLines(data, line, ordered, passedNodes, level)
                     })
@@ -982,29 +997,24 @@
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
-                    let nodeData = tools.deepClone(this.nodeData)
-                    let firstNodeId = null
-                    let firstNodeData = null
-                    const rootNode = []
-                    while (nodeData[0]) {
-                        if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-                            firstNodeId = nodeData[0].id
-                            firstNodeData = nodeData[0]
-                            nodeData[0] = false
+                    let nodeData = tools.deepClone(this.nodeData[0].children)
+                    let firstTaskNode = null
+                    const subprocessStack = []
+                    while (nodeData) {
+                        const activityNode = nodeData.find(item => item.type === 'ServiceActivity' || item.type === 'SubProcess')
+                        if (activityNode.type === 'ServiceActivity') {
+                            firstTaskNode = activityNode
+                            nodeData = null
                         } else {
-                            rootNode.push(nodeData[0])
-                            nodeData = nodeData[0].children
+                            subprocessStack.push(activityNode.id)
+                            nodeData = activityNode.children
                         }
                     }
-                    this.defaultActiveId = firstNodeId
-                    let subprocessStack = []
-                    if (rootNode.length > 1) {
-                        subprocessStack = rootNode.map(item => item.id).slice(1)
-                    }
+                    this.defaultActiveId = firstTaskNode.id
                     this.nodeDetailConfig = {
-                        component_code: firstNodeData.component.code,
-                        version: firstNodeData.component.version || 'legacy',
-                        node_id: firstNodeData.id,
+                        component_code: firstTaskNode.component.code,
+                        version: firstTaskNode.component.version || 'legacy',
+                        node_id: firstTaskNode.id,
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
@@ -1246,6 +1256,27 @@
                     params: params,
                     func
                 })
+            },
+            // 根据当前任务的状态修改页面对应浏览器tab的icon
+            modifyPageIcon () {
+                let nameSuffix = ''
+                switch (this.state) {
+                    case 'CREATED':
+                        nameSuffix = 'created'
+                        break
+                    case 'FINISHED':
+                        nameSuffix = 'finished'
+                        break
+                    case 'FAILED':
+                    case 'REVOKED':
+                        nameSuffix = 'failed'
+                        break
+                    default:
+                        nameSuffix = 'running'
+                }
+                const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
+                const path = `${window.SITE_URL}/static/core/images/${picName}.png`
+                dom.setPageTabIcon(path)
             },
             // 下次画布组件更新后执行队列
             onTemplateCanvasMounted () {
