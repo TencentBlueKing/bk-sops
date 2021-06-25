@@ -40,7 +40,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
