@@ -68,7 +68,6 @@
             }
         },
         created () {
-            console.log('b')
             this.getTaskData()
         },
         methods: {
@@ -76,7 +75,6 @@
                 'getTaskInstanceData'
             ]),
             async getTaskData () {
-                console.log('a')
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
@@ -89,7 +87,6 @@
                     this.templateId = template_id
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
-                    console.log(1)
                     // 职能化任务通过普通任务执行链接访问时，重定向到职能化任务链接
                     if (this.$route.name === 'taskExecute' && flow_type === 'common_func') {
                         this.$router.replace({
@@ -101,7 +98,6 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    console.log(2)
                     this.taskDataLoading = false
                 }
             }
