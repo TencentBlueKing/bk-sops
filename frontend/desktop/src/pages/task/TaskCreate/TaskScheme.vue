@@ -15,7 +15,7 @@
                 <span> {{$t('执行方案')}}</span>
                 <div>
                     <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" :disabled="isCommonProcess" @click="onImportTemporaryPlan">导入临时方案</bk-button>
+                    <bk-button size="small" @click="isEditSchemeShow = true">导入临时方案</bk-button>
                 </div>
             </div>
             <div class="scheme-header">
@@ -41,7 +41,7 @@
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div :class="['scheme-content', { 'is-diasbled': isCommonProcess }]">
+            <div class="scheme-content">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"
@@ -94,7 +94,6 @@
     import i18n from '@/config/i18n/index.js'
     import { uuid } from '@/utils/uuid.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import EditScheme from './EditScheme.vue'
@@ -212,8 +211,8 @@
                         isCommon: this.isCommonProcess
                     }) || []
                     this.$emit('updateTaskSchemeList', this.schemaList)
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**
@@ -221,12 +220,6 @@
              */
             toggleSchemePanel () {
                 this.showPanel = !this.showPanel
-            },
-            /**
-             * 导入临时方案
-            */
-            onImportTemporaryPlan () {
-                this.isEditSchemeShow = true
             },
             /**
              * 创建任务方案弹窗
@@ -261,7 +254,10 @@
 
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'error'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {
@@ -302,7 +298,7 @@
                             theme: 'success'
                         })
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     } finally {
                         this.schemaName = ''
                         this.nameEditing = false
@@ -313,7 +309,8 @@
              * 删除方案
              */
             async onDeleteScheme (scheme) {
-                const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
                 if (this.deleting || !hasPermission) return
                 if (!this.isEditProcessPage) {
@@ -335,7 +332,7 @@
                         theme: 'success'
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.deleting = false
                 }
@@ -532,18 +529,6 @@
                         color: #979ba5;
                     }
                 }
-            }
-        }
-        .is-diasbled {
-            &:after {
-                content: '';
-                position: absolute;
-                top: 55px;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                opacity: 0.3;
-                background-color: #e1e4e8;
             }
         }
         .scheme-preview-mode {

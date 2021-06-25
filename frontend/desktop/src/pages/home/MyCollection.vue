@@ -83,7 +83,6 @@
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
     import toolsUtils from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions } from 'vuex'
     export default {
         name: 'MyCollection',
@@ -132,7 +131,7 @@
                     this.collectionGrounpList = this.getGrounpList(res.objects)
                     this.collectionBodyLoading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             getLimit () {
@@ -202,6 +201,11 @@
                 if (this.getRourcePerm(template)) {
                     return this.checkForPermission(template)
                 }
+                window.reportInfo({
+                    page: 'home',
+                    zone: 'collectedCard',
+                    event: 'click'
+                })
                 const type = template.category
                 // 有权限执行
                 const { project_id, template_id, app_id, name } = template.extra_info

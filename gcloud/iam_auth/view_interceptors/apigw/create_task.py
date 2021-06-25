@@ -21,7 +21,7 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.constants import PROJECT
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 
 iam = get_iam_client()
 

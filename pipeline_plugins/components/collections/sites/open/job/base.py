@@ -41,7 +41,6 @@ from pipeline.core.flow.io import (
     StringItemSchema,
     IntItemSchema,
 )
-
 from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error

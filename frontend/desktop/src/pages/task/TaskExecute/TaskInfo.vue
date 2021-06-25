@@ -24,7 +24,6 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import VueJsonPretty from 'vue-json-pretty'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -59,11 +58,9 @@
                     const resp = await this.taskflowDetail({ task_id: this.taskId })
                     if (resp.result) {
                         this.taskDetail = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.taskflowDetailLoading = false
                 }

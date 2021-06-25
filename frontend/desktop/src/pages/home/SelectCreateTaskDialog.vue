@@ -78,7 +78,6 @@
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     export default {
         name: 'SelectCreateTaskDialog',
         components: {
@@ -209,8 +208,8 @@
                         } else {
                             this.hasUseCommonTplPerm = false
                         }
-                    } catch (error) {
-                        errorHandler(error, this)
+                    } catch (e) {
+                        console.log(e)
                     } finally {
                         this.permissionLoading = false
                     }

@@ -24,6 +24,11 @@ BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
 
 BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 
+BK_PAAS_DESKTOP_HOST = os.getenv(
+    "BKAPP_SOPS_PAAS_DESKTOP_HOST",
+    "%sconsole/" % BK_PAAS_HOST if BK_PAAS_HOST.endswith("/") else "%s/console/" % BK_PAAS_HOST,
+)
+
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
@@ -122,7 +127,13 @@ RSA_PRIV_KEY = os.getenv("BKAPP_RSA_PRIV_KEY", None)
 RSA_PUB_KEY = os.getenv("BKAPP_RSA_PUB_KEY", None)
 
 # 单业务下最大周期任务数量
-PERIODIC_TASK_PROJECT_MAX_NUMBER = int(os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50))
+PERIODIC_TASK_PROJECT_MAX_NUMBER = os.getenv("BKAPP_PERIODIC_TASK_PROJECT_MAX_NUMBER", 50)
+
+# 变量名关键字黑名单
+VARIABLE_KEY_BLACKLIST = os.getenv("BKAPP_VARIABLE_KEY_BLACKLIST", "context,")
+
+# 任务操作限流开关配置
+TASK_OPERATION_THROTTLE = os.getenv("BKAPP_TASK_OPERATION_THROTTLE", False)
 
 # JOB 日志提取额外模式配置
 try:

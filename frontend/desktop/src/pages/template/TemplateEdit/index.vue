@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading || subAtomListLoading, zIndex: 100 }">
-        <div v-if="!templateDataLoading && !singleAtomListLoading && !subAtomListLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100 }">
+        <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -44,6 +44,7 @@
                     :locations="locations"
                     :node-menu-open="nodeMenuOpen"
                     @viewClick="viewUpdatedNode"
+                    @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
                 </SubflowUpdateTips>
                 <TemplateCanvas
@@ -53,6 +54,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
+                    :subflow-list-loading="subAtomListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
@@ -91,6 +93,7 @@
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
+                    :subflow-list-loading="subAtomListLoading"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -118,6 +121,12 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
+            <batch-update-dialog
+                :show.sync="isBatchUpdateDialogShow"
+                :project-id="project_id"
+                :list="subflowShouldUpdated"
+                @globalVariableUpdate="globalVariableUpdate">
+            </batch-update-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -205,6 +214,7 @@
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
+    import BatchUpdateDialog from './BatchUpdateDialog.vue'
 
     export default {
         name: 'TemplateEdit',
@@ -215,7 +225,8 @@
             NodeConfig,
             ConditionEdit,
             TemplateSetting,
-            SubflowUpdateTips
+            SubflowUpdateTips,
+            BatchUpdateDialog
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
@@ -264,6 +275,7 @@
                 conditionData: {},
                 multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
+                isBatchUpdateDialogShow: false,
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -492,7 +504,7 @@
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.singleAtomListLoading = false
                 }
@@ -507,7 +519,7 @@
                     this.setProjectBaseInfo(resp.data)
                     this.getSubflowList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                 }
@@ -515,7 +527,7 @@
             /**
              * 加载子流程列表
              */
-            async getSubflowList (subAtomData) {
+            async getSubflowList () {
                 this.subAtomListLoading = true
                 try {
                     const data = {
@@ -526,7 +538,7 @@
                     const resp = await this.loadSubflowList(data)
                     this.handleSubflowList(resp)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.subAtomListLoading = false
                 }
@@ -550,7 +562,7 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateDataLoading = false
                 }
@@ -574,7 +586,7 @@
                     await this.loadAtomConfig({ atom: code, version, project_id })
                     this.addSingleAtomActivities(location, this.atomConfig[code][version])
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomConfigLoading = false
                 }
@@ -611,7 +623,7 @@
                     activities.constants = constants || {}
                     this.setActivities({ type: 'edit', location: activities })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             /**
@@ -623,7 +635,7 @@
                     const result = await this.loadInternalVariable()
                     this.setInternalVariable(result.data)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.systemVarsLoading = false
                 }
@@ -636,8 +648,8 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.templateLabelLoading = false
                 }
@@ -679,7 +691,8 @@
                         await this.saveTaskSchemList({
                             project_id: this.project_id,
                             template_id: data.template_id,
-                            schemes
+                            schemes,
+                            isCommon: this.common
                         })
                     }
 
@@ -706,7 +719,7 @@
                         this.goToTaskUrl(data.template_id)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.saveAndCreate = false
                     this.pid = undefined
@@ -981,6 +994,11 @@
              * 自动排版
              */
             async onFormatPosition () {
+                window.reportInfo({
+                    page: 'templateEdit',
+                    zone: 'formatPositionIcon',
+                    event: 'click'
+                })
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
@@ -1016,11 +1034,9 @@
                                 theme: 'success'
                             })
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.canvasDataLoading = false
                 }
@@ -1056,6 +1072,7 @@
                     case 'branchgateway':
                     case 'parallelgateway':
                     case 'convergegateway':
+                    case 'conditionalparallelgateway':
                         this.setGateways({ type: changeType, location })
                         break
                     case 'startpoint':
@@ -1107,7 +1124,8 @@
                     const resp = await this.saveTaskSchemList({
                         project_id: this.project_id,
                         template_id: this.template_id,
-                        schemes
+                        schemes,
+                        isCommon: this.common
                     })
                     this.isExectueSchemeDialog = false
                     if (!resp.result) {
@@ -1125,8 +1143,8 @@
                     this.isTemplateDataChanged = false
                     this.isEditProcessPage = true
                     this.isSchemaListChange = false
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.executeSchemeSaving = false
                 }

@@ -23,13 +23,13 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import replace_template_id
 from gcloud.constants import PROJECT
 from gcloud.core.models import ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger, info_data_from_period_task
 from gcloud.apigw.validators import CreatePriodicTaskValidator

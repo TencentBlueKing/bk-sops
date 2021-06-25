@@ -49,22 +49,13 @@ class NodeManBaseService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"),
-                key="job_id",
-                type="int",
-                schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"),
-                key="success_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"),
-                key="fail_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
@@ -137,7 +128,7 @@ class NodeManBaseService(Service):
             ]
 
             # 查询失败任务日志
-            error_log = "<br>{mes}</br>".format(mes=_("日志信息为："))
+            error_log = "<br>{mes}</br>".format(mes=_("操作失败主机日志信息："))
             for fail_info in fail_infos:
                 log_kwargs = {
                     "job_id": job_id,
@@ -159,8 +150,8 @@ class NodeManBaseService(Service):
                     error_log=error_log,
                     host=_("主机："),
                     fail_host=fail_info["inner_ip"],
-                    log=_("日志："),
-                    log_info=json.dumps(log_info[0], ensure_ascii=False),
+                    log=_("错误日志："),
+                    log_info="{}\n{}".format(log_info[0]["step"], log_info[0]["log"]),
                 )
 
             data.set_outputs("ex_data", error_log)

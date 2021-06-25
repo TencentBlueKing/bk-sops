@@ -18,7 +18,7 @@ from iam import DjangoQuerySetConverter
 from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 
 
 class CommonFlowResourceProvider(ResourceProvider):

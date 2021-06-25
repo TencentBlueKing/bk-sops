@@ -41,7 +41,6 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import ResourceList from './ResourceList.vue'
     import ResourceFilter from './ResourceFilter.vue'
 
@@ -199,11 +198,9 @@
                             this.originalCols = resp.data
                         }
                         this.joinCols(this.localConfig.module_detail)
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.colsLoading = false
                 }

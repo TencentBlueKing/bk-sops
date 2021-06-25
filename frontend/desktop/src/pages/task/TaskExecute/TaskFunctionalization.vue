@@ -102,7 +102,6 @@
     import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import i18n from '@/config/i18n/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import TaskCreateHeader from '../TaskCreateHeader.vue'
@@ -265,11 +264,9 @@
                         const res = await this.claimFuncTask(data)
                         if (res.result) {
                             this.reload()
-                        } else {
-                            errorHandler(res, this)
                         }
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     } finally {
                         this.isSubmit = false
                     }

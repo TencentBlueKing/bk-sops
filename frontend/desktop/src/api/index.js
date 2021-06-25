@@ -25,14 +25,19 @@ axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 // jquery ajax error handler
 setJqueryAjaxConfig()
 
-axios.interceptors.request.use(function (config) {
-    return config
-}, function (error) {
-    return Promise.reject(error)
-})
+axios.interceptors.request.use(
+    config => config,
+    error => Promise.reject(error)
+)
 
 axios.interceptors.response.use(
     response => {
+        if (response.data.hasOwnProperty('result')) {
+            if (!response.data.result) {
+                const info = Object.assign({}, response.data, { theme: 'error', lines: 2 })
+                bus.$emit('showMessage', info)
+            }
+        }
         return response
     },
     error => {
@@ -42,7 +47,7 @@ axios.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        const response = error.response
+        const { response } = error
         console.log(response)
 
         switch (response.status) {
@@ -100,9 +105,9 @@ axios.interceptors.response.use(
         if (response.data.message) {
             if (checkDataType(response.data.message) === 'Object') {
                 const msg = []
-                for (const key in response.data.message) {
+                Object.keys(response.data.message).forEach((key) => {
                     msg.push(response.data.message[key].join(';'))
-                }
+                })
                 response.data.msg = msg.join(';')
             } else if (checkDataType(response.data.message) === 'Array') {
                 response.data.msg = response.data.message.join(';')

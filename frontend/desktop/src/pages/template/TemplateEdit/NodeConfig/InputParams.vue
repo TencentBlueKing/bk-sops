@@ -45,6 +45,14 @@
         },
         props: {
             scheme: Array,
+            showHook: {
+                type: Boolean,
+                default: true
+            },
+            editable: {
+                type: Boolean,
+                default: true
+            },
             value: Object,
             plugin: String, // 标准插件
             version: String, // 标准插件版本或子流程版本
@@ -63,9 +71,10 @@
                 reuseableVarList: [],
                 option: {
                     showGroup: false,
-                    showHook: true,
+                    showHook: this.showHook,
                     showLabel: true,
-                    showVarList: true
+                    showVarList: true,
+                    formEdit: this.editable
                 }
             }
         },
@@ -192,7 +201,7 @@
                 }
                 if (this.isSubflow) {
                     const constant = this.subflowForms[this.hookingVarForm]
-                    const { desc, custom_type, source_tag, validation, version } = constant
+                    const { desc, custom_type, source_tag, validation, is_meta, meta, version } = constant
                     Object.assign(config, {
                         desc,
                         custom_type,
@@ -200,6 +209,10 @@
                         validation,
                         version
                     })
+                    if (is_meta) {
+                        config.is_meta = true
+                        config.meta = tools.deepClone(meta)
+                    }
                 } else {
                     Object.assign(config, {
                         custom_type: '',

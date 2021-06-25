@@ -17,7 +17,6 @@
 <script>
     import { mapActions, mapState } from 'vuex'
     import bus from '@/utils/bus.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'functor',
@@ -51,8 +50,8 @@
                     } else {
                         this.showPermissionApplyPage()
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             /**

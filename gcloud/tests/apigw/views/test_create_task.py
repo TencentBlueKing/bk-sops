@@ -92,6 +92,7 @@ class CreateTaskAPITest(APITest):
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
+                    engine_ver=1,
                 )
 
                 data = json.loads(response.content)
@@ -143,6 +144,7 @@ class CreateTaskAPITest(APITest):
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
+                    engine_ver=1,
                 )
 
                 data = json.loads(response.content)
@@ -207,6 +209,7 @@ class CreateTaskAPITest(APITest):
                     create_info=TEST_APP_CODE,
                     flow_type="common",
                     current_flow="execute_task",
+                    engine_ver=1,
                 )
 
                 data = json.loads(response.content)
@@ -449,9 +452,9 @@ class CreateTaskAPITest(APITest):
             self.assertTrue("message" in data)
             self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
-            create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.standardize_pipeline_node_name.assert_called_once_with(TEST_PIPELINE_TREE)
             create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
-            create_task.pipeline_node_name_handle.reset_mock()
+            create_task.standardize_pipeline_node_name.reset_mock()
             create_task.validate_web_pipeline_tree.reset_mock()
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
@@ -481,7 +484,7 @@ class CreateTaskAPITest(APITest):
             self.assertTrue("message" in data)
             self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
-            create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.standardize_pipeline_node_name.assert_called_once_with(TEST_PIPELINE_TREE)
             create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
 
     @mock.patch(

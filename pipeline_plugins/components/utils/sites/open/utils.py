@@ -17,12 +17,15 @@ import logging
 from cryptography.fernet import Fernet
 
 import env
+from django.utils.translation import ugettext_lazy as _
+
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
 from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
+from gcloud.core.models import EngineConfig
 
 __all__ = [
     "cc_get_ips_info_by_str",
@@ -30,6 +33,8 @@ __all__ = [
     "get_node_callback_url",
     "plat_ip_reg",
     "get_nodeman_job_url",
+    "get_difference_ip_list",
+    "get_biz_ip_from_frontend",
 ]
 
 JOB_APP_CODE = "bk_job"
@@ -117,10 +122,10 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
             plat_ip.append(match.group())
 
         for ip_info in ip_list:
-            cloud_id_ip = "{}:{}".format(
-                ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),
-            )
-            if cloud_id_ip in plat_ip:
+            if (
+                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
+                in plat_ip
+            ):
                 ip_result.append(
                     {
                         "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
@@ -167,11 +172,12 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
     return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
 
-def get_node_callback_url(node_id):
+def get_node_callback_url(node_id, node_version=""):
+    engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2
     f = Fernet(settings.CALLBACK_KEY)
-    return "%staskflow/api/nodes/callback/%s/" % (
+    return "%staskflow/api/v4/nodes/callback/%s/" % (
         env.BKAPP_INNER_CALLBACK_HOST,
-        f.encrypt(bytes(node_id, encoding="utf8")).decode(),
+        f.encrypt(bytes("{}:{}:{}".format(engine_ver, node_id, node_version), encoding="utf8")).decode(),
     )
 
 
@@ -202,6 +208,38 @@ def get_difference_ip_list(original_ip_list, ip_list):
     @param ip_list: 查询到的IP列表
     @return:
     """
-    input_ip_list = set(get_ip_by_regex(original_ip_list))
-    difference_ip_list = set(input_ip_list).difference(set(ip_list))
+    difference_ip_list = set(original_ip_list).difference(set(ip_list))
     return difference_ip_list
+
+
+def get_biz_ip_from_frontend(
+    ip_str, executor, biz_cc_id, data, logger_handle, is_across=False, ip_is_exist=False, ignore_ex_data=False
+):
+    """
+    从前端表单中获取有效IP
+    """
+    # 跨业务，不校验IP归属
+    if is_across:
+        plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
+        ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
+        err_msg = _("允许跨业务时IP格式需满足：【云区域ID:IP】。失败 IP： {}")
+    else:
+        var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=ip_str, use_cache=False)
+        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
+        err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
+
+    # 校验Ip是否存在, 格式是否符合要求
+    input_ip_set = get_ip_by_regex(ip_str)
+    logger_handle.info("The valid IP list is:{}, User input IP list is:{}".format(ip_list, input_ip_set))
+    difference_ip_list = list(get_difference_ip_list(input_ip_set, [ip_item["ip"] for ip_item in ip_list]))
+
+    if len(ip_list) != len(set(input_ip_set)):
+        difference_ip_list.sort()
+        if not ignore_ex_data:
+            data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
+        return False, ip_list
+    if not ip_list:
+        if not ignore_ex_data:
+            data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
+        return False, ip_list
+    return True, ip_list

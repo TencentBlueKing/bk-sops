@@ -31,12 +31,12 @@ from gcloud.core.api_adapter import (
     modify_app_logo,
     get_app_logo_url,
 )
-from gcloud.core.constant import AE, TASK_CATEGORY
+from gcloud.constants import AE, TASK_CATEGORY
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.dates import time_now_str
 from gcloud.core.utils import convert_readable_username
-from gcloud.utils.strings import name_handler
+from gcloud.utils.strings import standardize_name
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
@@ -61,8 +61,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         if app_id == "0" or not app_id:
             app_id = None
         template_id = app_params["template_id"]
-        app_params["name"] = name_handler(app_params["name"], 20)
-        app_params["desc"] = name_handler(app_params.get("desc", ""), 30)
+        app_params["name"] = standardize_name(app_params["name"], 20)
+        app_params["desc"] = standardize_name(app_params.get("desc", ""), 30)
         proj = Project.objects.get(id=project_id)
         try:
             task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
@@ -148,13 +148,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             if not fake:
                 # edit app on blueking
                 app_edit_result = edit_maker_app(
-                    creator,
-                    app_code,
-                    app_params["name"],
-                    link,
-                    creator,
-                    task_template.category,
-                    app_params["desc"],
+                    creator, app_code, app_params["name"], link, creator, task_template.category, app_params["desc"],
                 )
                 if not app_edit_result["result"]:
                     return False, _("编辑轻应用失败：%s") % app_edit_result["message"]
@@ -194,11 +188,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         del_name = time_now_str()
         if not fake:
             # rename before delete to avoid name conflict when create a new app
-            app_edit_result = edit_maker_app(
-                app_maker_obj.creator,
-                app_maker_obj.code,
-                del_name[:20],
-            )
+            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20],)
             if not app_edit_result["result"]:
                 return False, _("删除失败：%s") % app_edit_result["message"]
 

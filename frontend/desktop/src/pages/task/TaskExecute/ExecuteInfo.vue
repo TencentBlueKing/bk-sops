@@ -78,7 +78,7 @@
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
-                <section class="info-section">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title input-parameter">
                         <div class="input-title">{{ $t('输入参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -102,8 +102,7 @@
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                     </div>
                 </section>
-                
-                <section class="info-section">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title output-parameter">
                         <div class="output-title">{{ $t('输出参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -266,7 +265,6 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
@@ -293,7 +291,7 @@
         },
         {
             title: i18n.t('失败后自动忽略'),
-            id: 'error_ignorable'
+            id: 'error_ignored'
         },
         {
             title: i18n.t('重试次数'),
@@ -328,7 +326,7 @@
         },
         {
             title: i18n.t('失败后自动忽略'),
-            id: 'error_ignorable'
+            id: 'error_ignored'
         },
         {
             title: i18n.t('重试次数'),
@@ -695,7 +693,7 @@
                         this.isShowRetryBtn = data.retryable
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -719,8 +717,8 @@
                     if (res.result) {
                         return res.data
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 非admin 用户执行记录
@@ -729,8 +727,8 @@
                     this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.isLogLoading = false
                 }
@@ -779,11 +777,9 @@
                         } else {
                             this.$set(this.historyLog, id, resp.data)
                         }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.historyLogLoading[id] = false
                 }
@@ -833,8 +829,8 @@
                     this.getHistoryLog(id)
                 }
             },
-            onSelectNode (nodeHeirarchy, isClick, nodeType) {
-                this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
+            onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+                this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {

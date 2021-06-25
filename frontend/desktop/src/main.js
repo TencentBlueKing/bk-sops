@@ -65,6 +65,8 @@ Vue.use(Tooltip)
 Vue.use(Cascader)
 Vue.use(autocomplete)
 
+window.reportInfo = function () {}
+
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)
     locales.use(enLocale)
@@ -77,15 +79,11 @@ $.context = {}
 
 const InvalidNameChar = '\'‘"”$&<>'
 Validator.extend('cronRlue', {
-    getMessage: (field, args) => {
-        return args + i18n.t('输入定时表达式非法，请校验')
-    },
+    getMessage: (field, args) => args + i18n.t('输入定时表达式非法，请校验'),
     validate: value => cron.validate(value).status
 })
 Validator.extend('integer', {
-    getMessage: (field, args) => {
-        return args + i18n.t('间隔时间必须是正整数')
-    },
+    getMessage: (field, args) => args + i18n.t('间隔时间必须是正整数'),
     validate: value => Number(value) >= 1 && Number(value) % 1 === 0
 })
 Validator.localize({

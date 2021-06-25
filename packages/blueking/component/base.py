@@ -19,7 +19,7 @@ from .exceptions import ComponentAPIException
 from .conf import COMPONENT_SYSTEM_HOST
 
 
-logger = logging.getLogger('component')
+logger = logging.getLogger("component")
 
 
 class ComponentAPI(object):
@@ -27,19 +27,19 @@ class ComponentAPI(object):
 
     HTTP_STATUS_OK = 200
 
-    def __init__(self, client, method, path, description='', default_return_value=None):
+    def __init__(self, client, method, path, description="", default_return_value=None):
         host = COMPONENT_SYSTEM_HOST
         # Do not use join, use '+' because path may starts with '/'
-        self.host = host.rstrip('/')
+        self.host = host.rstrip("/")
         self.path = path
-        self.url = ''
+        self.url = ""
         self.client = client
         self.method = method
         self.default_return_value = default_return_value
 
     def get_url_with_api_ver(self):
         bk_api_ver = self.client.get_bk_api_ver()
-        sub_path = '/{}'.format(bk_api_ver) if bk_api_ver else ''
+        sub_path = "/{}".format(bk_api_ver) if bk_api_ver else ""
         return self.host + self.path.format(bk_api_ver=sub_path)
 
     def __call__(self, *args, **kwargs):
@@ -48,11 +48,11 @@ class ComponentAPI(object):
             return self._call(*args, **kwargs)
         except ComponentAPIException as e:
             # Combine log message
-            log_message = [e.error_message, 'url=%(url)s' % {'url': e.api_obj.url}]
+            log_message = [e.error_message, "url=%(url)s" % {"url": e.api_obj.url}]
             if e.resp:
-                log_message.append('content: %s' % e.resp.text)
+                log_message.append("content: %s" % e.resp.text)
 
-            logger.exception('\n'.join(log_message))
+            logger.exception("\n".join(log_message))
 
             # Try return error message from remote service
             if e.resp is not None:
@@ -60,7 +60,7 @@ class ComponentAPI(object):
                     return e.resp.json()
                 except Exception:
                     pass
-            return {'result': False, 'message': e.error_message, 'data': None}
+            return {"result": False, "message": e.error_message, "data": None}
 
     def _call(self, *args, **kwargs):
         params, data = {}, {}
@@ -69,41 +69,40 @@ class ComponentAPI(object):
         params.update(kwargs)
 
         # Validate params for POST request
-        if self.method == 'POST':
+        if self.method == "POST":
             data = params
             params = None
             try:
                 json.dumps(data)
             except Exception:
-                raise ComponentAPIException(self, 'Request parameter error (please pass in a dict or json string)')
+                raise ComponentAPIException(self, "Request parameter error (please pass in a dict or json string)")
 
         # Request remote server
         try:
             resp = self.client.request(self.method, self.url, params=params, data=data)
         except Exception as e:
-            logger.exception('Error occurred when requesting method=%s url=%s',
-                             self.method, self.url)
-            raise ComponentAPIException(self, 'Request component error, Exception: %s' % str(e))
+            logger.exception("Error occurred when requesting method=%s url=%s", self.method, self.url)
+            raise ComponentAPIException(self, "Request component error, Exception: %s" % str(e))
 
         # Parse result
         if resp.status_code != self.HTTP_STATUS_OK:
-            message = 'Request component error, status_code: %s' % resp.status_code
+            message = "Request component error, status_code: %s" % resp.status_code
             raise ComponentAPIException(self, message, resp=resp)
         try:
             # Parse response
             json_resp = resp.json()
-            if not json_resp['result']:
-                # 组件返回错误时，记录相应的 request_id
-                log_message = ('Component return error message: %(message)s, request_id=%(request_id)s, '
-                               'url=%(url)s, params=%(params)s, data=%(data)s, response=%(response)s') % {
-                    'request_id': json_resp.get('request_id'),
-                    'message': json_resp['message'],
-                    'url': self.url,
-                    'params': params,
-                    'data': data,
-                    'response': resp.text,
-                }
-                logger.error(log_message)
+
+            log_level = logging.DEBUG if json_resp["result"] else logging.ERROR
+            logger.log(
+                log_level,
+                u"Component return message: %s, request_id=%s, url=%s, params=%s, data=%s, response=%s",
+                json_resp["message"],
+                json_resp.get("request_id"),
+                self.url,
+                params,
+                data,
+                resp.text,
+            )
 
             # Return default return value
             if not json_resp and self.default_return_value is not None:
@@ -111,4 +110,5 @@ class ComponentAPI(object):
             return json_resp
         except Exception:
             raise ComponentAPIException(
-                self, 'Return data format is incorrect, which shall be unified as json', resp=resp)
+                self, "Return data format is incorrect, which shall be unified as json", resp=resp
+            )

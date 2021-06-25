@@ -165,7 +165,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -344,11 +343,9 @@
                             this.getAdminTask()
                             this.getCreateMethod()
                         }
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.searchLoading = false
                 }
@@ -367,7 +364,7 @@
                     this.tplResource = res.meta.auth_resource
                     this.tplPagination.count = res.meta.total_count
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.tplDataLoading = false
                 }
@@ -405,7 +402,7 @@
                         return status
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskDataLoading = false
                 }
@@ -446,11 +443,9 @@
                                 status.text = i18n.t('未知')
                         }
                         this.executeStatus.splice(index, 1, status)
-                    } else {
-                        errorHandler(detailInfo, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             async getCreateMethod () {
@@ -462,11 +457,9 @@
                             methodList[item.value] = item.name
                         })
                         this.methodList = methodList
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onSearch () {
@@ -509,11 +502,9 @@
                     if (resp.result) {
                         this.isRestoreDialogShow = false
                         this.getAdminTemplate()
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.restorePending = false
                 }

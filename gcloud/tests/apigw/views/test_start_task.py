@@ -40,11 +40,11 @@ class StartTaskAPITest(APITest):
             )
         ),
     )
-    def test_start_task(self):
-        assert_return = {"result": True, "task_url": TEST_TASKFLOW_URL}
-        task = MockTaskFlowInstance(task_action_return=assert_return)
+    def test_start_task__task_is_started(self):
+        taskflow_instance = MagicMock()
+        taskflow_instance.objects.is_task_started = MagicMock(return_value=True)
 
-        with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
+        with mock.patch(APIGW_START_TASK_TASKFLOW_INSTANCE, taskflow_instance):
             response = self.client.post(
                 path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
                 data=json.dumps({}),
@@ -52,9 +52,51 @@ class StartTaskAPITest(APITest):
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
             )
 
-            task.task_action.assert_called_once_with("start", "")
+            taskflow_instance.objects.is_task_started.assert_called_once_with(
+                project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+            )
 
             data = json.loads(response.content)
+
+            if "trace_id" in data:
+                data.pop("trace_id")
+            self.assertFalse(data["result"])
+            self.assertEqual(data["message"], "task already started")
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            )
+        ),
+    )
+    def test_start_task(self):
+        assert_return = {"result": True, "task_url": TEST_TASKFLOW_URL, "code": 0}
+        taskflow_instance = MagicMock()
+        taskflow_instance.objects.is_task_started = MagicMock(return_value=False)
+        taskflow_instance.task_url = MagicMock(return_value=TEST_TASKFLOW_URL)
+        prepare_and_start_task = MagicMock()
+
+        with mock.patch(APIGW_START_TASK_TASKFLOW_INSTANCE, taskflow_instance):
+            with mock.patch(APIGW_START_TASK_PREPARE_AND_START_TASK, prepare_and_start_task):
+                response = self.client.post(
+                    path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+                    data=json.dumps({}),
+                    content_type="application/json",
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                )
+
+                taskflow_instance.objects.is_task_started.assert_called_once_with(
+                    project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+                )
+                prepare_and_start_task.apply_async.assert_called_once_with(
+                    kwargs=dict(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID, username=""),
+                    queue="task_prepare_api",
+                    routing_key="task_prepare_api",
+                )
+
+                data = json.loads(response.content)
 
             if "trace_id" in data:
                 data.pop("trace_id")

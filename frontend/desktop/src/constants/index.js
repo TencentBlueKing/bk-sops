@@ -11,6 +11,7 @@
 */
 import i18n from '@/config/i18n/index.js'
 const TASK_STATE_DICT = {
+    'EXPIRED': i18n.t('已过期'),
     'CREATED': i18n.t('未执行'),
     'RUNNING': i18n.t('执行中'),
     'READY': i18n.t('排队中'),
@@ -27,7 +28,9 @@ const NODE_DICT = {
     // 'startPoint': i18n.t('开始节点'),
     // 'endPoint': i18n.t('结束节点'),
     'parallelgateway': i18n.t('并行网关'),
+    'conditionalparallelgateway': i18n.t('条件并行网关'),
     'branchgateway': i18n.t('分支网关'),
+    'exclusivegateway': i18n.t('分支网关'),
     'convergegateway': i18n.t('汇聚网关'),
     'tasknode': i18n.t('标准插件节点'),
     'subflow': i18n.t('子流程节点')
@@ -35,7 +38,7 @@ const NODE_DICT = {
 
 const INVALID_NAME_CHAR = '\'‘"”$&<>'
 
-const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM']
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM', 'WechatWork']
 const BK_PLUGIN_ICON = {
     'bk_http_request': 'common-icon-bk-plugin-http',
     'bk_notify': 'common-icon-bk-plugin-notify',
@@ -54,7 +57,7 @@ const PROJECT_DESC_LENGTH = 512
 const SCHEME_NAME_MAX_LENGTH = 30
 const APP_NAME_MAX_LENGTH = 20
 const APP_DESCRIPTION_MAX_LENGTH = 30
-const VARIABLE_NAME_MAX_LENGTH = 20
+const VARIABLE_NAME_MAX_LENGTH = 50
 const VARIABLE_KEY_MAX_LENGTH = 50
 const SOURCE_NAME_MAX_LENGTH = 50
 
@@ -86,7 +89,7 @@ const DARK_COLOR_LIST = [
     '#15acba', '#1e4c0f', '#5160b4', '#8c6d63', '#929292'
 ]
 
-const NAME_REG = /^[^'"‘’“”\$<>]+$/
+const NAME_REG = /^[^'"‘’“”$<>]+$/
 const PACKAGE_NAME_REG = /^[^\d][\w]*?$/
 // celery的crontab时间表达式正则表达式（分钟 小时 星期 日 月）（以空格分割）
 // 例子请见图片assets/images/task-zh.png
