@@ -87,7 +87,6 @@
     import '@/utils/i18n.js'
     import XLSX from 'xlsx'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import RenderForm from '../RenderForm.vue'
     import SeparatorSelect from '../SeparatorSelect.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -186,9 +185,12 @@
             },
             importData (file) {
                 const types = file.name.split('.')[1]
-                const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
-                if (!fileType) {
-                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                const fileTypeValid = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
+                if (!fileTypeValid) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件')
+                    })
                     return
                 }
                 this.readFileData(file).then(data => {

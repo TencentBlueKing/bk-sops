@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 # 开发框架加载顺序：environ.py -> default_settings -> env.py -> default.py -> settings_open_saas.py -> prod.py
+import json
 from blueapps.conf.default_settings import *  # noqa
 
 
@@ -133,3 +134,11 @@ VARIABLE_KEY_BLACKLIST = os.getenv("BKAPP_VARIABLE_KEY_BLACKLIST", "context,")
 
 # 任务操作限流开关配置
 TASK_OPERATION_THROTTLE = os.getenv("BKAPP_TASK_OPERATION_THROTTLE", False)
+
+# JOB 日志提取额外模式配置
+try:
+    JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = json.loads(os.getenv("BKAPP_JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS", "[]"))
+    if not isinstance(JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS, list):
+        JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
+except Exception:
+    JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []

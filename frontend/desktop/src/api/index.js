@@ -35,7 +35,7 @@ axios.interceptors.response.use(
         if (response.data.hasOwnProperty('result')) {
             if (!response.data.result) {
                 const info = Object.assign({}, response.data, { theme: 'error', lines: 2 })
-                bus.$emit('showMessage', info)
+                bus.$emit('showErrMessage', info)
             }
         }
         return response
@@ -47,31 +47,25 @@ axios.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        const { response } = error
+        const response = error.response
         console.log(response)
 
         switch (response.status) {
-            case 400: {
-                const info = {
-                    message: response.data.error || response.data.msg.error,
-                    lines: 2,
-                    theme: 'error'
-                }
-                bus.$emit('showMessage', info)
+            case 400:
+                const msg = response.data.error || response.data.msg.error
+                bus.$emit('showErrMessage', msg)
                 break
-            }
-            case 401: {
-                const { data } = response
+            case 401:
+                const data = response.data
                 if (data.has_plain) {
                     const topWindow = isCrossOriginIFrame() ? window : window.top
                     topWindow.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
                 }
                 break
-            }
             case 403:
             case 405:
             case 406:
-            case 499: {
+            case 499:
                 const permissions = response.data.permission
                 let isViewApply = false
                 let viewType = 'other'
@@ -80,8 +74,7 @@ axios.interceptors.response.use(
                     isViewApply = true
                 } else {
                     isViewApply = permissions.actions.some(item => {
-                        const result = ['flow_view', 'common_flow_view', 'mini_app_view', 'task_view'].includes(item.id)
-                        return result
+                        return ['flow_view', 'common_flow_view', 'mini_app_view', 'task_view'].includes(item.id)
                     })
                 }
                 if (isViewApply) {
@@ -90,7 +83,6 @@ axios.interceptors.response.use(
                     bus.$emit('showPermissionModal', permissions)
                 }
                 break
-            }
             case 500:
                 bus.$emit('showErrorModal', response.status, response.data.responseText)
                 break
@@ -101,7 +93,7 @@ axios.interceptors.response.use(
             console.error(msg)
             response.data = {
                 code: response.status,
-                msg
+                msg: msg
             }
         } else {
             const msg = response.data
