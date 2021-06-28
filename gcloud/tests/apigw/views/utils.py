@@ -19,12 +19,7 @@ from django.conf import settings
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-try:
-    from bkoauth.decorators import apigw_required  # noqa
-
-    BKOAUTH_DECORATOR_JWT_CLIENT = "bkoauth.decorators.JWTClient"
-except ImportError:
-    BKOAUTH_DECORATOR_JWT_CLIENT = "packages.bkoauth.decorators.JWTClient"
+BKOAUTH_DECORATOR_JWT_CLIENT = "packages.bkoauth.decorators.JWTClient"
 
 TEST_APP_CODE = "app_code"
 TEST_USERNAME = "tester"

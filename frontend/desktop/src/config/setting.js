@@ -93,33 +93,24 @@ export const setConfigContext = (site_url, project) => {
  * ajax全局设置
  */
 // 在这里对ajax请求做一些统一公用处理
-export const setJqueryAjaxConfig = () => {
-    $(document).ajaxError((event, xhr, setting) => {
+export function setJqueryAjaxConfig () {
+    $(document).ajaxError(function (event, xhr, setting) {
         const code = xhr.status
         switch (code) {
-            case 400: {
-                const message = xhr.responseText
-                const info = {
-                    theme: 'error',
-                    lines: 2,
-                    message
-                }
-                bus.$emit('showMessage', info)
+            case 400:
+                bus.$emit('showErrMessage', xhr.responseText)
                 break
-            }
-            case 401: {
+            case 401:
                 const { has_plain, login_url, width, height } = xhr.responseJSON
                 const method = setting.type
                 bus.$emit('showLoginModal', { has_plain, login_url, width, height, method })
                 break
-            }
-            case 402: {
+            case 402:
                 // 功能开关
                 const src = xhr.responseText
                 const ajaxContent = '<iframe name="403_iframe" frameborder="0" src="' + src + '" style="width:570px;height:400px;"></iframe>'
                 bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
                 break
-            }
             case 403:
                 bus.$emit('showErrorModal', '403')
                 break

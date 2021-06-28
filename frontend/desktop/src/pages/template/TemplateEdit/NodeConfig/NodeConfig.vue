@@ -252,6 +252,7 @@
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
+                subflowVersionUpdating: false, // 子流程更新
                 isConfirmDialogShow: false, // 确认是否保存编辑数据
                 nodeConfig, // 任务节点的完整 activity 配置参数
                 basicInfo, // 基础信息模块
@@ -288,7 +289,7 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.pluginLoading || this.subflowLoading || this.constantsLoading
+                return this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
                 return this.pluginLoading || this.subflowLoading
@@ -758,10 +759,12 @@
              * 子流程版本更新
              */
             async updateSubflowVersion () {
+                this.subflowVersionUpdating = true
                 const oldForms = Object.assign({}, this.subflowForms)
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
+                this.subflowVersionUpdating = false
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
                     this.updateSubflow = true
