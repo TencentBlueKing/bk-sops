@@ -25,7 +25,7 @@
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
                             :readonly="isSystemVar"
-                            :disabled="isHookedVar">
+                            :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
@@ -282,8 +282,8 @@
                     keyLength: true,
                     keyRepeat: true
                 }
-                // 勾选的变量不做长度校验
-                if (this.isHookedVar) {
+                // 勾选的变量编辑时不做长度校验
+                if (this.isHookedVar && this.variableData.key !== '') {
                     delete rule.max
                 }
                 return rule
@@ -316,14 +316,14 @@
             this.extendFormValidate()
         },
         async mounted () {
-            const { is_meta, custom_type, source_tag } = this.theEditingData
+            const { is_meta, custom_type, source_tag, source_type } = this.theEditingData
 
             if (this.isHookedVar) {
                 this.varTypeList = [{ code: 'component', name: i18n.t('组件') }]
             } else {
                 await this.getVarTypeList()
-                // 若当前编辑变量为元变量，则取meta_tag
-                if (is_meta) {
+                // 若当前编辑变量为自定义变量类型的元变量，则取meta_tag
+                if (is_meta && source_type === 'custom') {
                     const metaList = this.varTypeList.find(item => item.type === 'meta')
                     metaList.children.some(item => {
                         if (item.code === custom_type) {
@@ -336,7 +336,7 @@
             // 非输出参数勾选变量和系统内置变量(目前有自定义变量和输入参数勾选变量)需要加载标准插件配置项
             if (!['component_outputs', 'system'].includes(this.theEditingData.source_type)) {
                 if (this.theEditingData.hasOwnProperty('value')) {
-                    const sourceTag = is_meta ? this.metaTag : source_tag
+                    const sourceTag = (is_meta && source_type === 'custom') ? this.metaTag : source_tag
                     const tagCode = sourceTag.split('.')[1]
                     this.renderData = {
                         [tagCode]: this.theEditingData.value
@@ -437,7 +437,7 @@
                 }
             },
             getRenderConfig () {
-                const { source_tag, custom_type, version = 'legacy' } = this.theEditingData
+                const { source_tag, custom_type, source_type, is_meta, meta, version = 'legacy' } = this.theEditingData
                 const tagStr = this.metaTag || source_tag
                 let [atom, tag] = tagStr.split('.')
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
@@ -446,7 +446,10 @@
                     tag = tag || custom_type
                 }
                 const atomConfig = this.atomFormConfig[atom][version]
-                const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
+                let config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
+                if (is_meta && source_type === 'component_inputs' && config.meta_transform) {
+                    config = config.meta_transform(meta)
+                }
                 if (['input', 'textarea'].includes(custom_type) && this.theEditingData.validation !== '') {
                     config.attrs.validation.push({
                         type: 'regex',
@@ -656,11 +659,13 @@
                     this.theEditingData.name = this.theEditingData.name.trim()
                     
                     if (!this.variableData.key) { // 新增变量
-                        variable.version = 'legacy'
-                        variable.form_schema = formSchema.getSchema(
-                            variable.custom_type,
-                            this.atomFormConfig[this.atomTypeKey][variable.version]
-                        )
+                        if (!this.isHookedVar) { // 自定义变量
+                            variable.version = 'legacy'
+                            variable.form_schema = formSchema.getSchema(
+                                variable.custom_type,
+                                this.atomFormConfig[this.atomTypeKey][variable.version]
+                            )
+                        }
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })

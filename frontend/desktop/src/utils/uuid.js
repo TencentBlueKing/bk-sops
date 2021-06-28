@@ -9,13 +9,13 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-export function random4 () {
+export const random4 = () => {
     return Math.floor((1 + Math.random()) * 0x10000)
         .toString(16)
         .substring(1)
 }
 
-export function uuid () {
+export const uuid = () => {
     let id = ''
     for (let i = 0; i < 7; i++) {
         id += random4()

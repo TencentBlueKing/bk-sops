@@ -50,8 +50,9 @@ export default {
         },
 
         instanceNodeResume ({ commit, rootState }, params) {
-            params.data = { callback: 'resume' }
-            return http.post(`taskflow/api/nodes/action/callback/${rootState.bizId}/`, params).then(response => response)
+            const data = params
+            data.data = { callback: 'resume' }
+            return http.post(`taskflow/api/nodes/action/callback/${rootState.bizId}/`, data).then(response => response)
         },
 
         instanceNodeEditTime ({ commit, rootState }, params) {

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
+from gcloud.utils.validate import RequestValidator
 
 
 class BatchFormValidator(RequestValidator):
@@ -37,12 +37,10 @@ class FormValidator(RequestValidator):
         return True, ""
 
 
-class ExportTemplateValidator(ObjectJsonBodyValidator):
+class ExportTemplateApiViewValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
 
-        super().validate(request, *args, **kwargs)
-
-        template_id_list = self.data.get("template_id_list")
+        template_id_list = request.data.get("template_id_list")
 
         if not isinstance(template_id_list, list):
             return False, "invalid template_id_list"

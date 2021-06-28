@@ -30,8 +30,8 @@ from gcloud.template_base.apis.django.api import (
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
     FormValidator,
-    ExportTemplateValidator,
     TemplateParentsValidator,
+    ExportTemplateApiViewValidator,
 )
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
@@ -79,7 +79,7 @@ def form(request):
 @iam_intercept(BatchFormInterceptor())
 def batch_form(request):
     """
-    以 DAT 格式导出公共流程模板
+    公共流程批量获取表单数据
 
     body: data
     {
@@ -110,7 +110,7 @@ def batch_form(request):
     methods=["post"], auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
-@request_validate(ExportTemplateValidator)
+@request_validate(ExportTemplateApiViewValidator)
 @iam_intercept(ExportInterceptor())
 def export_templates(request):
     """
