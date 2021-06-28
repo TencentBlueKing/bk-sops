@@ -18,8 +18,8 @@
                 name: gettext("填参方式"),
                 hookable: false,
                 items: [
-                    {value: "manual", name: gettext("手动填写")},
-                    {value: "auto", name: gettext("单行自动扩展")},
+                    { value: "manual", name: gettext("手动填写") },
+                    { value: "auto", name: gettext("单行自动扩展") },
                 ],
                 default: "manual",
                 validation: [
@@ -73,7 +73,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("目标模块"),
-                            placeholder: gettext("网络A>集群B>模块C"),
+                            placeholder: gettext("集群A>模块B"),
                             width: '120px',
                             editable: true
                         }
