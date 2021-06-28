@@ -54,7 +54,7 @@
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
             <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
-                <div class="node-type-icon common-icon-node-branchgateway"></div>
+                <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
             </div>
         </div>
         <node-menu
@@ -62,6 +62,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
+            :loading="activeNodeListType === 'subflow' && subAtomListLoading"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -81,6 +82,10 @@
         },
         props: {
             templateLabels: Array,
+            subAtomListLoading: {
+                type: Boolean,
+                default: true
+            },
             atomTypeList: {
                 type: Object,
                 default () {

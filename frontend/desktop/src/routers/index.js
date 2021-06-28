@@ -79,7 +79,7 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const viewMode = store.state.view_mode
+                const { view_mode: viewMode } = store.state
                 return viewMode === 'appmaker'
                     ? `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
                     : '/home/'
@@ -90,7 +90,7 @@ const routers = new VueRouter({
             name: 'home',
             pathToRegexpOptions: { strict: true },
             component: Home,
-            props: (route) => ({
+            props: route => ({
                 project_id: route.params.project_id
             })
         },
@@ -107,7 +107,7 @@ const routers = new VueRouter({
                     name: 'commonProcessList',
                     pathToRegexpOptions: { strict: true },
                     component: CommonTemplateList,
-                    props: (route) => ({
+                    props: route => ({
                         common: '1',
                         page: route.query.page
                     })
@@ -117,7 +117,7 @@ const routers = new VueRouter({
                     component: TemplatePanel,
                     name: 'commonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
-                    props: (route) => ({
+                    props: route => ({
                         template_id: route.query.template_id,
                         type: route.params.type,
                         common: '1'
@@ -139,7 +139,7 @@ const routers = new VueRouter({
                     name: 'process',
                     pathToRegexpOptions: { strict: true },
                     component: TemplateList,
-                    props: (route) => ({
+                    props: route => ({
                         project_id: route.params.project_id
                     }),
                     meta: { project: true }
@@ -149,7 +149,7 @@ const routers = new VueRouter({
                     component: TemplatePanel,
                     name: 'templatePanel',
                     pathToRegexpOptions: { strict: true },
-                    props: (route) => ({
+                    props: route => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: route.params.type,
@@ -176,7 +176,7 @@ const routers = new VueRouter({
                             component: TaskList,
                             name: 'taskList',
                             pathToRegexpOptions: { strict: true },
-                            props: (route) => ({
+                            props: route => ({
                                 project_id: route.params.project_id
                             }),
                             meta: { project: true }
@@ -186,7 +186,7 @@ const routers = new VueRouter({
                             pathToRegexpOptions: { strict: true },
                             component: periodicTemplateList,
                             name: 'periodicTemplate',
-                            props: (route) => ({
+                            props: route => ({
                                 project_id: route.params.project_id
                             }),
                             meta: { project: true }
@@ -199,7 +199,7 @@ const routers = new VueRouter({
                     component: TaskCreate,
                     name: 'taskCreate',
                     pathToRegexpOptions: { strict: true },
-                    props: (route) => ({
+                    props: route => ({
                         project_id: route.params.project_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
@@ -213,7 +213,7 @@ const routers = new VueRouter({
                     component: TaskExecute,
                     name: 'taskExecute',
                     pathToRegexpOptions: { strict: true },
-                    props: (route) => ({
+                    props: route => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
                         instance_id: route.query.instance_id
@@ -226,7 +226,7 @@ const routers = new VueRouter({
             component: AppMaker,
             name: 'appMakerList',
             pathToRegexpOptions: { strict: true },
-            props: (route) => ({
+            props: route => ({
                 project_id: route.params.project_id
             }),
             meta: { project: true }
@@ -236,7 +236,7 @@ const routers = new VueRouter({
             name: 'appmakerTaskCreate',
             pathToRegexpOptions: { strict: true },
             component: TaskCreate,
-            props: (route) => ({
+            props: route => ({
                 project_id: route.params.project_id,
                 step: route.params.step,
                 template_id: route.query.template_id
@@ -248,7 +248,7 @@ const routers = new VueRouter({
             name: 'appmakerTaskExecute',
             pathToRegexpOptions: { strict: true },
             component: TaskExecute,
-            props: (route) => ({
+            props: route => ({
                 project_id: route.params.project_id,
                 instance_id: route.query.instance_id
             }),
@@ -259,7 +259,7 @@ const routers = new VueRouter({
             name: 'appmakerTaskHome',
             pathToRegexpOptions: { strict: true },
             component: AppMakerTaskHome,
-            props: (route) => ({
+            props: route => ({
                 project_id: route.params.project_id,
                 app_id: route.params.app_id
             }),
@@ -276,7 +276,7 @@ const routers = new VueRouter({
             name: 'projectConfig',
             pathToRegexpOptions: { strict: true },
             component: ProjectConfig,
-            props: (route) => ({
+            props: route => ({
                 id: route.params.id
             })
         },
@@ -299,7 +299,7 @@ const routers = new VueRouter({
                     component: TaskCreate,
                     name: 'functionTemplateStep',
                     pathToRegexpOptions: { strict: true },
-                    props: (route) => ({
+                    props: route => ({
                         project_id: route.params.project_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
@@ -313,7 +313,7 @@ const routers = new VueRouter({
                     component: TaskExecute,
                     name: 'functionTaskExecute',
                     pathToRegexpOptions: { strict: true },
-                    props: (route) => ({
+                    props: route => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
                         instance_id: route.query.instance_id

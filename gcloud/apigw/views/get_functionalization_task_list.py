@@ -21,11 +21,7 @@ from gcloud.contrib.function.models import FunctionTask
 from gcloud.apigw.views.utils import logger, format_function_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FunctionViewInterceptor
-
-try:
-    from bkoauth.decorators import apigw_required
-except ImportError:
-    from packages.bkoauth.decorators import apigw_required
+from packages.bkoauth.decorators import apigw_required
 
 
 @login_exempt

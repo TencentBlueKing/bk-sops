@@ -11,7 +11,7 @@
 */
 
 const path = require('path')
-const pathToRegexp = require('path-to-regexp')
+// const pathToRegexp = require('path-to-regex')
 const chokidar = require('chokidar')
 let config = require('./config/')
 
@@ -24,7 +24,7 @@ module.exports = function (app) {
         config = requireUncached(path)
     })
     
-    function requireUncached(module){
+    const requireUncached = (module) => {
         delete require.cache[require.resolve(module)]
         return require(module)
     }
@@ -36,14 +36,16 @@ module.exports = function (app) {
             next()
         }
 
-        Object.keys(config).some(item => {
-            if (pathToRegexp(item).exec(req.path) && req.method === config[item].method) {
+        Object.keys(config).some((item) => {
+            if (item === req.path && req.method === config[item].method) {
                 pathKey = item
                 return true
             }
+            return false
         })
         if (pathKey) {
-           const mock = config[pathKey]
+            const mock = config[pathKey]
+            console.log('[mock]', mock)
             if (mock.type === 'file') {
                 res.sendFile(path.resolve(__dirname, './config/', mock.data))
             } else {

@@ -21,11 +21,7 @@ from gcloud.apigw.utils import api_hash_key
 from gcloud.core.models import ProjectBasedComponent
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-
-try:
-    from bkoauth.decorators import apigw_required
-except ImportError:
-    from packages.bkoauth.decorators import apigw_required
+from packages.bkoauth.decorators import apigw_required
 
 
 @login_exempt
