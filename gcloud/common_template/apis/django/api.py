@@ -76,7 +76,7 @@ def form(request):
 @iam_intercept(BatchFormInterceptor())
 def batch_form(request):
     """
-    以 DAT 格式导出公共流程模板
+    公共流程批量获取表单数据
 
     body: data
     {

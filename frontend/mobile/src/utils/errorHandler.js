@@ -10,12 +10,12 @@
  * @param {Object} error 错误对象
  * @param {Object} instance
  */
-export function errorHandler (error, instance) {
+export const errorHandler = (error, instance) => {
     // 请求队列被取消不捕获
     if (error.isCancel) {
         return
     }
-    const data = error.data
+    const { data } = error
     console.error(error)
     let msg = ''
     if (data && data.code) {
