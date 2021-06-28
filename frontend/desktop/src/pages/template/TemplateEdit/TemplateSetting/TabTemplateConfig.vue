@@ -83,17 +83,20 @@
                 <section class="form-section">
                     <h4>{{ $t('通知') }}</h4>
                     <bk-form-item :label="$t('通知方式')">
-                        <bk-checkbox-group v-model="formData.notifyType" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1, zIndex: 100 }">
-                            <template v-for="item in notifyTypeList">
-                                <bk-checkbox
-                                    v-if="item.is_active"
-                                    :key="item.type"
-                                    :value="item.type">
-                                    <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
-                                    <span style="word-break: break-all;">{{item.label}}</span>
-                                </bk-checkbox>
-                            </template>
-                        </bk-checkbox-group>
+                        <bk-table v-bkloading="{ isLoading: notifyTypeLoading }" class="notify-type-table" :data="formData.notifyType">
+                            <bk-table-column v-for="(col, index) in notifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
+                                <template slot-scope="props">
+                                    <bk-switcher
+                                        v-if="col.type"
+                                        size="small"
+                                        theme="primary"
+                                        :value="props.row.includes(col.type)"
+                                        @change="onSelectNotifyType(props.$index, col.type, $event)">
+                                    </bk-switcher>
+                                    <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </bk-form-item>
                     <bk-form-item :label="$t('通知分组')">
                         <bk-checkbox-group v-model="formData.receiverGroup" v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }">
@@ -181,6 +184,7 @@
                 name, category, notify_type, notify_receivers, description,
                 executor_proxy, template_labels, default_flow_type
             } = this.$store.state.template
+
             return {
                 formData: {
                     name,
@@ -188,7 +192,7 @@
                     description,
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
-                    notifyType: notify_type.slice(0),
+                    notifyType: [notify_type.success.slice(0), notify_type.fail.slice(0)],
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
@@ -272,7 +276,7 @@
                 try {
                     this.notifyTypeLoading = true
                     const res = await this.getNotifyTypes()
-                    this.notifyTypeList = res.data
+                    this.notifyTypeList = [{ text: i18n.t('任务状态') }].concat(res.data)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -321,13 +325,32 @@
                     template_labels: labels,
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
-                    notify_type: notifyType,
+                    notify_type: { success: notifyType[0], fail: notifyType[1] },
                     default_flow_type: defaultFlowType
                 }
             },
             jumpProjectManagement () {
                 if (this.authActions.includes('project_edit')) {
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                }
+            },
+            getNotifyTypeHeader (h, data) {
+                const col = this.notifyTypeList[data.$index]
+                if (col.type) {
+                    return h('div', { 'class': 'notify-table-heder' }, [
+                        h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
+                        h('span', { style: 'word-break: break-all;' }, [col.label])
+                    ])
+                } else {
+                    return h('span', {}, [col.text])
+                }
+            },
+            onSelectNotifyType (row, type, val) {
+                let data = this.formData.notifyType[row]
+                if (val) {
+                    data.push(type)
+                } else {
+                    data = data.filter(item => item !== type)
                 }
             },
             onSaveConfig () {
@@ -423,9 +446,15 @@
         align-items: center;
         width: 100px;
     }
-    .notify-icon {
-        margin-right: 4px;
-        width: 18px;
+    .notify-type-table {
+        /deep/ .notify-table-heder {
+            display: flex;
+            align-items: center;
+            .notify-icon {
+                margin-right: 4px;
+                width: 18px;
+            }
+        }
     }
     .user-selector {
         display: block;
