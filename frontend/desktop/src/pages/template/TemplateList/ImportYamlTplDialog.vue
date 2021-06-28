@@ -38,7 +38,7 @@
                     </div>
                 </bk-alert>
                 <div class="table-title">
-                    <span>{{ $t('文件解析流程') + $t('（') + importData.yaml_docs.length + $t('）') }}</span>
+                    <span>{{ $t('文件解析流程') + $t('（') }}{{ ('file' in importData.error) ? 0 : importData.yaml_docs.length }}{{ $t('）') }}</span>
                     <bk-pagination
                         small
                         :current="pagination.current"
@@ -139,7 +139,7 @@
         },
         computed: {
             tableList () {
-                if (this.importData && this.importData.yaml_docs) {
+                if (this.importData && this.importData.yaml_docs && !('file' in this.importData.error)) {
                     return this.importData.yaml_docs.slice((this.pagination.current - 1) * 5, this.pagination.current * 5)
                 }
                 return []
@@ -162,7 +162,7 @@
                     if (res.result) {
                         this.importData = res.data
                         this.pagination.current = 1
-                        this.pagination.count = res.data.yaml_docs.length
+                        this.pagination.count = ('file' in res.data.error) ? 0 : res.data.yaml_docs.length
                         this.overriders = {}
                         this.errorMsg = this.handleErrorMsg(res.data)
                         this.getTemplateData()
