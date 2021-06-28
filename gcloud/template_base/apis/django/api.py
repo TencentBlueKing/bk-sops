@@ -19,6 +19,7 @@ import base64
 import traceback
 
 import yaml
+from django.db.models import Model
 from django.http import HttpRequest
 from django.http import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -47,14 +48,11 @@ from gcloud.template_base.utils import read_template_data_file
 logger = logging.getLogger("root")
 
 
-def base_batch_form(request: Request, template_model_cls: object, filters: dict):
+def base_batch_form(request: Request, template_model_cls: Model, filters: dict):
     """批量获取表单数据统一接口"""
     templates_data = request.data.get("templates")
     template_ids = [int(template["id"]) for template in templates_data]
-    versions = [template["version"] for template in templates_data]
-
-    if len(template_ids) != len(versions):
-        return JsonResponse({"result": False, "data": "", "message": "", "code": err_code.REQUEST_PARAM_INVALID.code})
+    versions = {int(template["id"]): template["version"] for template in templates_data}
 
     filters["id__in"] = template_ids
     filters["is_deleted"] = False
@@ -71,7 +69,8 @@ def base_batch_form(request: Request, template_model_cls: object, filters: dict)
         ]
         for template in templates
     }
-    for template, version in zip(templates, versions):
+    for template in templates:
+        version = versions[template.id]
         data[template.id].append(
             {
                 "form": template.get_form(version),

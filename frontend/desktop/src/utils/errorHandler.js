@@ -10,6 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import i18n from '@/config/i18n/index.js'
+import bus from '@/utils/bus.js'
 
 /**
  * vue组件接口请求异常处理函数
@@ -19,7 +20,6 @@ import i18n from '@/config/i18n/index.js'
 export function errorHandler (error, instance) {
     const data = error.data
     console.error(error)
-    console.log(error)
     if (data && data.code) {
         if (data.code === 499) {
             return
@@ -56,11 +56,7 @@ export function errorHandler (error, instance) {
             }
         }
     } else {
-        instance.bkMessageInstance = instance.$bkMessage({
-            theme: 'error',
-            isSingleLine: false,
-            message: error.message || error.data.msg,
-            ellipsisLine: 2
-        })
+        const msg = error.message || error.data.msg
+        bus.$emit('showErrMessage', msg)
     }
 }

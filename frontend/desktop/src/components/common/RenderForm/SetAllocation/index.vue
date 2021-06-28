@@ -342,7 +342,7 @@
                 const data = []
                 const rowCount = sheetData.length
                 const headerMap = {}
-                const moduleNameReg = /[\u4e00-\u9fa5\w]+\:(\w+)\((\d+)\)$/ // 表头模块列字符匹配
+                const moduleNameReg = /[\u4e00-\u9fa5\w]+\uff1a(\w+)\((\d+)\)$/ // 表头模块列字符匹配，eg: 模块：console(3)
 
                 this.originalCols.forEach(col => {
                     const tagCode = col.tag_code

@@ -34,9 +34,11 @@ export default [
                         validation: [
                             {
                                 type: "custom",
-                                args: function (value) {
-                                    var self = this;
-                                    self.get_parent && self.get_parent().get_child('bk_more_receiver').validate()
+                                args (value) {
+                                    const self = this;
+                                    self.get_parent && self.get_parent()
+                                        .get_child('bk_more_receiver')
+                                        .validate()
                                     return {
                                         result: true,
                                         error_message: ""
@@ -55,15 +57,15 @@ export default [
                         validation: [
                             {
                                 type: "custom",
-                                args: function (value, parent_data) {
-                                    var result = {
+                                args (value, parent_data) {
+                                    const result = {
                                         result: true,
                                         error_message: ""
                                     };
                                     if (
-                                        parent_data.hasOwnProperty('bk_receiver_group') &&
-                                        !(parent_data.bk_receiver_group.length > 0) &&
-                                        !value
+                                        Object.prototype.hasOwnProperty.call(parent_data, 'bk_receiver_group')
+                                        && !(parent_data.bk_receiver_group.length > 0)
+                                        && !value
                                     ) {
                                         result.result = false;
                                         result.error_message = "通知分组与附加人员不可同时为空"
