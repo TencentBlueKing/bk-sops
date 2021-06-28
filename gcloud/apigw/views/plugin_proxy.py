@@ -22,11 +22,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.views.utils import logger
-
-try:
-    from bkoauth.decorators import apigw_required
-except ImportError:
-    from packages.bkoauth.decorators import apigw_required
+from packages.bkoauth.decorators import apigw_required
 
 
 @login_exempt
