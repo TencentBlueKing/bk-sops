@@ -346,11 +346,14 @@
                 }
             },
             onSelectNotifyType (row, type, val) {
-                let data = this.formData.notifyType[row]
+                const data = this.formData.notifyType[row]
                 if (val) {
                     data.push(type)
                 } else {
-                    data = data.filter(item => item !== type)
+                    const index = data.findIndex(item => item === type)
+                    if (index > -1) {
+                        data.splice(index, 1)
+                    }
                 }
             },
             onSaveConfig () {
