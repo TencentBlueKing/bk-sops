@@ -17,8 +17,8 @@ def filter_ip(origin_ip_str, filter_ip_str):
     @param filter_ip_str: 用逗号分隔的ip字符串
     @return: 返回在filter_ip_str中的origin_ip_str中的ip
     """
-    origin_ip_list = origin_ip_str.split(",")
-    filter_ip_list = filter_ip_str.split(",")
+    origin_ip_list = set(origin_ip_str.split(","))
+    filter_ip_list = set(filter_ip_str.split(","))
     return ",".join([ip for ip in origin_ip_list if ip in filter_ip_list])
 
 
@@ -159,7 +159,7 @@ def get_biz_internal_module(username, bk_biz_id, bk_supplier_account):
                 "name": get_biz_internal_module_option["bk_module_name"],
             }
         )
-    return result
+    return {"result": True, "data": result, "message": "success"}
 
 
 def list_biz_hosts(username, bk_biz_id, bk_supplier_account, kwargs=None):
