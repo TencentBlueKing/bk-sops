@@ -1133,7 +1133,9 @@ const en = {
     '是否覆盖已有流程': 'Whether to overwrite an existing process',
     '合法性检测结果': 'Legitimacy test results',
     '请选择需要覆盖的流程': 'Select the process you want to cover',
-    '合法性检查通过。': 'Legitimacy check passed.'
+    '合法性检查通过。': 'Legitimacy check passed.',
+    '文件不合法，请': 'file is invalid',
+    '重新上传文件': 'Reupload file'
 }
 
 export default en
