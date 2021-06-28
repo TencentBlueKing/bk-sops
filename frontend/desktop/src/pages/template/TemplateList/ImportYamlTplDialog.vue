@@ -26,6 +26,7 @@
                         <label
                             :for="checkPending ? '' : 'tpl-file'"
                             :class="['upload-tpl-btn', { 'is-disabled': checkPending }]">
+                            {{ $t('重新上传文件') }}
                         </label>
                         <input
                             ref="tplFile"
@@ -157,7 +158,7 @@
                     const data = new FormData()
                     data.append('data_file', this.file)
                     const res = await this.yamlTplImportCheck(data)
-                    this.checkResult = res.result
+                    this.checkResult = res.result ? (typeof res.data.error === 'string' ? res.data.error === '' : Object.keys(res.data.error).length === 0) : false
                     if (res.result) {
                         this.importData = res.data
                         this.pagination.current = 1
@@ -173,7 +174,9 @@
                 } finally {
                     this.checkPending = false
                     this.$nextTick(() => {
-                        this.$refs.tplFile.value = null
+                        if (this.$refs.tplFile) {
+                            this.$refs.tplFile.value = null
+                        }
                     })
                 }
             },
