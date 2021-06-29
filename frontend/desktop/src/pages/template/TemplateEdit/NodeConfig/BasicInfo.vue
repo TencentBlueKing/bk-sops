@@ -149,6 +149,14 @@
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
+            <bk-form-item :label="$t('总是使用最新版本')">
+                <bk-switcher
+                    theme="primary"
+                    size="small"
+                    :value="formData.alwaysUseLatest"
+                    @change="onAlwaysUseLatestChange">
+                </bk-switcher>
+            </bk-form-item>
         </bk-form>
     </div>
 </template>
@@ -381,11 +389,15 @@
                 this.formData.selectable = val
                 this.updateData()
             },
+            onAlwaysUseLatestChange (val) {
+                this.formData.alwaysUseLatest = val
+                this.updateData()
+            },
             updateData () {
-                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable } = this.formData
+                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
                 }
