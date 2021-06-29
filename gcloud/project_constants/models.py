@@ -17,7 +17,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
-class Constant(models.Model):
+class ProjectConstant(models.Model):
     id = models.BigAutoField(primary_key=True)
     project_id = models.BigIntegerField(verbose_name=_("项目 ID"), blank=False)
     name = models.CharField(verbose_name=_("变量名"), max_length=255)
@@ -28,3 +28,6 @@ class Constant(models.Model):
     create_at = models.DateTimeField(verbose_name=_("创建时间"), auto_now_add=True)
     update_by = models.CharField(verbose_name=_("更新人"), max_length=255)
     update_at = models.DateTimeField(verbose_name=_("更新时间"), auto_now=True)
+
+    class Meta:
+        unique_together = (("project_id", "key"),)

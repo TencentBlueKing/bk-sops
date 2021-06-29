@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 from django.db import migrations, models
 
 
@@ -23,7 +22,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="Constant",
+            name="ProjectConstant",
             fields=[
                 ("id", models.BigAutoField(primary_key=True, serialize=False)),
                 ("project_id", models.BigIntegerField(verbose_name="项目 ID")),
@@ -36,5 +35,6 @@ class Migration(migrations.Migration):
                 ("update_by", models.CharField(max_length=255, verbose_name="更新人")),
                 ("update_at", models.DateTimeField(auto_now=True, verbose_name="更新时间")),
             ],
+            options={"unique_together": {("project_id", "key")},},
         ),
     ]
