@@ -10,14 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
-from django.contrib import admin
-
-from gcloud.project_constants.models import ProjectConstant
-
-
-@admin.register(ProjectConstant)
-class ProjectConstantAdmin(admin.ModelAdmin):
-    list_display = ["id", "project_id", "name", "key", "create_by", "create_at", "update_by", "update_at"]
-    search_fields = ["id", "project_id"]
