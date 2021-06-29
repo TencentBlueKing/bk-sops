@@ -557,7 +557,7 @@
                         selectable: optional
                     }
                 } else {
-                    const { template_id, name, stage_name, labels, optional } = config
+                    const { template_id, name, stage_name, labels, optional, always_use_latest } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
@@ -575,6 +575,7 @@
                         stageName: stage_name,
                         nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
+                        alwaysUseLatest: always_use_latest || false,
                         version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
                     }
                 }
@@ -733,7 +734,9 @@
                     name,
                     version,
                     tpl: id,
-                    nodeName: name
+                    nodeName: name,
+                    selectable: true,
+                    alwaysUseLatest: false
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)
@@ -942,7 +945,7 @@
             getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, stageName, nodeLabel, selectable, version, tpl } = this.basicInfo
+                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, version, tpl } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -958,7 +961,8 @@
                         stage_name: stageName,
                         labels: nodeLabel,
                         template_id: tpl,
-                        optional: selectable
+                        optional: selectable,
+                        always_use_latest: alwaysUseLatest
                     })
                 } else {
                     const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version } = this.basicInfo
