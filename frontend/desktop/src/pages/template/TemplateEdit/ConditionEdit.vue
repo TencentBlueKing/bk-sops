@@ -16,7 +16,14 @@
         :quick-close="true"
         :before-close="onBeforeClose">
         <div slot="header">
-            <span>{{ $t('分支条件') }}</span>
+            <div class="config-header">
+                <i
+                    v-if="backToVariablePanel"
+                    class="bk-icon icon-arrows-left variable-back-icon"
+                    @click="close(true)">
+                </i>
+                {{ $t('分支条件') }}
+            </div>
         </div>
         <div class="condition-form" slot="content">
             <div class="form-wrap">
@@ -77,6 +84,7 @@
         props: {
             isShow: Boolean,
             conditionData: Object,
+            backToVariablePanel: Boolean,
             isReadonly: {
                 type: Boolean,
                 default: false
@@ -141,8 +149,8 @@
                     }
                 })
             },
-            close () {
-                this.$emit('update:isShow', false)
+            close (openVariablePanel) {
+                this.$emit('close', openVariablePanel)
             }
         }
     }
@@ -150,6 +158,17 @@
 
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
+    .config-header {
+        display: flex;
+        align-items: center;
+        .variable-back-icon {
+            font-size: 32px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
+        }
+    }
     .condition-form {
         height: calc(100vh - 60px);
         .form-wrap {
