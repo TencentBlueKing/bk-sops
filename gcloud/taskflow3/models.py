@@ -46,6 +46,7 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
 from gcloud.shortcuts.cmdb import get_business_group_members
+from gcloud.project_constants.domains.context import get_project_constants_context
 
 logger = logging.getLogger("root")
 
@@ -548,7 +549,10 @@ class TaskFlowInstance(models.Model):
             return False
 
         dispatcher = TaskCommandDispatcher(
-            engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
+            engine_ver=self.engine_ver,
+            taskflow_id=self.id,
+            pipeline_instance=self.pipeline_instance,
+            project_id=self.project_id,
         )
         task_result = dispatcher.get_task_status()
         if not task_result["result"]:
@@ -696,6 +700,7 @@ class TaskFlowInstance(models.Model):
             engine_ver=self.engine_ver,
             taskflow_id=self.id,
             pipeline_instance=self.pipeline_instance,
+            project_id=self.project_id,
             queue=self._get_task_celery_queue(self.engine_ver),
         )
 
@@ -739,7 +744,10 @@ class TaskFlowInstance(models.Model):
 
     def set_task_context(self, constants):
         dispatcher = TaskCommandDispatcher(
-            engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
+            engine_ver=self.engine_ver,
+            taskflow_id=self.id,
+            pipeline_instance=self.pipeline_instance,
+            project_id=self.project_id,
         )
         return dispatcher.set_task_context(
             task_is_started=self.pipeline_instance.is_started,
@@ -856,7 +864,15 @@ def get_instance_context(pipeline_instance, data_type, username=""):
         return TaskContext(taskflow, username).__dict__
     # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
     else:
-        return TaskContext(taskflow, username).context()
+        context = TaskContext(taskflow, username).context()
+        # 注入业务级别变量
+        context.update(
+            {
+                key: {"type": "plain", "is_param": True, "value": value}
+                for key, value in get_project_constants_context(taskflow.project_id).items()
+            }
+        )
+        return context
 
 
 def preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id):

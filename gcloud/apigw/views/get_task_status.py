@@ -65,7 +65,10 @@ def get_task_status(request, task_id, project_id):
         }
 
     dispatcher = TaskCommandDispatcher(
-        engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+        engine_ver=task.engine_ver,
+        taskflow_id=task.id,
+        pipeline_instance=task.pipeline_instance,
+        project_id=project.id,
     )
     result = dispatcher.get_task_status(subprocess_id=subprocess_id, with_ex_data=with_ex_data)
     if not result["result"]:

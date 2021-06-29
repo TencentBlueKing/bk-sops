@@ -11,13 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
-from django.contrib import admin
-
 from gcloud.project_constants.models import ProjectConstant
 
 
-@admin.register(ProjectConstant)
-class ProjectConstantAdmin(admin.ModelAdmin):
-    list_display = ["id", "project_id", "name", "key", "create_by", "create_at", "update_by", "update_at"]
-    search_fields = ["id", "project_id"]
+def get_project_constants_context(project_id: int):
+    constants = ProjectConstant.objects.filter(project_id=project_id).only("key", "value")
+
+    return {"${_env_%s}" % c.key: c.value for c in constants}
