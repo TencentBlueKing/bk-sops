@@ -63,7 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
-                    <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
+                    <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
@@ -779,9 +779,12 @@
             background: #b8b8b8;
         }
         .variable-type-desc {
-            margin-left: 80px;
+            margin: 0 0 0 80px;
             font-size: 12px;
             color: #666;
+            word-break: break-all;
+            white-space: pre-wrap;
+            font-family: 'Microsoft YaHei','PingFang SC','Hiragino Sans GB','SimSun','sans-serif';
         }
     }
     .btn-wrap {
