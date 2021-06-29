@@ -11,7 +11,8 @@
 */
 <template>
     <div class="tag-text">
-        <span class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
+        <pre v-if="raw" class="view-value-raw">{{ viewValue }}</pre>
+        <span v-else class="rf-view-value">{{ viewValue }}</span>
     </div>
 </template>
 <script>
@@ -19,6 +20,11 @@
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
+        raw: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
         value: {
             type: String,
             required: false,
@@ -27,6 +33,19 @@
     }
     export default {
         name: 'TagText',
-        mixins: [getFormMixins(attrs)]
+        mixins: [getFormMixins(attrs)],
+        computed: {
+            viewValue () {
+                return (this.value === 'undefined' || this.value === '') ? '--' : this.value
+            }
+        }
     }
 </script>
+<style lang="scss" scoped>
+    .view-value-raw {
+        margin: 0;
+        word-break: break-word;
+        white-space: pre-wrap;
+        font-family: 'Microsoft YaHei','PingFang SC','Hiragino Sans GB','SimSun','sans-serif';;
+    }
+</style>
