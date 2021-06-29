@@ -30,6 +30,8 @@ from gcloud.core.resources import (
 )
 from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.label.viewsets import LabelViewSet
+from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
+
 from gcloud.tasktmpl3.apis.tastypie.resources import (
     TaskTemplateResource,
     # TemplateSchemeResource,
@@ -70,6 +72,7 @@ drf_router.register(r"operate_record_task", TaskOperateRecordSetViewSet)
 drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 drf_router.register(r"new_label", LabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
+drf_router.register(r"project_constants", ProjectConstantsViewSet)
 
 # Standard bits...
 urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]
