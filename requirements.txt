@@ -31,7 +31,7 @@ fakeredis==1.4.5
 gevent==1.2.2
 prometheus-client==0.9.0
 bamboo-engine==1.1.4
-bamboo-pipeline==3.2.6rc2
+bamboo-pipeline==3.3.0
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 django-prometheus==2.1.0
@@ -41,7 +41,7 @@ six==1.15.0
 mistune==0.8.4
 
 # iam sdk
-bk-iam==1.1.13
+bk-iam==1.1.14
 
 # celery 4
 celery==4.4.0

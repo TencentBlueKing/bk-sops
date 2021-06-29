@@ -79,7 +79,7 @@
                         </template>
                     </el-table-column>
                 </template>
-                <el-table-column v-if="editable && formMode"
+                <el-table-column v-if="editable && formEdit && formMode"
                     prop="operation"
                     fixed="right"
                     align="center"
@@ -116,7 +116,6 @@
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import bus from '@/utils/bus.js'
 
     export const attrs = {
@@ -324,7 +323,19 @@
                 for (let i = 0; i < list.length; i++) {
                     const row = []
                     for (let j = 0; j < filterVal.length; j++) {
-                        row.push(list[i][filterVal[j]])
+                        let val = list[i][filterVal[j]]
+                        if (Array.isArray(val)) { // 数组类型的value需要转换为字符串，并将value替换为对应的选项名称
+                            const tag = this.columns.find(item => item.tag_code === filterVal[j])
+                            val = val.map(item => {
+                                const option = tag.attrs.items.find(op => op.value === item)
+                                if (option) {
+                                    return option.name || option.text
+                                }
+                                return item
+                            })
+                            val = JSON.stringify(val)
+                        }
+                        row.push(val)
                     }
                     tableData.push(row)
                 }
@@ -336,9 +347,12 @@
             },
             importExcel (file) {
                 const types = file.name.split('.')[1]
-                const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
-                if (!fileType) {
-                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                const fileTypeValid = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
+                if (!fileTypeValid) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件')
+                    })
                     return
                 }
                 this.file2Xce(file).then(tabJson => {
@@ -353,9 +367,31 @@
                         for (let i = 0; i < tabJson[0]['sheet'].length; i++) {
                             for (const key in tabJson[0]['sheet'][i]) {
                                 const newKey = nameToTagCode[key]
-                                if (newKey && key !== newKey) {
-                                    excelValue[i][newKey] = excelValue[i][key]
-                                    delete excelValue[i][key]
+                                const tag = this.columns.find(item => item.tag_code === newKey)
+                                if (tag) {
+                                    let val = excelValue[i][key]
+                                    if ( // 多选下拉框、勾选框导出数据为字符串需要转换为数组，并匹配选项名称得到value
+                                        (tag.type === 'select' && tag.attrs.multiple)
+                                        || tag.type === 'checkbox'
+                                    ) {
+                                        const parsedVal = JSON.parse(val)
+                                        if (Array.isArray(parsedVal)) {
+                                            val = parsedVal.map(v => {
+                                                const option = tag.attrs.items.find(op => op.text === v || op.name === v)
+                                                if (option) {
+                                                    return option.value
+                                                }
+                                                return v
+                                            })
+                                        }
+                                    }
+                                    if (tag.type === 'int') {
+                                        val = Number(val)
+                                    }
+                                    if (newKey && key !== newKey) {
+                                        excelValue[i][newKey] = val
+                                        delete excelValue[i][key]
+                                    }
                                 }
                             }
                         }

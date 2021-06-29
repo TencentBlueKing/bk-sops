@@ -22,6 +22,8 @@ from django_prometheus.exports import ExportToDjangoView
 
 from blueapps.account.components.bk_token.forms import AuthenticationForm
 from blueapps.account.decorators import login_exempt
+from blueapps.account.middlewares import LoginRequiredMiddleware
+from config import RUN_VER
 from gcloud.core.signals import user_enter
 from gcloud.conf import settings
 
@@ -32,7 +34,7 @@ def page_not_found(request, exception):
     if request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
 
-    user = _user_authenticate(request)
+    user = _user_authenticate(request) if RUN_VER == "open" else LoginRequiredMiddleware.authenticate(request)
 
     # 未登录重定向到首页，跳到登录页面
     if not user:

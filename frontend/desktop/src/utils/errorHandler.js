@@ -10,58 +10,53 @@
 * specific language governing permissions and limitations under the License.
 */
 import i18n from '@/config/i18n/index.js'
+import bus from '@/utils/bus.js'
 
 /**
  * vue组件接口请求异常处理函数
  * @param {Object} error 错误对象
  * @param {Object} instance
  */
-export const errorHandler = (error, instance) => {
-    const { data } = error
-    const that = instance
+export function errorHandler (error, instance) {
+    const data = error.data
     console.error(error)
-    console.log(error)
     if (data && data.code) {
         if (data.code === 499) {
             return
         }
         if (!data.code || data.code === 404) {
-            that.exception = {
+            instance.exception = {
                 code: '404',
                 msg: i18n.t('当前访问的页面不存在')
             }
         } else if (data.code === 403) {
-            that.exception = {
+            instance.exception = {
                 code: '403',
                 msg: i18n.t('sorry，您没有访问权限!')
             }
         } else if (data.code === 405) {
-            that.exception = {
+            instance.exception = {
                 code: '405',
                 msg: i18n.t('Sorry，您的权限不足!')
             }
         } else if (data.code === 406) {
-            that.exception = {
+            instance.exception = {
                 code: '405',
                 msg: i18n.t('Sorry，您的权限不足!')
             }
         } else if (data.code === 500) {
-            that.exception = {
+            instance.exception = {
                 code: '500',
                 msg: i18n.t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
             }
         } else if (data.code === 502) {
-            that.exception = {
+            instance.exception = {
                 code: '502',
                 msg: i18n.t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
             }
         }
     } else {
-        that.bkMessageInstance = that.$bkMessage({
-            theme: 'error',
-            isSingleLine: false,
-            message: error.message || error.data.msg,
-            ellipsisLine: 2
-        })
+        const msg = error.message || error.data.msg
+        bus.$emit('showErrMessage', msg)
     }
 }

@@ -119,7 +119,12 @@ class CCBatchTransferHostModule(Service):
                 continue
             # 获取 bk module id
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
-                executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_path
+                executor,
+                biz_cc_id,
+                supplier_account,
+                BkObjType.MODULE,
+                cc_module_path,
+                parent_data.get_one_of_inputs("bk_biz_name"),
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 message = _(

@@ -101,8 +101,9 @@
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
-                            v-model="theEditingData.pre_render_mako"
-                            :clearable="false">
+                            :value="String(theEditingData.pre_render_mako)"
+                            :clearable="false"
+                            @selected="onSelectPreRenderMako">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
                                 :key="index"
@@ -199,7 +200,7 @@
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
                 ],
-                preRenderList: [
+                preRenderList: [ // 下拉框组件选项 id 不支持传布尔值
                     { id: 'true', name: i18n.t('是') },
                     { id: 'false', name: i18n.t('否') }
                 ],
@@ -291,13 +292,20 @@
             // 当前选中类型变量配置描述
             variableDesc () {
                 let desc = ''
-                this.varTypeList.some(group => {
-                    const option = group.children.find(item => item.code === this.currentValType)
-                    if (option) {
-                        desc = option.description
-                        return true
+                if (this.isHookedVar) {
+                    const item = this.varTypeList.find(i => i.code === this.currentValType)
+                    if (item) {
+                        desc = item.description
                     }
-                })
+                } else {
+                    this.varTypeList.some(group => {
+                        const option = group.children.find(item => item.code === this.currentValType)
+                        if (option) {
+                            desc = option.description
+                            return true
+                        }
+                    })
+                }
                 return desc
             }
         },
@@ -307,11 +315,8 @@
              * 预渲染功能发布后新建变量时，预渲染默认为false
              * 发布前用户不主动去修改变量，则不需要做处理
              */
-            const variableData = this.variableData
-            if (variableData.hasOwnProperty('pre_render_mako')) {
-                this.theEditingData.pre_render_mako = String(variableData.pre_render_mako)
-            } else if (!variableData.key) {
-                this.theEditingData.pre_render_mako = 'false'
+            if (!this.variableData.key) {
+                this.theEditingData.pre_render_mako = false
             }
             this.extendFormValidate()
         },
@@ -420,7 +425,7 @@
                     })
                     return
                 }
-                
+
                 try {
                     await this.loadAtomConfig({
                         classify,
@@ -576,7 +581,7 @@
                 // 预渲染功能发布前的模板主动修改变量的【显示类型】，预渲染默认值为false
                 const variableData = this.variableData
                 if (!variableData.hasOwnProperty('pre_render_mako')) {
-                    this.theEditingData.pre_render_mako = 'false'
+                    this.theEditingData.pre_render_mako = false
                 }
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
@@ -590,6 +595,10 @@
                         this.$refs.renderForm.validate()
                     })
                 }
+            },
+            // 选择是否为模板预渲染
+            onSelectPreRenderMako (val) {
+                this.theEditingData.pre_render_mako = val === 'true'
             },
             handleMaskClick () {
                 if (!this.variableData.key) {
@@ -613,7 +622,7 @@
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
-            
+
                     // renderform表单校验
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
@@ -640,7 +649,7 @@
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
                         const tagCode = this.renderConfig[0].tag_code
                         let varValue = {}
-    
+
                         // value为空且不渲染RenderForm组件的变量取表单默认值
                         if (this.renderData.hasOwnProperty(tagCode)) {
                             varValue = this.renderData
@@ -652,12 +661,11 @@
                         if (!/^\$\{\w+\}$/.test(variable.key)) {
                             variable.key = '${' + variable.key + '}'
                         }
-    
+
                         this.theEditingData.value = varValue[tagCode]
                     }
 
                     this.theEditingData.name = this.theEditingData.name.trim()
-                    
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
                             variable.version = 'legacy'
