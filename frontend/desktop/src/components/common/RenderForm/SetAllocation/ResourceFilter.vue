@@ -265,7 +265,6 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
@@ -919,9 +918,11 @@
                 })
                 // 节点循环引用退出保存，弹出提示
                 if (cycleCiting) {
-                    errorHandler({
-                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
-                    }, this)
+                    this.$bkMessage({
+                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用'),
+                        theme: 'error',
+                        ellipsisLine: 0
+                    })
                     return false
                 }
                 return this.$refs.setForm.validate().then(async result => {
@@ -943,7 +944,10 @@
                     }
 
                     if (!tabValid) {
-                        errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
+                        this.$bkMessage({
+                            message: gettext('参数错误，请检查模块表单项'),
+                            theme: 'error'
+                        })
                     } else {
                         return true
                     }

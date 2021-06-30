@@ -199,7 +199,6 @@
     import tools from '@/utils/tools.js'
     import bus from '@/utils/bus.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
@@ -1001,7 +1000,11 @@
                 })
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
-                    errorHandler({ message: validateMessage.message }, this)
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'error',
+                        ellipsisLine: 0
+                    })
                     return
                 }
                 if (this.canvasDataLoading) {
@@ -1127,22 +1130,17 @@
                         schemes,
                         isCommon: this.common
                     })
-                    this.isExectueSchemeDialog = false
-                    if (!resp.result) {
+                    if (resp.result) {
                         this.$bkMessage({
-                            message: resp.message,
-                            theme: 'error'
+                            message: i18n.t('方案保存成功'),
+                            theme: 'success'
                         })
-                        return
+                        this.isExectueSchemeDialog = false
+                        this.allowLeave = true
+                        this.isTemplateDataChanged = false
+                        this.isEditProcessPage = true
+                        this.isSchemaListChange = false
                     }
-                    this.$bkMessage({
-                        message: i18n.t('方案保存成功'),
-                        theme: 'success'
-                    })
-                    this.allowLeave = true
-                    this.isTemplateDataChanged = false
-                    this.isEditProcessPage = true
-                    this.isSchemaListChange = false
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -1207,7 +1205,11 @@
                 // 校验节点数目
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
-                    errorHandler({ message: validateMessage.message }, this)
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'error',
+                        ellipsisLine: 2
+                    })
                     return
                 }
                 // 节点配置是否错误
@@ -1219,7 +1221,11 @@
                     if (this.typeOfNodeNameEmpty) {
                         message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
                     }
-                    errorHandler({ message }, this)
+                    this.$bkMessage({
+                        message,
+                        theme: 'error',
+                        ellipsisLine: 2
+                    })
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
