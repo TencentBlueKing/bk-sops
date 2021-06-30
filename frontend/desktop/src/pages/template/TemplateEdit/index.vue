@@ -190,10 +190,35 @@
                     </div>
                 </div>
             </bk-dialog>
+            <bk-dialog
+                width="560"
+                ext-cls="save-template-dialog"
+                theme="primary"
+                :value="isSaveDialog"
+                :mask-close="false"
+                @cancel="isSaveDialog = false">
+                <div slot="header">
+                    <bk-icon class="ico" type="check-circle-shape" />
+                    <div class="title">保存成功</div>
+                </div>
+                <p class="tip-text">修改后涉及到子流程节点发生变化，请及时调整配置：</p>
+                <ul class="content-edit-save-template-remind">
+                    <li v-for="(item, index) in parentProcessList"
+                        :key="index"
+                    >
+                        <div class="list-tag"></div>
+                        <div class="list-content" @click="handleJumpTemplateList(item.template_id)" :class="{ 'text-color': item.always_use_latest }">{{ item.template_name }}</div>
+                    </li>
+                </ul>
+                <div slot="footer">
+                    <div v-if="parentProcessList > 5" @click="handleJumpTemplateList(parentProcessList)" class="tip" :style="{ cursor: 'pointer' }">共{{ parentProcessList.length || '' }}个，查看全部 >></div>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
 <script>
+    import { bkIcon } from 'bk-magic-vue'
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     // moment用于时区使用
@@ -229,12 +254,15 @@
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips,
-            BatchUpdateDialog
+            BatchUpdateDialog,
+            bkIcon
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
+                parentProcessList: [],
+                isSaveDialog: false,
                 isShowDialog: false,
                 isSaveLoading: false,
                 isSchemaListChange: false,
@@ -430,6 +458,7 @@
                 'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
+                'getParentsProcess',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
@@ -474,6 +503,18 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
+            handleJumpTemplateList (ids) {
+                let requsetId = ids
+                if (Array.isArray(ids)) {
+                    requsetId = ids.map(item => {
+                        return item.template_id
+                    }).toString()
+                }
+                this.$router.push({
+                    path: `/template/home/${this.project_id}/`,
+                    query: { id__in: requsetId }
+                })
+            },
             /**
              * 加载标准插件列表
              */
@@ -671,11 +712,17 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    const parentProcess = await this.getParentsProcess({ 'project_id': this.project_id, 'template_id': template_id })
                     this.tplActions = data.auth_actions
-                    this.$bkMessage({
-                        message: i18n.t('保存成功'),
-                        theme: 'success'
-                    })
+                    this.parentProcessList = parentProcess.data
+                    if (parentProcess.data.length !== 0) {
+                        this.isSaveDialog = true
+                    } else {
+                        this.$bkMessage({
+                            message: i18n.t('保存成功'),
+                            theme: 'success'
+                        })
+                    }
                     this.isTemplateDataChanged = false
                     // 如果为克隆模式保存模板时需要保存执行方案
                     if (this.type === 'clone' && !this.common) {
@@ -1601,6 +1648,89 @@
                 .action-wrapper .bk-button {
                     margin-right: 6px;
                 }
+            }
+        }
+    }
+    /deep/ .save-template-dialog {
+        .bk-dialog-tool {
+            width: 560px;
+            height: 40px;
+        }
+        .bk-dialog-header {
+            // height: 80px;
+            width: 560px;
+            padding: 0;
+            text-align: center;
+            .ico {
+                width: 42px;
+                height: 42px;
+                font-size: 43px;
+                border: 0;
+                background-color: #3fc06d;
+                border-radius: 50%;
+                color: #e5f6ea;
+                margin-bottom: 10px;
+            }
+            .title {
+                display: block;
+                margin: 20px 0 10px 0;
+                font-size: 20px;
+                height: 32px;
+            }
+        }
+        .bk-dialog-body {
+            padding: 0;
+            margin: 0 32px;
+            .tip-text {
+                margin: 4px 0;
+            }
+            .content-edit-save-template-remind {
+                width: 496px;
+                height: 154px;
+                opacity: 1;
+                background: #f5f6fa;
+                border-radius: 2px;
+                display: flex;
+                flex-direction: column;
+                li {
+                    height: 24px;
+                    margin: 3px 20px;
+                    .list-tag {
+                        margin: 10px 3px;
+                        display: inline-block;
+                        width: 4px;
+                        height: 4px;
+                        border-radius: 50%;
+                        opacity: 1;
+                        background-color:#3a84ff;
+                    }
+                    .list-content {
+                        cursor: pointer;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        display: inline-block;
+                        width: 424px;
+                        height: 24px;
+                    }
+                    .text-color {
+                        color: #3a84ff;
+                    }
+                }
+            }
+        }
+        .bk-dialog-footer {
+            padding: 11px 35px;
+            width: 560px;
+            height: 46px;
+            font-size: 12px;
+            background-color: #fff;
+            border-top: 0;
+            color: #3a84ff;
+            .tips {
+                display: inline-block;
+                width: 131px;
+                height: 24px;
             }
         }
     }
