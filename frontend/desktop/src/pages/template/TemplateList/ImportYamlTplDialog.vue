@@ -11,7 +11,7 @@
         <div class="import-dialog-content">
             <div v-if="!file || !importData" class="upload-file-area">
                 <bk-upload
-                    accept=".yaml"
+                    accept=".yaml,.yml"
                     url=""
                     :limit="1"
                     :tip="$t('支持YAML类型文件，文件小于2M')"
@@ -32,7 +32,7 @@
                             ref="tplFile"
                             id="tpl-file"
                             type="file"
-                            accept=".yaml"
+                            accept=".yaml,.yml"
                             style="display: none;"
                             @change="onFileChange" />
                     </div>
