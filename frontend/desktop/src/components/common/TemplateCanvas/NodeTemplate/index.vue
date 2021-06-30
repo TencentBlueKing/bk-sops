@@ -180,7 +180,7 @@
 
     $blueDark: #738abe;
     $redDark: #ea3636;
-    $yellowDark: #ff9C01;
+    $yellowDark: #ff9c01;
     $greenDark: #2dcb56;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
