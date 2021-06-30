@@ -42,6 +42,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "EmptyEndEvent": ["id", "type"],
         "EmptyStartEvent": ["id", "type"],
         "ExclusiveGateway": ["id", "type", "conditions"],
+        "ConditionalParallelGateway": ["id", "type", "conditions"],
         "ConvergeGateway": ["id", "type"],
         "ParallelGateway": ["id", "type", "converge_gateway_id"],
     }
@@ -143,15 +144,15 @@ class YamlSchemaConverter(BaseSchemaConverter):
                         )
                     )
                     continue
-                if node["type"] == "ExclusiveGateway":
+                if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                     for condition in node["conditions"].keys():
                         if condition not in nodes_set:
-                            error.append("分支网关{} 条件{}无法找到对应节点".format(node["id"], condition))
+                            error.append("{}网关{} 条件{}无法找到对应节点".format(node["type"], node["id"], condition))
                 if node.get("next"):
                     if (
                         isinstance(node["next"], list)
                         and len(node["next"]) > 1
-                        and node["type"] not in ["ExclusiveGateway", "ParallelGateway"]
+                        and node["type"] not in ["ExclusiveGateway", "ParallelGateway", "ConditionalParallelGateway"]
                     ):
                         error.append("节点{}只能有一个next节点".format(node["id"]))
                     else:
@@ -322,7 +323,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 }
                 nodes[next_node_id].setdefault("incoming", []).append(line_id)
                 replace_outgoing.append(line_id)
-                if node["type"] == "ExclusiveGateway":
+                if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                     condition = node["conditions"].pop(next_node_id)
                     condition["tag"] = "branch_{}_{}".format(node_id, next_node_id)
                     node["conditions"][line_id] = condition
@@ -450,7 +451,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                         node["next"] = [node_key_mapping[node_id] for node_id in node["next"]]
                     if node["type"] == "SubProcess":
                         node["template_id"] = template_key_mapping[node["template_id"]]
-                    if node["type"] == "ExclusiveGateway":
+                    if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                         node["conditions"] = dict(
                             [(node_key_mapping[node_id], data) for node_id, data in node["conditions"].items()]
                         )
@@ -484,7 +485,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         for flow in flows.values():
             nodes[flow["source"]].setdefault("next", []).append(flow["target"])
             nodes[flow["target"]].setdefault("last", []).append(flow["source"])
-            if nodes[flow["source"]]["type"] == "ExclusiveGateway":
+            if nodes[flow["source"]]["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                 condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
                 nodes[flow["source"]]["conditions"][flow["target"]] = condition
         nodes[start_node_id]["last"] = []
@@ -533,7 +534,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 converted_node.setdefault("data", {})[form_key] = constant
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
-        elif node["type"] == "ExclusiveGateway":
+        elif node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
             for condition in node["conditions"].values():
                 condition.pop("tag")
         sorted_node = dict(
