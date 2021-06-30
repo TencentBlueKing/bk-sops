@@ -359,7 +359,6 @@
             width: 160
         }
     ]
-
     export default {
         name: 'TemplateList',
         components: {
@@ -393,11 +392,20 @@
                         const value = this.$route.query[item.key].split(',')
                         item.value = item.key === 'label_ids' ? value.map(v => Number(v)) : value
                     } else {
+                        console.log(this.$route.query)
+
                         item.value = this.$route.query[item.key]
                     }
                 }
                 return item
             })
+            if (this.$route.query.id__in !== '') {
+                for (let index = 0; index < searchForm.length; index++) {
+                    if (searchForm[index].key === 'subprocessUpdateVal') {
+                        searchForm[index].value = '1'
+                    }
+                }
+            }
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
@@ -449,7 +457,8 @@
                     selectedFields: [],
                     size: 'small'
                 },
-                categoryTips
+                categoryTips,
+                isQuery: true
             }
         },
         computed: {
@@ -483,6 +492,7 @@
             this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
             await this.getTemplateList()
             this.firstLoading = false
+            this.isSearchFormOpen = this.$route.query.id__in !== ''
         },
         beforeRouteLeave (to, from, next) {
             // 记录访问过的流程 id
@@ -529,7 +539,7 @@
                      */
                     const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                     const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
-                    const data = {
+                    const data = this.$route.query.id__in === '' ? {
                         project__id: this.project_id,
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -540,13 +550,16 @@
                         subprocess_has_update,
                         has_subprocess,
                         order_by: this.ordering || undefined
+                    } : {
+                        id__in: this.$route.query.id__in,
+                        project__id: this.project_id,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit
                     }
-
                     if (queryTime[0] && queryTime[1]) {
                         data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
                         data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                     }
-
                     const templateListData = await this.loadTemplateList(data)
                     const list = templateListData.objects
                     this.setTemplateListData({ list, isCommon: false })
@@ -561,6 +574,7 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
+                    this.$route.query.id__in = ''
                 }
             },
             // 获取当前视图表格头显示字段
@@ -710,9 +724,9 @@
             },
             handleSortChange ({ prop, order }) {
                 const params = 'pipeline_template__' + prop
-                if (order === 'ascending') {
+                if (order === 'descending') {
                     this.ordering = params
-                } else if (order === 'descending') {
+                } else if (order === 'ascending') {
                     this.ordering = '-' + params
                 } else {
                     this.ordering = ''

@@ -110,7 +110,9 @@
                     :common="common"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
-                    @select="onPluginOrTplChange">
+                    @select="onPluginOrTplChange"
+                    @isSelectorPanelOpen="isSelectorPanelOpen = false"
+                    @tplListScrollHight="tplListScrollHight">
                 </selector-panel>
                 <!-- 变量编辑面板 -->
                 <div v-else-if="isVariablePanelShow" class="variable-edit-panel">
@@ -365,6 +367,9 @@
             this.initData()
         },
         methods: {
+            tplListScrollHight (val) {
+                this.$emit('tplListScrollHight', val)
+            },
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadSubflowConfig'

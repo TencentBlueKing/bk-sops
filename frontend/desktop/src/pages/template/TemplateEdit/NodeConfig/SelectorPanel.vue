@@ -124,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list">
+                    <div class="tpl-list" ref="tplList" v-bkloading=" { isLoading: isloading, zIndex: 10 } ">
                         <template v-if="listInPanel.length > 0">
                             <div
                                 v-for="item in listInPanel"
@@ -191,7 +191,8 @@
                 searchStr: '',
                 searchResult: [],
                 isLabelSelectorOpen: false,
-                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
+                isloading: false
             }
         },
         computed: {
@@ -220,7 +221,44 @@
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
+        mounted () {
+            this.$refs.tplList.addEventListener('scroll', this.tplListScrollHight)
+        },
+        beforeDestroy () {},
         methods: {
+            tplListScrollHight () {
+                const e = this.$refs.tplList
+                this.$emit('tplListScrollHight', e.scrollHeight - e.offsetHeight - e.scrollTop)
+            },
+            ...mapActions('templateList/', [
+                'loadTemplateList'
+            ]),
+            async getTempLateList () {
+                try {
+                    const requestData = {
+                        project__id: this.project_id,
+                        pipeline_template__name__icontains: arguments[0]
+                    }
+                    const resp = await this.loadTemplateList(requestData)
+                    this.handleSubflowList(resp)
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    console.log('over')
+                }
+            },
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                data.objects.forEach(item => {
+                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
+                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
+                    }
+                })
+                this.searchData = list
+            },
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
                 let activeGroup = ''

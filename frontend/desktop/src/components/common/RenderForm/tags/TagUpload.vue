@@ -61,7 +61,7 @@
         multiple: {
             type: Boolean,
             required: false,
-            default: false,
+            default: true,
             desc: 'set multiple selected files when upload'
         },
         headers: {

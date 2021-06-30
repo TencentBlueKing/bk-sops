@@ -32,7 +32,7 @@ const tools = {
             clearTimeout(timer)
 
             timer = setTimeout(() => {
-                fn.apply(context, ...args)
+                fn.apply(context, [...args])
             }, delay)
         }
     },
