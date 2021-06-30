@@ -1117,6 +1117,8 @@ const en = {
     '原版本': 'Current Version',
     '待更新版本': 'Lastest Version',
     '条件并行网关': 'Conditional Parallel Gateway',
+    '条件并行网关：': 'Conditional Parallel Gateway: ',
+    '执行时满足分支条件的都会执行。': 'Any branch condition that is met at execution time will be executed.',
     '复制链接': 'Copy URL',
     '任务类型偏好': 'Task Type Preference',
     '默认任务': 'Default Task',

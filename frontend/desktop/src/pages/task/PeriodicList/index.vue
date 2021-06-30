@@ -737,7 +737,7 @@
         color: $greenDefault;
     }
     .common-icon-dark-circle-pause {
-        color: #ff9C01;
+        color: #ff9c01;
         border-radius: 20px;
         font-size: 12px;
     }

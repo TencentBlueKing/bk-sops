@@ -451,7 +451,7 @@
             width: 54px;
         }
         .col-cited {
-            width: 54px;
+            width: 50px;
         }
     }
     .variable-header {
