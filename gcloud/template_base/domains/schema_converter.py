@@ -371,6 +371,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
+        # constants添加index
+        index_num = 0
+        for _, constant in reconverted_tree["constants"].items():
+            constant.update({"index": index_num})
+            index_num += 1
 
         replace_all_id(reconverted_tree)
         draw_pipeline(reconverted_tree)
@@ -415,19 +420,27 @@ class YamlSchemaConverter(BaseSchemaConverter):
 
     @staticmethod
     def _calculate_template_orders(templates: dict):
-        """计算templates顺序，保证子流程会在父流程之前"""
-        dependence_num = {key: 0 for key in templates.keys()}
+        """计算templates顺序，保证子流程会在父流程之前，拓扑排序"""
+        children_templates = {key: [] for key in templates.keys()}
         for template_id, template in templates.items():
             for node in template["spec"]["nodes"]:
                 if node["type"] == "SubProcess":
-                    dependence_num[template_id] += 1
-        count = {}
-        for key, num in dependence_num.items():
-            count.setdefault(num, []).append(key)
-        template_order = []
-        for _, template_ids in sorted(count.items(), key=lambda item: item[0]):
-            template_order += template_ids
-        return template_order
+                    children_templates[template_id].append(node["template_id"])
+        visited = set()
+        orders = []
+
+        def dfs(tid: str):
+            if tid in visited:
+                return
+            for child_tid in children_templates[tid]:
+                dfs(child_tid)
+            visited.add(tid)
+            orders.append(tid)
+
+        for template_id in children_templates:
+            dfs(template_id)
+
+        return orders
 
     @staticmethod
     def _generate_readable_id(yaml_data: dict):
