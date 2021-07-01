@@ -222,7 +222,7 @@
 
                     return { id, data }
                 })
-                
+
                 return list
             }
         },
@@ -232,6 +232,9 @@
             })
             if (this.showRecord) {
                 this.records = this.getSearchRecords()
+            }
+            if (this.$route.query.id__in) {
+                this.isAdvanceOpen = true
             }
         },
         methods: {

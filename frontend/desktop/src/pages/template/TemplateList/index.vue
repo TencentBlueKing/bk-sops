@@ -398,6 +398,13 @@
                 }
                 return item
             })
+            if (this.$route.query.id__in !== '') {
+                for (let index = 0; index < searchForm.length; index++) {
+                    if (searchForm[index].key === 'subprocessUpdateVal') {
+                        searchForm[index].value = '1'
+                    }
+                }
+            }
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
                 firstLoading: true,
@@ -483,6 +490,7 @@
             this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
             await this.getTemplateList()
             this.firstLoading = false
+            this.isSearchFormOpen = this.$route.query.id__in !== ''
         },
         beforeRouteLeave (to, from, next) {
             // 记录访问过的流程 id
@@ -529,7 +537,7 @@
                      */
                     const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                     const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
-                    const data = {
+                    const data = this.$route.query.id__in === '' ? {
                         project__id: this.project_id,
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -540,6 +548,11 @@
                         subprocess_has_update,
                         has_subprocess,
                         order_by: this.ordering || undefined
+                    } : {
+                        id__in: this.$route.query.id__in,
+                        project__id: this.project_id,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit
                     }
 
                     if (queryTime[0] && queryTime[1]) {
@@ -561,6 +574,7 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
+                    this.$route.query.id__in = ''
                 }
             },
             // 获取当前视图表格头显示字段
