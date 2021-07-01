@@ -298,6 +298,10 @@
             id: 'retry'
         },
         {
+            title: i18n.t('引擎版本'),
+            id: 'engine_ver'
+        },
+        {
             title: i18n.t('插件版本'),
             id: 'plugin_version'
         },
@@ -379,6 +383,10 @@
         {
             title: i18n.t('回调数据'),
             id: 'callback_data'
+        },
+        {
+            title: i18n.t('引擎版本'),
+            id: 'engine_ver'
         },
         {
             title: i18n.t('插件版本'),
