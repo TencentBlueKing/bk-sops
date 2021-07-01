@@ -1,10 +1,6 @@
 <template>
-    <bk-dialog
-        class="batch-update-dialog"
-        v-model="isShow"
-        :close-icon="false"
-        :fullscreen="true">
-        <div slot="header" class="header-wrapper">
+    <div class="batch-update-dialog-content">
+        <div class="header-wrapper">
             <h4>批量更新子流程{{ $t('（') + expiredTplNum + $t('）') }}</h4>
             <div class="legend-area">
                 <span class="legend-item delete">删除</span>
@@ -52,6 +48,7 @@
                                     v-if="subflow.currentForm.outputs.length > 0"
                                     :constants="localConstants"
                                     :params="subflow.currentForm.outputs"
+                                    :hook="false"
                                     :version="subflow.currentForm.version"
                                     :node-id="subflow.id">
                                 </output-params>
@@ -101,7 +98,7 @@
                 </div>
             </section>
         </div>
-        <div slot="footer" class="footer-wrapper">
+        <div class="bk-dialog-footer">
             <bk-checkbox
                 class="selecte-all"
                 :indeterminate="selectedTplNum > 0 && selectedTplNum < expiredTplNum"
@@ -121,7 +118,7 @@
                 <bk-button @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
-    </bk-dialog>
+    </div>
 </template>
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
@@ -140,10 +137,6 @@
             NoData
         },
         props: {
-            show: {
-                type: Boolean,
-                default: false
-            },
             projectId: Number,
             list: {
                 type: Array,
@@ -154,10 +147,9 @@
         },
         data () {
             return {
-                isShow: this.show,
                 subflowFormsLoading: false,
                 subflowForms: [],
-                localConstants: {} // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                localConstants: tools.deepClone(this.$store.state.template.constants) // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
             }
         },
         computed: {
@@ -174,17 +166,15 @@
                 return this.subflowForms.filter(item => item.checked).length
             }
         },
-        watch: {
-            show (val) {
-                this.isShow = val
-                this.loadSubflowForms()
-            }
+        created () {
+            this.loadSubflowForms()
         },
         methods: {
             ...mapMutations('template/', [
                 'setActivities',
                 'setConstants',
-                'setOutputs'
+                'setOutputs',
+                'setSubprocessUpdated'
             ]),
             ...mapActions('template', [
                 'getBatchForms'
@@ -219,7 +209,7 @@
                             for (const key in form) { // 去掉隐藏变量
                                 const item = form[key]
                                 if (item.show_type === 'show') {
-                                    inputForms[key] = item
+                                    inputForms[key] = tools.deepClone(item)
                                 }
                             }
                             const outputParams = Object.keys(outputs).map(item => { // 输出参数
@@ -245,19 +235,31 @@
                         })
                         for (const key in latestForm.form) {
                             const latestFormItem = latestForm.form[key]
-                            if (!currentForm.form.hasOwnProperty(key)) {
+                            if (!currentForm.form.hasOwnProperty(key) || latestFormItem.version !== currentForm.form[key].version) {
                                 latestFormItem.status = 'added' // 标记最新版本子流程输入参数表单项是否为新增
                             }
                         }
+                        latestForm.outputs.forEach(latestFormItem => {
+                            const currentFormItem = currentForm.outputs.find(item => item.key === latestFormItem.key && item.version === latestFormItem.version)
+                            if (!currentFormItem) {
+                                latestFormItem.status = 'added' // 标记最新版本子流程输出参数表单项是否为新增
+                            }
+                        })
                         for (const key in currentForm.form) {
                             const currentFormItem = currentForm.form[key]
-                            if (!latestForm.form.hasOwnProperty(key)) {
+                            if (!latestForm.form.hasOwnProperty(key) || currentFormItem.version !== latestForm.form[key].version) {
                                 currentFormItem.status = 'deleted' // 标记当前版本子流程输入参数表单项是否被删除
                             }
                             if (constants[currentFormItem.key]) {
                                 currentForm.inputsValue[currentFormItem.key] = tools.deepClone(constants[currentFormItem.key].val)
                             }
                         }
+                        currentForm.outputs.forEach(currentFormItem => {
+                            const latestFormItem = latestForm.outputs.find(item => item.key === currentFormItem.key && item.version === currentFormItem.version)
+                            if (!latestFormItem) {
+                                currentFormItem.status = 'deleted' // 标记当前版本子流程输出参数表单项是否被删除
+                            }
+                        })
                         subflowForms.push({
                             name,
                             id,
@@ -302,42 +304,22 @@
                 })
                 await Promise.all(variables.map(async (variable) => {
                     const formKey = variable.custom_type || variable.source_tag.split('.')[0]
-                    const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                    const { name, atom, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
-                    const atomConfig = await this.getAtomConfig(atom, version, classify, name)
-                    let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                    if (variable.is_meta || formItemConfig.meta_transform) {
-                        formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
-                        if (!variable.meta) {
-                            variable.value = formItemConfig.attrs.value
-                        }
-                    }
-                    formItemConfig.attrs.name = variable.name
-                    // 自定义输入框变量正则校验添加到插件配置项
-                    if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
-                        formItemConfig.attrs.validation.push({
-                            type: 'regex',
-                            args: variable.validation,
-                            error_message: i18n.t('默认值不符合正则规则：') + variable.validation
-                        })
-                    }
-                    variablesConfig[`${formKey}_${variable.version}`] = formItemConfig
+                    const config = await this.getAtomConfig(atom, version, classify, name)
+                    variablesConfig[`${formKey}_${variable.version}`] = config
                 }))
 
                 allSubflowInputForms.forEach((subflow, index) => {
                     subflow.latestFormArr.forEach(item => {
                         const formKey = item.custom_type || item.source_tag.split('.')[0]
-                        const formConfig = tools.deepClone(variablesConfig[`${formKey}_${item.version}`])
-                        formConfig.tag_code = item.key
-                        formConfig.status = item.status
+                        const formConfig = this.getSubflowInputFormItemConfig(item, variablesConfig[`${formKey}_${item.version}`])
                         this.subflowForms[index].latestForm.inputsConfig.push(formConfig)
                         this.subflowForms[index].latestForm.inputsValue[item.key] = tools.deepClone(item.value)
                     })
                     subflow.currentFormArr.forEach(item => {
                         const formKey = item.custom_type || item.source_tag.split('.')[0]
-                        const formConfig = tools.deepClone(variablesConfig[`${formKey}_${item.version}`])
-                        formConfig.tag_code = item.key
-                        formConfig.status = item.status
+                        const formConfig = this.getSubflowInputFormItemConfig(item, variablesConfig[`${formKey}_${item.version}`])
                         this.subflowForms[index].currentForm.inputsConfig.push(formConfig)
                     })
                 })
@@ -355,6 +337,28 @@
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            getSubflowInputFormItemConfig (variable, atomConfig) {
+                const { tagCode } = atomFilter.getVariableArgs(variable)
+                let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                if (variable.is_meta || formItemConfig.meta_transform) {
+                    formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
+                    if (!variable.meta) {
+                        variable.value = formItemConfig.attrs.value
+                    }
+                }
+                formItemConfig.attrs.name = variable.name
+                formItemConfig.tag_code = variable.key
+                formItemConfig.status = variable.status
+                // 自定义输入框变量正则校验添加到插件配置项
+                if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
+                    formItemConfig.attrs.validation.push({
+                        type: 'regex',
+                        args: variable.validation,
+                        error_message: i18n.t('默认值不符合正则规则：') + variable.validation
+                    })
+                }
+                return formItemConfig
             },
             onSelectedAllChange (val) {
                 this.subflowForms.forEach(item => {
@@ -441,17 +445,21 @@
                 this.setConstants(this.localConstants)
             },
             onConfirm () {
-                const selectedInputForms = this.$refs.inputParams.filter((item, index) => {
+                const selectedInputForms = this.$refs.inputParams ? this.$refs.inputParams.filter((item, index) => {
                     return this.subflowForms[index].checked
-                })
+                }) : []
                 if (selectedInputForms.every(item => item.validate())) {
                     this.subflowForms.filter(item => item.checked).forEach(item => {
                         const activity = tools.deepClone(this.activities[item.id])
+                        activity.version = item.latestForm.version
                         Object.keys(activity.constants).forEach(key => {
                             const varItem = activity.constants[key]
                             varItem.value = item.latestForm.inputsValue[key]
                         })
                         this.setActivities({ type: 'edit', location: activity })
+                        this.setSubprocessUpdated({
+                            subprocess_node_id: item.id
+                        })
                     })
                     this.handleVariableChange()
                     this.onCloseDialog()
@@ -463,12 +471,18 @@
                 }
             },
             onCloseDialog () {
-                this.$emit('update:show', false)
+                this.$emit('close')
+                // this.subflowForms = []
+                // this.localConstants = tools.deepClone(this.$store.state.template.constants)
             }
         }
     }
 </script>
 <style lang="scss" scoped>
+    .batch-update-dialog-content {
+        position: relative;
+        height: 100%;
+    }
     .header-wrapper {
         position: relative;
         display: flex;
@@ -532,7 +546,8 @@
         }
     }
     .subflow-form-wrap {
-        min-height: 100%;
+        height: calc(100% - 110px);
+        overflow: auto;
     }
     .subflow-item {
         border-bottom: 1px solid #ffffff;
@@ -576,6 +591,9 @@
                         font-weight: normal;
                         border-bottom: 1px solid #cacedb;
                     }
+                }
+                .outputs-wrapper {
+                    margin: 0 30px;
                 }
                 /deep/ .rf-form-item {
                     margin: 0;

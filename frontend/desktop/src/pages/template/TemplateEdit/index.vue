@@ -121,12 +121,20 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
-            <batch-update-dialog
-                :show.sync="isBatchUpdateDialogShow"
-                :project-id="project_id"
-                :list="subflowShouldUpdated"
-                @globalVariableUpdate="globalVariableUpdate">
-            </batch-update-dialog>
+            <bk-dialog
+                class="batch-update-dialog"
+                v-model="isBatchUpdateDialogShow"
+                :close-icon="false"
+                :fullscreen="true"
+                :show-footer="false">
+                <batch-update-dialog
+                    v-if="isBatchUpdateDialogShow"
+                    :project-id="project_id"
+                    :list="subflowShouldUpdated"
+                    @globalVariableUpdate="globalVariableUpdate"
+                    @close="isBatchUpdateDialogShow = false">
+                </batch-update-dialog>
+            </bk-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
