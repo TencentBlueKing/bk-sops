@@ -1126,7 +1126,8 @@ const en = {
     '总是使用最新版本': 'Always Use Latest',
     '默认全部': 'all',
     '个': '',
-    '待更新的子流程': 'subprocesss to be updated'
+    '待更新的子流程': 'subprocesss to be updated',
+    '引擎版本': 'Engine Version'
 }
 
 export default en
