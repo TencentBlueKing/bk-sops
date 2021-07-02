@@ -37,7 +37,9 @@ def base_batch_form(request: Request, template_model_cls: Model, filters: dict):
     """批量获取表单数据统一接口"""
     templates_data = request.data.get("templates")
     template_ids = [int(template["id"]) for template in templates_data]
-    versions = {int(template["id"]): template["version"] for template in templates_data}
+    versions = {}
+    for template in templates_data:
+        versions.setdefault(int(template["id"]), []).append(template["version"])
 
     filters["id__in"] = template_ids
     filters["is_deleted"] = False
@@ -55,15 +57,15 @@ def base_batch_form(request: Request, template_model_cls: Model, filters: dict):
         for template in templates
     }
     for template in templates:
-        version = versions[template.id]
-        data[template.id].append(
-            {
-                "form": template.get_form(version),
-                "outputs": template.get_outputs(version),
-                "version": version,
-                "is_current": False,
-            }
-        )
+        for version in versions[template.id]:
+            data[template.id].append(
+                {
+                    "form": template.get_form(version),
+                    "outputs": template.get_outputs(version),
+                    "version": version,
+                    "is_current": False,
+                }
+            )
 
     return JsonResponse({"result": True, "data": data, "message": "", "code": err_code.SUCCESS.code})
 
