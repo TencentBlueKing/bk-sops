@@ -62,7 +62,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
-            :loading="activeNodeListType === 'subflow' && subAtomListLoading"
+            :loading="activeNodeListType === 'subflow' && templateThis._data.subAtomListLoading"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -80,6 +80,7 @@
         components: {
             NodeMenu
         },
+        inject: ['templateThis'],
         props: {
             templateLabels: Array,
             subAtomListLoading: {
