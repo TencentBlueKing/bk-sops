@@ -40,6 +40,7 @@ from gcloud.contrib.function.resources import FunctionTaskResource
 from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
+from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
 
 v3_api = Api(api_name="v3")
 v3_api.register(BusinessResource())
@@ -71,5 +72,13 @@ drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 drf_router.register(r"new_label", LabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 
+v4_drf_router = DefaultRouter()
+v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")
+v4_drf_router.register(r"common_template", CommonTemplateViewSet, basename="common_template")
+
 # Standard bits...
-urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]
+urlpatterns = [
+    url(r"^api/", include(v3_api.urls)),
+    url(r"^api/v3/", include(drf_router.urls)),
+    url(r"^api/v4/", include(v4_drf_router.urls)),
+]
