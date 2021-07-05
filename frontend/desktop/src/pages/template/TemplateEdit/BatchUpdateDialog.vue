@@ -35,7 +35,7 @@
                                     :version="subflow.currentForm.version"
                                     :subflow-forms="subflow.currentForm.form"
                                     :value="subflow.currentForm.inputsValue"
-                                    :constants="localConstants">
+                                    :constants="$store.state.template.constants">
                                 </input-params>
                                 <no-data v-else></no-data>
                             </div>
@@ -46,7 +46,7 @@
                             <div class="outputs-wrapper">
                                 <output-params
                                     v-if="subflow.currentForm.outputs.length > 0"
-                                    :constants="localConstants"
+                                    :constants="$store.state.template.constants"
                                     :params="subflow.currentForm.outputs"
                                     :hook="false"
                                     :version="subflow.currentForm.version"
@@ -200,7 +200,7 @@
                     const subflowForms = []
                     tpls.forEach(tpl => {
                         const activity = this.activities[tpl.nodeId]
-                        const { name, id, template_id, constants, version } = activity
+                        const { name, id, template_id, version } = activity
                         const latestForm = this.getNodeFormData(res.data[template_id].find(item => item.is_current))
                         const currentForm = this.getNodeFormData(res.data[template_id].find(item => item.version === version))
 
@@ -220,9 +220,6 @@
                             const currentFormItem = currentForm.form[key]
                             if (!latestForm.form.hasOwnProperty(key) || currentFormItem.version !== latestForm.form[key].version) {
                                 currentFormItem.status = 'deleted' // 标记当前版本子流程输入参数表单项是否被删除
-                            }
-                            if (constants[currentFormItem.key]) {
-                                currentForm.inputsValue[currentFormItem.key] = tools.deepClone(constants[currentFormItem.key].value)
                             }
                         }
                         currentForm.outputs.forEach(currentFormItem => {
@@ -260,6 +257,7 @@
                     const latestFormArr = Object.keys(subflow.latestForm.form).map(key => subflow.latestForm.form[key]).sort((a, b) => a.index - b.index)
                     const currentFormArr = Object.keys(subflow.currentForm.form).map(key => subflow.currentForm.form[key]).sort((a, b) => a.index - b.index)
                     allSubflowInputForms.push({
+                        id: subflow.id,
                         latestFormArr,
                         currentFormArr
                     })
@@ -282,16 +280,25 @@
                 }))
 
                 allSubflowInputForms.forEach((subflow, index) => {
+                    const { constants } = this.activities[subflow.id]
                     subflow.latestFormArr.forEach(item => {
+                        let formValue = item.value
+                        const oldVariable = constants[item.key]
                         const formKey = item.custom_type || item.source_tag.split('.')[0]
                         const formConfig = this.getSubflowInputFormItemConfig(item, variablesConfig[`${formKey}_${item.version}`])
                         this.subflowForms[index].latestForm.inputsConfig.push(formConfig)
-                        this.subflowForms[index].latestForm.inputsValue[item.key] = tools.deepClone(item.value)
+
+                        // 节点当前输入参数表单存在与最新版本输入参数 key相同，且custom_type 或 source_tag 相同变量，则复用当前值
+                        if (oldVariable && (item.custom_type === oldVariable.custom_type || item.source_tag === oldVariable.source_tag)) {
+                            formValue = oldVariable.value
+                        }
+                        this.subflowForms[index].latestForm.inputsValue[item.key] = tools.deepClone(formValue)
                     })
                     subflow.currentFormArr.forEach(item => {
                         const formKey = item.custom_type || item.source_tag.split('.')[0]
                         const formConfig = this.getSubflowInputFormItemConfig(item, variablesConfig[`${formKey}_${item.version}`])
                         this.subflowForms[index].currentForm.inputsConfig.push(formConfig)
+                        this.subflowForms[index].currentForm.inputsValue[item.key] = tools.deepClone(constants[item.key].value)
                     })
                 })
             },
@@ -416,37 +423,108 @@
                 const subflow = this.subflowForms.find(item => item.id === subflowId)
                 subflow.latestForm.inputsValue = value
             },
+            /**
+             * 统一处理全局变量的字段信息
+             * 1.删除全局变量source_info对应的引用情况（如果source_info为空，则需要删除变量）：
+             * a.子流程节点未被选择，输入输出表单在当前版本未被勾选，在最新版本勾选
+             * b.子流程节点被选择，输入输出表单在当前版本勾选，但是在最新版本中该对应表单被删除
+             * 2.增加全局变量source_info的引用（如果变量被删除，则需要还原）：
+             * a.子流程节点未被选择，输入输出表单在当前版本被勾选，在最新版本未被勾选
+             */
             handleVariableChange () {
                 const constants = {}
-                // 处理未选中节点中输入、输出参数表单的勾选关联
-                const unCheckedNode = this.subflowForms.filter(item => !item.checked).map(item => item.id)
+                Object.keys(this.$store.state.template.constants).forEach(key => {
+                    if (!this.localConstants[key]) { // 注释2.a场景，当前版本全局变量被删除
+                        const varItem = tools.deepClone(this.$store.state.template.constants[key])
+                        const { source_type, source_info } = varItem
+                        const sInfo = {}
+                        if (['component_inputs', 'component_outputs'].includes(source_type)) {
+                            Object.keys(source_info).forEach(id => {
+                                if (this.subflowForms.find(subflow => subflow.id === id && !subflow.checked)) {
+                                    sInfo[id] = source_info[id]
+                                }
+                            })
+                        }
+                        if (Object.keys(sInfo).length > 0) {
+                            varItem.source_info = sInfo
+                            constants[key] = varItem
+                        }
+                    }
+                })
                 Object.keys(this.localConstants).forEach(key => {
-                    const varItem = tools.deepClone(this.localConstants[key])
-                    if (['component_inputs', 'component_outputs'].includes(varItem.source_type)) {
-                        const referNodes = Object.keys(varItem.source_info) // 引用该全局变量的节点
-
-                        referNodes.forEach(node => { // 去掉变量被未选中的节点的引用
-                            if (unCheckedNode.includes(node)) {
-                                delete varItem.source_info[node]
+                    const varItem = tools.deepClone(this.localConstants[key]) // 最新版本变量
+                    const curVar = this.$store.state.template.constants[key] // 当前版本key相同的变量
+                    const { source_type, source_info } = varItem
+                    if (['component_inputs', 'component_outputs'].includes(source_type)) {
+                        this.subflowForms.forEach(subflow => {
+                            if (source_info[subflow.id]) { // 该节点最新版本输入输出参数有勾选
+                                source_info[subflow.id].slice(0).forEach(nodeFormItem => {
+                                    // 注释 1.a 场景
+                                    if (!subflow.checked && (!curVar || !curVar.source_info || !curVar.source_info[subflow.id] || !curVar.source_info[subflow.id].includes(nodeFormItem))) {
+                                        if (source_info[subflow.id].length === 1) {
+                                            delete source_info[subflow.id]
+                                        } else {
+                                            source_info[subflow.id] = source_info[subflow.id].filter(s => s !== nodeFormItem)
+                                        }
+                                    }
+                                })
+                                if (curVar && curVar.source_info && curVar.source_info[subflow.id]) {
+                                    curVar.source_info[subflow.id].slice(0).forEach(formKey => {
+                                        if (subflow.checked) {
+                                            // 注释 1.b 场景
+                                            if ((source_type === 'component_inputs' && (!subflow.latestForm.form[formKey] || subflow.latestForm.form[formKey].source_tag !== varItem.source_tag))
+                                                || (source_type === 'component_outputs' && !subflow.latestForm.outputs.find(item => item.key === formKey))
+                                            ) {
+                                                if (source_info[subflow.id].length === 1) {
+                                                    delete source_info[subflow.id]
+                                                } else {
+                                                    source_info[subflow.id] = curVar.source_info[subflow.id].filter(s => s !== formKey)
+                                                }
+                                            }
+                                        } else {
+                                            // 注释 2.a 场景，变量未被删除，最新版本部分表单勾选部分未被勾选
+                                            if (!source_info[subflow.id].includes(formKey)
+                                                && ((source_type === 'component_inputs' && (subflow.latestForm.form[formKey] && subflow.latestForm.form[formKey].source_tag === varItem.source_tag))
+                                                || (source_type === 'component_outputs' && subflow.latestForm.outputs.find(item => item.key === formKey)))
+                                            ) {
+                                                source_info[subflow.id].push(formKey)
+                                            }
+                                        }
+                                    })
+                                }
+                            } else {
+                                // 注释 2.a 场景，变量未被删除
+                                if (curVar && curVar.source_info && curVar.source_info[subflow.id]) {
+                                    curVar.source_info[subflow.id].slice(0).forEach(formKey => {
+                                        if (
+                                            (source_type === 'component_inputs' && (subflow.latestForm.form[formKey] && subflow.latestForm.form[formKey].source_tag === varItem.source_tag))
+                                            || (source_type === 'component_outputs' && subflow.latestForm.outputs.find(item => item.key === formKey))
+                                        ) {
+                                            if (!source_info[subflow.id]) {
+                                                source_info[subflow.id] = [formKey]
+                                            } else {
+                                                source_info[subflow.id].push(formKey)
+                                            }
+                                        }
+                                    })
+                                }
                             }
                         })
-                        if (Object.keys(varItem.source_info).length > 0) { // 至少被一个节点引用则保留该变量
-                            constants[varItem.key] = varItem
+                        if (Object.keys(source_info).length > 0) {
+                            constants[key] = varItem
                         }
                     } else {
-                        // 自定义变量保留
-                        constants[varItem.key] = varItem
+                        constants[key] = varItem
                     }
                 })
 
-                // 如果变量已删除，需要删除变量是否输出的勾选状态
-                this.subflowForms.forEach(subflow => {
-                    subflow.latestForm.outputs.forEach(key => {
-                        if (!(key in constants)) {
-                            this.setOutputs({ changeType: 'delete', key })
-                        }
-                    })
+                // 清理流程模板全局变量输出字段
+                this.$store.state.template.outputs.slice(0).forEach(key => {
+                    if (!constants[key]) {
+                        this.setOutputs({ changeType: 'delete', key })
+                    }
                 })
+
                 // 设置全局变量面板icon小红点
                 const localConstantKeys = Object.keys(constants)
                 if (Object.keys(this.constants).length !== localConstantKeys.length) {
@@ -490,8 +568,6 @@
             },
             onCloseDialog () {
                 this.$emit('close')
-                // this.subflowForms = []
-                // this.localConstants = tools.deepClone(this.$store.state.template.constants)
             }
         }
     }
