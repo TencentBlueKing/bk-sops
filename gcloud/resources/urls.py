@@ -34,7 +34,7 @@ from gcloud.tasktmpl3.apis.tastypie.resources import (
     TaskTemplateResource,
     # TemplateSchemeResource,
 )
-from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
 from gcloud.contrib.function.resources import FunctionTaskResource
 from gcloud.contrib.collection.resources import CollectionResources

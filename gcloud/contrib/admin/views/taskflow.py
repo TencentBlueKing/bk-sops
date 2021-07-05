@@ -26,7 +26,7 @@ from pipeline.core.flow.activity import Activity
 from pipeline.core.flow.gateway import Gateway
 from pipeline.core.flow.event import StartEvent, EndEvent
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.context import TaskContext
+from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor, AdminViewViewInterceptor
 

@@ -36,7 +36,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.constants import PROJECT
+from gcloud.constants import PROJECT
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import res_factory
