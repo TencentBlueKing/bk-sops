@@ -31,6 +31,11 @@
                             'active': isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)
                         }]"
                         @click="goBackToConfig">
+                        <i
+                            v-if="backToVariablePanel"
+                            class="bk-icon icon-arrows-left variable-back-icon"
+                            @click="onClosePanel(true)">
+                        </i>
                         {{ $t('节点配置') }}
                     </span>
                     <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
@@ -183,7 +188,7 @@
                             </div>
                             <div class="btn-footer">
                                 <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                                <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
+                                <bk-button theme="default" @click="onClosePanel">{{ $t('取消') }}</bk-button>
                             </div>
                         </template>
                     </div>
@@ -202,7 +207,7 @@
                 <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('不保存') }}</bk-button>
+                    <bk-button theme="default" @click="onClosePanel">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
         </bk-dialog>
@@ -240,7 +245,8 @@
             atomTypeList: Object,
             templateLabels: Array,
             common: [String, Number],
-            subflowListLoading: Boolean
+            subflowListLoading: Boolean,
+            backToVariablePanel: Boolean
         },
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
@@ -1084,7 +1090,7 @@
             beforeClose () {
                 if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
                     if (!(this.isSubflow ? this.basicInfo.tpl : this.basicInfo.plugin)) {
-                        this.$emit('update:isShow', false)
+                        this.onClosePanel()
                         return true
                     }
                 }
@@ -1094,7 +1100,7 @@
                 }
                 const config = this.getNodeFullConfig()
                 if (tools.isDataEqual(config, this.nodeConfig) && !this.isOutputsChanged()) {
-                    this.$emit('update:isShow', false)
+                    this.onClosePanel()
                     return true
                 } else {
                     this.isConfirmDialogShow = true
@@ -1127,6 +1133,9 @@
             onConfirmClick () {
                 this.isConfirmDialogShow = false
                 this.onSaveConfig()
+            },
+            onClosePanel (openVariablePanel) {
+                this.$emit('close', openVariablePanel)
             }
         }
     }
@@ -1139,9 +1148,13 @@
         position: relative;
         display: flex;
         align-items: center;
-        .go-back.active {
-            color: #3a84ff;
-            cursor: pointer;
+        .go-back {
+            display: flex;
+            align-items: center;
+            &.active {
+                color: #3a84ff;
+                cursor: pointer;
+            }
         }
         .view-variable {
             position: absolute;
@@ -1152,7 +1165,6 @@
             line-height: 1;
         }
         .variable-back-icon {
-            margin-right: 10px;
             font-size: 32px;
             cursor: pointer;
             &:hover {
