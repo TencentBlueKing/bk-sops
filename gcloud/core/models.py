@@ -18,7 +18,7 @@ from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.utils import timezone
 
-from gcloud.taskflow3.constants import TEMPLATE_SOURCE
+from gcloud.constants import TEMPLATE_SOURCE
 
 
 class BusinessManager(models.Manager):
