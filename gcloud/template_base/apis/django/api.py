@@ -109,7 +109,7 @@ def base_check_before_import(request: HttpRequest, template_model_cls: object, i
     return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
 
 
-def base_export_templates(request: Request, template_model_cls: object, file_prefix: str, export_args: list):
+def base_export_templates(request: HttpRequest, template_model_cls: object, file_prefix: str, export_args: list):
     data = request.data
     template_id_list = data["template_id_list"]
 
