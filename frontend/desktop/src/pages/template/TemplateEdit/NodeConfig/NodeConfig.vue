@@ -364,7 +364,6 @@
                 'loadSubflowConfig'
             ]),
             ...mapMutations('template/', [
-                'setVariableSourceInfo',
                 'setSubprocessUpdated',
                 'setActivities',
                 'addVariable',
@@ -616,6 +615,7 @@
                                 canReuse = variable.source_tag === oldVariable.source_tag
                             }
                         }
+                        console.log(variable.key, isHooked, canReuse)
                         const val = canReuse ? this.inputsParamValue[cur] : variable.value
                         acc[variable.key] = tools.deepClone(val)
                     }
@@ -625,6 +625,7 @@
             },
             // 输入参数是否已被勾选到全局变量
             isInputParamsInConstants (form) {
+                console.log(form.key, form.tag_code)
                 return Object.keys(this.localConstants).some(key => {
                     const varItem = this.localConstants[key]
                     const sourceInfo = varItem.source_info[this.nodeId]
@@ -1009,7 +1010,7 @@
             },
             handleVariableChange () {
                 // 如果变量已删除，需要删除变量是否输出的勾选状态
-                this.outputs.forEach(key => {
+                this.$store.state.template.outputs.forEach(key => {
                     if (!(key in this.localConstants)) {
                         this.setOutputs({ changeType: 'delete', key })
                     }
