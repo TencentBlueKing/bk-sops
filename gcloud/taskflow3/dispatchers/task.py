@@ -90,23 +90,27 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             }
             return dict_result
         except ConvergeMatchError as e:
-            message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id, str(e), e.gateway_id)
+            message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (
+                self.taskflow_id,
+                str(e),
+                e.gateway_id,
+            )
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
         except StreamValidateError as e:
-            message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, str(e), e.node_id)
+            message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.taskflow_id, str(e), e.node_id)
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
         except IsolateNodeError as e:
-            message = "task[id=%s] has isolate structure, message: %s" % (self.id, str(e))
+            message = "task[id=%s] has isolate structure, message: %s" % (self.taskflow_id, str(e))
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
         except ConnectionValidateError as e:
             message = "task[id=%s] connection check failed, message: %s, nodes: %s" % (
-                self.id,
+                self.taskflow_id,
                 e.detail,
                 e.failed_nodes,
             )
@@ -114,7 +118,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             code = err_code.VALIDATION_ERROR.code
 
         except Exception as e:
-            message = "task[id=%s] command failed:%s" % (self.id, e)
+            message = "task[id=%s] command failed:%s" % (self.taskflow_id, e)
             logger.exception(traceback.format_exc())
             code = err_code.UNKNOWN_ERROR.code
 
