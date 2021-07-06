@@ -117,7 +117,7 @@
     // import domtoimage from 'dom-to-image'
     import domtoimage from '@/utils/domToImage.js'
     // import htmltoimage from 'html-to-image'
-    import JsFlow from '@/assets/js/jsflow.esm.js'
+    import JsFlow from '@/assets/js/flow.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
     import PalettePanel from './PalettePanel/index.vue'
@@ -1430,6 +1430,10 @@
         }
         .jsflow-node.actived {
             z-index: 4;
+        }
+        .reference-line-vertical,
+        .reference-line-horizontal {
+            z-index: 5;
         }
     }
     .drag-reference-line {
