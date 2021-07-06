@@ -538,8 +538,11 @@
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    selectedFields = fieldList
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.defaultSelected
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('commonTemplateList')
+                    }
                 } else {
                     selectedFields = this.defaultSelected
                 }
