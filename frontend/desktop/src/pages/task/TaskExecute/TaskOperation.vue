@@ -1271,7 +1271,10 @@
                     case 'REVOKED':
                         nameSuffix = 'failed'
                         break
-                    default:
+                    case 'RUNNING':
+                    case 'READY':
+                    case 'SUSPENDED':
+                    case 'NODE_SUSPENDED':
                         nameSuffix = 'running'
                 }
                 const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
