@@ -42,7 +42,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="标准运维API文档，接口返回中默认带有result、data、message等字段，如果响应体中没有体现，则说明响应体只展示了其中data字段的内容。",
     ),
-    public=False,
+    public=True,
     permission_classes=(permissions.IsAdminUser,),
 )
 
