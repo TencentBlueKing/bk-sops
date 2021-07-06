@@ -615,7 +615,6 @@
                                 canReuse = variable.source_tag === oldVariable.source_tag
                             }
                         }
-                        console.log(variable.key, isHooked, canReuse)
                         const val = canReuse ? this.inputsParamValue[cur] : variable.value
                         acc[variable.key] = tools.deepClone(val)
                     }
@@ -625,7 +624,6 @@
             },
             // 输入参数是否已被勾选到全局变量
             isInputParamsInConstants (form) {
-                console.log(form.key, form.tag_code)
                 return Object.keys(this.localConstants).some(key => {
                     const varItem = this.localConstants[key]
                     const sourceInfo = varItem.source_info[this.nodeId]
