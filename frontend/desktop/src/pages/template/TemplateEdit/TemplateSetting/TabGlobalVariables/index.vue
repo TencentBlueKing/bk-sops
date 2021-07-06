@@ -130,11 +130,11 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :header-position="'left'"
-                :title="$t('删除变量')"
+                :footer-position="'center'"
                 :value="deleteConfirmDialogShow"
                 @confirm="onDeleteConfirm"
                 @cancel="onDeleteCancel">
-                <div>{{ $t('确认删除该变量？') }}</div>
+                <div class="delete-text">{{ $t('确认删除该变量？') }}</div>
             </bk-dialog>
         </div>
     </bk-sideslider>
@@ -496,5 +496,21 @@
 }
 /deep/ .delete-variable-dialog .bk-dialog-body {
     padding: 20px;
+    .delete-text {
+        margin: 20px auto;
+        width: 216px;
+        height: 31px;
+        font-size: 24px;
+        text-align: center;
+        color: #313238;
+        line-height: 31px;
+    }
+    
+}
+/deep/ .delete-variable-dialog .bk-dialog-footer {
+    background-color: #fff;
+    border-top: 0;
+    padding-top: 0;
+    margin-bottom: 25px;
 }
 </style>

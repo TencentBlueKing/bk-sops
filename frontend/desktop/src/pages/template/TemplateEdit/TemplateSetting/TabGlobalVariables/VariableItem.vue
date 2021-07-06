@@ -18,7 +18,13 @@
                 {{ variableData.name }}
             </span>
             <span class="col-item col-key">
-                {{ variableData.key }}
+                <i
+                    v-bk-tooltips="{
+                        content: variableData.key,
+                        placements: ['bottom']
+                    }"
+                >{{ variableData.key }}
+                </i>
                 <i
                     class="common-icon-double-paper-2 copy-icon"
                     v-bk-tooltips.bottom="$t('复制')"
@@ -45,17 +51,17 @@
                     </i>
                     <i
                         v-if="variableData.show_type === 'show'"
-                        class="common-icon-eye-show"
+                        class="common-icon-eye-hide"
                         v-bk-tooltips="{
-                            content: $t('显示'),
+                            content: $t('隐藏'),
                             placements: ['bottom']
                         }">
                     </i>
                     <i
                         v-else
-                        class="common-icon-eye-hide color-org"
+                        class="common-icon-eye-show color-org"
                         v-bk-tooltips="{
-                            content: $t('隐藏'),
+                            content: $t('显示'),
                             placements: ['bottom']
                         }">
                     </i>
@@ -90,17 +96,25 @@
                     {{ $t('查看') }}
                 </span>
                 <template v-else>
-                    <span
+                    <!-- <span
                         class="col-operation-item"
                         @click.stop="onPreviewValue(variableData.key)">
                         {{ $t('预览值') }}
-                    </span>
-                    <span
+                    </span> -->
+                    <!-- <span
                         class="col-operation-item"
                         @click.stop="onCloneVariable()">
                         {{ $t('克隆') }}
+                    </span> -->
+                    <span
+                        class="col-operation-item">
+                        {{ $t('编辑') }}
                     </span>
-                    <i class="bk-icon icon-close delete-icon" @click.stop="onDeleteVariable(variableData.key)"></i>
+                    <span
+                        class="col-operation-item"
+                        @click.stop="onDeleteVariable(variableData.key)">
+                        {{ $t('删除') }}
+                    </span>
                 </template>
             </span>
         </div>
@@ -121,7 +135,6 @@
     import { mapState } from 'vuex'
     import VariableCitedList from './VariableCitedList.vue'
     import VariablePreviewValue from './VariablePreviewValue.vue'
-
     export default {
         name: 'VariableItem',
         components: {

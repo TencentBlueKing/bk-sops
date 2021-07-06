@@ -63,6 +63,15 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
+                    <div
+                        class="common-icon-info variable-type-tip"
+                        v-bk-tooltips="{
+                            content: variableDesc,
+                            placement: 'bottom-end',
+                            duration: 0,
+                            width: 200
+                        }"
+                    ></div>
                     <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
                 </div>
                 <!-- 验证规则 -->
@@ -694,7 +703,7 @@
         height: 100%;
     }
     .variable-edit-content {
-        padding: 20px 20px 40px;
+        padding: 20px 30px 40px;
         height: calc(100% - 49px);
         overflow-y: auto;
     }
@@ -782,6 +791,11 @@
             margin-left: 80px;
             font-size: 12px;
             color: #666;
+        }
+        .variable-type-tip {
+            position: absolute;
+            top: 10px;
+            right: -22px;
         }
     }
     .btn-wrap {
