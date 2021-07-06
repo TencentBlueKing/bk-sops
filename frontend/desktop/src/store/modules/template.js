@@ -221,7 +221,7 @@ const template = {
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some((item) => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
-                    item.expired = false
+                    item.expired = subflow.expired
                     if (subflow.version) {
                         item.version = subflow.version
                     }

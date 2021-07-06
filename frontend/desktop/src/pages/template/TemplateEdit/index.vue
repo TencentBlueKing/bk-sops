@@ -349,8 +349,8 @@
                             && location.type === 'subflow'
                         ) {
                             this.subprocess_info.details.some(subflow => {
-                                if (subflow.subprocess_node_id === location.id && subflow.expired) {
-                                    data.hasUpdated = true
+                                if (subflow.subprocess_node_id === location.id) {
+                                    data.hasUpdated = subflow.expired
                                     return true
                                 }
                             })

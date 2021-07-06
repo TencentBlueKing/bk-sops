@@ -127,7 +127,7 @@
                 <!-- 子流程版本更新 -->
                 <i
                     class="common-icon-clock-inversion update-tooltip"
-                    v-if="!inputLoading && subflowHasUpdate && !updateSubflow"
+                    v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
                         content: $t('版本更新'),
                         placements: ['bottom-end']
@@ -156,6 +156,7 @@
                     :value="formData.alwaysUseLatest"
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
+                <p class="use-latest-tips">{{ $t('打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值') }}</p>
             </bk-form-item>
         </bk-form>
     </div>
@@ -172,13 +173,14 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
-            updateSubflow: Boolean,
             inputLoading: Boolean
         },
         data () {
             return {
                 labelData: [],
                 labelLoading: false,
+                subflowLoading: false,
+                version: this.basicInfo.version,
                 formData: { ...this.basicInfo },
                 pluginRules: {
                     plugin: [
@@ -266,15 +268,18 @@
                 'subprocessInfo': state => state.template.subprocess_info
             }),
             subflowHasUpdate () {
-                return this.subprocessInfo.details.some(subflow => {
-                    if (
-                        subflow.expired
-                        && subflow.template_id === Number(this.formData.tpl)
-                        && subflow.subprocess_node_id === this.nodeConfig.id
-                    ) {
-                        return true
-                    }
-                })
+                if (!this.formData.alwaysUseLatest) {
+                    return this.version !== this.basicInfo.version || this.subprocessInfo.details.some(subflow => {
+                        if (
+                            subflow.expired
+                            && subflow.template_id === Number(this.formData.tpl)
+                            && subflow.subprocess_node_id === this.nodeConfig.id
+                        ) {
+                            return true
+                        }
+                    })
+                }
+                return false
             },
             labelList () {
                 if (this.labelLoading || this.labelData.length === 0) {
@@ -302,6 +307,20 @@
             ...mapActions('template/', [
                 'getLabels'
             ]),
+            ...mapActions('atomForm/', [
+                'loadSubflowConfig'
+            ]),
+            async getSubflowDetail () {
+                this.subflowLoading = true
+                try {
+                    const resp = await this.loadSubflowConfig({ templateId: this.basicInfo.tpl, common: this.common })
+                    this.version = resp.data.version
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.subflowLoading = false
+                }
+            },
             // 加载节点标签列表
             async getNodeLabelList () {
                 try {
@@ -389,15 +408,18 @@
                 this.formData.selectable = val
                 this.updateData()
             },
-            onAlwaysUseLatestChange (val) {
+            async onAlwaysUseLatestChange (val) {
                 this.formData.alwaysUseLatest = val
+                if (!val) {
+                    await this.getSubflowDetail()
+                }
                 this.updateData()
             },
             updateData () {
                 const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
                 }
@@ -510,6 +532,12 @@
             cursor: pointer;
             color: #3a84ff;
         }
+    }
+    .use-latest-tips {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #ff9c01;
+        line-height: 1.2;
     }
     .bk-option-content {
         &:hover {
