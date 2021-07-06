@@ -19,18 +19,6 @@ from gcloud.template_base.models import BaseTemplateManager, BaseTemplate
 
 
 class CommonTemplateManager(BaseTemplateManager):
-    def create(self, **kwargs):
-        pipeline_template = self.create_pipeline_template(**kwargs)
-        task_template = self.model(
-            category=kwargs["category"],
-            pipeline_template=pipeline_template,
-            notify_type=kwargs["notify_type"],
-            notify_receivers=kwargs["notify_receivers"],
-            time_out=kwargs["time_out"],
-        )
-        task_template.save()
-        return task_template
-
     def import_operation_check(self, template_data):
         data = super(CommonTemplateManager, self).import_operation_check(template_data)
 

@@ -11,11 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.common_template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
+from django.conf.urls import url
 
-# 流程类型映射关系
-TEMPLATE_TYPE_MODEL = {
-    "common": CommonTemplate,
-    "project": TaskTemplate,
-}
+from .apis.django import api
+
+urlpatterns = [
+    url(r"^api/upload_yaml_templates/$", api.upload_and_check_yaml_templates),
+    url(r"^api/export_yaml_templates/$", api.export_yaml_templates),
+    url(r"^api/import_yaml_templates/$", api.import_yaml_templates),
+]
