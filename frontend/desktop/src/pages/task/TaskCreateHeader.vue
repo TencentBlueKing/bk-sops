@@ -145,7 +145,6 @@
                     default:
                         url = { name: 'home' }
                 }
-                console.log(url, 'ssssssssssss')
                 this.$router.push(url)
             }
         }
