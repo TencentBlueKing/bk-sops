@@ -92,7 +92,7 @@
                     <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
                     <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
                 </div>
-                <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="common-icon-info form-item-tips"></i>
+                <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
@@ -156,7 +156,14 @@
                     :value="formData.alwaysUseLatest"
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
-                <p class="use-latest-tips">{{ $t('打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值') }}</p>
+                <i
+                    v-bk-tooltips="{
+                        width: 540,
+                        placement: 'bottom-end',
+                        content: $t('打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值')
+                    }"
+                    class="bk-icon icon-question-circle form-item-tips">
+                </i>
             </bk-form-item>
         </bk-form>
     </div>
@@ -481,7 +488,7 @@
         }
         .form-item-tips {
             position: absolute;
-            right: -30px;
+            left: -24px;
             top: 7px;
             color: #c4c6cc;
             &:hover {
@@ -532,12 +539,6 @@
             cursor: pointer;
             color: #3a84ff;
         }
-    }
-    .use-latest-tips {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #ff9c01;
-        line-height: 1.2;
     }
     .bk-option-content {
         &:hover {
