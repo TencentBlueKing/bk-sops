@@ -548,6 +548,7 @@
                     this.subflowForms.filter(item => item.checked).forEach(item => {
                         const activity = tools.deepClone(this.activities[item.id])
                         activity.version = item.latestForm.version
+                        activity.constants = tools.deepClone(item.latestForm.form)
                         Object.keys(activity.constants).forEach(key => {
                             const varItem = activity.constants[key]
                             varItem.value = item.latestForm.inputsValue[key]
