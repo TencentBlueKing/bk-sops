@@ -1162,11 +1162,11 @@
                     this.isEditProcessPage = true
                 }
             },
-            updateTaskSchemeList (val) {
+            updateTaskSchemeList (val, isSchemaListChange) {
                 this.taskSchemeList = val
                 this.allowLeave = false
-                this.isTemplateDataChanged = true
-                this.isSchemaListChange = true
+                this.isTemplateDataChanged = isSchemaListChange
+                this.isSchemaListChange = isSchemaListChange
             },
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)
