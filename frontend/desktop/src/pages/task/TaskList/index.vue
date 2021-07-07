@@ -496,7 +496,7 @@
                     this.setting.size = size || 'small'
                     selectedFields = fieldList || this.defaultSelected
                     if (!fieldList || !size) {
-                        localStorage.removeItem('commonTemplateList')
+                        localStorage.removeItem('TaskList')
                     }
                 } else {
                     selectedFields = this.defaultSelected
