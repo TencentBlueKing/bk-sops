@@ -710,9 +710,9 @@
             },
             handleSortChange ({ prop, order }) {
                 const params = 'pipeline_template__' + prop
-                if (order === 'ascending') {
+                if (order === 'descending') {
                     this.ordering = params
-                } else if (order === 'descending') {
+                } else if (order === 'ascending') {
                     this.ordering = '-' + params
                 } else {
                     this.ordering = ''
