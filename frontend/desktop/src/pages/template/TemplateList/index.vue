@@ -537,7 +537,7 @@
                      */
                     const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                     const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
-                    const data = this.$route.query.id__in === '' ? {
+                    const data = {
                         project__id: this.project_id,
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -547,14 +547,9 @@
                         label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
                         subprocess_has_update,
                         has_subprocess,
+                        id__in: this.$route.query.id__in || undefined,
                         order_by: this.ordering || undefined
-                    } : {
-                        id__in: this.$route.query.id__in,
-                        project__id: this.project_id,
-                        limit: this.pagination.limit,
-                        offset: (this.pagination.current - 1) * this.pagination.limit
                     }
-
                     if (queryTime[0] && queryTime[1]) {
                         data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
                         data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
@@ -574,7 +569,6 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
-                    this.$route.query.id__in = ''
                 }
             },
             // 获取当前视图表格头显示字段

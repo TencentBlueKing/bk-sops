@@ -189,33 +189,33 @@
             </bk-dialog>
             <bk-dialog
                 width="560"
-                ext-cls="save-template-dialog"
+                ext-cls="prompted-update-parent-process-dialog"
                 theme="primary"
-                :value="isSaveDialog"
+                :value="isParentListDialogShow"
                 :mask-close="false"
-                @cancel="isSaveDialog = false">
+                :show-footer="false"
+                @cancel="isParentListDialogShow = false">
                 <div slot="header">
-                    <bk-icon class="ico" type="check-circle-shape" />
+                    <i class="bk-icon icon-check-circle-shape ico"></i>
                     <div class="title">{{ $t('保存成功') }}</div>
                 </div>
                 <p class="tip-text">{{ $t('修改后涉及到子流程节点发生变化') }}, {{ $t('请及时调整配置') }}：</p>
                 <ul class="content-edit-save-template-remind">
-                    <li v-for="(item, index) in parentProcessList"
-                        :key="index"
-                    >
+                    <li
+                        v-for="(item, index) in parentProcessList"
+                        :key="index">
                         <div class="list-tag"></div>
                         <div class="list-content" @click="handleJumpTemplateList(item.template_id)" :class="{ 'text-color': item.always_use_latest }">{{ item.template_name }}</div>
                     </li>
                 </ul>
-                <div slot="footer">
-                    <div v-if="parentProcessList.length > 5" @click="handleJumpTemplateList(parentProcessList)" class="tip" :style="{ cursor: 'pointer' }">{{ $t('共') }}{{ parentProcessList.length || '' }} 5 {{ $t('个，查看全部') }} >></div>
+                <div class="tip">
+                    <div v-if="parentProcessList.length > 5" @click="handleJumpTemplateList(parentProcessList)" class="tip-content" :style="{ cursor: 'pointer' }">{{ $t('共') }}{{ parentProcessList.length || '' }}{{ $t('个，查看全部') }} >></div>
                 </div>
             </bk-dialog>
         </div>
     </div>
 </template>
 <script>
-    import { bkIcon } from 'bk-magic-vue'
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     // moment用于时区使用
@@ -251,15 +251,14 @@
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips,
-            BatchUpdateDialog,
-            bkIcon
+            BatchUpdateDialog
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
                 parentProcessList: [],
-                isSaveDialog: false,
+                isParentListDialogShow: false,
                 isShowDialog: false,
                 isSaveLoading: false,
                 isSchemaListChange: false,
@@ -454,7 +453,7 @@
                 'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
-                'getParentsProcess',
+                'getParentsProcesses',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
@@ -500,15 +499,10 @@
                 'saveTaskSchemList'
             ]),
             handleJumpTemplateList (ids) {
-                let requsetId = ids
-                if (Array.isArray(ids)) {
-                    requsetId = ids.map(item => {
-                        return item.template_id
-                    }).toString()
-                }
+                const requestId = Array.isArray(ids) ? ids.map(item => item.template_id).join(',') : ids
                 this.$router.push({
-                    path: `/template/home/${this.project_id}/`,
-                    query: { id__in: requsetId }
+                    path: this.common ? `/common_template/api/parents/` : `/template/home/${this.project_id}/`,
+                    query: { id__in: requestId }
                 })
             },
             /**
@@ -708,11 +702,11 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
-                    const parentProcess = await this.getParentsProcess({ 'project_id': this.project_id, 'template_id': template_id })
+                    const parentProcess = await this.getParentsProcesses({ 'project_id': this.project_id, 'template_id': template_id, 'common': this.common })
                     this.tplActions = data.auth_actions
                     this.parentProcessList = parentProcess.data
                     if (parentProcess.data.length !== 0) {
-                        this.isSaveDialog = true
+                        this.isParentListDialogShow = true
                     } else {
                         this.$bkMessage({
                             message: i18n.t('保存成功'),
@@ -1637,13 +1631,12 @@
             }
         }
     }
-    /deep/ .save-template-dialog {
+    /deep/ .prompted-update-parent-process-dialog {
         .bk-dialog-tool {
             width: 560px;
             height: 40px;
         }
         .bk-dialog-header {
-            // height: 80px;
             width: 560px;
             padding: 0;
             text-align: center;
@@ -1704,19 +1697,14 @@
                     }
                 }
             }
-        }
-        .bk-dialog-footer {
-            padding: 11px 35px;
-            width: 560px;
-            height: 46px;
-            font-size: 12px;
-            background-color: #fff;
-            border-top: 0;
-            color: #3a84ff;
-            .tips {
-                display: inline-block;
-                width: 131px;
-                height: 24px;
+            .tip {
+                color: #3a84ff;
+                text-align: right;
+                height: 40px;
+                font-size: 12px;
+                .tip-content{
+                    line-height: 40px;
+                }
             }
         }
     }
