@@ -1127,7 +1127,8 @@ const en = {
     '默认全部': 'all',
     '个': '',
     '待更新的子流程': 'subprocesss to be updated',
-    '引擎版本': 'Engine Version'
+    '引擎版本': 'Engine Version',
+    '打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值': 'With this switch on, each time a task is created it will try to use the latest version of the subprocess and will no longer prompt that the node needs to be updated. If a new variable is added to the subprocess, the default value of the variable will be used if the version of the subprocess is not updated'
 }
 
 export default en

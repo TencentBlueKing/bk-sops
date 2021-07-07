@@ -131,8 +131,8 @@
                                         :node-config="nodeConfig"
                                         :version-list="versionList"
                                         :is-subflow="isSubflow"
-                                        :update-subflow="updateSubflow"
                                         :input-loading="inputLoading"
+                                        :common="common"
                                         @openSelectorPanel="isSelectorPanelShow = true"
                                         @versionChange="versionChange"
                                         @viewSubflow="onViewSubflow"
@@ -248,7 +248,7 @@
             const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
             const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
-                updateSubflow: false, // 子流程是否更新
+                subflowUpdated: false, // 子流程是否更新
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
@@ -574,7 +574,7 @@
                         stageName: stage_name,
                         nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
-                        alwaysUseLatest: always_use_latest || false,
+                        alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
                     }
                 }
@@ -742,6 +742,7 @@
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
                 this.setSubprocessUpdated({
+                    expired: false,
                     subprocess_node_id: this.nodeConfig.id
                 })
                 this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
@@ -769,7 +770,7 @@
                 this.subflowVersionUpdating = false
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                    this.updateSubflow = true
+                    this.subflowUpdated = true
                 })
             },
             /**
@@ -1108,16 +1109,21 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
-                        const { skippable, retryable, selectable: optional } = this.basicInfo
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional } = this.basicInfo
                         const nodeData = { status: '', skippable, retryable, optional }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
-                        }
-                        if (this.updateSubflow) {
-                            this.setSubprocessUpdated({
-                                subprocess_node_id: this.nodeConfig.id
-                            })
+                        } else {
+                            if (this.subflowUpdated || alwaysUseLatest) {
+                                this.setSubprocessUpdated({
+                                    expired: false,
+                                    subprocess_node_id: this.nodeConfig.id
+                                })
+                            }
+                            if (!alwaysUseLatest && latestVersion && latestVersion !== version) {
+                                this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
+                            }
                         }
                         this.syncActivity()
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
