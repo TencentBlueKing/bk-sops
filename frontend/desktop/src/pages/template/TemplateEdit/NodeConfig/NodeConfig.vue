@@ -110,8 +110,7 @@
                     :common="common"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
-                    @select="onPluginOrTplChange"
-                    @isSelectorPanelOpen="isSelectorPanelOpen = false">
+                    @select="onPluginOrTplChange">
                 </selector-panel>
                 <!-- 变量编辑面板 -->
                 <div v-else-if="isVariablePanelShow" class="variable-edit-panel">
@@ -248,10 +247,8 @@
             templateLabels: Array,
             common: [String, Number],
             subflowListLoading: Boolean,
-            backToVariablePanel: Boolean,
-            selectorPanelOpen: Boolean
+            backToVariablePanel: Boolean
         },
-        inject: ['templateThis'],
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
             const basicInfo = this.getNodeBasic(nodeConfig)
@@ -316,11 +313,7 @@
                 if (!val) {
                     this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
                 }
-            },
-            isSelectorPanelShow (val) {
-                this.$emit('selectPanleShow', val)
             }
-
         },
         created () {
             /**
@@ -527,9 +520,6 @@
                 }))
                 this.constantsLoading = false
                 return inputs
-            },
-            isSelectorShow () {
-                this.$emit('selectPanleShow', this.isSelectorPanelShow = true)
             },
             /**
              * 获取任务节点基础信息数据

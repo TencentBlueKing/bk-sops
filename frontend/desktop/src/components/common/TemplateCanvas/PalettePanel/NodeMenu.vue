@@ -131,7 +131,6 @@
                                 </div>
                             </template>
                         </div>
-                        <div class="node-loading" v-bkloading="{ isLoading: templateThis._data.subAtomListLoading, zIndex: 20 , opacity: 1 }" v-if="!templateThis._data.isPageOver"></div>
                     </template>
                     <template v-else>
                         <div class="search-result">
@@ -164,7 +163,7 @@
     </transition>
 </template>
 <script>
-    import { mapActions, mapState } from 'vuex'
+    import { mapState } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
@@ -179,7 +178,6 @@
             NodeItem
         },
         mixins: [permission],
-        inject: ['templateThis'],
         props: {
             templateLabels: Array,
             loading: Boolean,
@@ -256,9 +254,6 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
-            ...mapActions('templateList', [
-                'loadTemplateList'
-            ]),
             getIconCls (type) {
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
                 if (this.activeNodeListType === 'subflow') {

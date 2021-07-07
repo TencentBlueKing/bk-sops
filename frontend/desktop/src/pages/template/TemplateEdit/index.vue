@@ -99,8 +99,7 @@
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
-                    @close="closeConfigPanel"
-                    @selectPanleShow="selectPanleShow">
+                    @close="closeConfigPanel">
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
@@ -235,11 +234,6 @@
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
-        provide: function () {
-            return {
-                templateThis: this
-            }
-        },
         data () {
             return {
                 isShowDialog: false,
@@ -317,9 +311,7 @@
                 offset: 0,
                 pollingTimer: null,
                 isPageOver: false,
-                isThrottled: false, // 滚动节流 是否进入cd
-                getListNode: false,
-                tableScroller: null
+                isThrottled: false // 滚动节流 是否进入cd
             }
         },
         computed: {
@@ -402,31 +394,14 @@
             isNodeConfigPanelShow (val) {
                 if (val) {
                     this.getSubflowList()
-                    this.getNode('.tpl-list')
-                } else {
-                    this.initPage()
-                    this.initList()
-                    this.isPageOver = false
-                }
-            },
-            isSelectorPanelShow (val) {
-                if (val) {
-                    this.getSubflowList()
-                    this.getNode('.tpl-list')
-                } else {
-                    this.initPage()
-                    this.initList()
-                }
-            },
-            nodeMenuOpen (val) {
-                if (val) {
-                    this.getSubflowList()
-                    this.getNode('.node-list-wrap')
-                } else {
-                    this.initPage()
-                    this.initList()
                 }
             }
+            // nodeMenuOpen (val) {
+
+            //     if (val) {
+            //         this.getSubflowList()
+            //     }
+            // }
         },
         beforeRouteEnter (to, from, next) {
             next(vm => {
@@ -528,23 +503,6 @@
             getAtomList  (val) {
                 this.isGetAtomList = val
             },
-            getNode (node) {
-                return this.$nextTick(() => {
-                    this.tableScroller = this.$el.querySelector(node)
-                    this.tableScroller.addEventListener('scroll', this.handleTableScroll, { passive: true })
-                })
-            },
-            initPage () {
-                this.currentPage = 0
-                return this.currentPage
-            },
-            initList () {
-                this.atomTypeList.subflow.length = 0
-                return this.atomTypeList.subflow
-            },
-            selectPanleShow (val) {
-                this.isSelectorPanelShow = val
-            },
             /**
              * 加载标准插件列表
              */
@@ -600,7 +558,7 @@
                 }
             },
             /**
-             * 滚动加载子流程列表
+             * 加载子流程列表
              */
             async getSubflowList () {
                 this.subAtomListLoading = true
@@ -619,21 +577,6 @@
                     console.log(e)
                 } finally {
                     this.subAtomListLoading = false
-                }
-            },
-            handleTableScroll () {
-                if (!this.isPageOver && !this.isThrottled) {
-                    this.isThrottled = true
-                    this.pollingTimer = setTimeout(() => {
-                        this.isThrottled = false
-                        const el = this.tableScroller
-                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
-                            this.currentPage += 1
-                            this.isPageOver = this.currentPage === this.totalPage
-                            clearTimeout(this.pollingTimer)
-                            this.getSubflowList()
-                        }
-                    }, 200)
                 }
             },
             /**
@@ -902,8 +845,7 @@
                         list.push(item)
                     }
                 })
-                this.atomTypeList.subflow.push(...list)
-                // this.atomTypeList.subflow = list
+                this.atomTypeList.subflow = list
             },
             /**
              * 打开节点配置面板

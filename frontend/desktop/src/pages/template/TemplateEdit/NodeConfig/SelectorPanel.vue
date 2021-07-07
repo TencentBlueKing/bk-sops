@@ -124,16 +124,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list" v-bkloading=" { isLoading: isloading, zIndex: 10 } ">
+                    <div class="tpl-list" ref="tpl_list" v-bkloading=" { isLoading: isloading, zIndex: 10 } ">
                         <template v-if="listInPanel.length > 0">
                             <div
-                                v-for="(item, index) in listInPanel"
+                                v-for="item in listInPanel"
                                 v-cursor="{ active: !item.hasPermission }"
                                 :class="['tpl-item', {
                                     'active': getSelectedStatus(item),
                                     'text-permission-disable': !item.hasPermission
                                 }]"
-                                :key="index"
+                                :key="item.id"
                                 @click="onTplClick(item)">
                                 <div class="tpl-name name-content">
                                     <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
@@ -153,7 +153,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="tpl-loading" v-bkloading="{ isLoading: templateThis._data.subAtomListLoading, zIndex: 20 , opacity: 1 }" v-if="!templateThis._data.isPageOver"></div>
+                            <div class="tpl-loading" v-bkloading="{ isLoading: listLoading, zIndex: 20 , opacity: 1 }"></div>
                         </template>
                         <no-data v-else></no-data>
                     </div>
@@ -184,7 +184,6 @@
             basicInfo: Object,
             common: [String, Number]
         },
-        inject: ['templateThis'],
         data () {
             return {
                 listData: [],
@@ -196,7 +195,16 @@
                 searchResult: [],
                 isLabelSelectorOpen: false,
                 activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
-                isloading: false
+                isloading: false, // 列表滚动到底加载loading
+                totalPage: 0,
+                currentPage: 0,
+                limit: 25,
+                offset: 0,
+                pollingTimer: null,
+                isPageOver: false,
+                isThrottled: false, // 滚动节流 是否进入cd
+                getListNode: false,
+                listLoading: false
             }
         },
         computed: {
@@ -235,26 +243,46 @@
         },
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            // this.getTempLateList()
         },
-        mounted () {},
-        beforeDestroy () {},
+        mounted () {
+            if (this.$refs.tpl_list) {
+                this.$refs.tpl_list.addEventListener('scroll', this.handleTableScroll)
+            }
+        },
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
-            async getTempLateList () {
+            async getSubflowList () {
+                this.listLoading = true
                 try {
-                    const requestData = {
-                        project__id: this.project_id,
-                        pipeline_template__name__icontains: arguments[0]
+                    const data = {
+                        template_id: this.template_id,
+                        limit: this.limit,
+                        offset: this.currentPage * this.limit
                     }
-                    const resp = await this.loadTemplateList(requestData)
+                    const resp = await this.loadTemplateList(data)
+                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
                     this.handleSubflowList(resp)
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    console.log('over')
+                    this.listLoading = false
+                }
+            },
+            handleTableScroll () {
+                if (!this.isPageOver && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.$refs.tpl_list
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            this.isPageOver = this.currentPage === this.totalPage
+                            clearTimeout(this.pollingTimer)
+                            this.getSubflowList()
+                        }
+                    }, 500)
                 }
             },
             handleSubflowList (data) {
@@ -267,7 +295,7 @@
                         list.push(item)
                     }
                 })
-                this.searchData = list
+                this.listInPanel.push(...list)
             },
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
@@ -324,7 +352,7 @@
             onClearSearch () {
                 this.searchInputhandler()
             },
-            async searchInputhandler () {
+            searchInputhandler () {
                 let result = []
                 if (!this.isSubflow) {
                     if (this.searchStr === '') {
