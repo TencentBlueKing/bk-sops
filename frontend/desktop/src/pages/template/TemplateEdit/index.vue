@@ -195,10 +195,8 @@
                 :mask-close="false"
                 :show-footer="false"
                 @cancel="isParentListDialogShow = false">
-                <div slot="header">
-                    <i class="bk-icon icon-check-circle-shape ico"></i>
-                    <div class="title">{{ $t('保存成功') }}</div>
-                </div>
+                <i class="bk-icon icon-check-circle-shape ico"></i>
+                <div class="title">{{ $t('保存成功') }}</div>
                 <p class="tip-text">{{ $t('修改后涉及到子流程节点发生变化') }}, {{ $t('请及时调整配置') }}：</p>
                 <ul class="content-edit-save-template-remind">
                     <li
@@ -1636,11 +1634,11 @@
             width: 560px;
             height: 40px;
         }
-        .bk-dialog-header {
-            width: 560px;
+        .bk-dialog-body {
             padding: 0;
-            text-align: center;
+            margin: 0 32px;
             .ico {
+                display: block;
                 width: 42px;
                 height: 42px;
                 font-size: 43px;
@@ -1648,18 +1646,15 @@
                 background-color: #3fc06d;
                 border-radius: 50%;
                 color: #e5f6ea;
-                margin-bottom: 10px;
+                margin: 0 auto;
             }
             .title {
                 display: block;
+                text-align: center;
                 margin: 20px 0 10px 0;
                 font-size: 20px;
                 height: 32px;
             }
-        }
-        .bk-dialog-body {
-            padding: 0;
-            margin: 0 32px;
             .tip-text {
                 margin: 4px 0;
             }
