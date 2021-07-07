@@ -361,7 +361,7 @@
                 }
             },
             subflowShouldUpdated () {
-                if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
+                if (this.subprocess_info) {
                     return this.subprocess_info.details
                 }
                 return []
