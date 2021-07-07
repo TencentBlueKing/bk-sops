@@ -360,6 +360,9 @@ EXPIRED_TASK_CLEAN = env.EXPIRED_TASK_CLEAN
 EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
 TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
 
+BAMBOO_PERIODIC_TASK_ROOT_PIPELINE_CONTEXT_PROVIER = "gcloud.taskflow3.context.root_pipeline_context_provider"
+BAMBOO_PERIODIC_TASK_SUBPROCESS_CONTEXT_PROVIER = "gcloud.taskflow3.context.subprocess_context_provider"
+
 # pipeline mako render settings
 MAKO_SANDBOX_SHIELD_WORDS = [
     "ascii",

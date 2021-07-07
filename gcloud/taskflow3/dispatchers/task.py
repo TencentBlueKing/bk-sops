@@ -17,7 +17,6 @@ import traceback
 from typing import Optional
 
 from django.utils import timezone
-from bamboo_engine.utils.object import Representable
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from pipeline.eri.runtime import BambooDjangoRuntime
@@ -32,14 +31,10 @@ from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, Iso
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
+from engine_pickle_obj.context import SystemObject
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
-
-
-class SystemObject(Representable):
-    def __init__(self, attrs: dict):
-        self.__dict__ = attrs
 
 
 class TaskCommandDispatcher(EngineCommandDispatcher):
@@ -155,6 +150,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 root_pipeline_context=root_pipeline_context,
                 subprocess_context=root_pipeline_context,
                 queue=self.queue,
+                cycle_tolerate=True,
             )
         except Exception as e:
             logger.exception("run pipeline failed")
