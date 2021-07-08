@@ -112,7 +112,7 @@
                             type: "primary",
                             title: gettext('添加'),
                             size: "normal",
-                            margin:"50px",
+                            margin: "50px",
                             cols: 1,
                             formViewHidden: true
                         },
@@ -129,19 +129,20 @@
                                     let local_files = local_files_obj._get_value();
                                     let job_target_path = job_target_path_obj._get_value();
 
-                                    if(local_files.length === 0){
+                                    if (local_files.length === 0) {
                                         alert(gettext("请上传文件"))
                                         return
                                     }
-                                    if(job_target_path === ""){
+                                    if (job_target_path === "") {
                                         alert(gettext("请填写目标路径"))
                                         return
                                     }
 
                                     let show_name = "";
                                     $.each(local_files, function (i, v) {
-                                        show_name += v.name + ";"
+                                        show_name += v.name + "\n"
                                     })
+                                    show_name = show_name.slice(0, show_name.length - 1)
 
                                     table_obj._get_value().push({
                                         "show_file": show_name,
@@ -170,12 +171,12 @@
                             ],
                             empty_text: gettext("无数据"),
                             deleteable: true,
-                            editable: false,
+                            editable: true,
                             rowEditable: false,
                             columns: [
                                 {
                                     tag_code: "show_file",
-                                    type: "text",
+                                    type: "textarea",
                                     attrs: {
                                         name: gettext("文件信息")
                                     }
@@ -205,24 +206,7 @@
 
 
         },
-        {
-            tag_code: "job_across_biz",
-            type: "radio",
-            attrs: {
-                name: gettext("是否允许跨业务"),
-                hookable: true,
-                items: [
-                    {value: true, name: gettext("是")},
-                    {value: false, name: gettext("否")},
-                ],
-                default: false,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ]
-            }
-        },
+
         {
             tag_code: "job_target_ip_list",
             type: "textarea",
