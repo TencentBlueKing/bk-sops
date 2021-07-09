@@ -44,7 +44,11 @@
             </el-upload>
         </div>
         <div class="data-table">
-            <bk-table v-if="!colsLoading" :data="tableData">
+            <bk-table
+                v-if="!colsLoading"
+                :data="dataList"
+                :pagination="pagination"
+                @page-change="handlePageChange">
                 <bk-table-column
                     v-for="(item, colIndex) in cols"
                     :key="item.config.tag_code"
@@ -57,14 +61,14 @@
                     <template slot-scope="props">
                         <template v-if="item.config.tag_code !== 'tb_btns'">
                             <render-form
-                                :ref="`row_${props.$index}_${item.config.tag_code}`"
+                                :ref="`row_${(pagination.current - 1) * pagination.limit + props.$index}_${item.config.tag_code}`"
                                 :scheme="[item.config]"
-                                :form-option="getCellOption(props.$index)"
+                                :form-option="getCellOption((pagination.current - 1) * pagination.limit + props.$index)"
                                 v-model="props.row[item.config.tag_code]">
                             </render-form>
                         </template>
                         <template v-else>
-                            <template v-if="editRow !== props.$index">
+                            <template v-if="editRow !== (pagination.current - 1) * pagination.limit + props.$index">
                                 <bk-button :text="true" :disabled="!editable" @click="rowEditClick(props)">{{ i18n.edit }}</bk-button>
                                 <bk-button :text="true" :disabled="!editable" @click="rowDelClick(props)">{{ i18n.delete }}</bk-button>
                             </template>
@@ -135,6 +139,12 @@
                 },
                 editRow: '',
                 tableData: tools.deepClone(this.value),
+                pagination: {
+                    current: 1,
+                    count: this.value.length,
+                    limit: 10,
+                    'show-limit': false
+                },
                 i18n: {
                     resourceFilter: gettext('资源筛选'),
                     export: gettext('导出'),
@@ -146,10 +156,18 @@
                 }
             }
         },
+        computed: {
+            dataList () {
+                const { current, limit } = this.pagination
+                const start = (current - 1) * limit
+                return this.tableData.slice(start, start + limit)
+            }
+        },
         watch: {
             value: {
                 handler (val) {
                     this.tableData = tools.deepClone(val)
+                    this.pagination.count = val.length
                 }
             },
             deep: true
@@ -196,6 +214,7 @@
                 this.readFileData(file).then(data => {
                     if (data && data.length > 0) {
                         this.$emit('importData', data[0].sheet)
+                        this.pagination.current = 1
                     }
                 })
             },
@@ -245,15 +264,23 @@
                 return valid
             },
             rowEditClick (data) {
-                this.editRow = data.$index
+                this.editRow = (this.pagination.current - 1) * this.pagination.limit + data.$index
             },
             rowDelClick (row) {
+                const index = (this.pagination.current - 1) * this.pagination.limit + row.$index
+                if (this.dataList.length === 1 && this.pagination.current > 1) {
+                    this.pagination.current -= 1
+                }
                 this.editRow = ''
-                this.tableData.splice(row.$index, 1)
+                this.tableData.splice(index, 1)
                 this.$emit('update', tools.deepClone(this.tableData))
             },
             rowSaveClick (data) {
-                const valid = this.validateRow(`row_${data.$index}`)
+                let index = data.index
+                if ('$index' in data) {
+                    index = (this.pagination.current - 1) * this.pagination.limit + data.$index
+                }
+                const valid = this.validateRow(`row_${index}`)
                 if (valid) {
                     this.editRow = ''
                     this.$emit('update', tools.deepClone(this.tableData))
@@ -263,10 +290,13 @@
                 this.editRow = ''
                 this.tableData = tools.deepClone(this.value)
             },
+            handlePageChange (val) {
+                this.pagination.current = val
+            },
             validate () {
                 // 当前正在编辑行时，自动触发保存
                 if (typeof this.editRow === 'number') {
-                    this.rowSaveClick({ '$index': this.editRow })
+                    this.rowSaveClick({ 'index': this.editRow })
                 }
                 return this.validateRow(`row_`)
             }
