@@ -379,12 +379,12 @@
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size || 'small'
-                    selectedFields = fieldList || this.tableFields
+                    selectedFields = fieldList || this.tableFields.map(item => item.id)
                     if (!fieldList || !size) {
                         localStorage.removeItem('AuditList')
                     }
                 } else {
-                    selectedFields = this.tableFields
+                    selectedFields = this.tableFields.map(item => item.id)
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
