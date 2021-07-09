@@ -395,6 +395,9 @@
                                 }
                             }
                         }
+                        if (this.pagination) {
+                            this.currentPage = 1
+                        }
                         this._set_value(excelValue)
                     }
                 })
