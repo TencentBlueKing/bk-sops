@@ -438,10 +438,10 @@
                     this.setting.size = size || 'small'
                     selectedFields = fieldList || this.tableFields
                     if (!selectedFields || !size) {
-                        localStorage.removeItem('PeriodicList')
+                        localStorage.removeItem('PeriodicList').map(item => item.id)
                     }
                 } else {
-                    selectedFields = this.tableFields
+                    selectedFields = this.tableFields.map(item => item.id)
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
