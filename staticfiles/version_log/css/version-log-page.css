@@ -1,0 +1,149 @@
+/*
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+* Edition) available.
+* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+* specific language governing permissions and limitations under the License.
+*/
+.vlog {
+    padding: 0;
+    margin: 0;
+    height: 600px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.vlog-content {
+    width: 900px;
+    height: 580px;
+    position: absolute;
+    left: 200px;
+    border: 0;
+    padding: 20px 0px;
+    overflow-y: hidden;
+}
+
+#version_log_detail {
+    padding: 0 50px 40px 50px;
+}
+
+#version_log_detail ul li {
+    list-style: disc;
+}
+
+.vlog-nav {
+    position: absolute;
+    height: 100%;
+    padding: 0;
+    width: 180px;
+}
+
+.vlog-nav-btn {
+    position: absolute; 
+    text-align: center;
+    z-index: 999;
+    background: #FAFBFD;
+    opacity:0.85;
+    display: none;
+}
+
+.vlog-nav-btn:hover {
+    opacity:1;
+}
+
+.vlog-list {
+    overflow-y: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.vlog-nav-ul {
+    width: 100%;
+    border-right: 1px solid #ddd;
+}
+
+.vlog-nav-ul li {
+    background-color: #FAFBFD;
+    border-bottom: 1px solid #ddd;
+}
+
+.vlog-list::-webkit-scrollbar {
+    display: none;
+}
+
+
+.vlog-nav-ul li a {
+    font-size: 16px;
+    color: #63656E;
+    padding-left: 30px;
+}
+
+.vlog-nav-ul span {
+    color: #979BA5;
+}
+
+.vlog-nav-btn {
+    width: 100%;
+    height: 40px;
+    padding: 10px 15px;
+    border-right: 1px solid #ddd;
+    cursor: pointer;
+}
+
+#version_log_list a:visited {
+    background-color: white;
+}
+
+#version_log_list .active {
+    border-left: 6px solid #3A84FF;
+    margin-right: -1px;
+    background-color: white;
+}
+
+#version_log_list .active a {
+    color: #313238;
+    padding-left: 24px;
+    background-color: white;
+}
+
+#version_log_list .active span {
+    /* color: #63656E; */
+    color: #3A84FF;
+}
+
+.tab-pane {
+    overflow-y: auto;
+}
+
+.logo-direction path{
+    fill: green;
+}
+
+.ui-dialog {
+    border: 0 !important;
+    padding: 0 !important;
+}
+
+.ui-dialog-title {
+    font-size: 16px !important;
+}
+
+.ui-dialog-grid {
+    font-size: 14px !important;
+}
+
+.ui-dialog-body {
+    padding: 0 !important;
+}
+
+.ui-dialog .ui-dialog-content {
+    padding: 0 !important;
+    overflow: hidden !important;
+}

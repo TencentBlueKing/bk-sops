@@ -29,22 +29,17 @@ TASK_RESULT = [
 ]
 """
 
-import traceback
 import re
+import traceback
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow import StaticIntervalGenerator
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    IntItemSchema,
-)
-
 from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline.core.flow import StaticIntervalGenerator
+from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -209,7 +204,6 @@ class JobService(Service):
             self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
             data.outputs.ex_data = err_msg.format(callback_data, e)
             return False
-
         if not job_instance_id or not status:
             data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
             self.finish_schedule()
@@ -231,7 +225,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
