@@ -15,7 +15,7 @@ from django.test import TestCase
 from pipeline.component_framework.test import (
     ComponentTestMixin,
 )
-from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0 import ExecuteTaskComponent
+from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0 import JobExecuteTaskComponent
 
 
 class ExecuteTaskComponentTest(TestCase, ComponentTestMixin):
@@ -23,4 +23,4 @@ class ExecuteTaskComponentTest(TestCase, ComponentTestMixin):
         return []
 
     def component_cls(self):
-        return ExecuteTaskComponent
+        return JobExecuteTaskComponent
