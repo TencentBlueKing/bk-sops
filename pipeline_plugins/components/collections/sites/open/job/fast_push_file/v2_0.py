@@ -64,7 +64,10 @@ class JobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -79,7 +82,10 @@ class JobFastPushFileService(JobScheduleService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -136,7 +142,10 @@ class JobFastPushFileService(JobScheduleService):
                     return False
             else:
                 ip_info = cc_get_ips_info_by_str(
-                    username=executor, biz_cc_id=biz_cc_id, ip_str=item["ip"], use_cache=False,
+                    username=executor,
+                    biz_cc_id=biz_cc_id,
+                    ip_str=item["ip"],
+                    use_cache=False,
                 )
             file_source.append(
                 {
@@ -168,7 +177,7 @@ class JobFastPushFileService(JobScheduleService):
                 original_ip_list = attr["job_ip_list"]
                 job_account = attr["job_account"]
                 # 将[FILESRCIP]替换成源IP
-                job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"])
+                job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"]).strip()
                 # 如果允许跨业务，则调用不去查云区域ID的方法
                 target_ip_info = (
                     self.get_ip_info(original_ip_list, break_line)
