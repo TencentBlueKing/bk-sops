@@ -23,7 +23,7 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 
-from gcloud.taskflow3.dispatchers import NodeCommandDispatcher
+from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 
 logger = logging.getLogger("root")
 

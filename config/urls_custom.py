@@ -23,6 +23,7 @@ urlpatterns_custom = [
     url(r"^apigw/", include("gcloud.apigw.urls")),
     url(r"^common_template/", include("gcloud.common_template.urls")),
     url(r"^template/", include("gcloud.tasktmpl3.urls")),
+    url(r"^template/", include("gcloud.template_base.urls")),
     url(r"^taskflow/", include("gcloud.taskflow3.urls")),
     url(r"^appmaker/", include("gcloud.contrib.appmaker.urls")),
     url(r"^develop/", include("gcloud.contrib.develop.urls")),
@@ -42,7 +43,7 @@ schema_view = get_schema_view(
         default_version="v1",
         description="标准运维API文档，接口返回中默认带有result、data、message等字段，如果响应体中没有体现，则说明响应体只展示了其中data字段的内容。",
     ),
-    public=False,
+    public=True,
     permission_classes=(permissions.IsAdminUser,),
 )
 

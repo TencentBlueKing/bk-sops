@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from gcloud import err_code
-from gcloud.taskflow3.dispatchers.node import NodeCommandDispatcher
+from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from bamboo_engine import states as bamboo_engine_states
 
 from gcloud.tests.mock import *  # noqa

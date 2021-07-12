@@ -17,7 +17,7 @@ from django.test import TestCase
 
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.tasks import prepare_and_start_task
+from gcloud.taskflow3.celery.tasks import prepare_and_start_task
 
 
 class PrepareAndStartTaskTestCase(TestCase):

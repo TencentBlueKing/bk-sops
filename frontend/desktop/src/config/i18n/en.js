@@ -1121,7 +1121,21 @@ const en = {
     '任务类型偏好': 'Task Type Preference',
     '默认任务': 'Default Task',
     '职能化任务': 'Functional Task',
-    '默认全部': 'all'
+    '默认全部': 'all',
+    '导出为': 'Export',
+    '文件': 'File',
+    'YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息': 'Exported YAML file can be edited，When it is imported, the template nodes will lose the location information',
+    '支持YAML类型文件，文件小于2M': 'YAML files are supported with files smaller than 2M',
+    'DAT文件导出后不可编辑，导出时不能自由覆盖模板': 'The template cannot be overwritten freely when exporting DAT file',
+    '文件合法性检查通过。': 'The legitimacy of the file was checked.',
+    '文件解析流程': 'File parsing processes',
+    '父流程': 'parent process',
+    '是否覆盖已有流程': 'Whether to overwrite an existing process',
+    '合法性检测结果': 'Legitimacy test results',
+    '请选择需要覆盖的流程': 'Select the process you want to cover',
+    '合法性检查通过。': 'Legitimacy check passed.',
+    '文件不合法，请': 'file is invalid',
+    '重新上传文件': 'Reupload file'
 }
 
 export default en
