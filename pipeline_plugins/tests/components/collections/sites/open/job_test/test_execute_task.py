@@ -12,13 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from mock import MagicMock
-from pipeline.component_framework.test import (Call, CallAssertion,
-                                               ComponentTestCase,
-                                               ComponentTestMixin,
-                                               ExecuteAssertion, Patcher)
-from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0 import \
-    ExecuteTaskComponent
+from pipeline.component_framework.test import (
+    ComponentTestMixin,
+)
+from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0 import ExecuteTaskComponent
 
 
 class ExecuteTaskComponentTest(TestCase, ComponentTestMixin):
