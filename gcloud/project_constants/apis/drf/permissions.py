@@ -15,7 +15,7 @@ from rest_framework import permissions
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
-from iam import Subject
+from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 
 iam = get_iam_client()
@@ -31,7 +31,7 @@ class ProjectConstantPermissions(permissions.BasePermission):
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", request.user.username),
-                action=IAMMeta.PROJECT_VIEW_ACTION,
+                action=Action(IAMMeta.PROJECT_VIEW_ACTION),
                 resources=project_resources,
             )
 
@@ -45,7 +45,7 @@ class ProjectConstantPermissions(permissions.BasePermission):
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", request.user.username),
-                action=IAMMeta.PROJECT_VIEW_ACTION,
+                action=Action(IAMMeta.PROJECT_VIEW_ACTION),
                 resources=project_resources,
             )
 
@@ -57,7 +57,7 @@ class ProjectConstantPermissions(permissions.BasePermission):
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
-            action=IAMMeta.PROJECT_EDIT_ACTION,
+            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
             resources=project_resources,
         )
         return True
