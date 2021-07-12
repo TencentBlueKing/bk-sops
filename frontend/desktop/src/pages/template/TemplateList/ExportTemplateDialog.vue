@@ -12,14 +12,13 @@
 <template>
     <bk-dialog
         width="850"
-        :ext-cls="'common-dialog'"
+        ext-cls="common-dialog export-tpl-dialog"
         :title="$t('导出流程')"
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
         :auto-close="false"
-        @confirm="onConfirm"
-        @cancel="onCancel">
+        @cancel="closeDialog">
         <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1, zIndex: 100 }">
             <div class="template-wrapper">
                 <div class="search-wrapper">
@@ -28,7 +27,7 @@
                             v-model="filterCondition.classifyId"
                             class="bk-select-inline"
                             :clearable="false"
-                            :disabled="exportPending"
+                            :disabled="tplLoading"
                             @change="onSelectClassify">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
@@ -49,7 +48,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1, zIndex: 100 }">
+                <div class="template-list" v-bkloading="{ isLoading: tplLoading, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
                         <template v-for="group in templateInPanel">
                             <li
@@ -93,9 +92,24 @@
                     </base-card>
                 </ul>
             </div>
-            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ $t('全选') }}</bk-checkbox>
-            <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{$t('请选择流程模版')}}</span>
+        </div>
+        <div class="footer-wrap" slot="footer">
+            <bk-checkbox
+                class="template-checkbox"
+                :value="isTplInPanelAllSelected"
+                @change="onSelectAllClick">
+                {{ $t('全选') }}
+            </bk-checkbox>
+            <div class="operate-area">
+                <span class="export-tips">{{ exportTips }}</span>
+                <bk-button
+                    theme="primary"
+                    :disabled="selectedTemplates.length === 0"
+                    :loading="exportPending"
+                    @click="onConfirm">
+                    {{ $t('导出为') }}{{ type === 'dat' ? 'DAT' : 'YAML' }}
+                </bk-button>
+                <bk-button @click="closeDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-dialog>
@@ -117,13 +131,13 @@
         props: {
             isExportDialogShow: Boolean,
             businessInfoLoading: Boolean,
-            projectInfoLoading: Boolean,
             common: String,
-            pending: Boolean,
-            project_id: [Number, String]
+            project_id: [Number, String],
+            type: String
         },
         data () {
             return {
+                tplLoading: false,
                 exportPending: false,
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
@@ -131,31 +145,21 @@
                 templateInPanel: [],
                 searchList: [],
                 selectedTemplates: [],
-                selectError: false,
-                templateEmpty: false,
                 selectedTaskCategory: '',
                 category: '',
                 filterCondition: {
                     classifyId: 'all',
                     keywords: ''
-                },
-                dialogFooterData: [
-                    {
-                        type: 'primary',
-                        loading: false,
-                        btnText: i18n.t('确认'),
-                        click: 'onConfirm'
-                    }, {
-                        btnText: i18n.t('取消'),
-                        click: 'onCancel'
-                    }
-                ]
+                }
             }
         },
         computed: {
             ...mapState({
                 'projectBaseInfo': state => state.template.projectBaseInfo
             }),
+            exportTips () {
+                return this.type === 'dat' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
+            },
             taskCategories () {
                 const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
                 list.unshift({ value: 'all', name: i18n.t('全部分类') })
@@ -165,18 +169,14 @@
                 return this.common ? ['common_flow_view'] : ['flow_view']
             }
         },
-        watch: {
-            pending () {
-                this.dialogFooterData[0].loading = this.pending
-            }
-        },
         created () {
             this.getData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('templateList/', [
-                'loadTemplateList'
+                'loadTemplateList',
+                'templateExport'
             ]),
             ...mapActions([
                 'getCategorys'
@@ -190,7 +190,7 @@
                 }
             },
             async getTemplateData () {
-                this.exportPending = true
+                this.tplLoading = true
                 this.isCheckedDisabled = true
                 try {
                     const data = {}
@@ -206,7 +206,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.exportPending = false
+                    this.tplLoading = false
                     this.isCheckedDisabled = false
                 }
             },
@@ -282,7 +282,6 @@
             },
             onSelectTemplate (template) {
                 if (this.hasPermission(this.reqPerm, template.auth_actions)) {
-                    this.selectError = false
                     const tplIndex = this.getTplIndexInSelected(template)
                     if (tplIndex > -1) {
                         this.selectedTemplates.splice(tplIndex, 1)
@@ -343,24 +342,23 @@
                 })
                 this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
             },
-            onConfirm () {
-                const idList = []
-                if (this.selectedTemplates.length === 0) {
-                    this.selectError = true
-                    return false
-                } else {
-                    this.selectedTemplates.forEach(item => {
-                        idList.push(item.id)
-                    })
-                    this.$emit('onExportConfirm', idList)
-                    this.resetData()
+            async onConfirm () {
+                const list = this.selectedTemplates.map(item => item.id)
+                try {
+                    this.exportPending = true
+                    const resp = await this.templateExport({ list, type: this.type, common: this.common })
+                    if (resp.result) {
+                        this.closeDialog()
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.exportPending = false
                 }
             },
-            onCancel () {
-                this.templateEmpty = false
-                this.selectError = false
+            closeDialog () {
                 this.resetData()
-                this.$emit('onExportCancel')
+                this.$emit('update:isExportDialogShow', false)
             },
             resetData () {
                 this.selectedTemplates = []
@@ -465,20 +463,33 @@
             margin: 0 0 10px 14px;
         }
     }
-    .template-checkbox {
-        position: absolute;
-        left: 20px;
-        bottom: -38px;
-    }
-    .task-footer {
-        position: absolute;
-        right: 290px;
-        bottom: -40px;
-        .error-info {
-            margin-right: 20px;
+    // .template-checkbox {
+    //     position: absolute;
+    //     left: 20px;
+    //     bottom: -38px;
+    // }
+    // .task-footer {
+    //     position: absolute;
+    //     right: 290px;
+    //     bottom: -40px;
+    //     .error-info {
+    //         margin-right: 20px;
+    //         font-size: 12px;
+    //         color: #ea3636;
+    //     }
+    // }
+}
+</style>
+<style lang="scss">
+    .export-tpl-dialog {
+        .footer-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .export-tips {
             font-size: 12px;
-            color: #ea3636;
+            color: #63656e;
         }
     }
-}
 </style>

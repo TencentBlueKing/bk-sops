@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url, include
 
-from gcloud.taskflow3 import api
-from gcloud.taskflow3.apis.views.v4.urls import v4_urlpatterns
+from gcloud.taskflow3.apis.django import api
+from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
 
 urlpatterns = [
     url(r"^api/context/$", api.context),

@@ -33,14 +33,14 @@ from gcloud import err_code
 from gcloud.core.models import EngineConfig
 from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
-from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
+from gcloud.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.context import TaskContext
+from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.taskflow3.models import preview_template_tree
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType
-from gcloud.taskflow3.validators import (
+from gcloud.taskflow3.apis.django.validators import (
     StatusValidator,
     DataValidator,
     DetailValidator,
@@ -55,7 +55,7 @@ from gcloud.taskflow3.validators import (
     QueryTaskCountValidator,
     GetNodeLogValidator,
 )
-from gcloud.taskflow3.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
+from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,

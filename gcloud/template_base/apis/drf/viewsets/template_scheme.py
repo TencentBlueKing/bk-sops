@@ -31,7 +31,7 @@ logger = logging.getLogger("root")
 
 class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
     queryset = TemplateScheme.objects.all()
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser | SchemeEditPermission]
+    permission_classes = [permissions.IsAuthenticated, SchemeEditPermission]
     serializer_class = TemplateSchemeSerializer
     params_serializer_class = ParamsSerializer
 

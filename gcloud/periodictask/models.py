@@ -31,7 +31,7 @@ from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.shortcuts.cmdb import get_business_group_members
 from gcloud.common_template.models import CommonTemplate
-from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
+from gcloud.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 
 logger = logging.getLogger("root")
 

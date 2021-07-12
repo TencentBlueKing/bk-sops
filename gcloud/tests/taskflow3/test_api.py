@@ -19,7 +19,7 @@ from pipeline.utils.uniqid import node_uniqid
 
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.taskflow3 import api
+from gcloud.taskflow3.apis.django import api
 
 
 TEST_PROJECT_ID = "2"  # do not change this to non number
@@ -116,7 +116,7 @@ class APITest(TestCase):
         self.PREVIEW_TASK_TREE_URL = "/taskflow/api/preview_task_tree/{biz_cc_id}/"
         self.client = Client()
 
-    @mock.patch("gcloud.taskflow3.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     def test_preview_task_tree__constants_not_referred(self):
 
         with mock.patch(

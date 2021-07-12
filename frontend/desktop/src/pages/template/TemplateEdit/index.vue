@@ -717,7 +717,7 @@
                         }
                         tplTabCount.setTab(tabQuerydata, 'add')
                     }
-                    
+
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     }
@@ -1623,5 +1623,5 @@
             }
         }
     }
-    
+
 </style>
