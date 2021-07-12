@@ -29,7 +29,7 @@
                 },
                 disabled: !$.context.canSelectBiz(),
                 validation: [
-                    {
+                    { 
                         type: "required"
                     }
                 ]
