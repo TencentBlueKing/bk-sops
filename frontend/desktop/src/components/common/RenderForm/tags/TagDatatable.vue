@@ -385,8 +385,11 @@
                                             })
                                         }
                                     }
-                                    if (tag.type === 'int') {
+                                    if (tag.type === 'int' && typeof val === 'string' && !!val) {
                                         val = Number(val)
+                                    }
+                                    if (tag.type === 'input' && typeof val === 'number') {
+                                        val = String(val)
                                     }
                                     if (newKey && key !== newKey) {
                                         excelValue[i][newKey] = val
