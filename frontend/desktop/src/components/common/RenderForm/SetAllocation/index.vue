@@ -287,7 +287,13 @@
                             if (tagCode !== 'tb_btns') {
                                 const rowData = data[i]
                                 if (rowData.hasOwnProperty(tagCode)) {
-                                    const val = item.config.module ? rowData[tagCode].join('\n') : rowData[tagCode]
+                                    let val = item.config.module ? rowData[tagCode].join('\n') : rowData[tagCode]
+                                    if (item.config.type === 'int' && typeof val === 'string' && !!val) {
+                                        val = Number(val)
+                                    }
+                                    if (item.config.type === 'input' && typeof val === 'number') {
+                                        val = String(val)
+                                    }
                                     valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
                                         [tagCode]: val
                                     }
