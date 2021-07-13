@@ -20,7 +20,7 @@ from django.http.response import JsonResponse
 
 from gcloud.core.decorators import check_is_superuser
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor
 

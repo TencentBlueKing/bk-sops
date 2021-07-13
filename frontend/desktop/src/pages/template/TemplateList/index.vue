@@ -35,18 +35,26 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onExportTemplate">
-                            {{$t('导出')}}
-                        </bk-button>
-                        <bk-button
-                            theme="default"
-                            class="template-btn"
-                            @click="onImportTemplate">
-                            {{ $t('导入') }}
-                        </bk-button>
+                        <bk-dropdown-menu style="margin-left: 20px;">
+                            <div class="export-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('导出') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="export-option-list" slot="dropdown-content">
+                                <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
+                                <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
+                            </ul>
+                        </bk-dropdown-menu>
+                        <bk-dropdown-menu style="margin-left: 20px;">
+                            <div class="import-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('导入') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="import-option-list" slot="dropdown-content">
+                                <li @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                            </ul>
+                        </bk-dropdown-menu>
                     </template>
                 </advance-search-form>
                 <div class="template-table-content">
@@ -154,7 +162,8 @@
                                             :z-index="2000"
                                             :distance="0"
                                             :arrow="false"
-                                            :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                            :tippy-options="{ boundary: 'window', duration: [0, 0] }"
+                                            :on-show="onShowMoreOperation">
                                             <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                             <ul slot="content">
                                                 <li class="opt-btn">
@@ -214,19 +223,22 @@
                 </div>
             </div>
         </skeleton>
-        <ImportTemplateDialog
+        <ImportDatTplDialog
             :auth-actions="authActions"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
-        </ImportTemplateDialog>
-        <ExportTemplateDialog
-            :is-export-dialog-show="isExportDialogShow"
-            :project-info-loading="projectInfoLoading"
-            :pending="pending.export"
+        </ImportDatTplDialog>
+        <ImportYamlTplDialog
+            :auth-actions="authActions"
             :project_id="project_id"
-            @onExportConfirm="onExportConfirm"
-            @onExportCancel="onExportCancel">
+            :is-show.sync="isImportYamlDialogShow"
+            @confirm="onImportYamlSuccess">
+        </ImportYamlTplDialog>
+        <ExportTemplateDialog
+            :is-export-dialog-show.sync="isExportDialogShow"
+            :project_id="project_id"
+            :type="exportType">
         </ExportTemplateDialog>
         <bk-dialog
             width="400"
@@ -247,11 +259,11 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
-    import ImportTemplateDialog from './ImportTemplateDialog.vue'
+    import ImportDatTplDialog from './ImportDatTplDialog.vue'
+    import ImportYamlTplDialog from './ImportYamlTplDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
@@ -364,7 +376,8 @@
         name: 'TemplateList',
         components: {
             Skeleton,
-            ImportTemplateDialog,
+            ImportDatTplDialog,
+            ImportYamlTplDialog,
             ExportTemplateDialog,
             ListPageTipsTitle,
             AdvanceSearchForm,
@@ -406,16 +419,17 @@
                 searchStr: '',
                 searchForm,
                 isSearchFormOpen, // 高级搜索表单默认展开
+                exportType: 'dat', // 模板导出类型
                 expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
+                isImportYamlDialogShow: false,
                 isExportDialogShow: false,
                 isAuthorityDialogShow: false,
                 theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 active: true,
                 pending: {
-                    export: false, // 导出
                     delete: false // 删除
                 },
                 editEndTime: undefined,
@@ -504,7 +518,6 @@
                 'loadTemplateList',
                 'deleteTemplate',
                 'templateImport',
-                'templateExport',
                 'getExpiredSubProcess'
             ]),
             ...mapActions('project/', [
@@ -558,7 +571,7 @@
                         this.totalPage = totalPage
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -585,7 +598,7 @@
                     this.setProjectBaseInfo(res.data)
                     form.list = res.data.task_categories
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                     form.loading = false
@@ -596,11 +609,9 @@
                     const resp = await this.getExpiredSubProcess({ project__id: this.project_id })
                     if (resp.result) {
                         this.expiredSubflowTplList = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getCollectList () {
@@ -609,7 +620,7 @@
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectListLoading = false
                 }
@@ -620,12 +631,19 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     form.list = res.data.map(item => Object.assign({}, item, { value: item.id }))
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.templateLabelLoading = false
                     form.loading = false
                 }
+            },
+            onShowMoreOperation () {
+                window.reportInfo({
+                    page: 'templateList',
+                    zone: 'tableMoreOperation',
+                    event: 'hover'
+                })
             },
             checkCreatePermission () {
                 if (!this.hasPermission(['flow_create'], this.authActions)) {
@@ -654,9 +672,6 @@
                 this.pagination.current = 1
                 this.getTemplateList()
             },
-            onImportTemplate () {
-                this.isImportDialogShow = true
-            },
             onImportConfirm () {
                 this.isImportDialogShow = false
                 this.getTemplateList()
@@ -664,27 +679,13 @@
             onImportCancel () {
                 this.isImportDialogShow = false
             },
-            onExportTemplate () {
+            onImportYamlSuccess () {
+                this.isImportYamlDialogShow = false
+                this.getTemplateList()
+            },
+            onExportTemplate (type) {
+                this.exportType = type
                 this.isExportDialogShow = true
-            },
-            async onExportConfirm (list) {
-                if (this.pending.export) return
-                this.pending.export = true
-                try {
-                    const resp = await this.templateExport({ list })
-                    if (resp.result) {
-                        this.isExportDialogShow = false
-                    } else {
-                        errorHandler(resp, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.pending.export = false
-                }
-            },
-            onExportCancel () {
-                this.isExportDialogShow = false
             },
             onDeleteTemplate (template) {
                 if (!this.hasPermission(['flow_delete'], template.auth_actions)) {
@@ -800,7 +801,7 @@
                     }
                     this.getTemplateList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.delete = false
                 }
@@ -889,7 +890,7 @@
                     }
                     this.getCollectList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
@@ -933,6 +934,57 @@
 }
 .create-template-btn {
     min-width: 120px;
+}
+.export-tpl-btn,
+.import-tpl-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 4px 0 20px;
+    height: 32px;
+    line-height: 32px;
+    min-width: 88px;
+    text-align: center;
+    font-size: 14px;
+    background: #ffffff;
+    border: 1px solid #c4c6cc;
+    border-radius: 3px;
+    cursor: pointer;
+    .bk-icon {
+        font-size: 24px;
+        transition: ease-in-out 0.4s;
+    }
+}
+.bk-dropdown-menu{
+    &:hover {
+        .export-tpl-btn,
+        .import-tpl-btn {
+            border-color: #979ba5;
+            .bk-icon {
+                transform: rotate(180deg);
+            }
+        }
+    }
+    /deep/.bk-dropdown-content {
+        z-index: 1;
+    }
+}
+.export-option-list,
+.import-option-list {
+    & > li {
+        padding: 0 10px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+        text-align: left;
+        white-space: nowrap;
+        background: #ffffff;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            background: #f4f6fa;
+        }
+    }
 }
 .dialog-content {
     padding: 30px;

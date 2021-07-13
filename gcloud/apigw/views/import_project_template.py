@@ -20,7 +20,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.decorators import mark_request_whether_is_trust
-from gcloud.commons.template.utils import read_encoded_template_data
+from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
 from packages.bkoauth.decorators import apigw_required

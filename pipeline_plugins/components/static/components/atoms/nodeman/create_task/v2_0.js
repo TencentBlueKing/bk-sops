@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-(function () {
+ (function () {
     function is_display_tag(self, op_type, value) {
         if (op_type.indexOf(value) !== -1) {
             self.show()
@@ -234,7 +234,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("内网IP"),
-                                        placeholder: gettext("多个用,隔开"),
+                                        placeholder: gettext("多个用英文逗号 `,` 或换行分隔"),
                                         width: "180px",
                                         editable: true,
                                         validation: [
@@ -249,7 +249,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("外网IP"),
-                                        placeholder: gettext("可选,如填写需与内网ip一一对应"),
+                                        placeholder: gettext("可选,如填写需与内网ip一一对应,多个用英文逗号 `,` 或换行分隔"),
                                         width: "180px",
                                         editable: true,
                                         validation: []
@@ -260,7 +260,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("登录IP"),
-                                        placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写"),
+                                        placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写,多个用英文逗号 `,` 或换行分隔"),
                                         width: "180px",
                                         editable: true
                                     }
@@ -270,7 +270,7 @@
                                     type: "textarea",
                                     attrs: {
                                         name: gettext("数据IP"),
-                                        placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写"),
+                                        placeholder: gettext("可为空，如填写需与内网ip一一对应，适配复杂网络时填写,多个用英文逗号 `,` 或换行分隔"),
                                         width: "180px",
                                         editable: true,
 

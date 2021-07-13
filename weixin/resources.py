@@ -17,8 +17,8 @@ from tastypie.authorization import ReadOnlyAuthorization
 from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.core.resources import VariableModelResource, ComponentModelResource, UserProjectResource, ProjectResource
 from gcloud.iam_auth import IAMMeta
-from gcloud.tasktmpl3.resources import TaskTemplateResource, TemplateSchemeResource
-from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource, TemplateSchemeResource
+from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from weixin.utils import iam_based_object_list_filter
 
 

@@ -130,6 +130,7 @@ class SleepTimerService(Service):
             data.set_outputs("ex_data", message)
             return False
 
+        self.logger.info("wake time: {}".format(eta))
         data.outputs.timing_time = eta
 
         return True

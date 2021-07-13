@@ -170,7 +170,6 @@
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -274,7 +273,7 @@
                     this.businessTplList = businessList
                     this.templateList = businessList
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskListPending = false
                 }
@@ -291,7 +290,7 @@
                     this.commonTplResource = respData.meta.auth_resource
                     this.commonTplList = this.getGroupedList(commonList)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskListPending = false
                 }
@@ -304,8 +303,8 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.templateLabelLoading = false
                 }
@@ -426,8 +425,8 @@
                     }
                     const resp = await this.queryUserPermission(data)
                     this.hasCommonTplCreateTaskPerm = resp.data.is_allow
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.permissionLoading = false
                 }

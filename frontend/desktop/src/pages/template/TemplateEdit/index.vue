@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading || subAtomListLoading, zIndex: 100 }">
-        <div v-if="!templateDataLoading && !singleAtomListLoading && !subAtomListLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100 }">
+        <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -44,6 +44,7 @@
                     :locations="locations"
                     :node-menu-open="nodeMenuOpen"
                     @viewClick="viewUpdatedNode"
+                    @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
                 </SubflowUpdateTips>
                 <TemplateCanvas
@@ -53,6 +54,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
+                    :subflow-list-loading="subAtomListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
@@ -84,13 +86,15 @@
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
-                    :is-show.sync="isNodeConfigPanelShow"
+                    :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :template-labels="templateLabels"
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
+                    :subflow-list-loading="subAtomListLoading"
+                    :back-to-variable-panel="backToVariablePanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -98,10 +102,12 @@
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
-                    :is-show.sync="isShowConditionEdit"
+                    :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
+                    :back-to-variable-panel="backToVariablePanel"
                     @onBeforeClose="onBeforeClose"
-                    @updataCanvasCondition="updataCanvasCondition">
+                    @updataCanvasCondition="updataCanvasCondition"
+                    @close="onCloseConfigPanel">
                 </condition-edit>
                 <template-setting
                     :project-info-loading="projectInfoLoading"
@@ -118,6 +124,12 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
+            <batch-update-dialog
+                :show.sync="isBatchUpdateDialogShow"
+                :project-id="project_id"
+                :list="subflowShouldUpdated"
+                @globalVariableUpdate="globalVariableUpdate">
+            </batch-update-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -205,6 +217,7 @@
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
+    import BatchUpdateDialog from './BatchUpdateDialog.vue'
 
     export default {
         name: 'TemplateEdit',
@@ -215,7 +228,8 @@
             NodeConfig,
             ConditionEdit,
             TemplateSetting,
-            SubflowUpdateTips
+            SubflowUpdateTips,
+            BatchUpdateDialog
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
@@ -264,6 +278,8 @@
                 conditionData: {},
                 multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
+                isBatchUpdateDialogShow: false,
+                backToVariablePanel: false,
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -492,7 +508,7 @@
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.singleAtomListLoading = false
                 }
@@ -507,7 +523,7 @@
                     this.setProjectBaseInfo(resp.data)
                     this.getSubflowList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                 }
@@ -515,7 +531,7 @@
             /**
              * 加载子流程列表
              */
-            async getSubflowList (subAtomData) {
+            async getSubflowList () {
                 this.subAtomListLoading = true
                 try {
                     const data = {
@@ -526,7 +542,7 @@
                     const resp = await this.loadSubflowList(data)
                     this.handleSubflowList(resp)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.subAtomListLoading = false
                 }
@@ -550,7 +566,7 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateDataLoading = false
                 }
@@ -574,7 +590,7 @@
                     await this.loadAtomConfig({ atom: code, version, project_id })
                     this.addSingleAtomActivities(location, this.atomConfig[code][version])
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.atomConfigLoading = false
                 }
@@ -611,7 +627,7 @@
                     activities.constants = constants || {}
                     this.setActivities({ type: 'edit', location: activities })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             /**
@@ -623,7 +639,7 @@
                     const result = await this.loadInternalVariable()
                     this.setInternalVariable(result.data)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.systemVarsLoading = false
                 }
@@ -636,8 +652,8 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.templateLabelLoading = false
                 }
@@ -701,12 +717,12 @@
                         }
                         tplTabCount.setTab(tabQuerydata, 'add')
                     }
-                    
+
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.saveAndCreate = false
                     this.pid = undefined
@@ -810,9 +826,13 @@
             /**
              * 关闭节点配置面板
              */
-            closeConfigPanel () {
+            closeConfigPanel (openVariablePanel) {
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
+                this.backToVariablePanel = false
+                if (openVariablePanel) {
+                    this.onChangeSettingPanel('globalVariableTab')
+                }
             },
             /**
              * 设置流程模板为修改状态
@@ -981,6 +1001,11 @@
              * 自动排版
              */
             async onFormatPosition () {
+                window.reportInfo({
+                    page: 'templateEdit',
+                    zone: 'formatPositionIcon',
+                    event: 'click'
+                })
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
@@ -1016,11 +1041,9 @@
                                 theme: 'success'
                             })
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.canvasDataLoading = false
                 }
@@ -1056,6 +1079,7 @@
                     case 'branchgateway':
                     case 'parallelgateway':
                     case 'convergegateway':
+                    case 'conditionalparallelgateway':
                         this.setGateways({ type: changeType, location })
                         break
                     case 'startpoint':
@@ -1125,8 +1149,8 @@
                     this.isTemplateDataChanged = false
                     this.isEditProcessPage = true
                     this.isSchemaListChange = false
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.executeSchemeSaving = false
                 }
@@ -1275,6 +1299,13 @@
                 this.isShowDialog = false
                 this.isShowConditionEdit = false
             },
+            onCloseConfigPanel (openVariablePanel) {
+                this.isShowConditionEdit = false
+                this.backToVariablePanel = false
+                if (openVariablePanel) {
+                    this.onChangeSettingPanel('globalVariableTab')
+                }
+            },
             // 更新分支数据
             updataCanvasCondition (data) {
                 // 更新 cavans 页面数据
@@ -1312,6 +1343,7 @@
             // 全局变量引用详情点击回调
             onCitedNodeClick (data) {
                 const { group, id } = data
+                this.backToVariablePanel = true
                 if (group === 'activities') {
                     this.activeSettingTab = ''
                     this.showConfigPanel(id)
@@ -1591,5 +1623,5 @@
             }
         }
     }
-    
+
 </style>

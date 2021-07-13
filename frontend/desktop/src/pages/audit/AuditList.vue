@@ -113,7 +113,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -368,7 +367,7 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -440,7 +439,7 @@
                     form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.business.loading = false
                 }
@@ -454,7 +453,7 @@
                     form.list = this.taskCategory
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskBasicInfoLoading = false
                 }

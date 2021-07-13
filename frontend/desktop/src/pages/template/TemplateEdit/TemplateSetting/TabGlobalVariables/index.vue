@@ -72,7 +72,7 @@
                         <span class="col-key t-head">KEY</span>
                         <span class="col-attributes t-head">{{ $t('属性') }}</span>
                         <span class="col-output t-head">{{ $t('输出') }}</span>
-                        <span class="col-quote t-head">
+                        <span class="col-cited t-head">
                             {{ $t('引用') }}
                             <i
                                 class="common-icon-info global-variable-tootip quote-info"
@@ -102,8 +102,9 @@
                                 :variable-cited="variableCited"
                                 :common="common"
                                 @onEditVariable="onEditVariable"
-                                @onChangeVariableOutput="onChangeVariableOutput"
                                 @onDeleteVariable="onDeleteVariable"
+                                @onCloneVariable="onCloneVariable"
+                                @onChangeVariableOutput="onChangeVariableOutput"
                                 @onCitedNodeClick="onCitedNodeClick">
                             </variable-item>
                         </draggable>
@@ -145,7 +146,6 @@
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'TabGlobalVariables',
@@ -209,11 +209,9 @@
                     const resp = await this.getVariableCite(data)
                     if (resp.result) {
                         this.variableCited = resp.data.defined
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             setVariableList () {
@@ -322,6 +320,13 @@
                 this.deleteConfirmDialogShow = false
                 this.deleteVarKey = ''
             },
+            onCloneVariable (data) {
+                const variableData = tools.deepClone(data)
+                variableData.source_info = {}
+                variableData.key = ''
+                variableData.index = Object.keys(this.constants).length + 1
+                this.variableData = variableData
+            },
             // 编辑变量后点击保存
             onSaveEditing () {
                 this.closeEditingPanel()
@@ -419,7 +424,7 @@
             width: 180px;
         }
         .col-attributes {
-            width: 77px;
+            width: 64px;
             .icon-wrap {
                 vertical-align: middle;
                 line-height: 1;
@@ -443,9 +448,9 @@
             }
         }
         .col-output {
-            width: 58px;
+            width: 54px;
         }
-        .col-quote {
+        .col-cited {
             width: 54px;
         }
     }

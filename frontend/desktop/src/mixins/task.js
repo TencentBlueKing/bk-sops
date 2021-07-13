@@ -1,4 +1,3 @@
-import { errorHandler } from '@/utils/errorHandler.js'
 import { mapActions } from 'vuex'
 import i18n from '@/config/i18n/index.js'
 
@@ -17,7 +16,10 @@ const task = {
         getExecuteStatus (acceptVarName, list) {
             this[acceptVarName] = list.map((item, index) => {
                 const status = {}
-                if (item.is_finished) {
+                if (item.is_expired) {
+                    status.cls = 'expired bk-icon icon-clock-shape'
+                    status.text = i18n.t('已过期')
+                } else if (item.is_finished) {
                     status.cls = 'finished bk-icon icon-check-circle-shape'
                     status.text = i18n.t('完成')
                 } else if (item.is_revoked) {
@@ -41,7 +43,7 @@ const task = {
             try {
                 const detailInfo = await this.getInstanceStatus(data)
                 if (detailInfo.result) {
-                    const state = detailInfo.data.state
+                    const { state } = detailInfo.data
                     const status = {}
                     switch (state) {
                         case 'RUNNING':
@@ -69,11 +71,9 @@ const task = {
                             status.text = i18n.t('未知')
                     }
                     this[acceptVarName].splice(index, 1, status)
-                } else {
-                    errorHandler(detailInfo, this)
                 }
             } catch (e) {
-                errorHandler(e, this)
+                console.log(e)
             }
         }
 

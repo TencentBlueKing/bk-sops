@@ -204,3 +204,4 @@ class CCReplaceFaultMachineComponent(Component):
     code = "cc_replace_fault_machine"
     bound_service = CCReplaceFaultMachineService
     form = "%scomponents/atoms/cc/cc_replace_fault_machine.js" % settings.STATIC_URL
+    desc = _("如果配置平台中模块启动了属性自动应用策略，则 复制故障机属性 选项无法复制对应属性")

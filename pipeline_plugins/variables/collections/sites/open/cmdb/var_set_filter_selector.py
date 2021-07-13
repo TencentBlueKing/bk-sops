@@ -12,10 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from functools import reduce
 
-from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.conf import settings
+from gcloud.exceptions import ApiRequestError
 from pipeline.core.data.var import LazyVariable
 
 logger = logging.getLogger("root")
@@ -33,25 +35,26 @@ def cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value):
     """
     client = get_client_by_user(operator)
     obj_value_list = bk_obj_value.split(",")
-    ret = []
+    results = []
     # 多个过滤属性值时循环请求接口
     for obj_value in obj_value_list:
         kwargs = {
             "bk_biz_id": int(bk_biz_id),
-            "fields": ["bk_set_id", "bk_set_name"],
             "condition": {bk_obj_id: obj_value},
         }
 
         result = client.cc.search_set(kwargs)
         if not result["result"]:
-            err_msg = _("调用 cc.search_set 接口获取集群失败, kwargs={kwargs}, result={result}").format(
-                kwargs=kwargs, result=result
-            )
+            err_msg = _(
+                "[cc_filter_set_variables] 调用 cc.search_set 接口获取集群失败, " "kwargs={kwargs}, result={result}"
+            ).format(kwargs=kwargs, result=result)
             logger.error(err_msg)
-            continue
-        for bk_set in result["data"]["info"]:
-            ret.append({"bk_set_id": bk_set["bk_set_id"], "bk_set_name": bk_set["bk_set_name"]})
-    return ret
+            raise ApiRequestError(err_msg)
+        results += result["data"]["info"]
+    if not results:
+        return [], set()
+    bk_attributes = reduce(set.intersection, [set(result.keys()) for result in results])
+    return results, bk_attributes
 
 
 class SetInfo(object):
@@ -59,12 +62,15 @@ class SetInfo(object):
     设置集群的信息
     """
 
-    def __init__(self, data):
-        self.bk_set_name = [bk_set["bk_set_name"] for bk_set in data]
-        self.bk_set_id = [bk_set["bk_set_id"] for bk_set in data]
-        self._pipeline_var_str_value = "bk_set_id: {}, bk_set_name: {}".format(
-            ",".join(str(id) for id in self.bk_set_id), ",".join(str(name) for name in self.bk_set_name)
-        )
+    def __init__(self, data, attributes):
+        self.bk_sets = data
+        for attribute in attributes:
+            for bk_set in data:
+                if not hasattr(self, attribute):
+                    setattr(self, attribute, [])
+                getattr(self, attribute).append(bk_set[attribute])
+            setattr(self, f"flat__{attribute}", ",".join(map(str, getattr(self, attribute))))
+        self._pipeline_var_str_value = f"sets: {self.bk_sets}"
 
     def __repr__(self):
         return self._pipeline_var_str_value
@@ -76,11 +82,16 @@ class VarSetFilterSelector(LazyVariable):
     type = "general"
     tag = "var_set_filter_selector.set_filter_selector"
     form = "%svariables/cmdb/var_set_filter_selector.js" % settings.STATIC_URL
+    desc = _(
+        "该变量返回对象类型，可通过${KEY.bk_sets}获得筛选的所有集群信息，对于所有集群都有的属性(如attr)，"
+        "可以通过${KEY.attr}获得所有集群该属性的值列表，可以通过${KEY.flat__attr}获得所有集群该属性的值拼接结果字符串"
+    )
 
     def get_value(self):
         """
         获取该变量中对应属性值
         example:
+            bk_sets: ${var.bk_sets}
             set_name: ${var.bk_set_name}
             set_id: ${var.bk_set_id}
         """
@@ -89,5 +100,5 @@ class VarSetFilterSelector(LazyVariable):
         bk_obj_id = self.value.get("bk_obj_id", "")
         bk_obj_value = self.value.get("bk_obj_value", "")
 
-        set_info = cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value)
-        return SetInfo(set_info)
+        set_infos, bk_attributes = cc_filter_set_variables(operator, bk_biz_id, bk_obj_id, bk_obj_value)
+        return SetInfo(set_infos, bk_attributes)

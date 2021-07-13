@@ -16,7 +16,7 @@ from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
-from gcloud.tasktmpl3.apis.drf.viewsets import TemplateSchemeViewSet
+from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import (
     BusinessResource,
@@ -28,18 +28,21 @@ from gcloud.core.resources import (
     LabelModelResource,
     UserProjectResource,
 )
-from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
+from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.label.viewsets import LabelViewSet
-from gcloud.tasktmpl3.resources import (
+from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
+
+from gcloud.tasktmpl3.apis.tastypie.resources import (
     TaskTemplateResource,
     # TemplateSchemeResource,
 )
-from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
 from gcloud.contrib.function.resources import FunctionTaskResource
 from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
+from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
 
 v3_api = Api(api_name="v3")
 v3_api.register(BusinessResource())
@@ -70,6 +73,15 @@ drf_router.register(r"operate_record_task", TaskOperateRecordSetViewSet)
 drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 drf_router.register(r"new_label", LabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
+drf_router.register(r"project_constants", ProjectConstantsViewSet)
+
+v4_drf_router = DefaultRouter()
+v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")
+v4_drf_router.register(r"common_template", CommonTemplateViewSet, basename="common_template")
 
 # Standard bits...
-urlpatterns = [url(r"^api/", include(v3_api.urls)), url(r"^api/v3/", include(drf_router.urls))]
+urlpatterns = [
+    url(r"^api/", include(v3_api.urls)),
+    url(r"^api/v3/", include(drf_router.urls)),
+    url(r"^api/v4/", include(v4_drf_router.urls)),
+]

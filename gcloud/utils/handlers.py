@@ -27,7 +27,7 @@ iam = get_iam_client()
 
 
 def handle_api_error(system, api_name, params, result):
-
+    request_id = result.get("request_id", "")
     if result.get("code") == HTTP_AUTH_FORBIDDEN_CODE:
         permission = result.get("permission", {})
 
@@ -55,6 +55,8 @@ def handle_api_error(system, api_name, params, result):
                 message = "{prefix}\n details: params={params}, error={error}".format(
                     prefix=message, params=json.dumps(params), error=result.get("message", "")
                 )
+                if request_id:
+                    message = "{}, request_id={}".format(message, request_id)
             else:
                 message = _(
                     "调用{system}接口{api_name}无权限，获取申请权限接口失败\ndetails: {result}\n error={error}".format(
@@ -66,6 +68,8 @@ def handle_api_error(system, api_name, params, result):
         message = _("调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
             system=system, api_name=api_name, params=json.dumps(params), error=result.get("message", "")
         )
+        if request_id:
+            message = "{}, request_id={}".format(message, request_id)
 
     logger.error(message)
 

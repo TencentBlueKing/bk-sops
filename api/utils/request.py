@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from gcloud.conf import settings
+from gcloud.exceptions import ApiRequestError
+from gcloud.utils.handlers import handle_api_error
 from .thread import ThreadPool
 
 logger = logging.getLogger("root")
@@ -21,9 +23,26 @@ logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
+def local_wrapper(target_func, request_params, node_id=None, node_info=None):
+    from bamboo_engine import local as bamboo_local
+    from pipeline.engine.core import context as pipeline_context
+
+    if node_info:
+        bamboo_local.set_node_info(node_info)
+
+    if node_id:
+        pipeline_context.set_node_id(node_id)
+
+    return target_func(**request_params)
+
+
 def batch_request(
-        func, params, get_data=lambda x: x["data"]["info"], get_count=lambda x: x["data"]["count"], limit=500,
-        page_param=None
+    func,
+    params,
+    get_data=lambda x: x["data"]["info"],
+    get_count=lambda x: x["data"]["count"],
+    limit=500,
+    page_param=None,
 ):
     """
     并发请求接口
@@ -41,8 +60,9 @@ def batch_request(
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
         except Exception as e:
-            logger.error("[batch_request] please input correct page param, {}".format(e))
-            return []
+            message = "[batch_request] please input correct page param, {}".format(e)
+            logger.error(message)
+            raise ApiRequestError(message)
     else:
         cur_page_param = "start"
         page_size_param = "limit"
@@ -51,8 +71,9 @@ def batch_request(
     result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
 
     if not result["result"]:
-        logger.error("[batch_request] {api} count request error, result: {result}".format(api=func.path, result=result))
-        return []
+        message = handle_api_error("[batch_request]", func.path, params, result)
+        logger.error(message)
+        raise ApiRequestError(message)
 
     count = get_count(result)
     data = []
@@ -61,10 +82,18 @@ def batch_request(
     # 根据请求总数并发请求
     pool = ThreadPool()
     params_and_future_list = []
+    from bamboo_engine import local as bamboo_local
+    from pipeline.engine.core import context as pipeline_context
+
+    node_info = bamboo_local.get_node_info()
+    node_id = pipeline_context.get_node_id()
     while start < count:
         request_params = {"page": {page_size_param: limit, cur_page_param: start}}
         request_params.update(params)
-        params_and_future_list.append({"params": request_params, "future": pool.apply_async(func, kwds=request_params)})
+        kwds = {"target_func": func, "node_id": node_id, "node_info": node_info, "request_params": request_params}
+        params_and_future_list.append(
+            {"params": request_params, "future": pool.apply_async(func=local_wrapper, kwds=kwds)}
+        )
 
         start += limit
 
@@ -76,12 +105,9 @@ def batch_request(
         result = params_and_future["future"].get()
 
         if not result:
-            logger.error(
-                "[batch_request] {api} request error, params: {params}, result: {result}".format(
-                    api=func.__name__, params=params_and_future["params"], result=result
-                )
-            )
-            return []
+            message = handle_api_error("[batch_request]", func.path, params_and_future["params"], result)
+            logger.error(message)
+            raise ApiRequestError(message)
 
         data.extend(get_data(result))
 

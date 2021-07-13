@@ -17,9 +17,9 @@ from tastypie.authorization import ReadOnlyAuthorization
 
 from gcloud.core.resources import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.resources import TaskTemplateResource
+from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.periodictask.resources import PeriodicTaskResource
 

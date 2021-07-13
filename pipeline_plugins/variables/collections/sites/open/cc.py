@@ -19,14 +19,11 @@ from django.contrib.admin.utils import flatten
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.data.var import LazyVariable
-
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str
-
 from pipeline_plugins.components.utils.common import ip_re
-
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host
 from gcloud.utils.ip import get_ip_by_regex
@@ -40,10 +37,11 @@ class VarIpPickerVariable(LazyVariable):
     type = "dynamic"
     tag = "var_ip_picker.ip_picker"
     form = "%svariables/cmdb/var_ip_picker.js" % settings.STATIC_URL
+    desc = "该变量已废弃，请替换为新版 IP 选择器"
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         var_ip_picker = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
@@ -98,10 +96,19 @@ class VarCmdbIpSelector(LazyVariable):
     type = "dynamic"
     tag = "var_cmdb_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_cmdb_ip_selector.js" % settings.STATIC_URL
+    desc = """
+    输出格式为选中 IP 以 ',' 分隔的字符串
+    筛选条件和排除条件为 AND 关系
+    - 筛选：会从IP列表中筛选出符合条件的IP
+    - 排除：会从IP列表中去除符合条件的IP
+    变量值是否带云区域
+    - 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}
+    - 否，返回格式为{ip},{ip}
+    """
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -168,6 +175,22 @@ class VarCmdbSetAllocation(LazyVariable):
     type = "general"
     tag = "var_cmdb_resource_allocation.set_allocation"
     form = "%svariables/cmdb/var_cmdb_resource_allocation.js" % settings.STATIC_URL
+    desc = """
+    此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）
+    引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}
+    引用${KEY._module}，返回的是集群下的模块信息，类型为字典，键为模块名，值为模块下的主机列
+    引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表
+    如：
+    获取集群的名称列表: ${KEY.bk_set_name}
+    获取集群环境类型: ${KEY.bk_set_env}
+    引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接
+    如：
+    获取集群的名称值: ${KEY.flat__bk_set_name}
+    获取集群环境类型值: ${KEY.flat__bk_set_env}
+    引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接
+    引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接
+    引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接
+    """
 
     def get_value(self):
         """
@@ -187,6 +210,11 @@ class VarCmdbAttributeQuery(LazyVariable):
     type = "dynamic"
     tag = "var_cmdb_attr_query.attr_query"
     form = "%svariables/cmdb/var_cmdb_attribute_query.js" % settings.STATIC_URL
+    desc = """
+    输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）
+    例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID
+    更多可使用的主机属性请在 CMDB 主机模型页面查阅
+    """
 
     def get_value(self):
         """
@@ -196,7 +224,7 @@ class VarCmdbAttributeQuery(LazyVariable):
         @return:
         """
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)

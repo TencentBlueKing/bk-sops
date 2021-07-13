@@ -15,7 +15,7 @@ import ujson as json
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline_web.drawing_new.drawing import draw_pipeline
-from gcloud.utils.strings import pipeline_node_name_handle
+from gcloud.utils.strings import standardize_pipeline_node_name
 from gcloud.utils.validate import ObjectJsonBodyValidator
 from gcloud.apigw.views.utils import logger
 
@@ -33,7 +33,7 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
 
         try:
             pipeline_tree = params["pipeline_tree"]
-            pipeline_node_name_handle(pipeline_tree)
+            standardize_pipeline_node_name(pipeline_tree)
             pipeline_tree.setdefault("gateways", {})
             pipeline_tree.setdefault("constants", {})
             pipeline_tree.setdefault("outputs", [])

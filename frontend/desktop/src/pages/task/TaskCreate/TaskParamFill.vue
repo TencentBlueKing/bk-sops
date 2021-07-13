@@ -122,7 +122,6 @@
     // moment用于时区使用
     import moment from 'moment-timezone'
     import { mapState, mapActions, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
@@ -267,8 +266,8 @@
                     }
                     const res = await this.queryUserPermission(data)
                     this.hasCommonTplCreateTaskPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }
@@ -282,13 +281,13 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
-                    if (templateData.result === false) {
-                        errorHandler(templateData, this)
+                    if ('result' in templateData && !templateData.result) {
                         this.nextBtnDisable = true
                         return
                     }
 
                     this.tplActions = templateData.auth_actions
+                    this.isSelectFunctionalType = templateData.default_flow_type === 'common_func'
                     this.setTemplateData(templateData)
 
                     let schemeId = ''
@@ -318,8 +317,7 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    if (previewData.result === false) {
-                        errorHandler(previewData, this)
+                    if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
                         return
                     }
@@ -330,7 +328,7 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskMessageLoading = false
                 }
@@ -520,7 +518,7 @@
                             }
                             this.$router.push(url)
                         } catch (e) {
-                            errorHandler(e, this)
+                            console.log(e)
                         } finally {
                             this.isSubmit = false
                         }
@@ -549,7 +547,7 @@
                             })
                             this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id } })
                         } catch (e) {
-                            errorHandler(e, this)
+                            console.log(e)
                         } finally {
                             this.isSubmit = false
                         }

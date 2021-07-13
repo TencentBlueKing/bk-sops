@@ -88,3 +88,8 @@ class ResourceConfigAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "project_id", "config_type", "creator", "create_time"]
     search_fields = ["name", "project_id", "config_type", "creator"]
     list_filter = ["project_id", "config_type", "creator"]
+
+
+@admin.register(models.EngineConfig)
+class EngineConfigAdmin(admin.ModelAdmin):
+    list_display = ["id", "scope_id", "scope", "engine_ver", "template_source"]

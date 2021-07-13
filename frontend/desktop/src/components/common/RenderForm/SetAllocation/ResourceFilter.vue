@@ -537,11 +537,9 @@
                     })
                     if (resp.result) {
                         this.schemes = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.scheme = false
                 }
@@ -573,11 +571,9 @@
                                 this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -615,11 +611,9 @@
                                 }
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.resource = false
                 }
@@ -648,17 +642,13 @@
                                     const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
                                     md.count = mdInfo ? mdInfo.host_count : 0
                                 })
-                            } else {
-                                errorHandler(respCount, this)
                             }
                         }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -679,11 +669,9 @@
                                 name: item.text
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.condition = false
                 }
@@ -759,11 +747,9 @@
                                 this.isSchemeDialogShow = false
                                 this.formData.scheme = resp.data.id
                                 this.gitResourceSchemes()
-                            } else {
-                                errorHandler(resp, this)
                             }
-                        } catch (error) {
-                            errorHandler(error, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.saveScheme = false
                         }
@@ -1004,11 +990,9 @@
                         const configData = this.getConfigData()
                         this.$emit('update', configData, moduleHosts)
                         this.$emit('update:showFilter', false)
-                    } else {
-                        errorHandler(hostData, this)
                     }
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.log(error)
                 } finally {
                     this.pending.host = false
                 }

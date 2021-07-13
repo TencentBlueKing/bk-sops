@@ -91,7 +91,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
@@ -353,8 +352,8 @@
                         action: 'common_flow_create'
                     })
                     this.hasCreateCommonTplPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.createCommonTplPermLoading = false
                 }
@@ -382,8 +381,8 @@
                         ]
                     })
                     this.hasCommonTplCreateTaskPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }

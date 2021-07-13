@@ -62,7 +62,7 @@ const periodic = {
         getPeriodic ({ commit }, data) {
             const { project_id } = store.state.project
             const { taskId } = data
-            const querystring = Object.assign({}, { 'project_id': project_id })
+            const querystring = Object.assign({}, { project_id })
             return axios.get(`api/v3/periodic_task/${taskId}/`, {
                 params: querystring
             }).then(response => response.data)

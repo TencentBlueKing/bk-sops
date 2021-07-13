@@ -170,7 +170,7 @@
                             ],
                             empty_text: gettext("无数据"),
                             deleteable: true,
-                            editable: false,
+                            editable: true,
                             rowEditable: false,
                             columns: [
                                 {
@@ -228,7 +228,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("目标IP"),
-                placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 hookable: true,
                 validation: [
                     {

@@ -44,10 +44,11 @@ class SetModuleIpSelector(LazyVariable):
     type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
+    desc = "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"  # noqa
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return ""
+            return "ERROR: executor and project_id of pipeline is needed"
         var_ip_selector = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]

@@ -40,7 +40,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
@@ -199,8 +198,8 @@
                         setConfigContext(this.site_url, projectDetail)
                     }
                     this.changeDefaultProject(this.project_id)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.projectDetailLoading = false
                 }
@@ -212,7 +211,7 @@
                     this.setProjectName(res.project.name)
                     this.setAppmakerDetail(res)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.appmakerDataLoading = false
                 }
@@ -224,8 +223,8 @@
                     })
 
                     this.setAdminPerm(res.data.is_allow)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async queryStatisticsPerm () {
@@ -235,8 +234,8 @@
                     })
 
                     this.setStatisticsPerm(res.data.is_allow)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 动态获取页面 footer
@@ -247,9 +246,9 @@
                     if (resp.result) {
                         this.setPageFooter(resp.data)
                     }
-                } catch (err) {
+                } catch (e) {
                     this.setPageFooter(`<div class="copyright"><div>蓝鲸智云 版权所有</div></div>`)
-                    errorHandler(err, this)
+                    console.log(e)
                 } finally {
                     this.footerLoading = false
                 }

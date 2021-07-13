@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
 import env
 
@@ -59,12 +60,13 @@ INSTALLED_APPS += (
     "gcloud.contrib.collection",
     "gcloud.contrib.operate_record",
     "gcloud.apigw",
-    "gcloud.commons.template",
+    "gcloud.common_template",
     "gcloud.label",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
     "gcloud.iam_auth",
+    "gcloud.project_constants",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
@@ -77,6 +79,7 @@ INSTALLED_APPS += (
     "pipeline_plugins",
     "pipeline_plugins.components",
     "pipeline_plugins.variables",
+    "pipeline.eri",
     "pipeline_web.core",
     "pipeline_web.label",
     "pipeline_web.plugin_management",
@@ -90,6 +93,8 @@ INSTALLED_APPS += (
     "django_filters",
     "iam",
     "iam.contrib.iam_migration",
+    "bksops_iam_migrations",
+    "drf_yasg",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -124,6 +129,8 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
+    "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -139,6 +146,7 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
@@ -306,6 +314,8 @@ BK_IAM_INNER_HOST = env.BK_IAM_INNER_HOST
 BK_IAM_SAAS_HOST = env.BK_IAM_SAAS_HOST
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = env.BK_IAM_API_PREFIX
+# 权限中心 migrations 存储 app
+BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
@@ -325,11 +335,12 @@ STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 # drf 配置
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
 # pipeline settings
-PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
-PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
+PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.domains.context.get_template_context"
+PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.models.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
@@ -413,6 +424,8 @@ ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
 
+# engine queue setttings
+
 # 添加通过api gateway调用的celery任务队列
 API_TASK_QUEUE_NAME = "api_task_queue"
 ScalableQueues.add(name=API_TASK_QUEUE_NAME)
@@ -422,6 +435,15 @@ PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
+from pipeline.eri.celery import queues as eri_queues  # noqa
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
+
+API_TASK_QUEUE_NAME_V2 = "api"
+PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
+CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
+CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -444,6 +466,9 @@ MIGRATE_TOKEN = env.MIGRATE_TOKEN
 LOG_SHIELDING_KEYWORDS = SECRET_KEY + "," + env.BKAPP_LOG_SHIELDING_KEYWORDS
 LOG_SHIELDING_KEYWORDS = LOG_SHIELDING_KEYWORDS.strip().strip(",").split(",") if LOG_SHIELDING_KEYWORDS else []
 
+# variable key blacklist
+VARIABLE_KEY_BLACKLIST = env.VARIABLE_KEY_BLACKLIST.strip().strip(",").split(",") if env.VARIABLE_KEY_BLACKLIST else []
+
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
 
@@ -451,6 +476,10 @@ CELERY_SEND_EVENTS = True
 CELERY_SEND_TASK_SENT_EVENT = True
 CELERY_TRACK_STARTED = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
+
+# 自定义插件和变量Exception类型
+PLUGIN_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
+VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 
 # SaaS统一日志配置
@@ -461,13 +490,18 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "propagate": True,
     }
 
-    logging_dict["handlers"]["engine_component"] = {
+    logging_dict["handlers"]["pipeline_engine_context"] = {
         "class": "pipeline.log.handlers.EngineContextLogHandler",
-        "formatter": "verbose",
+        "formatter": "light",
+    }
+
+    logging_dict["handlers"]["bamboo_engine_context"] = {
+        "class": "pipeline.eri.log.EngineContextLogHandler",
+        "formatter": "light",
     }
 
     logging_dict["loggers"]["component"] = {
-        "handlers": ["component", "engine_component"],
+        "handlers": ["component", "pipeline_engine_context", "bamboo_engine_context"],
         "level": "DEBUG",
         "propagate": True,
     }
@@ -479,15 +513,27 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "formatter": "light",
     }
 
+    logging_dict["handlers"]["pipeline_eri"] = {
+        "class": "pipeline.eri.log.ERINodeLogHandler",
+        "formatter": "light",
+    }
+
     logging_dict["loggers"]["pipeline.logging"] = {
         "handlers": ["engine"],
         "level": "INFO",
         "propagate": True,
     }
 
-    # 多环境需要，celery的handler需要动态获取
-    logging_dict["loggers"]["celery_and_engine_component"] = {
-        "handlers": ["engine_component", logging_dict["loggers"]["celery"]["handlers"][0]],
+    logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
+
+    logging_dict["loggers"]["bamboo_engine"] = {
+        "handlers": ["root", "bamboo_engine_context"],
+        "level": "INFO",
+        "propagate": True,
+    }
+
+    logging_dict["loggers"]["pipeline_engine"] = {
+        "handlers": ["root", "pipeline_engine_context"],
         "level": "INFO",
         "propagate": True,
     }

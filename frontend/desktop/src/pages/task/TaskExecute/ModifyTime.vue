@@ -30,7 +30,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -92,11 +91,9 @@
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
                         this.initalRenderData = this.renderData
-                    } else {
-                        errorHandler(nodeDetailRes, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -109,7 +106,7 @@
                         await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 }
             },
@@ -139,12 +136,9 @@
                             message: i18n.t('修改成功'),
                             theme: 'success'
                         })
-                        return true
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.modifyTimeLoading = false
                 }

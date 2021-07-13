@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
-
 from django.test import TestCase
 from mock import MagicMock
 
@@ -67,41 +65,16 @@ GET_HOST_ID_BY_INNER_IP = (
 
 # mock clients
 CASE_FAIL_CLIENT = MockClient(
-    install_return={
-        "result": False,
-        "code": "500",
-        "message": "fail",
-        "data": {"job_id": "1"},
-    },
-    operate_return={
-        "result": False,
-        "code": "500",
-        "message": "fail",
-        "data": {"job_id": "1"},
-    },
+    install_return={"result": False, "code": "500", "message": "fail", "data": {"job_id": "1"}},
+    operate_return={"result": False, "code": "500", "message": "fail", "data": {"job_id": "1"}},
     remove_host={"result": False, "code": "500", "message": "fail", "data": {}},
     details_return={"result": False, "code": "500", "message": "fail", "data": {}},
 )
 
 INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
-    install_return={
-        "result": True,
-        "code": "00",
-        "message": "success",
-        "data": {"job_id": "1"},
-    },
-    operate_return={
-        "result": True,
-        "code": "00",
-        "message": "success",
-        "data": {"job_id": "1"},
-    },
-    remove_host={
-        "result": True,
-        "code": "00",
-        "message": "success",
-        "data": {},
-    },
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    operate_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    remove_host={"result": True, "code": "00", "message": "success", "data": {}},
     details_return={
         "result": True,
         "code": "00",
@@ -130,12 +103,7 @@ GET_JOB_LOG_FAIL_DATA = {
 }
 
 DETAILS_FAIL_CLIENT = MockClient(
-    install_return={
-        "result": True,
-        "code": "00",
-        "message": "success",
-        "data": {"job_id": "1"},
-    },
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
     details_return={
         "result": True,
         "code": "00",
@@ -173,10 +141,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 install task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_bk_cloud_id": "1",
-            "nodeman_node_type": "AGENT",
-        },
+        "nodeman_op_target": {"nodeman_bk_cloud_id": "1", "nodeman_node_type": "AGENT"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "INSTALL",
@@ -237,10 +202,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -361,10 +323,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -377,10 +336,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     name="nodeman v2.0 install task failed case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_node_type": "AGENT",
-            "nodeman_bk_cloud_id": "1",
-        },
+        "nodeman_op_target": {"nodeman_node_type": "AGENT", "nodeman_bk_cloud_id": "1"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "REINSTALL",
@@ -443,26 +399,14 @@ INSTALL_FAIL_CASE = ComponentTestCase(
             "job_id": "1",
             "success_num": 0,
             "fail_num": 1,
-            "ex_data": "<br>日志信息为：</br><br><b>主机：{fail_host}</b></br><br>日志：</br>{log_info}".format(
-                fail_host="1.1.1.1", log_info=json.dumps(GET_JOB_LOG_FAIL_DATA, ensure_ascii=False)
-            ),
+            "ex_data": "<br>操作失败主机日志信息：</br><br><b>主机：1.1.1.1</b></br><br>错误日志：</br>安装\ninstall failed",
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(
-            func=DETAILS_FAIL_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.get_job_log,
-            calls=[
-                Call(
-                    **{
-                        "job_id": "1",
-                        "instance_id": "host|instance|host|1.1.1.1-0-0",
-                    }
-                )
-            ],
+            calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
         ),
     ],
     patchers=[
@@ -477,10 +421,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 operate task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_node_type": "AGENT",
-            "nodeman_bk_cloud_id": "1",
-        },
+        "nodeman_op_target": {"nodeman_node_type": "AGENT", "nodeman_bk_cloud_id": "1"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "UPGRADE",
@@ -499,22 +440,11 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_operate,
-            calls=[
-                Call(
-                    **{
-                        "job_type": "UPGRADE_AGENT",
-                        "bk_biz_id": ["1"],
-                        "bk_host_id": [1],
-                    }
-                )
-            ],
+            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]})],
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -527,10 +457,7 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     name="nodeman v2.0 operate task failed case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_node_type": "AGENT",
-            "nodeman_bk_cloud_id": "1",
-        },
+        "nodeman_op_target": {"nodeman_node_type": "AGENT", "nodeman_bk_cloud_id": "1"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "UPGRADE",
@@ -544,15 +471,7 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CASE_FAIL_CLIENT.job_operate,
-            calls=[
-                Call(
-                    **{
-                        "job_type": "UPGRADE_AGENT",
-                        "bk_biz_id": ["1"],
-                        "bk_host_id": [1],
-                    }
-                )
-            ],
+            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]})],
         ),
     ],
     patchers=[
@@ -566,10 +485,7 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 remove host task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_node_type": "AGENT",
-            "nodeman_bk_cloud_id": "1",
-        },
+        "nodeman_op_target": {"nodeman_node_type": "AGENT", "nodeman_bk_cloud_id": "1"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "REMOVE",
@@ -580,10 +496,7 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": ""}),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        callback_data=None,
-        schedule_finished=True,
-        outputs={"job_id": ""},
+        success=True, callback_data=None, schedule_finished=True, outputs={"job_id": ""},
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -603,10 +516,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
     name="nodeman v2.0 choosable params case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_op_target": {
-            "nodeman_node_type": "AGENT",
-            "nodeman_bk_cloud_id": "1",
-        },
+        "nodeman_op_target": {"nodeman_node_type": "AGENT", "nodeman_bk_cloud_id": "1"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "REINSTALL",
@@ -742,8 +652,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(
-            target=GET_HOST_ID_BY_INNER_IP,
-            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
+            target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
         ),
     ],
 )
