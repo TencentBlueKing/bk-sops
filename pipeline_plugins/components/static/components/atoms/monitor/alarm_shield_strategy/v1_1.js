@@ -73,7 +73,7 @@
             attrs: {
                 name: gettext("开始时间"),
                 hookable: true,
-                placeholder: "请输入`yyyy-MM-dd HH:mm:ss`格式，建议引用自定义日期时间类型变量",
+                placeholder: gettext("时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变量"),
                 validation: [
                     {
                         type: "custom",
@@ -130,7 +130,7 @@
             attrs: {
                 name: gettext("结束时间"),
                 hookable: true,
-                placeholder: "请输入`yyyy-MM-dd HH:mm:ss`格式，建议引用自定义日期时间类型变量",
+                placeholder: gettext("时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变量"),
                 validation: [
                     {
                         type: "custom",
