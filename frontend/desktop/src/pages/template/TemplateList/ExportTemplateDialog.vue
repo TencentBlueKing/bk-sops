@@ -133,6 +133,7 @@
             businessInfoLoading: Boolean,
             common: String,
             project_id: [Number, String],
+            selected: Array,
             type: String
         },
         data () {
@@ -141,6 +142,7 @@
                 exportPending: false,
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
+                list: [],
                 templateList: [],
                 templateInPanel: [],
                 searchList: [],
@@ -167,6 +169,15 @@
             },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
+            }
+        },
+        watch: {
+            isExportDialogShow (val) {
+                if (val) {
+                    if (this.selected && this.selected.length > 0) {
+                        this.selectedTemplates = this.selected.slice(0)
+                    }
+                }
             }
         },
         created () {
@@ -200,8 +211,8 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    const list = respData.objects
-                    this.templateList = this.getGroupedList(list)
+                    this.list = respData.objects
+                    this.templateList = this.getGroupedList(this.list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
                     console.log(e)

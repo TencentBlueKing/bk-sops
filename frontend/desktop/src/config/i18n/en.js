@@ -1135,7 +1135,12 @@ const en = {
     '请选择需要覆盖的流程': 'Select the process you want to cover',
     '合法性检查通过。': 'Legitimacy check passed.',
     '文件不合法，请': 'file is invalid',
-    '重新上传文件': 'Reupload file'
+    '重新上传文件': 'Reupload file',
+    '批量操作': 'Batch Operation',
+    '本页全选': 'the page select',
+    '跨页全选': 'across page select',
+    '确认删除所选的': 'Confirm Delete Seleted',
+    '项流程吗': 'template(s)'
 }
 
 export default en
