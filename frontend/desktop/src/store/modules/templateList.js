@@ -57,6 +57,13 @@ const templateList = {
 
             return axios.delete(`${url}${templateId}/`).then(response => response.data.objects)
         },
+        // 批量删除流程模板
+        batchDeleteTpl ({ commit }, data) {
+            const { ids, projectId, common } = data
+            const url = common ? 'api/v4/common_template/batch_delete/' : `api/v4/project_template/${projectId}/batch_delete/`
+
+            return axios.post(url, { template_ids: ids }).then(response => response.data)
+        },
         /**
          * 检测上传模板合法性
          * @param {Object} data formData数据

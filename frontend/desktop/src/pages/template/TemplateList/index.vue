@@ -35,17 +35,7 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-dropdown-menu style="margin-left: 20px;">
-                            <div class="export-tpl-btn" slot="dropdown-trigger">
-                                <span>{{ $t('导出') }}</span>
-                                <i :class="['bk-icon icon-angle-down']"></i>
-                            </div>
-                            <ul class="export-option-list" slot="dropdown-content">
-                                <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
-                                <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
-                            </ul>
-                        </bk-dropdown-menu>
-                        <bk-dropdown-menu style="margin-left: 20px;">
+                        <bk-dropdown-menu style="margin-left: 14px;">
                             <div class="import-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('导入') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -55,6 +45,22 @@
                                 <li @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
+                        <bk-dropdown-menu style="margin-left: 14px;">
+                            <div class="export-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('批量操作') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="batch-operation-list" slot="dropdown-content">
+                                <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
+                                <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
+                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchCollect">{{ $t('收藏') }}</li>
+                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchDelete">{{ $t('删除') }}</li>
+                            </ul>
+                        </bk-dropdown-menu>
+                        <div v-if="selectedTpls.length > 0" class="selected-tpl-num">
+                            {{ $t('已选择') }}{{ selectedTpls.length }}{{ $t('项') }}
+                            <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
+                        </div>
                     </template>
                 </advance-search-form>
                 <div class="template-table-content">
@@ -67,6 +73,11 @@
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
+                        <bk-table-column width="70" :render-header="renderHeaderCheckbox">
+                            <template slot-scope="props">
+                                <bk-checkbox :value="!!selectedTpls.find(tpl => tpl.id === props.row.id)" @change="onToggleTplItem($event, props.row)"></bk-checkbox>
+                            </template>
+                        </bk-table-column>
                         <bk-table-column
                             v-for="item in setting.selectedFields"
                             :key="item.id"
@@ -237,6 +248,7 @@
         </ImportYamlTplDialog>
         <ExportTemplateDialog
             :is-export-dialog-show.sync="isExportDialogShow"
+            :selected="selectedTpls"
             :project_id="project_id"
             :type="exportType">
         </ExportTemplateDialog>
@@ -421,6 +433,8 @@
                 isSearchFormOpen, // 高级搜索表单默认展开
                 exportType: 'dat', // 模板导出类型
                 expiredSubflowTplList: [],
+                selectedTpls: [], // 选中的流程模板
+                templateList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
@@ -469,7 +483,6 @@
         computed: {
             ...mapState({
                 'site_url': state => state.site_url,
-                'templateList': state => state.templateList.templateListData,
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'v1_import_flag': state => state.v1_import_flag,
                 'username': state => state.username
@@ -478,7 +491,10 @@
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
                 'projectName': state => state.projectName
-            })
+            }),
+            crtPageSelectedAll () {
+                return this.templateList.length > 0 && this.templateList.every(item => this.selectedTpls.find(tpl => tpl.id === item.id))
+            }
         },
         watch: {
             page (val, oldVal) {
@@ -518,7 +534,8 @@
                 'loadTemplateList',
                 'deleteTemplate',
                 'templateImport',
-                'getExpiredSubProcess'
+                'getExpiredSubProcess',
+                'batchDeleteTpl'
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault'
@@ -526,43 +543,12 @@
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
             ]),
-            ...mapMutations('templateList/', [
-                'setTemplateListData'
-            ]),
             async getTemplateList () {
                 this.listLoading = true
                 try {
-                    const { subprocessUpdateVal, creator, category, queryTime, flowName, label_ids } = this.requestData
-
-                    /**
-                     * 无子流程 has_subprocess=false
-                     * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
-                     * 有子流程，不需要更新 has_subprocess=true&subprocess_has_update=false
-                     * 不做筛选 has_subprocess=undefined
-                     */
-                    const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
-                    const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
-                    const data = {
-                        project__id: this.project_id,
-                        limit: this.pagination.limit,
-                        offset: (this.pagination.current - 1) * this.pagination.limit,
-                        pipeline_template__name__icontains: flowName || undefined,
-                        pipeline_template__creator__contains: creator || undefined,
-                        category: category || undefined,
-                        label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
-                        subprocess_has_update,
-                        has_subprocess,
-                        order_by: this.ordering || undefined
-                    }
-
-                    if (queryTime[0] && queryTime[1]) {
-                        data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
-                        data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
-                    }
-
+                    const data = this.getQueryData()
                     const templateListData = await this.loadTemplateList(data)
-                    const list = templateListData.objects
-                    this.setTemplateListData({ list, isCommon: false })
+                    this.templateList = templateListData.objects
                     this.pagination.count = templateListData.meta.total_count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -575,6 +561,36 @@
                 } finally {
                     this.listLoading = false
                 }
+            },
+            getQueryData () {
+                const { subprocessUpdateVal, creator, category, queryTime, flowName, label_ids } = this.requestData
+
+                /**
+                 * 无子流程 has_subprocess=false
+                 * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
+                 * 有子流程，不需要更新 has_subprocess=true&subprocess_has_update=false
+                 * 不做筛选 has_subprocess=undefined
+                 */
+                const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
+                const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
+                const data = {
+                    project__id: this.project_id,
+                    limit: this.pagination.limit,
+                    offset: (this.pagination.current - 1) * this.pagination.limit,
+                    pipeline_template__name__icontains: flowName || undefined,
+                    pipeline_template__creator__contains: creator || undefined,
+                    category: category || undefined,
+                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
+                    subprocess_has_update,
+                    has_subprocess,
+                    order_by: this.ordering || undefined
+                }
+
+                if (queryTime[0] && queryTime[1]) {
+                    data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                }
+                return data
             },
             // 获取当前视图表格头显示字段
             getFields () {
@@ -671,6 +687,159 @@
                 this.requestData.flowName = data
                 this.pagination.current = 1
                 this.getTemplateList()
+            },
+            renderHeaderCheckbox (h) {
+                const self = this
+                return h('div', {
+                    'class': {
+                        'select-all-cell': true,
+                        'full-selected': this.pagination.count === this.selectedTpls.length
+                    }
+                }, [
+                    h('bk-checkbox', {
+                        props: {
+                            value: this.crtPageSelectedAll
+                        },
+                        on: {
+                            change: function (val) {
+                                self.onToggleTplAll(val)
+                            }
+                        }
+                    }),
+                    h('bk-popover', {
+                        props: {
+                            placement: 'bottom',
+                            theme: 'light',
+                            distance: 0,
+                            'tippy-options': {
+                                hideOnClick: false
+                            },
+                            'ext-cls': 'select-all-tpl-popover'
+                        }
+                    }, [
+                        h('i', {
+                            'class': 'bk-icon icon-angle-down'
+                        }),
+                        h('div', {
+                            slot: 'content'
+                        }, [
+                            h('div', {
+                                'class': 'mode-item',
+                                on: {
+                                    click: function () {
+                                        self.onSeleteTplAll('current')
+                                    }
+                                }
+                            }, [i18n.t('本页全选')]),
+                            h('div', {
+                                'class': 'mode-item',
+                                on: {
+                                    click: function () {
+                                        self.onSeleteTplAll('full')
+                                    }
+                                }
+                            }, [i18n.t('跨页全选')])
+                        ])
+                    ])
+                ])
+            },
+            // 本页全选、取消本页/跨页全选
+            onToggleTplAll (val) {
+                if (val) {
+                    this.onSeleteTplAll('current')
+                } else {
+                    if (this.selectedTpls.length === this.pagination.count) {
+                        this.selectedTpls = []
+                    } else {
+                        this.templateList.forEach(tpl => {
+                            const index = this.selectedTpls.findIndex(item => item.id === tpl.id)
+                            this.selectedTpls.splice(index, 1)
+                        })
+                    }
+                }
+            },
+            // 本页全选、跨页全选
+            async onSeleteTplAll (type) {
+                if (type === 'full') {
+                    const data = this.getQueryData()
+                    data.limit = 0
+                    data.offset = 0
+                    const res = await this.loadTemplateList(data)
+                    this.selectedTpls = res.objects.slice(0)
+                } else {
+                    this.templateList.forEach(item => {
+                        if (!this.selectedTpls.find(tpl => tpl.id === item.id)) {
+                            this.selectedTpls.push(item)
+                        }
+                    })
+                }
+            },
+            onToggleTplItem (val, tpl) {
+                if (val) {
+                    this.selectedTpls.push(tpl)
+                } else {
+                    const index = this.selectedTpls.findIndex(item => item === tpl.id)
+                    this.selectedTpls.splice(index, 1)
+                }
+            },
+            async onBatchCollect () {
+                if (this.selectedTpls.length === 0) {
+                    return
+                }
+                this.batchCollectPending = true
+                try {
+                    const data = this.selectedTpls.filter(tpl => !this.isCollected(tpl.id)).map(tpl => {
+                        return {
+                            extra_info: {
+                                project_id: this.project_id,
+                                template_id: tpl.id,
+                                name: tpl.name,
+                                id: tpl.id
+                            },
+                            category: 'flow'
+                        }
+                    })
+                    if (data.length === 0) {
+                        return
+                    }
+                    const res = await this.addToCollectList(data)
+                    this.getCollectList()
+                    if (res.objects.length) {
+                        this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.batchCollectPending = false
+                }
+            },
+            onBatchDelete () {
+                if (this.selectedTpls.length === 0 || this.batchDeletePending) {
+                    return
+                }
+                this.$bkInfo({
+                    type: 'warning',
+                    title: `${i18n.t('确认删除所选的')}${this.selectedTpls.length}${i18n.t('项流程吗')}`,
+                    confirmFn: this.batchDeleteConfirm
+                })
+            },
+            async batchDeleteConfirm () {
+                const data = {
+                    projectId: this.project_id,
+                    ids: this.selectedTpls.map(tpl => tpl.id)
+                }
+                const res = await this.batchDeleteTpl(data)
+                if (res.result) {
+                    if (Array.isArray(res.data.success) && res.data.success.length > 0) {
+                        res.data.success.forEach(id => {
+                            const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
+                            this.selectedTpls.splice(index, 1)
+                        })
+                        this.pagination.current = 1
+                        this.getTemplateList()
+                    }
+                }
+                return Promise.resolve()
             },
             onImportConfirm () {
                 this.isImportDialogShow = false
@@ -789,6 +958,10 @@
                         templateId: this.theDeleteTemplateId
                     }
                     await this.deleteTemplate(data)
+                    if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
+                        const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
+                        this.selectedTpls.splice(index, 1)
+                    }
                     this.theDeleteTemplateId = undefined
                     this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
@@ -969,7 +1142,7 @@
         z-index: 1;
     }
 }
-.export-option-list,
+.batch-operation-list,
 .import-option-list {
     & > li {
         padding: 0 10px;
@@ -984,6 +1157,20 @@
             color: #3a84ff;
             background: #f4f6fa;
         }
+        &.disabled {
+            color: #cccccc;
+            cursor: not-allowed;
+        }
+    }
+}
+.selected-tpl-num {
+    margin-left: 10px;
+    font-size: 12px;
+    line-height: 1;
+    /deep/.bk-link-text {
+        margin-left: 6px;
+        font-size: 12px;
+        line-height: 1;
     }
 }
 .dialog-content {
@@ -1039,6 +1226,25 @@
             background: #ff5757;
             border-radius: 50%;
             vertical-align: 1px;
+        }
+    }
+    /deep/.select-all-cell {
+        display: flex;
+        align-items: center;
+        &.full-selected {
+            .bk-form-checkbox {
+                .bk-checkbox {
+                    background: #ffffff;
+                    &:after {
+                        border-color: #3a84ff;
+                    }
+                }
+            }
+        }
+        .icon-angle-down {
+            margin-left: 2px;
+            font-size: 18px;
+            color: #979ba5;
         }
     }
     /deep/.table-header-tips {
