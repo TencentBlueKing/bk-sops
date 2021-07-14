@@ -15,21 +15,20 @@ import traceback
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
-from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import StaticIntervalGenerator
-from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
-from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    get_job_instance_url,
-    plat_ip_reg,
-)
 from files.factory import ManagerFactory
 from gcloud.conf import settings
-from gcloud.utils.handlers import handle_api_error
 from gcloud.core.models import EnvironmentVariables
+from gcloud.utils.handlers import handle_api_error
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import StaticIntervalGenerator
+from pipeline.core.flow.io import (ArrayItemSchema, ObjectItemSchema,
+                                   StringItemSchema)
+from pipeline_plugins.components.collections.sites.open.job.base import \
+    JobScheduleService
+from pipeline_plugins.components.utils import (cc_get_ips_info_by_str,
+                                               get_job_instance_url,
+                                               plat_ip_reg)
+from pipeline_plugins.components.utils.common import batch_execute_func
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -97,6 +96,9 @@ class JobPushLocalFilesService(JobScheduleService):
                     },
                 ),
             ),
+            self.InputItem(
+                name=_("超时时间"), key="job_timeout", type="string", schema=StringItemSchema(description=_("超时时间"))
+            )
         ]
 
     def outputs_format(self):
@@ -131,6 +133,7 @@ class JobPushLocalFilesService(JobScheduleService):
         target_ip_list = data.inputs.job_target_ip_list
         target_account = data.inputs.job_target_account
         across_biz = data.get_one_of_inputs("job_across_biz", False)
+        job_timeout = data.get_one_of_inputs("job_timeout")
         task_count = len(local_files_and_target_path)
 
         file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
@@ -179,6 +182,9 @@ class JobPushLocalFilesService(JobScheduleService):
             }
             for push_files_info in local_files_and_target_path
         ]
+        if job_timeout:
+            for param in params_list:
+                param["timeout"] = int(job_timeout)
 
         # 批量上传请求
         if len(params_list) == task_count:
