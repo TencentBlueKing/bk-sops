@@ -64,8 +64,12 @@
                         attrs: {
                             name: gettext("IP"),
                             placeholder: gettext("必填项"),
-                            width: '120px',
-                            editable: true
+                            editable: true,
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {
@@ -74,12 +78,15 @@
                         attrs: {
                             name: gettext("目标模块"),
                             placeholder: gettext("集群A>模块B"),
-                            width: '120px',
-                            editable: true
+                            editable: true,
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     }
                 ],
-
                 add_btn: true,
                 hookable: true,
                 validation: [
