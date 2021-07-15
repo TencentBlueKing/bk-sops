@@ -11,7 +11,7 @@ echo "current version: ${ver}"
 python3 scripts/extract_version_log.py ${RELEASE_VERSION} || exit 1
 
 # rename dev_log
-mv dev_log/dev dev_log/${RELEASE_VERSION} || exit 1
+mv dev_log/dev dev_log/${RELEASE_VERSION}
 
 # version num replace
 if [ "$C_OS" == "$MAC_OS" ];then

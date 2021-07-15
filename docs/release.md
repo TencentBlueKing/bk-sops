@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.4202
+
+- bugfix
+  - 修复因为 local storage 数据导致模板列表页面打不开的问题
+
 ## 3.6.4201
 
 - feature
