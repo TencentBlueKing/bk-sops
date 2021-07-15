@@ -15,20 +15,21 @@ import traceback
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-from files.factory import ManagerFactory
-from gcloud.conf import settings
-from gcloud.core.models import EnvironmentVariables
-from gcloud.utils.handlers import handle_api_error
+
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
-from pipeline.core.flow.io import (ArrayItemSchema, ObjectItemSchema,
-                                   StringItemSchema)
-from pipeline_plugins.components.collections.sites.open.job.base import \
-    JobScheduleService
-from pipeline_plugins.components.utils import (cc_get_ips_info_by_str,
-                                               get_job_instance_url,
-                                               plat_ip_reg)
+from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
+from pipeline_plugins.components.utils import (
+    cc_get_ips_info_by_str,
+    get_job_instance_url,
+    plat_ip_reg,
+)
+from files.factory import ManagerFactory
+from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
+from gcloud.core.models import EnvironmentVariables
 
 __group_name__ = _("作业平台(JOB)")
 
