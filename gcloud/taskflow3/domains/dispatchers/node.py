@@ -31,6 +31,7 @@ from gcloud import err_code
 from gcloud.utils.handlers import handle_plain_log
 from gcloud.taskflow3.utils import format_pipeline_status
 from pipeline_web.parser import WebPipelineAdapter
+from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
@@ -428,11 +429,33 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
-            # TODO 待 bamboo-engine 提供预览功能后进行替换
-            success, err, inputs, outputs = self._prerender_node_data(
-                pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
-            )
-            if not success:
+            try:
+                root_pipeline_data = get_pipeline_context(
+                    pipeline_instance, obj_type="instance", data_type="data", username=username
+                )
+                root_pipeline_context = get_pipeline_context(
+                    pipeline_instance, obj_type="instance", data_type="context", username=username
+                )
+                formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
+                preview_result = bamboo_engine_api.preview_node_inputs(
+                    runtime=runtime,
+                    pipeline=formatted_pipeline,
+                    node_id=self.node_id,
+                    subprocess_stack=subprocess_stack,
+                    root_pipeline_data=root_pipeline_data,
+                    current_constants=root_pipeline_context,
+                )
+
+                if not preview_result.result:
+                    return {
+                        "result": False,
+                        "data": {},
+                        "message": preview_result.message,
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
+                inputs = preview_result.data
+
+            except Exception as err:
                 return {
                     "result": False,
                     "data": {},
