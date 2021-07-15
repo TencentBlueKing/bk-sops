@@ -100,6 +100,28 @@ class Select(LazyVariable):
             return self.value
 
 
+class Select_v2(LazyVariable):
+    code = "select_v2"
+    name = _("下拉框v2(支持获取text和value)")
+    type = "meta"
+    tag = "select.select"
+    meta_tag = "select.select_meta"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, "select")
+    schema = StringItemSchema(description=_("下拉框变量"))
+    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
+
+    def get_value(self):
+        print(self.value)
+        if len(self.value) > 1:
+            return self.value
+        else:
+            return self.value[0]
+
+    def meta_data_process(self, meta_data):
+        value = meta_data["value"]["items_text"]
+        return value
+
+
 class FormatSupportCurrentTime(LazyVariable):
     code = "format_support_current_time"
     name = _("系统当前时间(支持格式自定义)")
