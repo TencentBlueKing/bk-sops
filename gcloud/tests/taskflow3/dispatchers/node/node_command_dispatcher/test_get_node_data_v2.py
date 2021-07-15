@@ -76,6 +76,7 @@ class GetNodeDataV2TestCase(TestCase):
         runtime = "runtime"
         runtime_init = MagicMock(return_value=runtime)
         bamboo_api = MagicMock()
+        get_pipeline_context = MagicMock(return_value={})
         get_children_states_return = MagicMock()
         get_children_states_return.result = True
         get_children_states_return.data = None
@@ -83,37 +84,46 @@ class GetNodeDataV2TestCase(TestCase):
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
-        pre_render_inputs = "inputs"
-        pre_render_outputs = {"ex_data": "ex_data"}
-        dispatcher._prerender_node_data = MagicMock(return_value=(True, None, pre_render_inputs, pre_render_outputs))
+
+        preview_node_inputs_result = MagicMock()
+        preview_node_inputs_result.result = True
+        preview_node_inputs_result.data = "inputs"
+
+        bamboo_api.preview_node_inputs = MagicMock(return_value=preview_node_inputs_result)
         format_outputs = "format_outputs"
         dispatcher._format_outputs = MagicMock(return_value=(True, None, format_outputs))
 
         with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME, runtime_init):
             with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_API, bamboo_api):
-                node_data = dispatcher.get_node_data_v2(
-                    username=username,
-                    component_code=component_code,
-                    subprocess_stack=subprocess_stack,
-                    loop=loop,
-                    **kwargs
-                )
+                with patch(TASKFLOW_DISPATCHERS_NODE_GET_PIPELINE_CONTEXT, get_pipeline_context):
+                    node_data = dispatcher.get_node_data_v2(
+                        username=username,
+                        component_code=component_code,
+                        subprocess_stack=subprocess_stack,
+                        loop=loop,
+                        **kwargs
+                    )
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
+        bamboo_api.preview_node_inputs.assert_called_once_with(
+            runtime=runtime,
+            pipeline=pipeline_instance.execution_data,
+            node_id=dispatcher.node_id,
+            subprocess_stack=subprocess_stack,
+            root_pipeline_data={},
+            current_constants={},
+        )
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
         )
-        dispatcher._prerender_node_data.assert_called_once_with(
-            pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
-        )
         dispatcher._format_outputs.assert_called_once_with(
-            outputs=pre_render_outputs, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs={}, component_code=component_code, pipeline_instance=pipeline_instance
         )
         self.assertEqual(
             node_data,
             {
                 "result": True,
-                "data": {"inputs": pre_render_inputs, "outputs": format_outputs, "ex_data": "ex_data"},
+                "data": {"inputs": "inputs", "outputs": format_outputs, "ex_data": ""},
                 "message": "",
                 "code": err_code.SUCCESS.code,
             },
@@ -138,10 +148,10 @@ class GetNodeDataV2TestCase(TestCase):
         get_execution_data_return.data = {"inputs": "inputs", "outputs": {}}
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
         bamboo_api.get_execution_data = MagicMock(return_value=get_execution_data_return)
+        bamboo_api.preview_node_inputs = MagicMock(return_value={})
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
-        dispatcher._prerender_node_data = MagicMock()
         format_outputs = "format_outputs"
         dispatcher._format_outputs = MagicMock(return_value=(True, None, format_outputs))
 
@@ -157,8 +167,8 @@ class GetNodeDataV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_execution_data.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
+        bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
-        dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
             outputs={"outputs": {}}, component_code=component_code, pipeline_instance=pipeline_instance
         )
@@ -191,10 +201,10 @@ class GetNodeDataV2TestCase(TestCase):
         get_execution_data_return.data = {"inputs": "inputs", "outputs": {}}
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
         bamboo_api.get_execution_data = MagicMock(return_value=get_execution_data_return)
+        bamboo_api.preview_node_inputs = MagicMock(return_value={})
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
-        dispatcher._prerender_node_data = MagicMock()
         format_outputs = "format_outputs"
         dispatcher._format_outputs = MagicMock(return_value=(True, None, format_outputs))
 
@@ -210,8 +220,8 @@ class GetNodeDataV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_execution_data.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
+        bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
-        dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
             outputs={"outputs": {}}, component_code=component_code, pipeline_instance=pipeline_instance
         )
@@ -244,10 +254,10 @@ class GetNodeDataV2TestCase(TestCase):
         get_execution_data_return.exc = ExecutionData.DoesNotExist()
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
         bamboo_api.get_execution_data = MagicMock(return_value=get_execution_data_return)
+        bamboo_api.preview_node_inputs = MagicMock(return_value={})
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
-        dispatcher._prerender_node_data = MagicMock()
         dispatcher._format_outputs = MagicMock()
 
         with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME, runtime_init):
@@ -262,8 +272,8 @@ class GetNodeDataV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_execution_data.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
+        bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
-        dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_not_called()
         self.assertEqual(
             node_data,
@@ -294,10 +304,10 @@ class GetNodeDataV2TestCase(TestCase):
         get_node_histories_return.data = [{"inputs": "inputs", "outputs": {}}]
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
+        bamboo_api.preview_node_inputs = MagicMock(return_value={})
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
-        dispatcher._prerender_node_data = MagicMock()
         format_outputs = "format_outputs"
         dispatcher._format_outputs = MagicMock(return_value=(True, None, format_outputs))
 
@@ -313,8 +323,8 @@ class GetNodeDataV2TestCase(TestCase):
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_node_histories.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id, loop=loop)
+        bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
-        dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
             outputs={"outputs": {}}, component_code=component_code, pipeline_instance=pipeline_instance
         )
