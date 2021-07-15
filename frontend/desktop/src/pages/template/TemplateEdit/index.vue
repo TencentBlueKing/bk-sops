@@ -499,7 +499,7 @@
             handleJumpTemplateList (ids) {
                 const requestId = Array.isArray(ids) ? ids.map(item => item.template_id).join(',') : ids
                 this.$router.push({
-                    path: this.common ? `/common_template/api/parents/` : `/template/home/${this.project_id}/`,
+                    path: this.common ? `/common/home/` : `/template/home/${this.project_id}/`,
                     query: { id__in: requestId }
                 })
             },
