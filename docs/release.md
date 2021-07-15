@@ -1,5 +1,15 @@
 # Release
 
+## 3.6.4201
+
+- feature
+  - 分发本地文件文件 2.0 信息分隔符修改和添加删除按钮
+- bugfix
+  - 修复创建集群插件设计容量字段为int校验不通过问题
+  - 修复导入模板和执行方案时执行方案内节点 ID 未替换的问题
+  - JOB.get_job_instance_global_var_value 返回值为 None 兼容
+
+
 ## 3.6.42
 
 - bugfix
