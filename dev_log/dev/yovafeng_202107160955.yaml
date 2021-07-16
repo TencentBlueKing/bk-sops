@@ -1,2 +1,2 @@
 feature:
-  - 新增元变量钩子，支持获取text和value的下拉框TextValueSelect
+  - 新增支持获取已选择text和value的文本值下拉框

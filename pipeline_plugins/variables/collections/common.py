@@ -103,12 +103,12 @@ class Select(LazyVariable):
 
 class TextValueSelect(LazyVariable):
     code = "text_value_select"
-    name = _("下拉框(支持获取text和value)")
+    name = _("文本值下拉框")
     type = "meta"
     tag = "select.select"
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, "select")
-    schema = StringItemSchema(description=_("下拉框变量"))
+    schema = StringItemSchema(description=_("文本值下拉框变量"))
     desc = (
         r'单选模式下 ${KEY["value"]} 输出选中的 value，${KEY["text"]} 输出选中的 text，多选模式下 ${KEY["value"]} 输出选中的 value 以 ',
         ' 拼接的字符串，${KEY["text"]} 输出选中的 text 以 ',
