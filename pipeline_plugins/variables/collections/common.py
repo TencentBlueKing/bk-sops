@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import datetime
 import logging
+import json
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -100,24 +101,33 @@ class Select(LazyVariable):
             return self.value
 
 
-class Select_v2(LazyVariable):
-    code = "select_v2"
-    name = _("下拉框v2(支持获取text和value)")
+class TextValueSelect(LazyVariable):
+    code = "text_value_select"
+    name = _("下拉框(支持获取text和value)")
     type = "meta"
     tag = "select.select"
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, "select")
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
+    desc = (
+        r'单选模式下 ${KEY["value"]} 输出选中的 value，${KEY["text"]} 输出选中的 text，多选模式下 ${KEY["value"]} 输出选中的 value 以 ',
+        ' 拼接的字符串，${KEY["text"]} 输出选中的 text 以 ',
+        " 拼接的字符串",
+    )
 
     def get_value(self):
-        print(self.value)
+        text_value = json.loads(self.value)
+        # multiple
         if len(self.value) > 1:
-            return self.value
+            text_string = ",".join([option["text"] for option in text_value])
+            value_string = ",".join([option["value"] for option in text_value])
+            return {"text": text_string, "value": value_string}
+        # single
         else:
-            return self.value[0]
+            return text_value[0]
 
-    def meta_data_process(self, meta_data):
+    @classmethod
+    def process_meta_avalue(self, meta_data, info_value):
         value = meta_data["value"]["items_text"]
         return value
 
