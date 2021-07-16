@@ -264,7 +264,7 @@
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
+    import { URL_REG, TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
@@ -670,7 +670,7 @@
                     }
                     
                     this.executeInfo.plugin_version = version
-                    this.executeInfo.name = this.location.name || this.location.type
+                    this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`

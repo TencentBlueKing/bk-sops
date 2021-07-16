@@ -930,10 +930,15 @@
                         break
                 }
             },
-            getOrderedTree (data) {
+            getOrderedTree (data, level = 0) {
                 const startNode = tools.deepClone(data.start_event)
                 const fstLine = startNode.outgoing
-                const orderedData = []
+                const orderedData = [Object.assign({}, startNode, {
+                    level,
+                    title: this.$t('开始节点'),
+                    name: this.$t('开始节点'),
+                    expanded: false
+                })]
                 const passedNodes = []
                 this.retrieveLines(data, fstLine, orderedData, passedNodes)
                 orderedData.sort((a, b) => a.level - b.level)
@@ -951,7 +956,7 @@
             retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
-                const endEvent = tools.deepClone(end_event[currentNode])
+                const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
@@ -969,7 +974,7 @@
                         const isExistInList = ordered.find(item => item.id === activity.id)
                         if (!isExistInList) {
                             if (activity.pipeline) {
-                                activity.children = this.getOrderedTree(activity.pipeline)
+                                activity.children = this.getOrderedTree(activity.pipeline, level)
                             }
                             activity.level = level
                             activity.title = activity.name
@@ -986,7 +991,12 @@
                         ordered.push(gateway)
                     }
 
-                    const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
+                    let outgoing
+                    if (Array.isArray(node.outgoing)) {
+                        outgoing = node.outgoing
+                    } else {
+                        outgoing = node.outgoing ? [node.outgoing] : []
+                    }
                     outgoing.forEach((line, index, arr) => {
                         this.retrieveLines(data, line, ordered, passedNodes, level)
                     })
