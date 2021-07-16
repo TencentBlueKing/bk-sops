@@ -893,7 +893,7 @@ const template = {
             }).then(response => response.data)
         },
         // 获取引用了某个流程的所有父流程
-        getParentsProcesses ({ commit }, data) {
+        getParentProcesses ({ commit }, data) {
             const { project_id, common } = data
             const url = common ? `common_template/api/parents` : `template/api/parents/${project_id}/`
             return axios.get(url, { params: data }).then(response => response.data)

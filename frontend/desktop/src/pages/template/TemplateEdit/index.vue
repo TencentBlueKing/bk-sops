@@ -207,7 +207,7 @@
                     </li>
                 </ul>
                 <div class="tip">
-                    <div v-if="parentProcessList.length > 5" @click="handleJumpTemplateList(parentProcessList)" class="tip-content" :style="{ cursor: 'pointer' }">{{ $t('共') }}{{ parentProcessList.length || '' }}{{ $t('个，查看全部') }} >></div>
+                    <div v-if="parentProcessList.length > 5" @click="handleJumpTemplateList(parentProcessList)" class="tip-content">{{ $t('共') }}{{ parentProcessList.length }}{{ $t('个，查看全部') }} >></div>
                 </div>
             </bk-dialog>
         </div>
@@ -451,7 +451,7 @@
                 'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
-                'getParentsProcesses',
+                'getParentProcesses',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
@@ -700,7 +700,7 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
-                    const parentProcess = await this.getParentsProcesses({ 'project_id': this.project_id, 'template_id': template_id, 'common': this.common })
+                    const parentProcess = await this.getParentProcesses({ 'project_id': this.project_id, 'template_id': template_id, 'common': this.common })
                     this.tplActions = data.auth_actions
                     this.parentProcessList = parentProcess.data
                     if (parentProcess.data.length !== 0) {
@@ -1676,7 +1676,7 @@
                         height: 4px;
                         border-radius: 50%;
                         opacity: 1;
-                        background-color:#3a84ff;
+                        background-color: #3a84ff;
                     }
                     .list-content {
                         cursor: pointer;
@@ -1699,6 +1699,7 @@
                 font-size: 12px;
                 .tip-content{
                     line-height: 40px;
+                    cursor: pointer;
                 }
             }
         }
