@@ -820,7 +820,7 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    let code, skippable, retryable, errorIgnorable
+                    let code, skippable, retryable, errorIgnorable, errorIgnored
                     const currentNode = nodes[id]
                     const nodeActivities = this.pipelineData.activities[id]
 
@@ -829,9 +829,10 @@
                         skippable = nodeActivities.isSkipped || nodeActivities.skippable
                         retryable = nodeActivities.can_retry || nodeActivities.retryable
                         errorIgnorable = nodeActivities.error_ignorable
+                        errorIgnored = nodeActivities.error_ignored
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable, error_ignored: errorIgnored }
 
                     this.setTaskNodeStatus(id, data)
                 }
