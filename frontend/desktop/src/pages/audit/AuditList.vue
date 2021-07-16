@@ -430,7 +430,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'auditHome', query })
+                this.$router.replace({ name: 'auditHome', query })
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data

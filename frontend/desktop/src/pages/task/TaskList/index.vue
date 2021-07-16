@@ -679,7 +679,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'taskList', params: { project_id: this.project_id }, query })
+                this.$router.replace({ name: 'taskList', params: { project_id: this.project_id }, query })
             },
             async getCreateMethod () {
                 try {

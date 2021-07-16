@@ -772,7 +772,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'process', params: { project_id: this.project_id }, query })
+                this.$router.replace({ name: 'process', params: { project_id: this.project_id }, query })
             },
             /**
              * 单个模板操作项点击时校验

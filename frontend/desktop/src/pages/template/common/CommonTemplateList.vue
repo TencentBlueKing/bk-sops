@@ -674,7 +674,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'commonProcessList', query })
+                this.$router.replace({ name: 'commonProcessList', query })
             },
             /**
              * 单个模板操作项点击时校验

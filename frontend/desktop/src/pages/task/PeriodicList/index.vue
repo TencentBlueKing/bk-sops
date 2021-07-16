@@ -535,9 +535,9 @@
                     }
                 })
                 if (this.admin) {
-                    this.$router.push({ name: 'adminPeriodic', query })
+                    this.$router.replace({ name: 'adminPeriodic', query })
                 } else {
-                    this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
+                    this.$router.replace({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
                 }
             },
             async onSetEnable (item) {

@@ -543,7 +543,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'functionHome', query })
+                this.$router.replace({ name: 'functionHome', query })
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data
