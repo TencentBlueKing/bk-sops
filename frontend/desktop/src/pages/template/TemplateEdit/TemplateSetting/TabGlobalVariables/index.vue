@@ -249,6 +249,7 @@
                     source_tag: 'input.input',
                     source_type: 'custom',
                     validation: '^.+$',
+                    pre_render_mako: false,
                     value: '',
                     version: 'legacy'
                 }
