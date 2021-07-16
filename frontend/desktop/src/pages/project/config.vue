@@ -67,71 +67,97 @@
                     </bk-form-item>
                 </bk-form>
             </section>
-            <section class="mandate-section">
-                <div class="title">
-                    {{ $t('人员分组设置') }}({{ staffGroup.length }})
-                    <bk-button theme="primary" @click="onEditStaffGroup('create')">{{ $t('增加分组') }}</bk-button>
-                </div>
-                <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1, zIndex: 100 }">
-                    <bk-table-column :label="$t('序号')" :width="150" property="id"></bk-table-column>
-                    <bk-table-column :label="$t('分组名称')" :width="300" property="name"></bk-table-column>
-                    <bk-table-column :label="$t('成员')">
-                        <template slot-scope="props">
-                            {{props.row.members || '--'}}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('操作')" :width="300">
-                        <template slot-scope="props">
-                            <bk-button :text="true" @click="onEditStaffGroup('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                            <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
-                        </template>
-                    </bk-table-column>
-                </bk-table>
-            </section>
-            <section class="mandate-section">
-                <div class="title">
-                    {{ $t('标签设置') }}({{ labelList.length }})
-                    <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
-                </div>
-                <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1, zIndex: 100 }">
-                    <bk-table-column :label="$t('标签名称')" property="name" :min-width="150">
-                        <template slot-scope="props">
-                            <span class="label-name"
-                                :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
-                                {{ props.row.name }}</span>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('标签描述')" :min-width="300">
-                        <template slot-scope="props">
-                            {{ props.row.description || '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('标签引用')" :width="200">
-                        <template slot-scope="props">
-                            {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('系统默认标签')" :width="300">
-                        <template slot-scope="props">
-                            {{ props.row.is_default ? $t('是') : $t('否') }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('操作')" :width="200">
-                        <template slot-scope="props">
-                            <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
-                                <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">
-                                    {{ $t('编辑') }}
-                                </bk-button>
-                            </bk-popover>
-                            <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
-                                <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
-                                    {{ $t('删除') }}
-                                </bk-button>
-                            </bk-popover>
-                        </template>
-                    </bk-table-column>
-                </bk-table>
-            </section>
+            <bk-tab :active.sync="active" type="unborder-card">
+                <bk-tab-panel :label="$t('人员分组设置')" name="staffing_group_settings">
+                    <section class="mandate-section">
+                        <div class="title">
+                            {{ $t('人员分组设置') }}({{ staffGroup.length }})
+                            <bk-button theme="primary" @click="onEditStaffGroup('create')">{{ $t('增加分组') }}</bk-button>
+                        </div>
+                        <bk-table :data="staffGroup" v-bkloading="{ isLoading: staffGroupLoading, opacity: 1, zIndex: 100 }">
+                            <bk-table-column :label="$t('序号')" :width="150" property="id"></bk-table-column>
+                            <bk-table-column :label="$t('分组名称')" :width="300" property="name"></bk-table-column>
+                            <bk-table-column :label="$t('成员')">
+                                <template slot-scope="props">
+                                    {{props.row.members || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" :width="300">
+                                <template slot-scope="props">
+                                    <bk-button :text="true" @click="onEditStaffGroup('edit', props.row)">{{ $t('编辑') }}</bk-button>
+                                    <bk-button :text="true" @click="onDelStaffGroup(props.row)">{{ $t('删除') }}</bk-button>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                    </section>
+                </bk-tab-panel>
+                <bk-tab-panel :label="$t('标签设置')" name="label_config">
+                    <section class="mandate-section">
+                        <div class="title">
+                            {{ $t('标签设置') }}({{ labelList.length }})
+                            <bk-button theme="primary" @click="onEditLabel('create')">{{ $t('新增标签') }}</bk-button>
+                        </div>
+                        <bk-table :data="labelList" v-bkloading="{ isLoading: labelLoading, opacity: 1, zIndex: 100 }">
+                            <bk-table-column :label="$t('标签名称')" property="name" :min-width="150">
+                                <template slot-scope="props">
+                                    <span class="label-name"
+                                        :style="{ background: props.row.color, color: darkColorList.includes(props.row.color) ? '#fff' : '#262e4f' }">
+                                        {{ props.row.name }}</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('标签描述')" :min-width="300">
+                                <template slot-scope="props">
+                                    {{ props.row.description || '--' }}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('标签引用')" :width="200">
+                                <template slot-scope="props">
+                                    {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('系统默认标签')" :width="300">
+                                <template slot-scope="props">
+                                    {{ props.row.is_default ? $t('是') : $t('否') }}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" :width="200">
+                                <template slot-scope="props">
+                                    <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
+                                        <bk-button :text="true" :disabled="props.row.is_default" @click="onEditLabel('edit', props.row)">
+                                            {{ $t('编辑') }}
+                                        </bk-button>
+                                    </bk-popover>
+                                    <bk-popover :disabled="!props.row.is_default" :content="$t('默认标签不支持编辑删除')">
+                                        <bk-button :text="true" :disabled="props.row.is_default" @click="onDelLabel(props.row)">
+                                            {{ $t('删除') }}
+                                        </bk-button>
+                                    </bk-popover>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                    </section>
+                </bk-tab-panel>
+                <bk-tab-panel :label="$t('环境变量')" name="variable">
+                    <section class="mandate-section">
+                        <div class="variable-list">
+                            <p class="variable-list-tip">{{ $t('项目级别的变量建立后') }},{{ $t('可以在模板中通过') }}${env.key}{{ $t('方式引用') }}</p>
+                            <bk-button :theme="'primary'" @click="onAddVariable('create')">{{ $t('新增项目变量') }}</bk-button>
+                        </div>
+                        <bk-table style="margin-top: 15px;" :data="variableData">
+                            <bk-table-column :label="$t('变量名称')" prop="name"></bk-table-column>
+                            <bk-table-column :label="$t('KEY')" prop="key"></bk-table-column>
+                            <bk-table-column :label="$t('值')" prop="value"></bk-table-column>
+                            <bk-table-column :label="$t('说明')" prop="desc"></bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="150">
+                                <template slot-scope="props">
+                                    <bk-button class="mr10" theme="primary" text @click="onAddVariable('edit', props.row)">{{ $t('编辑') }}</bk-button>
+                                    <bk-button class="mr10" theme="primary" text @click="onRemove(props.row.id)">{{ $t('删除') }}</bk-button>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                    </section>
+                </bk-tab-panel>
+            </bk-tab>
         </div>
         <bk-dialog
             width="600"
@@ -262,6 +288,51 @@
                 {{$t('确认删除') + '"' + deletingLabelDetail.name + '"' + '?' }}
             </div>
         </bk-dialog>
+        <!-- 新增变量 -->
+        <bk-dialog
+            :mask-close="false"
+            :auto-close="false"
+            width="636"
+            :ext-cls="'create-variable-dialog'"
+            :title="$t('环境变量设置')"
+            :header-position="'left'"
+            :loading="pending.variable"
+            :value="isAddVariableDialogShow"
+            @confirm="VariableConfirm"
+            @cancel="isAddVariableDialogShow = false">
+            <bk-form class="create-variable-form" :label-width="80" ref="variableForm" :model="variableFormData" :rules="variableRules">
+                <bk-form-item class="form-item-name" :label="$t('变量名称')" :required="true" property="name">
+                    <bk-input v-model="variableFormData.name" :placeholder="$t('请输入变量名称')"></bk-input>
+                </bk-form-item>
+                <bk-form-item class="form-item-key" label="KEY" :required="true" property="key">
+                    <bk-input v-model="variableFormData.key" :placeholder="$t('请输入变量的KEY')"></bk-input>
+                </bk-form-item>
+                <bk-form-item class="form-item-value" :label="$t('值')" :required="true" property="value">
+                    <bk-input type="textarea" v-model="variableFormData.value" :placeholder="$t('请填写变量值')"></bk-input>
+                </bk-form-item>
+                <bk-form-item class="form-item-desc" :label="$t('说明')" :required="true" property="desc">
+                    <bk-input type="textarea" v-model="variableFormData.desc" :placeholder="$t('请填入项目变量说明')"></bk-input>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
+        <!-- 删除变量 -->
+        <bk-dialog
+            width="430"
+            :mask-close="false"
+            :auto-close="false"
+            :show-footer="false"
+            :loading="pending.deletevariable"
+            :ext-cls="'delete-variable-dialog'"
+            :header-position="'center'"
+            :value="isDeleteVariableDialogShow"
+            @confirm="deleteLabelGroupConfirm"
+            @cancel="isDeleteVariableDialogShow = false">
+            <i>{{$t('确认删除变量')}}</i>
+            <div class="delete-options">
+                <bk-button :theme="'primary'" @click="onDeleteVariable">{{ $t('确定') }}</bk-button>
+                <bk-button :theme="'default'" @click="isDeleteVariableDialogShow = false">{{ $t('取消') }}</bk-button>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -284,6 +355,7 @@
         },
         data () {
             return {
+                variableData: [],
                 projectLoading: false,
                 project: {},
                 descEditing: false,
@@ -309,6 +381,36 @@
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
                 darkColorList: DARK_COLOR_LIST,
+                variableRules: {
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    key: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    value: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    desc: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
                 descRules: {
                     value: [{
                         max: 512,
@@ -357,8 +459,20 @@
                     staff: false,
                     delete: false,
                     label: false,
-                    deleteLabel: false
-                }
+                    deleteLabel: false,
+                    variable: false,
+                    deletevariable: false
+                },
+                active: 'variable',
+                isAddVariableDialogShow: false,
+                isDeleteVariableDialogShow: false,
+                variableFormData: {
+                    name: '',
+                    key: '',
+                    value: '',
+                    desc: ''
+                },
+                delId: '' // 删除变量的id
             }
         },
         computed: {
@@ -371,6 +485,7 @@
             this.getAgentData()
             this.getStaffGroupData()
             this.getTplLabels()
+            this.getVariableData()
         },
         methods: {
             ...mapActions('project', [
@@ -386,8 +501,21 @@
                 'updateTemplateLabel',
                 'createTemplateLabel',
                 'delTemplateLabel',
-                'getlabelsCitedCount'
+                'getlabelsCitedCount',
+                'loadVariableList',
+                'createVariableList',
+                'deleteVariableList',
+                'updateVariableList'
             ]),
+            async getVariableData () {
+                const data = {
+                    project_id: this.$route.params.id + ''
+                }
+                const resp = await this.loadVariableList(data)
+                if (resp.data) {
+                    this.variableData = resp.data
+                }
+            },
             async getProjectDetail () {
                 this.projectLoading = true
                 try {
@@ -656,6 +784,62 @@
                 } finally {
                     this.pending.deleteLabel = false
                 }
+            },
+            onAddVariable (type, rows) {
+                this.variableFormData = type === 'edit' ? { ...rows, type: 'edit', id: rows.id } : { name: '', key: '', value: '', desc: '' }
+                this.isAddVariableDialogShow = true
+            },
+            VariableConfirm () {
+                if (this.pending.variable) {
+                    return
+                }
+                this.pending.variable = true
+                this.$refs.variableForm.validate().then(async validator => {
+                    if (validator) {
+                        try {
+                            const { type, name, key, desc, value, id } = this.variableFormData
+                            const data = {
+                                name,
+                                project_id: this.$route.params.id,
+                                key,
+                                value,
+                                desc,
+                                id
+                            }
+                            const resp = type ? await this.updateVariableList(data) : await this.createVariableList(data)
+                            if (resp.result) {
+                                this.getVariableData()
+                                this.isAddVariableDialogShow = false
+                            }
+                        } catch (e) {
+                            console.log(e)
+                        } finally {
+                            this.pending.variable = false
+                            this.$refs.variableForm.clearError()
+                        }
+                    }
+                })
+            },
+            onRemove (id) {
+                this.delId = id
+                this.isDeleteVariableDialogShow = true
+            },
+            async onDeleteVariable () {
+                if (this.pending.deletevariable) {
+                    return
+                }
+                this.pending.deletevariable = true
+                try {
+                    const resp = await this.deleteVariableList(this.delId)
+                    if (resp.result) {
+                        this.isDeleteVariableDialogShow = false
+                        this.getVariableData()
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.pending.deletevariable = false
+                }
             }
         }
     }
@@ -758,6 +942,13 @@
                 color: #63656e;
                 word-break: break-all;
             }
+            .variable-list {
+                display: flex;
+                justify-content: space-between;
+                .variable-list-tip {
+                    font-size: 14px;
+                }
+            }
         }
         .bk-table {
             background: #fff;
@@ -782,6 +973,45 @@
         }
         .user-selector {
             width: 100%;
+        }
+    }
+    .create-variable-dialog {
+        .create-variable-form {
+            display: flex;
+            flex-direction: column;
+            .form-item-name {
+                height: 32px;
+            }
+            .form-item-key {
+                height: 32px;
+            }
+            .form-item-value {
+                height: 72px;
+            }
+            .form-item-desc {
+                height: 96px;
+            }
+        }
+    }
+    .delete-variable-dialog {
+        height: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        i {
+            text-align: center;
+            display: block;
+            font-style: unset;
+            font-size: 20px;
+            margin-top: 30px;
+        }
+        .delete-options {
+            width: 200px;
+            margin: 0 auto;
+            button {
+                width: 80px;
+                margin: 30px 5px 14px;
+            }
         }
     }
     .color-dropdown {
