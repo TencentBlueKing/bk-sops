@@ -67,6 +67,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :render-header="renderTableHeader"
+                            :sort-orders="['descending', 'ascending', null]"
                             :sortable="item.sortable">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
@@ -710,9 +711,9 @@
             },
             handleSortChange ({ prop, order }) {
                 const params = 'pipeline_template__' + prop
-                if (order === 'descending') {
+                if (order === 'ascending') {
                     this.ordering = params
-                } else if (order === 'ascending') {
+                } else if (order === 'descending') {
                     this.ordering = '-' + params
                 } else {
                     this.ordering = ''
