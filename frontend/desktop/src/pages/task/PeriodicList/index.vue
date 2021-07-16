@@ -432,11 +432,18 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('PeriodicList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.tableFields
+                    if (!selectedFields || !size) {
+                        localStorage.removeItem('PeriodicList').map(item => item.id)
+                    }
+                } else {
+                    selectedFields = this.tableFields.map(item => item.id)
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             async getCollectList () {
                 try {

@@ -462,8 +462,8 @@
                     this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
-            updateTaskSchemeList (val) {
-                this.$emit('updateTaskSchemeList', val)
+            updateTaskSchemeList (val, isChange) {
+                this.$emit('updateTaskSchemeList', val, isChange)
             },
             // 导出当前方案
             onExportScheme () {

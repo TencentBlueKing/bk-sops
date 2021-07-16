@@ -92,7 +92,7 @@
                     <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
                     <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
                 </div>
-                <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="common-icon-info form-item-tips"></i>
+                <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
@@ -127,7 +127,7 @@
                 <!-- 子流程版本更新 -->
                 <i
                     class="common-icon-clock-inversion update-tooltip"
-                    v-if="!inputLoading && subflowHasUpdate && !updateSubflow"
+                    v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
                         content: $t('版本更新'),
                         placements: ['bottom-end']
@@ -156,6 +156,14 @@
                     :value="formData.alwaysUseLatest"
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
+                <i
+                    v-bk-tooltips="{
+                        width: 540,
+                        placement: 'bottom-end',
+                        content: $t('打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值')
+                    }"
+                    class="bk-icon icon-question-circle form-item-tips">
+                </i>
             </bk-form-item>
         </bk-form>
     </div>
@@ -172,13 +180,14 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
-            updateSubflow: Boolean,
             inputLoading: Boolean
         },
         data () {
             return {
                 labelData: [],
                 labelLoading: false,
+                subflowLoading: false,
+                version: this.basicInfo.version,
                 formData: { ...this.basicInfo },
                 pluginRules: {
                     plugin: [
@@ -266,15 +275,18 @@
                 'subprocessInfo': state => state.template.subprocess_info
             }),
             subflowHasUpdate () {
-                return this.subprocessInfo.details.some(subflow => {
-                    if (
-                        subflow.expired
-                        && subflow.template_id === Number(this.formData.tpl)
-                        && subflow.subprocess_node_id === this.nodeConfig.id
-                    ) {
-                        return true
-                    }
-                })
+                if (!this.formData.alwaysUseLatest) {
+                    return this.version !== this.basicInfo.version || this.subprocessInfo.details.some(subflow => {
+                        if (
+                            subflow.expired
+                            && subflow.template_id === Number(this.formData.tpl)
+                            && subflow.subprocess_node_id === this.nodeConfig.id
+                        ) {
+                            return true
+                        }
+                    })
+                }
+                return false
             },
             labelList () {
                 if (this.labelLoading || this.labelData.length === 0) {
@@ -302,6 +314,20 @@
             ...mapActions('template/', [
                 'getLabels'
             ]),
+            ...mapActions('atomForm/', [
+                'loadSubflowConfig'
+            ]),
+            async getSubflowDetail () {
+                this.subflowLoading = true
+                try {
+                    const resp = await this.loadSubflowConfig({ templateId: this.basicInfo.tpl, common: this.common })
+                    this.version = resp.data.version
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.subflowLoading = false
+                }
+            },
             // 加载节点标签列表
             async getNodeLabelList () {
                 try {
@@ -389,15 +415,18 @@
                 this.formData.selectable = val
                 this.updateData()
             },
-            onAlwaysUseLatestChange (val) {
+            async onAlwaysUseLatestChange (val) {
                 this.formData.alwaysUseLatest = val
+                if (!val) {
+                    await this.getSubflowDetail()
+                }
                 this.updateData()
             },
             updateData () {
                 const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
                 }
@@ -459,7 +488,7 @@
         }
         .form-item-tips {
             position: absolute;
-            right: -30px;
+            left: -24px;
             top: 7px;
             color: #c4c6cc;
             &:hover {

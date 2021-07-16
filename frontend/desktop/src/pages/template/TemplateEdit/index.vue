@@ -356,8 +356,8 @@
                             && location.type === 'subflow'
                         ) {
                             this.subprocess_info.details.some(subflow => {
-                                if (subflow.subprocess_node_id === location.id && subflow.expired) {
-                                    data.hasUpdated = true
+                                if (subflow.subprocess_node_id === location.id) {
+                                    data.hasUpdated = subflow.expired
                                     return true
                                 }
                             })
@@ -368,7 +368,7 @@
                 }
             },
             subflowShouldUpdated () {
-                if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
+                if (this.subprocess_info) {
                     return this.subprocess_info.details
                 }
                 return []
@@ -1162,11 +1162,11 @@
                     this.isEditProcessPage = true
                 }
             },
-            updateTaskSchemeList (val) {
+            updateTaskSchemeList (val, isChange) {
                 this.taskSchemeList = val
                 this.allowLeave = false
-                this.isTemplateDataChanged = true
-                this.isSchemaListChange = true
+                this.isTemplateDataChanged = isChange
+                this.isSchemaListChange = isChange
             },
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)

@@ -210,7 +210,7 @@
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    this.$emit('updateTaskSchemeList', this.schemaList)
+                    this.$emit('updateTaskSchemeList', this.schemaList, false)
                 } catch (e) {
                     console.log(e)
                 }
@@ -278,7 +278,7 @@
                             message: i18n.t('方案添加成功'),
                             theme: 'success'
                         })
-                        this.$emit('updateTaskSchemeList', this.schemaList)
+                        this.$emit('updateTaskSchemeList', this.schemaList, true)
                         this.schemaName = ''
                         this.nameEditing = false
                         return
@@ -320,7 +320,7 @@
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
-                    this.$emit('updateTaskSchemeList', this.schemaList)
+                    this.$emit('updateTaskSchemeList', this.schemaList, true)
                     return
                 }
                 this.deleting = true

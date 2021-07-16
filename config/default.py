@@ -161,7 +161,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.41"
+STATIC_VERSION = "3.6.43"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -355,6 +355,13 @@ PIPELINE_DATA_BACKEND = env.BKAPP_PIPELINE_DATA_BACKEND
 PIPELINE_DATA_CANDIDATE_BACKEND = env.BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
+
+EXPIRED_TASK_CLEAN = env.EXPIRED_TASK_CLEAN
+EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
+TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
+
+BAMBOO_PERIODIC_TASK_ROOT_PIPELINE_CONTEXT_PROVIER = "gcloud.taskflow3.context.root_pipeline_context_provider"
+BAMBOO_PERIODIC_TASK_SUBPROCESS_CONTEXT_PROVIER = "gcloud.taskflow3.context.subprocess_context_provider"
 
 # pipeline mako render settings
 MAKO_SANDBOX_SHIELD_WORDS = [
