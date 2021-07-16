@@ -118,7 +118,7 @@ class TextValueSelect(LazyVariable):
     def get_value(self):
         text_value = json.loads(self.value)
         # multiple
-        if len(self.value) > 1:
+        if len(text_value) > 1:
             text_string = ",".join([option["text"] for option in text_value])
             value_string = ",".join([option["value"] for option in text_value])
             return {"text": text_string, "value": value_string}
