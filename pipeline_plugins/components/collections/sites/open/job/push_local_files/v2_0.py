@@ -97,6 +97,9 @@ class JobPushLocalFilesService(JobScheduleService):
                     },
                 ),
             ),
+            self.InputItem(
+                name=_("超时时间"), key="job_timeout", type="string", schema=StringItemSchema(description=_("超时时间"))
+            ),
         ]
 
     def outputs_format(self):
@@ -131,6 +134,7 @@ class JobPushLocalFilesService(JobScheduleService):
         target_ip_list = data.inputs.job_target_ip_list
         target_account = data.inputs.job_target_account
         across_biz = data.get_one_of_inputs("job_across_biz", False)
+        job_timeout = data.get_one_of_inputs("job_timeout")
         task_count = len(local_files_and_target_path)
 
         file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
@@ -179,6 +183,9 @@ class JobPushLocalFilesService(JobScheduleService):
             }
             for push_files_info in local_files_and_target_path
         ]
+        if job_timeout:
+            for param in params_list:
+                param["timeout"] = int(job_timeout)
 
         # 批量上传请求
         if len(params_list) == task_count:
