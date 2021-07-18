@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-(function () {
+ (function () {
     $.atoms.job_execute_task = [
         {
             tag_code: "biz_cc_id",
@@ -43,6 +43,89 @@
             }
         },
         {
+            tag_code: "job_template_id",
+            type: "select",
+            attrs: {
+                name: gettext("作业"),
+                hookable: false,
+                remote: true,
+                remote_url: function (){
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_job_templates_by_biz/' + $.context.getBkBizId() + '/';
+                    return url;
+                },
+                remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, "error");
+                    }
+                    return resp.data
+                },
+                showRightBtn: true,
+                rightBtnCb: function() {
+                    if (!this.value){
+                        return;
+                    }
+                    let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').get_value();
+                    let bk_job_host = window.BK_JOB_HOST;
+                    let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" +this.value;
+                    window.open(url, "_blank");
+                },
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ],
+                cols: 10
+            },
+            events:[
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_templates_by_biz/' + cc_id + '/';
+                        }
+                        this.remoteMethod();
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        if ($.context.canSelectBiz()){
+                            this._set_value('');
+                        }
+                        if (value === ''){
+                            return;
+                        }
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_templates_by_biz' + value + '/';
+                    }
+                },
+                {
+                    source: "button_refresh_job_template",
+                    type: "click",
+                    action: function () {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        if (cc_id !== '' ){
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_templates_by_biz/' + cc_id + '/';
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            tag_code: "button_refresh_job_template",
+            type: "button",
+            attrs: {
+                hookable: false,
+                type: "primary",
+                title: '刷新',
+                size: "normal",
+                cols: 1,
+                formViewHidden: true
+            }
+        },
+        {
             tag_code: "job_task_id",
             type: "select",
             attrs: {
@@ -50,7 +133,7 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/';
+                    const url = "";
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -78,23 +161,26 @@
             },
             events: [
                 {
-                    source: "biz_cc_id",
+                    source: "job_template_id",
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
-                            this.remoteMethod();
+                        const job_template_id = this.get_parent && this.get_parent().get_child('job_template_id')._get_value();
+                        
+                        if (job_template_id !== ''){
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz_template' + cc_id + '/' + job_template_id + '/';
                         }
+                        this.remoteMethod()
                     }
                 },
                 {
-                    source: "button_refresh",
+                    source: "button_refresh_job_taks",
                     type: "click",
                     action: function (value) {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        const job_template_id = this.get_parent && this.get_parent().get_child('job_template_id')._get_value();
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz_template/' + cc_id + '/' + job_template_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -109,14 +195,24 @@
                         if (value === '') {
                             return;
                         }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + value + '/';
+                    }
+                },
+                {
+                    source: "job_template_id",
+                    type: "change",
+                    action: function (value) {
+                        if (value === ''){
+                            return;
+                        }
+                        this._set_value('')
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz_template/' + this.get_parent().get_child('biz_cc_id')._get_value() + '/' + value + '/' ;
                         this.remoteMethod();
                     }
                 }
             ]
         },
         {
-            tag_code: "button_refresh",
+            tag_code: "button_refresh_job_taks",
             type: "button",
             attrs: {
                 hookable: false,
@@ -285,6 +381,65 @@
                     {
                         type: "required"
                     }
+                ]
+            }
+        },
+        {
+            tag_code: "fail_auto_process_tag",
+            type: "section",
+            attrs: {
+                name: gettext("失败自动处理"),
+            }
+        },
+        {
+            tag_code: "job_fail_auto_process_action",
+            type: "select",
+            attrs: {    
+                name: gettext("处理策略"),
+                placeholder: gettext("失败 IP 重做步骤，全部重试步骤，忽略错误步骤"),
+                items: [
+                    {
+                        "text": gettext("失败 IP 重做步骤"),
+                        "value": 2
+                    },
+                    {
+                        "text": "全部重试步骤",
+                        "value": 8
+                    },
+                    {
+                        "text": gettext("忽略错误步骤"),
+                        "value": 3
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "job_history_tag",
+            type: "section",
+            attrs: {
+                name: gettext("在已有执行历史上操作"),
+            }
+        },
+        {
+            tag_code: "job_history_id",
+            type: "input",
+            attrs: {
+                name: gettext("执行历史ID"),
+                placeholder: gettext("请输入JOB执行历史ID"),
+                hookable: true
+            }
+        },
+        {
+            tag_code: "job_history_auto_process_action",
+            type: "select",
+            attrs: {
+                name: gettext("动作"),
+                placeholder: gettext("继承成功状态，失败 IP 重做步骤，全部重试步骤，忽略错误步骤"),
+                items: [
+                    {"text": gettext("继承成功状态"), "value": 5},
+                    {"text": gettext("失败IP重做步骤"), "value": 2},
+                    {"text": gettext("全部重试步骤"), "value": 8},
+                    {"text": gettext("忽略错误步骤"), "value": 3}
                 ]
             }
         }
