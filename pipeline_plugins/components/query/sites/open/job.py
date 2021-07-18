@@ -12,15 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.conf.urls import url
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
-from django.conf.urls import url
-
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
-
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import RawAuthFailedException
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -249,6 +247,46 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     return JsonResponse({"result": True, "data": data})
 
 
+def job_get_job_templates_by_biz(request, biz_cc_id):
+    client = get_client_by_user(request.user.username)
+    job_kwargs = {"bk_biz_id": biz_cc_id}
+    job_result = client.jobv3.get_job_template_list(job_kwargs)
+    if not job_result["result"]:
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+
+        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise RawAuthFailedException(permissions=job_result.get("permissions", {}))
+
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+    job_templates = []
+    for template in job_result["data"]["data"]:
+        job_templates.append({"text": template["name"], "value": template["id"]})
+    return JsonResponse({"result": True, "data": job_templates})
+
+
+def job_get_job_tasks_by_biz_template(request, biz_cc_id, template_id):
+    client = get_client_by_user(request.user.username)
+    job_kwargs = {"bk_biz_id": biz_cc_id, "job_template_id": template_id}
+    job_result = client.jobv3.get_job_plan_list(job_kwargs)
+    if not job_result["result"]:
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_plan_list返回失败：%s") % (biz_cc_id, job_result["message"])
+
+        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise RawAuthFailedException(permissions=job_result.get("permissions", {}))
+
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+    job_tasks = []
+    for task in job_result["data"]["data"]:
+        job_tasks.append({"text": task["name"], "value": task["id"]})
+    return JsonResponse({"result": True, "data": job_tasks})
+
+
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
@@ -263,4 +301,9 @@ job_urlpatterns = [
         job_get_job_task_detail,
     ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
+    url(r"^job_get_job_templates_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_templates_by_biz),
+    url(
+        r"^job_get_job_tasks_by_biz_template/(?P<biz_cc_id>\d+)/(?P<template_id>\d+)/$",
+        job_get_job_tasks_by_biz_template,
+    ),
 ]

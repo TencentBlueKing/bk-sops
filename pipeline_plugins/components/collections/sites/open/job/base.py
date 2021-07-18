@@ -32,8 +32,10 @@ TASK_RESULT = [
 import traceback
 import re
 from functools import partial
-
+import time
 from django.utils.translation import ugettext_lazy as _
+from iam.api.client import Client
+from copy import deepcopy
 
 from pipeline.core.flow import StaticIntervalGenerator
 from pipeline.core.flow.activity import Service
@@ -46,6 +48,7 @@ from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.utils.common import batch_execute_func
+from pipeline_plugins.components.utils import get_job_instance_url, loose_strip, get_biz_ip_from_frontend
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -187,6 +190,10 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
                 log_list.append(str(log_content))
     log_text = "\n".join(log_list)
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
+
+
+def get_job_global_var_dict(client, ):
+    pass
 
 
 class JobService(Service):
@@ -365,3 +372,294 @@ class JobScheduleService(JobService):
 
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+
+class JobFailAutoProcessService(Service):
+
+    @property
+    def operation_word(self):
+        return {
+            "2": "失败IP重做",
+            "3": "忽略错误",
+            "8": "全部重试",
+        }
+
+    def history_operate_function(self, data, parent_data):
+        # 在这里进行历史操作
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_user(executor)
+
+        job_history_id = data.get_one_of_inputs("job_history_id")
+        job_history_auto_process_action = data.get_one_of_inputs("job_history_auto_process_action")
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+
+        if not job_history_auto_process_action:
+            job_history_auto_process_action = "3"
+        job_kwargs = {
+            "bk_biz_id": biz_cc_id,
+            "job_instance_id": job_history_id
+        }
+        job_result = client.jobv3.get_job_instance_status(job_kwargs)
+        
+        if not job_result["result"]:
+            message = job_handle_api_error("jobv3.get_job_instance_status", job_kwargs, job_result)
+            self.logger.error(message)
+            data.outputs.ex_data = message
+            return False
+        else:
+            if job_result["data"]["job_instance"]["status"] in JOB_SUCCESS:
+                data.outputs.job_inst_id = job_history_id
+                data.outputs.job_inst_name = job_result["data"]["job_instance"]["name"]
+                data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_history_id)
+                return True
+            else:
+                # 如果历史作业实例非成功状态，尝试根据用户输入来操作历史实例ß
+                fail_auto_process_result = self.auto_process(self, data, operate_code=job_history_auto_process_action, job_instance_info=job_result)
+                if fail_auto_process_result:
+                    data.outputs.job_inst_id = job_history_id
+                    data.outputs.job_inst_name = job_result["data"]["job_instance"]["name"]
+                    data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_history_id)
+                    return True
+                else:
+                    data.set_outputs(
+                        "ex_data",
+                        {
+                            "exception_msg": _("历史任务实例非‘成功’状态，尝试前往作业平台重新执行任务，仍然执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
+                                job_inst_url=data.outputs.job_inst_url
+                            ),
+                            "task_inst_id": job_history_id,
+                            "show_ip_log": True,
+                        },
+                    )
+                    return False
+    
+    def schedule(self, data, parent_data, callback_data):
+        try:
+            job_instance_id = callback_data.get("job_instance_id", None)
+            status = callback_data.get("status", None)
+        except Exception as e:
+            err_msg = "invalid callback_data: {}, err: {}"
+            self.logger.error(err_msg.format(callback_data, e))
+            data.outputs.ex_data = err_msg.format(callback_data, e)
+            return False
+        job_fail_auto_process_action = data.get_one_of_inputs("job_fail_auto_process_action")
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id")
+        executor = data.get_one_of_inputs("executor")
+        client = get_client_by_user(executor)
+        
+        if not job_instance_id or not status:
+            data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
+            self.finish_schedule()
+            return False
+        
+        if status in JOB_SUCCESS:
+            # 1、获取job侧全局变量
+            get_var_kwargs = {
+                "bk_biz_id": data.get_one_of_inputs("biz_cc_id"),
+                "job_instance_id": job_instance_id
+            }
+            global_var_result = client.jobv3.get_job_instance_global_var_value(get_var_kwargs)
+            
+            if not global_var_result["result"]:
+                message = job_handle_api_error("jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result)
+                self.logger.error(message)
+                data.outputs.ex_data = message
+                self.finish_schedule()
+                return False
+            for step_global_var_list in global_var_result["data"]["step_instance_var_list"]:
+                for global_var in step_global_var_list:
+                    data.set_outputs(global_var["name"], global_var["value"])
+            # 2、从sops日志提取全局变量
+            get_job_sops_var_dict_return = get_job_sops_var_dict(
+                data.outputs.client,
+                self.logger,
+                job_instance_id,
+                biz_cc_id
+            )
+            if not get_job_sops_var_dict_return["result"]:
+                self.logger.warning(
+                    _("{group}.{job_service_name}: 提取日志失败，{message}").format(
+                        group=__group_name__,
+                        job_service_name=self.__class__.__name__,
+                        message=get_job_sops_var_dict_return["message"],
+                    )
+                )
+                data.set_outputs("log_outputs", {})
+                self.finish_schedule()
+                return True
+        else:
+            # 进入失败自动处理策略
+            # 1、查job实例的step_list
+            job_kwargs = {
+                "bk_biz_id": biz_cc_id,
+                "job_instance_id": job_instance_id
+            }
+            job_result = client.jobv3.get_job_instance_status(job_kwargs)
+            if not job_result:
+                message = handle_api_error("jobv3.get_job_instance_status", job_kwargs, job_result)
+                self.logger.error(message)
+                data.outputs.ex_data = message
+                return False
+            fail_auto_process_result = self.auto_process(self, data, operate_code=job_fail_auto_process_action, job_instance_info=job_result)
+            if fail_auto_process_result:
+                # 1、获取job侧全局变量
+                get_var_kwargs = {
+                    "bk_biz_id": data.get_one_of_inputs("biz_cc_id"),
+                    "job_instance_id": job_instance_id
+                }
+                global_var_result = client.jobv3.get_job_instance_global_var_value(get_var_kwargs)
+                
+                if not global_var_result["result"]:
+                    message = job_handle_api_error("jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result)
+                    self.logger.error(message)
+                    data.outputs.ex_data = message
+                    self.finish_schedule()
+                    return False
+                for step_global_var_list in global_var_result["data"]["step_instance_var_list"]:
+                    for global_var in step_global_var_list:
+                        data.set_outputs(global_var["name"], global_var["value"])
+                # 2、从sops日志提取全局变量
+                get_job_sops_var_dict_return = get_job_sops_var_dict(
+                    data.outputs.client,
+                    self.logger,
+                    job_instance_id,
+                    biz_cc_id
+                )
+                if not get_job_sops_var_dict_return["result"]:
+                    self.logger.warning(
+                        _("{group}.{job_service_name}: 提取日志失败，{message}").format(
+                            group=__group_name__,
+                            job_service_name=self.__class__.__name__,
+                            message=get_job_sops_var_dict_return["message"],
+                        )
+                    )
+                    data.set_outputs("log_outputs", {})
+                    self.finish_schedule()
+                    return True
+            else:
+                data.set_outputs(
+                    "ex_data",
+                    {
+                        "exception_msg": _(
+                            "任务执行失败，尝试在作业平台(JOB)进行 ’{operate}‘ 操作后仍然失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>".format(
+                                operate=self.operation_word[job_fail_auto_process_action],
+                                job_inst_url=data.outputs.job_inst_url
+                        )),
+                        "task_inst_id": job_instance_id,
+                        "show_ip_log": True,
+                    },
+                )
+                self.finish_schedule()
+                return False
+
+
+    def auto_process(self, data, operate_code, job_instance_info):
+        # 如果operate_code=3（忽略错误）直接return
+        if ( operate_code=='3' ) or ( not operate_code ):
+            return False
+        # 调job_api,然后轮询执行结果,最终返回一个重试结果代号
+        # 从job_instance_info中解析出步骤
+        executor = data.get_one_of_inputs("executor")
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id")
+        job_instance_id = job_instance_info["data"]["job_instance"]["job_instance_id"]
+        client = get_client_by_user(executor)
+        job_kwargs_list = [
+            {
+                "bk_biz_id": data.get_one_of_inputs("biz_cc_id"),
+                "job_instance_id": job_instance_id,
+                "step_instance_id": _step["step_instance_id"],
+                "operation_code": operate_code
+            }
+            for _step in job_instance_info["data"]["step_instance_list"]
+        ]
+
+        # 用一个变量retry_status表示重试是否成功，默认为true，一旦遇到不成功的步骤就将其写为false，然后接下来的步骤也不在继续
+        retry_status = True
+        for job_kwargs in job_kwargs_list:
+            job_result = client.jobv3.operate_step_instance(job_kwargs)
+
+            if not job_result:
+                retry_status = False
+                break
+        if not retry_status:
+            return False
+        
+        # 截至目前，已经提交了所有的任务执行，下面开始轮询执行状态（60s后未查询到结果就超时跳出）
+        get_job_status_kwargs = {
+            "bk_biz_id": biz_cc_id,
+            "job_instance_id": job_instance_id
+        }
+        query_start = time.time()
+        while True:
+            if time.time()-query_start>60:
+                # 超时
+                break
+            get_job_status_result = client.jobv3.get_job_instance_status(get_job_status_kwargs)
+            if get_job_status_result["result"] and get_job_status_result["data"]["finished"]:
+                if get_job_status_result["data"]["job_instance"]["status"] in JOB_SUCCESS:
+                    return True
+                else:
+                    return False
+            time.sleep(5)
+        # 60s超时
+        return False
+
+
+class CreateGloablVarKwMixin:
+
+    # 解析前端表单的original_global_var,构建出符合jobv3标准的globalvar参数结构
+    def globalvars(self, data, parent_data):
+        original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
+        biz_across = data.get_one_of_inputs("biz_across")
+        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
+        executor = parent_data.get_one_of_inputs("executor")
+        biz_cc_id = parent_data.inputs.biz_cc_id
+        global_vars = []
+        for _value in original_global_var:
+            val = loose_strip(_value["value"])
+            # category为3,表示变量类型为IP
+            if _value["category"] == 3:
+                if biz_across:
+                    result, ip_list = get_biz_ip_from_frontend(
+                        ip_str=val,
+                        executor=executor,
+                        biz_cc_id=biz_cc_id,
+                        data=data,
+                        logger_handle=self.logger,
+                        is_across=True,
+                        ip_is_exist=ip_is_exist,
+                        ignore_ex_data=True,
+                    )
+
+                    # 匹配不到云区域IP格式IP，尝试从当前业务下获取
+                    if not result:
+                        result, ip_list = get_biz_ip_from_frontend(
+                            ip_str=val,
+                            executor=executor,
+                            biz_cc_id=biz_cc_id,
+                            data=data,
+                            logger_handle=self.logger,
+                            is_across=False,
+                            ip_is_exist=ip_is_exist,
+                        )
+
+                    if not result:
+                        return False
+                else:
+                    result, ip_list = get_biz_ip_from_frontend(
+                        ip_str=val,
+                        executor=executor,
+                        biz_cc_id=biz_cc_id,
+                        data=data,
+                        logger_handle=self.logger,
+                        is_across=False,
+                        ip_is_exist=ip_is_exist,
+                    )
+                    if not result:
+                        return False
+
+                if ip_list:
+                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
+            else:
+                global_vars.append({"name": _value["name"], "value": val})
+        return global_vars
