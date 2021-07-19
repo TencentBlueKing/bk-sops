@@ -240,7 +240,7 @@
                     console.log(e)
                 }
             },
-            async setVariableList () {
+            setVariableList () {
                 const userVars = Object.keys(this.constants)
                     .map(key => tools.deepClone(this.constants[key]))
                     .sort((a, b) => a.index - b.index)
