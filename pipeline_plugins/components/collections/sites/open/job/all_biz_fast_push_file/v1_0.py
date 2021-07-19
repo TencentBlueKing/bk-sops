@@ -54,10 +54,7 @@ class AllBizJobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"),
-                key="upload_speed_limit",
-                type="string",
-                schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -208,7 +205,7 @@ class AllBizJobFastPushFileService(JobScheduleService):
 
 
 class AllBizJobFastPushFileComponent(Component):
-    name = _("全业务_快速分发文件")
+    name = _("全业务快速分发文件")
     code = "all_biz_job_fast_push_file"
     bound_service = AllBizJobFastPushFileService
     form = "%scomponents/atoms/job/all_biz_fast_push_file/v1_0.js" % settings.STATIC_URL
