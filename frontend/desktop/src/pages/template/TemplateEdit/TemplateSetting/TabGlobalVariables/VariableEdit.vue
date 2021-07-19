@@ -310,14 +310,6 @@
             }
         },
         created () {
-            /**
-             * 设置模板预渲染默认值（兼容以前存在的模板）
-             * 预渲染功能发布后新建变量时，预渲染默认为false
-             * 发布前用户不主动去修改变量，则不需要做处理
-             */
-            if (!this.variableData.key) {
-                this.theEditingData.pre_render_mako = false
-            }
             this.extendFormValidate()
         },
         async mounted () {

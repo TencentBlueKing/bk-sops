@@ -241,7 +241,7 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && nodeInfo && nodeInfo.type === 'ServiceActivity'">
+            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && location.type === 'tasknode'">
                 <bk-button
                     theme="primary"
                     v-if="isShowRetryBtn"
@@ -264,7 +264,7 @@
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
+    import { URL_REG, TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
@@ -564,8 +564,8 @@
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
             },
-            nodeInfo () {
-                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
+            location () {
+                return this.pipelineData.location.find(item => item.id === this.nodeDetailConfig.node_id)
             }
         },
         watch: {
@@ -605,8 +605,6 @@
                         this.outputsInfo = []
                         this.inputsInfo = {}
                         this.logInfo = ''
-                        if (!this.nodeInfo) return
-                        this.executeInfo.name = this.nodeInfo.name
                         return
                     }
                     const { execution_info, outputs, inputs, log, history } = respData
@@ -672,6 +670,7 @@
                     }
                     
                     this.executeInfo.plugin_version = version
+                    this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
@@ -687,10 +686,10 @@
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
                     // 获取执行失败节点是否允许跳过，重试状态
-                    const data = this.nodeInfo
-                    if (data && data.type === 'ServiceActivity' && this.executeInfo.state === 'FAILED') {
-                        this.isShowSkipBtn = data.skippable
-                        this.isShowRetryBtn = data.retryable
+                    if (this.location.type === 'tasknode' && this.executeInfo.state === 'FAILED') {
+                        const activity = this.pipelineData[this.nodeDetailConfig.node_id]
+                        this.isShowSkipBtn = activity.skippable
+                        this.isShowRetryBtn = activity.retryable
                     }
                 } catch (e) {
                     console.log(e)
