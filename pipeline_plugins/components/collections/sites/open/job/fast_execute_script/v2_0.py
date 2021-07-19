@@ -23,7 +23,10 @@ from pipeline.core.flow.io import (
     BooleanItemSchema,
 )
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job.base import JobFailAutoProcessService,CreateGloablVarKwMixin
+from pipeline_plugins.components.collections.sites.open.job.base import (
+    JobFailAutoProcessService,
+    CreateGloablVarKwMixin,
+)
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
 
 from gcloud.conf import settings
@@ -37,8 +40,7 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 VERSION = "v2.0"
 
 
-class FastExecuteScriptService(JobFailAutoProcessService,CreateGloablVarKwMixin):
-
+class FastExecuteScriptService(JobFailAutoProcessService, CreateGloablVarKwMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -102,7 +104,10 @@ class FastExecuteScriptService(JobFailAutoProcessService,CreateGloablVarKwMixin)
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -114,20 +119,20 @@ class FastExecuteScriptService(JobFailAutoProcessService,CreateGloablVarKwMixin)
                 name=_("失败后自动处理策略"),
                 key="fail_auto_process_action",
                 type="string",
-                schema=StringItemSchema(description=_("执行失败后的自动处理策略（默认值：忽略错误）"))
+                schema=StringItemSchema(description=_("执行失败后的自动处理策略（默认值：忽略错误）")),
             ),
             self.InputItem(
                 name=_("历史任务ID"),
                 key="job_history_id",
                 type="string",
-                schema=StringItemSchema(description=_("在作业平台(JOB)执行过的历史任务实例ID"))
+                schema=StringItemSchema(description=_("在作业平台(JOB)执行过的历史任务实例ID")),
             ),
             self.InputItem(
                 name=_("在历史任务上执行对动作"),
                 key="job_history_auto_process_action",
                 type="string",
-                schema=StringItemSchema(description=_("对所填历史任务实例ID执行的动作（默认值：继承成功状态或忽略错误）"))
-            )
+                schema=StringItemSchema(description=_("对所填历史任务实例ID执行的动作（默认值：继承成功状态或忽略错误）")),
+            ),
         ]
 
     def outputs_format(self):
@@ -152,7 +157,7 @@ class FastExecuteScriptService(JobFailAutoProcessService,CreateGloablVarKwMixin)
         job_history_id = data.get_one_of_inputs("job_history_id")
         if job_history_id:
             return self.history_operate_function(self, data, parent_data)
-        executor = parent_data.get_one_of_inputs('executor')
+        executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
@@ -169,7 +174,7 @@ class FastExecuteScriptService(JobFailAutoProcessService,CreateGloablVarKwMixin)
         )
         if not clean_result:
             return False
-        
+
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
             "account_alias": data.get_one_of_inputs("job_account"),

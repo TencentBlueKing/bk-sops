@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 import ujson as json
-from mock import MagicMock, Mock
+from mock import MagicMock
 
 from pipeline.component_framework.test import (
     ComponentTestMixin,
@@ -67,9 +67,7 @@ class MockClient(object):
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_client_by_user"
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
-GET_NODE_CALLBACK_URL = (
-    "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_node_callback_url"
-)
+GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_node_callback_url"
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_job_instance_url"
 
 
@@ -172,21 +170,16 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
         "message": "",
         "data": {
             "job_instance_id": 56789,
-            "step_instance_var_list": [{
+            "step_instance_var_list": [
+                {
                     "step_instance_id": 292778,
-                    "global_var_list": [{
-                            "name": "aa",
-                            "value": "AA",
-                            "type": 1
-                        }, {
-                            "name": "password",
-                            "value": "mypassword",
-                            "type": 4
-                        }
-                    ]
+                    "global_var_list": [
+                        {"name": "aa", "value": "AA", "type": 1},
+                        {"name": "password", "value": "mypassword", "type": 4},
+                    ],
                 }
-            ]
-        }
+            ],
+        },
     },
     get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
@@ -239,9 +232,9 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -271,9 +264,9 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -344,9 +337,9 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -422,9 +415,9 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -499,9 +492,9 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -592,9 +585,9 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {
                                 "name": "key_2",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -684,9 +677,9 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
                             {
                                 "name": "key_2",
                                 "server": {
-                                    "ip_list":[
+                                    "ip_list": [
                                         {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1}
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
                                     ]
                                 },
                             },
@@ -713,4 +706,3 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
-
