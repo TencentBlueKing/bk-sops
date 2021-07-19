@@ -29,11 +29,11 @@ from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_
 class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         return [
-            # FILE_MANAGER_NOT_CONFIG_CASE(),
-            # FILE_MANAGER_TYPE_ERR_CASE(),
-            # PUSH_FILE_TO_IPS_FAIL_CASE(),
-            # SCHEDULE_FAILURE_CASE(),
-            # SUCCESS_MULTI_CASE(),
+            FILE_MANAGER_NOT_CONFIG_CASE(),
+            FILE_MANAGER_TYPE_ERR_CASE(),
+            PUSH_FILE_TO_IPS_FAIL_CASE(),
+            SCHEDULE_FAILURE_CASE(),
+            SUCCESS_MULTI_CASE(),
             SUCCESS_MULTI_CASE_WITH_TIMEOUT(),
         ]
 
