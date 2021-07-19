@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import datetime
 import hashlib
 import copy
+import logging
 from functools import cmp_to_key
 
 import ujson as json
@@ -33,6 +34,8 @@ from pipeline_web.drawing_new.drawing import draw_pipeline
 from gcloud.template_base.utils import replace_template_id
 
 WEB_TREE_FIELDS = {"location", "line"}
+
+logger = logging.getLogger("root")
 
 
 class PipelineTemplateWebWrapper(object):
@@ -368,12 +371,26 @@ class PipelineTemplateWebWrapper(object):
                 # import template scheme
                 schemes = []
                 for scheme_data in template_dict.get("schemes", []):
+                    scheme_node_data = scheme_data["data"]
+                    try:
+                        new_scheme_node_ids = []
+                        scheme_node_ids = json.loads(scheme_data["data"])
+                        for node_id in scheme_node_ids:
+                            new_scheme_node_ids.append(
+                                template_node_id_old_to_new[pipeline_template.template_id]["activities"].get(
+                                    node_id, node_id
+                                )
+                            )
+                        scheme_node_data = json.dumps(new_scheme_node_ids)
+                    except Exception:
+                        logger.exception("scheme node id replace error for template(%s)" % pipeline_template.name)
+
                     schemes.append(
                         TemplateScheme(
                             template_id=pipeline_template.id,
                             unique_id=uniqid(),
                             name=scheme_data["name"],
-                            data=scheme_data["data"],
+                            data=scheme_node_data,
                         )
                     )
 

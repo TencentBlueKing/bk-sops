@@ -239,7 +239,7 @@ class JobService(Service):
 
                 global_var_list = global_var_result["data"].get("job_instance_var_values", [])
                 if global_var_list:
-                    for global_var in global_var_list[-1]["step_instance_var_values"]:
+                    for global_var in global_var_list[-1]["step_instance_var_values"] or []:
                         if global_var["category"] != JOB_VAR_TYPE_IP:
                             data.set_outputs(global_var["name"], global_var["value"])
 
