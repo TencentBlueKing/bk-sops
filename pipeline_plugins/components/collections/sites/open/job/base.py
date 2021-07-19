@@ -34,7 +34,6 @@ import re
 from functools import partial
 import time
 from django.utils.translation import ugettext_lazy as _
-from iam.api.client import Client
 from copy import deepcopy
 
 from pipeline.core.flow import StaticIntervalGenerator
@@ -192,7 +191,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
-def get_job_global_var_dict(client, ):
+def get_job_global_var_dict(
+    client,
+):
     pass
 
 
@@ -238,7 +239,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -375,7 +378,6 @@ class JobScheduleService(JobService):
 
 
 class JobFailAutoProcessService(Service):
-
     @property
     def operation_word(self):
         return {
@@ -395,12 +397,9 @@ class JobFailAutoProcessService(Service):
 
         if not job_history_auto_process_action:
             job_history_auto_process_action = "3"
-        job_kwargs = {
-            "bk_biz_id": biz_cc_id,
-            "job_instance_id": job_history_id
-        }
+        job_kwargs = {"bk_biz_id": biz_cc_id, "job_instance_id": job_history_id}
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
-        
+
         if not job_result["result"]:
             message = job_handle_api_error("jobv3.get_job_instance_status", job_kwargs, job_result)
             self.logger.error(message)
@@ -414,7 +413,9 @@ class JobFailAutoProcessService(Service):
                 return True
             else:
                 # 如果历史作业实例非成功状态，尝试根据用户输入来操作历史实例ß
-                fail_auto_process_result = self.auto_process(self, data, operate_code=job_history_auto_process_action, job_instance_info=job_result)
+                fail_auto_process_result = self.auto_process(
+                    self, data, operate_code=job_history_auto_process_action, job_instance_info=job_result
+                )
                 if fail_auto_process_result:
                     data.outputs.job_inst_id = job_history_id
                     data.outputs.job_inst_name = job_result["data"]["job_instance"]["name"]
@@ -424,15 +425,16 @@ class JobFailAutoProcessService(Service):
                     data.set_outputs(
                         "ex_data",
                         {
-                            "exception_msg": _("历史任务实例非‘成功’状态，尝试前往作业平台重新执行任务，仍然执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
-                                job_inst_url=data.outputs.job_inst_url
-                            ),
+                            "exception_msg": _(
+                                "历史任务实例非‘成功’状态，尝试前往作业平台重新执行任务，仍然执行失败，"
+                                "<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                            ).format(job_inst_url=data.outputs.job_inst_url),
                             "task_inst_id": job_history_id,
                             "show_ip_log": True,
                         },
                     )
                     return False
-    
+
     def schedule(self, data, parent_data, callback_data):
         try:
             job_instance_id = callback_data.get("job_instance_id", None)
@@ -446,22 +448,21 @@ class JobFailAutoProcessService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id")
         executor = data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
-        
+
         if not job_instance_id or not status:
             data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
             self.finish_schedule()
             return False
-        
+
         if status in JOB_SUCCESS:
             # 1、获取job侧全局变量
-            get_var_kwargs = {
-                "bk_biz_id": data.get_one_of_inputs("biz_cc_id"),
-                "job_instance_id": job_instance_id
-            }
+            get_var_kwargs = {"bk_biz_id": data.get_one_of_inputs("biz_cc_id"), "job_instance_id": job_instance_id}
             global_var_result = client.jobv3.get_job_instance_global_var_value(get_var_kwargs)
-            
+
             if not global_var_result["result"]:
-                message = job_handle_api_error("jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result)
+                message = job_handle_api_error(
+                    "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result
+                )
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 self.finish_schedule()
@@ -471,10 +472,7 @@ class JobFailAutoProcessService(Service):
                     data.set_outputs(global_var["name"], global_var["value"])
             # 2、从sops日志提取全局变量
             get_job_sops_var_dict_return = get_job_sops_var_dict(
-                data.outputs.client,
-                self.logger,
-                job_instance_id,
-                biz_cc_id
+                data.outputs.client, self.logger, job_instance_id, biz_cc_id
             )
             if not get_job_sops_var_dict_return["result"]:
                 self.logger.warning(
@@ -490,27 +488,25 @@ class JobFailAutoProcessService(Service):
         else:
             # 进入失败自动处理策略
             # 1、查job实例的step_list
-            job_kwargs = {
-                "bk_biz_id": biz_cc_id,
-                "job_instance_id": job_instance_id
-            }
+            job_kwargs = {"bk_biz_id": biz_cc_id, "job_instance_id": job_instance_id}
             job_result = client.jobv3.get_job_instance_status(job_kwargs)
             if not job_result:
                 message = handle_api_error("jobv3.get_job_instance_status", job_kwargs, job_result)
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
-            fail_auto_process_result = self.auto_process(self, data, operate_code=job_fail_auto_process_action, job_instance_info=job_result)
+            fail_auto_process_result = self.auto_process(
+                self, data, operate_code=job_fail_auto_process_action, job_instance_info=job_result
+            )
             if fail_auto_process_result:
                 # 1、获取job侧全局变量
-                get_var_kwargs = {
-                    "bk_biz_id": data.get_one_of_inputs("biz_cc_id"),
-                    "job_instance_id": job_instance_id
-                }
+                get_var_kwargs = {"bk_biz_id": data.get_one_of_inputs("biz_cc_id"), "job_instance_id": job_instance_id}
                 global_var_result = client.jobv3.get_job_instance_global_var_value(get_var_kwargs)
-                
+
                 if not global_var_result["result"]:
-                    message = job_handle_api_error("jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result)
+                    message = job_handle_api_error(
+                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result
+                    )
                     self.logger.error(message)
                     data.outputs.ex_data = message
                     self.finish_schedule()
@@ -520,10 +516,7 @@ class JobFailAutoProcessService(Service):
                         data.set_outputs(global_var["name"], global_var["value"])
                 # 2、从sops日志提取全局变量
                 get_job_sops_var_dict_return = get_job_sops_var_dict(
-                    data.outputs.client,
-                    self.logger,
-                    job_instance_id,
-                    biz_cc_id
+                    data.outputs.client, self.logger, job_instance_id, biz_cc_id
                 )
                 if not get_job_sops_var_dict_return["result"]:
                     self.logger.warning(
@@ -541,10 +534,12 @@ class JobFailAutoProcessService(Service):
                     "ex_data",
                     {
                         "exception_msg": _(
-                            "任务执行失败，尝试在作业平台(JOB)进行 ’{operate}‘ 操作后仍然失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>".format(
+                            "任务执行失败，尝试在作业平台(JOB)进行 ’{operate}‘ 操作后仍然失败，"
+                            "<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>".format(
                                 operate=self.operation_word[job_fail_auto_process_action],
-                                job_inst_url=data.outputs.job_inst_url
-                        )),
+                                job_inst_url=data.outputs.job_inst_url,
+                            )
+                        ),
                         "task_inst_id": job_instance_id,
                         "show_ip_log": True,
                     },
@@ -552,10 +547,9 @@ class JobFailAutoProcessService(Service):
                 self.finish_schedule()
                 return False
 
-
     def auto_process(self, data, operate_code, job_instance_info):
         # 如果operate_code=3（忽略错误）直接return
-        if ( operate_code=='3' ) or ( not operate_code ):
+        if (operate_code == "3") or (not operate_code):
             return False
         # 调job_api,然后轮询执行结果,最终返回一个重试结果代号
         # 从job_instance_info中解析出步骤
@@ -568,7 +562,7 @@ class JobFailAutoProcessService(Service):
                 "bk_biz_id": data.get_one_of_inputs("biz_cc_id"),
                 "job_instance_id": job_instance_id,
                 "step_instance_id": _step["step_instance_id"],
-                "operation_code": operate_code
+                "operation_code": operate_code,
             }
             for _step in job_instance_info["data"]["step_instance_list"]
         ]
@@ -583,15 +577,12 @@ class JobFailAutoProcessService(Service):
                 break
         if not retry_status:
             return False
-        
+
         # 截至目前，已经提交了所有的任务执行，下面开始轮询执行状态（60s后未查询到结果就超时跳出）
-        get_job_status_kwargs = {
-            "bk_biz_id": biz_cc_id,
-            "job_instance_id": job_instance_id
-        }
+        get_job_status_kwargs = {"bk_biz_id": biz_cc_id, "job_instance_id": job_instance_id}
         query_start = time.time()
         while True:
-            if time.time()-query_start>60:
+            if time.time() - query_start > 60:
                 # 超时
                 break
             get_job_status_result = client.jobv3.get_job_instance_status(get_job_status_kwargs)
