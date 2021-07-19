@@ -97,12 +97,12 @@
             },
             shortcutPanelTop () {
                 if (this.isGatewayNode(this.node.type)) {
-                    return '46px'
+                    return '38px'
                 }
                 if (this.node.type === 'startpoint') {
-                    return '52px'
+                    return '48px'
                 }
-                return '64px'
+                return '58px'
             }
         },
         methods: {
@@ -228,11 +228,10 @@
 <style lang="scss">
 .shortcut-panel {
     position: absolute;
-    left: 50%;
+    left: calc(50% + 20px);
     top: 56px;
     width: 120px;
     background: rgba(255, 255, 255, .9);
-    transform: translateX(-50%);
     cursor: default;
     .nodes-wrap {
         display: flex;
