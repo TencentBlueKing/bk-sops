@@ -27,7 +27,9 @@ class Manager(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def push_files_to_ips(self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None):
+    def push_files_to_ips(
+        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+    ):
         raise NotImplementedError()
 
     @abstractmethod
