@@ -468,7 +468,8 @@
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData',
-                'getPipelineTree'
+                'getPipelineTree',
+                'addVariable'
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
@@ -637,6 +638,7 @@
                 try {
                     this.systemVarsLoading = true
                     const result = await this.loadInternalVariable()
+                    console.log(result.data)
                     this.setInternalVariable(result.data)
                 } catch (e) {
                     console.log(e)

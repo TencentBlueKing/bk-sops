@@ -68,17 +68,17 @@ const project = {
             return axios.get(`api/v3/project_constants/`, { params }).then(response => response.data)
         },
         // 新增环境变量
-        createVariableList ({ commit }, data) {
+        createEnvironmentVariable ({ commit }, data) {
             return axios.post(`api/v3/project_constants/`, data).then(response => response.data)
         },
         // 更新环境变量
-        updateVariableList ({ commit }, data) {
+        updateEnvironmentVariable ({ commit }, data) {
             const { id } = data
             return axios.put(`api/v3/project_constants/${id}`, data).then(response => response.data)
         },
         // 删除环境变量
-        deleteVariableList ({ commit }, id) {
-            return axios.delete(`api/v3/project_constants/${id}`).then(response => response.data)
+        deleteEnvironmentVariable ({ commit }, id) {
+            return axios.delete(`api/v3/project_constants/${id}/`).then(response => response.data)
         },
 
         createProject ({ commit }, data) {

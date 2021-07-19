@@ -321,6 +321,7 @@ const en = {
     '变量名称长度不能超过': 'Length cannot be larger than ',
     '变量KEY值不能为空': 'KEY cannot be empty',
     '变量KEY由英文字母、数字、下划线组成，且不能以数字开头': 'KEY is composed of letters, numbers, underline and cannot begin with number',
+    '变量KEY由英文字母、数字、下划线组成': 'VALUE is composed of letters, numbers, underline',
     '变量KEY值长度不能超过': 'Length cannot be larger than ',
     '变量KEY值已存在': 'KEY cannot repeat',
     '变量隐藏时默认值不能为空': 'Default cannot be empty where variable is hide',

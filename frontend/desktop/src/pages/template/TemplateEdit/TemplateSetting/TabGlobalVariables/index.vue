@@ -190,16 +190,41 @@
         created () {
             this.setVariableList()
             this.getVariableCitedData()
+            this.getConstantDate()
         },
         methods: {
+            ...mapActions('project/', [
+                'loadVariableList'
+            ]),
             ...mapActions('template', [
                 'getVariableCite'
             ]),
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setOutputs'
+                'setOutputs',
+                'addVariable'
             ]),
+            async getConstantDate () {
+                try {
+                    const resp = await this.loadVariableList({ project_id: this.$route.params.project_id })
+                    if (resp.data) {
+                        resp.data.forEach(item => {
+                            item.custom_type = 'input'
+                            item.form_schema = {}
+                            item.index = Object.keys(this.constants).length + 1
+                            item.show_type = 'show'
+                            item.source_info = {}
+                            item.source_tag = 'input.input'
+                            item.source_type = 'custom'
+                            item.validation = '^.+$'
+                            this.addVariable(item)
+                        })
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             async getVariableCitedData () {
                 try {
                     const data = {
@@ -215,7 +240,7 @@
                     console.log(e)
                 }
             },
-            setVariableList () {
+            async setVariableList () {
                 const userVars = Object.keys(this.constants)
                     .map(key => tools.deepClone(this.constants[key]))
                     .sort((a, b) => a.index - b.index)

@@ -140,7 +140,7 @@
                 <bk-tab-panel :label="$t('环境变量')" name="variable">
                     <section class="mandate-section">
                         <div class="variable-list">
-                            <p class="variable-list-tip">{{ $t('项目级别的变量建立后') }},{{ $t('可以在模板中通过') }}${env.key}{{ $t('方式引用') }}</p>
+                            <p class="variable-list-tip">{{ $t('项目级别的变量建立后') }},{{ $t('可以在模板中通过') }}${_env_key}{{ $t('方式引用') }}</p>
                             <bk-button :theme="'primary'" @click="onAddVariable('create')">{{ $t('新增项目变量') }}</bk-button>
                         </div>
                         <bk-table style="margin-top: 15px;" :data="variableData">
@@ -148,10 +148,10 @@
                             <bk-table-column :label="$t('KEY')" prop="key"></bk-table-column>
                             <bk-table-column :label="$t('值')" prop="value"></bk-table-column>
                             <bk-table-column :label="$t('说明')" prop="desc"></bk-table-column>
-                            <bk-table-column :label="$t('操作')" width="150">
+                            <bk-table-column :label="$t('操作')">
                                 <template slot-scope="props">
-                                    <bk-button class="mr10" theme="primary" text @click="onAddVariable('edit', props.row)">{{ $t('编辑') }}</bk-button>
-                                    <bk-button class="mr10" theme="primary" text @click="onRemove(props.row.id)">{{ $t('删除') }}</bk-button>
+                                    <bk-button theme="primary" text @click="onAddVariable('edit', props.row)">{{ $t('编辑') }}</bk-button>
+                                    <bk-button theme="primary" text @click="onRemove(props.row.id)">{{ $t('删除') }}</bk-button>
                                 </template>
                             </bk-table-column>
                         </bk-table>
@@ -339,7 +339,7 @@
     import i18n from '@/config/i18n/index.js'
     import BkUserSelector from '@blueking/user-selector'
     import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapMutations } from 'vuex'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
 
@@ -392,7 +392,12 @@
                     key: [
                         {
                             required: true,
-                            message: i18n.t('必填项'),
+                            message: i18n.t('变量KEY值不能为空'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
                             trigger: 'blur'
                         }
                     ],
@@ -400,6 +405,11 @@
                         {
                             required: true,
                             message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: /^\w+$/,
+                            message: i18n.t('变量value由英文字母、数字、下划线组成'),
                             trigger: 'blur'
                         }
                     ],
@@ -477,7 +487,8 @@
         },
         computed: {
             ...mapState({
-                username: state => state.username
+                username: state => state.username,
+                'constants': state => state.template.constants
             })
         },
         created () {
@@ -503,13 +514,16 @@
                 'delTemplateLabel',
                 'getlabelsCitedCount',
                 'loadVariableList',
-                'createVariableList',
-                'deleteVariableList',
-                'updateVariableList'
+                'createEnvironmentVariable',
+                'deleteEnvironmentVariable',
+                'updateEnvironmentVariable'
+            ]),
+            ...mapMutations('template', [
+                'addVariable'
             ]),
             async getVariableData () {
                 const data = {
-                    project_id: this.$route.params.id + ''
+                    project_id: this.$route.params.id
                 }
                 const resp = await this.loadVariableList(data)
                 if (resp.data) {
@@ -788,37 +802,37 @@
             onAddVariable (type, rows) {
                 this.variableFormData = type === 'edit' ? { ...rows, type: 'edit', id: rows.id } : { name: '', key: '', value: '', desc: '' }
                 this.isAddVariableDialogShow = true
+                this.$refs.variableForm.clearError()
             },
             VariableConfirm () {
                 if (this.pending.variable) {
                     return
                 }
                 this.pending.variable = true
-                this.$refs.variableForm.validate().then(async validator => {
-                    if (validator) {
-                        try {
+                try {
+                    this.$refs.variableForm.validate().then(async validator => {
+                        if (validator) {
                             const { type, name, key, desc, value, id } = this.variableFormData
                             const data = {
                                 name,
                                 project_id: this.$route.params.id,
-                                key,
+                                key: '${_env_' + key + '}',
                                 value,
                                 desc,
                                 id
                             }
-                            const resp = type ? await this.updateVariableList(data) : await this.createVariableList(data)
+                            const resp = type ? await this.updateEnvironmentVariable(data) : await this.createEnvironmentVariable(data)
                             if (resp.result) {
                                 this.getVariableData()
                                 this.isAddVariableDialogShow = false
                             }
-                        } catch (e) {
-                            console.log(e)
-                        } finally {
-                            this.pending.variable = false
-                            this.$refs.variableForm.clearError()
                         }
-                    }
-                })
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.pending.variable = false
+                }
             },
             onRemove (id) {
                 this.delId = id
@@ -830,7 +844,7 @@
                 }
                 this.pending.deletevariable = true
                 try {
-                    const resp = await this.deleteVariableList(this.delId)
+                    const resp = await this.deleteEnvironmentVariable(this.delId)
                     if (resp.result) {
                         this.isDeleteVariableDialogShow = false
                         this.getVariableData()
