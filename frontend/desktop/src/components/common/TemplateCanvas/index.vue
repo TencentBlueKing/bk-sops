@@ -810,26 +810,25 @@
                 this.referenceLine = {}
             },
             // 锚点点击回调
-            onEndpointClick (endpoint, event) {
+            onEndpointClick (edp, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { pageX, pageY } = event
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                const bX = pageX - offsetX
-                const bY = pageY - offsetY
-                const type = endpoint.anchor.type
+                const { w, h, x, y } = edp.endpoint
+                const bX = x + w / 2
+                const bY = y + h / 2
+                const type = edp.anchor.type
                 // 第二次点击
-                if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
+                if (this.referenceLine.id && edp.elementId !== this.referenceLine.id) {
                     this.createLine(
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
-                        { id: endpoint.elementId, arrow: type }
+                        { id: edp.elementId, arrow: type }
                     )
                     this.clearReferenceLine()
                     return false
                 }
                 this.createReferenceLine()
-                this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
+                this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
                 document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 鼠标移动更新参考线
@@ -1350,9 +1349,49 @@
         .jtk-endpoint {
             z-index: 3;
             cursor: pointer;
+            &.template-canvas-endpoint {
+                &:after {
+                    display: none;
+                    position: absolute;
+                    content: '';
+                    height: 32px;
+                    width: 32px;
+                    background: url('~@/assets/images/endpoint.png') center/32px no-repeat;
+                    border-radius: 50%;
+                    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
+                }
+                &:hover:after {
+                    background: url('~@/assets/images/endpoint-hover.png') center/32px no-repeat;
+                }
+                &:hover,
+                &.jtk-endpoint-highlight {
+                    &:after {
+                        display: block;
+                    }
+                    &[data-pos="Top"]:after {
+                        bottom: 22px;
+                        left: 0px;
+                        transform: rotate(-90deg);
+                    }
+                    &[data-pos="Bottom"]:after {
+                        top: 22px;
+                        left: 0;
+                        transform: rotate(90deg);
+                    }
+                    &[data-pos="Left"]:after {
+                        top: 0;
+                        right: 22px;
+                        transform: rotate(-180deg);
+                    }
+                    &[data-pos="Right"]:after {
+                        top: 0;
+                        left: 22px;
+                    }
+                }
+            }
         }
         .jsflow-node {
-            z-index: 3;
+            z-index: 4;
             &.adding-node {
                 z-index: 6;
             }
