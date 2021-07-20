@@ -301,7 +301,8 @@
                         }
                     ]
                 },
-                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
+                typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                envVariableData: {}
             }
         },
         computed: {
@@ -442,7 +443,8 @@
                 'loadSubflowConfig'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -468,8 +470,7 @@
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData',
-                'getPipelineTree',
-                'addVariable'
+                'getPipelineTree'
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
@@ -637,9 +638,29 @@
             async getSystemVars () {
                 try {
                     this.systemVarsLoading = true
+                    const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                    if (resp.result) {
+                        this.envVariableData = resp.data.map(item => {
+                            const { key, name, value } = item
+                            const projectVar = {
+                                key,
+                                name,
+                                value,
+                                index: Date.now(),
+                                custom_type: 'input',
+                                form_schema: {},
+                                show_type: 'hide',
+                                validation: '^.+$',
+                                source_info: {},
+                                source_type: 'project',
+                                source_tag: 'input.input'
+                            }
+                            return projectVar
+                        })
+                    }
                     const result = await this.loadInternalVariable()
-                    console.log(result.data)
-                    this.setInternalVariable(result.data)
+                    const internalVariable = { ...result.data, ...this.envVariableData }
+                    this.setInternalVariable(internalVariable)
                 } catch (e) {
                     console.log(e)
                 } finally {

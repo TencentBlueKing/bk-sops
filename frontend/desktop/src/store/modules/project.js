@@ -64,20 +64,20 @@ const project = {
             return axios.get('api/v3/common_use_project/').then(response => response.data)
         },
         // 获取环境变量列表
-        loadVariableList ({ commit }, params) {
+        loadEnvVariableList ({ commit }, params) {
             return axios.get(`api/v3/project_constants/`, { params }).then(response => response.data)
         },
         // 新增环境变量
-        createEnvironmentVariable ({ commit }, data) {
+        createEnvVariable ({ commit }, data) {
             return axios.post(`api/v3/project_constants/`, data).then(response => response.data)
         },
         // 更新环境变量
-        updateEnvironmentVariable ({ commit }, data) {
+        updateEnvVariable ({ commit }, data) {
             const { id } = data
             return axios.put(`api/v3/project_constants/${id}`, data).then(response => response.data)
         },
         // 删除环境变量
-        deleteEnvironmentVariable ({ commit }, id) {
+        deleteEnvVariable ({ commit }, id) {
             return axios.delete(`api/v3/project_constants/${id}/`).then(response => response.data)
         },
 

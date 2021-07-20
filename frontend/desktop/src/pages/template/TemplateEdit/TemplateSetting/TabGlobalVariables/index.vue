@@ -190,41 +190,16 @@
         created () {
             this.setVariableList()
             this.getVariableCitedData()
-            this.getConstantDate()
         },
         methods: {
-            ...mapActions('project/', [
-                'loadVariableList'
-            ]),
             ...mapActions('template', [
                 'getVariableCite'
             ]),
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setOutputs',
-                'addVariable'
+                'setOutputs'
             ]),
-            async getConstantDate () {
-                try {
-                    const resp = await this.loadVariableList({ project_id: this.$route.params.project_id })
-                    if (resp.data) {
-                        resp.data.forEach(item => {
-                            item.custom_type = 'input'
-                            item.form_schema = {}
-                            item.index = Object.keys(this.constants).length + 1
-                            item.show_type = 'show'
-                            item.source_info = {}
-                            item.source_tag = 'input.input'
-                            item.source_type = 'custom'
-                            item.validation = '^.+$'
-                            this.addVariable(item)
-                        })
-                    }
-                } catch (e) {
-                    console.log(e)
-                }
-            },
             async getVariableCitedData () {
                 try {
                     const data = {
@@ -295,7 +270,6 @@
                 if (newIndex === oldIndex) {
                     return
                 }
-
                 const start = Math.min(newIndex, oldIndex)
                 const end = Math.max(newIndex, oldIndex) + 1
                 const delta = this.isHideSystemVar ? start : start - Object.keys(this.systemConstants).length

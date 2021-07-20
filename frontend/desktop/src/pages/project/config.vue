@@ -298,7 +298,7 @@
             :header-position="'left'"
             :loading="pending.variable"
             :value="isAddVariableDialogShow"
-            @confirm="VariableConfirm"
+            @confirm="variableConfirm"
             @cancel="isAddVariableDialogShow = false">
             <bk-form class="create-variable-form" :label-width="80" ref="variableForm" :model="variableFormData" :rules="variableRules">
                 <bk-form-item class="form-item-name" :label="$t('变量名称')" :required="true" property="name">
@@ -339,7 +339,7 @@
     import i18n from '@/config/i18n/index.js'
     import BkUserSelector from '@blueking/user-selector'
     import { LABEL_COLOR_LIST, DARK_COLOR_LIST } from '@/constants/index.js'
-    import { mapActions, mapState, mapMutations } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
 
@@ -487,8 +487,7 @@
         },
         computed: {
             ...mapState({
-                username: state => state.username,
-                'constants': state => state.template.constants
+                username: state => state.username
             })
         },
         created () {
@@ -513,20 +512,17 @@
                 'createTemplateLabel',
                 'delTemplateLabel',
                 'getlabelsCitedCount',
-                'loadVariableList',
-                'createEnvironmentVariable',
-                'deleteEnvironmentVariable',
-                'updateEnvironmentVariable'
-            ]),
-            ...mapMutations('template', [
-                'addVariable'
+                'loadEnvVariableList',
+                'createEnvVariable',
+                'deleteEnvVariable',
+                'updateEnvVariable'
             ]),
             async getVariableData () {
                 const data = {
                     project_id: this.$route.params.id
                 }
-                const resp = await this.loadVariableList(data)
-                if (resp.data) {
+                const resp = await this.loadEnvVariableList(data)
+                if (resp.result) {
                     this.variableData = resp.data
                 }
             },
@@ -804,7 +800,7 @@
                 this.isAddVariableDialogShow = true
                 this.$refs.variableForm.clearError()
             },
-            VariableConfirm () {
+            variableConfirm () {
                 if (this.pending.variable) {
                     return
                 }
@@ -821,7 +817,7 @@
                                 desc,
                                 id
                             }
-                            const resp = type ? await this.updateEnvironmentVariable(data) : await this.createEnvironmentVariable(data)
+                            const resp = type ? await this.updateEnvVariable(data) : await this.createEnvVariable(data)
                             if (resp.result) {
                                 this.getVariableData()
                                 this.isAddVariableDialogShow = false
