@@ -114,7 +114,7 @@ class TextValueSelect(LazyVariable):
         ${KEY["text"]} 输出选中的 text\n
         多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
         ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串
-        """    
+        """
 
     def get_value(self):
         text_value = json.loads(self.value)
