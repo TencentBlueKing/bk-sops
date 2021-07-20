@@ -111,9 +111,9 @@ class TextValueSelect(LazyVariable):
     schema = StringItemSchema(description=_("文本值下拉框变量"))
     desc = """
         单选模式下 ${KEY["value"]} 输出选中的 value，
-        ${KEY["text"]} 输出选中的 text，
+        ${KEY["text"]} 输出选中的 text\n
         多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
-        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串,
+        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串
         """    
 
     def get_value(self):
