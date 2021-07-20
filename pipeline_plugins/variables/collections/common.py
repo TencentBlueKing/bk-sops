@@ -109,11 +109,12 @@ class TextValueSelect(LazyVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, "select")
     schema = StringItemSchema(description=_("文本值下拉框变量"))
-    desc = (
-        r'单选模式下 ${KEY["value"]} 输出选中的 value，${KEY["text"]} 输出选中的 text，多选模式下 ${KEY["value"]} 输出选中的 value 以 ',
-        ' 拼接的字符串，${KEY["text"]} 输出选中的 text 以 ',
-        " 拼接的字符串",
-    )
+    desc = """
+        单选模式下 ${KEY["value"]} 输出选中的 value，
+        ${KEY["text"]} 输出选中的 text，
+        多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
+        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串,
+        """    
 
     def get_value(self):
         text_value = json.loads(self.value)
