@@ -396,7 +396,7 @@
             width: 90px;
         }
         .manager-project-variable-btn {
-            width: 120px;
+            padding: 0 20px;
         }
         .toggle-system-var {
             float: right;

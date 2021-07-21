@@ -639,6 +639,7 @@
                 try {
                     this.systemVarsLoading = true
                     const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                    const result = await this.loadInternalVariable()
                     if (resp.result) {
                         this.envVariableData = resp.data.map(item => {
                             const { key, name, value } = item
@@ -646,7 +647,6 @@
                                 key,
                                 name,
                                 value,
-                                index: Date.now(),
                                 custom_type: 'input',
                                 form_schema: {},
                                 show_type: 'hide',
@@ -658,8 +658,11 @@
                             return projectVar
                         })
                     }
-                    const result = await this.loadInternalVariable()
                     const internalVariable = { ...result.data, ...this.envVariableData }
+                    let i = 0
+                    for (const index in internalVariable) {
+                        internalVariable[index].index = --i
+                    }
                     this.setInternalVariable(internalVariable)
                 } catch (e) {
                     console.log(e)

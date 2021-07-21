@@ -305,7 +305,7 @@
                     <bk-input v-model="variableFormData.name" :placeholder="$t('请输入变量名称')"></bk-input>
                 </bk-form-item>
                 <bk-form-item class="form-item-key" label="KEY" :required="true" property="key">
-                    <bk-input v-model="variableFormData.key" :placeholder="$t('请输入变量的KEY')"></bk-input>
+                    <bk-input v-model="variableFormData.key" :placeholder="$t('请输入变量的KEY, 以 ${_env_ 开头,以 } 结尾')"></bk-input>
                 </bk-form-item>
                 <bk-form-item class="form-item-value" :label="$t('值')" :required="true" property="value">
                     <bk-input type="textarea" v-model="variableFormData.value" :placeholder="$t('请填写变量值')"></bk-input>
@@ -387,6 +387,16 @@
                             required: true,
                             message: i18n.t('必填项'),
                             trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('变量name值长度不能超过') + '50',
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: /^[^'"‘’“”$<>]+$/,
+                            message: i18n.t('变量name不能包含特殊字符'),
+                            trigger: 'blur'
                         }
                     ],
                     key: [
@@ -396,8 +406,13 @@
                             trigger: 'blur'
                         },
                         {
-                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
-                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            regex: /\${_env_.*?\}/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，以"${_env_"开头,以"}"结尾'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('变量KEY值长度不能超过') + '50',
                             trigger: 'blur'
                         }
                     ],
@@ -410,6 +425,11 @@
                         {
                             regex: /^\w+$/,
                             message: i18n.t('变量value由英文字母、数字、下划线组成'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('变量KEY值长度不能超过') + '50',
                             trigger: 'blur'
                         }
                     ],
@@ -812,7 +832,7 @@
                             const data = {
                                 name,
                                 project_id: this.$route.params.id,
-                                key: '${_env_' + key + '}',
+                                key,
                                 value,
                                 desc,
                                 id
@@ -840,7 +860,7 @@
                 }
                 this.pending.deletevariable = true
                 try {
-                    const resp = await this.deleteEnvironmentVariable(this.delId)
+                    const resp = await this.deleteEnvVariable(this.delId)
                     if (resp.result) {
                         this.isDeleteVariableDialogShow = false
                         this.getVariableData()
@@ -989,18 +1009,6 @@
         .create-variable-form {
             display: flex;
             flex-direction: column;
-            .form-item-name {
-                height: 32px;
-            }
-            .form-item-key {
-                height: 32px;
-            }
-            .form-item-value {
-                height: 72px;
-            }
-            .form-item-desc {
-                height: 96px;
-            }
         }
     }
     .delete-variable-dialog {

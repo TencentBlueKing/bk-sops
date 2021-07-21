@@ -12,9 +12,9 @@
 <template>
     <div class="variable-item">
         <div class="variable-content" @click="onEditVariable(variableData.key, variableData.index)">
-            <i v-if="variableType === 'system'" class="common-icon-lock-disable"></i>
-            <i v-else-if="variableType === 'custom' && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-else class="common-icon-paper"></i>
+            <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
+            <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
+            <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span :title="variableData.name" class="col-item col-name">
                 {{ variableData.name }}
             </span>
@@ -85,7 +85,7 @@
             </span>
             <span class="col-item col-operation">
                 <span
-                    v-if="variableType === 'system' || variableType === 'project'"
+                    v-if="isSystemVar || isProjectVar"
                     class="col-operation-item"
                     @click.stop="onEditVariable(variableData.key, variableData.index)">
                     {{ $t('查看') }}
@@ -151,8 +151,11 @@
                 'project_id': state => state.project.project_id,
                 'bizId': state => state.project.bizId
             }),
-            variableType () {
-                return this.variableData.source_type
+            isSystemVar () {
+                return this.variableData.source_type === 'system'
+            },
+            isProjectVar () {
+                return this.variableData.source_type === 'project'
             },
             citedList () {
                 const defaultCiteData = {
@@ -416,14 +419,7 @@ $localBorderColor: #d8e2e7;
         }
     }
 }
-.common-icon-lock-disable {
-    position: absolute;
-    top: 50%;
-    left: 20px;
-    transform: translate(0, -50%);
-    color: #979ba5;
-}
-.common-icon-paper {
+.variable-icon {
     position: absolute;
     top: 50%;
     left: 20px;
