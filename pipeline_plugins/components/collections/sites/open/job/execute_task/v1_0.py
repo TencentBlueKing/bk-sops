@@ -176,6 +176,6 @@ class JobExecuteTaskComponent(Component):
     name = _("执行作业")
     code = "job_execute_task"
     bound_service = JobExecuteTaskService
-    form = "%scomponents/atoms/job/job_execute_task.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/job/job_execute_task/v1_0.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
-    version = "legacy"
+    version = "1.0"
