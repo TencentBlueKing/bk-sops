@@ -687,7 +687,7 @@
                     }
                     // 获取执行失败节点是否允许跳过，重试状态
                     if (this.location.type === 'tasknode' && this.executeInfo.state === 'FAILED') {
-                        const activity = this.pipelineData[this.nodeDetailConfig.node_id]
+                        const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = activity.skippable
                         this.isShowRetryBtn = activity.retryable
                     }
