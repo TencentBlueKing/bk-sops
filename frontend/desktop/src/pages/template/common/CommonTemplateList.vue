@@ -715,7 +715,8 @@
                             category: 'common_flow'
                         }
                     })
-                    if (data.length === 0) {
+                    if (data.length === 0) { // 所选流程都已是收藏状态
+                        this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         return
                     }
                     const res = await this.addToCollectList(data)
