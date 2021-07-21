@@ -938,9 +938,11 @@
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
-                const passedNodes = []
-                this.retrieveLines(data, fstLine, orderedData, passedNodes)
+                this.retrieveLines(data, fstLine, orderedData, true)
                 orderedData.sort((a, b) => a.level - b.level)
+                const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
+                const endEvent = orderedData.splice(endEventIndex, 1)
+                orderedData.push(endEvent[0])
                 return orderedData
             },
             /**
@@ -948,11 +950,10 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Array} passedNodes 遍历过的节点
              * @param {Number} level 任务节点与开始节点的距离
              *
              */
-            retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
+            retrieveLines (data, lineId, ordered, level = 0) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
@@ -960,34 +961,29 @@
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
 
-                if (node && !passedNodes.includes(node.id)) {
-                    passedNodes.push(node.id)
+                if (node && ordered.findIndex(item => item.id === node.id) === -1) {
                     if (endEvent) {
                         const name = this.$t('结束节点')
-                        endEvent.level = level
                         endEvent.title = name
                         endEvent.name = name
                         endEvent.expanded = false
                         ordered.push(endEvent)
-                    } else if (activity) { // 任务节点
-                        const isExistInList = ordered.find(item => item.id === activity.id)
-                        if (!isExistInList) {
-                            if (activity.pipeline) {
-                                activity.children = this.getOrderedTree(activity.pipeline, level)
-                            }
-                            activity.level = level
-                            activity.title = activity.name
-                            activity.expanded = activity.pipeline
-                            ordered.push(activity)
-                        }
                     } else if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
+                        level += 1
                         gateway.level = level
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
-                        level += 1
                         ordered.push(gateway)
+                    } else if (activity) { // 任务节点
+                        if (activity.pipeline) {
+                            activity.children = this.getOrderedTree(activity.pipeline, level)
+                        }
+                        activity.level = level
+                        activity.title = activity.name
+                        activity.expanded = activity.pipeline
+                        ordered.push(activity)
                     }
 
                     let outgoing
@@ -996,8 +992,8 @@
                     } else {
                         outgoing = node.outgoing ? [node.outgoing] : []
                     }
-                    outgoing.forEach((line, index, arr) => {
-                        this.retrieveLines(data, line, ordered, passedNodes, level)
+                    outgoing.forEach(line => {
+                        this.retrieveLines(data, line, ordered, level)
                     })
                 }
             },
