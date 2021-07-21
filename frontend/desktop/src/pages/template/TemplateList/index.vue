@@ -75,6 +75,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :render-header="renderTableHeader"
+                            :sort-orders="['descending', 'ascending', null]"
                             :sortable="item.sortable">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
