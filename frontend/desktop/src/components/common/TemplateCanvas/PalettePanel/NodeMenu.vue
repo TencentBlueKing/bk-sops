@@ -403,16 +403,6 @@
         height: calc(100% - 107px);
         overflow-y: auto;
         @include scrollbar;
-        .is-loading {
-            height: 20px;
-        }
-        .node-loading {
-            width: 100%;
-            height: 30px;
-            bottom: 0;
-            left: 0;
-            background: #f0f1f5;
-        }
     }
     .node-item {
         background: #f0f1f5;

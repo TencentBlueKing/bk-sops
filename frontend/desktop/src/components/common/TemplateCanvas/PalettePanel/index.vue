@@ -85,10 +85,6 @@
         mixins: [permission],
         props: {
             templateLabels: Array,
-            subAtomListLoading: {
-                type: Boolean,
-                default: false
-            },
             atomTypeList: {
                 type: Object,
                 default () {
