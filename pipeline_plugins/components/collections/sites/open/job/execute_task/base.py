@@ -26,7 +26,6 @@ from pipeline.core.flow.io import (
     BooleanItemSchema,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
@@ -44,7 +43,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobExecuteTaskService(JobService):
+class JobExecuteTaskServiceBase(JobService):
     need_get_sops_var = True
 
     def inputs_format(self):
@@ -86,7 +85,7 @@ class JobExecuteTaskService(JobService):
         ]
 
     def outputs_format(self):
-        return super(JobExecuteTaskService, self).outputs_format() + [
+        return super(JobExecuteTaskServiceBase, self).outputs_format() + [
             self.OutputItem(
                 name=_("JOB全局变量"),
                 key="log_outputs",
@@ -169,14 +168,4 @@ class JobExecuteTaskService(JobService):
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobExecuteTaskService, self).schedule(data, parent_data, callback_data)
-
-
-class JobExecuteTaskComponent(Component):
-    name = _("执行作业")
-    code = "job_execute_task"
-    bound_service = JobExecuteTaskService
-    form = "%scomponents/atoms/job/job_execute_task/v1_0.js" % settings.STATIC_URL
-    output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
-    version = "1.0"
-    desc = "在接收到用户编辑的全局变量后，v1.0版本会先去除首尾的全部双引号，然后在首尾各加上一个双引号，将得到的字符串作为调用API时的参数。"
+        return super(JobExecuteTaskServiceBase, self).schedule(data, parent_data, callback_data)
