@@ -124,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list" v-bkloading="{ isLoading: sublistLoading, zIndex: 10 }">
+                    <div class="tpl-list" v-bkloading="{ isLoading: sublistLoading || searchLoading, zIndex: 10 }">
                         <template v-if="listInPanel.length > 0">
                             <div
                                 v-for="item in listInPanel"
@@ -168,6 +168,7 @@
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
+    import { mapActions } from 'vuex'
 
     export default {
         name: 'SelectorPanel',
@@ -194,7 +195,8 @@
                 searchStr: '',
                 searchResult: [],
                 isLabelSelectorOpen: false,
-                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
+                searchLoading: false
             }
         },
         computed: {
@@ -224,6 +226,9 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions('templateList', [
+                'loadTemplateList'
+            ]),
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
                 let activeGroup = ''
@@ -279,7 +284,7 @@
             onClearSearch () {
                 this.searchInputhandler()
             },
-            searchInputhandler () {
+            async searchInputhandler () {
                 let result = []
                 if (!this.isSubflow) {
                     if (this.searchStr === '') {
@@ -319,28 +324,54 @@
                             this.activeGroup = result[0].type
                         }
                     }
-                } else {
-                    const reg = new RegExp(this.searchStr, 'i')
-                    this.listData.forEach(tpl => {
-                        let matchLabel = true
-                        let matchName = true
-                        const tplCopy = { ...tpl }
-                        if (this.activeGroup) {
-                            matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
+                } else if (this.searchStr !== '') {
+                    this.searchLoading = true
+                    try {
+                        const reg = new RegExp(this.searchStr, 'i')
+                        const data = {
+                            pipeline_template__name__icontains: this.searchStr || undefined
                         }
-                        if (this.searchStr !== '') {
-                            if (!reg.test(tpl.name)) {
-                                matchName = false
-                            } else {
-                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                        const resp = await this.loadTemplateList(data)
+                        this.handleSubflowList(resp).forEach(tpl => {
+                            let matchLabel = true
+                            let matchName = true
+                            const tplCopy = { ...tpl }
+                            if (this.activeGroup) {
+                                matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
                             }
-                        }
-                        if (matchLabel && matchName) {
-                            result.push(tplCopy)
-                        }
-                    })
+                            if (this.searchStr !== '') {
+                                if (!reg.test(tpl.name)) {
+                                    matchName = false
+                                } else {
+                                    tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                }
+                            }
+                            if (matchLabel && matchName) {
+                                result.push(tplCopy)
+                            }
+                        })
+                    } catch (e) {
+                        console.log(e)
+                    } finally {
+                        this.searchLoading = false
+                    }
+                } else {
+                    result = this.listData
                 }
+
                 this.listInPanel = result
+            },
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                data.objects.forEach(item => {
+                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
+                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
+                    }
+                })
+                return list
             },
             handleLabelSelectorOpen () {
                 this.isLabelSelectorOpen = true

@@ -121,7 +121,7 @@
                 },
                 listLoading: true, // 列表加载loading
                 currentPage: 0,
-                limit: 25,
+                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 200) / 40) + 5,
                 pollingTimer: null,
                 isPageOver: false,
                 isThrottled: false // 滚动节流 是否进入cd
