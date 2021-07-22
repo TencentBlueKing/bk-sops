@@ -680,6 +680,14 @@
                 const { module_detail, mute_attribute, shareEqually, set_count, host_resources, set_template_id, set_template_name, filter_lock = false } = JSON.parse(scheme.data)
                 const modules = module_detail.map(item => {
                     const { custom_ip_list, host_count, host_filter_list, id, mute_method, mute_modules, name, reuse_module, select_method } = item
+                    const hostFilterList = host_filter_list.map(item => {
+                        const { type_val, name, value } = item
+                        return {
+                            type: type_val === 1 ? 'exclude' : 'filter',
+                            field: name,
+                            value
+                        }
+                    })
                     return {
                         id,
                         name,
@@ -689,7 +697,7 @@
                         customIpList: custom_ip_list,
                         muteMethod: mute_method,
                         muteModules: mute_modules,
-                        hostFilterList: host_filter_list
+                        hostFilterList
                     }
                 })
                 await this.getModule(set_template_id)
