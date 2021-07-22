@@ -124,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list" ref="tpl_list" v-bkloading=" { isLoading: isloading, zIndex: 10 } ">
+                    <div class="tpl-list" v-bkloading="{ isLoading: sublistLoading, zIndex: 10 }">
                         <template v-if="listInPanel.length > 0">
                             <div
                                 v-for="item in listInPanel"
@@ -153,7 +153,6 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="tpl-loading" v-bkloading="{ isLoading: listLoading, zIndex: 20 , opacity: 1 }"></div>
                         </template>
                         <no-data v-else></no-data>
                     </div>
@@ -169,7 +168,6 @@
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
-    import { mapActions } from 'vuex'
 
     export default {
         name: 'SelectorPanel',
@@ -178,6 +176,7 @@
         },
         mixins: [permission],
         props: {
+            sublistLoading: Boolean,
             templateLabels: Array, // 模板标签
             atomTypeList: Object,
             isSubflow: Boolean,
@@ -185,26 +184,17 @@
             common: [String, Number]
         },
         data () {
+            const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             return {
-                listData: [],
-                listInPanel: [],
+                listData,
+                listInPanel: listData,
                 searchData: [],
                 isSelectLoading: false,
                 darkColorList: DARK_COLOR_LIST,
                 searchStr: '',
                 searchResult: [],
                 isLabelSelectorOpen: false,
-                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
-                isloading: false, // 列表滚动到底加载loading
-                totalPage: 0,
-                currentPage: 0,
-                limit: 25,
-                offset: 0,
-                pollingTimer: null,
-                isPageOver: false,
-                isThrottled: false, // 滚动节流 是否进入cd
-                getListNode: false,
-                listLoading: false
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
             }
         },
         computed: {
@@ -230,73 +220,10 @@
                 return ''
             }
         },
-        watch: {
-            atomTypeList: {
-                handler (val) {
-                    const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
-                    this.listData = listData
-                    this.listInPanel = listData
-                },
-                deep: true,
-                immediate: true
-            }
-        },
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
-        mounted () {
-            if (this.$refs.tpl_list) {
-                this.$refs.tpl_list.addEventListener('scroll', this.handleTableScroll)
-            }
-        },
         methods: {
-            ...mapActions('templateList/', [
-                'loadTemplateList'
-            ]),
-            async getSubflowList () {
-                this.listLoading = true
-                try {
-                    const data = {
-                        template_id: this.template_id,
-                        limit: this.limit,
-                        offset: this.currentPage * this.limit
-                    }
-                    const resp = await this.loadTemplateList(data)
-                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
-                    this.handleSubflowList(resp)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.listLoading = false
-                }
-            },
-            handleTableScroll () {
-                if (!this.isPageOver && !this.isThrottled) {
-                    this.isThrottled = true
-                    this.pollingTimer = setTimeout(() => {
-                        this.isThrottled = false
-                        const el = this.$refs.tpl_list
-                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
-                            this.currentPage += 1
-                            this.isPageOver = this.currentPage === this.totalPage
-                            clearTimeout(this.pollingTimer)
-                            this.getSubflowList()
-                        }
-                    }, 500)
-                }
-            },
-            handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.listInPanel.push(...list)
-            },
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
                 let activeGroup = ''

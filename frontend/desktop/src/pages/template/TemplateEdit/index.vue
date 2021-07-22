@@ -392,16 +392,10 @@
         },
         watch: {
             isNodeConfigPanelShow (val) {
-                if (val) {
-                    this.getSubflowList()
+                if (!val) {
+                    this.atomTypeList.subflow.length = 0
                 }
             }
-            // nodeMenuOpen (val) {
-
-            //     if (val) {
-            //         this.getSubflowList()
-            //     }
-            // }
         },
         beforeRouteEnter (to, from, next) {
             next(vm => {
@@ -497,9 +491,6 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
-            ...mapActions('templateList', [
-                'loadTemplateList'
-            ]),
             getAtomList  (val) {
                 this.isGetAtomList = val
             },
@@ -555,28 +546,6 @@
                     console.log(e)
                 } finally {
                     this.projectInfoLoading = false
-                }
-            },
-            /**
-             * 加载子流程列表
-             */
-            async getSubflowList () {
-                this.subAtomListLoading = true
-                try {
-                    const data = {
-                        project_id: this.project_id,
-                        common: this.common,
-                        templateId: this.template_id,
-                        limit: this.limit,
-                        offset: this.currentPage * this.limit
-                    }
-                    const resp = await this.loadTemplateList(data)
-                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
-                    this.handleSubflowList(resp)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.subAtomListLoading = false
                 }
             },
             /**
@@ -833,20 +802,6 @@
                 this.atomTypeList.tasknode = grouped
             },
             /**
-             * 子流程列表
-             */
-            handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.atomTypeList.subflow = list
-            },
             /**
              * 打开节点配置面板
              * @param {String} id 节点uuid
