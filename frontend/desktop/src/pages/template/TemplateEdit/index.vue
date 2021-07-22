@@ -638,26 +638,28 @@
             async getSystemVars () {
                 try {
                     this.systemVarsLoading = true
-                    const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
-                    const result = await this.loadInternalVariable()
-                    if (resp.result) {
-                        this.envVariableData = resp.data.map(item => {
-                            const { key, name, value } = item
-                            const projectVar = {
-                                key,
-                                name,
-                                value,
-                                custom_type: 'input',
-                                form_schema: {},
-                                show_type: 'hide',
-                                validation: '^.+$',
-                                source_info: {},
-                                source_type: 'project',
-                                source_tag: 'input.input'
-                            }
-                            return projectVar
-                        })
+                    if (!this.common) {
+                        const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                        if (resp.result) {
+                            this.envVariableData = resp.data.map(item => {
+                                const { key, name, value } = item
+                                const projectVar = {
+                                    key,
+                                    name,
+                                    value,
+                                    custom_type: 'input',
+                                    form_schema: {},
+                                    show_type: 'hide',
+                                    validation: '^.+$',
+                                    source_info: {},
+                                    source_type: 'project',
+                                    source_tag: 'input.input'
+                                }
+                                return projectVar
+                            })
+                        }
                     }
+                    const result = await this.loadInternalVariable()
                     const internalVariable = { ...result.data, ...this.envVariableData }
                     let i = 0
                     for (const index in internalVariable) {

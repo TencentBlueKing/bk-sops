@@ -62,7 +62,7 @@
             <div v-show="!variableData" :class="{ 'is-hidden': variableData }">
                 <div class="add-variable">
                     <bk-button theme="primary" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
-                    <bk-button theme="default" class="manager-project-variable-btn" @click="onManagerProjectVariable">{{ $t('管理项目变量') }}</bk-button>
+                    <bk-button v-if="!common" theme="default" class="manager-project-variable-btn" @click="onManagerProjectVariable">{{ $t('管理项目变量') }}</bk-button>
                     <div class="toggle-system-var">
                         <bk-checkbox :value="isHideSystemVar" @change="onToggleSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
