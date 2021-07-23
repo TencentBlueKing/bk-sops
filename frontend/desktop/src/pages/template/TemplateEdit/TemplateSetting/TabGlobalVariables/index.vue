@@ -17,7 +17,7 @@
         :before-close="closeTab">
         <div class="setting-header" slot="header">
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
-            <span v-if="variableData"> > {{ variableData.source_type !== 'system' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
+            <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
             <i
                 class="common-icon-info"
                 v-bk-tooltips="{
@@ -224,7 +224,7 @@
                 } else {
                     const sysVars = Object.keys(this.systemConstants)
                         .map(key => tools.deepClone(this.systemConstants[key]))
-                        .sort((a, b) => a.index - b.index)
+                        .sort((a, b) => b.index - a.index)
                     this.variableList = [...sysVars, ...userVars]
                 }
             },

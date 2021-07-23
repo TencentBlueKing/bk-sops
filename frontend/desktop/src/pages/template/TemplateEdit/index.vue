@@ -638,15 +638,22 @@
             async getSystemVars () {
                 try {
                     this.systemVarsLoading = true
+                    const result = await this.loadInternalVariable()
+                    const variableIndex = Object.keys(result.data).map(index => {
+                        return result.data[index].index
+                    })
+                    let variableminIndex = Math.min(...variableIndex)
+                    let internalVariable = { ...result.data }
                     if (!this.common) {
                         const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
                         if (resp.result) {
-                            this.envVariableData = resp.data.map(item => {
+                            resp.data.forEach(item => {
                                 const { key, name, value } = item
                                 const projectVar = {
                                     key,
                                     name,
                                     value,
+                                    index: --variableminIndex,
                                     custom_type: 'input',
                                     form_schema: {},
                                     show_type: 'hide',
@@ -655,15 +662,10 @@
                                     source_type: 'project',
                                     source_tag: 'input.input'
                                 }
-                                return projectVar
+                                this.envVariableData[item.key] = projectVar
                             })
                         }
-                    }
-                    const result = await this.loadInternalVariable()
-                    const internalVariable = { ...result.data, ...this.envVariableData }
-                    let i = 0
-                    for (const index in internalVariable) {
-                        internalVariable[index].index = --i
+                        internalVariable = Object.assign(this.envVariableData, result.data)
                     }
                     this.setInternalVariable(internalVariable)
                 } catch (e) {
