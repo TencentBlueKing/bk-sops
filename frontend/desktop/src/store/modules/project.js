@@ -63,6 +63,24 @@ const project = {
         loadCommonProject ({ commit }, data) {
             return axios.get('api/v3/common_use_project/').then(response => response.data)
         },
+        // 获取环境变量列表
+        loadEnvVariableList ({ commit }, params) {
+            return axios.get(`api/v3/project_constants/`, { params }).then(response => response.data)
+        },
+        // 新增环境变量
+        createEnvVariable ({ commit }, data) {
+            return axios.post(`api/v3/project_constants/`, data).then(response => response.data)
+        },
+        // 更新环境变量
+        updateEnvVariable ({ commit }, data) {
+            const { id } = data
+            return axios.put(`api/v3/project_constants/${id}`, data).then(response => response.data)
+        },
+        // 删除环境变量
+        deleteEnvVariable ({ commit }, id) {
+            return axios.delete(`api/v3/project_constants/${id}/`).then(response => response.data)
+        },
+
         createProject ({ commit }, data) {
             const { name, time_zone, desc } = data
 

@@ -17,7 +17,7 @@
         :before-close="closeTab">
         <div class="setting-header" slot="header">
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
-            <span v-if="variableData"> > {{ variableData.source_type !== 'system' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
+            <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
             <i
                 class="common-icon-info"
                 v-bk-tooltips="{
@@ -61,7 +61,8 @@
         <div class="global-variable-panel" slot="content">
             <div v-show="!variableData" :class="{ 'is-hidden': variableData }">
                 <div class="add-variable">
-                    <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
+                    <bk-button theme="primary" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
+                    <bk-button v-if="!common" theme="default" class="manager-project-variable-btn" @click="onManagerProjectVariable">{{ $t('管理项目变量') }}</bk-button>
                     <div class="toggle-system-var">
                         <bk-checkbox :value="isHideSystemVar" @change="onToggleSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
@@ -223,7 +224,7 @@
                 } else {
                     const sysVars = Object.keys(this.systemConstants)
                         .map(key => tools.deepClone(this.systemConstants[key]))
-                        .sort((a, b) => a.index - b.index)
+                        .sort((a, b) => b.index - a.index)
                     this.variableList = [...sysVars, ...userVars]
                 }
             },
@@ -254,6 +255,10 @@
                 }
                 this.$emit('templateDataChanged')
             },
+            // 点击跳转项目管理-管理项目变量
+            onManagerProjectVariable () {
+                this.$router.push(`/project/config/${this.$route.params.project_id}/`)
+            },
             // 显示/隐藏系统变量
             onToggleSystemVar (val) {
                 this.isHideSystemVar = val
@@ -265,7 +270,6 @@
                 if (newIndex === oldIndex) {
                     return
                 }
-
                 const start = Math.min(newIndex, oldIndex)
                 const end = Math.max(newIndex, oldIndex) + 1
                 const delta = this.isHideSystemVar ? start : start - Object.keys(this.systemConstants).length
@@ -390,6 +394,9 @@
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
+        }
+        .manager-project-variable-btn {
+            padding: 0 20px;
         }
         .toggle-system-var {
             float: right;

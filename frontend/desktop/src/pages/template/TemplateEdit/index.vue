@@ -301,7 +301,8 @@
                         }
                     ]
                 },
-                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
+                typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                envVariableData: {}
             }
         },
         computed: {
@@ -442,7 +443,8 @@
                 'loadSubflowConfig'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -637,7 +639,35 @@
                 try {
                     this.systemVarsLoading = true
                     const result = await this.loadInternalVariable()
-                    this.setInternalVariable(result.data)
+                    const variableIndex = Object.keys(result.data).map(index => {
+                        return result.data[index].index
+                    })
+                    let variableminIndex = Math.min(...variableIndex)
+                    let internalVariable = { ...result.data }
+                    if (!this.common) {
+                        const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                        if (resp.result) {
+                            resp.data.forEach(item => {
+                                const { key, name, value } = item
+                                const projectVar = {
+                                    key,
+                                    name,
+                                    value,
+                                    index: --variableminIndex,
+                                    custom_type: 'input',
+                                    form_schema: {},
+                                    show_type: 'hide',
+                                    validation: '^.+$',
+                                    source_info: {},
+                                    source_type: 'project',
+                                    source_tag: 'input.input'
+                                }
+                                this.envVariableData[item.key] = projectVar
+                            })
+                        }
+                        internalVariable = Object.assign(this.envVariableData, result.data)
+                    }
+                    this.setInternalVariable(internalVariable)
                 } catch (e) {
                     console.log(e)
                 } finally {
