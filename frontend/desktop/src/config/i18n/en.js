@@ -1,4 +1,7 @@
 const en = {
+    '请先保存方案再执行其他操作': 'Please save the plan before performing other operations',
+    '新增': 'Add',
+    '预览节点': 'Preview node',
     '请选择节点的插件类型': 'Please select the plug-in type of the node',
     '请选择节点的子流程': 'Please select the sub-process of the node',
     '保存已修改的信息吗？': 'Save the modified information?',
@@ -625,7 +628,7 @@ const en = {
     '方案名称': 'Scheme Name',
     '预览模式：': 'Preview Mode:',
     '方案名称已存在': 'Scheme name cannot repeat',
-    '方案添加成功': 'Scheme saved successfully',
+    '新增方案成功': 'Scheme saved successfully',
     '方案删除成功': 'Scheme deleted successfully',
     '取消全选': 'Cancel All',
     '节点选择': 'Node Selection',

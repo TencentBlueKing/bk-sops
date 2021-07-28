@@ -14,7 +14,11 @@
         <div class="header-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
             <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
-            <h3 class="template-name">{{ name }}</h3>
+            <h3 v-if="!schemeInfo" class="template-name">{{ name }}</h3>
+            <template v-else>
+                <bk-input ref="schemeInput" class="template-name" v-model="schemeInfo.name"></bk-input>
+                <p class="execution-scheme-tip">{{ $t('执行') + schemeInfo.data.length + $t('个节点') }}</p>
+            </template>
             <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
@@ -60,18 +64,8 @@
                     {{createTaskBtnText}}
                 </bk-button>
             </div>
-            <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
-                <bk-button
-                    theme="primary"
-                    :class="[
-                        'save-execute-scheme',
-                        'task-btn',
-                        { 'btn-permission-disable': !saveBtnActive }]"
-                    :loading="executeSchemeSaving"
-                    v-cursor="{ active: !saveBtnActive }"
-                    @click.stop="onSaveExecuteSchemeClick">
-                    {{$t('保存')}}
-                </bk-button>
+            <div class="button-area edit-scheme" v-if="schemeInfo">
+                <bk-button theme="primary" @click="onSaveEditSchemeClick">{{ '保存' }}</bk-button>
             </div>
             <div class="button-area preview" v-if="!isEditProcessPage && isPreviewMode">
                 <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
@@ -96,6 +90,7 @@
     import PageHeader from '@/components/layout/PageHeader.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     import SETTING_TABS from './SettingTabs.js'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'TemplateHeader',
@@ -118,8 +113,13 @@
             isFromTplListRoute: Boolean,
             isEditProcessPage: Boolean,
             isPreviewMode: Boolean,
-            executeSchemeSaving: Boolean,
             tplActions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            excludeNode: {
                 type: Array,
                 default () {
                     return []
@@ -136,11 +136,13 @@
                 hasCommonTplCreateTaskPerm: false, // 公共流程在项目下创建任务权限
                 createCommonTplPermLoading: false,
                 commonTplCreateTaskPermLoading: false,
-                selectedProject: {} // 公共流程创建任务所选择的项目
+                selectedProject: {}, // 公共流程创建任务所选择的项目
+                schemeInfo: null
             }
         },
         computed: {
             ...mapState({
+                'locations': state => state.template.location,
                 'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
@@ -187,6 +189,16 @@
             }
         },
         async mounted () {
+            bus.$on('onEditScheme', (val) => {
+                if (typeof val.data === 'string') {
+                    val.data = JSON.parse(val.data)
+                }
+                this.schemeInfo = val
+                this.$nextTick(() => {
+                    const inputDom = this.$refs.schemeInput
+                    inputDom && inputDom.focus()
+                })
+            })
             // 新建、克隆公共流程需要查询创建公共流程权限
             if (this.common) {
                 await this.queryCreateCommonTplPerm()
@@ -276,8 +288,21 @@
                     this.goBackToTplEdit()
                 }
             },
-            onSaveExecuteSchemeClick () {
-                this.$emit('onSaveExecuteSchemeClick')
+            onSaveEditSchemeClick () {
+                /**
+                 * 方案至少需要选中一个节点
+                 * this.locations.length - 2 --> 画布所有任务节点
+                 * 当所有任务节点被排除时return
+                 */
+                if (this.excludeNode.length === this.locations.length - 2) {
+                    this.$bkMessage({
+                        message: i18n.t('请先选择节点流程'),
+                        theme: 'warning'
+                    })
+                    return
+                }
+                bus.$emit('onSaveEditeScheme', this.schemeInfo)
+                this.schemeInfo = null
             },
             goBackTplList () {
                 if (this.isFromTplListRoute) {
@@ -439,6 +464,7 @@
         justify-content: space-between;
         padding: 0 20px 0 10px;
         .header-left-area {
+            flex: 1;
             display: flex;
             align-items: center;
             .back-icon {
@@ -465,6 +491,11 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             color: #63656e;
+        }
+        .execution-scheme-tip {
+            font-size: 12px;
+            color: #63656e;
+            margin-left: 12px;
         }
         .common-icon-edit {
             margin-left: 10px;
