@@ -16,7 +16,7 @@
             <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
             <h3 v-if="!schemeInfo" class="template-name">{{ name }}</h3>
             <template v-else>
-                <bk-input ref="schemeInput" class="template-name" v-model="schemeInfo.name"></bk-input>
+                <bk-input ref="schemeInput" class="template-name execution-scheme-input" v-model="schemeInfo.name"></bk-input>
                 <p class="execution-scheme-tip">{{ $t('执行') + schemeInfo.data.length + $t('个节点') }}</p>
             </template>
             <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
@@ -491,6 +491,9 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             color: #63656e;
+        }
+        .execution-scheme-input {
+            width: 240px;
         }
         .execution-scheme-tip {
             font-size: 12px;
