@@ -648,11 +648,12 @@
                         const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
                         if (resp.result) {
                             resp.data.forEach(item => {
-                                const { key, name, value } = item
+                                const { key, name, value, desc } = item
                                 const projectVar = {
-                                    key,
+                                    key: '${_env_' + key + '}',
                                     name,
                                     value,
+                                    desc,
                                     index: --variableminIndex,
                                     custom_type: 'input',
                                     form_schema: {},

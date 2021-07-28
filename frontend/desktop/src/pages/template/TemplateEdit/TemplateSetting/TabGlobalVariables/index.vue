@@ -257,7 +257,10 @@
             },
             // 点击跳转项目管理-管理项目变量
             onManagerProjectVariable () {
-                this.$router.push(`/project/config/${this.$route.params.project_id}/`)
+                const url = this.$router.resolve({
+                    path: `/project/config/${this.$route.params.project_id}/`
+                })
+                window.open(url.href)
             },
             // 显示/隐藏系统变量
             onToggleSystemVar (val) {

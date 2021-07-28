@@ -305,7 +305,7 @@
                     <bk-input v-model="variableFormData.name" :placeholder="$t('请输入变量名称')"></bk-input>
                 </bk-form-item>
                 <bk-form-item class="form-item-key" label="KEY" :required="true" property="key">
-                    <bk-input v-model="variableFormData.key" :placeholder="$t('请输入变量的KEY, 以 ${_env_ 开头,以 } 结尾')"></bk-input>
+                    <bk-input v-model="variableFormData.key" :placeholder="$t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头')"></bk-input>
                 </bk-form-item>
                 <bk-form-item class="form-item-value" :label="$t('值')" :required="true" property="value">
                     <bk-input type="textarea" v-model="variableFormData.value" :placeholder="$t('请填写变量值')"></bk-input>
@@ -406,8 +406,8 @@
                             trigger: 'blur'
                         },
                         {
-                            regex: /\${_env_.*?\}/,
-                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，以"${_env_"开头,以"}"结尾'),
+                            regex: /[a-zA-Z_][a-zA-Z0-9_]*$/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
                             trigger: 'blur'
                         },
                         {
@@ -420,16 +420,6 @@
                         {
                             required: true,
                             message: i18n.t('必填项'),
-                            trigger: 'blur'
-                        },
-                        {
-                            regex: /^\w+$/,
-                            message: i18n.t('变量value由英文字母、数字、下划线组成'),
-                            trigger: 'blur'
-                        },
-                        {
-                            max: 50,
-                            message: i18n.t('变量KEY值长度不能超过') + '50',
                             trigger: 'blur'
                         }
                     ],
@@ -861,7 +851,7 @@
                 this.pending.deletevariable = true
                 try {
                     const resp = await this.deleteEnvVariable(this.delId)
-                    if (resp.result) {
+                    if (resp.code === 204) {
                         this.isDeleteVariableDialogShow = false
                         this.getVariableData()
                     }
