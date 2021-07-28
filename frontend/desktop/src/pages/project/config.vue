@@ -406,7 +406,7 @@
                             trigger: 'blur'
                         },
                         {
-                            regex: /[a-zA-Z_][a-zA-Z0-9_]*$/,
+                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
                             message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
                             trigger: 'blur'
                         },
@@ -850,11 +850,9 @@
                 }
                 this.pending.deletevariable = true
                 try {
-                    const resp = await this.deleteEnvVariable(this.delId)
-                    if (resp.code === 204) {
-                        this.isDeleteVariableDialogShow = false
-                        this.getVariableData()
-                    }
+                    await this.deleteEnvVariable(this.delId)
+                    this.isDeleteVariableDialogShow = false
+                    this.getVariableData()
                 } catch (e) {
                     console.log(e)
                 } finally {
