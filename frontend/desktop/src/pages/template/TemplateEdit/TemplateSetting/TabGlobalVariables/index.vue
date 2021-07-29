@@ -175,7 +175,7 @@
                 'gateways': state => state.template.gateways,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'systemConstants': state => state.template.systemConstants
+                'internalVariable': state => state.template.internalVariable
             })
         },
         watch: {
@@ -183,7 +183,7 @@
                 // 增加、删除变量后，更新变量列表
                 this.setVariableList()
             },
-            systemConstants () {
+            internalVariable () {
                 this.setVariableList()
             }
         },
@@ -205,7 +205,7 @@
                     const data = {
                         activities: this.activities,
                         gateways: this.gateways,
-                        constants: { ...this.systemConstants, ...this.constants }
+                        constants: { ...this.internalVariable, ...this.constants }
                     }
                     const resp = await this.getVariableCite(data)
                     if (resp.result) {
@@ -222,8 +222,8 @@
                 if (this.isHideSystemVar) {
                     this.variableList = userVars
                 } else {
-                    const sysVars = Object.keys(this.systemConstants)
-                        .map(key => tools.deepClone(this.systemConstants[key]))
+                    const sysVars = Object.keys(this.internalVariable)
+                        .map(key => tools.deepClone(this.internalVariable[key]))
                         .sort((a, b) => b.index - a.index)
                     this.variableList = [...sysVars, ...userVars]
                 }
@@ -275,7 +275,7 @@
                 }
                 const start = Math.min(newIndex, oldIndex)
                 const end = Math.max(newIndex, oldIndex) + 1
-                const delta = this.isHideSystemVar ? start : start - Object.keys(this.systemConstants).length
+                const delta = this.isHideSystemVar ? start : start - Object.keys(this.internalVariable).length
                 const indexChangedVar = this.variableList.slice(start, end)
                 
                 indexChangedVar.forEach((item, index) => {
@@ -289,7 +289,7 @@
              * @param {String} key 变量key值
              */
             onEditVariable (key) {
-                this.variableData = tools.deepClone(this.constants[key] || this.systemConstants[key])
+                this.variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
             },
             onCitedNodeClick (data) {
                 const { group, id } = data

@@ -235,7 +235,7 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants,
-                'systemAndProjectConstants': state => state.template.systemConstants,
+                'internalVariable': state => state.template.internalVariable,
                 'outputs': state => state.template.outputs
             }),
             ...mapState('project', {
@@ -482,7 +482,7 @@
                     if (this.variableData.key === value) {
                         return true
                     }
-                    if (value in this.constants || value in this.systemAndProjectConstants) {
+                    if (value in this.constants || value in this.internalVariable) {
                         return false
                     }
                     return true
