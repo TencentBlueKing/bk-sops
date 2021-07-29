@@ -646,25 +646,24 @@
                     let internalVariable = { ...result.data }
                     if (!this.common) {
                         const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
-                        if (resp.result) {
-                            resp.data.forEach(item => {
-                                const { key, name, value } = item
-                                const projectVar = {
-                                    key,
-                                    name,
-                                    value,
-                                    index: --variableminIndex,
-                                    custom_type: 'input',
-                                    form_schema: {},
-                                    show_type: 'hide',
-                                    validation: '^.+$',
-                                    source_info: {},
-                                    source_type: 'project',
-                                    source_tag: 'input.input'
-                                }
-                                this.envVariableData[item.key] = projectVar
-                            })
-                        }
+                        Object.keys(resp.data).forEach(item => {
+                            const { name, value, desc } = resp.data[item]
+                            const projectVar = {
+                                key: '${_env_' + resp.data[item].key + '}',
+                                name,
+                                value,
+                                desc,
+                                index: --variableminIndex,
+                                custom_type: 'input',
+                                form_schema: {},
+                                show_type: 'hide',
+                                validation: '^.+$',
+                                source_info: {},
+                                source_type: 'project',
+                                source_tag: 'input.input'
+                            }
+                            this.envVariableData['${_env_' + resp.data[item].key + '}'] = projectVar
+                        })
                         internalVariable = Object.assign(this.envVariableData, result.data)
                     }
                     this.setInternalVariable(internalVariable)
