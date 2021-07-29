@@ -815,8 +815,9 @@
                     return false
                 }
                 const { w, h, x, y } = edp.endpoint
-                const bX = x + w / 2
-                const bY = y + h / 2
+                const { left: leftStr, top: topStr } = this.$refs.jsFlow.$el.querySelector('#canvas-flow').style
+                const bX = x + w / 2 + Number(leftStr.replace('px', ''))
+                const bY = y + h / 2 + Number(topStr.replace('px', ''))
                 const type = edp.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && edp.elementId !== this.referenceLine.id) {
