@@ -1350,7 +1350,7 @@
         .jtk-endpoint {
             z-index: 3;
             cursor: pointer;
-            &.template-canvas-endpoint {
+            &.template-canvas-endpoint:not(.jtk-dragging) {
                 &:after {
                     display: none;
                     position: absolute;
