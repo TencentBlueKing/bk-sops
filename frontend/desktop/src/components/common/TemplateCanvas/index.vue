@@ -1467,12 +1467,13 @@
                 }
             }
         }
-        .jsflow-node.actived {
-            z-index: 4;
+        .jsflow-node.actived,
+        .jsflow-node.jtk-drag {
+            z-index: 5;
         }
         .reference-line-vertical,
         .reference-line-horizontal {
-            z-index: 5;
+            z-index: 6;
         }
     }
     .drag-reference-line {
