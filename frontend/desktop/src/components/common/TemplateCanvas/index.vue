@@ -23,6 +23,7 @@
             :editable="editable"
             :endpoint-options="endpointOptions"
             :connector-options="connectorOptions"
+            :node-options="nodeOptions"
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onConnectionDragStop="onConnectionDragStop"
@@ -125,7 +126,7 @@
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
-    import { endpointOptions, connectorOptions } from './options.js'
+    import { endpointOptions, connectorOptions, nodeOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
     export default {
@@ -258,7 +259,8 @@
                 },
                 endpointOptions: combinedEndpointOptions,
                 flowData,
-                connectorOptions
+                connectorOptions,
+                nodeOptions
             }
         },
         watch: {

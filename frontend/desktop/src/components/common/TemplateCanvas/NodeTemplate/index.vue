@@ -278,10 +278,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
+            width: 34px;
+            height: 34px;
             background: #96a1b9;
             border-radius: 50%;
+            box-shadow: 0 0 0 5px #96a1b9;
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
             }
@@ -352,7 +353,7 @@
         }
         .task-node {
             position: relative;
-            width: 150px;
+            width: 154px;
             height: 54px;
             text-align: center;
             background: #ffffff;

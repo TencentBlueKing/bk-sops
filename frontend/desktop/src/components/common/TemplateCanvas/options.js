@@ -46,7 +46,7 @@ export const endpointOptions = {
  * 节点配置项
  */
 export const nodeOptions = {
-    grid: [5, 5]
+    grid: [10, 10]
 }
 
 /**

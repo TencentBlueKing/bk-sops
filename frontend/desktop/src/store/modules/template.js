@@ -39,7 +39,7 @@ const generateInitLocation = () => {
         {
             id: 'node' + uuid(),
             x: 240,
-            y: 145,
+            y: 140,
             name: '',
             stage_name: '',
             type: 'tasknode'
