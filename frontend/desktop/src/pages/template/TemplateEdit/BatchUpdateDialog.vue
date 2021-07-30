@@ -164,7 +164,7 @@
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
-                'systemConstants': state => state.template.systemConstants.variables,
+                'internalVariable': state => state.template.internalVariable.variables,
                 'pluginConfigs': state => state.atomForm.config
             }),
             expiredTplNum () {

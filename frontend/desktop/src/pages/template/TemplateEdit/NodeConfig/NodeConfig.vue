@@ -278,13 +278,13 @@
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
-                'systemConstants': state => state.template.systemConstants,
+                'internalVariable': state => state.template.internalVariable,
                 'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
             variableList () {
-                const systemVars = Object.keys(this.systemConstants).map(key => this.systemConstants[key])
+                const systemVars = Object.keys(this.internalVariable).map(key => this.internalVariable[key])
                 const userVars = Object.keys(this.localConstants).map(key => this.localConstants[key])
                 return [...systemVars, ...userVars]
             },
