@@ -33,6 +33,7 @@ from pipeline.variable_framework.models import VariableModel
 from pipeline_web.label.models import LabelGroup, Label
 from pipeline_web.plugin_management.utils import DeprecatedPlugin
 from pipeline.exceptions import ComponentNotExistException
+from pipeline.core.data.library import VariableLibrary
 
 from gcloud.core.models import Business, Project, ProjectCounter, ProjectBasedComponent
 from gcloud.commons.tastypie import GCloudModelResource
@@ -244,8 +245,7 @@ class ComponentModelResource(GCloudModelResource):
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
-        data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
-        bundle = data
+        bundle = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         try:
             component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
         except ComponentNotExistException:
@@ -261,7 +261,7 @@ class ComponentModelResource(GCloudModelResource):
         bundle.data["group_icon"] = component.group_icon
         bundle.data["name"] = _(name[1])
         # 被前端插件继承js的地址
-        bundle.data["base"] = component.base
+        bundle.data["base"] = getattr(component, "base", None)
 
         return data
 
@@ -280,6 +280,13 @@ class VariableModelResource(GCloudModelResource):
         detail_uri_name = "code"
         authorization = ReadOnlyAuthorization()
 
+    def alter_detail_data_to_serialize(self, request, data):
+        bundle = super(VariableModelResource, self).alter_detail_data_to_serialize(request, data)
+        var_cls = VariableLibrary.get_var_class(bundle.data["code"])
+        bundle.data["description"] = getattr(var_cls, "desc", "") if var_cls else ""
+
+        return data
+
     def alter_list_data_to_serialize(self, request, data):
 
         variable_phase_dict = DeprecatedPlugin.objects.get_variables_phase_dict()
@@ -288,6 +295,8 @@ class VariableModelResource(GCloudModelResource):
             bundle.data["phase"] = variable_phase_dict.get(bundle.data["code"], {}).get(
                 LEGACY_PLUGINS_VERSION, DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
             )
+            var_cls = VariableLibrary.get_var_class(bundle.data["code"])
+            bundle.data["description"] = getattr(var_cls, "desc", "") if var_cls else ""
 
         return data
 

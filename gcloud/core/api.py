@@ -10,31 +10,37 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import keyword
 import logging
+import re
 from datetime import datetime
 
 from django.http import JsonResponse
 from django.contrib.auth.models import Group
 from django.views.decorators.http import require_POST, require_GET
 from django.utils.translation import ugettext_lazy as _
+from drf_yasg.utils import swagger_auto_schema
 
 from mako.template import Template
+from rest_framework.decorators import api_view
 
 from blueapps.account.decorators import login_exempt
 from gcloud.core import roles
 from gcloud.conf import settings
 from gcloud.core.footer import FOOTER
-from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
+from gcloud.constants import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
 from gcloud.core.models import (
     UserDefaultProject,
     ProjectCounter,
 )
 from gcloud.core.utils import convert_group_name
 from gcloud.core.api_adapter import get_all_users
+from gcloud.openapi.schema import AnnotationAutoSchema
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
+formatted_key_pattern = re.compile(r"^\${(.*?)}$")
 
 
 @require_POST
@@ -143,3 +149,29 @@ def get_msg_types(request):
 @login_exempt
 def healthz(request):
     return JsonResponse({"result": True, "data": None, "message": "OK"})
+
+
+@swagger_auto_schema(methods=["get"], auto_schema=AnnotationAutoSchema)
+@api_view(["GET"])
+def check_variable_key(request):
+    """
+    检验变量key值是否合法
+
+    param: key: 变量key, string, query, required
+
+    return: 根据result字段判断是否合法
+    {
+        "result": "是否合法(boolean)",
+        "data": "占位字段(None)",
+        "message": "错误时提示(string)"
+    }
+    """
+    variable_key = request.GET.get("key")
+    # 处理格式为${xxx}的情况
+    if formatted_key_pattern.match(variable_key):
+        variable_key = variable_key[2:-1]
+    if not variable_key or keyword.iskeyword(variable_key) or variable_key in settings.VARIABLE_KEY_BLACKLIST:
+        return JsonResponse(
+            {"result": False, "data": None, "message": "{} is not allow to be the key of variable".format(variable_key)}
+        )
+    return JsonResponse({"result": True, "data": None, "message": "Success"})

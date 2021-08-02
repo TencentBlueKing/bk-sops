@@ -27,23 +27,26 @@ const tplSnapshoot = {
                     alert('localstorage 空间不足')
                 } else {
                     // 删除非当前用户、非当前项目、非当前流程模板的快照数据
-                    for (const username in snapshootStorage) {
+                    Object.keys(snapshootStorage).forEach((username, usernameIndex) => {
                         if (username !== current.username) {
-                            delete snapshootStorage[username]
+                            snapshootStorage.splice(usernameIndex, 1)
+                            // delete snapshootStorage[username]
                         } else {
-                            for (const id in snapshootStorage[username]) {
+                            Object.keys(snapshootStorage[username]).forEach((id, idIndex) => {
                                 if (id !== current.id) {
-                                    delete snapshootStorage[username][id]
+                                    snapshootStorage[username].splice(idIndex, 1)
+                                    // delete snapshootStorage[username][id]
                                 } else {
-                                    for (const tpl in snapshootStorage[username][id]) {
+                                    Object.keys(snapshootStorage[username][id]).forEach((tpl, tplIndex) => {
                                         if (tpl !== current.tpl) {
-                                            delete snapshootStorage[username][id][tpl]
+                                            snapshootStorage[username][id].splice(tplIndex, 1)
+                                            // delete snapshootStorage[username][id][tpl]
                                         }
-                                    }
+                                    })
                                 }
-                            }
+                            })
                         }
-                    }
+                    })
                     this.setSnapshootStorage(snapshootStorage)
                 }
             }
@@ -75,7 +78,7 @@ const tplSnapshoot = {
         }
 
         // 单个流程模板最多保存 30 条快照数据
-        const length = snapshootStorage[username][id][tpl].length
+        const { length } = snapshootStorage[username][id][tpl]
         if (length >= 30) {
             snapshootStorage[username][id][tpl] = snapshootStorage[username][id][tpl].slice(length - 29)
         }

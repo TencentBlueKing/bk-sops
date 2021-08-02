@@ -30,7 +30,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -93,11 +92,9 @@
                             }
                             this.initalRenderData = this.renderData
                         }
-                    } else {
-                        errorHandler(this.nodeInfo, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -110,7 +107,7 @@
                         await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 }
             },
@@ -141,11 +138,9 @@
                         })
                         this.$emit('retrySuccess', node_id)
                         return true
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.retrying = false
                 }

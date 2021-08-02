@@ -113,7 +113,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -368,7 +367,7 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -376,11 +375,18 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('AuditList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.tableFields.map(item => item.id)
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('AuditList')
+                    }
+                } else {
+                    selectedFields = this.tableFields.map(item => item.id)
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             // 表格功能选项
             handleSettingChange ({ fields, size }) {
@@ -424,7 +430,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'auditHome', query })
+                this.$router.replace({ name: 'auditHome', query })
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data
@@ -440,7 +446,7 @@
                     form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.business.loading = false
                 }
@@ -454,7 +460,7 @@
                     form.list = this.taskCategory
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.taskBasicInfoLoading = false
                 }
@@ -510,7 +516,7 @@
     }
 }
 .common-icon-dark-circle-pause {
-    color: #ff9C01;
+    color: #ff9c01;
     font-size: 12px;
 }
 .audit-table-content {

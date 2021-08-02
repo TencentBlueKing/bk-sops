@@ -160,7 +160,9 @@ def cc_get_set_attribute(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
-        return JsonResponse({"result": False, "data": _("调用cc接口失败，message={}").format(result["message"])})
+        return JsonResponse(
+            {"result": False, "data": "", "message": _("调用cc接口失败，message={}").format(result["message"])}
+        )
     data = result["data"]
     set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]
 

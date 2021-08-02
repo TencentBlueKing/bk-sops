@@ -11,14 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
-
 from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
 from gcloud.utils.strings import string_to_boolean
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import read_template_data_file
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import res_factory
@@ -28,7 +26,7 @@ from gcloud.iam_auth.intercept import ViewInterceptor
 iam = get_iam_client()
 
 
-class FormInterceptor(ViewInterceptor):
+class CommonTemplateViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         template_id = request.GET.get("template_id")
 
@@ -43,10 +41,18 @@ class FormInterceptor(ViewInterceptor):
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
 
 
+class FormInterceptor(CommonTemplateViewInterceptor):
+    pass
+
+
+class ParentsInterceptor(CommonTemplateViewInterceptor):
+    pass
+
+
 class ExportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
 
-        data = json.loads(request.body)
+        data = request.data
         template_id_list = data["template_id_list"]
 
         subject = Subject("user", request.user.username)

@@ -110,7 +110,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import XLSX from 'xlsx'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import TaskScheme from './TaskScheme.vue'
     import EditTaskScheme from './EditTaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
@@ -278,7 +277,7 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateLoading = false
                 }
@@ -301,11 +300,9 @@
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         this.previewData = resp.data.pipeline_tree
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.previewDataLoading = false
                 }
@@ -503,7 +500,7 @@
                         }
                         this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 }
                 this.updateDataAndCanvas()

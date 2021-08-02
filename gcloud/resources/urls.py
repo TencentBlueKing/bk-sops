@@ -16,7 +16,7 @@ from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
-from gcloud.tasktmpl3.apis.drf.viewsets import TemplateSchemeViewSet
+from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import (
     BusinessResource,
@@ -28,9 +28,9 @@ from gcloud.core.resources import (
     LabelModelResource,
     UserProjectResource,
 )
-from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
+from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.label.viewsets import LabelViewSet
-from gcloud.tasktmpl3.resources import (
+from gcloud.tasktmpl3.apis.tastypie.resources import (
     TaskTemplateResource,
     # TemplateSchemeResource,
 )

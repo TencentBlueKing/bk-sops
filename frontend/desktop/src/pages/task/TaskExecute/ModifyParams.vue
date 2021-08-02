@@ -53,7 +53,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
@@ -112,13 +111,13 @@
                     })
                     this.constants = constants
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.cntLoading = false
                 }
             },
             judgeDataEqual () {
-                if (!this.paramsCanBeModify) {
+                if (!this.paramsCanBeModify || !this.$refs.TaskParamEdit) {
                     return true
                 }
                 return this.$refs.TaskParamEdit.judgeDataEqual()
@@ -166,12 +165,9 @@
                             theme: 'success'
                         })
                         this.$emit('packUp')
-                        return true
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending = false
                 }

@@ -32,7 +32,6 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import IpSelector from '../IpSelector/index.vue'
 
     export const attrs = {
@@ -146,10 +145,6 @@
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         values.forEach((v, index) => {
-                            if ('result' in v && !v.result) { // 异常处理
-                                errorHandler(v, this)
-                                return
-                            }
                             switch (index) {
                                 case 0:
                                     this.staticIpList = v.data
@@ -182,7 +177,7 @@
                     this.loading = false
                 }).catch(e => {
                     this.loading = false
-                    errorHandler(e, this)
+                    console.log(e)
                 })
             },
             customValidate () {

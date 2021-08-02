@@ -51,6 +51,7 @@
     import Subflow from './Subflow.vue'
     import BranchGateway from './BranchGateway.vue'
     import ParallelGateway from './ParallelGateway.vue'
+    import ConditionalParallelGateway from './ConditionalParallelGateway.vue'
     import ConvergeGateway from './ConvergeGateway.vue'
     import ShortcutPanel from './ShortcutPanel.vue'
     export default {
@@ -97,6 +98,7 @@
                     subflow: Subflow,
                     branchgateway: BranchGateway,
                     parallelgateway: ParallelGateway,
+                    conditionalparallelgateway: ConditionalParallelGateway,
                     convergegateway: ConvergeGateway
                 },
                 clickTimer: null
@@ -178,7 +180,7 @@
 
     $blueDark: #738abe;
     $redDark: #ea3636;
-    $yellowDark: #ff9C01;
+    $yellowDark: #ff9c01;
     $greenDark: #2dcb56;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
@@ -519,6 +521,10 @@
                     transform: rotate(360deg);
                 }
             }
+        }
+        .node-subscript {
+            font-size: 12px;
+            background: #ea3636 !important;
         }
         .node-phase-icon {
             position: absolute;

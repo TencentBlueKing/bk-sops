@@ -18,11 +18,15 @@ import i18n from '@/config/i18n/index.js'
  * @param {String} site_url
  * @param {Object} project
  */
-export function setConfigContext (site_url, project) {
+export const setConfigContext = (site_url, project) => {
+    let biz_cc_id
+    if (project && project.from_cmdb) {
+        biz_cc_id = project.bk_biz_id
+    }
     $.context = {
         project: project || undefined,
-        biz_cc_id: project ? (project.from_cmdb ? project.bk_biz_id : undefined) : undefined,
-        site_url: site_url,
+        biz_cc_id,
+        site_url,
         component: site_url + 'api/v3/component/',
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
@@ -59,7 +63,7 @@ export function setConfigContext (site_url, project) {
             return store.state.template.constants
         },
         getOutput (key) { // 输出表单渲染-根据提供的 key 从节点的输出中获取相应的值，若不存在则返回 null
-            const outputs = $.context.output_form.outputs
+            const { outputs } = $.context.output_form
             if (outputs && Array.isArray(outputs)) {
                 const v = $.context.output_form.outputs.find(item => item.key === key)
                 if (v) {
@@ -76,7 +80,7 @@ export function setConfigContext (site_url, project) {
             return null
         },
         getNodeStatus () { // 输出表单渲染-获取当前节点的执行状态
-            const state = $.context.output_form.state
+            const { state } = $.context.output_form
             if (state) {
                 return state
             }

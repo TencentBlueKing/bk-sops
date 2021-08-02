@@ -35,7 +35,6 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import (
     StringItemSchema,
     ObjectItemSchema,
@@ -43,11 +42,8 @@ from pipeline.core.flow.io import (
 )
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    get_job_instance_url,
-    get_node_callback_url,
-)
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -136,7 +132,9 @@ class JobFastExecuteScriptService(JobService):
                 key="log_outputs",
                 type="object",
                 schema=ObjectItemSchema(
-                    description=_("输出日志中提取的全局变量"),
+                    description=_(
+                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+                    ),
                     property_schemas={
                         "name": StringItemSchema(description=_("全局变量名称")),
                         "value": StringItemSchema(description=_("全局变量值")),
@@ -156,28 +154,20 @@ class JobFastExecuteScriptService(JobService):
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_ip_list = data.get_one_of_inputs("job_ip_list")
-        ip_info = cc_get_ips_info_by_str(
-            username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
+
+        # 获取IP
+        clean_result, ip_list = get_biz_ip_from_frontend(
+            original_ip_list, executor, biz_cc_id, data, self.logger, is_across=False, ip_is_exist=ip_is_exist
         )
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
-
-        if ip_is_exist:
-            # 如果ip校验开关打开，校验通过的ip数量减少，返回错误
-            input_ip_set = set(get_ip_by_regex(original_ip_list))
-            self.logger.info("from cmdb get valid ip list:{}, user input ip list:{}".format(ip_list, input_ip_set))
-
-            difference_ip_list = input_ip_set.difference(set([ip_item["ip"] for ip_item in ip_list]))
-
-            if len(ip_list) != len(input_ip_set):
-                data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(",".join(difference_ip_list)))
-                return False
+        if not clean_result:
+            return False
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
             "script_timeout": data.get_one_of_inputs("job_script_timeout"),
             "account": data.get_one_of_inputs("job_account"),
             "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.id),
+            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
 
         script_param = str(data.get_one_of_inputs("job_script_param"))

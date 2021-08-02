@@ -15,7 +15,7 @@ import re
 import logging
 import datetime
 
-from gcloud.core.constant import AE
+from gcloud.constants import AE
 from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.contrib.appmaker.models import AppMaker
 

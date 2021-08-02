@@ -21,10 +21,10 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.constants import ONETIME
-from gcloud.core.constant import TASK_CATEGORY
-from gcloud.core.constant import TASK_NAME_MAX_LENGTH
-from gcloud.utils.strings import name_handler
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.constants import TASK_CATEGORY
+from gcloud.constants import TASK_NAME_MAX_LENGTH
+from gcloud.utils.strings import standardize_name
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
@@ -59,7 +59,7 @@ def fast_create_task(request, project_id):
     try:
         pipeline_tree = params["pipeline_tree"]
         pipeline_instance_kwargs = {
-            "name": name_handler(params["name"], TASK_NAME_MAX_LENGTH),
+            "name": standardize_name(params["name"], TASK_NAME_MAX_LENGTH),
             "creator": request.user.username,
             "pipeline_tree": pipeline_tree,
             "description": params.get("description", ""),

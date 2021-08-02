@@ -31,7 +31,7 @@ from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
-from gcloud.commons.template.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id
 
 WEB_TREE_FIELDS = {"location", "line"}
 
@@ -99,9 +99,15 @@ class PipelineTemplateWebWrapper(object):
 
             for act_id, act in list(activities.items()):
                 if act[PWE.type] == PWE.SubProcess:
+                    always_use_latest = act.get("always_use_latest", False)
+                    if always_use_latest:
+                        version = None
+                    else:
+                        version = act.get("version")
+
                     subproc_data = template_model.objects.get(
                         pipeline_template__template_id=act["template_id"]
-                    ).get_pipeline_tree_by_version(act.get("version"))
+                    ).get_pipeline_tree_by_version(version)
 
                     if "constants" in pipeline_data:
                         subproc_inputs = act.pop("constants")

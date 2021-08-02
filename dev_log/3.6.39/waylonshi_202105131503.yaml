@@ -1,0 +1,2 @@
+improvement:
+  - 变量预渲染逻辑放到EmptyStartHandler中处理(依赖bamboo-pipeline==3.2.5)

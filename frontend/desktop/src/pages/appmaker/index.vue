@@ -86,7 +86,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
@@ -206,7 +205,7 @@
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -217,7 +216,7 @@
                     const res = await this.loadCollectList()
                     this.collectedList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectedLoading = false
                 }
@@ -268,7 +267,7 @@
                     await this.appmakerDelete(this.currentAppData.id)
                     this.loadData()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.delete = false
                 }
@@ -294,11 +293,9 @@
                         this.isEditDialogShow = false
                         typeof callback === 'function' && callback()
                         this.loadData()
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.edit = false
                 }
@@ -334,7 +331,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'appMakerList', query })
+                this.$router.replace({ name: 'appMakerList', query })
             }
         }
     }

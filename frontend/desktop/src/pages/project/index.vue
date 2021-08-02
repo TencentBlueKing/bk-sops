@@ -170,7 +170,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -323,8 +322,8 @@
                     if (res.data.is_allow) {
                         this.projectActions = ['project_create']
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getProjectList () {
@@ -355,8 +354,8 @@
                     } else {
                         this.totalPage = totalPage
                     }
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -364,18 +363,25 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('ProjectList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.tableFields.map(item => item.id)
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('ProjectList')
+                    }
+                } else {
+                    selectedFields = this.tableFields.map(item => item.id)
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             async getProjectDetail (id) {
                 try {
                     this.projectDetailLoading = false
                     this.projectDetail = await this.loadProjectDetail(id)
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.projectDetailLoading = false
                 }
@@ -397,8 +403,8 @@
                     this.isProjectDialogShow = false
                     this.getProjectList()
                     this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.addPengding = false
                 }
@@ -422,8 +428,8 @@
                     this.isOperationDialogShow = false
                     this.clearProjectDetail()
                     this.getProjectList()
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.updatePending = false
                 }

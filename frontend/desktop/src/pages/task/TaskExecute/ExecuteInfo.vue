@@ -78,7 +78,7 @@
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
-                <section class="info-section">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title input-parameter">
                         <div class="input-title">{{ $t('输入参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -102,8 +102,7 @@
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                     </div>
                 </section>
-                
-                <section class="info-section">
+                <section class="info-section" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title output-parameter">
                         <div class="output-title">{{ $t('输出参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -242,7 +241,7 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && nodeInfo && nodeInfo.type === 'ServiceActivity'">
+            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && location.type === 'tasknode'">
                 <bk-button
                     theme="primary"
                     v-if="isShowRetryBtn"
@@ -265,8 +264,7 @@
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
+    import { URL_REG, TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
@@ -293,7 +291,7 @@
         },
         {
             title: i18n.t('失败后自动忽略'),
-            id: 'error_ignorable'
+            id: 'error_ignored'
         },
         {
             title: i18n.t('重试次数'),
@@ -328,7 +326,7 @@
         },
         {
             title: i18n.t('失败后自动忽略'),
-            id: 'error_ignorable'
+            id: 'error_ignored'
         },
         {
             title: i18n.t('重试次数'),
@@ -566,8 +564,8 @@
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
             },
-            nodeInfo () {
-                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
+            location () {
+                return this.pipelineData.location.find(item => item.id === this.nodeDetailConfig.node_id)
             }
         },
         watch: {
@@ -607,8 +605,6 @@
                         this.outputsInfo = []
                         this.inputsInfo = {}
                         this.logInfo = ''
-                        if (!this.nodeInfo) return
-                        this.executeInfo.name = this.nodeInfo.name
                         return
                     }
                     const { execution_info, outputs, inputs, log, history } = respData
@@ -674,6 +670,7 @@
                     }
                     
                     this.executeInfo.plugin_version = version
+                    this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
@@ -689,13 +686,13 @@
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
                     // 获取执行失败节点是否允许跳过，重试状态
-                    const data = this.nodeInfo
-                    if (data && data.type === 'ServiceActivity' && this.executeInfo.state === 'FAILED') {
-                        this.isShowSkipBtn = data.skippable
-                        this.isShowRetryBtn = data.retryable
+                    if (this.location.type === 'tasknode' && this.executeInfo.state === 'FAILED') {
+                        const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                        this.isShowSkipBtn = activity.skippable
+                        this.isShowRetryBtn = activity.retryable
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -719,8 +716,8 @@
                     if (res.result) {
                         return res.data
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 非admin 用户执行记录
@@ -729,8 +726,8 @@
                     this.isLogLoading = true
                     const performLog = await this.getNodePerformLog(query)
                     this.logInfo = performLog.data
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.isLogLoading = false
                 }
@@ -779,11 +776,9 @@
                         } else {
                             this.$set(this.historyLog, id, resp.data)
                         }
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.historyLogLoading[id] = false
                 }
@@ -833,8 +828,8 @@
                     this.getHistoryLog(id)
                 }
             },
-            onSelectNode (nodeHeirarchy, isClick, nodeType) {
-                this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
+            onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+                this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {

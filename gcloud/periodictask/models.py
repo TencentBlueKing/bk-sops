@@ -18,19 +18,20 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
+from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
-from gcloud.core.models import Project
+from gcloud.core.models import Project, EngineConfig
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.shortcuts.cmdb import get_business_group_members
+from gcloud.common_template.models import CommonTemplate
+from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 
 logger = logging.getLogger("root")
 
@@ -73,16 +74,27 @@ class PeriodicTaskManager(models.Manager):
     def create_pipeline_task(self, project, template, name, cron, pipeline_tree, creator, template_source=PROJECT):
         if template_source == PROJECT and template.project.id != project.id:
             raise InvalidOperationException("template %s do not belong to project[%s]" % (template.id, project.name))
+
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
+        PipelineTemplate.objects.replace_id(pipeline_tree)
+
+        engine_ver = EngineConfig.objects.get_engine_ver(
+            project_id=project.id, template_id=template.id, template_source=template_source
+        )
+        trigger_task = ""
+        queue = settings.PERIODIC_TASK_QUEUE_NAME
         extra_info = {
             "project_id": project.id,
             "category": template.category,
             "template_id": template.pipeline_template.template_id,
             "template_source": template_source,
             "template_num_id": template.id,
+            "pipeline_formator": "pipeline_web.parser.format.format_web_data_to_pipeline",
+            "engine_ver": engine_ver,
         }
-
-        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
-        PipelineTemplate.objects.replace_id(pipeline_tree)
+        if engine_ver != EngineConfig.ENGINE_VER_V1:
+            queue = settings.PERIODIC_TASK_QUEUE_NAME_V2
+            trigger_task = BAMBOO_ENGINE_TRIGGER_TASK
 
         return PipelinePeriodicTask.objects.create_task(
             name=name,
@@ -93,7 +105,8 @@ class PeriodicTaskManager(models.Manager):
             timezone=project.time_zone,
             extra_info=extra_info,
             spread=True,
-            queue=settings.PERIODIC_TASK_QUEUE_NAME,
+            queue=queue,
+            trigger_task=trigger_task,
         )
 
 

@@ -15,22 +15,7 @@ const isCrossOrigin = isCrossOriginIFrame()
 const topWindow = isCrossOrigin ? window : window.top
 const topDocument = topWindow.document
 
-try {
-    window.top.BLUEKING.corefunc.open_login_dialog = openLoginDialog
-    window.top.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
-} catch (_) {
-    topWindow.BLUEKING = {
-        corefunc: {
-            open_login_dialog: openLoginDialog,
-            close_login_dialog: closeLoginDialog
-        }
-    }
-    // 兼容接口返回的登录成功 html
-    window.open_login_dialog = openLoginDialog
-    window.close_login_dialog = closeLoginDialog
-}
-
-function openLoginDialog (src, width = 460, height = 490, method = 'get') {
+const openLoginDialog = (src, width = 460, height = 490, method = 'get') => {
     if (!src) return
     const isWraperExit = topDocument.querySelector('#bk-gloabal-login-iframe')
     if (isWraperExit) return
@@ -61,7 +46,7 @@ function openLoginDialog (src, width = 460, height = 490, method = 'get') {
     wraper.appendChild(dialogDiv)
     topDocument.body.appendChild(wraper)
 }
-function closeLoginDialog (e) {
+const closeLoginDialog = (e) => {
     try {
         e.stopPropagation()
         const el = e.target
@@ -80,4 +65,19 @@ function closeLoginDialog (e) {
         }
     }
     window.needReloadPage && window.location.reload()
+}
+
+try {
+    window.top.BLUEKING.corefunc.open_login_dialog = openLoginDialog
+    window.top.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
+} catch (_) {
+    topWindow.BLUEKING = {
+        corefunc: {
+            open_login_dialog: openLoginDialog,
+            close_login_dialog: closeLoginDialog
+        }
+    }
+    // 兼容接口返回的登录成功 html
+    window.open_login_dialog = openLoginDialog
+    window.close_login_dialog = closeLoginDialog
 }

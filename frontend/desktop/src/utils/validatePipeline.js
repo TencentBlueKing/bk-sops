@@ -19,7 +19,7 @@ const NODE_RULE = {
         max_in: 0,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'subflow'],
+        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'subflow'],
         unique: true
     },
     'endpoint': {
@@ -35,7 +35,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'subflow': {
@@ -43,7 +43,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'branchgateway': {
@@ -51,7 +51,15 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
+        unique: false
+    },
+    'conditionalparallelgateway': {
+        min_in: 1,
+        max_in: 1000,
+        min_out: 1,
+        max_out: 1000,
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'parallelgateway': {
@@ -59,7 +67,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway'],
         unique: false
     },
     'convergegateway': {
@@ -67,7 +75,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'conditionalparallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     }
 }
@@ -116,7 +124,7 @@ const validatePipeline = {
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}${NODE_DICT[targetNode.type]}`
             return this.getMessage(false, message)
         }
-        const isSameLine = lines.some(item => {
+        const isSameLine = lines.some((item) => {
             if (item.source.id === sourceId) {
                 sourceLinesLinked += 1
                 if (item.target.id === targetId) {
@@ -139,7 +147,8 @@ const validatePipeline = {
         if (isSameLine) {
             const message = i18n.t('重复添加连线')
             return this.getMessage(false, message)
-        } else {
+        }
+        if (!isSameLine) {
             const i18n_text1 = i18n.t('已达到')
             if (sourceLinesLinked >= sourceRule.max_out) {
                 const i18n_text2 = i18n.t('最大输出连线条数')
@@ -157,9 +166,7 @@ const validatePipeline = {
     isLocationValid (loc, data) {
         const rule = NODE_RULE[loc.type]
         if (rule.unique) { // 节点唯一性
-            const isLocationOverMount = data.some(item => {
-                return item.type === loc.type && item.id !== loc.id
-            })
+            const isLocationOverMount = data.some(item => item.type === loc.type && item.id !== loc.id)
             if (isLocationOverMount) {
                 const i18n_text = i18n.t('在模板中只能添加一个')
                 const message = `${NODE_DICT[loc.type]}${i18n_text}`
@@ -176,7 +183,7 @@ const validatePipeline = {
         let message
         let tasknode = 0
         let subflow = 0
-        const isLineNumValid = data.locations.every(loc => {
+        const isLineNumValid = data.locations.every((loc) => {
             const rule = NODE_RULE[loc.type]
             const name = loc.name || NODE_DICT[loc.type]
             let sourceLinesLinked = 0
@@ -186,7 +193,7 @@ const validatePipeline = {
             } else if (loc.type === 'subflow') {
                 subflow += 1
             }
-            data.lines.forEach(line => {
+            data.lines.forEach((line) => {
                 if (line.source.id === loc.id) {
                     targetLinesLinked += 1
                 }
@@ -231,7 +238,7 @@ const validatePipeline = {
         const valid = !lineGroup.some((item, index) => {
             const type = index === 0 ? 'target' : 'source'
             const lines = Array.isArray(item) ? item : [item]
-            return lines.some(line => {
+            return lines.some((line) => {
                 if (line === '') {
                     return false
                 }
@@ -243,6 +250,7 @@ const validatePipeline = {
                     message = i18n.t(`flows.${line}.${type} doesn't equal to ${id}`)
                     return true
                 }
+                return false
             })
         })
 
@@ -275,12 +283,13 @@ const validatePipeline = {
             ...Object.keys(gateways).map(id => gateways[id])
         ]
 
-        valid = !nodes.some(node => {
+        valid = !nodes.some((node) => {
             const result = this.isFlowValid(node, flows)
             if (!result.valid) {
                 message = result.message
                 return true
             }
+            return false
         })
 
         return this.getMessage(valid, message)

@@ -16,7 +16,6 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'VariablePreviewValue',
@@ -45,11 +44,9 @@
                     const resp = await this.getConstantsPreviewResult(this.params)
                     if (resp.result) {
                         this.valueStr = resp.data[this.keyid]
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.loading = false
                 }
@@ -69,7 +66,7 @@
             content: '';
             position: absolute;
             top: -5px;
-            right: 25px;
+            right: 44px;
             width: 8px;
             height: 8px;
             background: #f0f1f5;

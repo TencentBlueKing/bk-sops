@@ -224,7 +224,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportTemplateDialog from '../TemplateList/ImportTemplateDialog.vue'
@@ -467,8 +466,8 @@
                         action: 'common_flow_create'
                     })
                     this.hasCreateCommonTplPerm = res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
+                } catch (e) {
+                    console.log(e)
                 }
             },
             async getTemplateList () {
@@ -510,7 +509,7 @@
                         this.totalPage = totalPage
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -526,7 +525,7 @@
                     form.list = this.templateCategoryList
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.projectInfoLoading = false
                     this.categoryLoading = false
@@ -538,8 +537,11 @@
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    selectedFields = fieldList
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.defaultSelected
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('commonTemplateList')
+                    }
                 } else {
                     selectedFields = this.defaultSelected
                 }
@@ -551,7 +553,7 @@
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectListLoading = false
                 }
@@ -601,11 +603,9 @@
                     const resp = await this.templateExport(data)
                     if (resp.result) {
                         this.isExportDialogShow = false
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.export = false
                 }
@@ -674,7 +674,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'commonProcessList', query })
+                this.$router.replace({ name: 'commonProcessList', query })
             },
             /**
              * 单个模板操作项点击时校验
@@ -712,7 +712,7 @@
                     }
                     this.getTemplateList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.delete = false
                 }
@@ -785,7 +785,7 @@
                     }
                     this.getCollectList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
@@ -826,8 +826,8 @@
                     }
                     const resp = await this.queryUserPermission(data)
                     this.hasCreateTaskPerm = resp.data.is_allow
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.permissionLoading = false
                 }

@@ -17,7 +17,6 @@ from pipeline import exceptions
 from pipeline.core.data import library, var
 from pipeline.core.data.expression import ConstantTemplate
 from pipeline.validators.utils import format_node_io_to_list
-from pipeline.component_framework.constant import ConstantPool
 
 from pipeline_web.constants import PWE
 
@@ -33,22 +32,11 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     constants = pipeline_tree.pop("constants")
     # classify inputs and outputs
     classification = classify_constants(constants, is_subprocess)
-    # pre render mako for some vars
-    pre_render_keys = get_pre_render_mako_keys(constants)
-
-    pool = {}
-    for key in pre_render_keys:
-        var_info = classification["data_inputs"][key]
-        if var_info["type"] != "lazy":
-            pool[key] = {"value": var_info["value"]}
-
-    pre_render_pool = ConstantPool(pool=pool)
-    for k, v in pre_render_pool.pool.items():
-        classification["data_inputs"][k]["value"] = v["value"]
 
     pipeline_tree["data"] = {
         "inputs": classification["data_inputs"],
         "outputs": [key for key in pipeline_tree.pop("outputs")],
+        "pre_render_keys": sorted(list(get_pre_render_mako_keys(constants))),
     }
 
     for act_id, act in list(pipeline_tree["activities"].items()):

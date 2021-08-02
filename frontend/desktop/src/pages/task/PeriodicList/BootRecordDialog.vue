@@ -57,7 +57,6 @@
 <script>
     import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'BootRecordDialog',
@@ -139,7 +138,7 @@
                     this.totalPage = Math.floor(resp.meta.total_count / this.pageSize)
                     this.recordData.push(...resp.objects)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.isLoading = false
                     this.loading = false

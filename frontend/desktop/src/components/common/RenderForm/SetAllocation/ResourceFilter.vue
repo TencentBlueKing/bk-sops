@@ -265,7 +265,6 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
@@ -537,11 +536,9 @@
                     })
                     if (resp.result) {
                         this.schemes = resp.data
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.scheme = false
                 }
@@ -573,11 +570,9 @@
                                 this.$refs.setTree.setChecked(this.config.set_template_id, { checked: true })
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -615,11 +610,9 @@
                                 }
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.resource = false
                 }
@@ -648,17 +641,13 @@
                                     const mdInfo = respCount.data.find(item => item.bk_inst_id === md.bk_module_id)
                                     md.count = mdInfo ? mdInfo.host_count : 0
                                 })
-                            } else {
-                                errorHandler(respCount, this)
                             }
                         }
                         this.moduleList = resp.data.info
                         this.formData.modules = []
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.set = false
                 }
@@ -679,11 +668,9 @@
                                 name: item.text
                             }
                         })
-                    } else {
-                        errorHandler(resp, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.condition = false
                 }
@@ -693,6 +680,14 @@
                 const { module_detail, mute_attribute, shareEqually, set_count, host_resources, set_template_id, set_template_name, filter_lock = false } = JSON.parse(scheme.data)
                 const modules = module_detail.map(item => {
                     const { custom_ip_list, host_count, host_filter_list, id, mute_method, mute_modules, name, reuse_module, select_method } = item
+                    const hostFilterList = host_filter_list.map(item => {
+                        const { type_val, name, value } = item
+                        return {
+                            type: type_val === 1 ? 'exclude' : 'filter',
+                            field: name,
+                            value
+                        }
+                    })
                     return {
                         id,
                         name,
@@ -702,7 +697,7 @@
                         customIpList: custom_ip_list,
                         muteMethod: mute_method,
                         muteModules: mute_modules,
-                        hostFilterList: host_filter_list
+                        hostFilterList
                     }
                 })
                 await this.getModule(set_template_id)
@@ -759,11 +754,9 @@
                                 this.isSchemeDialogShow = false
                                 this.formData.scheme = resp.data.id
                                 this.gitResourceSchemes()
-                            } else {
-                                errorHandler(resp, this)
                             }
-                        } catch (error) {
-                            errorHandler(error, this)
+                        } catch (e) {
+                            console.log(e)
                         } finally {
                             this.pending.saveScheme = false
                         }
@@ -933,9 +926,11 @@
                 })
                 // 节点循环引用退出保存，弹出提示
                 if (cycleCiting) {
-                    errorHandler({
-                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
-                    }, this)
+                    this.$bkMessage({
+                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用'),
+                        theme: 'error',
+                        ellipsisLine: 0
+                    })
                     return false
                 }
                 return this.$refs.setForm.validate().then(async result => {
@@ -957,7 +952,10 @@
                     }
 
                     if (!tabValid) {
-                        errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
+                        this.$bkMessage({
+                            message: gettext('参数错误，请检查模块表单项'),
+                            theme: 'error'
+                        })
                     } else {
                         return true
                     }
@@ -1004,11 +1002,9 @@
                         const configData = this.getConfigData()
                         this.$emit('update', configData, moduleHosts)
                         this.$emit('update:showFilter', false)
-                    } else {
-                        errorHandler(hostData, this)
                     }
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.log(error)
                 } finally {
                     this.pending.host = false
                 }

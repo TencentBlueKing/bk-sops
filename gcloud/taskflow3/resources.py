@@ -25,14 +25,14 @@ from iam import Subject, Action, Request
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
-from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.utils.strings import name_handler, pipeline_node_name_handle
-from gcloud.core.constant import TASK_NAME_MAX_LENGTH
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
+from gcloud.constants import TASK_NAME_MAX_LENGTH
+from gcloud.core.models import EngineConfig
+from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -83,10 +83,12 @@ class TaskFlowInstanceResource(GCloudModelResource):
     is_started = fields.BooleanField(attribute="is_started", readonly=True, null=True)
     is_finished = fields.BooleanField(attribute="is_finished", readonly=True, null=True)
     is_revoked = fields.BooleanField(attribute="is_revoked", readonly=True, null=True)
+    is_expired = fields.BooleanField(attribute="is_expired", readonly=True, null=True)
     creator_name = fields.CharField(attribute="creator_name", readonly=True, null=True)
     executor_name = fields.CharField(attribute="executor_name", readonly=True, null=True)
     pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
     subprocess_info = fields.DictField(attribute="subprocess_info", use_in="detail", readonly=True)
+    engine_ver = fields.IntegerField(attribute="engine_ver", readonly=True)
 
     class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
@@ -221,8 +223,8 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
     @staticmethod
     def handle_task_name_attr(data):
-        data["name"] = name_handler(data["name"], TASK_NAME_MAX_LENGTH)
-        pipeline_node_name_handle(data["pipeline_tree"])
+        data["name"] = standardize_name(data["name"], TASK_NAME_MAX_LENGTH)
+        standardize_pipeline_node_name(data["pipeline_tree"])
 
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
@@ -320,6 +322,12 @@ class TaskFlowInstanceResource(GCloudModelResource):
         else:
             kwargs["current_flow"] = "execute_task"
         kwargs["pipeline_instance_id"] = pipeline_instance.id
+
+        # set engine type
+        kwargs["engine_ver"] = EngineConfig.objects.get_engine_ver(
+            project_id=project.id, template_id=template.id, template_source=template_source
+        )
+
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
 
@@ -330,9 +338,8 @@ class TaskFlowInstanceResource(GCloudModelResource):
         except Exception:
             raise BadRequest("taskflow does not exits")
 
-        raw_state = taskflow.raw_state
-
-        if raw_state and raw_state not in states.ARCHIVED_STATES:
-            raise BadRequest(_("无法删除未进入完成或撤销状态的流程"))
+        if taskflow.is_started:
+            if not (taskflow.is_finished or taskflow.is_revoked):
+                raise BadRequest(_("无法删除未进入完成或撤销状态的流程"))
 
         return super(TaskFlowInstanceResource, self).obj_delete(bundle, **kwargs)
