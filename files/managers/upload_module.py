@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from .base import Manager
 from ..models import UploadModuleFileTag
 from ..exceptions import InvalidOperationError
+from ..env import BKAPP_FILE_MGR_SOURCE_ACCOUNT
 
 
 class UploadModuleManager(Manager):
@@ -43,7 +44,7 @@ class UploadModuleManager(Manager):
         file_source = [
             {
                 "files": ["{}/{}".format(tag.file_path, tag.file_name)],
-                "account": "root",
+                "account": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
                 "ip_list": [{"bk_cloud_id": 0, "ip": tag.source_ip}],
             }
             for tag in tag_models
