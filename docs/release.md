@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.4204
+
+- feature
+  - 分发本地文件插件文件源账户支持通过 BKAPP_FILE_MGR_SOURCE_ACCOUNT 环境变量进行配置
+
 ## 3.6.4203
 
 - bugfix
