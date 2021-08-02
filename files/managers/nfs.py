@@ -19,6 +19,7 @@ from django.core.files.storage import FileSystemStorage
 
 from .base import Manager
 from ..exceptions import InvalidOperationError
+from ..env import BKAPP_FILE_MGR_SOURCE_ACCOUNT
 
 
 class HostNFSManager(Manager):
@@ -68,7 +69,7 @@ class HostNFSManager(Manager):
                     )
                     for tag in file_tags
                 ],
-                "account": "root",
+                "account": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
                 "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
             }
         ]
