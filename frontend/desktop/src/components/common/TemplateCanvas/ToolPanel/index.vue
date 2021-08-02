@@ -24,59 +24,62 @@
                 @click="onShowMap">
                 <i class="common-icon-small-map"></i>
             </div>
-            <div
-                class="tool-icon"
-                v-bk-tooltips="{
-                    content: $t('放大'),
-                    delay: 300,
-                    placements: ['bottom']
-                }"
-                @click="onZoomIn">
-                <i class="common-icon-zoom-in"></i>
+            <div class="zoom-wrapper">
+                <div
+                    v-bk-tooltips="{
+                        content: $t('放大'),
+                        delay: 300,
+                        placements: ['bottom']
+                    }"
+                    @click="onZoomIn">
+                    <i class="common-icon-add"></i>
+                </div>
+                <p class="zoom-ratio">{{ zoomRatio + '%' }}</p>
+                <div
+                    v-bk-tooltips="{
+                        content: $t('缩小'),
+                        delay: 300,
+                        placements: ['bottom']
+                    }"
+                    @click="onZoomOut">
+                    <i class="bk-icon icon-minus-line"></i>
+                </div>
             </div>
-            <div
-                class="tool-icon"
-                v-bk-tooltips="{
-                    content: $t('缩小'),
-                    delay: 300,
-                    placements: ['bottom']
-                }"
-                @click="onZoomOut">
-                <i class="common-icon-zoom-out"></i>
-            </div>
-            <div
-                class="tool-icon"
-                v-bk-tooltips="{
-                    content: $t('复位'),
-                    delay: 300,
-                    placements: ['bottom']
-                }"
-                @click="onResetPosition">
-                <i class="common-icon-reduction"></i>
-            </div>
-            <div
-                :class="['tool-icon', {
-                    'actived': isSelectionOpen
-                }]"
-                v-if="editable"
-                v-bk-tooltips="{
-                    content: $t('节点框选'),
-                    delay: 300,
-                    placements: ['bottom']
-                }"
-                @click="onOpenFrameSelect">
-                <i class="common-icon-marquee"></i>
-            </div>
-            <div
-                class="tool-icon"
-                v-if="editable"
-                v-bk-tooltips="{
-                    content: $t('排版'),
-                    delay: 300,
-                    placements: ['bottom']
-                }"
-                @click="onFormatPosition">
-                <i class="common-icon-four-square"></i>
+            <div class="square-wrapper">
+                <div
+                    class="tool-icon"
+                    v-bk-tooltips="{
+                        content: $t('复位'),
+                        delay: 300,
+                        placements: ['bottom']
+                    }"
+                    @click="onResetPosition">
+                    <i class="common-icon-reduction"></i>
+                </div>
+                <div
+                    :class="['tool-icon', {
+                        'actived': isSelectionOpen
+                    }]"
+                    v-if="editable"
+                    v-bk-tooltips="{
+                        content: $t('节点框选'),
+                        delay: 300,
+                        placements: ['bottom']
+                    }"
+                    @click="onOpenFrameSelect">
+                    <i class="common-icon-marquee"></i>
+                </div>
+                <div
+                    class="tool-icon"
+                    v-if="editable"
+                    v-bk-tooltips="{
+                        content: $t('排版'),
+                        delay: 300,
+                        placements: ['bottom']
+                    }"
+                    @click="onFormatPosition">
+                    <i class="common-icon-four-square"></i>
+                </div>
             </div>
             <div
                 class="tool-icon"
@@ -93,17 +96,9 @@
                 </i>
             </div>
             <div
-                class="tool-icon"
-                v-bk-tooltips="{
-                    content: $t('下载'),
-                    delay: 300,
-                    placements: ['bottom']
-                }"
-                @click="onDownloadCanvas">
-                <i class="bk-icon icon-download"></i>
-            </div>
-            <div
-                class="tool-icon"
+                :class="['tool-icon', {
+                    'actived': isShowHotKey
+                }]"
                 v-bk-tooltips="{
                     content: $t('快捷键'),
                     delay: 300,
@@ -144,11 +139,14 @@
             showSmallMap: {
                 type: Boolean,
                 default: false
-            }
-        },
-        data () {
-            return {
-                isShowHotKey: false
+            },
+            zoomRatio: {
+                type: Number,
+                default: 100
+            },
+            isShowHotKey: {
+                type: Boolean,
+                default: false
             }
         },
         computed: {
@@ -180,31 +178,70 @@
             },
             onToggleHotKeyInfo () {
                 this.$emit('onToggleHotKeyInfo')
-            },
-            onDownloadCanvas () {
-                this.$emit('onDownloadCanvas')
             }
         }
     }
 </script>
 <style lang="scss" scoped>
+    .tool-position {
+        height: 36px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        & > *:not(:last-child) {
+            position: relative;
+            &::after {
+                content: '';
+                height: 15px;
+                width: 1px;
+                position: absolute;
+                right: -12px;
+                top: 5px;
+                background: #dcdee5;
+            }
+        }
+    }
     .tool-icon {
-        display: inline-block;
-        margin: 0 15px;
-        color: #ffffff;
+        height: 24px;
+        width: 24px;
+        padding: 0 4px;
+        margin-right: 20px;
+        color: #919eb5;
         cursor: pointer;
-        &:first-child {
-            margin-left: 20px;
-        }
         &:last-child {
-            margin-right: 15px;
+            margin-right: 0;
         }
-        &.actived {
-            color: #3480ff;
+        &.actived, &:hover {
+            color: #3a84ff;
+            background: #f4f7ff;
+            border-radius: 1px;
         }
         .tool-disable {
             cursor: not-allowed;
             opacity: 0.3;
+        }
+    }
+    .zoom-wrapper, .square-wrapper {
+        display: flex;
+        align-items: center;
+        margin-right: 20px;
+        .ommon-icon-add, .icon-minus {
+            font-size: 18px;
+            color: #919eb5;
+            cursor: pointer;
+        }
+        .zoom-ratio {
+            width: 32px;
+            text-align: center;
+            font-size: 12px;
+            transform: scale(.8);
+            color: #c4c6cc;
+        }
+        .tool-icon {
+            margin-right: 16px;
+            &:last-child {
+                margin-right: 0;
+            }
         }
     }
 </style>
