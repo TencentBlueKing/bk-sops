@@ -1,5 +1,5 @@
 <template>
-    <div class="task-scheme" v-if="isSchemeShow">
+    <div class="edit-task-scheme" v-if="isSchemeShow">
         <div class="schema-nav" @click="toggleSchemePanel">
             <i class="bk-icon icon-angle-left"></i>
             {{ $t('执行方案') }}
@@ -33,7 +33,7 @@
                     <!-- 创建方案 -->
                     <li class="add-scheme" :class="{ 'vee-errors': veeErrors.has('schemaName'), 'is-mepty': !schemaList.length }" v-if="nameEditing">
                         <bk-input
-                            :ref="`nameInput`"
+                            ref="nameInput"
                             v-model="schemaName"
                             v-validate.persist="schemaNameRule"
                             name="schemaName"
@@ -175,6 +175,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             haveCreateSchemeTpl () {
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 return this.hasPermission([tplAction], this.tplActions)
@@ -186,11 +190,7 @@
             indeterminate () {
                 const selectPlanLength = Object.keys(this.planDataObj).length
                 return Boolean(selectPlanLength) && selectPlanLength !== this.schemaList.length
-            },
-            ...mapState('project', {
-                'projectId': state => state.project_id,
-                'projectName': state => state.projectName
-            })
+            }
         },
         watch: {
             isPreviewMode (val) {
@@ -363,7 +363,8 @@
             async onDeleteScheme (scheme) {
                 // 提示用户先保存创建方案再进行其他操作
                 if (this.setRemindUserMsg()) return
-                const hasPermission = this.checkSchemeRelativePermission(['flow_edit'])
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
                 if (!hasPermission) return
                 const index = this.schemaList.findIndex(item => item.id === scheme.id)
@@ -380,8 +381,9 @@
              */
             checkSchemeRelativePermission (required) {
                 if (!this.hasPermission(required, this.tplActions)) {
+                    const flowType = this.isCommonProcess ? 'common_flow' : 'flow'
                     const resourceData = {
-                        flow: [{
+                        [`${flowType}`]: [{
                             id: this.template_id,
                             name: this.templateName
                         }],
@@ -412,39 +414,44 @@
     }
 </script>>
 <style lang="scss">
-    .scheme-active-wrapper .icon-plus-line {
-        font-size: 16px;
-        color: #979ba5;
-        transform: translate(-2px, -1.5px)
+    .edit-task-scheme {
+        .scheme-active-wrapper .bk-button > div {
+            display: flex;
+            align-items: center;
+            .icon-plus-line {
+                font-size: 16px;
+                margin-right: 3px;
+                color: #979ba5;
+            }
+        }
+        .scheme-wrapper {
+            .bk-checkbox {
+                background: #fff;
+                &:hover {
+                    border-color: #3a84ff;
+                }
+            }
+            .is-disabled .bk-checkbox:hover {
+                border-color: #dcdee5;
+                background: #dcdee5;
+            }
+            .vee-errors {
+                .bk-form-input {
+                    border-color: #ff5757;
+                }
+                .common-error-tip {
+                    margin-top: 5px;
+                    display: block !important;
+                }
+            }
+        }
     }
-    .scheme-wrapper {
-        .bk-checkbox {
-            background: #fff;
-            &:hover {
-                border-color: #3a84ff;
-            }
-        }
-        .is-disabled .bk-checkbox:hover {
-            border-color: #dcdee5;
-            background: #dcdee5;
-        }
-        .vee-errors {
-            .bk-form-input {
-                border-color: #ff5757;
-            }
-            .common-error-tip {
-                margin-top: 5px;
-                display: block !important;
-            }
-        }
-    }
-    
 </style>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
     @import '@/scss/config.scss';
 
-    .task-scheme {
+    .edit-task-scheme {
         position: absolute;
         top: 0;
         right: 0;

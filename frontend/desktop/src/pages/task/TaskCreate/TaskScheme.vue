@@ -128,14 +128,14 @@
             }
         },
         computed: {
-            haveCreateSchemeTpl () {
-                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                return this.hasPermission([tplAction], this.tplActions)
-            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
-            })
+            }),
+            haveCreateSchemeTpl () {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                return this.hasPermission([tplAction], this.tplActions)
+            }
         },
         watch: {
             isPreviewMode (val) {
@@ -280,8 +280,9 @@
              */
             checkSchemeRelativePermission (required) {
                 if (!this.hasPermission(required, this.tplActions)) {
+                    const flowType = this.isCommonProcess ? 'common_flow' : 'flow'
                     const resourceData = {
-                        flow: [{
+                        [`${flowType}`]: [{
                             id: this.template_id,
                             name: this.templateName
                         }],

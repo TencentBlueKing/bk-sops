@@ -301,7 +301,7 @@
                     })
                     return
                 }
-                bus.$emit('onSaveEditeScheme', this.schemeInfo)
+                bus.$emit('onSaveEditScheme', this.schemeInfo)
                 this.schemeInfo = null
             },
             goBackTplList () {

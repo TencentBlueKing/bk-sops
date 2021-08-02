@@ -60,8 +60,7 @@
                 @selectScheme="selectScheme"
                 @selectAllScheme="selectAllScheme"
                 @importTextScheme="importTextScheme"
-                @togglePreviewMode="togglePreviewMode">
-            </component>
+                @togglePreviewMode="togglePreviewMode" />
         </div>
         <div class="action-wrapper" slot="action-wrapper" v-if="isEditProcessPage">
             <bk-button
@@ -113,7 +112,7 @@
     import XLSX from 'xlsx'
     import { errorHandler } from '@/utils/errorHandler.js'
     import TaskScheme from './TaskScheme.vue'
-    import EditeTaskScheme from './EditeTaskScheme.vue'
+    import EditTaskScheme from './EditTaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
     import EditScheme from './EditScheme.vue'
@@ -122,7 +121,7 @@
     export default {
         components: {
             TaskScheme,
-            EditeTaskScheme,
+            EditTaskScheme,
             EditScheme,
             TemplateCanvas,
             NodePreview
@@ -193,7 +192,7 @@
                 return false
             },
             schemeTemplate () {
-                return this.isEditProcessPage ? 'TaskScheme' : 'EditeTaskScheme'
+                return this.isEditProcessPage ? 'TaskScheme' : 'EditTaskScheme'
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
@@ -203,12 +202,12 @@
             }
         },
         created () {
-            bus.$on('onSaveEditeScheme', (val) => {
+            bus.$on('onSaveEditScheme', (val) => {
                 this.schemeInfo = val
                 this.schemeInfo.data = this.selectedNodes
                 // 把进行编辑之前选中的赋值给selectedNodes
                 this.selectedNodes = this.prevSelectedNodes
-                this.getCommenNodeData()
+                this.updateDataAndCanvas()
                 this.isShow = true
             })
             if (this.viewMode === 'appmaker') {
@@ -507,7 +506,7 @@
                         errorHandler(e, this)
                     }
                 }
-                this.getCommenNodeData()
+                this.updateDataAndCanvas()
             },
             /**
              * 批量选择执行方案
@@ -526,10 +525,10 @@
                 } else {
                     this.selectedNodes = []
                 }
-                this.getCommenNodeData()
+                this.updateDataAndCanvas()
             },
-            // 抽取公共代码逻辑
-            getCommenNodeData () {
+            // 跟新数据和画布
+            updateDataAndCanvas () {
                 this.updateExcludeNodes()
                 this.canvasData.locations.forEach(item => {
                     if (this.isSelectableNode(item.id)) {
@@ -562,7 +561,7 @@
                 this.prevSelectedNodes = JSON.parse(JSON.stringify(this.selectedNodes))
                 // 把当前方案的id赋值给selectedNodes
                 this.selectedNodes = Array.isArray(scheme.data) ? scheme.data : JSON.parse(scheme.data)
-                this.getCommenNodeData()
+                this.updateDataAndCanvas()
             },
             // 导入临时方案
             onImportTemporaryPlan () {
