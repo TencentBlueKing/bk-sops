@@ -145,13 +145,13 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
         # change constants
-        for key, value in list(constants.items()):
-            if key in pipeline_tree[PE.constants]:
-                var = pipeline_tree[PE.constants][key]
-                # set meta field for meta var, so frontend can render meta form
-                if var.get("is_meta"):
-                    var["meta"] = deepcopy(var)
-                var["value"] = value
+        for key, constant in pipeline_tree[PE.constants].items():
+            # set meta field for meta var, so frontend can render meta form
+            if constant.get("is_meta"):
+                constant["meta"] = deepcopy(constant)
+                constant["value"] = constant["value"]["default"]
+            if key in constants:
+                constant["value"] = constants[key]
 
         # simplify var
         for key in simplify_vars:

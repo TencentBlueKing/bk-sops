@@ -494,8 +494,11 @@
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    selectedFields = fieldList
-                    this.setting.size = size
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.defaultSelected
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('TaskList')
+                    }
                 } else {
                     selectedFields = this.defaultSelected
                 }
