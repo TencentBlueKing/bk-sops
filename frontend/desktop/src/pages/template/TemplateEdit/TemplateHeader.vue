@@ -15,7 +15,7 @@
             <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
             <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
             <h3 class="template-name">{{ name }}</h3>
-            <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
+            <span v-if="isEditProcessPage" class="bk-icon icon-edit-line" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
                 v-if="!common && isEditProcessPage"
@@ -58,6 +58,11 @@
                     v-cursor="{ active: !createTaskBtnActive }"
                     @click.stop="onSaveClick(true)">
                     {{createTaskBtnText}}
+                </bk-button>
+                <bk-button
+                    :class="['task-btn']"
+                    @click.stop="onDownloadCanvas">
+                    {{$t('导出为图片')}}
                 </bk-button>
             </div>
             <div class="button-area execute-scheme" v-if="!isEditProcessPage && !isPreviewMode">
@@ -232,6 +237,9 @@
                     }
                 }
                 this.$emit('onOpenExecuteScheme', false)
+            },
+            onDownloadCanvas () {
+                this.$emit('onDownloadCanvas')
             },
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
@@ -465,9 +473,9 @@
             white-space: nowrap;
             color: #63656e;
         }
-        .common-icon-edit {
+        .icon-edit-line {
             margin-left: 10px;
-            font-size: 12px;
+            font-size: 16px;
             color: #979ba5;
             cursor: pointer;
             &:hover {
@@ -516,6 +524,9 @@
             }
         }
         .task-btn {
+            width: 86px;
+            padding: 0;
+            text-align: center;
             margin-left: 5px;
         }
     }

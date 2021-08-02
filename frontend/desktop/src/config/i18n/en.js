@@ -1,4 +1,5 @@
 const en = {
+    '导出为图片': 'Export as picture',
     '方式引用': 'way to reference',
     '可以在模板中通过': 'It can be passed in the template',
     '项目级别的变量建立后': 'After the project-level variables are established',
