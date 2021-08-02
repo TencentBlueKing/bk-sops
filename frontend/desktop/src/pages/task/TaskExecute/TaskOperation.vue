@@ -189,8 +189,8 @@
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
-    import { TASK_STATE_DICT } from '@/constants/index.js'
+    import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
+    import dom from '@/utils/dom.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo.vue'
@@ -360,12 +360,13 @@
                 }
             },
             nodeData () {
+                const data = this.getOrderedTree(this.completePipelineData)
                 return [{
                     id: this.instance_id,
                     name: this.instanceName,
                     title: this.instanceName,
                     expanded: true,
-                    children: this.getOrderedTree(this.completePipelineData)
+                    children: data
                 }]
             },
             taskState () {
@@ -495,12 +496,12 @@
                         } else {
                             this.setTaskStatusTimer()
                         }
-                        errorHandler(instanceStatus, this)
                     }
+                    this.modifyPageIcon()
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     if (e.message !== 'cancelled') {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 } finally {
                     source = null
@@ -537,7 +538,7 @@
                     this.atomList = atomList
                     this.markNodesPhase()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.singleAtomListLoading = false
                 }
@@ -610,11 +611,9 @@
                             message: i18n.t('任务开始执行'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -637,11 +636,9 @@
                             message: i18n.t('任务暂停成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -665,11 +662,9 @@
                             message: i18n.t('任务继续成功'),
                             theme: 'success'
                         })
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -686,11 +681,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.task = false
                 }
@@ -719,11 +712,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.skip = false
                 }
@@ -751,11 +742,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.pending.forceFail = false
                 }
@@ -772,11 +761,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.selectGateway = false
                 }
@@ -805,11 +792,9 @@
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
-                    } else {
-                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.pending.parseNodeResume = false
                 }
@@ -846,7 +831,7 @@
                         errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, errorIgnorable, skip: currentNode.skip, retry: currentNode.retry }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable, error_ignored: currentNode.error_ignored }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -854,16 +839,16 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, firstNodeData) {
-                const nodeActivities = firstNodeData || this.pipelineData.activities[id]
+            async setNodeDetailConfig (id) {
+                const tasknode = this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.nodeDetailConfig = {
-                    component_code: nodeActivities.component.code,
-                    version: nodeActivities.component.version || 'legacy',
-                    node_id: nodeActivities.id,
+                    component_code: tasknode ? tasknode.component.code : '',
+                    version: tasknode ? tasknode.component.version || 'legacy' : '',
+                    node_id: id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
@@ -944,12 +929,20 @@
                         break
                 }
             },
-            getOrderedTree (data) {
-                const fstLine = data.start_event.outgoing
-                const orderedData = []
-                const passedNodes = []
-                this.retrieveLines(data, fstLine, orderedData, passedNodes)
+            getOrderedTree (data, level = 0) {
+                const startNode = tools.deepClone(data.start_event)
+                const fstLine = startNode.outgoing
+                const orderedData = [Object.assign({}, startNode, {
+                    level,
+                    title: this.$t('开始节点'),
+                    name: this.$t('开始节点'),
+                    expanded: false
+                })]
+                this.retrieveLines(data, fstLine, orderedData, true)
                 orderedData.sort((a, b) => a.level - b.level)
+                const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
+                const endEvent = orderedData.splice(endEventIndex, 1)
+                orderedData.push(endEvent[0])
                 return orderedData
             },
             /**
@@ -957,40 +950,50 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Array} passedNodes 遍历过的节点
              * @param {Number} level 任务节点与开始节点的距离
              *
              */
-            retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
-                const { activities, gateways, flows } = data
+            retrieveLines (data, lineId, ordered, level = 0) {
+                const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
-                const activity = activities[currentNode]
-                const gateway = gateways[currentNode]
-                const node = activity || gateway
+                const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
+                const activity = tools.deepClone(activities[currentNode])
+                const gateway = tools.deepClone(gateways[currentNode])
+                const node = endEvent || activity || gateway
 
-                if (node && !passedNodes.includes(node.id)) {
-                    passedNodes.push(node.id)
-
-                    if (activity) {
-                        const isExistInList = ordered.find(item => item.id === activity.id)
-                        if (!isExistInList) {
-                            if (activity.pipeline) {
-                                activity.children = this.getOrderedTree(activity.pipeline)
-                            }
-                            activity.level = level
-                            activity.title = activity.name
-                            activity.expanded = activity.pipeline
-                            ordered.push(activity)
-                        }
-                    }
-
-                    const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
-                    // 分支网关
-                    if (gateway) {
+                if (node && ordered.findIndex(item => item.id === node.id) === -1) {
+                    if (endEvent) {
+                        const name = this.$t('结束节点')
+                        endEvent.title = name
+                        endEvent.name = name
+                        endEvent.expanded = false
+                        ordered.push(endEvent)
+                    } else if (gateway) { // 网关节点
+                        const name = NODE_DICT[gateway.type.toLowerCase()]
                         level += 1
+                        gateway.level = level
+                        gateway.title = name
+                        gateway.name = name
+                        gateway.expanded = false
+                        ordered.push(gateway)
+                    } else if (activity) { // 任务节点
+                        if (activity.pipeline) {
+                            activity.children = this.getOrderedTree(activity.pipeline, level)
+                        }
+                        activity.level = level
+                        activity.title = activity.name
+                        activity.expanded = activity.pipeline
+                        ordered.push(activity)
                     }
-                    outgoing.forEach((line, index, arr) => {
-                        this.retrieveLines(data, line, ordered, passedNodes, level)
+
+                    let outgoing
+                    if (Array.isArray(node.outgoing)) {
+                        outgoing = node.outgoing
+                    } else {
+                        outgoing = node.outgoing ? [node.outgoing] : []
+                    }
+                    outgoing.forEach(line => {
+                        this.retrieveLines(data, line, ordered, level)
                     })
                 }
             },
@@ -1000,29 +1003,24 @@
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
-                    let nodeData = tools.deepClone(this.nodeData)
-                    let firstNodeId = null
-                    let firstNodeData = null
-                    const rootNode = []
-                    while (nodeData[0]) {
-                        if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-                            firstNodeId = nodeData[0].id
-                            firstNodeData = nodeData[0]
-                            nodeData[0] = false
+                    let nodeData = tools.deepClone(this.nodeData[0].children)
+                    let firstTaskNode = null
+                    const subprocessStack = []
+                    while (nodeData) {
+                        const activityNode = nodeData.find(item => item.type === 'ServiceActivity' || item.type === 'SubProcess')
+                        if (activityNode.type === 'ServiceActivity') {
+                            firstTaskNode = activityNode
+                            nodeData = null
                         } else {
-                            rootNode.push(nodeData[0])
-                            nodeData = nodeData[0].children
+                            subprocessStack.push(activityNode.id)
+                            nodeData = activityNode.children
                         }
                     }
-                    this.defaultActiveId = firstNodeId
-                    let subprocessStack = []
-                    if (rootNode.length > 1) {
-                        subprocessStack = rootNode.map(item => item.id).slice(1)
-                    }
+                    this.defaultActiveId = firstTaskNode.id
                     this.nodeDetailConfig = {
-                        component_code: firstNodeData.component.code,
-                        version: firstNodeData.component.version || 'legacy',
-                        node_id: firstNodeData.id,
+                        component_code: firstTaskNode.component.code,
+                        version: firstTaskNode.component.version || 'legacy',
+                        node_id: firstTaskNode.id,
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
@@ -1085,7 +1083,7 @@
             },
             handleSingleNodeClick (id, type) {
                 // 节点执行状态
-                const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
+                // const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 // 任务节点
                 if (type === 'singleAtom') {
                     // updateNodeActived 设置节点选中态
@@ -1096,21 +1094,18 @@
                     this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
                 } else {
-                    // 分支网关节点失败时展开侧滑面板
-                    if (nodeState && nodeState.state === 'FAILED') {
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                        }
-                        this.nodeDetailConfig = {
-                            component_code: '',
-                            version: undefined,
-                            node_id: id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
-                        }
-                        this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
+                    let subprocessStack = []
+                    if (this.selectedFlowPath.length > 1) {
+                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
+                    this.nodeDetailConfig = {
+                        component_code: '',
+                        version: undefined,
+                        node_id: id,
+                        instance_id: this.instance_id,
+                        subprocess_stack: JSON.stringify(subprocessStack)
+                    }
+                    this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                 }
             },
             onOpenConditionEdit (data) {
@@ -1267,6 +1262,30 @@
                     params: params,
                     func
                 })
+            },
+            // 根据当前任务的状态修改页面对应浏览器tab的icon
+            modifyPageIcon () {
+                let nameSuffix = ''
+                switch (this.state) {
+                    case 'CREATED':
+                        nameSuffix = 'created'
+                        break
+                    case 'FINISHED':
+                        nameSuffix = 'finished'
+                        break
+                    case 'FAILED':
+                    case 'REVOKED':
+                        nameSuffix = 'failed'
+                        break
+                    case 'RUNNING':
+                    case 'READY':
+                    case 'SUSPENDED':
+                    case 'NODE_SUSPENDED':
+                        nameSuffix = 'running'
+                }
+                const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
+                const path = `${window.SITE_URL}/static/core/images/${picName}.png`
+                dom.setPageTabIcon(path)
             },
             // 下次画布组件更新后执行队列
             onTemplateCanvasMounted () {

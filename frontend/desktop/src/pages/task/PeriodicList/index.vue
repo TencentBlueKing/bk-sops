@@ -211,7 +211,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
@@ -417,7 +416,7 @@
                         this.totalPage = totalPage
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -427,7 +426,7 @@
                     const res = await this.loadProjectBaseInfo()
                     this.taskCategory = res.data.task_categories
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             // 获取当前视图表格头显示字段
@@ -452,7 +451,7 @@
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectListLoading = false
                 }
@@ -536,9 +535,9 @@
                     }
                 })
                 if (this.admin) {
-                    this.$router.push({ name: 'adminPeriodic', query })
+                    this.$router.replace({ name: 'adminPeriodic', query })
                 } else {
-                    this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
+                    this.$router.replace({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
                 }
             },
             async onSetEnable (item) {
@@ -557,7 +556,7 @@
                         periodic.enabled = !periodic.enabled
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 }
             },
             onModifyCronPeriodic (item) {
@@ -616,7 +615,7 @@
                     }
                     this.getPeriodicList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.deleting = false
                 }
@@ -678,7 +677,7 @@
                     }
                     this.getCollectList()
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
@@ -745,7 +744,7 @@
         color: $greenDefault;
     }
     .common-icon-dark-circle-pause {
-        color: #ff9C01;
+        color: #ff9c01;
         border-radius: 20px;
         font-size: 12px;
     }

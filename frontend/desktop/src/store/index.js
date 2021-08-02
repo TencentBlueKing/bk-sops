@@ -16,7 +16,7 @@ import axios from 'axios'
 
 Vue.use(Vuex)
 
-function getAppLang () {
+const getAppLang = () => {
     return getCookie('blueking_language') === 'en' ? 'en' : 'zh-cn'
 }
 
@@ -91,7 +91,7 @@ const store = new Vuex.Store({
             }).then(response => response.data)
         },
         getCategorys ({ commit }) {
-            axios.get('analysis/get_task_category/').then(response => {
+            axios.get('analysis/get_task_category/').then((response) => {
                 commit('setCategorys', response.data.data)
             })
         },
@@ -185,7 +185,7 @@ const store = new Vuex.Store({
          * 获取权限相关元数据
          */
         getPermissionMeta ({ commit }) {
-            return axios.get('iam/api/meta/').then(response => {
+            return axios.get('iam/api/meta/').then((response) => {
                 commit('setPermissionMeta', response.data.data)
                 return response.data
             })

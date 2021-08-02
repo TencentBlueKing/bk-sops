@@ -17,8 +17,10 @@ const dom = {
         if (root.contains && el.nodeType === 1) {
             return root.contains(el) && root !== el
         }
-        while ((el = el.parentNode)) {
-            if (el === root) return true
+        let node = el.parentNode
+        while (node) {
+            if (node === root) return true
+            node = node.parentNode
         }
         return false
     },
@@ -26,10 +28,19 @@ const dom = {
         if (el.classList.contains(cls)) {
             return true
         }
-        while ((el = el.parentNode)) {
-            if (el.classList && el.classList.contains(cls)) return true
+        let node = el.parentNode
+        while (node) {
+            if (node.classList && node.classList.contains(cls)) return true
+            node = node.parentNode
         }
         return false
+    },
+    setPageTabIcon (path) {
+        const link = document.querySelector("link[rel*='icon']") || document.createElement('link')
+        link.type = 'image/x-icon'
+        link.rel = 'shortcut icon'
+        link.href = path
+        document.getElementsByTagName('head')[0].appendChild(link)
     }
 }
 

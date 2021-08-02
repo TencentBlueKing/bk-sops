@@ -51,6 +51,10 @@
             <i v-if="node.skip" class="bk-icon icon-arrows-right-shape"></i>
             <span v-else-if="node.retry > 0" class="retry-times">{{ node.retry > 99 ? '100+' : node.retry }}</span>
         </div>
+        <!-- 节点失败后自动忽略icon -->
+        <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="task-status-icon node-subscript">
+            <i class="bk-icon icon-arrows-right-shape"></i>
+        </div>
         <!-- 节点顶部右侧生命周期 icon -->
         <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
             <i

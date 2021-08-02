@@ -37,17 +37,14 @@
                     <label class="label">
                         {{ $t('表达式')}}
                         <span class="required">*</span>
-                        <i
-                            class="common-icon-info expression-tips"
-                            v-bk-tooltips="{
-                                content: i18n.tips,
-                                placement: 'right-end',
-                                duration: 0,
-                                width: 240
-                            }">
-                        </i>
                     </label>
                     <div class="code-wrapper">
+                        <div class="condition-tips">
+                            <p>{{ $t('支持 "==、!=、>、>=、&lt;、&lt;=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 ${key} 方式引用全局变量。')}}</p>
+                            <p>{{ $t('示例：') }}</p>
+                            <p>{{ $t('字符串比较：') }} "${key}" == "my string"</p>
+                            <p>{{ $t('数值比较：') }} ${int(key)} >= 3</p>
+                        </div>
                         <code-editor
                             v-validate="expressionRule"
                             name="expression"
@@ -68,10 +65,10 @@
 </template>
 
 <script>
-    import i18n from '@/config/i18n/index.js'
     import { mapMutations } from 'vuex'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG } from '@/constants/index.js'
     import CodeEditor from '@/components/common/CodeEditor.vue'
+
     export default {
         name: 'conditionEdit',
         components: {
@@ -88,14 +85,11 @@
         data () {
             const { name, value } = this.conditionData
             return {
-                i18n: {
-                    tips: i18n.t('支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：${key1} >= 3 and "${key2}" == "Test"')
-                },
                 conditionName: name,
                 expression: value,
                 conditionRule: {
                     required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                    max: 20,
                     regex: NAME_REG
                 },
                 expressionRule: {
@@ -176,6 +170,11 @@
             }
             .code-wrapper {
                 height: 300px;
+                .condition-tips {
+                    margin-bottom: 10px;
+                    font-size: 12px;
+                    color: #b8b8b8;
+                }
             }
         }
         .expression-tips {

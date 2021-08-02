@@ -20,8 +20,8 @@ from django.views.decorators.http import require_POST
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.utils import read_encoded_template_data
+from gcloud.common_template.models import CommonTemplate
+from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.apigw.views.utils import logger
 from packages.bkoauth.decorators import apigw_required
 

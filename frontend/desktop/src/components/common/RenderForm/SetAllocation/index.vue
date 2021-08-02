@@ -41,7 +41,6 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import ResourceList from './ResourceList.vue'
     import ResourceFilter from './ResourceFilter.vue'
 
@@ -198,12 +197,20 @@
                         } else {
                             this.originalCols = resp.data
                         }
-                        this.joinCols(this.localConfig.module_detail)
-                    } else {
-                        errorHandler(resp, this)
+                        const modules = this.localConfig.module_detail.slice(0)
+                        if (Array.isArray(this.value) && this.value.length > 0) {
+                            this.value[0].__module.forEach(m => {
+                                if (!modules.find(i => i.name !== m.key)) {
+                                    modules.push({
+                                        name: m.key
+                                    })
+                                }
+                            })
+                        }
+                        this.joinCols(modules)
                     }
-                } catch (error) {
-                    errorHandler(error, this)
+                } catch (e) {
+                    console.log(e)
                 } finally {
                     this.colsLoading = false
                 }
@@ -226,7 +233,7 @@
                             type: 'textarea',
                             module: true, // module 字段用来标识表格列是否为模块数据
                             attrs: {
-                                name: gettext('模块：') + item.name + '(' + item.host_count + ')',
+                                name: gettext('模块：') + item.name + ('host_count' in item ? `(${item.host_count})` : ''),
                                 editable: true,
                                 validation: [
                                     {
@@ -280,7 +287,13 @@
                             if (tagCode !== 'tb_btns') {
                                 const rowData = data[i]
                                 if (rowData.hasOwnProperty(tagCode)) {
-                                    const val = item.config.module ? rowData[tagCode].join('\n') : rowData[tagCode]
+                                    let val = item.config.module ? rowData[tagCode].join('\n') : rowData[tagCode]
+                                    if (item.config.type === 'int' && typeof val === 'string' && !!val) {
+                                        val = Number(val)
+                                    }
+                                    if (item.config.type === 'input' && typeof val === 'number') {
+                                        val = String(val)
+                                    }
                                     valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
                                         [tagCode]: val
                                     }
@@ -346,7 +359,8 @@
                 const rowCount = sheetData.length
                 const headerMap = {}
                 const moduleNameReg = /[\u4e00-\u9fa5\w]+\uff1a(\w+)\((\d+)\)$/ // 表头模块列字符匹配，eg: 模块：console(3)
-
+                
+                this.colsLoading = true
                 this.originalCols.forEach(col => {
                     const tagCode = col.tag_code
                     const name = col.attrs.name
@@ -377,9 +391,18 @@
                     })
                     data.push(value)
                 })
-                this.joinCols(modules)
-                this.joinValue(rowCount, data)
-                this.updatePropsData()
+                this.$nextTick(() => {
+                    this.joinCols(modules)
+                    this.joinValue(rowCount, data)
+                    this.localConfig = {
+                        set_template_id: '',
+                        host_resources: [],
+                        set_count: 0,
+                        module_detail: []
+                    }
+                    this.updatePropsData()
+                    this.colsLoading = false
+                })
             },
             validate () {
                 return this.$refs.resourceList.validate()

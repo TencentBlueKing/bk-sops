@@ -59,7 +59,8 @@ class TemplateOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=self.request.query_params)
         serializer.is_valid(raise_exception=True)
-        project_id = serializer.validated_data["project_id"]
+        # 获取项目id, -1 为公共流程
+        project_id = serializer.validated_data.get("project_id", "-1")
         instance_id = serializer.validated_data["instance_id"]
         queryset = self.get_queryset().filter(project_id=project_id, instance_id=instance_id)
         serializer = self.get_serializer(queryset, many=True)

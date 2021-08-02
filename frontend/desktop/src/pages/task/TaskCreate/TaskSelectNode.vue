@@ -68,7 +68,6 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import XLSX from 'xlsx'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import TaskScheme from './TaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
@@ -213,7 +212,7 @@
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
                     }
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.templateLoading = false
                 }
@@ -236,11 +235,9 @@
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         this.previewData = resp.data.pipeline_tree
-                    } else {
-                        errorHandler(resp, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.previewDataLoading = false
                 }
@@ -428,11 +425,7 @@
                 } else {
                     try {
                         const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
-                        if (this.isCommonProcess) {
-                            allNodeId = JSON.parse(result)
-                        } else {
-                            allNodeId = JSON.parse(result.data)
-                        }
+                        allNodeId = JSON.parse(result.data)
                         this.planDataObj[scheme.id] = allNodeId
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
@@ -441,7 +434,7 @@
                             this.selectedNodes = nodeIdArr
                         }
                     } catch (e) {
-                        errorHandler(e, this)
+                        console.log(e)
                     }
                 }
                 this.updateExcludeNodes()
@@ -469,8 +462,8 @@
                     this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
-            updateTaskSchemeList (val) {
-                this.$emit('updateTaskSchemeList', val)
+            updateTaskSchemeList (val, isChange) {
+                this.$emit('updateTaskSchemeList', val, isChange)
             },
             // 导出当前方案
             onExportScheme () {

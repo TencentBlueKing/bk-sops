@@ -49,8 +49,7 @@ def modify_constants_for_task(request, task_id, project_id):
         return {"result": False, "message": "task is finished", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     constants = params.get("constants", {})
-    name = params.get("name", "")
-    reset_result = task.reset_pipeline_instance_data(constants, name)
+    reset_result = task.set_task_context(constants)
 
     if reset_result["result"] is False:
         return {"result": False, "message": reset_result["message"], "code": err_code.REQUEST_PARAM_INVALID.code}

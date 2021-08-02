@@ -21,7 +21,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.constants import COMMON
-from gcloud.taskflow3.utils import preview_template_tree
+from gcloud.taskflow3.models import preview_template_tree
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor

@@ -26,6 +26,7 @@ class PipelineWebElement(PipelineElement):
     branchgateway = 'branchgateway'
     parallelgateway = 'parallelgateway'
     convergegateway = 'convergegateway'
+    conditionalparallelgateway = 'conditionalparallelgateway'
 
     # node attr
     labels = 'labels'

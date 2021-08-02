@@ -117,7 +117,7 @@
                     }
                 }
 
-                this.isNoData = !variableArray.length
+                this.isNoData = !Object.keys(this.variables).length
 
                 variableArray = variableArray.sort((a, b) => {
                     return a.index - b.index
@@ -162,7 +162,7 @@
                         }
 
                         if (
-                            variable.custom_type === 'input'
+                            ['input', 'textarea'].includes(variable.custom_type)
                             && variable.validation !== ''
                         ) {
                             currentFormConfig.attrs.validation.push({

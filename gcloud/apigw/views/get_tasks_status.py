@@ -24,6 +24,8 @@ from gcloud.utils.dates import format_datetime
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.dispatchers import TaskCommandDispatcher
+from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from packages.bkoauth.decorators import apigw_required
@@ -56,10 +58,20 @@ def get_tasks_status(request, project_id):
 
     data = []
     for task in tasks:
-        status = task.get_status()
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+        )
+        result = dispatcher.get_task_status()
+        if not result["result"]:
+            return result
 
-        if not include_children_status:
+        status = result["data"]
+        if not include_children_status and "children" in status:
             status.pop("children")
+
+        if "name" not in status:
+            add_node_name_to_status_tree(task.pipeline_instance.execution_data, status.get("children", {}))
+        status["name"] = task.name
 
         data.append(
             {

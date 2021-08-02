@@ -53,12 +53,16 @@
             <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
+            <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
+                <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
+            </div>
         </div>
         <node-menu
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
+            :loading="activeNodeListType === 'subflow' && subAtomListLoading"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -78,6 +82,10 @@
         },
         props: {
             templateLabels: Array,
+            subAtomListLoading: {
+                type: Boolean,
+                default: true
+            },
             atomTypeList: {
                 type: Object,
                 default () {
@@ -250,6 +258,20 @@
                             {
                                 type: 'text',
                                 val: i18n.t('当汇聚网关用于汇聚并行网关时，所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=conditionalparallelgateway]',
+                        url: require('@/assets/images/left-branchgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: i18n.t('条件并行网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: i18n.t('执行时满足分支条件的都会执行。')
                             }
                         ]
                     }

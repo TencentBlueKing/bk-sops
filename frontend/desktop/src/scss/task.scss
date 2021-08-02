@@ -6,6 +6,9 @@
 }
 @mixin ui-task-status {
     text-align: left;
+    .icon-clock-shape {
+        @include status-icon-style(#979BA5);
+    }
     .common-icon-dark-circle-shape {
         @include status-icon-style(#979BA5);
     }
@@ -19,7 +22,7 @@
         @include status-icon-style(#ff5757);
     }
     .common-icon-dark-circle-pause {
-        @include status-icon-style(#ff9C01);
+        @include status-icon-style(#ff9c01);
     }
     &.revoke {
         color: #878c9c;

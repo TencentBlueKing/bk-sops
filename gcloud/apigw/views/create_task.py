@@ -22,15 +22,16 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.core.models import EngineConfig
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
-from gcloud.utils.strings import pipeline_node_name_handle
+from gcloud.utils.strings import standardize_pipeline_node_name
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
 from gcloud.apigw.validators import CreateTaskValidator
@@ -122,7 +123,7 @@ def create_task(request, template_id, project_id):
                         meta = copy.deepcopy(pipeline_tree["constants"][key])
                         pipeline_tree["constants"][key]["meta"] = meta
                     pipeline_tree["constants"][key]["value"] = value
-            pipeline_node_name_handle(pipeline_tree)
+            standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:
             message = "[API] create_task get invalid pipeline_tree: %s" % str(e)
@@ -159,6 +160,9 @@ def create_task(request, template_id, project_id):
         create_info=app_code,
         flow_type=params.get("flow_type", "common"),
         current_flow="execute_task" if params.get("flow_type", "common") == "common" else "func_claim",
+        engine_ver=EngineConfig.objects.get_engine_ver(
+            project_id=project.id, template_id=template_id, template_source=template_source
+        ),
     )
     return {
         "result": True,

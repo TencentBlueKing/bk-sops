@@ -17,8 +17,8 @@ from django.views.decorators.http import require_POST, require_GET
 
 from gcloud.contrib.analysis.decorators import standardize_params
 
-from gcloud.core.constant import AE
-from gcloud.core.constant import TASK_CATEGORY
+from gcloud.constants import AE
+from gcloud.constants import TASK_CATEGORY
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
 
 from gcloud.iam_auth.intercept import iam_intercept

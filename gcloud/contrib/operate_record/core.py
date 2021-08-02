@@ -17,7 +17,7 @@ import logging
 from django.http import JsonResponse
 from django.http.request import HttpRequest
 
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance, TaskTemplate
 from gcloud.contrib.operate_record.models import TaskOperateRecord, TemplateOperateRecord
 from gcloud.contrib.operate_record.constants import OperateSource, RecordType, INSTANCE_OBJECT_KEY

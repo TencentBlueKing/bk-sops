@@ -17,8 +17,10 @@ from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
+from gcloud.exceptions import ApiRequestError
 from pipeline.core.data.var import LazyVariable
 
+from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -47,11 +49,9 @@ def cc_search_set_module_name_by_id(operator, bk_biz_id, bk_set_id, bk_module_id
     if set_result["result"] and set_result["data"]["info"]:
         set_module_info["set_name"] = set_result["data"]["info"][0]["bk_set_name"]
     else:
-        err_msg = "调用 cc.search_set 接口获取集群名字失败, kwargs={kwargs}, result={result}".format(
-            kwargs=set_kwargs, result=set_result
-        )
+        err_msg = handle_api_error("CC", "search_set", set_kwargs, set_result)
         logger.error(err_msg)
-        set_module_info["set_name"] = ""
+        raise ApiRequestError(err_msg)
 
     module_kwargs = {"bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id, "fields": ["bk_module_id", "bk_module_name"]}
     module_info = batch_request(client.cc.search_module, module_kwargs)
@@ -89,6 +89,16 @@ class VarSetModuleSelector(LazyVariable):
     type = "dynamic"
     tag = "var_set_module_selector.set_module_selector"
     form = "%svariables/cmdb/var_set_module_selector.js" % settings.STATIC_URL
+    desc = """
+    用于获取集群和模块的信息（名称或ID）
+    引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}
+    引用${KEY.set_name}，返回类型为列表，列表值为集群名称
+    引用${KEY.set_id}，返回类型为列表，列表值为集群ID
+    引用${KEY.module_name}，返回类型为列表，列表值为模块名称
+    引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称
+    引用${KEY.module_id}，返回类型为列表，列表值为模块ID
+    引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID
+    """
 
     def get_value(self):
         """
@@ -102,7 +112,7 @@ class VarSetModuleSelector(LazyVariable):
             flat__module_id: ${var.flat__module_id}
         """
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return SetModuleInfo({})
+            return "ERROR: executor and biz_cc_id of pipeline is needed"
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_set_id = int(self.value.get("bk_set_id", 0))

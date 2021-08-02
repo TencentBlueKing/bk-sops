@@ -67,7 +67,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
     export default {
@@ -157,6 +157,9 @@
             }
         },
         methods: {
+            ...mapActions('template/', [
+                'checkKey'
+            ]),
             toggleReuse (val) {
                 this.formData.isReuse = !val
             },
@@ -164,9 +167,17 @@
                 if (!this.createNew && this.formData.isReuse) {
                     this.$emit('confirm', 'reuse', this.formData.reused)
                 } else {
-                    this.$refs.form.validate().then(result => {
+                    this.$refs.form.validate().then(async (result) => {
                         if (result) {
                             const { name, key } = this.formData
+                            const checkKeyResult = await this.checkKey({ key })
+                            if (!checkKeyResult.result) {
+                                this.$bkMessage({
+                                    message: i18n.t('变量KEY为特殊标志符变量，请修改'),
+                                    theme: 'warning'
+                                })
+                                return
+                            }
                             this.$emit('confirm', 'new', { name, key })
                         }
                     })

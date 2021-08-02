@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 

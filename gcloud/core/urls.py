@@ -35,6 +35,7 @@ urlpatterns = [
     url(r"^core/api/get_user_list/$", api.get_user_list),
     url(r"^core/api/get_msg_types/$", api.get_msg_types),
     url(r"^core/healthz", api.healthz),
+    url(r"^core/api/check_variable_key", api.check_variable_key),
     # i18n
     url(r"^jsi18n/gcloud/$", javascript_catalog),
     # version log
@@ -43,4 +44,6 @@ urlpatterns = [
     url(r"^iam/resource/api/v1/$", dispatcher.as_view([login_exempt])),
     # iam api
     url(r"^iam/api/", include("gcloud.iam_auth.urls")),
+    # django prom
+    url(r"^metrics/$", views.metrics),
 ]

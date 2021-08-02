@@ -18,8 +18,10 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.utils.translation import check_for_language
 from django.shortcuts import render
+from django_prometheus.exports import ExportToDjangoView
 
 from blueapps.account.components.bk_token.forms import AuthenticationForm
+from blueapps.account.decorators import login_exempt
 from blueapps.account.middlewares import LoginRequiredMiddleware
 from config import RUN_VER
 from gcloud.core.signals import user_enter
@@ -92,3 +94,8 @@ def set_language(request):
             )
             response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang_code, max_age, expires)
     return response
+
+
+@login_exempt
+def metrics(request):
+    return ExportToDjangoView(request)

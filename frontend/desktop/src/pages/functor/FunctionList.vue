@@ -232,7 +232,6 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapMutations, mapState } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
@@ -479,7 +478,7 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', taskList)
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.listLoading = false
                 }
@@ -544,7 +543,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'functionHome', query })
+                this.$router.replace({ name: 'functionHome', query })
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data
@@ -597,7 +596,7 @@
                     form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.business.loading = false
                 }
@@ -615,7 +614,7 @@
                         this.clearAtomForm()
                     })
                 } catch (e) {
-                    errorHandler(e, this)
+                    console.log(e)
                 } finally {
                     this.template.loading = false
                 }
@@ -690,8 +689,8 @@
                         }
                         const resp = await this.queryUserPermission(data)
                         this.hasCreateTaskPerm = resp.data.is_allow
-                    } catch (error) {
-                        errorHandler(error, this)
+                    } catch (e) {
+                        console.log(e)
                     } finally {
                         this.permissionLoading = false
                     }

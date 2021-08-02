@@ -15,11 +15,12 @@ const atomFilter = {
     formFilter (tag_code, config) {
         let formConfig
         if (tag_code && config) {
-            config.some(item => {
+            config.some((item) => {
                 if (item.tag_code === tag_code) {
                     formConfig = item
                     return true
                 }
+                return false
                 /**
                  * combine类型的tag勾选为为统一勾选，子tag没有勾选选项，暂时注释
                  */
@@ -34,7 +35,7 @@ const atomFilter = {
     },
     getFormItemDefaultValue (config) {
         const value = {}
-        config.forEach(item => {
+        config.forEach((item) => {
             if (item.type === 'combine') {
                 value[item.tag_code] = this.getFormItemDefaultValue(item.attrs.children)
             } else {

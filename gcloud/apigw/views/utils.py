@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from gcloud.tasktmpl3 import varschema
+from gcloud.tasktmpl3.domains import varschema
 from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")  # noqa
