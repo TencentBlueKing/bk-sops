@@ -528,13 +528,6 @@
                     // 节点已选择标准插件
                     if (component.code) {
                         const atom = this.atomList.find(item => item.code === component.code)
-                        if (!atom) {
-                            this.$bkMessage({
-                                message: '该节点配置的插件不存在，请检查流程数据',
-                                theme: 'error'
-                            })
-                            return
-                        }
                         basicInfoName = `${atom.group_name}-${atom.name}`
                         version = component.hasOwnProperty('version') ? component.version : 'legacy'
                         // 获取不同版本的描述
@@ -594,7 +587,6 @@
                     return []
                 }
                 const atom = this.atomList.find(item => item.code === code)
-                if (!atom) return
                 return atom.list.map(item => {
                     return {
                         version: item.version
