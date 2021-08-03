@@ -816,11 +816,11 @@
                 if (!this.editable) {
                     return false
                 }
-                const { w, h, x, y } = edp.endpoint
-                const { left: leftStr, top: topStr } = this.$refs.jsFlow.$el.querySelector('#canvas-flow').style
-                const bX = x + w / 2 + Number(leftStr.replace('px', ''))
-                const bY = y + h / 2 + Number(topStr.replace('px', ''))
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const { left, top, width, height } = edp.canvas.getBoundingClientRect()
                 const type = edp.anchor.type
+                const bX = left + width / 2 - offsetX
+                const bY = top + height / 2 - offsetY
                 // 第二次点击
                 if (this.referenceLine.id && edp.elementId !== this.referenceLine.id) {
                     this.createLine(
