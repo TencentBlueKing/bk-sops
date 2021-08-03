@@ -34,7 +34,9 @@
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
-            <task-scheme
+            <component
+                :is="schemeTemplate"
+                ref="taskScheme"
                 v-show="isEditProcessPage || !isPreviewMode"
                 :project_id="project_id"
                 :template_id="template_id"
@@ -46,13 +48,19 @@
                 :selected-nodes="selectedNodes"
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
+                :plan-data-obj="planDataObj"
+                :execute-scheme-saving="executeSchemeSaving"
                 :is-edit-process-page="isEditProcessPage"
+                :scheme-info="schemeInfo"
+                @onEditScheme="onEditScheme"
+                @onImportTemporaryPlan="onImportTemporaryPlan"
+                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
+                @selectAllScheme="selectAllScheme"
                 @importTextScheme="importTextScheme"
-                @togglePreviewMode="togglePreviewMode">
-            </task-scheme>
+                @togglePreviewMode="togglePreviewMode" />
         </div>
         <div class="action-wrapper" slot="action-wrapper" v-if="isEditProcessPage">
             <bk-button
@@ -63,18 +71,57 @@
             </bk-button>
             <bk-button v-if="isSchemeShow" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
+        <bk-sideslider
+            :is-show="isEditSchemeShow"
+            :width="800"
+            :quick-close="true"
+            :before-close="onCloseEditScheme">
+            <div slot="header">
+                <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
+                >
+                <span>{{ $t('导入临时方案') }}</span>
+            </div>
+            <edit-scheme
+                ref="editScheme"
+                slot="content"
+                :is-show.sync="isEditSchemeShow"
+                :ordered-node-data="orderedNodeData"
+                @importTextScheme="importTextScheme">
+            </edit-scheme>
+        </bk-sideslider>
+        <bk-dialog
+            width="400"
+            ext-cls="task-scheme-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :show-footer="false"
+            :value="isShowDialog"
+            @cancel="isShowDialog = false">
+            <div class="task-scheme-confirm-dialog-content">
+                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
+                <div class="task-scheme-action-wrapper">
+                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import XLSX from 'xlsx'
     import TaskScheme from './TaskScheme.vue'
+    import EditTaskScheme from './EditTaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
+    import EditScheme from './EditScheme.vue'
+    import bus from '@/utils/bus.js'
 
     export default {
         components: {
             TaskScheme,
+            EditTaskScheme,
+            EditScheme,
             TemplateCanvas,
             NodePreview
         },
@@ -84,6 +131,7 @@
             common: String,
             excludeNode: Array,
             entrance: String,
+            executeSchemeSaving: Boolean,
             isEditProcessPage: {
                 type: Boolean,
                 default: true
@@ -91,6 +139,7 @@
         },
         data () {
             return {
+                isShow: true,
                 selectedNodes: [], // 已选中节点
                 allSelectableNodes: [], // 所有可选节点
                 isAllSelected: true,
@@ -109,7 +158,12 @@
                 templateLoading: true,
                 previewDataLoading: true,
                 tplActions: [],
-                planDataObj: {} // 包含所有方案的对象
+                planDataObj: {}, // 包含所有方案的对象
+                schemeInfo: null,
+                prevSelectedNodes: [],
+                isShowDialog: false,
+                isSaveLoading: false,
+                isEditSchemeShow: false
             }
         },
         computed: {
@@ -132,9 +186,12 @@
             },
             isSchemeShow () {
                 if (this.location.some(item => item.optional)) {
-                    return this.viewMode === 'appmaker' ? !this.isAppmakerHasScheme : true
+                    return this.viewMode === 'appmaker' ? !this.isAppmakerHasScheme : this.isShow
                 }
                 return false
+            },
+            schemeTemplate () {
+                return this.isEditProcessPage ? 'TaskScheme' : 'EditTaskScheme'
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
@@ -144,6 +201,14 @@
             }
         },
         created () {
+            bus.$on('onSaveEditScheme', (val) => {
+                this.schemeInfo = val
+                this.schemeInfo.data = this.selectedNodes
+                // 把进行编辑之前选中的赋值给selectedNodes
+                this.selectedNodes = this.prevSelectedNodes
+                this.updateDataAndCanvas()
+                this.isShow = true
+            })
             if (this.viewMode === 'appmaker') {
                 this.isPreviewMode = true
             }
@@ -407,36 +472,60 @@
              */
             async selectScheme (scheme, isChecked) {
                 let allNodeId = []
-                let selectNodeArr = []
+                const selectNodeArr = []
                 // 取消已选择方案
                 if (isChecked === false) {
-                    selectNodeArr = []
                     this.$delete(this.planDataObj, scheme.id)
                     if (Object.keys(this.planDataObj).length) {
                         for (const key in this.planDataObj) {
                             allNodeId = this.planDataObj[key]
                             selectNodeArr.push(...allNodeId)
-                            const nodeIdArr = Array.from(new Set(selectNodeArr))
-                            this.selectedNodes = nodeIdArr
                         }
+                        this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
                     } else {
                         this.selectedNodes = []
                     }
                 } else {
                     try {
                         const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
-                        allNodeId = JSON.parse(result.data)
-                        this.planDataObj[scheme.id] = allNodeId
+                        if (this.isCommonProcess) {
+                            allNodeId = JSON.parse(result)
+                        } else {
+                            allNodeId = JSON.parse(result.data)
+                        }
+                        this.$set(this.planDataObj, scheme.id, allNodeId)
                         for (const key in this.planDataObj) {
                             const planNodeId = this.planDataObj[key]
                             selectNodeArr.push(...planNodeId)
-                            const nodeIdArr = Array.from(new Set(selectNodeArr))
-                            this.selectedNodes = nodeIdArr
                         }
+                        this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
                     } catch (e) {
                         console.log(e)
                     }
                 }
+                this.updateDataAndCanvas()
+            },
+            /**
+             * 批量选择执行方案
+             */
+            selectAllScheme (isChecked) {
+                this.planDataObj = {}
+                if (isChecked) {
+                    const taskSchemeDom = this.$refs.taskScheme
+                    const selectNodeArr = []
+                    taskSchemeDom.schemaList.forEach(item => {
+                        const allNodeId = JSON.parse(item.data)
+                        this.$set(this.planDataObj, item.id, allNodeId)
+                        selectNodeArr.push(...allNodeId)
+                    })
+                    this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
+                } else {
+                    this.selectedNodes = []
+                }
+                this.updateDataAndCanvas()
+            },
+            // 跟新数据和画布
+            updateDataAndCanvas () {
                 this.updateExcludeNodes()
                 this.canvasData.locations.forEach(item => {
                     if (this.isSelectableNode(item.id)) {
@@ -462,8 +551,26 @@
                     this.getPreviewNodeData(this.template_id, this.version)
                 }
             },
-            updateTaskSchemeList (val, isChange) {
-                this.$emit('updateTaskSchemeList', val, isChange)
+            // 修改当前选中的方案
+            onEditScheme (scheme) {
+                this.isShow = false
+                // 编辑方案时把当前选中的节点id赋值给prevSelectedNodes
+                this.prevSelectedNodes = JSON.parse(JSON.stringify(this.selectedNodes))
+                // 把当前方案的id赋值给selectedNodes
+                this.selectedNodes = Array.isArray(scheme.data) ? scheme.data : JSON.parse(scheme.data)
+                this.updateDataAndCanvas()
+            },
+            // 导入临时方案
+            onImportTemporaryPlan () {
+                this.isEditSchemeShow = true
+            },
+            // 保存编辑方案
+            onSaveExecuteSchemeClick () {
+                this.$emit('onSaveExecuteSchemeClick')
+            },
+            // 更新执行方案列表
+            updateTaskSchemeList (val) {
+                this.$emit('updateTaskSchemeList', val)
             },
             // 导出当前方案
             onExportScheme () {
@@ -496,10 +603,52 @@
             updateExcludeNodes () {
                 const excludeNodes = this.getExcludeNode()
                 this.$emit('setExcludeNode', excludeNodes)
+            },
+            onCloseEditScheme () {
+                const editScheme = this.$refs.editScheme
+                const isEqual = editScheme.judgeDataEqual()
+                if (isEqual) {
+                    this.isEditSchemeShow = false
+                } else {
+                    this.isShowDialog = true
+                }
+            },
+            onConfirmClick () {
+                this.isSaveLoading = true
+                try {
+                    const editScheme = this.$refs.editScheme
+                    editScheme.onSaveScheme()
+                    this.isSaveLoading = false
+                    this.isShowDialog = false
+                    if (!editScheme.errorMsg) {
+                        this.isEditSchemeShow = false
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isSaveLoading = false
+                }
+            },
+            onCancelClick () {
+                this.isShowDialog = false
+                this.isEditSchemeShow = false
             }
         }
     }
 </script>
+
+<style lang="scss">
+    .task-scheme-confirm-dialog-content {
+        padding: 40px 0;
+        text-align: center;
+        .leave-tips {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .task-scheme-action-wrapper .bk-button {
+            margin-right: 6px;
+        }
+    }
+</style>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 
@@ -538,5 +687,9 @@
     .next-button {
         width: 140px;
     }
+}
+.title-back {
+    color: #3a84ff;
+    cursor: pointer;
 }
 </style>

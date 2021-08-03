@@ -10,7 +10,7 @@
                 </i>
             </div>
         </div>
-        <div class="schema-list-panel" v-if="showPanel && !isEditSchemeShow">
+        <div class="schema-list-panel" v-if="showPanel">
             <div class="scheme-title">
                 <span> {{$t('执行方案')}}</span>
                 <div>
@@ -54,55 +54,16 @@
                 </ul>
             </div>
         </div>
-        <bk-sideslider
-            :is-show="showPanel && isEditSchemeShow"
-            :width="800"
-            :quick-close="true"
-            :before-close="onCloseEditScheme">
-            <div slot="header">
-                <span class="title-back" @click="onCloseEditScheme">{{$t('执行方案')}}</span>
-                >
-                <span>{{ $t('导入临时方案') }}</span>
-            </div>
-            <edit-scheme
-                ref="editScheme"
-                slot="content"
-                :is-show.sync="isEditSchemeShow"
-                :ordered-node-data="orderedNodeData"
-                @importTextScheme="$emit('importTextScheme', $event)">
-            </edit-scheme>
-        </bk-sideslider>
-        <bk-dialog
-            width="400"
-            ext-cls="task-scheme-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :show-footer="false"
-            :value="isShowDialog"
-            @cancel="isShowDialog = false">
-            <div class="task-scheme-confirm-dialog-content">
-                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
-                <div class="action-wrapper">
-                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
-                </div>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { uuid } from '@/utils/uuid.js'
     import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
-    import EditScheme from './EditScheme.vue'
 
     export default {
         name: 'TaskSchema',
-        components: {
-            EditScheme
-        },
         mixins: [permission],
         props: {
             template_id: {
@@ -143,12 +104,6 @@
                     return []
                 }
             },
-            orderedNodeData: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
             tplActions: {
                 type: Array,
                 default () {
@@ -158,8 +113,6 @@
         },
         data () {
             return {
-                isSaveLoading: false,
-                isShowDialog: false,
                 showPanel: true,
                 nameEditing: false,
                 schemaName: '',
@@ -170,19 +123,18 @@
                 },
                 schemaList: [],
                 deleting: false,
-                isEditSchemeShow: false,
                 isPreview: false
             }
         },
         computed: {
-            haveCreateSchemeTpl () {
-                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                return this.hasPermission([tplAction], this.tplActions)
-            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
-            })
+            }),
+            haveCreateSchemeTpl () {
+                const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                return this.hasPermission([tplAction], this.tplActions)
+            }
         },
         watch: {
             isPreviewMode (val) {
@@ -220,6 +172,19 @@
              */
             toggleSchemePanel () {
                 this.showPanel = !this.showPanel
+            },
+            /**
+             * 导入临时方案
+            */
+            onImportTemporaryPlan () {
+                let hasCreatePermission = true
+                if (!this.haveCreateSchemeTpl) {
+                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
+                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
+                }
+                if (hasCreatePermission) {
+                    this.$emit('onImportTemporaryPlan')
+                }
             },
             /**
              * 创建任务方案弹窗
@@ -268,21 +233,6 @@
                     }
                     this.schemaName = this.schemaName.trim()
                     const selectedNodes = this.selectedNodes.slice()
-                    if (!this.isEditProcessPage) {
-                        this.schemaList.push({
-                            data: JSON.stringify(selectedNodes),
-                            name: this.schemaName,
-                            id: uuid()
-                        })
-                        this.$bkMessage({
-                            message: i18n.t('方案添加成功'),
-                            theme: 'success'
-                        })
-                        this.$emit('updateTaskSchemeList', this.schemaList, true)
-                        this.schemaName = ''
-                        this.nameEditing = false
-                        return
-                    }
                     const scheme = {
                         project_id: this.project_id,
                         template_id: this.template_id,
@@ -291,10 +241,10 @@
                         isCommon: this.isCommonProcess
                     }
                     try {
-                        await this.createTaskScheme(scheme)
-                        this.loadSchemeList()
+                        const resp = await this.createTaskScheme(scheme)
+                        this.schemaList.push(resp.data)
                         this.$bkMessage({
-                            message: i18n.t('方案添加成功'),
+                            message: i18n.t('新增方案成功'),
                             theme: 'success'
                         })
                     } catch (e) {
@@ -313,16 +263,6 @@
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
                 if (this.deleting || !hasPermission) return
-                if (!this.isEditProcessPage) {
-                    const index = this.schemaList.findIndex(item => item.id === scheme.id)
-                    this.schemaList.splice(index, 1)
-                    this.$bkMessage({
-                        message: i18n.t('方案删除成功'),
-                        theme: 'success'
-                    })
-                    this.$emit('updateTaskSchemeList', this.schemaList, true)
-                    return
-                }
                 this.deleting = true
                 try {
                     await this.deleteTaskScheme({ id: scheme.id, isCommon: this.isCommonProcess })
@@ -343,8 +283,9 @@
              */
             checkSchemeRelativePermission (required) {
                 if (!this.hasPermission(required, this.tplActions)) {
+                    const flowType = this.isCommonProcess ? 'common_flow' : 'flow'
                     const resourceData = {
-                        flow: [{
+                        [`${flowType}`]: [{
                             id: this.template_id,
                             name: this.templateName
                         }],
@@ -370,51 +311,10 @@
             onChangePreviewNode () {
                 this.isPreview = !this.isPreview
                 this.$emit('togglePreviewMode', this.isPreview)
-            },
-            onCloseEditScheme () {
-                const editScheme = this.$refs.editScheme
-                const isEqual = editScheme.judgeDataEqual()
-                if (isEqual) {
-                    this.isEditSchemeShow = false
-                } else {
-                    this.isShowDialog = true
-                }
-            },
-            onConfirmClick () {
-                this.isSaveLoading = true
-                try {
-                    const editScheme = this.$refs.editScheme
-                    editScheme.onSaveScheme()
-                    this.isSaveLoading = false
-                    this.isShowDialog = false
-                    if (!editScheme.errorMsg) {
-                        this.isEditSchemeShow = false
-                    }
-                } catch (error) {
-                    console.warn(error)
-                    this.isSaveLoading = false
-                }
-            },
-            onCancelClick () {
-                this.isShowDialog = false
-                this.isEditSchemeShow = false
             }
         }
     }
 </script>>
-<style lang="scss">
-    .task-scheme-confirm-dialog-content {
-        padding: 40px 0;
-        text-align: center;
-        .leave-tips {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .action-wrapper .bk-button {
-            margin-right: 6px;
-        }
-    }
-</style>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
     @import '@/scss/config.scss';
@@ -424,10 +324,6 @@
         top: 0;
         right: 0;
         height: 100%;
-    }
-    .title-back {
-        color: #3a84ff;
-        cursor: pointer;
     }
     .schema-list-panel {
         position: absolute;

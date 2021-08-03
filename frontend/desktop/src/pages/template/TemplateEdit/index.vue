@@ -28,8 +28,7 @@
                 :tpl-actions="tplActions"
                 :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
-                :execute-scheme-saving="executeSchemeSaving"
-                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
+                :exclude-node="excludeNode"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -78,6 +77,8 @@
                 :template_id="template_id"
                 :exclude-node="excludeNode"
                 :is-edit-process-page="isEditProcessPage"
+                :execute-scheme-saving="executeSchemeSaving"
+                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
                 @setExcludeNode="setExcludeNode">
