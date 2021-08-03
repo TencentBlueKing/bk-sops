@@ -423,23 +423,16 @@
             }
         }
         .scheme-wrapper {
-            .bk-checkbox {
-                background: #fff;
-                border-color: #979ba5;
-                &:hover {
-                    border-color: #3a84ff;
-                }
-            }
-            .is-checked .bk-checkbox {
-                background: #3a84ff;
+            .bk-checkbox:hover {
                 border-color: #3a84ff;
             }
             .is-disabled {
-                &.is-checked, &.is-indeterminate {
-                    .bk-checkbox {
-                        background: #3a84ff;
-                        border-color: #3a84ff;
-                    }
+                &.is-indeterminate .bk-checkbox {
+                    border-color: #dcdee5;
+                    background-color: #dcdee5;
+                }
+                &:hover .bk-checkbox {
+                    border-color: #dcdee5 !important;
                 }
             }
             .vee-errors {
