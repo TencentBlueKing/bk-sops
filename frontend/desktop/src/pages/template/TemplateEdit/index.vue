@@ -992,6 +992,16 @@
              * 打开节点配置面板
              */
             onShowNodeConfig (id) {
+                // 判断节点配置的插件是否存在
+                const nodeConfig = this.$store.state.template.activities[id]
+                const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                if (!atom) {
+                    this.$bkMessage({
+                        message: '该节点配置的插件不存在，请检查流程数据',
+                        theme: 'error'
+                    })
+                    return
+                }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)
