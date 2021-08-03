@@ -86,7 +86,7 @@
                 slot="content"
                 :is-show.sync="isEditSchemeShow"
                 :ordered-node-data="orderedNodeData"
-                @importTextScheme="$emit('importTextScheme', $event)">
+                @importTextScheme="importTextScheme">
             </edit-scheme>
         </bk-sideslider>
         <bk-dialog

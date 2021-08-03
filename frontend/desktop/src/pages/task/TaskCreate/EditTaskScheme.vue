@@ -62,7 +62,12 @@
                         class="scheme-item"
                         :class="{ 'is-checked': Boolean(planDataObj[item.id]) }"
                         :key="item.id">
-                        <bk-checkbox :value="Boolean(planDataObj[item.id])" @change="onCheckChange($event, item)"></bk-checkbox>
+                        <bk-checkbox
+                            :value="Boolean(planDataObj[item.id])"
+                            :disabled="nameEditing"
+                            v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
+                            @change="onCheckChange($event, item)">
+                        </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <p class="icon-btn-wrapper">
                             <i
@@ -274,7 +279,7 @@
                 if (hasCreatePermission && !this.isPreviewMode) {
                     if (!this.selectedNodes.length) {
                         this.$bkMessage({
-                            message: i18n.t('请先选择节点流程'),
+                            message: i18n.t('不允许添加没有节点的执行方案'),
                             theme: 'warning'
                         })
                         return
@@ -427,13 +432,22 @@
         .scheme-wrapper {
             .bk-checkbox {
                 background: #fff;
+                border-color: #979ba5;
                 &:hover {
                     border-color: #3a84ff;
                 }
             }
-            .is-disabled .bk-checkbox:hover {
-                border-color: #dcdee5;
-                background: #dcdee5;
+            .is-checked .bk-checkbox {
+                background: #3a84ff;
+                border-color: #3a84ff;
+            }
+            .is-disabled {
+                &.is-checked, &.is-indeterminate {
+                    .bk-checkbox {
+                        background: #3a84ff;
+                        border-color: #3a84ff;
+                    }
+                }
             }
             .vee-errors {
                 .bk-form-input {
@@ -575,8 +589,7 @@
             .add-scheme {
                 position: relative;
                 padding: 5px 0 5px 12px;
-                // border-bottom: 1px solid #f0f1f5;
-                background-image: linear-gradient(transparent 41px, #f0f1f5 1px);
+                border-bottom: 1px solid #f0f1f5;
                 .icon-btn-wrapper {
                     opacity: 1;
                     transform: translate(-10px, -4px);
@@ -589,7 +602,7 @@
                     display: none;
                 }
                 &.is-mepty {
-                    background-image: none;
+                    border-bottom: none;
                 }
             }
             .exception-part {

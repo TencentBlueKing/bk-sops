@@ -295,7 +295,7 @@
                  */
                 if (this.excludeNode.length === this.locations.length - 2) {
                     this.$bkMessage({
-                        message: i18n.t('请先选择节点流程'),
+                        message: i18n.t('不允许添加没有节点的执行方案'),
                         theme: 'warning'
                     })
                     return
