@@ -153,7 +153,7 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (currType === 'startpoint') {
-                    location.y += isGatewayAppendNode ? 5 : -5
+                    location.y += isGatewayAppendNode ? 10 : -10
                 } else {
                     if (isGatewayCurrNode && !isGatewayAppendNode) {
                         location.y -= 10
