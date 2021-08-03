@@ -332,7 +332,7 @@
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
                 this.clearReferenceLine()
-                this.zoomRatio = Math.floor(this.$refs.jsFlow.zoom * 100)
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
                 this.showSmallMap = false
             },
             onZoomOut (pos) {
@@ -343,11 +343,12 @@
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
                 this.clearReferenceLine()
-                this.zoomRatio = Math.floor(this.$refs.jsFlow.zoom * 100)
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
                 this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
