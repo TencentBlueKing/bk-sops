@@ -22,28 +22,28 @@
                     placements: ['bottom']
                 }"
                 @click="onShowMap">
-                <i class="common-icon-small-map"></i>
+                <i class="common-icon-thumbnail-view"></i>
             </div>
             <div class="zoom-wrapper">
-                <div
+                <i
+                    class="common-icon-zoom-add"
                     v-bk-tooltips="{
                         content: $t('放大'),
                         delay: 300,
                         placements: ['bottom']
                     }"
                     @click="onZoomIn">
-                    <i class="common-icon-add"></i>
-                </div>
+                </i>
                 <p class="zoom-ratio">{{ zoomRatio + '%' }}</p>
-                <div
+                <i
+                    class="common-icon-zoom-minus"
                     v-bk-tooltips="{
                         content: $t('缩小'),
                         delay: 300,
                         placements: ['bottom']
                     }"
                     @click="onZoomOut">
-                    <i class="bk-icon icon-minus-line"></i>
-                </div>
+                </i>
             </div>
             <div class="square-wrapper">
                 <div
@@ -54,7 +54,7 @@
                         placements: ['bottom']
                     }"
                     @click="onResetPosition">
-                    <i class="common-icon-reduction"></i>
+                    <i class="common-icon-reset"></i>
                 </div>
                 <div
                     :class="['tool-icon', {
@@ -67,7 +67,7 @@
                         placements: ['bottom']
                     }"
                     @click="onOpenFrameSelect">
-                    <i class="common-icon-marquee"></i>
+                    <i class="common-icon-node-selection"></i>
                 </div>
                 <div
                     class="tool-icon"
@@ -78,11 +78,13 @@
                         placements: ['bottom']
                     }"
                     @click="onFormatPosition">
-                    <i class="common-icon-four-square"></i>
+                    <i class="common-icon-typesetting"></i>
                 </div>
             </div>
             <div
-                class="tool-icon"
+                :class="['tool-icon', {
+                    'actived': isAllSelected
+                }]"
                 v-if="isShowSelectAllTool"
                 v-bk-tooltips="{
                     content: selectNodeName,
@@ -90,9 +92,7 @@
                     placements: ['bottom']
                 }"
                 @click="onToggleAllNode">
-                <i :class="[
-                    isAllSelected ? 'common-icon-black-hook' : 'common-icon-black-box',
-                    { 'tool-disable': isSelectAllToolDisabled }]">
+                <i :class="['common-icon-checked-all', { 'tool-disable': isSelectAllToolDisabled }]">
                 </i>
             </div>
             <div
@@ -105,7 +105,7 @@
                     placements: ['bottom']
                 }"
                 @click="onToggleHotKeyInfo">
-                <i class="common-icon-flash"></i>
+                <i class="common-icon-hot-key"></i>
             </div>
         </div>
     </transition>
@@ -222,13 +222,17 @@
         }
     }
     .zoom-wrapper, .square-wrapper {
+        height: 24px;
         display: flex;
         align-items: center;
         margin-right: 20px;
-        .ommon-icon-add, .icon-minus {
+        .common-icon-zoom-add, .common-icon-zoom-minus {
             font-size: 18px;
             color: #919eb5;
             cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
         .zoom-ratio {
             width: 32px;

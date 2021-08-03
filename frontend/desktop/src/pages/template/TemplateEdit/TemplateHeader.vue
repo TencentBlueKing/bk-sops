@@ -558,10 +558,7 @@
             }
         }
         .task-btn {
-            width: 86px;
-            padding: 0;
-            text-align: center;
-            margin-left: 5px;
+            margin-left: 10px;
         }
     }
 </style>
