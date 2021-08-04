@@ -1043,7 +1043,7 @@
                 this.idOfNodeShortcutPanel = ''
             },
             handleDeleteLineIconHide (e) {
-                if (this.activeCon && !dom.parentClsContains('delete-line-icon', e.target)) {
+                if (this.activeCon && (e && !dom.parentClsContains('delete-line-icon', e.target))) {
                     const lineInCanvasData = this.canvasData.lines.find(item => {
                         return item.source.id === this.activeCon.sourceId && item.target.id === this.activeCon.targetId
                     })
