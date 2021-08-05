@@ -1394,47 +1394,6 @@
         }
         .jtk-endpoint {
             z-index: 3;
-            cursor: pointer;
-            &.template-canvas-endpoint:not(.jtk-dragging) {
-                &:after {
-                    display: none;
-                    position: absolute;
-                    content: '';
-                    height: 32px;
-                    width: 32px;
-                    background: url('~@/assets/images/endpoint.png') center/32px no-repeat;
-                    border-radius: 50%;
-                    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
-                }
-                &:hover:after {
-                    background: url('~@/assets/images/endpoint-hover.png') center/32px no-repeat;
-                }
-                &:hover,
-                &.jtk-endpoint-highlight {
-                    &:after {
-                        display: block;
-                    }
-                    &[data-pos="Top"]:after {
-                        bottom: 22px;
-                        left: 0px;
-                        transform: rotate(-90deg);
-                    }
-                    &[data-pos="Bottom"]:after {
-                        top: 22px;
-                        left: 0;
-                        transform: rotate(90deg);
-                    }
-                    &[data-pos="Left"]:after {
-                        top: 0;
-                        right: 22px;
-                        transform: rotate(-180deg);
-                    }
-                    &[data-pos="Right"]:after {
-                        top: 0;
-                        left: 22px;
-                    }
-                }
-            }
         }
         .jsflow-node {
             z-index: 4;
@@ -1457,7 +1416,7 @@
         }
         .jtk-overlay {
             cursor: pointer;
-            z-index: 2;
+            z-index: 3;
             &.delete-line-circle-icon {
                 display: none;
             }
@@ -1501,6 +1460,49 @@
         &.editable {
             .jtk-overlay.jtk-hover {
                 display: inline-block;
+            }
+            .jtk-endpoint {
+                cursor: pointer;
+                &.template-canvas-endpoint:not(.jtk-dragging) {
+                    &:after {
+                        display: none;
+                        position: absolute;
+                        content: '';
+                        height: 32px;
+                        width: 32px;
+                        background: url('~@/assets/images/endpoint.png') center/32px no-repeat;
+                        border-radius: 50%;
+                        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
+                    }
+                    &:hover:after {
+                        background: url('~@/assets/images/endpoint-hover.png') center/32px no-repeat;
+                    }
+                    &:hover,
+                    &.jtk-endpoint-highlight {
+                        &:after {
+                            display: block;
+                        }
+                        &[data-pos="Top"]:after {
+                            bottom: 22px;
+                            left: 0px;
+                            transform: rotate(-90deg);
+                        }
+                        &[data-pos="Bottom"]:after {
+                            top: 22px;
+                            left: 0;
+                            transform: rotate(90deg);
+                        }
+                        &[data-pos="Left"]:after {
+                            top: 0;
+                            right: 22px;
+                            transform: rotate(-180deg);
+                        }
+                        &[data-pos="Right"]:after {
+                            top: 0;
+                            left: 22px;
+                        }
+                    }
+                }
             }
         }
         &:not(.editable) {
