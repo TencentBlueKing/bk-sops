@@ -304,7 +304,7 @@
         position: relative;
         width: 60px;
         height: 100%;
-        z-index: 4;
+        z-index: 5;
     }
     .palette-container{
         position: relative;
