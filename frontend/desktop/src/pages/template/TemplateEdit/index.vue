@@ -53,7 +53,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
@@ -94,7 +94,7 @@
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -251,7 +251,7 @@
                 isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
-                subAtomListLoading: false,
+                subflowListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
@@ -536,7 +536,7 @@
              * 加载子流程列表
              */
             async getSubflowList () {
-                this.subAtomListLoading = true
+                this.subflowListLoading = true
                 try {
                     const data = {
                         project_id: this.project_id,
@@ -548,7 +548,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.subAtomListLoading = false
+                    this.subflowListLoading = false
                 }
             },
             /**
