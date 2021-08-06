@@ -111,7 +111,7 @@ class TextValueSelect(LazyVariable):
     schema = StringItemSchema(description=_("文本值下拉框变量"))
     desc = """
         单选模式下 ${KEY["value"]} 输出选中的 value，
-        ${KEY["text"]} 输出选中的 text\n。
+        ${KEY["text"]} 输出选中的 text。
         多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
         ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串。
         对于未选择的 text 和 value，通过 ${KEY["text_not_selected"]} 和 ${KEY["value_not_selected"]} 输出对应拼接字符串。
