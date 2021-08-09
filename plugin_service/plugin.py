@@ -86,7 +86,7 @@ class RemotePluginService(Service):
 
         state = result_data["state"]
         if state == State.FAIL:
-            data.set_outputs("ex_data", result_data["err"])
+            data.set_outputs("ex_data", "please check the logs for the reason of task failure.")
             self.finish_schedule()
             return False
         if state == State.POLL:
