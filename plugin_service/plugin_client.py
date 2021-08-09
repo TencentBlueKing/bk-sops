@@ -18,14 +18,19 @@ import os
 import requests
 
 from . import env
+from .conf import PLUGIN_CLIENT_LOGGER
 
-logger = logging.getLogger("root")
+logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
 
 def response_parser(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        result = func(*args, **kwargs)
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            message = f"plugin client request {func.__name__} error: {e}, with params: {args} and kwargs: {kwargs}."
+            return False, {"message": message}
         if not result.get("result"):
             logger.error(f"{func.__name__} request error: {result.get('message')}")
             data = {"message": result.get("message")}
@@ -55,7 +60,7 @@ class PluginServiceApiClient:
         )
         headers = {
             "X-Bkapi-Authorization": json.dumps(
-                {"bk_app_code": env.PLUGIN_SERVICE_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APP_SECRET}
+                {"bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET}
             ),
             "Content-Type": "application/json",
         }

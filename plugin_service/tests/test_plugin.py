@@ -31,7 +31,13 @@ class RemotePluginComponentTest(TestCase, ComponentTestMixin):
 
     def cases(self):
         # return your component test cases here
-        return [EXECUTE_SUCCESS_CASE, EXECUTE_AND_SCHEDULE_SUCCESS_CASE, EXECUTE_FAIL_CASE, INVOKE_API_FAIL_CASE]
+        return [
+            EXECUTE_SUCCESS_CASE,
+            EXECUTE_AND_SCHEDULE_SUCCESS_CASE,
+            EXECUTE_FAIL_CASE,
+            INVOKE_API_FAIL_CASE,
+            SCHEDULE_FAIL_CASE,
+        ]
 
 
 class MockPluginClient(object):
@@ -53,6 +59,7 @@ BASE_INPUTS = {"plugin_code": "code", "plugin_version": "version"}
 BASE_OUTPUTS = {"output": "output"}
 INVOKE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "[remote plugin service invoke] error: ex_data, trace_id: trace_id"}
 STATE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "state fail"}
+SCHEDULE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "please check the logs for the reason of task failure."}
 TRACE_ID_OUTPUTS = {"trace_id": "trace_id"}
 
 # mock clients
@@ -119,11 +126,13 @@ EXECUTE_FAIL_CASE = ComponentTestCase(
 )
 
 # schedule fail
-SCHEDULE_FAIL_CAST = ComponentTestCase(
+SCHEDULE_FAIL_CASE = ComponentTestCase(
     name="schedule fail",
     inputs=BASE_INPUTS,
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs={**TRACE_ID_OUTPUTS}),
-    schedule_assertion=ScheduleAssertion(success=False, outputs={}, callback_data={}, schedule_finished=True),
+    schedule_assertion=ScheduleAssertion(
+        success=False, outputs={**TRACE_ID_OUTPUTS, **SCHEDULE_FAIL_EX_DATA_OUTPUTS}, callback_data={},
+    ),
     patchers=[Patcher(target=PLUGIN_SERVICE_API_CLIENT, return_value=SCHEDULE_FAIL_CLIENT)],
 )

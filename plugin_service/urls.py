@@ -17,8 +17,8 @@ from . import api
 
 
 urlpatterns = [
-    url(r"^get_plugin_list/$", api.get_plugin_list),
-    url(r"^get_meta/$", api.get_meta),
-    url(r"^get_plugin_detail/$", api.get_plugin_detail),
-    url(r"^get_logs/$", api.get_logs),
+    url(r"^list/$", api.get_plugin_list),
+    url(r"^meta/$", api.get_meta),
+    url(r"^detail/$", api.get_plugin_detail),
+    url(r"^logs/$", api.get_logs),
 ]

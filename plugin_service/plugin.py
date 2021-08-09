@@ -11,18 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-from enum import Enum
 
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
+from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.plugin_client import PluginServiceApiClient
 
 
-logger = logging.getLogger("celery")
+logger = logging.getLogger(PLUGIN_LOGGER)
 
 
-class State(Enum):
+class State:
     EMPTY = 1
     POLL = 2
     CALLBACK = 3
@@ -50,7 +50,8 @@ class RemotePluginService(Service):
 
         if not ok:
             message = (
-                f"[remote plugin service invoke] error: {result_data['message']}, trace_id: {result_data['trace_id']}"
+                f"[remote plugin service invoke] error: {result_data['message']}, "
+                f"trace_id: {result_data.get('trace_id')}"
             )
             logger.error(message)
             data.set_outputs("ex_data", message)
@@ -77,17 +78,16 @@ class RemotePluginService(Service):
 
         if not ok:
             message = (
-                f"remote plugin service schedule error: {result_data['message']}, trace_id: {result_data['trace_id']}"
+                f"remote plugin service schedule error: {result_data['message']}, "
+                f"trace_id: {result_data.get('trace_id') or trace_id}"
             )
             logger.error(message)
             data.set_outputs("ex_data", message)
-            self.finish_schedule()
             return False
 
         state = result_data["state"]
         if state == State.FAIL:
             data.set_outputs("ex_data", "please check the logs for the reason of task failure.")
-            self.finish_schedule()
             return False
         if state == State.POLL:
             setattr(self, "__need_schedule__", True)

@@ -13,16 +13,15 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 
 
-class LogQuerySerializer(serializers.Serializer):
-    trace_id = serializers.CharField(help_text="Trace ID")
-
-
 class PluginCodeQuerySerializer(serializers.Serializer):
     plugin_code = serializers.CharField(help_text="插件服务编码")
 
 
-class PluginVersionQuerySerializer(serializers.Serializer):
-    plugin_code = serializers.CharField(help_text="插件服务编码")
+class LogQuerySerializer(PluginCodeQuerySerializer):
+    trace_id = serializers.CharField(help_text="Trace ID")
+
+
+class PluginVersionQuerySerializer(PluginCodeQuerySerializer):
     plugin_version = serializers.CharField(help_text="插件服务版本")
 
 

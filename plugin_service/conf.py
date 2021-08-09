@@ -11,12 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
 from django.conf import settings
 
+PLUGIN_SERVICE_CONFIG = {
+    "plugin_client_logger": "root",
+    "plugin_logger": "celery",
+}
 
-PLUGIN_SERVICE_APIGW_APP_CODE = os.getenv("PLUGIN_SERVICE_APIGW_APP_CODE", settings.APP_CODE)
-PLUGIN_SERVICE_APIGW_APP_SECRET = os.getenv("PLUGIN_SERVICE_APIGW_APP_SECRET", settings.APP_TOKEN)
-APIGW_ENVIRONMENT = os.getenv("APIGW_ENVIRONMENT", settings.ENVIRONMENT)
-APIGW_URL_SUFFIX = os.getenv("APIGW_URL_SUFFIX")
-TEST_PLUGIN_HOST = os.getenv("TEST_PLUGIN_HOST")
+PLUGIN_SERVICE_CONFIG.update(getattr(settings, "PLUGIN_SERVICE_CONFIG", {}))
+
+PLUGIN_CLIENT_LOGGER = PLUGIN_SERVICE_CONFIG["plugin_client_logger"]
+PLUGIN_LOGGER = PLUGIN_SERVICE_CONFIG["plugin_logger"]
