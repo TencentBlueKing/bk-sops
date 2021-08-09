@@ -17,7 +17,7 @@
         :before-close="closeTab">
         <div class="setting-header" slot="header">
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
-            <span v-if="variableData"> > {{ variableData.source_type !== 'system' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
+            <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
             <i
                 class="common-icon-info"
                 v-bk-tooltips="{
@@ -61,7 +61,8 @@
         <div class="global-variable-panel" slot="content">
             <div v-show="!variableData" :class="{ 'is-hidden': variableData }">
                 <div class="add-variable">
-                    <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
+                    <bk-button theme="primary" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
+                    <bk-button v-if="!common" theme="default" class="manager-project-variable-btn" @click="onManagerProjectVariable">{{ $t('管理项目变量') }}</bk-button>
                     <div class="toggle-system-var">
                         <bk-checkbox :value="isHideSystemVar" @change="onToggleSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
@@ -174,7 +175,7 @@
                 'gateways': state => state.template.gateways,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'systemConstants': state => state.template.systemConstants
+                'internalVariable': state => state.template.internalVariable
             })
         },
         watch: {
@@ -182,7 +183,7 @@
                 // 增加、删除变量后，更新变量列表
                 this.setVariableList()
             },
-            systemConstants () {
+            internalVariable () {
                 this.setVariableList()
             }
         },
@@ -204,7 +205,7 @@
                     const data = {
                         activities: this.activities,
                         gateways: this.gateways,
-                        constants: { ...this.systemConstants, ...this.constants }
+                        constants: { ...this.internalVariable, ...this.constants }
                     }
                     const resp = await this.getVariableCite(data)
                     if (resp.result) {
@@ -221,9 +222,9 @@
                 if (this.isHideSystemVar) {
                     this.variableList = userVars
                 } else {
-                    const sysVars = Object.keys(this.systemConstants)
-                        .map(key => tools.deepClone(this.systemConstants[key]))
-                        .sort((a, b) => a.index - b.index)
+                    const sysVars = Object.keys(this.internalVariable)
+                        .map(key => tools.deepClone(this.internalVariable[key]))
+                        .sort((a, b) => b.index - a.index)
                     this.variableList = [...sysVars, ...userVars]
                 }
             },
@@ -254,6 +255,13 @@
                 }
                 this.$emit('templateDataChanged')
             },
+            // 点击跳转项目管理-管理项目变量
+            onManagerProjectVariable () {
+                const url = this.$router.resolve({
+                    path: `/project/config/${this.$route.params.project_id}/`
+                })
+                window.open(url.href)
+            },
             // 显示/隐藏系统变量
             onToggleSystemVar (val) {
                 this.isHideSystemVar = val
@@ -265,10 +273,9 @@
                 if (newIndex === oldIndex) {
                     return
                 }
-
                 const start = Math.min(newIndex, oldIndex)
                 const end = Math.max(newIndex, oldIndex) + 1
-                const delta = this.isHideSystemVar ? start : start - Object.keys(this.systemConstants).length
+                const delta = this.isHideSystemVar ? start : start - Object.keys(this.internalVariable).length
                 const indexChangedVar = this.variableList.slice(start, end)
                 
                 indexChangedVar.forEach((item, index) => {
@@ -282,7 +289,7 @@
              * @param {String} key 变量key值
              */
             onEditVariable (key) {
-                this.variableData = tools.deepClone(this.constants[key] || this.systemConstants[key])
+                this.variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
             },
             onCitedNodeClick (data) {
                 const { group, id } = data
@@ -390,6 +397,9 @@
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
+        }
+        .manager-project-variable-btn {
+            padding: 0 20px;
         }
         .toggle-system-var {
             float: right;

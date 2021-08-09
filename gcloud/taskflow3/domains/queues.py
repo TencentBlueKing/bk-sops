@@ -16,7 +16,7 @@ from kombu import Exchange, Queue
 
 
 class PrepareAndStartTaskQueueResolver:
-    TASK_NAME = "taskflow3.tasks.prepare_and_start_task"
+    TASK_NAME = "taskflow3.tasks.celery.prepare_and_start_task"
 
     def __init__(self, queue: str):
         self.queue = queue

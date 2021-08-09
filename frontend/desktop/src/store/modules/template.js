@@ -188,7 +188,7 @@ const template = {
             details: [],
             subproc_has_update: false
         },
-        systemConstants: [],
+        internalVariable: [],
         default_flow_type: 'common'
     },
     mutations: {
@@ -794,7 +794,7 @@ const template = {
         },
         // 设置内置变量
         setInternalVariable (state, payload) {
-            state.systemConstants = payload
+            state.internalVariable = payload
         }
     },
     actions: {

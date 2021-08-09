@@ -362,6 +362,8 @@
         margin: 0 0 20px 0;
         .operation-btn {
             float: left;
+            display: flex;
+            align-items: center;
         }
     }
     .search-record {

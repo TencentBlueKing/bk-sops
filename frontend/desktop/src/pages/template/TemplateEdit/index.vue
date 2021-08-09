@@ -86,7 +86,7 @@
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
-                    :is-show.sync="isNodeConfigPanelShow"
+                    :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :template-labels="templateLabels"
@@ -94,6 +94,7 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :subflow-list-loading="subAtomListLoading"
+                    :back-to-variable-panel="backToVariablePanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -101,10 +102,12 @@
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
-                    :is-show.sync="isShowConditionEdit"
+                    :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
+                    :back-to-variable-panel="backToVariablePanel"
                     @onBeforeClose="onBeforeClose"
-                    @updataCanvasCondition="updataCanvasCondition">
+                    @updataCanvasCondition="updataCanvasCondition"
+                    @close="onCloseConfigPanel">
                 </condition-edit>
                 <template-setting
                     :project-info-loading="projectInfoLoading"
@@ -276,6 +279,7 @@
                 multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
                 isBatchUpdateDialogShow: false,
+                backToVariablePanel: false,
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -297,7 +301,8 @@
                         }
                     ]
                 },
-                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
+                typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                envVariableData: {}
             }
         },
         computed: {
@@ -438,7 +443,8 @@
                 'loadSubflowConfig'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -633,7 +639,34 @@
                 try {
                     this.systemVarsLoading = true
                     const result = await this.loadInternalVariable()
-                    this.setInternalVariable(result.data)
+                    const variableIndex = Object.keys(result.data).map(index => {
+                        return result.data[index].index
+                    })
+                    let variableminIndex = Math.min(...variableIndex)
+                    let internalVariable = { ...result.data }
+                    if (!this.common) {
+                        const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                        Object.keys(resp.data).forEach(item => {
+                            const { name, value, desc } = resp.data[item]
+                            const projectVar = {
+                                key: '${_env_' + resp.data[item].key + '}',
+                                name,
+                                value,
+                                desc,
+                                index: --variableminIndex,
+                                custom_type: 'input',
+                                form_schema: {},
+                                show_type: 'hide',
+                                validation: '^.+$',
+                                source_info: {},
+                                source_type: 'project',
+                                source_tag: 'input.input'
+                            }
+                            this.envVariableData['${_env_' + resp.data[item].key + '}'] = projectVar
+                        })
+                        internalVariable = Object.assign(this.envVariableData, result.data)
+                    }
+                    this.setInternalVariable(internalVariable)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -713,7 +746,7 @@
                         }
                         tplTabCount.setTab(tabQuerydata, 'add')
                     }
-                    
+
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     }
@@ -822,9 +855,13 @@
             /**
              * 关闭节点配置面板
              */
-            closeConfigPanel () {
+            closeConfigPanel (openVariablePanel) {
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
+                this.backToVariablePanel = false
+                if (openVariablePanel) {
+                    this.onChangeSettingPanel('globalVariableTab')
+                }
             },
             /**
              * 设置流程模板为修改状态
@@ -1291,6 +1328,13 @@
                 this.isShowDialog = false
                 this.isShowConditionEdit = false
             },
+            onCloseConfigPanel (openVariablePanel) {
+                this.isShowConditionEdit = false
+                this.backToVariablePanel = false
+                if (openVariablePanel) {
+                    this.onChangeSettingPanel('globalVariableTab')
+                }
+            },
             // 更新分支数据
             updataCanvasCondition (data) {
                 // 更新 cavans 页面数据
@@ -1328,6 +1372,7 @@
             // 全局变量引用详情点击回调
             onCitedNodeClick (data) {
                 const { group, id } = data
+                this.backToVariablePanel = true
                 if (group === 'activities') {
                     this.activeSettingTab = ''
                     this.showConfigPanel(id)
@@ -1607,5 +1652,5 @@
             }
         }
     }
-    
+
 </style>

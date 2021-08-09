@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from iam import Request, MultiActionRequest, Subject, Action
+from iam.exceptions import MultiAuthFailedException, AuthFailedException
 
 from gcloud.core.models import Project
 
@@ -73,3 +74,37 @@ def get_resources_allowed_actions_for_user(username, system_id, actions, resourc
 
     iam = get_iam_client()
     return iam.batch_resource_multi_actions_allowed(request, resources_list)
+
+
+iam = get_iam_client()
+
+
+def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resource_func):
+    action = Action(action)
+    subject = Subject("user", username)
+    resource_list = getattr(res_factory, get_resource_func)(resource_ids)
+    if not resource_list:
+        return
+    resource_map = {resource[0].id: resource for resource in resource_list}
+    request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+    result = iam.batch_is_allowed(request, resource_list)
+    if not result:
+        raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resource_list)
+    not_allowed_list = []
+    for tid, allow in result.items():
+        if not allow:
+            not_allowed_list.append(resource_map[tid])
+
+    if not_allowed_list:
+        raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
+
+
+def iam_resource_auth_or_raise(username, action, resource_id=None, get_resource_func=None):
+    action = Action(action)
+    subject = Subject("user", username)
+    resources = None
+    if get_resource_func:
+        resources = getattr(res_factory, get_resource_func)(resource_id)
+    request = Request(IAMMeta.SYSTEM_ID, subject, action, resources or [], {})
+    if not iam.is_allowed(request):
+        raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)

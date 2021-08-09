@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response_for_resources_list
 from rest_framework import permissions
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
@@ -19,6 +19,48 @@ from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 
 iam = get_iam_client()
+
+
+class TemplatePermissionMixin:
+    """
+    两种Template统一的鉴权逻辑，需要通过template_type区分
+    """
+
+    iam_mapping_config = {
+        "project": {
+            "delete_action": Action(IAMMeta.FLOW_DELETE_ACTION),
+            "resources_list_func": res_factory.resources_list_for_flows,
+        },
+        "common": {
+            "delete_action": Action(IAMMeta.COMMON_FLOW_DELETE_ACTION),
+            "resources_list_func": res_factory.resources_list_for_common_flows,
+        },
+    }
+
+    def has_permission(self, request, view):
+        if view.action == "batch_delete":
+            self.check_batch_delete_permission(request, view)
+        return True
+
+    def check_batch_delete_permission(self, request, view):
+        template_ids = request.data.get("template_ids") or []
+        action = self.iam_mapping_config[self.template_type]["delete_action"]
+        resources_list = self.iam_mapping_config[self.template_type]["resources_list_func"](template_ids)
+        allow_or_raise_immediate_response_for_resources_list(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=action,
+            resources_list=resources_list,
+        )
+
+
+class ProjectTemplatePermission(TemplatePermissionMixin, permissions.BasePermission):
+    template_type = "project"
+
+
+class CommonTemplatePermission(TemplatePermissionMixin, permissions.BasePermission):
+    template_type = "common"
 
 
 class SchemeEditPermission(permissions.BasePermission):

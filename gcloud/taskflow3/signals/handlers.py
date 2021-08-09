@@ -25,7 +25,7 @@ from pipeline.engine.signals import pipeline_end, pipeline_revoke
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
-from gcloud.taskflow3.tasks import send_taskflow_message
+from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
 
 logger = logging.getLogger("celery")

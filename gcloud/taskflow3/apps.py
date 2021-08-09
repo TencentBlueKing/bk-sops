@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import sys
 from django.apps import AppConfig
 
 
@@ -22,3 +23,8 @@ class Taskflow3Config(AppConfig):
         from gcloud.taskflow3.signals.handlers import pipeline_finish_handler  # noqa
         from gcloud.taskflow3.signals.handlers import pipeline_revoke_handler  # noqa
         from gcloud.taskflow3.signals.handlers import pipeline_fail_handler  # noqa
+
+        # bamboo-pipeline 流程实例 unpickle 路径兼容
+        from gcloud.taskflow3.domains import context
+
+        sys.modules["gcloud.taskflow3.context"] = context
