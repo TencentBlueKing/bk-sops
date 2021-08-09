@@ -614,10 +614,15 @@
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
+                    const variable = this.theEditingData
+                    const tagCode = this.renderConfig[0].tag_code
 
                     // renderform表单校验
+                    // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
                     if (this.$refs.renderForm) {
-                        formValid = this.$refs.renderForm.validate()
+                        if (this.theEditingData.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
+                            formValid = this.$refs.renderForm.validate()
+                        }
                     }
 
                     if (!result || !formValid) {
@@ -625,7 +630,6 @@
                     }
 
                     const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
-
                     if (!checkKeyResult.result) {
                         this.$bkMessage({
                             message: i18n.t('变量KEY为特殊标志符变量，请修改'),
@@ -637,26 +641,12 @@
                     if (this.theEditingData.pre_render_mako) {
                         this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
                     }
-                    const variable = this.theEditingData
-                    if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
-                        const tagCode = this.renderConfig[0].tag_code
-                        let varValue = {}
-
-                        // value为空且不渲染RenderForm组件的变量取表单默认值
-                        if (this.renderData.hasOwnProperty(tagCode)) {
-                            varValue = this.renderData
-                        } else {
-                            varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
-                        }
-
-                        // 变量key值格式统一
-                        if (!/^\$\{\w+\}$/.test(variable.key)) {
-                            variable.key = '${' + variable.key + '}'
-                        }
-
-                        this.theEditingData.value = varValue[tagCode]
+                    // 变量key值格式统一
+                    if (!/^\$\{\w+\}$/.test(variable.key)) {
+                        variable.key = '${' + variable.key + '}'
                     }
 
+                    this.theEditingData.value = this.renderData[tagCode]
                     this.theEditingData.name = this.theEditingData.name.trim()
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
