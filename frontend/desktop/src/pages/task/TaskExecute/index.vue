@@ -109,7 +109,7 @@
         // 离开任务执行页面时，还原页面的title、icon
         beforeRouteLeave (to, from, next) {
             document.title = this.primaryTitle
-            dom.setPageTabIcon(`${window.SITE_URL}/static/core/images/bk_sops.png`)
+            dom.setPageTabIcon(`${window.SITE_URL}static/core/images/bk_sops.png`)
             next()
         }
     }
