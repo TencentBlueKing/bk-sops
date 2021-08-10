@@ -29,6 +29,7 @@
  */
 export const endpointOptions = {
     endpoint: 'Rectangle',
+    anchor: ['Left', 'Right', 'Top', 'Bottom'],
     connector: ['Flowchart', { stub: [20, 20], alwaysRespectStub: true, gap: 0, cornerRadius: 10 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
