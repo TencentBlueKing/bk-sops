@@ -247,6 +247,7 @@
                             message: i18n.t('新增方案成功'),
                             theme: 'success'
                         })
+                        this.$emit('updateTaskSchemeList', this.schemaList, true)
                     } catch (e) {
                         console.log(e)
                     } finally {
@@ -271,6 +272,7 @@
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
+                    this.$emit('updateTaskSchemeList', this.schemaList, true)
                 } catch (e) {
                     console.log(e)
                 } finally {
