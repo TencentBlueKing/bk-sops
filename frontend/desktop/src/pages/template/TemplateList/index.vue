@@ -484,7 +484,6 @@
         computed: {
             ...mapState({
                 'site_url': state => state.site_url,
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'v1_import_flag': state => state.v1_import_flag,
                 'username': state => state.username
             }),
