@@ -786,6 +786,71 @@
                     this.handleShortcutPanelHide()
                 }
                 this.handleDeleteLineIconHide()
+                this.adjustLineEndpoint(node.id)
+            },
+            /**
+             * 节点移动时，计算当前节点的四个端点到目标端点的最短距离，取出对应端点，重新连线
+             */
+            adjustLineEndpoint (id) {
+                const instance = this.$refs.jsFlow.instance
+                const sourceLines = instance.getConnections({ source: id })
+                const targetLines = instance.getConnections({ target: id })
+                const eps = instance.selectEndpoints({ source: id })
+                this.setShortestLine(sourceLines, eps, 'source')
+                this.setShortestLine(targetLines, eps, 'target')
+            },
+            setShortestLine (lines, eps, type) {
+                lines.forEach(item => {
+                    let ep
+                    let minDis = Infinity
+                    const cEndpoint = type === 'source' ? item.endpoints[0] : item.endpoints[1]
+                    const oEndpoint = type === 'source' ? item.endpoints[1] : item.endpoints[0]
+                    const { elementId, anchor } = oEndpoint
+                    const [tEpX, tEpY] = anchor.lastReturnValue
+                    eps.each(e => {
+                        const [eX, eY] = e.anchor.lastReturnValue
+                        const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
+                        if (distance < minDis) {
+                            minDis = distance
+                            ep = e
+                        }
+                    })
+                    if (ep !== cEndpoint) {
+                        // 保留分支网关连线上的分支条件
+                        let condition, sId, sType, tId, tType
+                        if (type === 'source') {
+                            sId = ep.elementId
+                            sType = ep.anchor.type
+                            tId = elementId
+                            tType = anchor.type
+                        } else {
+                            sId = elementId
+                            sType = anchor.type
+                            tId = ep.elementId
+                            tType = ep.anchor.type
+                        }
+                        const line = this.canvasData.lines.find(item => {
+                            return item.source.id === sId && item.target.id === tId
+                        })
+                        const node = this.$store.state.template.gateways[sId]
+                        if (node && node.conditions && node.conditions[line.id]) {
+                            condition = Object.assign({}, node.conditions[line.id])
+                        }
+
+                        const source = {
+                            id: sId,
+                            arrow: sType
+                        }
+                        const target = {
+                            id: tId,
+                            arrow: tType
+                        }
+                        this.$refs.jsFlow.instance.deleteConnection(item)
+                        this.$nextTick(() => {
+                            this.createLine(source, target, condition)
+                        })
+                    }
+                })
             },
             // 初始化生成参考线
             createReferenceLine () {
@@ -878,14 +943,15 @@
                 animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
             // 创建节点间连线
-            createLine (source, target) {
+            createLine (source, target, condition) {
                 if (source.id === target.id) {
                     return false
                 }
                 
                 const line = {
                     source,
-                    target
+                    target,
+                    condition
                 }
                 const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
                 if (validateMessage.result) {
