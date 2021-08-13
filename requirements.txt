@@ -43,23 +43,6 @@ mistune==0.8.4
 # iam sdk
 bk-iam==1.1.14
 
-
-bkstorages==0.1.2 # not-open
-whitenoise==3.3.0 # not-open
-bkoauth==0.0.22 # not-open
-blueking-component-ieod==0.1.12 # not-open
-raven==6.1.0 # not-open
-ddtrace==0.15.0 # not-open
-python-json-logger==0.1.9 # not-open
-gevent==1.2.2 # not-open
-gunicorn==19.6.0 # not-open
-httpsig==1.3.0 # not-open
-PyJWT==1.6.1 # not-open
-pip==9.0.1 # not-open
-celery-prometheus-exporter==1.7.0 # not-open
-tencentcloud-sdk-python==3.0.223 # not-open 增值服务部插件依赖 SDK
-requests_toolbelt==0.9.1
-
 # celery 4
 celery==4.4.0
 django-celery-beat==2.0.0
