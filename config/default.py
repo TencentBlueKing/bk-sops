@@ -18,6 +18,7 @@ from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
 from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
+from bamboo_engine.config import Settings as BambooSettings
 import env
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
@@ -425,6 +426,9 @@ if env.SOPS_MAKO_IMPORT_MODULES:
             print(err)
             raise ImportError(err)
         MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
+
+BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = MAKO_SANDBOX_IMPORT_MODULES
+BambooSettings.MAKO_SANDBOX_SHIELD_WORDS = MAKO_SANDBOX_SHIELD_WORDS
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
