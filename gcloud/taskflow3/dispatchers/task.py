@@ -26,7 +26,12 @@ from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.format import format_web_data_to_pipeline
-from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, IsolateNodeError, StreamValidateError
+from pipeline.exceptions import (
+    ConvergeMatchError,
+    ConnectionValidateError,
+    IsolateNodeError,
+    StreamValidateError,
+)
 
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
@@ -368,7 +373,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 if child["id"] == subprocess_id:
                     return child
                 if child["children"]:
-                    return get_subprocess_status(child, subprocess_id)
+                    status = get_subprocess_status(child, subprocess_id)
+                    if status is not None:
+                        return status
 
         if subprocess_id:
             task_status = get_subprocess_status(task_status, subprocess_id)
