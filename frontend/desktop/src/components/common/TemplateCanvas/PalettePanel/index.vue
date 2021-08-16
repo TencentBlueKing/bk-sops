@@ -62,7 +62,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
-            :loading="activeNodeListType === 'subflow' && subAtomListLoading"
+            :loading="activeNodeListType === 'subflow' && subflowListLoading"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -82,7 +82,7 @@
         },
         props: {
             templateLabels: Array,
-            subAtomListLoading: {
+            subflowListLoading: {
                 type: Boolean,
                 default: true
             },
@@ -304,7 +304,7 @@
         position: relative;
         width: 60px;
         height: 100%;
-        z-index: 4;
+        z-index: 5;
     }
     .palette-container{
         position: relative;
