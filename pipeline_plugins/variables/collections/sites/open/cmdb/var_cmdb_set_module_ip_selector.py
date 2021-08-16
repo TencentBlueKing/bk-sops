@@ -68,6 +68,7 @@ class SetModuleIpSelector(LazyVariable):
             ip_filter_result = cc_get_ips_info_by_str(username, bk_biz_id, custom_value)
             # 过滤输入的ip
             ip_filter_result_list = ",".join([ip["InnerIP"] for ip in ip_filter_result["ip_result"]])
+            logger.info("[SetModuleIpSelector.get_value] ip_filter_result_list: %s" % ip_filter_result_list)
 
             # 根据输入获取空闲机module id
             service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
@@ -86,6 +87,8 @@ class SetModuleIpSelector(LazyVariable):
                 filter_service_template,
                 bk_supplier_account,
             )
+            logger.info("[SetModuleIpSelector.get_value] module_ids: %s" % module_ids)
+
             set_module_filter_ip_list = get_ip_list_by_module_id(username, bk_biz_id, bk_supplier_account, module_ids)
             # 获取在集群模块筛选的ip列表中的自定义输入ip
             data = filter_ip(ip_filter_result_list, set_module_filter_ip_list)
@@ -123,7 +126,7 @@ class SetModuleIpSelector(LazyVariable):
 
         else:
             # 输入ip方式不存在
-            logger.warning("input ip method: {} not exit".format(produce_method))
+            logger.error("[SetModuleIpSelector.get_value] input ip method: {} not exit".format(produce_method))
             data = ""
         return data
 
@@ -161,6 +164,12 @@ def get_module_id_list(
     @param filter_service_template_names: 需要筛选的服务模板名称，多个用英文分隔
     @return:
     """
+
+    logger.info("[get_module_id_list] set_list: %s" % set_list)
+    logger.info("[get_module_id_list] service_template_list: %s" % service_template_list)
+    logger.info("[get_module_id_list] filter_set_names: %s" % filter_set_names)
+    logger.info("[get_module_id_list] filter_service_template_names: %s" % filter_service_template_names)
+
     # 排除空闲机池set id
     if not filter_set_names:
         set_ids = [set_item["bk_set_id"] for set_item in set_list if set_item["bk_set_name"] != BIZ_INTERNAL_SET]
@@ -185,6 +194,7 @@ def get_module_id_list(
 
     biz_internal_modules = get_biz_internal_module(username, bk_biz_id, bk_supplier_account)["data"]
     biz_internal_module_names = set([m["name"] for m in biz_internal_modules])
+    logger.info("[get_module_id_list] biz_internal_modules: %s" % biz_internal_modules)
 
     # 筛选规则与空闲机、待回收、故障机模块取交集
     internal_module_in_filter = set(biz_internal_module_names) & set(filter_service_template_names_list)
@@ -253,6 +263,8 @@ def get_module_id_list(
     module_id_list = find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, ["bk_module_id"])
     # 拼接空闲机、待回收等模块ID
     module_id_list.extend(inner_module_id_list)
+    logger.info("[get_module_id_list] inner_module_id_list: %s" % inner_module_id_list)
+    logger.info("[get_module_id_list] module_id_list: %s" % module_id_list)
     return module_id_list
 
 

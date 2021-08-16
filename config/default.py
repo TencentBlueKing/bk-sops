@@ -495,12 +495,11 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 # SaaS统一日志配置
 def logging_addition_settings(logging_dict, environment="prod"):
-    logging_dict["loggers"]["iam"] = {
-        "handlers": ["component"],
-        "level": "INFO" if environment == "prod" else "DEBUG",
-        "propagate": True,
-    }
 
+    # formatters
+    logging_dict["formatters"]["light"] = {"format": "%(message)s"}
+
+    # handlers
     logging_dict["handlers"]["pipeline_engine_context"] = {
         "class": "pipeline.log.handlers.EngineContextLogHandler",
         "formatter": "light",
@@ -511,14 +510,6 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "formatter": "light",
     }
 
-    logging_dict["loggers"]["component"] = {
-        "handlers": ["component", "pipeline_engine_context", "bamboo_engine_context"],
-        "level": "DEBUG",
-        "propagate": True,
-    }
-
-    logging_dict["formatters"]["light"] = {"format": "%(message)s"}
-
     logging_dict["handlers"]["engine"] = {
         "class": "pipeline.log.handlers.EngineLogHandler",
         "formatter": "light",
@@ -527,6 +518,25 @@ def logging_addition_settings(logging_dict, environment="prod"):
     logging_dict["handlers"]["pipeline_eri"] = {
         "class": "pipeline.eri.log.ERINodeLogHandler",
         "formatter": "light",
+    }
+
+    # loggers
+    logging_dict["loggers"]["iam"] = {
+        "handlers": ["component"],
+        "level": "INFO" if environment == "prod" else "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["loggers"]["component"] = {
+        "handlers": ["component", "pipeline_engine_context", "bamboo_engine_context"],
+        "level": "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["loggers"]["root"] = {
+        "handlers": ["root", "pipeline_engine_context", "bamboo_engine_context"],
+        "level": "INFO",
+        "propagate": True,
     }
 
     logging_dict["loggers"]["pipeline.logging"] = {

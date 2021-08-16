@@ -48,11 +48,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
     )
 
-    logger.info(
-        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} cmdb.get_business_host_topo return: {host_info}".format(  # noqa
-            bk_biz_id=bk_biz_id, kwargs=kwargs, host_info=host_info
-        )
-    )
+    logger.info("[get_ip_picker_result] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
     if not host_info:
         return {
@@ -94,11 +90,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
                 }
             )
 
-    logger.info(
-        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} filter data collect: {data}".format(
-            bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-        )
-    )
+    logger.info("[get_ip_picker_result] filter data collect: {data}".format(data=data))
 
     # 先把不在用户选择拓扑中的主机过滤掉
     if selector == "topo":
@@ -111,11 +103,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             )
         data = user_select_topo_host.values()
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data topo filter: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data topo filter: {data}".format(data=data))
 
     # 动态分组得到的主机ip
     if selector == "group":
@@ -135,22 +123,14 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
         data = dynamic_groups_host.values()
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data from dynamic group: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data from dynamic group: {data}".format(data=data))
 
     # 筛选条件
     filters = kwargs["filters"]
     if filters:
         data = filter_hosts(filters, biz_topo_tree, data, "bk_inst_name")
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data condition filter: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data condition filter: {data}".format(data=data))
 
     # 过滤条件
     excludes = kwargs["excludes"]
@@ -161,11 +141,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         new_data = [host for host in data if host["bk_host_innerip"] not in exclude_host_ip_list]
         data = new_data
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data condition excludes: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data condition excludes: {data}".format(data=data))
 
     result = {"result": True, "code": NO_ERROR, "data": data, "message": ""}
     return result
