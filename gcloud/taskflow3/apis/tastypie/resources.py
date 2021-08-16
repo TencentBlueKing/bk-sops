@@ -51,6 +51,19 @@ logger = logging.getLogger("root")
 iam = get_iam_client()
 
 
+class ProjectBasedTaskFlowIAMAuthorization(CustomCreateCompleteListIAMAuthorization):
+    def read_list(self, object_list, bundle):
+        project_id = bundle.request.GET.get("project__id")
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.username),
+            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        return object_list
+
+
 class PipelineInstanceResource(GCloudModelResource):
     class Meta(GCloudModelResource.CommonMeta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
@@ -107,7 +120,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         q_fields = ["id", "pipeline_instance__name"]
         creator_or_executor_fields = ["pipeline_instance__creator", "pipeline_instance__executor"]
         # iam config
-        authorization = CustomCreateCompleteListIAMAuthorization(
+        authorization = ProjectBasedTaskFlowIAMAuthorization(
             iam=iam,
             helper=TaskIAMAuthorizationHelper(
                 system=IAMMeta.SYSTEM_ID,
