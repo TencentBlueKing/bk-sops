@@ -311,7 +311,8 @@
                 offset: 0,
                 pollingTimer: null,
                 isPageOver: false,
-                isThrottled: false // 滚动节流 是否进入cd
+                isThrottled: false, // 滚动节流 是否进入cd
+                envVariableData: {}
             }
         },
         computed: {
@@ -323,7 +324,6 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
@@ -459,7 +459,8 @@
                 'loadSubflowConfig'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -638,7 +639,34 @@
                 try {
                     this.systemVarsLoading = true
                     const result = await this.loadInternalVariable()
-                    this.setInternalVariable(result.data)
+                    const variableIndex = Object.keys(result.data).map(index => {
+                        return result.data[index].index
+                    })
+                    let variableminIndex = Math.min(...variableIndex)
+                    let internalVariable = { ...result.data }
+                    if (!this.common) {
+                        const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                        Object.keys(resp.data).forEach(item => {
+                            const { name, value, desc } = resp.data[item]
+                            const projectVar = {
+                                key: '${_env_' + resp.data[item].key + '}',
+                                name,
+                                value,
+                                desc,
+                                index: --variableminIndex,
+                                custom_type: 'input',
+                                form_schema: {},
+                                show_type: 'hide',
+                                validation: '^.+$',
+                                source_info: {},
+                                source_type: 'project',
+                                source_tag: 'input.input'
+                            }
+                            this.envVariableData['${_env_' + resp.data[item].key + '}'] = projectVar
+                        })
+                        internalVariable = Object.assign(this.envVariableData, result.data)
+                    }
+                    this.setInternalVariable(internalVariable)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -718,7 +746,7 @@
                         }
                         tplTabCount.setTab(tabQuerydata, 'add')
                     }
-                    
+
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     }
@@ -1610,5 +1638,5 @@
             }
         }
     }
-    
+
 </style>

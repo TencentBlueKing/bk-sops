@@ -10,23 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.test import TestCase
 
-from django.utils.translation import ugettext_lazy as _
+from gcloud.project_constants.domains import context
+from gcloud.project_constants.models import ProjectConstant
 
-from gcloud.constants import *  # noqa
 
-# 任务流程创建方式
-TASK_CREATE_METHOD = [
-    ('app', _("手动")),
-    ('api', _("API网关")),
-    ('app_maker', _("轻应用")),
-    ('periodic', _("周期任务")),
-    ('mobile', _("移动端")),
-]
-
-# 任务引用的流程模板来源
-TEMPLATE_SOURCE = [
-    (PROJECT, _("项目流程")),
-    (COMMON, _("公共流程")),
-    (ONETIME, _("一次性任务")),
-]
+class ContextTestCase(TestCase):
+    def test_get_project_constants_context(self):
+        ProjectConstant.objects.create(project_id=1, name="string", key="key1", value="val1")
+        ProjectConstant.objects.create(project_id=1, name="string", key="key2", value="val2")
+        project_constants_context = context.get_project_constants_context(1)
+        self.assertEqual(project_constants_context, {"${_env_key1}": "val1", "${_env_key2}": "val2"})

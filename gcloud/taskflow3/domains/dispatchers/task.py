@@ -32,6 +32,7 @@ from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, Iso
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
+from gcloud.project_constants.domains.context import get_project_constants_context
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
@@ -61,10 +62,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         "revoke",
     }
 
-    def __init__(self, engine_ver: int, taskflow_id: int, pipeline_instance: PipelineInstance, queue: str = ""):
+    def __init__(
+        self, engine_ver: int, taskflow_id: int, pipeline_instance: PipelineInstance, project_id: int, queue: str = ""
+    ):
         self.engine_ver = engine_ver
         self.taskflow_id = taskflow_id
         self.pipeline_instance = pipeline_instance
+        self.project_id = project_id
         self.queue = queue
 
     def dispatch(self, command: str, operator: str) -> dict:
@@ -142,6 +146,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             )
             system_obj = SystemObject(root_pipeline_data)
             root_pipeline_context = {"${_system}": system_obj}
+            root_pipeline_context.update(get_project_constants_context(self.project_id))
 
             # run pipeline
             result = bamboo_engine_api.run_pipeline(

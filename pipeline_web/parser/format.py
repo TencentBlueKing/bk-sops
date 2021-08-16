@@ -126,11 +126,19 @@ def classify_constants(constants, is_subprocess):
                 acts_outputs.setdefault(source_step, {}).update({source_key: key})
         # 自定义的Lazy类型变量
         elif info["custom_type"] and var_cls and issubclass(var_cls, var.LazyVariable):
+            if (
+                var_cls.type == "meta"
+                and hasattr(var_cls, "process_meta_avalue")
+                and callable(var_cls.process_meta_avalue)
+            ):
+                value = var_cls.process_meta_avalue(info["meta"], info["value"])
+            else:
+                value = info["value"]
             data_inputs[key] = {
                 "type": "lazy",
                 "source_tag": info["source_tag"],
                 "custom_type": info["custom_type"],
-                "value": info["value"],
+                "value": value,
                 "is_param": info["is_param"],
             }
         else:

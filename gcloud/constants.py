@@ -63,6 +63,22 @@ TASK_FLOW = {
     ],
 }
 
+# 任务流程创建方式
+TASK_CREATE_METHOD = [
+    ("app", _("手动")),
+    ("api", _("API网关")),
+    ("app_maker", _("轻应用")),
+    ("periodic", _("周期任务")),
+    ("mobile", _("移动端")),
+]
+
+# 任务引用的流程模板来源
+TEMPLATE_SOURCE = [
+    (PROJECT, _("项目流程")),
+    (COMMON, _("公共流程")),
+    (ONETIME, _("一次性任务")),
+]
+
 # 任务可操作的类型
 TASKENGINE_OPERATE_TYPE = {
     "start_task": "create",
