@@ -48,6 +48,19 @@ logger = logging.getLogger("root")
 iam = get_iam_client()
 
 
+class ProjectBasedTaskTemplateIAMAuthorization(CompleteListIAMAuthorization):
+    def read_list(self, object_list, bundle):
+        project_id = bundle.request.GET.get("project__id")
+        allow_or_raise_immediate_response(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.username),
+            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        return object_list
+
+
 class TaskTemplateResource(GCloudModelResource):
     project = fields.ForeignKey(ProjectResource, "project", full=True)
     pipeline_template = fields.ForeignKey(PipelineTemplateResource, "pipeline_template")
@@ -82,7 +95,7 @@ class TaskTemplateResource(GCloudModelResource):
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
         # iam config
-        authorization = CompleteListIAMAuthorization(
+        authorization = ProjectBasedTaskTemplateIAMAuthorization(
             iam=iam,
             helper=FlowIAMAuthorizationHelper(
                 system=IAMMeta.SYSTEM_ID,
