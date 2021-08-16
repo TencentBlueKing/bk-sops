@@ -51,6 +51,7 @@ from gcloud.apigw.views.start_task import start_task
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
 from gcloud.apigw.views.import_project_template import import_project_template
 from gcloud.apigw.views.get_tasks_manual_intervention_state import get_tasks_manual_intervention_state
+from gcloud.apigw.views.create_and_start_task import create_and_start_task
 
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
@@ -94,4 +95,5 @@ urlpatterns = [
     url(r"^get_functionalization_task_list/$", get_functionalization_task_list),
     url(r"^preview_common_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_common_task_tree),
     url(r"^register_project/$", register_project),
+    url(r"^create_and_start_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$",create_and_start_task)
 ]
