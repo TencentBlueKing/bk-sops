@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import jsonschema
 import ujson as json
+import jsonschema
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -21,7 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.core.models import EngineConfig
 from gcloud.conf import settings
-from gcloud.constants import BUSINESS,COMMON
+from gcloud.constants import BUSINESS, COMMON
 from gcloud.apigw.views.utils import logger
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.common_template.models import CommonTemplate
@@ -56,7 +56,7 @@ def create_and_start_task(request, template_id, project_id):
 
     logger.info(
         "[API] create_and_start_task, template_id: {template_id}, project_id: {project_id}, params: {params}.".format(
-            template_id=template_id,project_id=project.id,params=params
+            template_id=template_id, project_id=project.id, params=params
         )
     )
 
@@ -81,44 +81,41 @@ def create_and_start_task(request, template_id, project_id):
             result = {
                 "result": False,
                 "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
-                "code": err_code.CONTENT_NOT_EXIST.code
+                "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
-    
+
     # 检查app_code是否存在
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = "app_code cannot be empty, make sure api gateway has sent correct params"
-        return {"result": False, "message": message, "code":err_code.CONTENT_NOT_EXIST.code}
-    
+        return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
+
     # 请求参数校验
     try:
-        params.setdefault("flow_type",COMMON)
-        params.setdefault("template_source",BUSINESS)
-        params.setdefault("constants",{})
-        params.setdefault("exclude_task_nodes_id",[])
+        params.setdefault("flow_type", COMMON)
+        params.setdefault("template_source", BUSINESS)
+        params.setdefault("constants", {})
+        params.setdefault("exclude_task_nodes_id", [])
         jsonschema.validate(params, APIGW_CREATE_AND_START_TASK_PARAMS)
     except jsonschema.ValueError as e:
         logger.warning("[API] create_and_start_task raise params error: %s" % e)
         message = "task parmas is invalid: %s" % e
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
-    
+
     # 创建pipeline_instance
     pipeline_instance_kwargs = {
         "name": params["name"],
         "creator": request.user.username,
-        "description": params.get("description", "")
+        "description": params.get("description", ""),
     }
     try:
         data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-            tmpl,
-            pipeline_instance_kwargs,
-            params["constants"], 
-            params["exclude_task_nodes_id"]
+            tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"]
         )
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
-    
+
     # 创建task
     try:
         task = TaskFlowInstance.objects.create(
@@ -143,15 +140,13 @@ def create_and_start_task(request, template_id, project_id):
     ).resolve_task_queue_and_routing_key()
 
     prepare_and_start_task.apply_async(
-        kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username), queue=queue, routing_key=routing_key
+        kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username),
+        queue=queue,
+        routing_key=routing_key,
     )
 
     return {
         "result": True,
         "code": err_code.SUCCESS.code,
-        "data": {
-            "pipeline_tree": task.pipeline_tree,
-            "task_id": task.id,
-            "task_url": task.url
-        }
+        "data": {"pipeline_tree": task.pipeline_tree, "task_id": task.id, "task_url": task.url},
     }
