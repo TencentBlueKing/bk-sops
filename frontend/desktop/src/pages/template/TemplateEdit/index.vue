@@ -272,8 +272,10 @@
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
-                    subflow: []
+                    subflow: [],
+                    pluginList: []
                 },
+                thirdPartyList: [],
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -442,7 +444,8 @@
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceList'
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault'
@@ -487,7 +490,8 @@
                     if (!this.common) {
                         params.project_id = this.project_id
                     }
-                    const data = await this.loadSingleAtomList(params)
+                    const [data, pluginList] = await Promise.all([this.loadSingleAtomList(params), this.loadPluginServiceList()])
+                    // 内置插件
                     const atomList = []
                     data.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
@@ -510,6 +514,8 @@
                     this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
+                    // 第三方插件
+                    this.atomTypeList.pluginList = [...pluginList.data]
                 } catch (e) {
                     console.log(e)
                 } finally {

@@ -12,61 +12,91 @@
 <template>
     <transition name="slideLeft">
         <div class="node-menu" v-if="showNodeMenu" v-bk-clickoutside="handleClickOutSide">
-            <div :class="['panel-fixed-pin', { 'actived': isFixedNodeMenu }]" @click.stop="onClickPin">
-                <i class="common-icon-pin"></i>
+            <div class="title-wrap">
+                <span>{{ pluginTitle }}</span>
+                <div :class="['panel-fixed-pin', { 'actived': isFixedNodeMenu }]" @click.stop="onClickPin">
+                    <i class="common-icon-pin"></i>
+                </div>
             </div>
+            <!-- 内置插件/第三方插件tab -->
+            <bk-tab
+                v-if="activeNodeListType === 'tasknode'"
+                :active.sync="curPluginTab"
+                type="unborder-card"
+                @tab-change="setSearchInputShow(true)">
+                <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
+                <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
+            </bk-tab>
             <div class="search-wrap">
-                <bk-input
-                    class="search-input"
-                    v-model.trim="searchStr"
-                    right-icon="bk-icon icon-search"
-                    :placeholder="$t('请输入名称')"
-                    :clearable="true"
-                    @input="onNameSearch"
-                    @clear="searchInputhandler">
-                </bk-input>
-                <bk-select
-                    v-if="activeNodeListType === 'tasknode'"
-                    v-model="selectedGroup"
-                    :clearable="true"
-                    :searchable="true"
-                    @change="searchInputhandler">
-                    <bk-option
-                        v-for="item in groupList"
-                        class="node-item-option"
-                        :key="item.type"
-                        :id="item.type"
-                        :name="item.group_name">
-                    </bk-option>
-                </bk-select>
-                <bk-select
-                    v-else-if="activeNodeListType === 'subflow' && !common"
-                    key="subflow-select"
-                    ext-popover-cls="label-select"
-                    v-model="selectedGroup"
-                    :display-tag="true"
-                    :multiple="true"
-                    :clearable="true"
-                    :searchable="true"
-                    @change="searchInputhandler">
-                    <bk-option
-                        v-for="(item, index) in templateLabels"
-                        class="node-item-option"
-                        :key="index"
-                        :id="item.id"
-                        :name="item.name">
-                        <div class="label-select-option">
-                            <span
-                                class="label-select-color"
-                                :style="{ background: item.color }">
-                            </span>
-                            <span>{{item.name}}</span>
-                            <i class="bk-option-icon bk-icon icon-check-1"></i>
-                        </div>
-                    </bk-option>
-                </bk-select>
+                <template v-if="isSearch">
+                    <div
+                        class="select-btn"
+                        v-if="curPluginTab === 'build_in_plugin'"
+                        @click="setSelectInputShow">
+                        <i class="common-icon-arrow-down"></i>
+                    </div>
+                    <bk-input
+                        v-if="isSearch"
+                        class="search-input"
+                        v-model.trim="searchStr"
+                        right-icon="bk-icon icon-search"
+                        :placeholder="$t('搜索插件')"
+                        :clearable="true"
+                        @input="onNameSearch"
+                        @clear="searchInputhandler">
+                    </bk-input>
+                </template>
+                <template v-else>
+                    <bk-select
+                        v-if="activeNodeListType === 'tasknode'"
+                        v-model="selectedGroup"
+                        :clearable="true"
+                        :searchable="true"
+                        @change="searchInputhandler">
+                        <bk-option
+                            v-for="item in groupList"
+                            class="node-item-option"
+                            :key="item.type"
+                            :id="item.type"
+                            :name="item.group_name">
+                        </bk-option>
+                    </bk-select>
+                    <bk-select
+                        v-else-if="activeNodeListType === 'subflow' && !common"
+                        key="subflow-select"
+                        ext-popover-cls="label-select"
+                        v-model="selectedGroup"
+                        :display-tag="true"
+                        :multiple="true"
+                        :clearable="true"
+                        :searchable="true"
+                        @change="searchInputhandler">
+                        <bk-option
+                            v-for="(item, index) in templateLabels"
+                            class="node-item-option"
+                            :key="index"
+                            :id="item.id"
+                            :name="item.name">
+                            <div class="label-select-option">
+                                <span
+                                    class="label-select-color"
+                                    :style="{ background: item.color }">
+                                </span>
+                                <span>{{item.name}}</span>
+                                <i class="bk-option-icon bk-icon icon-check-1"></i>
+                            </div>
+                        </bk-option>
+                    </bk-select>
+                    <div class="search-btn" @click="setSearchInputShow(false)">
+                        <i class="common-icon-search"></i>
+                    </div>
+                </template>
             </div>
-            <div class="node-list-wrap" v-bkloading="{ isLoading: loading, opacity: 1 }">
+            <!-- 内置插件 -->
+            <div
+                v-show="curPluginTab === 'build_in_plugin'"
+                class="node-list-wrap"
+                v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <template v-if="listInPanel.length > 0">
                     <template v-if="!isSearchMode">
                         <template v-if="activeNodeListType === 'tasknode'">
@@ -159,6 +189,25 @@
                 </template>
                 <no-data v-else></no-data>
             </div>
+            <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
+                <ul>
+                    <li v-for="(item, index) in 8" :key="item">
+                        <node-item
+                            class="node-item"
+                            :key="index"
+                            type="tasknode"
+                            plugin-type="third-praty"
+                            :node="{
+                                code: 'bk_notify',
+                                template_id: '872',
+                                name: '发送通知',
+                                group_icon: '',
+                                group_name: '蓝鲸服务(BK)'
+                            }">
+                        </node-item>
+                    </li>
+                </ul>
+            </div>
         </div>
     </transition>
 </template>
@@ -207,6 +256,8 @@
         data () {
             const selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
             return {
+                curPluginTab: 'build_in_plugin',
+                isSearch: false,
                 isPinActived: false,
                 selectedGroup,
                 searchStr: '',
@@ -241,10 +292,23 @@
                 } else {
                     return this.templateLabels
                 }
+            },
+            pluginTitle () {
+                let title = ''
+                if (this.curPluginTab === 'third_praty_plugin') {
+                    title = this.$t('第三方插件节点')
+                } else if (this.activeNodeListType === 'tasknode') {
+                    title = this.$t('标准插件节点')
+                } else {
+                    title = this.$t('流程模板')
+                }
+                return title
             }
         },
         watch: {
             activeNodeListType (val) {
+                this.isSearch = false
+                this.curPluginTab = 'build_in_plugin'
                 this.searchStr = ''
                 this.searchResult = []
                 this.selectedGroup = val === 'subflow' ? [] : ''
@@ -270,6 +334,15 @@
             onNameSearch () {
                 this.searchResult = []
                 this.onSearchInput()
+            },
+            setSelectInputShow () {
+                this.searchStr = ''
+                this.isSearch = false
+            },
+            setSearchInputShow (isTab) {
+                this.selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
+                this.searchStr = ''
+                this.isSearch = isTab ? this.curPluginTab === 'third_praty_plugin' : true
             },
             searchInputhandler () {
                 const result = []
@@ -327,6 +400,7 @@
                         return
                     }
                     this.selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
+                    this.isSearch = false
                     this.$emit('onCloseNodeMenu')
                 }
             },
@@ -358,6 +432,18 @@
         }
     }
 </script>
+<style lang="scss">
+    .node-menu {
+        .bk-tab .bk-tab-section {
+            display: none;
+        }
+        .search-wrap {
+            .bk-select, .search-input {
+                min-width: 227px;
+            }
+        }
+    }
+</style>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
     .node-menu {
@@ -370,38 +456,63 @@
         border-right: 1px solid #dddddd;
         z-index: 2;
     }
-    .panel-fixed-pin {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        padding: 7px 8px 8px;
-        line-height: 1;
-        border: 1px solid #c4c6cc;
-        border-radius: 2px;
+    
+    .title-wrap {
+        height: 41px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 11px 0 14px;
+        color: #303132;
         font-size: 14px;
-        text-align: center;
-        color: #999999;
-        cursor: pointer;
-        z-index: 1;
-        &:hover {
-            color: #707379;
-        }
-        &.actived {
-            color: #52699d;
+        border-bottom: 1px solid #ccd0dd;
+        .panel-fixed-pin {
+            color: #999999;
+            cursor: pointer;
+            &:hover {
+                color: #707379;
+            }
+            &.actived {
+                color: #52699d;
+            }
         }
     }
     .search-wrap {
-        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 11px 14px 12px;
         border-bottom: 1px solid #ccd0dd;
         background: #ffffff;
-        .search-input {
-            margin-bottom: 10px;
-            width: 220px;
+        .search-btn, .select-btn {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border: 1px solid #c4c6cc;
+            border-radius: 3px;
+            font-size: 14px;
+            color: #979ba5;
+            text-align: center;
+            line-height: 28px;
+            cursor: pointer;
+        }
+        .search-btn {
+            margin-left: 11px;
+        }
+        .select-btn {
+            font-size: 12px;
+            line-height: 30px;
+            margin-right: 11px;
         }
     }
     .node-list-wrap {
         height: calc(100% - 107px);
         overflow-y: auto;
+        @include scrollbar;
+    }
+    .third-praty-list {
+        height: 687px;
+        overflow: auto;
         @include scrollbar;
     }
     .node-item {

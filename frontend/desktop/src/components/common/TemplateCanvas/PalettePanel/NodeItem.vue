@@ -17,7 +17,11 @@
         :data-config-group="node.group_name"
         :data-config-icon="node.group_icon"
         :data-type="type">
-        <div class="name-wrapper">{{node.name}}</div>
+        <div v-if="pluginType" class="plugin-item">
+            <img class="plugin-logo" :src="node.src" alt="">
+            <p class="plugin-title" v-bk-overflow-tips>企业微信机器人推送</p>
+        </div>
+        <div v-else class="name-wrapper">{{node.name}}</div>
     </div>
 </template>
 <script>
@@ -26,6 +30,10 @@
         name: 'NodeItem',
         props: {
             type: {
+                type: String,
+                default: ''
+            },
+            pluginType: {
                 type: String,
                 default: ''
             },
@@ -38,3 +46,34 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+    .plugin-item {
+        min-height: 70px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 7px 0 13px;
+        background: #fff;
+        border-bottom: 1px solid #e2e4ed;
+        color: #63656e;
+        .plugin-logo {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            margin-right: 12px;
+        }
+        .plugin-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #63656e;
+            line-height: 19px;
+            margin-bottom: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        &:hover {
+            background: hsl(218, 100%, 94%);
+        }
+    }
+</style>

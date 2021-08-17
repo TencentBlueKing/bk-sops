@@ -155,10 +155,15 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
-                <section class="info-section">
-                    <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
+                <section class="info-section log-info">
+                    <!-- 内置插件/第三方插件tab -->
+                    <bk-tab :active.sync="curPluginTab" type="unborder-card" @tab-change="handleTabChange">
+                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('标准节点') }"></bk-tab-panel>
+                        <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方节点日志') }"></bk-tab-panel>
+                    </bk-tab>
+                    <!-- <h4 class="common-section-title">{{ $t('节点日志') }}</h4> -->
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
-                        <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
+                        <full-code-editor v-if="logInfo" :key="curPluginTab" :value="logInfo"></full-code-editor>
                         <NoData v-else></NoData>
                     </div>
                 </section>
@@ -469,6 +474,7 @@
         },
         data () {
             return {
+                curPluginTab: 'build_in_plugin',
                 isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
@@ -587,7 +593,8 @@
                 'getNodeExecutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceLog'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeDetail',
@@ -756,6 +763,9 @@
                     }
                 }
             },
+            async handleTabChange () {
+                // const resp = await this.loadPluginServiceLog({  })
+            },
             async getHistoryLog (id) {
                 try {
                     this.$set(this.historyLogLoading, id, true)
@@ -863,6 +873,24 @@
         }
     }
 </script>
+<style lang="scss">
+    .log-info {
+        position: relative;
+        .bk-tab-section {
+            padding: 5px;
+        }
+        &::before {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 12px;
+            left: 0;
+            width: 2px;
+            height: 20px;
+            background: #a3c5fd;
+        }
+    }
+</style>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';

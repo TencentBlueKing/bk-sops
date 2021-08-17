@@ -20,7 +20,13 @@
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
-        <div class="list-wrapper">
+        <!-- 内置插件/第三方插件tab -->
+        <bk-tab v-if="!isSubflow" :active.sync="curPluginTab" type="unborder-card">
+            <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
+            <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
+        </bk-tab>
+        <!-- 内置插件 -->
+        <div class="list-wrapper" v-show="curPluginTab === 'build_in_plugin'">
             <template v-if="!isSubflow">
                 <template v-if="listInPanel.length > 0">
                     <div class="group-area">
@@ -159,6 +165,19 @@
                 </div>
             </div>
         </div>
+        <!-- 第三方插件 -->
+        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
+            <ul>
+                <li
+                    class="plugin-item"
+                    v-for="(plugin, index) in atomTypeList.pluginList"
+                    :key="index"
+                    @click="onThirdPratyClick(plugin)">
+                    <img class="plugin-logo" :src="plugin.src" alt="">
+                    <p class="plugin-title">企业微信机器人推送</p>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -168,6 +187,7 @@
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
+    import { mapActions } from 'vuex'
 
     export default {
         name: 'SelectorPanel',
@@ -185,6 +205,7 @@
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             return {
+                curPluginTab: 'build_in_plugin',
                 listData,
                 listInPanel: listData,
                 darkColorList: DARK_COLOR_LIST,
@@ -221,6 +242,9 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions('atomForm/', [
+                'loadPluginServiceMeta'
+            ]),
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
                 let activeGroup = ''
@@ -353,6 +377,22 @@
                     this.onApplyPermission(tpl)
                 }
             },
+            // 选中第三方插件
+            async onThirdPratyClick (plugin) {
+                const resp = await this.loadPluginServiceMeta({ plugin_code: plugin })
+                const { code, versions, description } = resp.data
+                const versionList = versions.map(version => {
+                    return { version }
+                })
+                const group = {
+                    name: code,
+                    code: 'remote_plugin',
+                    list: versionList,
+                    desc: description,
+                    id: 'remote_plugin'
+                }
+                this.$emit('select', group, true)
+            },
             /**
              * 插件/子流程选中状态
              */
@@ -404,7 +444,7 @@
     width: 300px;
 }
 .list-wrapper {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 102px);
 }
 .group-area {
     float: left;
@@ -521,7 +561,7 @@
         }
     }
     .tpl-list {
-        max-height: calc(100vh - 160px);
+        max-height: calc(100vh - 204px);
         overflow: auto;
         @include scrollbar;
     }
@@ -580,6 +620,33 @@
         }
     }
 }
+.third-praty-list {
+    height: calc(100vh - 102px);
+    overflow: auto;
+    @include scrollbar;
+    .plugin-item {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 59px 0 38px;
+        .plugin-logo {
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .plugin-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #63656e;
+            margin-bottom: 4px;
+        }
+        &:hover {
+            background: hsl(218, 100%, 94%);
+        }
+    }
+}
 </style>
 <style lang="scss">
     .tpl-label-popover {
@@ -612,6 +679,14 @@
                 text-overflow: ellipsis;
                 cursor: pointer;
             }
+        }
+    }
+    .selector-panel .bk-tab{
+        .bk-tab-header {
+            padding-left: 17px;
+        }
+        .bk-tab-section {
+            display: none;
         }
     }
 </style>
