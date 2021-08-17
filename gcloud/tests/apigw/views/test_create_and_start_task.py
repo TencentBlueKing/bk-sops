@@ -20,7 +20,7 @@ from gcloud.tests.mock import *  #noqa
 from gcloud.tests.mock_settings import *  #noqa
 from gcloud.taskflow3.models import TaskFlowInstance
 
-from .utils import APITest
+from .utils import APITest, TEST_USERNAME
 
 TEST_APP_CODE = "app_code"
 TEST_TEMPLATE_ID = "1"
@@ -32,7 +32,7 @@ TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
 TEST_PIPELINE_TREE = {"constants":{"key1":{"value":""}}}
-
+TEST_USERNAME = "username"
 
 class CreateAndStartTaskAPITest(APITest):
     def url(self):
@@ -43,6 +43,7 @@ class CreateAndStartTaskAPITest(APITest):
         TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID))
     )
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(ENGINE_CONFIG_GET_VER, MagicMock(return_value=1))
     def test_create_and_start_task__success(self):
 
         pt = MockPipelineTemplate(id=1, name="pt")
@@ -73,11 +74,12 @@ class CreateAndStartTaskAPITest(APITest):
                         }
                     ),
                     content_type="application/json",
-                    HTTP_BK_APP_CODE=TEST_APP_CODE
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl,{"name":"name","creator":"","description":""},{},"exclude_task_nodes_id",[]
+                    tmpl,{"name":"name","creator":"","description":""},{},"exclude_task_nodes_id"
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -98,9 +100,6 @@ class CreateAndStartTaskAPITest(APITest):
                 self.assertTrue(data["result"],msg=data)
                 self.assertEqual(data["data"],assert_data)
 
-                TaskFlowInstance.objects.create_pipeline_instances_exclude_task_nodes.reset_mock()
-                TaskFlowInstance.objects.create.reset_mock()
-
     @mock.patch(
         PROJECT_GET,
         MagicMock(
@@ -119,6 +118,7 @@ class CreateAndStartTaskAPITest(APITest):
             data=json.dumps({"name":"name","constants":{},"exclude_task_node_id":"exclude_task_node_id"}),
             content_type="application/json",
             HTTP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME
         )
 
         data = json.loads(response.content)
@@ -142,7 +142,8 @@ class CreateAndStartTaskAPITest(APITest):
             path=self.url().format(template_id=TEST_TEMPLATE_ID,project_id=TEST_PROJECT_ID),
             data=json.dumps({"name":"name","constants":{},"exclude_task_node_id":"exclude_task_node_id"}),
             content_type="application/json",
-            HTPP_BK_APP_CODE=TEST_APP_CODE
+            HTPP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME
         )
 
         data = json.loads(response.content)
@@ -167,7 +168,8 @@ class CreateAndStartTaskAPITest(APITest):
             path=self.url().format(template_id=TEST_TEMPLATE_ID,project_id=TEST_PROJECT_ID),
             data=json.dumps({"name":"name","constants":{},"exclude_task_node_id":"exclude_task_node_id"}),
             content_type="application/json",
-            HTTP_BK_APP_CODE=TEST_APP_CODE
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME
         )
         data = json.loads(response.content)
 

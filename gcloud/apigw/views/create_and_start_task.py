@@ -30,6 +30,7 @@ from gcloud.taskflow3.celery.tasks import prepare_and_start_task
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
@@ -51,6 +52,7 @@ from gcloud.contrib.operate_record.constants import RecordType, OperateType, Ope
 def create_and_start_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project
+    template_source = params.get("template_source", BUSINESS)
 
     logger.info(
         "[API] create_and_start_task, template_id: {template_id}, project_id: {project_id}, params: {params}.".format(
@@ -59,15 +61,29 @@ def create_and_start_task(request, template_id, project_id):
     )
 
     # 根据template_id获取template
-    try:
-        tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
-    except CommonTemplate.DoesNotExist:
-        result = {
-            "result": False,
-            "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
-            "code": err_code.CONTENT_NOT_EXIST.code
-        }
-        return result
+    if template_source == BUSINESS:
+        try:
+            tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
+                id=template_id, project_id=project.id, is_deleted=False
+            )
+        except TaskTemplate.DoesNotExist:
+            result = {
+                "result": False,
+                "message": "template[id={template_id}] of project[project_id={project_id},biz_id={biz_id}] "
+                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+            return result
+    else:
+        try:
+            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
+        except CommonTemplate.DoesNotExist:
+            result = {
+                "result": False,
+                "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+                "code": err_code.CONTENT_NOT_EXIST.code
+            }
+            return result
     
     # 检查app_code是否存在
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
@@ -116,7 +132,7 @@ def create_and_start_task(request, template_id, project_id):
             flow_type=params["flow_type"],
             current_flow="execute_task" if params["flow_type"] == COMMON else "func_claim",
             engine_ver=EngineConfig.objects.get_engine_ver(
-                project=project.id, template_id=template_id, template_source=params["template_source"]
+                project_id=project.id, template_id=template_id, template_source=template_source
             ),
         )
     except Exception as e:
@@ -127,7 +143,7 @@ def create_and_start_task(request, template_id, project_id):
     ).resolve_task_queue_and_routing_key()
 
     prepare_and_start_task.apply_async(
-        kwargs=dict(task_id=task.id, project_id=project_id, username=request.user.username, queue=queue, routing_key=routing_key)
+        kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username), queue=queue, routing_key=routing_key
     )
 
     return {

@@ -117,3 +117,5 @@ PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS = "pipeline_web.wrapper.Pipeline
 PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE = "gcloud.core.permissions.project_resource.batch_register_instance"
 
 TASK_OPERATION_TIMES_CONFIG_GET = "gcloud.taskflow3.models.TaskOperationTimesConfig.objects.get"
+
+ENGINE_CONFIG_GET_VER = "gcloud.core.models.EngineConfig.objects.get_engine_ver"
