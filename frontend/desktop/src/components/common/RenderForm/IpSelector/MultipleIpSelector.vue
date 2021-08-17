@@ -65,7 +65,7 @@
                 ref="manual"
                 :selector-tabs="selectorTabs"
                 :manual-input="manualInput"
-                @change="onDynamicGroupChange">
+                @change="onManualInputChange">
             </manual-input>
         </div>
     </div>
@@ -139,6 +139,9 @@
             },
             onDynamicGroupChange (val) {
                 this.$emit('change', 'group', val)
+            },
+            onManualInputChange (val) {
+                this.$emit('change', 'manual_input', val)
             },
             validate () {
                 let isValidate = true

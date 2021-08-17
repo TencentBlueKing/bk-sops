@@ -113,7 +113,7 @@
                 this.$emit('change', 'group', val)
             },
             onManualInputChange (val) {
-                this.$emit('change', 'manual', val)
+                this.$emit('change', 'manual_input', val)
             },
             validate () {
                 return this.$refs[this.activeSelector].validate()

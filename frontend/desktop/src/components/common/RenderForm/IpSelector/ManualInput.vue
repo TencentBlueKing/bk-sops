@@ -15,7 +15,7 @@
         <bk-input
             :placeholder="typeDes"
             :type="'textarea'"
-            :rows="2"
+            :disabled="!selectorId"
             v-model="inputValue"
             @change="onManualInputChange">
         </bk-input>
@@ -66,9 +66,9 @@
         },
         mounted () {
             const keys = Object.keys(this.manualInput)
-            if (keys) {
-                this.selectorId = keys[0]
-                this.inputValue = this.manualInput[this.selectorId]
+            if (keys.length) {
+                this.selectorId = this.manualInput.type
+                this.inputValue = this.manualInput.value
             } else {
                 this.selectorId = this.selectorTabs[0].id
             }
@@ -76,7 +76,8 @@
         methods: {
             onManualInputChange () {
                 const parmas = {
-                    [`${this.selectorId}`]: this.inputValue
+                    type: this.selectorId,
+                    value: this.inputValue
                 }
                 this.$emit('change', parmas)
             }

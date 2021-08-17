@@ -40,7 +40,7 @@
                 :static-ips="ip"
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
-                :manual-input="manual"
+                :manual-input="manual_input"
                 @change="updateValue">
             </single-ip-selector>
         </div>
@@ -112,7 +112,7 @@
                         ip: [],
                         topo: [],
                         group: [],
-                        manual: {},
+                        manual_input: {},
                         filters: [],
                         excludes: [],
                         with_cloud_id: false,
@@ -189,14 +189,14 @@
             }
         },
         data () {
-            const { selectors, ip, topo, group, filters, excludes, with_cloud_id, separator, manual } = this.value
+            const { selectors, ip, topo, group, filters, excludes, with_cloud_id, separator, manual_input } = this.value
             const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
                 ip: ip.slice(0),
                 topo: topo.slice(0),
                 group: (group || []).slice(0), // 后增加字段，兼容旧数据
-                manual: manual ? tools.deepClone(manual) : {},
+                manual_input: manual_input ? tools.deepClone(manual_input) : {},
                 with_cloud_id,
                 conditions,
                 separator,
@@ -217,12 +217,12 @@
         watch: {
             value: {
                 handler (val) {
-                    const { selectors, ip, topo, group, filters, excludes, manual } = this.value
+                    const { selectors, ip, topo, group, filters, excludes, manual_input } = this.value
                     this.selectors = selectors.slice(0)
                     this.ip = ip.slice(0)
                     this.topo = topo.slice(0)
                     this.group = (group || []).slice(0)
-                    this.manual = manual ? tools.deepClone(manual) : {}
+                    this.manual_input = manual_input ? tools.deepClone(manual_input) : {}
                     this.filters = filters.slice(0)
                     this.excludes = excludes.slice(0)
                     this.conditions = this.getConditions(filters, excludes)
