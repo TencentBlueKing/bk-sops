@@ -1,4 +1,7 @@
 const en = {
+    '请输入IP，多个以逗号或者换行符隔开，在cmdb上唯一': 'Please enter IP, multiple separated by comma or newline, unique on cmdb',
+    '请输入业务拓扑（形如：业务A>集群B>模块C），多个逗号或换行符隔开，在cmdb上唯一': 'Please enter the business topology (form: business A>cluster B>module C), separated by multiple commas or newlines, unique on cmdb',
+    '请输入动态分组名称，多个以逗号或换行符隔开，在cmdb上唯一': 'Please enter the dynamic group name, separated by commas or newlines, unique on cmdb',
     '方式引用': 'way to reference',
     '可以在模板中通过': 'It can be passed in the template',
     '项目级别的变量建立后': 'After the project-level variables are established',
