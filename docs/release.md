@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.47
+
+- feature
+  - 添加JOB获取任务日志插件
+
 ## 3.6.46
 
 - bugfix
