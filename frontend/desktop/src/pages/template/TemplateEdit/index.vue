@@ -995,7 +995,10 @@
             onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
-                const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                let atom = true
+                if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
+                    atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                }
                 if (!atom) {
                     this.$bkMessage({
                         message: '该节点配置的插件不存在，请检查流程数据',
