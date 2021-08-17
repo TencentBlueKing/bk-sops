@@ -24,7 +24,7 @@
                 :static-ips="ip"
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
-                :manual-input="manual"
+                :manual-input="manual_input"
                 @change="updateValue">
             </multiple-ip-selector>
             <single-ip-selector
