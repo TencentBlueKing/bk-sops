@@ -569,8 +569,8 @@
                 this.$emit('onSaveExecuteSchemeClick')
             },
             // 更新执行方案列表
-            updateTaskSchemeList (val, isChangr) {
-                this.$emit('updateTaskSchemeList', val, isChangr)
+            updateTaskSchemeList (val, isChange) {
+                this.$emit('updateTaskSchemeList', val, isChange)
             },
             // 导出当前方案
             onExportScheme () {
