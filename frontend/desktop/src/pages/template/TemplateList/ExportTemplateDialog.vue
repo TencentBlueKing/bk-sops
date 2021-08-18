@@ -164,11 +164,12 @@
             }
         },
         created () {
-            this.getTemplateData()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             // 设置分类列表
             this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
             this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
+
+            this.getTemplateData()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('templateList/', [
