@@ -16,6 +16,7 @@ modules:
     default:
         is_default: True
         language: Python
+        source_dir: ./src
         services:               
             - name: mysql
             - name: rabbitmq
@@ -36,6 +37,7 @@ modules:
     callback-server:
         is_default: False
         language: Python
+        source_dir: ./src
         services:
             - name: mysql
               shared_from: default
@@ -51,6 +53,7 @@ modules:
     pipeline-worker:
         is_default: False
         language: Python
+        source_dir: ./src
         services:
             - name: mysql
               shared_from: default
@@ -126,6 +129,7 @@ modules:
     api-server:
         is_default: False
         language: Python
+        source_dir: ./src
         services:
             - name: mysql
               shared_from: default
