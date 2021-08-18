@@ -1,4 +1,12 @@
 const en = {
+    '运维工具': 'Maintenance tools',
+    '监控告警': 'Monitoring alarm',
+    '配置管理': 'Configuration management',
+    '开发工具': 'Development tools',
+    '企业IT': 'Enterprise IT',
+    '办公应用': 'Office applications',
+    '其它': 'Other',
+    '默认分类': 'Default category',
     '不允许添加没有节点的执行方案': 'It is not allowed to add execution plans without nodes',
     '请先保存方案再执行其他操作': 'Please save the plan before performing other operations',
     '新增': 'Add',
