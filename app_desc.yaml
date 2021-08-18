@@ -3,7 +3,7 @@ app_version: "1.0"
 app:
     region: default
     bk_app_code: bk_sops_test
-    bk_app_name: 标准运维
+    bk_app_name: 标准运维测试
     market:
         category: 运维工具
         introduction: 标准运维是通过一套成熟稳定的任务调度引擎，把在多系统间的工作整合到一个流程，助力运维实现跨系统调度自动化的SaaS应用。
