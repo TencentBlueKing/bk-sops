@@ -150,7 +150,8 @@
                         btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
-                ]
+                ],
+                taskCategories: []
             }
         },
         computed: {
