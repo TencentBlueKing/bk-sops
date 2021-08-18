@@ -33,7 +33,7 @@
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
-                                :id="item.value"
+                                :id="item.id"
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
@@ -103,10 +103,11 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapState, mapActions } from 'vuex'
+    import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import BaseCard from '@/components/common/base/BaseCard.vue'
+    import { TASK_CATEGORIES } from '@/constants/index.js'
     export default {
         name: 'ExportTemplateDialog',
         components: {
@@ -149,18 +150,11 @@
                         btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
-                ]
+                ],
+                taskCategories: []
             }
         },
         computed: {
-            ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo
-            }),
-            taskCategories () {
-                const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
-                list.unshift({ value: 'all', name: i18n.t('全部分类') })
-                return list
-            },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
             }
@@ -171,24 +165,17 @@
             }
         },
         created () {
-            this.getData()
+            // 设置分类列表
+            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
+            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
+
+            this.getTemplateData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
-            ...mapActions([
-                'getCategorys'
-            ]),
-            async getData () {
-                if (this.projectBaseInfo.task_categories && this.projectBaseInfo.task_categories.length === 0) {
-                    await this.getCategorys()
-                    this.getTemplateData()
-                } else {
-                    this.getTemplateData()
-                }
-            },
             async getTemplateData () {
                 this.exportPending = true
                 this.isCheckedDisabled = true
@@ -214,10 +201,10 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategories.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.id)
                     atomGrouped.push({
                         name: item.name,
-                        value: item.value,
+                        value: item.id,
                         children: []
                     })
                 })

@@ -411,7 +411,6 @@
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'v1_import_flag': state => state.v1_import_flag,
                 'permissionMeta': state => state.permissionMeta
             }),
