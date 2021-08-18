@@ -335,7 +335,7 @@
                         message: i18n.t('新增方案成功'),
                         theme: 'success'
                     })
-                    this.$emit('updateTaskSchemeList', this.schemaList)
+                    this.$emit('updateTaskSchemeList', this.schemaList, true)
                     this.schemaName = ''
                     this.nameEditing = false
                 })
@@ -371,7 +371,7 @@
                     message: i18n.t('方案删除成功'),
                     theme: 'success'
                 })
-                this.$emit('updateTaskSchemeList', this.schemaList)
+                this.$emit('updateTaskSchemeList', this.schemaList, true)
             },
             /**
              * 校验权限，若无权限弹出权限申请弹窗
