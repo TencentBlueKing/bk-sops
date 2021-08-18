@@ -12,8 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 import functools
 
+from django.http import JsonResponse
 from rest_framework.request import Request
 
+from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 
 
@@ -21,7 +23,10 @@ def inject_plugin_client(func):
     @functools.wraps(func)
     def wrapper(request: Request):
         plugin_code = request.query_params.get("plugin_code")
-        plugin_client = PluginServiceApiClient(plugin_code)
+        try:
+            plugin_client = PluginServiceApiClient(plugin_code)
+        except PluginServiceException as e:
+            return JsonResponse({"message": e, "result": False, "data": None})
         setattr(request, "plugin_client", plugin_client)
         return func(request)
 

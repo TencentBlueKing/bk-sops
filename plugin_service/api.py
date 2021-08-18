@@ -25,14 +25,20 @@ from plugin_service.serializers import (
     LogQuerySerializer,
     PluginVersionQuerySerializer,
     PluginCodeQuerySerializer,
+    PluginListQuerySerializer,
 )
 
 
-@swagger_auto_schema(method="GET", responses={200: PluginListResponseSerializer})
+@swagger_auto_schema(
+    method="GET", query_serializer=PluginListQuerySerializer, responses={200: PluginListResponseSerializer}
+)
 @api_view(["GET"])
 def get_plugin_list(request: Request):
     """ 获取插件服务列表信息 """
-    result = PluginServiceApiClient.get_plugin_list()
+    search_term = request.query_params.get("search_term")
+    limit = request.query_params.get("limit") or 100
+    offset = request.query_params.get("offset") or 0
+    result = PluginServiceApiClient.get_plugin_list(search_term=search_term, limit=limit, offset=offset)
     return JsonResponse(result)
 
 

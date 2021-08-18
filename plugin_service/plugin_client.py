@@ -19,6 +19,7 @@ import requests
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
+from .exceptions import PluginServiceNotDeploy
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -50,13 +51,37 @@ class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
         self.plugin_code = plugin_code
         if not plugin_host:
-            # TODO: PaaS根据plugin_code获取host
-            self.plugin_host = env.TEST_PLUGIN_HOST.rstrip("/")
+            result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
+
+            info = result["deployed_statuses"][env.APIGW_ENVIRONMENT]
+            if not info["deployed"]:
+                raise PluginServiceNotDeploy(f"Plugin Service {self.plugin_code} does not deployed.")
+            self.plugin_host = os.path.join(info["url"], "bk_plugin/")
+
+    @staticmethod
+    def get_paas_plugin_info(plugin_code=None, environment=None, limit=100, offset=0, search_term=None):
+        """可支持请求获取插件服务列表或插件详情"""
+        url = os.path.join(
+            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
+            environment or env.APIGW_ENVIRONMENT,
+            "system/bk_plugins",
+            plugin_code if plugin_code else "",
+        )
+        params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
+        if not plugin_code:
+            # list接口相关参数
+            params.update({"limit": limit, "offset": offset})
+            if search_term:
+                params.update({"search_term": search_term})
+        return requests.get(url, params=params).json()
 
     @response_parser
     def invoke(self, version, data):
         url = os.path.join(
-            f"http://{self.plugin_code}.{env.APIGW_URL_SUFFIX}", env.APIGW_ENVIRONMENT, "invoke", version
+            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_code}.{env.APIGW_URL_SUFFIX}",
+            env.APIGW_ENVIRONMENT,
+            "invoke",
+            version,
         )
         headers = {
             "X-Bkapi-Authorization": json.dumps(
@@ -84,6 +109,19 @@ class PluginServiceApiClient:
         return requests.get(url).json()
 
     @staticmethod
-    def get_plugin_list():
-        # TODO: delete mock data
-        return {"result": True, "message": None, "data": ["bk-plugin-demo"]}
+    def get_plugin_list(search_term=None, limit=100, offset=0):
+        result = PluginServiceApiClient.get_paas_plugin_info(
+            search_term=search_term, environment="prod", limit=limit, offset=offset
+        )
+        plugins = [
+            {
+                "code": plugin["code"],
+                "name": plugin["name"],
+                "logo_url": plugin["logo_url"],
+                "creator": plugin["creator"],
+            }
+            for plugin in result["results"]
+            if plugin["deploy_status"]
+        ]
+
+        return {"result": True, "message": None, "data": plugins}

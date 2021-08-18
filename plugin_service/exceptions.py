@@ -11,13 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
-from django.conf import settings
+
+class PluginServiceException(Exception):
+    pass
 
 
-PLUGIN_SERVICE_APIGW_APP_CODE = os.getenv("BKAPP_PLUGIN_SERVICE_APIGW_APP_CODE", settings.APP_CODE)
-PLUGIN_SERVICE_APIGW_APP_SECRET = os.getenv("BKAPP_PLUGIN_SERVICE_APIGW_APP_SECRET", settings.APP_TOKEN)
-APIGW_ENVIRONMENT = os.getenv("BKAPP_APIGW_ENVIRONMENT", settings.ENVIRONMENT)
-APIGW_NETWORK_PROTOCAL = os.getenv("BKAPP_APIGW_NETWORK_PROTOCAL", "http")
-APIGW_URL_SUFFIX = os.getenv("BKAPP_APIGW_URL_SUFFIX")
-PAASV3_APIGW_API_TOKEN = os.getenv("BKAPP_PAASV3_APIGW_API_TOKEN")
+class PluginServiceNotDeploy(PluginServiceException):
+    pass
