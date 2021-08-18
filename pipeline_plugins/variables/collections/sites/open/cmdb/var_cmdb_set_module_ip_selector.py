@@ -169,6 +169,9 @@ def get_module_id_list(
     logger.info("[get_module_id_list] service_template_list: %s" % service_template_list)
     logger.info("[get_module_id_list] filter_set_names: %s" % filter_set_names)
     logger.info("[get_module_id_list] filter_service_template_names: %s" % filter_service_template_names)
+    if not service_template_list:
+        logger.info("[get_module_id_list] service_template_list is empty, return empty module list early")
+        return []
 
     # 排除空闲机池set id
     if not filter_set_names:
