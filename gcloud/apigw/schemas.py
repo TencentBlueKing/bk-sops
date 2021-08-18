@@ -21,6 +21,7 @@ APIGW_CREATE_TASK_PARAMS = {
         "flow_type": {"type": "string", "enum": list(TASK_FLOW.keys())},
         "constants": {"type": "object"},
         "exclude_task_nodes_id": {"type": "array"},
+        "execute_task_nodes_id": {"type": "array"},
     },
 }
 
