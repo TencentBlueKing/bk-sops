@@ -290,7 +290,7 @@
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
-            canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false)
+            canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false) // 单独处理firefox
             canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
             // 监听页面视图变化
             window.addEventListener('resize', this.onWindowResize, false)
@@ -1265,19 +1265,20 @@
             },
             // 画布滚轮缩放
             onMouseWheel (e) {
-                if (!e.ctrlKey) {
-                    return false
-                }
                 e.preventDefault()
-                const ev = e || window.event
-                let down = true
-                down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
-                if (down) {
-                    this.onZoomOut(this.zoomOriginPosition)
+                if (e.ctrlKey) {
+                    if (e.deltaY > 0) { // 放大
+                        this.onZoomOut(this.zoomOriginPosition)
+                    } else {
+                        this.onZoomIn(this.zoomOriginPosition)
+                    }
                 } else {
-                    this.onZoomIn(this.zoomOriginPosition)
+                    const $canvas = this.$refs.jsFlow.$el.querySelector('#canvas-flow')
+                    const { left: leftStr, top: topStr } = window.getComputedStyle($canvas)
+                    const left = Number(leftStr.replace('px', ''))
+                    const top = Number(topStr.replace('px', ''))
+                    this.setCanvasPosition(left - e.deltaX / 2, top - e.deltaY / 2)
                 }
-                return false
             },
             // 记录缩放点
             onCanvasMouseMove (e) {
