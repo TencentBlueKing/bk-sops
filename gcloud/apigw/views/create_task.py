@@ -41,6 +41,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from packages.bkoauth.decorators import apigw_required
+from .utils import get_exclude_nodes_by_execute_nodes
 
 
 @login_exempt
@@ -100,6 +101,7 @@ def create_task(request, template_id, project_id):
         params.setdefault("constants", {})
         params.setdefault("exclude_task_nodes_id", [])
         params.setdefault("simplify_vars", [])
+        params.setdefault("execute_task_nodes_id", [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_task raise prams error: %s" % e)
@@ -139,12 +141,17 @@ def create_task(request, template_id, project_id):
             logger.exception(message)
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
     else:
+        # 如果请求参数中含有非空的execute_task_nodes_id(要执行的节点)，就将其转换为exclude_task_nodes_id(要排除的节点)
+        if not params["execute_task_nodes_id"]:
+            exclude_task_nodes_id = params["exclude_task_nodes_id"]
+        else:
+            exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 tmpl,
                 pipeline_instance_kwargs,
                 params["constants"],
-                params["exclude_task_nodes_id"],
+                exclude_task_nodes_id,
                 params["simplify_vars"],
             )
         except Exception as e:
