@@ -36,8 +36,8 @@ from plugin_service.serializers import (
 def get_plugin_list(request: Request):
     """ 获取插件服务列表信息 """
     search_term = request.query_params.get("search_term")
-    limit = request.query_params.get("limit") or 100
-    offset = request.query_params.get("offset") or 0
+    limit = request.query_params.get("limit")
+    offset = request.query_params.get("offset")
     result = PluginServiceApiClient.get_plugin_list(search_term=search_term, limit=limit, offset=offset)
     return JsonResponse(result)
 
