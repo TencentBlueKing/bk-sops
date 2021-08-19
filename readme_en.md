@@ -66,6 +66,14 @@ If you want to know more about the above features, please refer to the
 - [Release Notes](docs/release.md)
 
 
+## BlueKing Community
+- [BK-BCS](https://github.com/Tencent/bk-bcs): Blueking Container Service is a container-based basic service platform that provides management service to microservice businesses.
+- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas): Blueking Container Platform SaaS is based on two modes: original Kubernetes and self-developed Mesos, offering users highly scalable, flexible container service.
+- [BK-CI](https://github.com/Tencent/bk-ci): Blueking Continuous Integration platform is a free, open source CI service, which allows developers to automatically create - test - release workflow, and continuously, efficiently deliver their high-quality products.
+- [BK-CMDB](https://github.com/Tencent/bk-cmdb): BlueKing CMDB is an enterprise-level management platform designed for assets and applications.
+- [BK-PaaS](https://github.com/Tencent/bk-PaaS): Blueking PaaS is an open development platform that allows developers to efficiently create, develop, set up, and manage SaaS apps.
+- [BK-SOPS](https://github.com/Tencent/bk-sops): Blueking SOPS is a system that features workflow arrangement and execution using a graphical interface. It's a lightweight task scheduling and arrangement SaaS product of the Blueking system.
+
 ## Support
 - [Source (In Chinese)](https://github.com/Tencent/bk-sops/tree/master)
 - [Wiki (In Chinese)](https://github.com/Tencent/bk-sops/wiki) or ask for help

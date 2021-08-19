@@ -60,6 +60,13 @@
 ## Version plan
 - [版本日志](docs/release.md)
 
+## BlueKing Community
+- [BK-BCS](https://github.com/Tencent/bk-bcs)：蓝鲸容器管理平台是以容器技术为基础，为微服务业务提供编排管理的基础服务平台。
+- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：蓝鲸容器管理平台SaaS基于原生Kubernetes和Mesos自研的两种模式，提供给用户高度可扩展、灵活易用的容器产品服务。
+- [BK-CI](https://github.com/Tencent/bk-ci)：蓝鲸持续集成平台是一个免费并开源的CI服务，让开发者可以自动化构建-测试-发布工作流，持续、快速、高质量地交付产品。
+- [BK-CMDB](https://github.com/Tencent/bk-cmdb)：蓝鲸配置平台（蓝鲸CMDB）是一个面向资产及应用的企业级配置管理平台。
+- [BK-PaaS](https://github.com/Tencent/bk-PaaS)：蓝鲸PaaS平台是一个开放式的开发平台，让开发者可以方便快捷地创建、开发、部署和管理SaaS应用。
+- [BK-SOPS](https://github.com/Tencent/bk-sops)：蓝鲸标准运维（SOPS）是通过可视化的图形界面进行任务流程编排和执行的系统，是蓝鲸体系中一款轻量级的调度编排类SaaS产品。
 
 ## Support
 - [源码](https://github.com/Tencent/bk-sops/tree/master)
@@ -68,7 +75,6 @@
 - [蓝鲸论坛](https://bk.tencent.com/s-mart/community)
 - [蓝鲸 DevOps 在线视频教程](https://cloud.tencent.com/developer/edu/major-100008)
 - 联系我们，加入腾讯蓝鲸运维开发交流群：878501914
-
 
 ## Contributing
 如果你有好的意见或建议，欢迎给我们提 Issues 或 Pull Requests，为蓝鲸开源社区贡献力量。关于标准运维分支管理、Issue 以及 PR 规范，
