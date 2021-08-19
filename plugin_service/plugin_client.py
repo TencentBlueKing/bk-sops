@@ -157,5 +157,6 @@ class PluginServiceApiClient:
             for plugin in result["results"]
             if plugin["deploy_status"]
         ]
+        count = len(plugins)
 
-        return {"result": True, "message": None, "data": plugins}
+        return {"result": True, "message": None, "data": {"count": count, "plugins": plugins}}

@@ -30,11 +30,19 @@ class StandardResponseSerializer(serializers.Serializer):
     message = serializers.CharField(help_text="请求额外信息，result 为 false 时读取")
 
 
-class PluginListResponseSerializer(StandardResponseSerializer):
-    class PluginInfoSerializer(serializers.Serializer):
-        code = serializers.CharField(help_text="名称")
+class PluginInfoSerializer(serializers.Serializer):
+    code = serializers.CharField(help_text="插件Code")
+    name = serializers.CharField(help_text="插件名称")
+    logo_url = serializers.CharField(help_text="Logo地址")
 
-    data = PluginInfoSerializer(help_text="插件信息", many=True)
+
+class PluginListSerializer(serializers.Serializer):
+    plugins = PluginInfoSerializer(help_text="插件列表信息", many=True)
+    count = serializers.IntegerField(help_text="插件条数")
+
+
+class PluginListResponseSerializer(StandardResponseSerializer):
+    data = PluginListSerializer(help_text="插件信息", many=True)
 
 
 class PluginListQuerySerializer(serializers.Serializer):
