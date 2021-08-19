@@ -701,9 +701,9 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": "ne584c1e69f53d109f0d99eacc3bd670",
                         "template_source": "common",
-                        "execute_task_nodes_id": "execute_task_nodes_id",
+                        "execute_task_nodes_id": "node8c2af510c04b898e1f9ac8296296",
                     }
                 ),
                 content_type="application/json",

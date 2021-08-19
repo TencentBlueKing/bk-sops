@@ -54,9 +54,7 @@ def get_pipeline_node(data):
     node_id_set = set()
     for aid, act_data in list(data[PE.activities].items()):
         node_id_set.add(aid)
-        if act_data[PE.type] == PE.SubProcess:
-            get_pipeline_node(node_id_set, act_data["pipeline"])
-    return list(node_id_set)
+    return node_id_set
 
 
 def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
@@ -67,9 +65,9 @@ def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
     pipeline_data = template.pipeline_tree
     all_nodes = get_pipeline_node(pipeline_data)
     # 排除掉在all_nodes中不存在的节点
-    execute_nodes = [node for node in execute_nodes if node in all_nodes]
-    # 筛选出在all_nodes中，不在execute_nodes的节点
-    exclude_nodes = [node for node in all_nodes if node not in execute_nodes]
+    execute_nodes = set(execute_nodes).intersection(all_nodes)
+    # 差集计算，得出exclude_nodes
+    exclude_nodes = all_nodes - execute_nodes
     return exclude_nodes
 
 
