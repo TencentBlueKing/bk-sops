@@ -564,5 +564,5 @@ def logging_addition_settings(logging_dict, environment="prod"):
     for _, logging_handler in logging_dict["handlers"].items():
         logging_handler.update({"filters": ["trace_id_inject_filter"]})
     for formatter_name, logging_formatter in logging_dict["formatters"].items():
-        if formatter_name != "simple":
+        if formatter_name != "simple" and "format" in logging_formatter:
             logging_formatter.update({"format": logging_formatter["format"].strip() + " [trace_id]: %(trace_id)s\n"})
