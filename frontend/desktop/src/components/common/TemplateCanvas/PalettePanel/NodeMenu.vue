@@ -189,20 +189,23 @@
                 </template>
                 <no-data v-else></no-data>
             </div>
-            <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
+            <div
+                v-show="curPluginTab === 'third_praty_plugin'"
+                class="third-praty-list">
                 <ul>
-                    <li v-for="(item, index) in 8" :key="item">
+                    <li v-for="(item, index) in pluginList" :key="index">
                         <node-item
                             class="node-item"
-                            :key="index"
                             type="tasknode"
                             plugin-type="third-praty"
                             :node="{
-                                code: 'bk_notify',
-                                template_id: '872',
-                                name: '发送通知',
+                                code: 'remote_plugin',
+                                template_id: templateId,
+                                name: item.code,
                                 group_icon: '',
-                                group_name: '蓝鲸服务(BK)'
+                                group_name: '',
+                                nodeName: item.name,
+                                logo_url: item.logo_url
                             }">
                         </node-item>
                     </li>
@@ -248,14 +251,26 @@
                     return []
                 }
             },
+            pluginList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
             common: {
                 type: [String, Number],
                 default: ''
+            },
+            pluginLoading: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
             const selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
+            const templateId = this.$route.query.template_id
             return {
+                templateId: templateId,
                 curPluginTab: 'build_in_plugin',
                 isSearch: false,
                 isPinActived: false,
@@ -263,7 +278,8 @@
                 searchStr: '',
                 searchResult: [],
                 isShowGroup: true,
-                defaultTypeIcon: require('@/assets/images/atom-type-default.svg')
+                defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
+                scrollDom: null
             }
         },
         computed: {
@@ -312,6 +328,18 @@
                 this.searchStr = ''
                 this.searchResult = []
                 this.selectedGroup = val === 'subflow' ? [] : ''
+            },
+            showNodeMenu (val) {
+                if (val) {
+                    this.$nextTick(() => {
+                        this.scrollDom = document.querySelector('.third-praty-list')
+                        if (this.scrollDom) {
+                            this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                        }
+                    })
+                } else if (this.scrollDom) {
+                    this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
+                }
             }
         },
         created () {
@@ -342,11 +370,25 @@
             setSearchInputShow (isTab) {
                 this.selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
                 this.searchStr = ''
-                this.isSearch = isTab ? this.curPluginTab === 'third_praty_plugin' : true
+                const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                this.isSearch = isTab ? isThirdParty : true
+                if (isThirdParty) {
+                    this.$emit('updatePluginList', undefined, 'search')
+                }
+            },
+            handlePluginScroll () {
+                const el = this.scrollDom
+                if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                    this.$emit('updatePluginList', this.searchStr, 'scroll')
+                }
             },
             searchInputhandler () {
                 const result = []
                 this.searchResult = []
+                if (this.curPluginTab === 'third_praty_plugin') {
+                    this.$emit('updatePluginList', this.searchStr, 'search')
+                    return
+                }
                 if (this.activeNodeListType === 'tasknode') {
                     let listData = this.nodes
                     if (this.selectedGroup) {
@@ -498,6 +540,10 @@
         }
         .search-btn {
             margin-left: 11px;
+            .common-icon-search {
+                top: 0;
+                left: 0;
+            }
         }
         .select-btn {
             font-size: 12px;

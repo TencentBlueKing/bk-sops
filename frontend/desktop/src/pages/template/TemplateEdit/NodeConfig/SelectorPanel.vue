@@ -169,12 +169,12 @@
         <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
             <ul>
                 <li
-                    class="plugin-item"
+                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.nodeName }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
                     :key="index"
                     @click="onThirdPratyClick(plugin)">
-                    <img class="plugin-logo" :src="plugin.src" alt="">
-                    <p class="plugin-title">企业微信机器人推送</p>
+                    <img class="plugin-logo" :src="plugin.logo_url" alt="">
+                    <p class="plugin-title">{{ plugin.name }}</p>
                 </li>
             </ul>
         </div>
@@ -204,15 +204,17 @@
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
+            const curPluginTab = this.basicInfo.plugin === 'remote_plugin' ? 'third_praty_plugin' : 'build_in_plugin'
             return {
-                curPluginTab: 'build_in_plugin',
+                curPluginTab,
                 listData,
                 listInPanel: listData,
                 darkColorList: DARK_COLOR_LIST,
                 searchStr: '',
                 searchResult: [],
                 isLabelSelectorOpen: false,
-                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
+                scrollDom: null
             }
         },
         computed: {
@@ -240,6 +242,17 @@
         },
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
+        mounted () {
+            this.scrollDom = document.querySelector('.third-praty-list')
+            if (this.scrollDom) {
+                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+            }
+        },
+        beforeDestroy () {
+            if (this.scrollDom) {
+                this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
+            }
         },
         methods: {
             ...mapActions('atomForm/', [
@@ -379,19 +392,29 @@
             },
             // 选中第三方插件
             async onThirdPratyClick (plugin) {
-                const resp = await this.loadPluginServiceMeta({ plugin_code: plugin })
-                const { code, versions, description } = resp.data
-                const versionList = versions.map(version => {
-                    return { version }
-                })
-                const group = {
-                    name: code,
-                    code: 'remote_plugin',
-                    list: versionList,
-                    desc: description,
-                    id: 'remote_plugin'
+                try {
+                    const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
+                    const { code, versions, description } = resp.data
+                    const versionList = versions.map(version => {
+                        return { version }
+                    })
+                    const group = {
+                        name: code,
+                        code: 'remote_plugin',
+                        list: versionList,
+                        desc: description,
+                        id: 'remote_plugin'
+                    }
+                    this.$emit('select', group, true)
+                } catch (error) {
+                    console.warn(error)
                 }
-                this.$emit('select', group, true)
+            },
+            handlePluginScroll () {
+                const el = this.scrollDom
+                if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                    this.$emit('updatePluginList', undefined, 'scroll')
+                }
             },
             /**
              * 插件/子流程选中状态
@@ -642,7 +665,7 @@
             color: #63656e;
             margin-bottom: 4px;
         }
-        &:hover {
+        &.is-actived, &:hover {
             background: hsl(218, 100%, 94%);
         }
     }

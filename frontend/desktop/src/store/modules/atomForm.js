@@ -205,8 +205,8 @@ const atomForm = {
         /**
          * 加载第三方插件列表
          */
-        loadPluginServiceList ({ commit }) {
-            return axios.get('/plugin_service/list/').then(response => response.data)
+        loadPluginServiceList ({ commit }, params) {
+            return axios.get('/plugin_service/list/', { params }).then(response => response.data)
         },
         /**
          * 加载第三方插件详情
@@ -218,7 +218,7 @@ const atomForm = {
          * 加载第三方插件日志
          */
         loadPluginServiceLog ({ commit }, params) {
-            return axios.get('/plugin_service/log/', { params }).then(response => response.data)
+            return axios.get('/plugin_service/logs/', { params }).then(response => response.data)
         },
         /**
          * 加载第三方插件元信息

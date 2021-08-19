@@ -18,8 +18,8 @@
         :data-config-icon="node.group_icon"
         :data-type="type">
         <div v-if="pluginType" class="plugin-item">
-            <img class="plugin-logo" :src="node.src" alt="">
-            <p class="plugin-title" v-bk-overflow-tips>企业微信机器人推送</p>
+            <img class="plugin-logo" :src="node.logo_url" alt="">
+            <p class="plugin-title" v-bk-overflow-tips>{{ node.nodeName }}</p>
         </div>
         <div v-else class="name-wrapper">{{node.name}}</div>
     </div>

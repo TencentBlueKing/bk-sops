@@ -103,6 +103,7 @@
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
+                    @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
@@ -438,6 +439,11 @@
                     // 第三方插件
                     if (this.isThirdParty) {
                         const resp = await this.loadPluginServiceDetail({ plugin_code: plugin, plugin_version: version })
+                        if (!resp.result) return
+                        // 获取第三方插件公共输出参数
+                        if (!this.pluginOutput['remote_plugin']) {
+                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        }
                         // 输出参数
                         const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                         const respsOutputs = resp.data.outputs
@@ -460,7 +466,7 @@
                         this.outputs = this.atomGroup.list.find(item => item.version === version).output
                     }
                     const config = $.atoms[plugin]
-                    this.inputs = config
+                    this.inputs = config || []
                 } catch (e) {
                     console.log(e)
                 }
@@ -558,7 +564,7 @@
                     // 节点已选择标准插件
                     if (component.code) {
                         if (component.code === 'remote_plugin') {
-                            const atom = this.$parent.thirdPartyList.find(item => item.nodeName === name)
+                            const atom = this.$parent.thirdPartyList[this.nodeId]
                             basicInfoName = component.code
                             version = atom.version
                             desc = atom.desc
@@ -623,8 +629,8 @@
                 }
                 let atom
                 if (isThirdParty) {
-                    atom = this.$parent.thirdPartyList.find(item => item.nodeName === code)
-                    return atom.versionList
+                    atom = this.$parent.thirdPartyList[this.nodeId]
+                    return atom && atom.list
                 } else {
                     atom = this.atomList.find(item => item.code === code)
                     return atom.list.map(item => {
@@ -745,9 +751,6 @@
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
-                if (this.isThirdParty && !this.pluginOutput['remote_plugin']) {
-                    await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
-                }
                 await this.getPluginDetail()
                 this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
@@ -900,6 +903,9 @@
                     }
                 }
             },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
+            },
             // 查看子流程模板
             onViewSubflow (id) {
                 let pathData = {}
@@ -1029,10 +1035,21 @@
                             value: tools.deepClone(formVal)
                         }
                     })
+                    // 第三方插件需手动设置plugin_code和plugin_version
+                    if (this.isThirdParty) {
+                        data['plugin_code'] = {
+                            hook: false,
+                            value: nodeName
+                        }
+                        data['plugin_version'] = {
+                            hook: false,
+                            value: version
+                        }
+                    }
                     const component = {
-                        code: plugin,
+                        code: this.isThirdParty ? 'remote_plugin' : plugin,
                         data,
-                        version
+                        version: this.isThirdParty ? '1.0.0' : version
                     }
                     config = Object.assign({}, this.nodeConfig, {
                         component,
@@ -1179,16 +1196,13 @@
                         this.syncActivity()
                         // 将第三方插件信息传给父级存起来
                         if (this.isThirdParty) {
-                            const index = this.$parent.thirdPartyList.findIndex(plugin => plugin.nodeName === this.basicInfo.nodeName)
-                            if (index > -1) {
-                                this.$parent.thirdPartyList.splice(index, 1)
-                            }
-                            this.$parent.thirdPartyList.push({
+                            const params = {
                                 desc,
                                 nodeName,
                                 version,
-                                versionList: tools.deepClone(this.versionList)
-                            })
+                                list: tools.deepClone(this.versionList)
+                            }
+                            this.$parent.thirdPartyList[this.nodeId] = params
                         }
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, nodeData)
