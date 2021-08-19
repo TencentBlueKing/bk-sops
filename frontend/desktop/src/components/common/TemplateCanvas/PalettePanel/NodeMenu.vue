@@ -197,8 +197,8 @@
                         <node-item
                             class="node-item"
                             type="tasknode"
-                            plugin-type="third-praty"
                             :node="{
+                                plugin_type: 'third-praty',
                                 code: 'remote_plugin',
                                 template_id: templateId,
                                 name: item.code,

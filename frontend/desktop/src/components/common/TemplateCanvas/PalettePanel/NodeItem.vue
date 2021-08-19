@@ -17,7 +17,7 @@
         :data-config-group="node.group_name"
         :data-config-icon="node.group_icon"
         :data-type="type">
-        <div v-if="pluginType" class="plugin-item">
+        <div v-if="node.plugin_type" class="plugin-item">
             <img class="plugin-logo" :src="node.logo_url" alt="">
             <p class="plugin-title" v-bk-overflow-tips>{{ node.nodeName }}</p>
         </div>
@@ -30,10 +30,6 @@
         name: 'NodeItem',
         props: {
             type: {
-                type: String,
-                default: ''
-            },
-            pluginType: {
                 type: String,
                 default: ''
             },
@@ -51,7 +47,7 @@
         min-height: 70px;
         display: flex;
         align-items: center;
-        cursor: pointer;
+        cursor: move;
         padding: 0 7px 0 13px;
         background: #fff;
         border-bottom: 1px solid #e2e4ed;
