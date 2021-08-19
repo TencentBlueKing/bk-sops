@@ -16,7 +16,6 @@ import traceback
 
 from gcloud.tasktmpl3.domains import varschema
 from gcloud.utils.dates import format_datetime
-from pipeline.models import TemplateScheme
 
 logger = logging.getLogger("root")  # noqa
 
@@ -176,19 +175,3 @@ def paginate_list_data(request, queryset):
         message = "[API] pagination error: {}".format(e)
         logger.error(message + "\n traceback: {}".format(traceback.format_exc()))
         raise Exception(message)
-
-
-def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
-    """
-    @summary: 通过要选择执行的节点列表和任务模板获取要跳过执行的节点
-    @return: 要跳过执行的节点
-    """
-    schemes = TemplateScheme.objects.filter(template__id=template.pipeline_template.id)
-    all_nodes = []
-    for scheme in schemes:
-        all_nodes.extend(scheme.data)
-    # 排除掉在all_nodes中不存在的节点
-    execute_nodes = [node for node in execute_nodes if execute_nodes in all_nodes]
-    # 筛选出在all_nodes中，不在execute_nodes的节点
-    exclude_nodes = [node for node in all_nodes if node not in execute_nodes]
-    return exclude_nodes
