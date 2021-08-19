@@ -37,8 +37,7 @@ const taskList = {
                 name,
                 instance_id: task_id,
                 create_method: view_mode === 'appmaker' ? 'app_maker' : 'app',
-                create_info: app_id,
-                test: 1
+                create_info: app_id
             }
             return axios.post(`taskflow/api/clone/${projectId}/`, dataJson).then(response => response.data)
         }

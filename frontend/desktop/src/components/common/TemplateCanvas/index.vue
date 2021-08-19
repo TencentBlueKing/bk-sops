@@ -45,7 +45,7 @@
                     :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     @updateNodeMenuState="updateNodeMenuState">
                 </palette-panel>
             </template>
@@ -182,7 +182,7 @@
                 type: [String, Number],
                 default: ''
             },
-            subAtomListLoading: {
+            subflowListLoading: {
                 type: Boolean,
                 default: true
             },

@@ -411,7 +411,6 @@
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'v1_import_flag': state => state.v1_import_flag,
                 'permissionMeta': state => state.permissionMeta
             }),
@@ -701,7 +700,6 @@
                     }
                     await this.deleteTemplate(data)
                     this.theDeleteTemplateId = undefined
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -714,6 +712,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
+                    this.isDeleteDialogShow = false
                     this.pending.delete = false
                 }
             },

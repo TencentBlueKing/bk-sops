@@ -53,7 +53,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
@@ -94,7 +94,7 @@
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -251,7 +251,7 @@
                 isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
-                subAtomListLoading: false,
+                subflowListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
@@ -317,7 +317,6 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
@@ -536,7 +535,7 @@
              * 加载子流程列表
              */
             async getSubflowList () {
-                this.subAtomListLoading = true
+                this.subflowListLoading = true
                 try {
                     const data = {
                         project_id: this.project_id,
@@ -548,7 +547,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.subAtomListLoading = false
+                    this.subflowListLoading = false
                 }
             },
             /**
@@ -993,6 +992,18 @@
              * 打开节点配置面板
              */
             onShowNodeConfig (id) {
+                // 判断节点配置的插件是否存在
+                const nodeConfig = this.$store.state.template.activities[id]
+                if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
+                    const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    if (!atom) {
+                        this.$bkMessage({
+                            message: '该节点配置的插件不存在，请检查流程数据',
+                            theme: 'error'
+                        })
+                        return
+                    }
+                }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)

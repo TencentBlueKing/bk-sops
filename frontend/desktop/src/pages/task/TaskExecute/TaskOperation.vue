@@ -1284,7 +1284,7 @@
                         nameSuffix = 'running'
                 }
                 const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
-                const path = `${window.SITE_URL}/static/core/images/${picName}.png`
+                const path = `${window.SITE_URL}static/core/images/${picName}.png`
                 dom.setPageTabIcon(path)
             },
             // 下次画布组件更新后执行队列
