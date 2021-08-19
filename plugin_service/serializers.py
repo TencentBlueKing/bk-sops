@@ -47,8 +47,8 @@ class PluginListResponseSerializer(StandardResponseSerializer):
 
 class PluginListQuerySerializer(serializers.Serializer):
     search_term = serializers.CharField(help_text="插件名称搜索过滤字段", required=False)
-    limit = serializers.IntegerField(help_text="分页配置，接口一次最多100条", required=False)
-    offset = serializers.IntegerField(help_text="分页配置", required=False)
+    limit = serializers.IntegerField(help_text="分页配置，接口一次最多100条", required=False, default=100)
+    offset = serializers.IntegerField(help_text="分页配置", required=False, default=0)
 
 
 class LogResponseSerializer(StandardResponseSerializer):
