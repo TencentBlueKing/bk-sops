@@ -61,7 +61,6 @@ python-json-logger==0.1.9 # not-open
 gevent==1.2.2 # not-open
 gunicorn==19.6.0 # not-open
 httpsig==1.3.0 # not-open
-PyJWT==1.6.1 # not-open
 pip==9.0.1 # not-open
 celery-prometheus-exporter==1.7.0 # not-open
 requests_toolbelt==0.9.1
