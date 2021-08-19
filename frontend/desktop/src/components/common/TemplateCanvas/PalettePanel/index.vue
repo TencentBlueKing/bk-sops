@@ -65,6 +65,7 @@
             :loading="activeNodeListType === 'subflow' && subflowListLoading"
             :nodes="nodes"
             :common="common"
+            :plugin-list="atomTypeList.pluginList"
             :plugin-loading="pluginLoading"
             @updatePluginList="updatePluginList"
             @onCloseNodeMenu="onCloseNodeMenu"

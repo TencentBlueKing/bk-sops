@@ -97,7 +97,6 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :subflow-list-loading="subflowListLoading"
-                    :back-to-variable-panel="backToVariablePanel"
                     :plugin-loading="pagination.isLoading"
                     @updatePluginList="updatePluginList"
                     @globalVariableUpdate="globalVariableUpdate"
