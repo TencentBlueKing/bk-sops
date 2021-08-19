@@ -28,8 +28,7 @@
                 :tpl-actions="tplActions"
                 :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
-                :execute-scheme-saving="executeSchemeSaving"
-                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
+                :exclude-node="excludeNode"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -54,7 +53,7 @@
                     :name="name"
                     :type="type"
                     :common="common"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
@@ -78,6 +77,8 @@
                 :template_id="template_id"
                 :exclude-node="excludeNode"
                 :is-edit-process-page="isEditProcessPage"
+                :execute-scheme-saving="executeSchemeSaving"
+                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
                 @setExcludeNode="setExcludeNode">
@@ -93,8 +94,8 @@
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
-                    :subflow-list-loading="subAtomListLoading"
                     :back-to-variable-panel="backToVariablePanel"
+                    :subflow-list-loading="subflowListLoading"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -124,12 +125,20 @@
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
-            <batch-update-dialog
-                :show.sync="isBatchUpdateDialogShow"
-                :project-id="project_id"
-                :list="subflowShouldUpdated"
-                @globalVariableUpdate="globalVariableUpdate">
-            </batch-update-dialog>
+            <bk-dialog
+                class="batch-update-dialog"
+                v-model="isBatchUpdateDialogShow"
+                :close-icon="false"
+                :fullscreen="true"
+                :show-footer="false">
+                <batch-update-dialog
+                    v-if="isBatchUpdateDialogShow"
+                    :project-id="project_id"
+                    :list="subflowShouldUpdated"
+                    @globalVariableUpdate="globalVariableUpdate"
+                    @close="isBatchUpdateDialogShow = false">
+                </batch-update-dialog>
+            </bk-dialog>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -202,7 +211,6 @@
     import tools from '@/utils/tools.js'
     import bus from '@/utils/bus.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
@@ -246,7 +254,7 @@
                 isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
-                subAtomListLoading: false,
+                subflowListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
@@ -353,8 +361,8 @@
                             && location.type === 'subflow'
                         ) {
                             this.subprocess_info.details.some(subflow => {
-                                if (subflow.subprocess_node_id === location.id && subflow.expired) {
-                                    data.hasUpdated = true
+                                if (subflow.subprocess_node_id === location.id) {
+                                    data.hasUpdated = subflow.expired
                                     return true
                                 }
                             })
@@ -365,7 +373,7 @@
                 }
             },
             subflowShouldUpdated () {
-                if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
+                if (this.subprocess_info) {
                     return this.subprocess_info.details
                 }
                 return []
@@ -533,7 +541,7 @@
              * 加载子流程列表
              */
             async getSubflowList () {
-                this.subAtomListLoading = true
+                this.subflowListLoading = true
                 try {
                     const data = {
                         project_id: this.project_id,
@@ -545,7 +553,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.subAtomListLoading = false
+                    this.subflowListLoading = false
                 }
             },
             /**
@@ -723,7 +731,8 @@
                         await this.saveTaskSchemList({
                             project_id: this.project_id,
                             template_id: data.template_id,
-                            schemes
+                            schemes,
+                            isCommon: this.common
                         })
                     }
 
@@ -1020,6 +1029,18 @@
              * 打开节点配置面板
              */
             onShowNodeConfig (id) {
+                // 判断节点配置的插件是否存在
+                const nodeConfig = this.$store.state.template.activities[id]
+                if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
+                    const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    if (!atom) {
+                        this.$bkMessage({
+                            message: '该节点配置的插件不存在，请检查流程数据',
+                            theme: 'error'
+                        })
+                        return
+                    }
+                }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)
@@ -1036,7 +1057,11 @@
                 })
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
-                    errorHandler({ message: validateMessage.message }, this)
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'error',
+                        ellipsisLine: 0
+                    })
                     return
                 }
                 if (this.canvasDataLoading) {
@@ -1159,24 +1184,20 @@
                     const resp = await this.saveTaskSchemList({
                         project_id: this.project_id,
                         template_id: this.template_id,
-                        schemes
+                        schemes,
+                        isCommon: this.common
                     })
-                    this.isExectueSchemeDialog = false
-                    if (!resp.result) {
+                    if (resp.result) {
                         this.$bkMessage({
-                            message: resp.message,
-                            theme: 'error'
+                            message: i18n.t('方案保存成功'),
+                            theme: 'success'
                         })
-                        return
+                        this.isExectueSchemeDialog = false
+                        this.allowLeave = true
+                        this.isTemplateDataChanged = false
+                        this.isEditProcessPage = true
+                        this.isSchemaListChange = false
                     }
-                    this.$bkMessage({
-                        message: i18n.t('方案保存成功'),
-                        theme: 'success'
-                    })
-                    this.allowLeave = true
-                    this.isTemplateDataChanged = false
-                    this.isEditProcessPage = true
-                    this.isSchemaListChange = false
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -1190,11 +1211,11 @@
                     this.isEditProcessPage = true
                 }
             },
-            updateTaskSchemeList (val) {
+            updateTaskSchemeList (val, isChange) {
                 this.taskSchemeList = val
                 this.allowLeave = false
-                this.isTemplateDataChanged = true
-                this.isSchemaListChange = true
+                this.isTemplateDataChanged = isChange
+                this.isSchemaListChange = isChange
             },
             onClosePreview () {
                 this.$refs.taskSelectNode.togglePreviewMode(false)
@@ -1241,7 +1262,11 @@
                 // 校验节点数目
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
-                    errorHandler({ message: validateMessage.message }, this)
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'error',
+                        ellipsisLine: 2
+                    })
                     return
                 }
                 // 节点配置是否错误
@@ -1253,7 +1278,11 @@
                     if (this.typeOfNodeNameEmpty) {
                         message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
                     }
-                    errorHandler({ message }, this)
+                    this.$bkMessage({
+                        message,
+                        theme: 'error',
+                        ellipsisLine: 2
+                    })
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()

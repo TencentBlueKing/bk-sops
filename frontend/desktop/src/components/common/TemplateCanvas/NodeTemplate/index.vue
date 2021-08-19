@@ -180,7 +180,7 @@
 
     $blueDark: #738abe;
     $redDark: #ea3636;
-    $yellowDark: #ff9C01;
+    $yellowDark: #ff9c01;
     $greenDark: #2dcb56;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
@@ -192,9 +192,7 @@
 
     @mixin circleStatusStyle ($color, $shadow) {
         background-color: $color;
-        &:hover {
-            box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
-        }
+        box-shadow: 0 0 0 5px $color;
         .circle-node-text {
             color: $whiteColor;
         }
@@ -278,10 +276,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
+            width: 34px;
+            height: 34px;
             background: #96a1b9;
             border-radius: 50%;
+            box-shadow: 0 0 0 5px #96a1b9;
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
             }
@@ -352,7 +351,7 @@
         }
         .task-node {
             position: relative;
-            width: 150px;
+            width: 154px;
             height: 54px;
             text-align: center;
             background: #ffffff;

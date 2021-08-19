@@ -19,6 +19,7 @@ from django.core.files.storage import FileSystemStorage
 
 from .base import Manager
 from ..exceptions import InvalidOperationError
+from ..env import BKAPP_FILE_MGR_SOURCE_ACCOUNT
 
 
 class HostNFSManager(Manager):
@@ -51,7 +52,9 @@ class HostNFSManager(Manager):
 
         return {"type": "host_nfs", "tags": {"uid": uid, "shims": shims, "name": name}}
 
-    def push_files_to_ips(self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None):
+    def push_files_to_ips(
+        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+    ):
 
         if not all([tag["type"] == "host_nfs" for tag in file_tags]):
             raise InvalidOperationError("can not do files push operation on different types files")
@@ -66,7 +69,7 @@ class HostNFSManager(Manager):
                     )
                     for tag in file_tags
                 ],
-                "account": "root",
+                "account": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
                 "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
             }
         ]
@@ -78,6 +81,9 @@ class HostNFSManager(Manager):
             "file_source": file_source,
             "ip_list": ips,
         }
+
+        if timeout is not None:
+            job_kwargs["timeout"] = int(timeout)
 
         if callback_url:
             job_kwargs["bk_callback_url"] = callback_url

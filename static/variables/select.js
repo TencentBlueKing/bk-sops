@@ -117,7 +117,7 @@
                     type: "select",
                     attrs: {
                         name: gettext("下拉框"),
-                        hookable: false,
+                        hookable: true,
                         items: items,
                         multiple: multiple,
                         value: default_val,

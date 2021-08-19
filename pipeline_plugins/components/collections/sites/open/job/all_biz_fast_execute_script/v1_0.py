@@ -157,7 +157,7 @@ class AllBizJobFastExecuteScriptService(JobService):
             "bk_biz_id": biz_cc_id,
             "account": data.get_one_of_inputs("job_target_account"),
             "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.id),
+            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
 
         if script_param:
@@ -191,7 +191,7 @@ class AllBizJobFastExecuteScriptService(JobService):
 
 
 class AllBizJobFastExecuteScriptComponent(Component):
-    name = _("全业务_快速执行脚本")
+    name = _("全业务快速执行脚本")
     code = "all_biz_job_fast_execute_script"
     bound_service = AllBizJobFastExecuteScriptService
     version = "v1.0"

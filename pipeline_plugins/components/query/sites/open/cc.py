@@ -20,6 +20,7 @@ from django.conf.urls import url
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
+from api.utils.request import batch_request
 from pipeline_plugins.base.utils.inject import (
     supplier_account_inject,
     supplier_id_inject,
@@ -373,17 +374,10 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
 
-    set_template_result = client.cc.list_set_template(kwargs)
-
-    if not set_template_result["result"]:
-        message = handle_api_error("cc", "cc.list_set_template", kwargs, set_template_result)
-        logger.error(message)
-        result = {"result": False, "data": [], "message": message}
-        return JsonResponse(result)
-
-    template_list = []
-    for template_info in set_template_result["data"]["info"]:
-        template_list.append({"value": template_info.get("id"), "text": template_info.get("name")})
+    set_templates = batch_request(client.cc.list_set_template, kwargs)
+    template_list = [
+        {"value": set_template.get("id"), "text": set_template.get("name")} for set_template in set_templates
+    ]
     return JsonResponse({"result": True, "data": template_list})
 
 

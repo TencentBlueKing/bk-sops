@@ -232,12 +232,16 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return True, "", inputs, outputs
 
     def _format_outputs(
-        self, outputs: dict, component_code: str, pipeline_instance: PipelineInstance
+        self,
+        outputs: dict,
+        component_code: str,
+        pipeline_instance: PipelineInstance,
+        subprocess_stack: Optional[list] = None,
     ) -> (bool, str, list):
         outputs_table = []
         if component_code:
             version = (
-                self._get_node_info(self.node_id, pipeline_instance.execution_data)
+                self._get_node_info(self.node_id, pipeline_instance.execution_data, subprocess_stack)
                 .get("component", {})
                 .get("version", None)
             )
@@ -334,7 +338,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         # 根据传入的 component_code 对输出进行格式化
         success, err, outputs_table = self._format_outputs(
-            outputs=outputs, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs=outputs,
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=subprocess_stack,
         )
         if not success:
             return {
@@ -442,7 +449,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         # 根据传入的 component_code 对输出进行格式化
         success, err, outputs_table = self._format_outputs(
-            outputs=outputs, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs=outputs,
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=subprocess_stack,
         )
         if not success:
             return {
