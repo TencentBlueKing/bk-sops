@@ -811,34 +811,38 @@
                 this.setShortestLine(targetLines, eps, 'target')
             },
             setShortestLine (lines, eps, type) {
+                const instance = this.$refs.jsFlow.instance
                 lines.forEach(item => {
-                    let ep
+                    let cep, oep
                     let minDis = Infinity
                     const cEndpoint = type === 'source' ? item.endpoints[0] : item.endpoints[1]
                     const oEndpoint = type === 'source' ? item.endpoints[1] : item.endpoints[0]
-                    const { elementId, anchor } = oEndpoint
-                    const [tEpX, tEpY] = anchor.lastReturnValue
+                    const oEps = type === 'source' ? instance.selectEndpoints({ target: item.target.id }) : instance.selectEndpoints({ source: item.source.id })
                     eps.each(e => {
-                        const [eX, eY] = e.anchor.lastReturnValue
-                        const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
-                        if (distance < minDis) {
-                            minDis = distance
-                            ep = e
-                        }
+                        oEps.each(oe => {
+                            const [eX, eY] = e.anchor.lastReturnValue
+                            const [tEpX, tEpY] = oe.anchor.lastReturnValue
+                            const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
+                            if (distance < minDis) {
+                                minDis = distance
+                                cep = e
+                                oep = oe
+                            }
+                        })
                     })
-                    if (ep !== cEndpoint) {
+                    if (cep !== cEndpoint || oep !== oEndpoint) {
                         // 保留分支网关连线上的分支条件
                         let condition, sId, sType, tId, tType
                         if (type === 'source') {
-                            sId = ep.elementId
-                            sType = ep.anchor.type
-                            tId = elementId
-                            tType = anchor.type
+                            sId = cep.elementId
+                            sType = cep.anchor.type
+                            tId = oep.elementId
+                            tType = oep.anchor.type
                         } else {
-                            sId = elementId
-                            sType = anchor.type
-                            tId = ep.elementId
-                            tType = ep.anchor.type
+                            sId = oep.elementId
+                            sType = oep.anchor.type
+                            tId = cep.elementId
+                            tType = cep.anchor.type
                         }
                         const line = this.canvasData.lines.find(item => {
                             return item.source.id === sId && item.target.id === tId
