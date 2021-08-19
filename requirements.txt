@@ -52,6 +52,10 @@ redis-py-cluster==2.1.0
 django-timezone-field==4.0
 importlib-metadata==3.7.3
 
+# blueapps
+python-json-logger==0.1.7
+whitenoise==3.3.0
+
 # test
 factory_boy==2.11.1
 mock==2.0.0
