@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import json
 
 from django.views.decorators.http import require_GET
 
@@ -34,8 +33,22 @@ from packages.bkoauth.decorators import apigw_required
 def get_task_list(request, project_id):
     project = request.project
     keyword = request.GET.get("keyword")
-    is_started = json.loads(request.GET.get("is_started")) if request.GET.get("is_started") is not None else None
-    is_finished = json.loads(request.GET.get("is_finished")) if request.GET.get("is_finished") is not None else None
+    is_started = request.GET.get("is_started")
+    is_finished = request.GET.get("is_finished")
+
+    if is_started == "true":
+        is_started = True
+    elif is_started == "false":
+        is_started = False
+    else:
+        is_started = None
+
+    if is_finished == "true":
+        is_finished = True
+    elif is_finished == "false":
+        is_finished = False
+    else:
+        is_finished = None
 
     filter_kwargs = dict(is_deleted=False, project_id=project.id)
     if keyword:
