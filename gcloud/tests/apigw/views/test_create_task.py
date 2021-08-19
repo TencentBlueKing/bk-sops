@@ -75,7 +75,7 @@ class CreateTaskAPITest(APITest):
                         {
                             "name": "name",
                             "constants": {},
-                            "exclude_task_nodes_id": "exclude_task_nodes_id",
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                             "flow_type": "common",
                         }
                     ),
@@ -85,7 +85,11 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
+                    tmpl,
+                    {"name": "name", "creator": "", "description": ""},
+                    {},
+                    ["ne584c1e69f53d109f0d99eacc3bd670"],
+                    [],
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -128,7 +132,7 @@ class CreateTaskAPITest(APITest):
                         {
                             "name": "name",
                             "constants": {},
-                            "exclude_task_nodes_id": "exclude_task_nodes_id",
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                             "template_source": "common",
                             "flow_type": "common",
                         }
@@ -139,7 +143,11 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
+                    tmpl,
+                    {"name": "name", "creator": "", "description": ""},
+                    {},
+                    ["ne584c1e69f53d109f0d99eacc3bd670"],
+                    [],
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -251,7 +259,13 @@ class CreateTaskAPITest(APITest):
     def test_create_task__validate_fail(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+            data=json.dumps(
+                {
+                    "name": "name",
+                    "constants": {},
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                }
+            ),
             content_type="application/json",
             HTTP_BK_APP_CODE=TEST_APP_CODE,
             HTTP_BK_USERNAME=TEST_USERNAME,
@@ -268,7 +282,7 @@ class CreateTaskAPITest(APITest):
                 {
                     "name": "name",
                     "constants": {},
-                    "exclude_task_node_id": "exclude_task_node_id",
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     "template_source": "common",
                 }
             ),
@@ -300,7 +314,13 @@ class CreateTaskAPITest(APITest):
     def test_create_task__without_app_code(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"constants": {}, "name": "test", "exclude_task_node_id": "exclude_task_node_id"}),
+            data=json.dumps(
+                {
+                    "constants": {},
+                    "name": "test",
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                }
+            ),
             content_type="application/json",
             HTTP_BK_APP_CODE=TEST_APP_CODE,
             HTTP_BK_USERNAME=TEST_USERNAME,
@@ -317,7 +337,7 @@ class CreateTaskAPITest(APITest):
                 {
                     "constants": {},
                     "name": "test",
-                    "exclude_task_node_id": "exclude_task_node_id",
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     "template_source": "common",
                 }
             ),
@@ -355,7 +375,13 @@ class CreateTaskAPITest(APITest):
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-                data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "constants": {},
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                    }
+                ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
                 HTTP_BK_USERNAME=TEST_USERNAME,
@@ -380,7 +406,7 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "constants": {},
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
@@ -443,7 +469,7 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "constants": {},
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
@@ -486,7 +512,7 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     }
                 ),
                 content_type="application/json",
@@ -519,7 +545,7 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
@@ -570,7 +596,7 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     }
                 ),
                 content_type="application/json",
@@ -607,7 +633,7 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
@@ -663,8 +689,8 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
-                        "execute_task_nodes_id": "execute_task_nodes_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                        "execute_task_nodes_id": ["node8c2af510c04b898e1f9ac8296296"],
                     }
                 ),
                 content_type="application/json",
@@ -701,9 +727,9 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "ne584c1e69f53d109f0d99eacc3bd670",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
-                        "execute_task_nodes_id": "node8c2af510c04b898e1f9ac8296296",
+                        "execute_task_nodes_id": ["node8c2af510c04b898e1f9ac8296296"],
                     }
                 ),
                 content_type="application/json",

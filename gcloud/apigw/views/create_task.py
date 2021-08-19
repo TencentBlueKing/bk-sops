@@ -44,26 +44,15 @@ from gcloud.contrib.operate_record.constants import RecordType, OperateType, Ope
 from packages.bkoauth.decorators import apigw_required
 
 
-def get_pipeline_node(data):
-    """
-    递归获取当前实例中节点的 ID（不包括开始、结束节点、网关节点）
-    @param node_id_set: 节点 ID 集合
-    @param data: 流程数据
-    @return:
-    """
-    node_id_set = set()
-    for aid, act_data in list(data[PE.activities].items()):
-        node_id_set.add(aid)
-    return node_id_set
-
-
 def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
     """
     @summary: 通过要选择执行的节点列表和任务模板获取要跳过执行的节点
     @return: 要跳过执行的节点
     """
     pipeline_data = template.pipeline_tree
-    all_nodes = get_pipeline_node(pipeline_data)
+    all_nodes = set()
+    for aid, act_data in pipeline_data[PE.activities].items():
+        all_nodes.add(aid)
     # 排除掉在all_nodes中不存在的节点
     execute_nodes = set(execute_nodes).intersection(all_nodes)
     # 差集计算，得出exclude_nodes
