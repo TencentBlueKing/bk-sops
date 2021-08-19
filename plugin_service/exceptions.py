@@ -18,3 +18,7 @@ class PluginServiceException(Exception):
 
 class PluginServiceNotDeploy(PluginServiceException):
     pass
+
+
+class PluginServiceNetworkError(PluginServiceException):
+    pass

@@ -19,12 +19,14 @@ import requests
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
-from .exceptions import PluginServiceNotDeploy
+from .exceptions import PluginServiceNotDeploy, PluginServiceNetworkError
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
 
-def response_parser(func):
+def data_parser(func):
+    """用于解析标准格式接口返回数据"""
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -47,11 +49,34 @@ def response_parser(func):
     return wrapper
 
 
+def json_response_decoder(func):
+    """用于处理json格式接口返回"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        response = func(*args, **kwargs)
+        if response.status_code != 200:
+            message = (
+                f"{func.__name__} gets error status code [{response.status_code}], "
+                f"request with params: {args} and kwargs: {kwargs}. "
+            )
+            logger.error(message + f"response content: {response.content}")
+            return {"result": False, "data": None, "message": message}
+        return response.json()
+
+    return wrapper
+
+
 class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
         self.plugin_code = plugin_code
         if not plugin_host:
             result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
+
+            if result.get("result") is False:
+                raise PluginServiceNetworkError(
+                    f"Plugin Service {self.plugin_code} network error: {result.get('message')}"
+                )
 
             info = result["deployed_statuses"][env.APIGW_ENVIRONMENT]
             if not info["deployed"]:
@@ -59,6 +84,7 @@ class PluginServiceApiClient:
             self.plugin_host = os.path.join(info["url"], "bk_plugin/")
 
     @staticmethod
+    @json_response_decoder
     def get_paas_plugin_info(plugin_code=None, environment=None, limit=100, offset=0, search_term=None):
         """可支持请求获取插件服务列表或插件详情"""
         url = os.path.join(
@@ -73,9 +99,10 @@ class PluginServiceApiClient:
             params.update({"limit": limit, "offset": offset})
             if search_term:
                 params.update({"search_term": search_term})
-        return requests.get(url, params=params).json()
+        return requests.get(url, params=params)
 
-    @response_parser
+    @data_parser
+    @json_response_decoder
     def invoke(self, version, data):
         url = os.path.join(
             f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_code}.{env.APIGW_URL_SUFFIX}",
@@ -89,30 +116,37 @@ class PluginServiceApiClient:
             ),
             "Content-Type": "application/json",
         }
-        return requests.post(url, data=json.dumps(data), headers=headers).json()
+        return requests.post(url, data=json.dumps(data), headers=headers)
 
+    @json_response_decoder
     def get_logs(self, trace_id):
         url = os.path.join(self.plugin_host, "logs", trace_id)
-        return requests.get(url).json()
+        return requests.get(url)
 
+    @json_response_decoder
     def get_meta(self):
         url = os.path.join(self.plugin_host, "meta")
-        return requests.get(url).json()
+        return requests.get(url)
 
+    @json_response_decoder
     def get_detail(self, version):
         url = os.path.join(self.plugin_host, "detail", version)
-        return requests.get(url).json()
+        return requests.get(url)
 
-    @response_parser
+    @data_parser
+    @json_response_decoder
     def get_schedule(self, trace_id):
         url = os.path.join(self.plugin_host, "schedule", trace_id)
-        return requests.get(url).json()
+        return requests.get(url)
 
     @staticmethod
     def get_plugin_list(search_term=None, limit=100, offset=0):
         result = PluginServiceApiClient.get_paas_plugin_info(
             search_term=search_term, environment="prod", limit=limit, offset=offset
         )
+        if result.get("result") is False:
+            return result
+
         plugins = [
             {
                 "code": plugin["code"],
