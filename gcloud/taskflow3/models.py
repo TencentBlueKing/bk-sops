@@ -39,7 +39,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
-from gcloud.core.models import Project, EngineConfig
+from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.utils.dates import timestamp_to_datetime, format_datetime
@@ -929,6 +929,10 @@ class TaskFlowInstance(models.Model):
         return tree
 
     @property
+    def is_expired(self):
+        return self.pipeline_instance.is_expired
+
+    @property
     def name(self):
         return self.pipeline_instance.name
 
@@ -1288,11 +1292,21 @@ class TaskFlowInstance(models.Model):
         receivers = [self.executor]
 
         if self.project.from_cmdb:
-            group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            cc_group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            receivers.extend(cc_group_members)
 
-            receivers.extend(group_members)
+        members = list(
+            StaffGroupSet.objects.filter(
+                project_id=self.project.id,
+                is_deleted=False,
+                id__in=[group for group in receiver_group if isinstance(group, int)],
+            ).values_list("members", flat=True)
+        )
+        if members:
+            members = ",".join(members).split(",")
+            receivers.extend(members)
 
-        return receivers
+        return list(set(receivers))
 
     def get_notify_type(self):
         return json.loads(self.template.notify_type)

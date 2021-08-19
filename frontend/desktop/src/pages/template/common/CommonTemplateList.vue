@@ -438,6 +438,8 @@
         computed: {
             ...mapState({
                 'site_url': state => state.site_url,
+                'templateList': state => state.templateList.templateListData,
+                'commonTemplateData': state => state.templateList.commonTemplateData,
                 'v1_import_flag': state => state.v1_import_flag,
                 'permissionMeta': state => state.permissionMeta
             }),
@@ -565,8 +567,11 @@
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    selectedFields = fieldList
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.defaultSelected
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('commonTemplateList')
+                    }
                 } else {
                     selectedFields = this.defaultSelected
                 }
@@ -837,7 +842,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'commonProcessList', query })
+                this.$router.replace({ name: 'commonProcessList', query })
             },
             /**
              * 单个模板操作项点击时校验
@@ -868,7 +873,6 @@
                         this.selectedTpls.splice(index, 1)
                     }
                     this.theDeleteTemplateId = undefined
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -881,6 +885,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
+                    this.isDeleteDialogShow = false
                     this.pending.delete = false
                 }
             },

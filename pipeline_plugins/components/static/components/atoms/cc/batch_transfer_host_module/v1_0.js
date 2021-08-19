@@ -18,8 +18,8 @@
                 name: gettext("填参方式"),
                 hookable: false,
                 items: [
-                    {value: "manual", name: gettext("手动填写")},
-                    {value: "auto", name: gettext("单行自动扩展")},
+                    { value: "manual", name: gettext("手动填写") },
+                    { value: "auto", name: gettext("单行自动扩展") },
                 ],
                 default: "manual",
                 validation: [
@@ -64,8 +64,12 @@
                         attrs: {
                             name: gettext("IP"),
                             placeholder: gettext("必填项"),
-                            width: '120px',
-                            editable: true
+                            editable: true,
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {
@@ -73,13 +77,16 @@
                         type: "input",
                         attrs: {
                             name: gettext("目标模块"),
-                            placeholder: gettext("网络A>集群B>模块C"),
-                            width: '120px',
-                            editable: true
+                            placeholder: gettext("集群A>模块B"),
+                            editable: true,
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     }
                 ],
-
                 add_btn: true,
                 hookable: true,
                 validation: [

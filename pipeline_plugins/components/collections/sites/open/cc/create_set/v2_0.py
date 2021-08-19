@@ -57,7 +57,11 @@ def chunk_table_data(column):
     multiple_keys = []
     for key, value in column.items():
         if not isinstance(value, str):
-            return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
+            # 如果列类型为int，则跳过处理
+            if isinstance(value, int):
+                continue
+            else:
+                return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
         value = value.strip()
         if BREAK_LINE in value:
             multiple_keys.append(key)

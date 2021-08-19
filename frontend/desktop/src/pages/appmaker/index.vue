@@ -331,7 +331,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'appMakerList', query })
+                this.$router.replace({ name: 'appMakerList', query })
             }
         }
     }
