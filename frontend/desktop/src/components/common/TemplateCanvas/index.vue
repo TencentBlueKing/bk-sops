@@ -793,10 +793,10 @@
              */
             adjustLineEndpoint (id) {
                 const instance = this.$refs.jsFlow.instance
-                const sourceLines = instance.getConnections({ source: id })
+                // const sourceLines = instance.getConnections({ source: id })
                 const targetLines = instance.getConnections({ target: id })
                 const eps = instance.selectEndpoints({ source: id })
-                this.setShortestLine(sourceLines, eps, 'source')
+                // this.setShortestLine(sourceLines, eps, 'source')
                 this.setShortestLine(targetLines, eps, 'target')
             },
             setShortestLine (lines, eps, type) {
