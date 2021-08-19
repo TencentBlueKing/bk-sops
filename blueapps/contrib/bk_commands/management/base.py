@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 from __future__ import absolute_import, unicode_literals
 
 import os
@@ -47,7 +60,7 @@ def patch_thread_ident():
 
             def _validate_thread_sharing(self):
                 if not self.allow_thread_sharing and self._thread_ident != _get_ident():
-                    raise DatabaseError(DB_SHARED_THREAD % (self.alias, self._thread_ident, _get_ident()),)
+                    raise DatabaseError(DB_SHARED_THREAD.format(self.alias, self._thread_ident, _get_ident()))
 
             BaseDatabaseWrapper.__init__ = _init
             BaseDatabaseWrapper.validate_thread_sharing = _validate_thread_sharing
@@ -88,13 +101,21 @@ class CeleryCommand(BaseCommand):
     stdout, stderr = sys.stdout, sys.stderr
 
     def get_version(self):
-        def get_version(self):
+        def get_version(self):  # pylint: disable=unused-variable
             try:
-                version = "celery {c.__version__}\ndjango-celery-beat {d.__version__}".format(
-                    c=celery, d=django_celery_beat,
+                version = (
+                    "celery {c.__version__}\ndjango-celery-beat {d.__version__}".format(
+                        c=celery,
+                        d=django_celery_beat,
+                    )
                 )
             except ImportError:
-                version = "celery {c.__version__}\ndjango-celery {d.__version__}".format(c=celery, d=djcelery,)
+                version = (
+                    "celery {c.__version__}\ndjango-celery {d.__version__}".format(
+                        c=celery,
+                        d=djcelery,
+                    )
+                )
             return version
 
     def execute(self, *args, **options):

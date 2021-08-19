@@ -10,3 +10,18 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
+from django.core.management.base import BaseCommand
+from django.core.cache import caches
+
+
+from blueapps.account.conf import APIGW_CACHE_KEY
+
+cache = caches["login_db"]
+
+
+class Command(BaseCommand):
+
+    def handle(self, **options):
+        cache.delete(APIGW_CACHE_KEY)
+        print("[APIGW] clean public key cache SUCCESS!")

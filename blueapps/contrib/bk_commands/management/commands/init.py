@@ -12,18 +12,24 @@ specific language governing permissions and limitations under the License.
 """
 
 import os
-from collections import OrderedDict
-from importlib import import_module
 from os import path
+from importlib import import_module
+from collections import OrderedDict
 
-from django.core.management.base import CommandError
 from six.moves import input
+from django.core.management.base import CommandError
 
 import blueapps
 from blueapps.contrib.bk_commands.management.templates import BlueTemplateCommand
 
 platform_esb_minimum_version_map = OrderedDict(
-    [("ieod", "0.0.68"), ("clouds", "0.0.52"), ("qcloud", "0.1.14"), ("tencent", "0.0.24"), ("open", ""),]
+    [
+        ("ieod", "0.0.68"),
+        ("clouds", "0.0.52"),
+        ("qcloud", "0.1.14"),
+        ("tencent", "0.0.24"),
+        ("open", ""),
+    ]
 )
 
 platform_secret_key_length_map = {
@@ -45,10 +51,16 @@ class Command(BlueTemplateCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("name", help="Name of the application or project.")
-        parser.add_argument("directory", nargs="?", help="Optional destination directory")
-        parser.add_argument("--template", help="The path or URL to load the template from.")
         parser.add_argument(
-            "--secret_key", dest="secret_key", help="App secret of the application, you can also enter later.",
+            "directory", nargs="?", help="Optional destination directory"
+        )
+        parser.add_argument(
+            "--template", help="The path or URL to load the template from."
+        )
+        parser.add_argument(
+            "--secret_key",
+            dest="secret_key",
+            help="App secret of the application, you can also enter later.",
         )
         parser.add_argument(
             "--run_ver",
@@ -72,7 +84,8 @@ class Command(BlueTemplateCommand):
             dest="files",
             action="append",
             default=[],
-            help="The file name(s) to render. Separate multiple extensions " "with commas, or use -n multiple times.",
+            help="The file name(s) to render. Separate multiple extensions "
+            "with commas, or use -n multiple times.",
         )
 
     def handle(self, **options):
@@ -97,15 +110,21 @@ class Command(BlueTemplateCommand):
             secret_key = input("secret_key: ").strip()
             if not run_ver:
                 run_ver = self.confirm_run_ver()
-            if not secret_key or len(secret_key) != platform_secret_key_length_map[run_ver]:
+            if (
+                not secret_key
+                or len(secret_key) != platform_secret_key_length_map[run_ver]
+            ):
                 raise CommandError(
-                    "secret_key is necessary and " "it's length is %s" % platform_secret_key_length_map[run_ver]
+                    "secret_key is necessary and "
+                    "it's length is %s" % platform_secret_key_length_map[run_ver]
                 )
             options["secret_key"] = secret_key
         options["run_ver"] = run_ver
         options["app_code"] = app_code
         options["blueapps_version"] = blueapps.__version__
-        options["esb_sdk_minimum_version"] = platform_esb_minimum_version_map.get(run_ver)
+        options["esb_sdk_minimum_version"] = platform_esb_minimum_version_map.get(
+            run_ver
+        )
         project_name = "trunk"
         super(Command, self).handle("project", project_name, target, **options)
 
@@ -128,7 +147,9 @@ class Command(BlueTemplateCommand):
         # open版本包定制
         if run_ver == "open":
             # 保留requirements - open.txt, 并重命名为requirements.txt
-            self.append_requirement_file(common_requirements_file, open_requirements_file)
+            self.append_requirement_file(
+                common_requirements_file, open_requirements_file
+            )
             os.remove(open_requirements_file)
             os.remove(v3_requirements_file)
             os.remove(services_requirements_file)
