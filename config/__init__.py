@@ -21,6 +21,19 @@ import os
 # Django starts so that shared_task will use this app.
 from blueapps.core.celery import celery_app
 
+
+def get_env_or_raise(key):
+    """Get an environment variable, if it does not exist, raise an exception"""
+    value = os.environ.get(key)
+    if not value:
+        raise RuntimeError(
+            (
+                'Environment variable "{}" not found, you must set this variable to run this application.'
+            ).format(key)
+        )
+    return value
+
+
 # app 基本信息默认设置，本地开发可以修改这里，预发布环境和正式环境会从环境变量自动获取
 RUN_VER = 'open'
 APP_ID = ''
