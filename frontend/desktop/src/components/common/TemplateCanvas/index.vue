@@ -46,6 +46,8 @@
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
                     :subflow-list-loading="subflowListLoading"
+                    :plugin-loading="pluginLoading"
+                    @updatePluginList="updatePluginList"
                     @updateNodeMenuState="updateNodeMenuState">
                 </palette-panel>
             </template>
@@ -200,6 +202,10 @@
                 }
             },
             isCanvasImg: {
+                type: Boolean,
+                default: false
+            },
+            pluginLoading: {
                 type: Boolean,
                 default: false
             }
@@ -493,6 +499,9 @@
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
                 this.showSmallMap = false
+            },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val

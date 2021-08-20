@@ -103,6 +103,7 @@
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
+                    @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
@@ -244,8 +245,13 @@
         },
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
+            const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
             const basicInfo = this.getNodeBasic(nodeConfig)
-            const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
+            let versionList = []
+            if (nodeConfig.type === 'ServiceActivity') {
+                const code = isThirdParty ? nodeConfig.name : nodeConfig.component.code
+                versionList = this.getAtomVersions(code, isThirdParty)
+            }
             const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
                 subflowUpdated: false, // 子流程是否更新
@@ -265,7 +271,8 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                isChange: false // 输入、输出参数勾选状态是否有变化
+                isChange: false, // 输入、输出参数勾选状态是否有变化
+                isThirdParty // 是否为第三方插件
             }
         },
         computed: {
@@ -361,7 +368,8 @@
         methods: {
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
                 'setSubprocessUpdated',
@@ -406,11 +414,11 @@
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
              */
             async getPluginDetail () {
-                const { plugin, version } = this.basicInfo
+                const { plugin, version, nodeName } = this.basicInfo
                 this.pluginLoading = true
                 try {
-                    this.inputs = await this.getAtomConfig(plugin, version)
-                    this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    // 获取输入输出参数
+                    this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -428,9 +436,37 @@
                     return pluginGroup[version]
                 }
                 try {
-                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                    // 第三方插件
+                    if (this.isThirdParty) {
+                        const resp = await this.loadPluginServiceDetail({ plugin_code: plugin, plugin_version: version })
+                        if (!resp.result) return
+                        // 获取第三方插件公共输出参数
+                        if (!this.pluginOutput['remote_plugin']) {
+                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        }
+                        // 输出参数
+                        const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                        const respsOutputs = resp.data.outputs
+                        const outputs = []
+                        for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                            outputs.push({
+                                name: val.title,
+                                key,
+                                type: val.type,
+                                schema: { description: val.description || '--' }
+                            })
+                        }
+                        this.outputs = [...storeOutputs, ...outputs]
+                        // 输入参数
+                        const renderFrom = resp.data.forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                    } else {
+                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                        this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    }
                     const config = $.atoms[plugin]
-                    return config
+                    this.inputs = config || []
                 } catch (e) {
                     console.log(e)
                 }
@@ -527,16 +563,21 @@
                     let version = ''
                     // 节点已选择标准插件
                     if (component.code) {
-                        const atom = this.atomList.find(item => item.code === component.code)
-                        basicInfoName = `${atom.group_name}-${atom.name}`
-                        version = component.hasOwnProperty('version') ? component.version : 'legacy'
-                        // 获取不同版本的描述
-                        const { desc: description } = atom.list.find(item => item.version === version)
-                        if (description && description.includes('\n')) {
-                            const descList = description.split('\n')
-                            desc = descList.join('<br>')
+                        if (component.code === 'remote_plugin') {
+                            const atom = this.$parent.thirdPartyList[this.nodeId]
+                            basicInfoName = component.code
+                            version = atom.version
+                            desc = atom.desc
                         } else {
-                            desc = description
+                            const atom = this.atomList.find(item => item.code === component.code)
+                            basicInfoName = `${atom.group_name}-${atom.name}`
+                            version = component.hasOwnProperty('version') ? component.version : 'legacy'
+                            // 获取不同版本的描述
+                            desc = atom.list.find(item => item.version === version).desc
+                        }
+                        if (desc && desc.includes('\n')) {
+                            const descList = desc.split('\n')
+                            desc = descList.join('<br>')
                         }
                     }
 
@@ -582,16 +623,22 @@
             /**
              * 获取某一标准插件所有版本列表
              */
-            getAtomVersions (code) {
+            getAtomVersions (code, isThirdParty = false) {
                 if (!code) {
                     return []
                 }
-                const atom = this.atomList.find(item => item.code === code)
-                return atom.list.map(item => {
-                    return {
-                        version: item.version
-                    }
-                }).reverse()
+                let atom
+                if (isThirdParty) {
+                    atom = this.$parent.thirdPartyList[this.nodeId]
+                    return atom && atom.list
+                } else {
+                    atom = this.atomList.find(item => item.code === code)
+                    return atom.list.map(item => {
+                        return {
+                            version: item.version
+                        }
+                    }).reverse()
+                }
             },
             /**
              * 获取子流程任务节点输入参数值，有三种情况：
@@ -660,8 +707,10 @@
             },
 
             // 标准插件（子流程）选择面板切换插件（子流程）
-            onPluginOrTplChange (val) {
+            // isThirdParty 是否为第三方插件
+            onPluginOrTplChange (val, isThirdParty = false) {
                 this.isSelectorPanelShow = false
+                this.isThirdParty = isThirdParty
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     this.tplChange(val)
@@ -678,10 +727,11 @@
              */
             async pluginChange (atomGroup) {
                 const { code, group_name, name, list } = atomGroup
-                this.versionList = this.getAtomVersions(code)
+                this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取不同版本的描述
+                let desc = atomGroup.desc || ''
                 const atom = this.atomList.find(item => item.code === code)
-                let { desc } = atom.list.find(item => item.version === list[list.length - 1].version)
+                desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')
@@ -689,7 +739,7 @@
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,
-                    name: `${group_name}-${name}`,
+                    name: this.isThirdParty ? code : `${group_name}-${name}`,
                     nodeName: name,
                     stageName: '',
                     nodeLabel: [],
@@ -709,8 +759,11 @@
              */
             versionChange (val) {
                 // 获取不同版本的描述
-                const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
-                let { desc } = atom.list.find(item => item.version === val)
+                let desc = this.basicInfo.desc
+                if (!this.isThirdParty) {
+                    const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                    desc = atom.list.find(item => item.version === val).desc
+                }
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')
@@ -850,6 +903,9 @@
                     }
                 }
             },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
+            },
             // 查看子流程模板
             onViewSubflow (id) {
                 let pathData = {}
@@ -979,10 +1035,21 @@
                             value: tools.deepClone(formVal)
                         }
                     })
+                    // 第三方插件需手动设置plugin_code和plugin_version
+                    if (this.isThirdParty) {
+                        data['plugin_code'] = {
+                            hook: false,
+                            value: nodeName
+                        }
+                        data['plugin_version'] = {
+                            hook: false,
+                            value: version
+                        }
+                    }
                     const component = {
-                        code: plugin,
+                        code: this.isThirdParty ? 'remote_plugin' : plugin,
                         data,
-                        version
+                        version: this.isThirdParty ? '1.0.0' : version
                     }
                     config = Object.assign({}, this.nodeConfig, {
                         component,
@@ -1110,7 +1177,7 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional } = this.basicInfo
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
                         const nodeData = { status: '', skippable, retryable, optional }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
@@ -1127,6 +1194,16 @@
                             }
                         }
                         this.syncActivity()
+                        // 将第三方插件信息传给父级存起来
+                        if (this.isThirdParty) {
+                            const params = {
+                                desc,
+                                nodeName,
+                                version,
+                                list: tools.deepClone(this.versionList)
+                            }
+                            this.$parent.thirdPartyList[this.nodeId] = params
+                        }
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, nodeData)
                         this.$emit('templateDataChanged')
@@ -1137,6 +1214,9 @@
             onConfirmClick () {
                 this.isConfirmDialogShow = false
                 this.onSaveConfig()
+            },
+            onClosePanel (openVariablePanel) {
+                this.$emit('close', Boolean(openVariablePanel === true))
             }
         }
     }

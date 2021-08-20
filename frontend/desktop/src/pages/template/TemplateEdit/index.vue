@@ -57,6 +57,8 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -95,6 +97,8 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :subflow-list-loading="subflowListLoading"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -272,8 +276,10 @@
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
-                    subflow: []
+                    subflow: [],
+                    pluginList: []
                 },
+                thirdPartyList: {},
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -305,7 +311,13 @@
                         }
                     ]
                 },
-                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
+                typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                pagination: {
+                    limit: 100,
+                    offset: 1,
+                    isLoading: false,
+                    totalPage: null
+                }
             }
         },
         computed: {
@@ -442,7 +454,9 @@
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceList',
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault'
@@ -488,6 +502,14 @@
                         params.project_id = this.project_id
                     }
                     const data = await this.loadSingleAtomList(params)
+
+                    const { limit, offset } = this.pagination
+                    const resp = await this.loadPluginServiceList({
+                        search_term: '',
+                        limit,
+                        offset
+                    })
+                    // 内置插件
                     const atomList = []
                     data.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
@@ -510,6 +532,9 @@
                     this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
+                    // 第三方插件
+                    this.pagination.totalPage = Math.ceil(resp.data.count / this.pagination.limit)
+                    this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -591,7 +616,10 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
+                    const config = this.atomConfig[code] && this.atomConfig[code][version]
+                    if (config) {
+                        this.addSingleAtomActivities(location, config)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -991,7 +1019,7 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
@@ -1006,6 +1034,24 @@
                 }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
+                    // 设置第三发插件缓存
+                    const nodeConfig = this.$store.state.template.activities[id]
+                    if (nodeConfig.component
+                        && nodeConfig.component.code === 'remote_plugin'
+                        && !this.thirdPartyList[id]) {
+                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.name })
+                        const { code, versions, description } = resp.data
+                        const versionList = versions.map(version => {
+                            return { version }
+                        })
+                        const group = {
+                            nodeName: code,
+                            list: versionList,
+                            version: nodeConfig.component.version,
+                            desc: description
+                        }
+                        this.thirdPartyList[id] = group
+                    }
                     this.showConfigPanel(id)
                 }
             },
@@ -1343,6 +1389,31 @@
             hideGuideTips () {
                 if (this.nodeGuide) {
                     this.nodeGuide.instance.hide()
+                }
+            },
+            async updatePluginList (val = undefined, type) {
+                try {
+                    if (type === 'scroll') {
+                        const { limit, offset, totalPage, isLoading } = this.pagination
+                        if (offset !== totalPage && !isLoading) {
+                            this.pagination.isLoading = true
+                            this.pagination.offset++
+                            const params = { search_term: val, limit: limit, offset }
+                            const resp = await this.loadPluginServiceList(params)
+                            const { count, plugins } = resp.data
+                            this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
+                            this.atomTypeList.pluginList.push(...plugins)
+                            this.pagination.isLoading = false
+                        }
+                    } else {
+                        const { limit, offset } = this.pagination
+                        const params = { search_term: val, limit: limit, offset }
+                        const resp = await this.loadPluginServiceList(params)
+                        this.atomTypeList.pluginList = resp.data.plugins
+                    }
+                } catch (error) {
+                    this.pagination.isLoading = false
+                    console.warn(error)
                 }
             },
             canvasMounted () {

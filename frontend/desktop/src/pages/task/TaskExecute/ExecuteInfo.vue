@@ -155,10 +155,21 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
-                <section class="info-section">
-                    <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
+                <section class="info-section log-info">
+                    <!-- 内置插件/第三方插件tab -->
+                    <bk-tab :active.sync="curPluginTab" type="unborder-card">
+                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('标准节点') }"></bk-tab-panel>
+                        <bk-tab-panel
+                            v-if="isThirdPartyNode"
+                            v-bind="{ name: 'third_praty_plugin', label: $t('第三方节点日志') }">
+                        </bk-tab-panel>
+                    </bk-tab>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
-                        <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
+                        <full-code-editor
+                            v-if="logInfo"
+                            :key="curPluginTab"
+                            :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
+                        </full-code-editor>
                         <NoData v-else></NoData>
                     </div>
                 </section>
@@ -469,6 +480,7 @@
         },
         data () {
             return {
+                curPluginTab: 'build_in_plugin',
                 isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
@@ -512,7 +524,8 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'atomOutputConfig': state => state.atomForm.outputConfig,
-                'atomFormInfo': state => state.atomForm.form
+                'atomFormInfo': state => state.atomForm.form,
+                'pluginOutput': state => state.atomForm.output
             }),
             ...mapState('project', {
                 project_id: state => state.project_id
@@ -566,6 +579,17 @@
             },
             location () {
                 return this.pipelineData.location.find(item => item.id === this.nodeDetailConfig.node_id)
+            },
+            isThirdPartyNode () {
+                const compCode = this.nodeDetailConfig.component_code
+                return compCode && compCode === 'remote_plugin'
+            },
+            thirdPartyNodeCode () {
+                const nodeInfo = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                let codeInfo = nodeInfo.component.data
+                codeInfo = codeInfo && codeInfo.plugin_code
+                codeInfo = codeInfo.value
+                return codeInfo
             }
         },
         watch: {
@@ -587,7 +611,9 @@
                 'getNodeExecutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail',
+                'loadPluginServiceLog'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeDetail',
@@ -691,6 +717,10 @@
                         this.isShowSkipBtn = activity.skippable
                         this.isShowRetryBtn = activity.retryable
                     }
+                    // 获取第三方插件节点日志
+                    if (this.isThirdPartyNode) {
+                        this.handleTabChange()
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -743,8 +773,36 @@
                 } else {
                     try {
                         const res = await this.loadAtomConfig({ atom: type, version })
-                        this.renderConfig = this.atomFormConfig[type][version]
-                        if (res.isRenderOutputForm) {
+                        // 第三方插件节点拼接输出参数
+                        if (this.isThirdPartyNode) {
+                            const resp = await this.loadPluginServiceDetail({
+                                plugin_code: this.thirdPartyNodeCode,
+                                plugin_version: version
+                            })
+                            if (!resp.result) return
+                            // 输出参数
+                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                            const respsOutputs = resp.data.outputs
+                            const outputs = []
+                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                outputs.push({
+                                    name: val.title,
+                                    key,
+                                    type: val.type,
+                                    schema: { description: val.description || '--' }
+                                })
+                            }
+                            this.outputRenderConfig = [...storeOutputs, ...outputs]
+                            // 输入参数
+                            const renderFrom = resp.data.forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                            const config = $.atoms[this.thirdPartyNodeCode]
+                            this.renderConfig = config || []
+                            return
+                        }
+                        this.renderConfig = this.atomFormConfig[type] && this.atomFormConfig[type][version]
+                        if (res.isRenderOutputForm && this.atomOutputConfig[type]) {
                             this.outputRenderConfig = this.atomOutputConfig[type][version]
                         }
                         this.isRenderOutputForm = res.isRenderOutputForm
@@ -754,6 +812,27 @@
                             theme: 'error'
                         })
                     }
+                }
+            },
+            async handleTabChange () {
+                try {
+                    const { outputs } = this.executeInfo
+                    const traceId = outputs[0].value
+                    if (!traceId) {
+                        this.$bkMessage({
+                            message: '任务还没有在对应插件服务执行，无法获取traceid',
+                            theme: 'error'
+                        })
+                        return
+                    }
+                    const resp = await this.loadPluginServiceLog({
+                        plugin_code: this.thirdPartyNodeCode,
+                        trace_id: traceId
+                    })
+                    if (!resp.result) return
+                    this.executeInfo.thirdPartyNodeLog = resp.data.log
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             async getHistoryLog (id) {
@@ -863,6 +942,24 @@
         }
     }
 </script>
+<style lang="scss">
+    .log-info {
+        position: relative;
+        .bk-tab-section {
+            padding: 5px;
+        }
+        &::before {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 12px;
+            left: 0;
+            width: 2px;
+            height: 20px;
+            background: #a3c5fd;
+        }
+    }
+</style>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';
