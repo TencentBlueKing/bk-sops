@@ -314,7 +314,7 @@
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
                 pagination: {
                     limit: 100,
-                    offset: 1,
+                    offset: 0,
                     isLoading: false,
                     totalPage: null
                 }

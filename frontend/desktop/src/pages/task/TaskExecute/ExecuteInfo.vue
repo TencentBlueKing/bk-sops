@@ -158,7 +158,7 @@
                 <section class="info-section log-info">
                     <!-- 内置插件/第三方插件tab -->
                     <bk-tab :active.sync="curPluginTab" type="unborder-card">
-                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('标准节点') }"></bk-tab-panel>
+                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
                         <bk-tab-panel
                             v-if="isThirdPartyNode"
                             v-bind="{ name: 'third_praty_plugin', label: $t('第三方节点日志') }">
@@ -684,7 +684,7 @@
                             })
                         } else {
                             // 普通插件展示 preset 为 true 的输出参数
-                            this.outputsInfo = outputs.filter(output => output.preset)
+                            this.outputsInfo = this.isThirdPartyNode ? outputs : outputs.filter(output => output.preset)
                         }
                         this.outputsInfo.forEach(out => {
                             this.$set(this.outputRenderData, out.key, out.value)

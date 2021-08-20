@@ -418,7 +418,7 @@
                 this.pluginLoading = true
                 try {
                     // 获取输入输出参数
-                    this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
+                    await this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -458,6 +458,7 @@
                         }
                         this.outputs = [...storeOutputs, ...outputs]
                         // 输入参数
+                        $.atoms[plugin] = {}
                         const renderFrom = resp.data.forms.renderform
                         /* eslint-disable-next-line */
                         eval(renderFrom)

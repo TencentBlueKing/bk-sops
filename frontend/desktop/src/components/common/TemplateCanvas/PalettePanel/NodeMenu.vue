@@ -541,8 +541,7 @@
         .search-btn {
             margin-left: 11px;
             .common-icon-search {
-                top: 0;
-                left: 0;
+                position: static;
             }
         }
         .select-btn {
