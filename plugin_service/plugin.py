@@ -70,7 +70,7 @@ class RemotePluginService(Service):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        plugin_code = data.get_one_of_inputs("code")
+        plugin_code = data.get_one_of_inputs("plugin_code")
         trace_id = data.get_one_of_outputs("trace_id")
 
         plugin_client = PluginServiceApiClient(plugin_code)

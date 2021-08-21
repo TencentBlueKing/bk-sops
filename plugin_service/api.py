@@ -26,6 +26,7 @@ from plugin_service.serializers import (
     PluginVersionQuerySerializer,
     PluginCodeQuerySerializer,
     PluginListQuerySerializer,
+    PluginAppDetailResponseSerializer,
 )
 
 
@@ -69,4 +70,16 @@ def get_logs(request: Request):
     """ 获取插件服务执行日志 """
     trace_id = request.query_params.get("trace_id")
     result = request.plugin_client.get_logs(trace_id)
+    return JsonResponse(result)
+
+
+@swagger_auto_schema(
+    method="GET", query_serializer=PluginCodeQuerySerializer, responses={200: PluginAppDetailResponseSerializer}
+)
+@api_view(["GET"])
+def get_plugin_app_detail(request: Request):
+    """获取插件服务App详情"""
+    result = PluginServiceApiClient.get_plugin_app_detail(request.query_params.get("plugin_code"))
+    if result["result"] and "url" in result["data"]:
+        result["data"].pop("url")
     return JsonResponse(result)
