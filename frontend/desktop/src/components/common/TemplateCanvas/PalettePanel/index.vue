@@ -53,16 +53,16 @@
             <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
-            <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
+            <!-- <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
                 <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
-            </div>
+            </div> -->
         </div>
         <node-menu
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
-            :loading="activeNodeListType === 'subflow' && subAtomListLoading"
+            :loading="activeNodeListType === 'subflow' && subflowListLoading"
             :nodes="nodes"
             :common="common"
             @onCloseNodeMenu="onCloseNodeMenu"
@@ -82,7 +82,7 @@
         },
         props: {
             templateLabels: Array,
-            subAtomListLoading: {
+            subflowListLoading: {
                 type: Boolean,
                 default: true
             },
@@ -304,7 +304,7 @@
         position: relative;
         width: 60px;
         height: 100%;
-        z-index: 4;
+        z-index: 5;
     }
     .palette-container{
         position: relative;

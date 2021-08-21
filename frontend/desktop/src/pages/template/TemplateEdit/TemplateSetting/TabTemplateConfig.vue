@@ -161,7 +161,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import tools from '@/utils/tools.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
 
     export default {
@@ -215,7 +215,8 @@
                             trigger: 'blur'
                         }
                     ]
-                }
+                },
+                taskCategories: TASK_CATEGORIES
             }
         },
         computed: {
@@ -238,17 +239,6 @@
                     list = defaultList.concat(this.projectNotifyGroup)
                 }
                 return list
-            },
-            taskCategories () {
-                if (this.projectBaseInfo.task_categories) {
-                    return this.projectBaseInfo.task_categories.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.name
-                        }
-                    })
-                }
-                return []
             }
         },
         created () {

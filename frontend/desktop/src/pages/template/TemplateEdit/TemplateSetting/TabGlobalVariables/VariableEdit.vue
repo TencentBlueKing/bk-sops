@@ -11,7 +11,7 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isSystemVar">
+                            :readonly="isSystemVar || isProjectVar">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -24,14 +24,14 @@
                             name="variableKey"
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
-                            :readonly="isSystemVar"
+                            :readonly="isSystemVar || isProjectVar"
                             :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </div>
                 <!-- 类型 -->
-                <div class="form-item variable-type clearfix" v-if="!isSystemVar">
+                <div class="form-item variable-type clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -63,7 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
-                    <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
+                    <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <!-- 显示/隐藏 -->
-                <div class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label>{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 <!-- 模板预渲染 -->
-                <div class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -121,12 +121,12 @@
                             type="textarea"
                             v-model="theEditingData.desc"
                             :placeholder="isSystemVar ? ' ' : $t('请输入')"
-                            :readonly="isSystemVar">
+                            :readonly="isSystemVar || isProjectVar">
                         </bk-input>
                     </div>
                 </div>
             </section>
-            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-section">
+            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar && !isProjectVar" class="form-section">
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
                 <!-- 默认值 -->
                 <div class="form-item value-form clearfix">
@@ -144,7 +144,7 @@
             </section>
         </div>
         <div class="btn-wrap">
-            <template v-if="!isSystemVar">
+            <template v-if="!isSystemVar && !isProjectVar">
                 <bk-button theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('保存') }}</bk-button>
                 <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
             </template>
@@ -235,6 +235,7 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants,
+                'internalVariable': state => state.template.internalVariable,
                 'outputs': state => state.template.outputs
             }),
             ...mapState('project', {
@@ -243,6 +244,10 @@
             // 是否为系统内置变量
             isSystemVar () {
                 return this.variableData.source_type === 'system'
+            },
+            // 是否为项目变量
+            isProjectVar () {
+                return this.variableData.source_type === 'project'
             },
             /**
              * 变量配置项code
@@ -310,14 +315,6 @@
             }
         },
         created () {
-            /**
-             * 设置模板预渲染默认值（兼容以前存在的模板）
-             * 预渲染功能发布后新建变量时，预渲染默认为false
-             * 发布前用户不主动去修改变量，则不需要做处理
-             */
-            if (!this.variableData.key) {
-                this.theEditingData.pre_render_mako = false
-            }
             this.extendFormValidate()
         },
         async mounted () {
@@ -477,7 +474,7 @@
                     if (this.variableData.key === value) {
                         return true
                     }
-                    if (value in this.constants) {
+                    if (value in this.constants || value in this.internalVariable) {
                         return false
                     }
                     return true
@@ -622,10 +619,15 @@
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
+                    const variable = this.theEditingData
+                    const tagCode = this.renderConfig[0].tag_code
 
                     // renderform表单校验
+                    // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
                     if (this.$refs.renderForm) {
-                        formValid = this.$refs.renderForm.validate()
+                        if (this.theEditingData.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
+                            formValid = this.$refs.renderForm.validate()
+                        }
                     }
 
                     if (!result || !formValid) {
@@ -633,7 +635,6 @@
                     }
 
                     const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
-
                     if (!checkKeyResult.result) {
                         this.$bkMessage({
                             message: i18n.t('变量KEY为特殊标志符变量，请修改'),
@@ -645,7 +646,7 @@
                     if (this.theEditingData.pre_render_mako) {
                         this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
                     }
-                    const variable = this.theEditingData
+
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
                         const tagCode = this.renderConfig[0].tag_code
                         let varValue = {}
@@ -665,6 +666,7 @@
                         this.theEditingData.value = varValue[tagCode]
                     }
 
+                    this.theEditingData.value = this.renderData[tagCode]
                     this.theEditingData.name = this.theEditingData.name.trim()
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
@@ -779,9 +781,12 @@
             background: #b8b8b8;
         }
         .variable-type-desc {
-            margin-left: 80px;
+            margin: 0 0 0 80px;
             font-size: 12px;
             color: #666;
+            word-break: break-all;
+            white-space: pre-wrap;
+            font-family: 'Microsoft YaHei','PingFang SC','Hiragino Sans GB','SimSun','sans-serif';
         }
     }
     .btn-wrap {

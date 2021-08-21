@@ -60,10 +60,10 @@
                 'lines': state => state.template.line,
                 'gateways': state => state.template.gateways,
                 'constants': state => state.template.constants,
-                'systemConstants': state => state.template.systemConstants
+                'internalVariable': state => state.template.internalVariable
             }),
             variableList () {
-                return { ...this.systemConstants, ...this.constants }
+                return { ...this.internalVariable, ...this.constants }
             },
             list () { // 变量被引用数据
                 return this.groups.map(group => {
@@ -106,7 +106,7 @@
         content: '';
         position: absolute;
         top: -5px;
-        right: 93px;
+        right: 100px;
         width: 8px;
         height: 8px;
         background: #f0f1f5;

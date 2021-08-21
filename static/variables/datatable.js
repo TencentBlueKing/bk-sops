@@ -82,7 +82,7 @@
                     type: "datatable",
                     attrs: {
                         name: gettext("表格"),
-                        hookable: false,
+                        hookable: true,
                         columns: columns,
                         value: default_val,
                         empty_text: empty_text,

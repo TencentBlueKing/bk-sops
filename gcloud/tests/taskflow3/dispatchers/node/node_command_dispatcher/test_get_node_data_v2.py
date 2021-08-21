@@ -170,7 +170,10 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
-            outputs={"outputs": {}}, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs={"outputs": {}},
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,
@@ -223,7 +226,10 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
-            outputs={"outputs": {}}, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs={"outputs": {}},
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,
@@ -326,7 +332,10 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api.preview_node_inputs.assert_not_called()
         dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
-            outputs={"outputs": {}}, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs={"outputs": {}},
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,

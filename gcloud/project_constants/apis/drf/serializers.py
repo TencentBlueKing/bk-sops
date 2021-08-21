@@ -11,10 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import re
 from rest_framework import serializers
 
 from gcloud.core.models import Project
 from gcloud.project_constants.models import ProjectConstant
+
+
+VALID_KEY_PATTERN = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
+VALID_KEY_REGEX = re.compile(VALID_KEY_PATTERN)
 
 
 class ProjectConstantsSerializer(serializers.ModelSerializer):
@@ -42,6 +47,11 @@ class ProjectConstantsSerializer(serializers.ModelSerializer):
     def validate_project_id(self, value):
         if not Project.objects.filter(id=value).exists():
             raise serializers.ValidationError("Project with id %s not exist." % value)
+        return value
+
+    def validate_key(self, value):
+        if not VALID_KEY_REGEX.match(value):
+            raise serializers.ValidationError("%s not match match pattern: %s." % (value, VALID_KEY_PATTERN))
         return value
 
     def create(self, validated_data):
