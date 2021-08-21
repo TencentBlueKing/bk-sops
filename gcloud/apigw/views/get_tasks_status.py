@@ -69,7 +69,7 @@ def get_tasks_status(request, project_id):
             return result
 
         status = result["data"]
-        if not include_children_status:
+        if not include_children_status and "children" in status:
             status.pop("children")
 
         if "name" not in status:

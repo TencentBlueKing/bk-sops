@@ -84,6 +84,7 @@
                     { key: 'parallelgateway', tips: i18n.t('并行网关') },
                     { key: 'branchgateway', tips: i18n.t('分支网关') },
                     { key: 'convergegateway', tips: i18n.t('汇聚网关') }
+                    // { key: 'conditionalparallelgateway', tips: i18n.t('条件并行网关') }
                 ]
             }
         },
@@ -97,12 +98,12 @@
             },
             shortcutPanelTop () {
                 if (this.isGatewayNode(this.node.type)) {
-                    return '46px'
+                    return '38px'
                 }
                 if (this.node.type === 'startpoint') {
-                    return '52px'
+                    return '48px'
                 }
-                return '64px'
+                return '58px'
             }
         },
         methods: {
@@ -153,7 +154,7 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (currType === 'startpoint') {
-                    location.y += isGatewayAppendNode ? 5 : -5
+                    location.y += isGatewayAppendNode ? 10 : -10
                 } else {
                     if (isGatewayCurrNode && !isGatewayAppendNode) {
                         location.y -= 10
@@ -176,7 +177,7 @@
                         isFillParam
                     })
                 } else {
-                    if (['parallelgateway', 'branchgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
+                    if (['parallelgateway', 'branchgateway', 'conditionalparallelgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
                         // 拿到并行中最靠下的节点
                         const { x: parallelX, y: parallelY } = this.getParallelNodeMinDistance(id)
                         location.y = parallelY + 100
@@ -187,7 +188,7 @@
             },
             // 是不是网关节点
             isGatewayNode (type) {
-                return ['parallelgateway', 'branchgateway', 'convergegateway'].indexOf(type) > -1
+                return ['parallelgateway', 'branchgateway', 'convergegateway', 'conditionalparallelgateway'].indexOf(type) > -1
             },
             // 是否存在节点在需要追加节点后面
             isHaveNodeBehind (id) {
@@ -228,11 +229,10 @@
 <style lang="scss">
 .shortcut-panel {
     position: absolute;
-    left: 50%;
+    left: calc(50% + 20px);
     top: 56px;
     width: 120px;
     background: rgba(255, 255, 255, .9);
-    transform: translateX(-50%);
     cursor: default;
     .nodes-wrap {
         display: flex;

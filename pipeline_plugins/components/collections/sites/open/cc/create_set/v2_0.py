@@ -57,7 +57,11 @@ def chunk_table_data(column):
     multiple_keys = []
     for key, value in column.items():
         if not isinstance(value, str):
-            return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
+            # 如果列类型为int，则跳过处理
+            if isinstance(value, int):
+                continue
+            else:
+                return {"result": False, "message": _("数据[%s]格式错误，请改为字符串") % value, "data": []}
         value = value.strip()
         if BREAK_LINE in value:
             multiple_keys.append(key)
@@ -228,6 +232,7 @@ class CCCreateSetComponent(Component):
     version = VERSION
     desc = _(
         "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
-        '2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4 \n'
+        "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
+        '插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4\n'
         "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
     )

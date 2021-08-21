@@ -26,7 +26,6 @@ export default {
                 params: {
                     limit,
                     offset,
-                    create_method: 'mobile',
                     project__id: rootState.bizId
                 }
             }).then(response => response)

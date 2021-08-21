@@ -152,7 +152,7 @@
                         type: "textarea",
                         attrs: {
                             name: "IP",
-                            placeholder: gettext("多个IP以;分隔"),
+                            placeholder: gettext("多个IP以,分隔"),
                             validation: [
                                 {
                                     type: "required"

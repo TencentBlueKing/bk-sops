@@ -314,7 +314,7 @@
                 const filterVal = []
                 for (let i = 0; i < this.columns.length; i++) {
                     const tagCode = this.columns[i].tag_code
-                    const name = this.columns[i].attrs.name
+                    const name = this.columns[i].attrs.name + '(' + tagCode + ')'
                     tableHeader.push(name)
                     filterVal.push(tagCode)
                 }
@@ -357,41 +357,55 @@
                 }
                 this.file2Xce(file).then(tabJson => {
                     if (tabJson && tabJson.length > 0) {
+                        const reg = /\([\w|\p{Unified_Ideograph}]+\)$/u
                         // 首先做一个name与tag_code的对应字典
-                        const nameToTagCode = {}
+                        const nameToTagCode = {} // 兼容之前导出文件表头未包含属性key的文件
                         for (let i = 0; i < this.columns.length; i++) {
                             nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
                         }
                         // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
                         const excelValue = tools.deepClone(tabJson[0]['sheet'])
-                        for (let i = 0; i < tabJson[0]['sheet'].length; i++) {
-                            for (const key in tabJson[0]['sheet'][i]) {
-                                const newKey = nameToTagCode[key]
-                                const tag = this.columns.find(item => item.tag_code === newKey)
-                                let val = excelValue[i][key]
-                                if ( // 多选下拉框、勾选框导出数据为字符串需要转换为数组，并匹配选项名称得到value
-                                    (tag.type === 'select' && tag.attrs.multiple)
-                                    || tag.type === 'checkbox'
-                                ) {
-                                    const parsedVal = JSON.parse(val)
-                                    if (Array.isArray(parsedVal)) {
-                                        val = parsedVal.map(v => {
-                                            const option = tag.attrs.items.find(op => op.text === v || op.name === v)
-                                            if (option) {
-                                                return option.value
-                                            }
-                                            return v
-                                        })
+                        for (let i = 0; i < excelValue.length; i++) {
+                            for (const thead in excelValue[i]) {
+                                let key
+                                if (reg.test(thead)) {
+                                    key = thead.match(reg)[0].replace(/[\(|\)]/g, '')
+                                } else {
+                                    key = nameToTagCode[thead]
+                                }
+                                const tag = this.columns.find(item => item.tag_code === key)
+                                if (tag) {
+                                    let val = excelValue[i][thead]
+                                    if ( // 多选下拉框、勾选框导出数据为字符串需要转换为数组，并匹配选项名称得到value
+                                        (tag.type === 'select' && tag.attrs.multiple)
+                                        || tag.type === 'checkbox'
+                                    ) {
+                                        const parsedVal = JSON.parse(val)
+                                        if (Array.isArray(parsedVal)) {
+                                            val = parsedVal.map(v => {
+                                                const option = tag.attrs.items.find(op => op.text === v || op.name === v)
+                                                if (option) {
+                                                    return option.value
+                                                }
+                                                return v
+                                            })
+                                        }
+                                    }
+                                    if (tag.type === 'int' && typeof val === 'string' && !!val) {
+                                        val = Number(val)
+                                    }
+                                    if (tag.type === 'input' && typeof val === 'number') {
+                                        val = String(val)
+                                    }
+                                    if (thead !== key) {
+                                        excelValue[i][key] = val
+                                        delete excelValue[i][thead]
                                     }
                                 }
-                                if (tag.type === 'int') {
-                                    val = Number(val)
-                                }
-                                if (newKey && key !== newKey) {
-                                    excelValue[i][newKey] = val
-                                    delete excelValue[i][key]
-                                }
                             }
+                        }
+                        if (this.pagination) {
+                            this.currentPage = 1
                         }
                         this._set_value(excelValue)
                     }
