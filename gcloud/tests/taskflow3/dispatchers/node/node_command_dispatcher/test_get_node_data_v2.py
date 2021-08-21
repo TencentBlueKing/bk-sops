@@ -117,7 +117,7 @@ class GetNodeDataV2TestCase(TestCase):
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
         )
         dispatcher._format_outputs.assert_called_once_with(
-            outputs={}, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs={}, component_code=component_code, pipeline_instance=pipeline_instance, subprocess_stack=["1"]
         )
         self.assertEqual(
             node_data,
