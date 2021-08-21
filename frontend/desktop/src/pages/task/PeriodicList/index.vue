@@ -432,11 +432,18 @@
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('PeriodicList')
+                let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    this.setting.selectedFields = this.tableFields.slice(0).filter(m => fieldList.includes(m.id))
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.tableFields
+                    if (!selectedFields || !size) {
+                        localStorage.removeItem('PeriodicList').map(item => item.id)
+                    }
+                } else {
+                    selectedFields = this.tableFields.map(item => item.id)
                 }
+                this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
             async getCollectList () {
                 try {
@@ -528,9 +535,9 @@
                     }
                 })
                 if (this.admin) {
-                    this.$router.push({ name: 'adminPeriodic', query })
+                    this.$router.replace({ name: 'adminPeriodic', query })
                 } else {
-                    this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
+                    this.$router.replace({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
                 }
             },
             async onSetEnable (item) {
@@ -737,7 +744,7 @@
         color: $greenDefault;
     }
     .common-icon-dark-circle-pause {
-        color: #ff9C01;
+        color: #ff9c01;
         border-radius: 20px;
         font-size: 12px;
     }

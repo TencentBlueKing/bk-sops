@@ -265,7 +265,6 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
@@ -681,6 +680,14 @@
                 const { module_detail, mute_attribute, shareEqually, set_count, host_resources, set_template_id, set_template_name, filter_lock = false } = JSON.parse(scheme.data)
                 const modules = module_detail.map(item => {
                     const { custom_ip_list, host_count, host_filter_list, id, mute_method, mute_modules, name, reuse_module, select_method } = item
+                    const hostFilterList = host_filter_list.map(item => {
+                        const { type_val, name, value } = item
+                        return {
+                            type: type_val === 1 ? 'exclude' : 'filter',
+                            field: name,
+                            value
+                        }
+                    })
                     return {
                         id,
                         name,
@@ -690,7 +697,7 @@
                         customIpList: custom_ip_list,
                         muteMethod: mute_method,
                         muteModules: mute_modules,
-                        hostFilterList: host_filter_list
+                        hostFilterList
                     }
                 })
                 await this.getModule(set_template_id)
@@ -919,9 +926,11 @@
                 })
                 // 节点循环引用退出保存，弹出提示
                 if (cycleCiting) {
-                    errorHandler({
-                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
-                    }, this)
+                    this.$bkMessage({
+                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用'),
+                        theme: 'error',
+                        ellipsisLine: 0
+                    })
                     return false
                 }
                 return this.$refs.setForm.validate().then(async result => {
@@ -943,7 +952,10 @@
                     }
 
                     if (!tabValid) {
-                        errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
+                        this.$bkMessage({
+                            message: gettext('参数错误，请检查模块表单项'),
+                            theme: 'error'
+                        })
                     } else {
                         return true
                     }

@@ -17,7 +17,6 @@ import traceback
 from typing import Optional
 
 from django.utils import timezone
-from bamboo_engine.utils.object import Representable
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from pipeline.eri.runtime import BambooDjangoRuntime
@@ -27,20 +26,21 @@ from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.format import format_web_data_to_pipeline
-from pipeline.exceptions import ConvergeMatchError, ConnectionValidateError, IsolateNodeError, StreamValidateError
+from pipeline.exceptions import (
+    ConvergeMatchError,
+    ConnectionValidateError,
+    IsolateNodeError,
+    StreamValidateError,
+)
 
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
 from gcloud.project_constants.domains.context import get_project_constants_context
+from engine_pickle_obj.context import SystemObject
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
-
-
-class SystemObject(Representable):
-    def __init__(self, attrs: dict):
-        self.__dict__ = attrs
 
 
 class TaskCommandDispatcher(EngineCommandDispatcher):
@@ -94,23 +94,27 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             }
             return dict_result
         except ConvergeMatchError as e:
-            message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id, str(e), e.gateway_id)
+            message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (
+                self.taskflow_id,
+                str(e),
+                e.gateway_id,
+            )
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
         except StreamValidateError as e:
-            message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, str(e), e.node_id)
+            message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.taskflow_id, str(e), e.node_id)
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
         except IsolateNodeError as e:
-            message = "task[id=%s] has isolate structure, message: %s" % (self.id, str(e))
+            message = "task[id=%s] has isolate structure, message: %s" % (self.taskflow_id, str(e))
             logger.exception(message)
             code = err_code.VALIDATION_ERROR.code
 
         except ConnectionValidateError as e:
             message = "task[id=%s] connection check failed, message: %s, nodes: %s" % (
-                self.id,
+                self.taskflow_id,
                 e.detail,
                 e.failed_nodes,
             )
@@ -118,7 +122,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             code = err_code.VALIDATION_ERROR.code
 
         except Exception as e:
-            message = "task[id=%s] command failed:%s" % (self.id, e)
+            message = "task[id=%s] command failed:%s" % (self.taskflow_id, e)
             logger.exception(traceback.format_exc())
             code = err_code.UNKNOWN_ERROR.code
 
@@ -154,7 +158,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 pipeline=pipeline,
                 root_pipeline_data=root_pipeline_data,
                 root_pipeline_context=root_pipeline_context,
+                subprocess_context=root_pipeline_context,
                 queue=self.queue,
+                cycle_tolerate=True,
             )
         except Exception as e:
             logger.exception("run pipeline failed")
@@ -281,6 +287,8 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return failed_nodes
 
     def get_task_status_v1(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if self.pipeline_instance.is_expired:
+            return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
             return {
                 "result": True,
@@ -333,6 +341,8 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
 
     def get_task_status_v2(self, subprocess_id: Optional[str], with_ex_data: bool) -> dict:
+        if self.pipeline_instance.is_expired:
+            return {"result": True, "data": {"state": "EXPIRED"}, "message": "", "code": err_code.SUCCESS.code}
         if not self.pipeline_instance.is_started:
             return {
                 "result": True,
@@ -368,7 +378,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 if child["id"] == subprocess_id:
                     return child
                 if child["children"]:
-                    return get_subprocess_status(child, subprocess_id)
+                    status = get_subprocess_status(child, subprocess_id)
+                    if status is not None:
+                        return status
 
         if subprocess_id:
             task_status = get_subprocess_status(task_status, subprocess_id)

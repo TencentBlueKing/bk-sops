@@ -26,7 +26,7 @@ from gcloud.iam_auth import res_factory
 iam = get_iam_client()
 
 
-class FormInterceptor(ViewInterceptor):
+class TaskTemplateViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         template_id = request.GET.get("template_id")
 
@@ -39,6 +39,14 @@ class FormInterceptor(ViewInterceptor):
 
         if not allowed:
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
+
+
+class FormInterceptor(TaskTemplateViewInterceptor):
+    pass
+
+
+class ParentsInterceptor(TaskTemplateViewInterceptor):
+    pass
 
 
 class BatchFormInterceptor(ViewInterceptor):

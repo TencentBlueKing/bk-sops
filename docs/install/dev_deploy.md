@@ -118,29 +118,29 @@ npm install
 2）本地打包
 在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
-npm run build -- --STATIC_ENV=dev
+npm run build
 ```
 
-3）收集静态资源
-回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
+3）处理静态资源
+
+回到项目根目录，执行以下命令
+
 ```bash
-python manage.py collectstatic --noinput
+cp -r ./frontend/desktop/static ./staticfiles/bk_sops
+rm ./gcloud/core/templates/core/base_vue.html
+mv ./staticfiles/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
 ```
-
-前端资源文件需要单独拷贝收集，执行如下命令
-```bash
-rm -rf static/dev static/images
-mv frontend/desktop/static/dev static/
-mv frontend/desktop/static/images static/
-```
-
 
 ## 配置本地 hosts  
+
 windows: 在 C:\Windows\System32\drivers\etc\host 文件中添加“127.0.0.1 dev.{BK_PAAS_HOST}”。  
 mac: 执行 “sudo vim /etc/hosts”，添加“127.0.0.1 dev.{BK_PAAS_HOST}”。
 
 
 ## 启动进程
+
+第一次在本地搭建开发环境需要启动 celery worker 及 beat 同步业务，按照以下启动以下进程
+
 ```bash
 python manage.py celery worker -l info -B
 python manage.py runserver 8000
@@ -148,4 +148,5 @@ python manage.py runserver 8000
 
 
 ## 访问页面  
+
 使用浏览器开发 http://dev.{BK_PAAS_HOST}:8000/ 访问应用。
