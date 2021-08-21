@@ -32,7 +32,7 @@
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
-                                :id="item.value"
+                                :id="item.id"
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
@@ -117,10 +117,11 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapState, mapActions } from 'vuex'
+    import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import BaseCard from '@/components/common/base/BaseCard.vue'
+    import { TASK_CATEGORIES } from '@/constants/index.js'
     export default {
         name: 'ExportTemplateDialog',
         components: {
@@ -152,20 +153,13 @@
                 filterCondition: {
                     classifyId: 'all',
                     keywords: ''
-                }
+                },
+                taskCategories: []
             }
         },
         computed: {
-            ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo
-            }),
             exportTips () {
                 return this.type === 'dat' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
-            },
-            taskCategories () {
-                const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
-                list.unshift({ value: 'all', name: i18n.t('全部分类') })
-                return list
             },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
@@ -181,25 +175,21 @@
             }
         },
         created () {
-            this.getData()
+            // 设置分类列表
+            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
+            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
+
+            this.getTemplateData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            // 设置分类列表
+            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
+            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
         },
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList',
                 'templateExport'
             ]),
-            ...mapActions([
-                'getCategorys'
-            ]),
-            async getData () {
-                if (this.projectBaseInfo.task_categories && this.projectBaseInfo.task_categories.length === 0) {
-                    await this.getCategorys()
-                    this.getTemplateData()
-                } else {
-                    this.getTemplateData()
-                }
-            },
             async getTemplateData () {
                 this.tplLoading = true
                 this.isCheckedDisabled = true
@@ -225,10 +215,10 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategories.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.id)
                     atomGrouped.push({
                         name: item.name,
-                        value: item.value,
+                        value: item.id,
                         children: []
                     })
                 })

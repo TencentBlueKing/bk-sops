@@ -56,7 +56,7 @@
                 default: false
             },
             project_id: [String, Number],
-            templateId: [String, Number]
+            template_id: [String, Number]
         },
         computed: {
             ...mapState({
@@ -89,12 +89,12 @@
                     'templateEdit': {
                         name: 'templatePanel',
                         params: { type: 'edit', project_id: this.project_id },
-                        query: { template_id: this.templateId }
+                        query: { template_id: this.template_id }
                     },
                     'commonTplEdit': {
                         name: 'commonTemplatePanel',
                         params: { type: 'edit' },
-                        query: { template_id: this.templateId }
+                        query: { template_id: this.template_id }
                     },
                     'function': { name: 'functionHome' },
                     'audit': { name: 'auditHome' },
@@ -112,7 +112,7 @@
                 switch (currentUser) {
                     case 'maintainer':
                         // 任务创建(节点选择+参数填写)
-                        if (this.currentStep === 'selectnode' || this.currentStep === 'paramfill') {
+                        if (this.currentStep) {
                             /**
                              * entrance
                              * 1、periodicTask - 周期任务新建

@@ -723,3 +723,9 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/search_host_lock/",
             description="根据主机id列表查询主机锁",
         )
+        self.transfer_host_to_recyclemodule = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/transfer_host_to_recyclemodule/",
+            description="上交主机到业务的待回收模块",
+        )

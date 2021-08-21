@@ -472,7 +472,7 @@
             attrs: {
                 name: gettext("开始时间"),
                 hookable: true,
-                placeholder: "请输入`yyyy-MM-dd HH:mm:ss`格式，建议引用自定义日期时间类型变量",
+                placeholder: gettext("时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变量"),
                 validation: [
                     {
                         type: "custom",
@@ -486,7 +486,7 @@
                                 return result;
                             }
                             let bk_alarm_time_type = self.get_parent().get_child('bk_alarm_time_type');
-                            if ((bk_alarm_time_type.value === '0' || bk_alarm_time_type.value === '2') && this.value.length === 0) {
+                            if (bk_alarm_time_type && (bk_alarm_time_type.value === '0' || bk_alarm_time_type.value === '2') && this.value.length === 0) {
                                 result.result = false;
                                 result.error_message = gettext("开始时间不可为空");
                             }
@@ -514,7 +514,7 @@
                     action: function () {
                         let self = this;
                         let bk_alarm_time_type = self.get_parent().get_child('bk_alarm_time_type');
-                        if (bk_alarm_time_type.value === '0' || bk_alarm_time_type.value === '2') {
+                        if (!bk_alarm_time_type || bk_alarm_time_type.value === '0' || bk_alarm_time_type.value === '2') {
                             self.show();
                         } else {
                             self.hide();
@@ -529,7 +529,7 @@
             attrs: {
                 name: gettext("结束时间"),
                 hookable: true,
-                placeholder: "请输入`yyyy-MM-dd HH:mm:ss`格式，建议引用自定义日期时间类型变量",
+                placeholder: gettext("时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变量"),
                 validation: [
                     {
                         type: "custom",
@@ -543,7 +543,7 @@
                                 return result;
                             }
                             let bk_alarm_time_type = self.get_parent().get_child('bk_alarm_time_type');
-                            if (bk_alarm_time_type.value === '0' && this.value.length === 0) {
+                            if (bk_alarm_time_type && bk_alarm_time_type.value === '0' && this.value.length === 0) {
                                 result.result = false;
                                 result.error_message = gettext("结束时间不可为空");
                             }
@@ -571,7 +571,7 @@
                     action: function () {
                         let self = this;
                         let bk_alarm_time_type = self.get_parent().get_child('bk_alarm_time_type');
-                        if (bk_alarm_time_type.value === '0') {
+                        if (!bk_alarm_time_type || bk_alarm_time_type.value === '0') {
                             self.show();
                         } else {
                             self.hide();
@@ -600,7 +600,7 @@
                                 return result;
                             }
                             let bk_alarm_time_type = self.get_parent().get_child('bk_alarm_time_type');
-                            if ((bk_alarm_time_type.value === '1' || bk_alarm_time_type.value === '2') && this.value.length === 0) {
+                            if (bk_alarm_time_type && (bk_alarm_time_type.value === '1' || bk_alarm_time_type.value === '2') && this.value.length === 0) {
                                 result.result = false;
                                 result.error_message = gettext("持续时间不可为空");
                             }
@@ -629,7 +629,7 @@
                     action: function () {
                         let self = this;
                         let bk_alarm_time_type = self.get_parent().get_child('bk_alarm_time_type');
-                        if (bk_alarm_time_type.value === '1' || bk_alarm_time_type.value === '2') {
+                        if (!bk_alarm_time_type || bk_alarm_time_type.value === '1' || bk_alarm_time_type.value === '2') {
                             self.show();
                         } else {
                             self.hide();

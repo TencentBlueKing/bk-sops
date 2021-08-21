@@ -16,6 +16,7 @@ import logging
 from django.utils import translation, timezone
 from django.utils.translation import ugettext_lazy as _
 
+from engine_pickle_obj.context import SystemObject
 from gcloud.core.models import Business, ProjectConfig, Project
 
 logger = logging.getLogger("root")
@@ -133,3 +134,11 @@ class TaskContext(object):
                 }
             )
         return details
+
+
+def root_pipeline_context_provider(root_pipeline_data: dict):
+    return {"${_system}": SystemObject(root_pipeline_data)}
+
+
+def subprocess_context_provider(root_pipeline_data: dict):
+    return {"${_system}": SystemObject(root_pipeline_data)}

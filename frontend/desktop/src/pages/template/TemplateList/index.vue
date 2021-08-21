@@ -484,7 +484,7 @@
         computed: {
             ...mapState({
                 'site_url': state => state.site_url,
-                'projectBaseInfo': state => state.template.projectBaseInfo,
+                'templateList': state => state.templateList.templateListData,
                 'v1_import_flag': state => state.v1_import_flag,
                 'username': state => state.username
             }),
@@ -599,8 +599,11 @@
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    this.setting.size = size
-                    selectedFields = fieldList
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.defaultSelected
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('templateList')
+                    }
                 } else {
                     selectedFields = this.defaultSelected
                 }
@@ -938,7 +941,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'process', params: { project_id: this.project_id }, query })
+                this.$router.replace({ name: 'process', params: { project_id: this.project_id }, query })
             },
             /**
              * 单个模板操作项点击时校验

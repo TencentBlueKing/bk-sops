@@ -250,6 +250,7 @@
                     source_tag: 'input.input',
                     source_type: 'custom',
                     validation: '^.+$',
+                    pre_render_mako: false,
                     value: '',
                     version: 'legacy'
                 }
@@ -461,7 +462,7 @@
             width: 54px;
         }
         .col-cited {
-            width: 54px;
+            width: 50px;
         }
     }
     .variable-header {

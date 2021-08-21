@@ -355,7 +355,7 @@ $localBorderColor: #d8e2e7;
         width: 54px;
     }
     .col-cited {
-        width: 54px;
+        width: 50px;
         color: #3a84ff;
         cursor: pointer;
         &.disabled {
