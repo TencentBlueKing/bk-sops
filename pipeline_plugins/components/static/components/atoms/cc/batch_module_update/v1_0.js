@@ -81,7 +81,7 @@
                         "tag_code": "cc_module_select_text",
                         "type": "input",
                         "attrs": {
-                            "name": "模块拓扑",
+                            "name": gettext("模块拓扑"),
                             "placeholder": "集群A>模块B",
                             "width": "120px",
                             "editable": true
