@@ -33,12 +33,16 @@ DEFAULT_BK_CLOUD_ID = "-1"
 class IPPickerDataGenerator:
     # IP选择器根据手动输入内容生成对应所需数据，方便后面进行过滤和处理
     def __init__(self, input_type, raw_data, request_kwargs, gen_kwargs):
+        """
+        :params input_type: 手动输入类型，值为ip(静态IP)/topo(动态IP)/group(动态分组)
+        :params raw_data: 手动输入数据字符串
+        :params request_kwargs: 包括请求接口所需要的参数信息, 如username,bk_biz_id,bk_supplier_account
+        :params gen_kwargs: 包括信息匹配筛选所需要的信息，如biz_topo_tree
+        """
         self.input_type = input_type
         self.raw_data = raw_data.strip()
         self.username = request_kwargs.pop("username")
-        # 包括请求接口所需要的参数信息, 如username,bk_biz_id,bk_supplier_account
         self.request_kwargs = request_kwargs
-        # 包括信息匹配筛选所需要的信息，如biz_topo_tree
         self.gen_kwargs = gen_kwargs
 
     def generate(self):
@@ -99,7 +103,17 @@ class IPPickerDataGenerator:
 
     @staticmethod
     def _remove_included_topo_path(path_list):
-        # 去除包含关系的拓扑路径，只保持最高层级结构
+        """
+        去除包含关系的拓扑路径，只保持最高层级结构
+        :prams path_list: 拓扑层级列表
+        :type path_list: List[List]
+        :return 包含关系去除后的拓扑层级列表
+        :rtype List[List]
+
+        e.g.
+        1. 不存在包含关系：[[1,2,3], [4,5]] -> [[1,2,3], [4,5]]
+        2. 存在包含关系：[[1,2,3], [1,2], [4,5]] -> [[1,2], [4,5]]
+        """
         processed_path_list = []
         sorted_path_list = sorted(path_list, key=lambda x: len(x))
         path_record = {}
