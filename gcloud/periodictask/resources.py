@@ -24,9 +24,10 @@ from django_celery_beat.models import PeriodicTask as CeleryTask
 
 import env
 from gcloud.core.models import ProjectConfig
-from gcloud.taskflow3.resources import ProjectBasedTaskFlowIAMAuthorization
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
+
+from gcloud.taskflow3.apis.tastypie.resources import ProjectBasedTaskFlowIAMAuthorization
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Subject, Action
