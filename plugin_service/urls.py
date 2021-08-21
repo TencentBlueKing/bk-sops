@@ -21,4 +21,5 @@ urlpatterns = [
     url(r"^meta/$", api.get_meta),
     url(r"^detail/$", api.get_plugin_detail),
     url(r"^logs/$", api.get_logs),
+    url(r"^app_detail/$", api.get_plugin_app_detail),
 ]

@@ -36,6 +36,12 @@ class PluginInfoSerializer(serializers.Serializer):
     logo_url = serializers.CharField(help_text="Logo地址")
 
 
+class PluginAppDetailResponseSerializer(serializers.Serializer):
+    code = serializers.CharField(help_text="插件服务应用Code")
+    name = serializers.CharField(help_text="插件服务应用名称")
+    updated = serializers.TimeField(help_text="插件服务应用更新时间")
+
+
 class PluginListSerializer(serializers.Serializer):
     plugins = PluginInfoSerializer(help_text="插件列表信息", many=True)
     count = serializers.IntegerField(help_text="插件条数")
