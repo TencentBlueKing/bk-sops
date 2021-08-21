@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("files", "0003_auto_20200907_1754"),
+        ("files", "0003_uploadticket_isavailable_default_true"),
     ]
 
     operations = [
