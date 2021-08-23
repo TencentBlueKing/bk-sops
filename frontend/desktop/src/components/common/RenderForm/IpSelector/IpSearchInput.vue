@@ -55,8 +55,11 @@
             onInputChange () {
                 clearTimeout(this.timer)
                 this.timer = setTimeout(() => {
-                    this.$emit('search', this.keyword)
+                    this.handleSearch()
                 }, this.delay)
+            },
+            handleSearch () {
+                this.$emit('search', this.keyword)
             }
         }
     }
