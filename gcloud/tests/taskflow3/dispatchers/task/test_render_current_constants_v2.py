@@ -39,7 +39,9 @@ class RenderCurrentConstantsV2TestCase(TestCase):
 
         with mock.patch(TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME, runtime_cls):
             with mock.patch(TASKFLOW_DISPATCHERS_TASK_CONTEXT, context_cls):
-                dispatcher = TaskCommandDispatcher(engine_ver=2, taskflow_id=1, pipeline_instance=pipeline_instance)
+                dispatcher = TaskCommandDispatcher(
+                    engine_ver=2, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+                )
                 result = dispatcher.render_current_constants_v2()
 
         runtime.get_context.assert_called_once_with(pipeline_instance.instance_id)

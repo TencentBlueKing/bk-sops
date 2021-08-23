@@ -26,7 +26,9 @@ class RenderCurrentConstantsV1TestCase(TestCase):
         pipeline_instance = MagicMock()
         pipeline_instance.is_started = False
 
-        dispatcher = TaskCommandDispatcher(engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance)
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+        )
         result = dispatcher.render_current_constants_v1()
         self.assertEqual(
             result,
@@ -38,7 +40,9 @@ class RenderCurrentConstantsV1TestCase(TestCase):
         pipeline_instance.is_started = True
         pipeline_instance.is_finished = True
 
-        dispatcher = TaskCommandDispatcher(engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance)
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+        )
         result = dispatcher.render_current_constants_v1()
         self.assertEqual(
             result,
@@ -50,7 +54,9 @@ class RenderCurrentConstantsV1TestCase(TestCase):
         pipeline_instance.is_started = True
         pipeline_instance.is_revoked = True
 
-        dispatcher = TaskCommandDispatcher(engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance)
+        dispatcher = TaskCommandDispatcher(
+            engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+        )
         result = dispatcher.render_current_constants_v1()
         self.assertEqual(
             result,
@@ -94,7 +100,9 @@ class RenderCurrentConstantsV1TestCase(TestCase):
         pipeline_model_cls.objects.get = MagicMock(return_value=pipeline_model)
 
         with mock.patch(TASKFLOW_DISPATCHERS_TASK_PIPELINE_MODEL, pipeline_model_cls):
-            dispatcher = TaskCommandDispatcher(engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance)
+            dispatcher = TaskCommandDispatcher(
+                engine_ver=1, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+            )
             result = dispatcher.render_current_constants_v1()
 
         pipeline_model_cls.objects.get.assert_called_once_with(id=pipeline_instance.instance_id)
