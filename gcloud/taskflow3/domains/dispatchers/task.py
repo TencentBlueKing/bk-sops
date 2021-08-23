@@ -19,7 +19,6 @@ from typing import Optional
 from django.utils import timezone
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
-from bamboo_engine.utils.object import Representable
 from bamboo_engine.context import Context
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline import exceptions as pipeline_exceptions
