@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import datetime
 import logging
+import json
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -98,6 +99,38 @@ class Select(LazyVariable):
         # single select
         else:
             return self.value
+
+
+class TextValueSelect(LazyVariable):
+    code = "text_value_select"
+    name = _("文本值下拉框")
+    type = "meta"
+    tag = "select.select"
+    meta_tag = "select.select_meta"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, "select")
+    schema = StringItemSchema(description=_("文本值下拉框变量"))
+    desc = """
+        单选模式下 ${KEY["value"]} 输出选中的 value，
+        ${KEY["text"]} 输出选中的 text\n
+        多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
+        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串
+        """
+
+    def get_value(self):
+        text_value = json.loads(self.value)
+        # multiple
+        if len(text_value) > 1:
+            text_string = ",".join([option["text"] for option in text_value])
+            value_string = ",".join([option["value"] for option in text_value])
+            return {"text": text_string, "value": value_string}
+        # single
+        else:
+            return text_value[0]
+
+    @classmethod
+    def process_meta_avalue(self, meta_data, info_value):
+        value = meta_data["value"]["items_text"]
+        return value
 
 
 class FormatSupportCurrentTime(LazyVariable):

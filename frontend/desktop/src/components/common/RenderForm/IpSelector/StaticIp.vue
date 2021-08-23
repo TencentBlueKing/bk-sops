@@ -13,8 +13,6 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button theme="default" size="small" :disabled="!editable" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
-                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <bk-dropdown-menu
                     trigger="click"
                     :disabled="!editable"
@@ -34,6 +32,8 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
+                <bk-button theme="default" size="small" :disabled="!editable" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
+                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <ip-search-input
                     :class="['ip-search-wrap', isStaticIpClassName]"
                     :editable="editable"
@@ -422,7 +422,7 @@
         font-size: 12px;
     }
     .bk-dropdown-menu {
-        float: right;
+        margin-left: 4px;
     }
     .trigger-btn {
         width: 162px;
@@ -441,7 +441,7 @@
 }
 .ip-search-wrap {
     position: absolute;
-    top: -56px;
+    top: 0px;
     right: 0;
     width: 32%;
 }

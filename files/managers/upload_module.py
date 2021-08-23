@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from .base import Manager
 from ..models import UploadModuleFileTag
 from ..exceptions import InvalidOperationError
+from ..env import BKAPP_FILE_MGR_SOURCE_ACCOUNT
 
 
 class UploadModuleManager(Manager):
@@ -31,7 +32,9 @@ class UploadModuleManager(Manager):
 
         return {"type": "upload_module", "tags": {"tag_id": tag.id}}
 
-    def push_files_to_ips(self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None):
+    def push_files_to_ips(
+        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+    ):
 
         if not all([tag["type"] == "upload_module" for tag in file_tags]):
             raise InvalidOperationError("can not do files push operation on different types files")
@@ -43,7 +46,7 @@ class UploadModuleManager(Manager):
         file_source = [
             {
                 "files": ["{}/{}".format(tag.file_path, tag.file_name)],
-                "account": "root",
+                "account": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
                 "ip_list": [{"bk_cloud_id": 0, "ip": tag.source_ip}],
             }
             for tag in tag_models
@@ -56,6 +59,9 @@ class UploadModuleManager(Manager):
             "file_source": file_source,
             "ip_list": ips,
         }
+
+        if timeout is not None:
+            job_kwargs["timeout"] = int(timeout)
 
         if callback_url:
             job_kwargs["bk_callback_url"] = callback_url

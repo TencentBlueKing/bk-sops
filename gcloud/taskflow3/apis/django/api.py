@@ -105,7 +105,7 @@ def status(request, project_id):
         )
 
     dispatcher = TaskCommandDispatcher(
-        engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+        engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance, project_id=project_id
     )
     result = dispatcher.get_task_status(subprocess_id=subprocess_id)
     return JsonResponse(result)

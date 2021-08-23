@@ -39,7 +39,7 @@ const generateInitLocation = () => {
         {
             id: 'node' + uuid(),
             x: 240,
-            y: 145,
+            y: 140,
             name: '',
             stage_name: '',
             type: 'tasknode'
@@ -188,7 +188,7 @@ const template = {
             details: [],
             subproc_has_update: false
         },
-        systemConstants: [],
+        internalVariable: [],
         default_flow_type: 'common'
     },
     mutations: {
@@ -221,7 +221,7 @@ const template = {
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some((item) => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
-                    item.expired = false
+                    item.expired = subflow.expired
                     if (subflow.version) {
                         item.version = subflow.version
                     }
@@ -794,7 +794,7 @@ const template = {
         },
         // 设置内置变量
         setInternalVariable (state, payload) {
-            state.systemConstants = payload
+            state.internalVariable = payload
         }
     },
     actions: {

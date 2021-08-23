@@ -21,9 +21,9 @@ from django.shortcuts import render
 from django_prometheus.exports import ExportToDjangoView
 
 from blueapps.account.components.bk_token.forms import AuthenticationForm
+from blueapps.account.decorators import login_exempt
 from blueapps.account.middlewares import LoginRequiredMiddleware
 from config import RUN_VER
-from blueapps.account.decorators import login_exempt
 from gcloud.core.signals import user_enter
 from gcloud.conf import settings
 

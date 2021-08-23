@@ -148,17 +148,19 @@
                             switch (index) {
                                 case 0:
                                     this.staticIpList = v.data
-                                    const value = tools.deepClone(this.value)
-                                    const ips = []
-                                    value.ip.forEach(item => {
-                                        // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则过滤掉
-                                        const ipItem = this.staticIpList.find(i => i.bk_host_innerip === item.bk_host_innerip)
-                                        if (ipItem) {
-                                            ips.push(tools.deepClone(ipItem))
-                                        }
-                                    })
-                                    value.ip = ips
-                                    this.updateForm(value)
+                                    if (!this.hook) { // 表单没有被勾选
+                                        const value = tools.deepClone(this.value)
+                                        const ips = []
+                                        value.ip.forEach(item => {
+                                            // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则过滤掉
+                                            const ipItem = this.staticIpList.find(i => i.bk_host_innerip === item.bk_host_innerip)
+                                            if (ipItem) {
+                                                ips.push(tools.deepClone(ipItem))
+                                            }
+                                        })
+                                        value.ip = ips
+                                        this.updateForm(value)
+                                    }
                                     break
                                 case 1:
                                     this.dynamicIpList = v.data

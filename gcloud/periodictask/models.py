@@ -24,7 +24,7 @@ from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as Pipelin
 from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
-from gcloud.core.models import Project, EngineConfig
+from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
@@ -208,11 +208,21 @@ class PeriodicTask(models.Model):
         receivers = [self.creator]
 
         if self.project.from_cmdb:
-            group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            cc_group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            receivers.extend(cc_group_members)
 
-            receivers.extend(group_members)
+        members = list(
+            StaffGroupSet.objects.filter(
+                project_id=self.project.id,
+                is_deleted=False,
+                id__in=[group for group in receiver_group if isinstance(group, int)],
+            ).values_list("members", flat=True)
+        )
+        if members:
+            members = ",".join(members).split(",")
+            receivers.extend(members)
 
-        return receivers
+        return list(set(receivers))
 
     def get_notify_type(self):
         return json.loads(self.template.notify_type)

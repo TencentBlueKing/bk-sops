@@ -89,7 +89,7 @@
         },
         computed: {
             ...mapState({
-                'systemConstants': state => state.template.systemConstants
+                'internalVariable': state => state.template.internalVariable
             }),
             constantArr: {
                 get () {
@@ -97,8 +97,8 @@
                     if (this.constants) {
                         Keylist = [...Object.keys(this.constants)]
                     }
-                    if (this.systemConstants) {
-                        Keylist = [...Keylist, ...Object.keys(this.systemConstants)]
+                    if (this.internalVariable) {
+                        Keylist = [...Keylist, ...Object.keys(this.internalVariable)]
                     }
                     return Keylist
                 },

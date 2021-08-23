@@ -1,0 +1,1164 @@
+{
+    "exporter_version": 1,
+    "pipeline_template_data": {
+        "refs": {
+            "bf19682c3af235cf99956857e70be84e": {
+                "5ad26a77856c360585209702f5d3e614": [
+                    "n6c29ee96a093233a4052259eae107f5"
+                ]
+            }
+        },
+        "template": {
+            "5ad26a77856c360585209702f5d3e614": {
+                "create_time": "2021-06-03 05:37:03 UTC",
+                "creator": "admin",
+                "description": "",
+                "edit_time": "2021-06-03 05:37:03 UTC",
+                "editor": "waylonshi",
+                "is_deleted": false,
+                "name": "yaml导出样例父流程",
+                "template_id": "5ad26a77856c360585209702f5d3e614",
+                "tree": {
+                    "activities": {
+                        "n6c29ee96a093233a4052259eae107f5": {
+                            "can_retry": true,
+                            "constants": {
+                                "${description}": {
+                                    "custom_type": "",
+                                    "desc": "",
+                                    "form_schema": {
+                                        "attrs": {
+                                            "hookable": true,
+                                            "name": "描述",
+                                            "placeholder": "描述"
+                                        },
+                                        "type": "textarea"
+                                    },
+                                    "index": 2,
+                                    "key": "${description}",
+                                    "name": "描述",
+                                    "show_type": "show",
+                                    "source_info": {
+                                        "n85b38c0ea2b37c0a39c254873dcd1b6": [
+                                            "description"
+                                        ]
+                                    },
+                                    "source_tag": "pause_node.description",
+                                    "source_type": "component_inputs",
+                                    "validation": "",
+                                    "value": "",
+                                    "version": "legacy"
+                                },
+                                "${test}": {
+                                    "custom_type": "input",
+                                    "desc": "",
+                                    "form_schema": {
+                                        "attrs": {
+                                            "hookable": true,
+                                            "name": "输入框",
+                                            "validation": []
+                                        },
+                                        "type": "input"
+                                    },
+                                    "index": 1,
+                                    "key": "${test}",
+                                    "name": "test",
+                                    "show_type": "show",
+                                    "source_info": {},
+                                    "source_tag": "input.input",
+                                    "source_type": "custom",
+                                    "validation": "^.+$",
+                                    "value": "${test}",
+                                    "version": "legacy"
+                                }
+                            },
+                            "hooked_constants": [],
+                            "id": "n6c29ee96a093233a4052259eae107f5",
+                            "incoming": [
+                                "lfa2472ef58536b4a91e42744ea8dfb6"
+                            ],
+                            "isSkipped": true,
+                            "labels": [],
+                            "loop": null,
+                            "name": "yaml导出样例子流程",
+                            "optional": true,
+                            "outgoing": "lbf688e06ddb3d428d17bd9f24e3fe14",
+                            "stage_name": "",
+                            "template_id": "bf19682c3af235cf99956857e70be84e",
+                            "type": "SubProcess",
+                            "version": "86586094f37b1ec469148b0110cd8ca2"
+                        },
+                        "nc9a4ab053d03d74ad3a36a7435b6eed": {
+                            "component": {
+                                "code": "sleep_timer",
+                                "data": {
+                                    "bk_timing": {
+                                        "hook": false,
+                                        "value": "${parent_test}"
+                                    },
+                                    "force_check": {
+                                        "hook": false,
+                                        "value": true
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "nc9a4ab053d03d74ad3a36a7435b6eed",
+                            "incoming": [
+                                "l6f9900d87353c2da678b41756d65ae3"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "定时",
+                            "optional": true,
+                            "outgoing": "lfa2472ef58536b4a91e42744ea8dfb6",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        }
+                    },
+                    "constants": {
+                        "${_result}": {
+                            "custom_type": "",
+                            "desc": "",
+                            "index": 0,
+                            "key": "${_result}",
+                            "name": "执行结果",
+                            "show_type": "hide",
+                            "source_info": {
+                                "nc9a4ab053d03d74ad3a36a7435b6eed": [
+                                    "_result"
+                                ]
+                            },
+                            "source_tag": "",
+                            "source_type": "component_outputs",
+                            "validation": "",
+                            "value": "",
+                            "version": "legacy"
+                        },
+                        "${test}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "attrs": {
+                                    "hookable": true,
+                                    "name": "test",
+                                    "validation": [
+                                        {
+                                            "args": "^.+$",
+                                            "error_message": "默认值不符合正则规则：^.+$",
+                                            "type": "regex"
+                                        }
+                                    ]
+                                },
+                                "type": "input"
+                            },
+                            "index": 1,
+                            "key": "${test}",
+                            "name": "test",
+                            "show_type": "show",
+                            "source_info": {
+                                "n6c29ee96a093233a4052259eae107f5": [
+                                    "${test}"
+                                ]
+                            },
+                            "source_tag": "input.input",
+                            "source_type": "component_inputs",
+                            "validation": "^.+$",
+                            "value": "3",
+                            "version": "legacy"
+                        }
+                    },
+                    "end_event": {
+                        "id": "n6df62856b1a3f9ca194635c0f0acec7",
+                        "incoming": [
+                            "lbf688e06ddb3d428d17bd9f24e3fe14"
+                        ],
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "",
+                        "type": "EmptyEndEvent"
+                    },
+                    "flows": {
+                        "l6f9900d87353c2da678b41756d65ae3": {
+                            "id": "l6f9900d87353c2da678b41756d65ae3",
+                            "is_default": false,
+                            "source": "ne6073c209603e9db296cbf2ef724003",
+                            "target": "nc9a4ab053d03d74ad3a36a7435b6eed"
+                        },
+                        "lbf688e06ddb3d428d17bd9f24e3fe14": {
+                            "id": "lbf688e06ddb3d428d17bd9f24e3fe14",
+                            "is_default": false,
+                            "source": "n6c29ee96a093233a4052259eae107f5",
+                            "target": "n6df62856b1a3f9ca194635c0f0acec7"
+                        },
+                        "lfa2472ef58536b4a91e42744ea8dfb6": {
+                            "id": "lfa2472ef58536b4a91e42744ea8dfb6",
+                            "is_default": false,
+                            "source": "nc9a4ab053d03d74ad3a36a7435b6eed",
+                            "target": "n6c29ee96a093233a4052259eae107f5"
+                        }
+                    },
+                    "gateways": {},
+                    "line": [
+                        {
+                            "id": "l6f9900d87353c2da678b41756d65ae3",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "ne6073c209603e9db296cbf2ef724003"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "nc9a4ab053d03d74ad3a36a7435b6eed"
+                            }
+                        },
+                        {
+                            "id": "lfa2472ef58536b4a91e42744ea8dfb6",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "nc9a4ab053d03d74ad3a36a7435b6eed"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n6c29ee96a093233a4052259eae107f5"
+                            }
+                        },
+                        {
+                            "id": "lbf688e06ddb3d428d17bd9f24e3fe14",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n6c29ee96a093233a4052259eae107f5"
+                            },
+                            "target": {
+                                "arrow": "Bottom",
+                                "id": "n6df62856b1a3f9ca194635c0f0acec7"
+                            }
+                        }
+                    ],
+                    "location": [
+                        {
+                            "id": "ne6073c209603e9db296cbf2ef724003",
+                            "type": "startpoint",
+                            "x": 40,
+                            "y": 150
+                        },
+                        {
+                            "group": "蓝鲸服务(BK)",
+                            "icon": "",
+                            "id": "nc9a4ab053d03d74ad3a36a7435b6eed",
+                            "name": "定时",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 240,
+                            "y": 145
+                        },
+                        {
+                            "id": "n6df62856b1a3f9ca194635c0f0acec7",
+                            "type": "endpoint",
+                            "x": 540,
+                            "y": 150
+                        },
+                        {
+                            "id": "n6c29ee96a093233a4052259eae107f5",
+                            "name": "yaml导出样例子流程",
+                            "stage_name": "",
+                            "type": "subflow",
+                            "x": 290,
+                            "y": 305
+                        }
+                    ],
+                    "outputs": [],
+                    "start_event": {
+                        "id": "ne6073c209603e9db296cbf2ef724003",
+                        "incoming": "",
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "l6f9900d87353c2da678b41756d65ae3",
+                        "type": "EmptyStartEvent"
+                    }
+                }
+            },
+            "5d3262b73df63f84b595b4ab90ab9c6e": {
+                "create_time": "2021-06-03 05:37:03 UTC",
+                "creator": "admin",
+                "description": "",
+                "edit_time": "2021-06-03 05:37:03 UTC",
+                "editor": "waylonshi",
+                "is_deleted": false,
+                "name": "循环样例",
+                "template_id": "5d3262b73df63f84b595b4ab90ab9c6e",
+                "tree": {
+                    "activities": {
+                        "n82baa417b9637fca111113c73bbd8d6": {
+                            "component": {
+                                "code": "sleep_timer",
+                                "data": {
+                                    "bk_timing": {
+                                        "hook": true,
+                                        "value": "${bk_timing}"
+                                    },
+                                    "force_check": {
+                                        "hook": false,
+                                        "value": true
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "n82baa417b9637fca111113c73bbd8d6",
+                            "incoming": [
+                                "l1d2950511353bb68fa6d1f28769e72b",
+                                "lee02e41ff7d3fa1925b124c4df7eb0f"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "循环前置节点",
+                            "optional": true,
+                            "outgoing": "l3a84160e4c93bfcbd483e5278951717",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        },
+                        "nf58f7ea7f9738c7bad0e9066d6aaf8f": {
+                            "component": {
+                                "code": "sleep_timer",
+                                "data": {
+                                    "bk_timing": {
+                                        "hook": false,
+                                        "value": "${time_list.split(\",\")[_loop-1]}"
+                                    },
+                                    "force_check": {
+                                        "hook": false,
+                                        "value": true
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "nf58f7ea7f9738c7bad0e9066d6aaf8f",
+                            "incoming": [
+                                "l3a84160e4c93bfcbd483e5278951717"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "定时",
+                            "optional": true,
+                            "outgoing": "l333a546cea639ad970171b05c646adc",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        }
+                    },
+                    "constants": {
+                        "${_loop}": {
+                            "custom_type": "",
+                            "desc": "",
+                            "index": 1,
+                            "key": "${_loop}",
+                            "name": "循环次数",
+                            "show_type": "hide",
+                            "source_info": {
+                                "n82baa417b9637fca111113c73bbd8d6": [
+                                    "_loop"
+                                ]
+                            },
+                            "source_tag": "",
+                            "source_type": "component_outputs",
+                            "validation": "",
+                            "value": "",
+                            "version": "legacy"
+                        },
+                        "${bk_timing}": {
+                            "custom_type": "",
+                            "desc": "",
+                            "form_schema": {
+                                "attrs": {
+                                    "hookable": true,
+                                    "name": "定时时间",
+                                    "placeholder": "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)",
+                                    "validation": [
+                                        {
+                                            "type": "required"
+                                        }
+                                    ]
+                                },
+                                "type": "input"
+                            },
+                            "index": 2,
+                            "key": "${bk_timing}",
+                            "name": "定时时间",
+                            "show_type": "show",
+                            "source_info": {
+                                "n82baa417b9637fca111113c73bbd8d6": [
+                                    "bk_timing"
+                                ]
+                            },
+                            "source_tag": "sleep_timer.bk_timing",
+                            "source_type": "component_inputs",
+                            "validation": "",
+                            "value": "1",
+                            "version": "legacy"
+                        },
+                        "${time_list}": {
+                            "custom_type": "textarea",
+                            "desc": "",
+                            "form_schema": {
+                                "attrs": {
+                                    "hookable": true,
+                                    "name": "文本框",
+                                    "validation": [
+                                        {
+                                            "type": "required"
+                                        }
+                                    ]
+                                },
+                                "type": "textarea"
+                            },
+                            "index": 0,
+                            "is_meta": false,
+                            "key": "${time_list}",
+                            "name": "time_list",
+                            "show_type": "show",
+                            "source_info": {},
+                            "source_tag": "textarea.textarea",
+                            "source_type": "custom",
+                            "validation": "",
+                            "value": "1,2,3,4",
+                            "version": "legacy"
+                        }
+                    },
+                    "end_event": {
+                        "id": "na49fcf9d3d33dfb849738363273aaf7",
+                        "incoming": [
+                            "l56dcb06af5a3a73b69ff7d16ea7415d"
+                        ],
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "",
+                        "type": "EmptyEndEvent"
+                    },
+                    "flows": {
+                        "l1d2950511353bb68fa6d1f28769e72b": {
+                            "id": "l1d2950511353bb68fa6d1f28769e72b",
+                            "is_default": false,
+                            "source": "n1ed815305e835f9b097617afaa27a49",
+                            "target": "n82baa417b9637fca111113c73bbd8d6"
+                        },
+                        "l333a546cea639ad970171b05c646adc": {
+                            "id": "l333a546cea639ad970171b05c646adc",
+                            "is_default": false,
+                            "source": "nf58f7ea7f9738c7bad0e9066d6aaf8f",
+                            "target": "n85cd6961e06328f8fe16e281f73d391"
+                        },
+                        "l3a84160e4c93bfcbd483e5278951717": {
+                            "id": "l3a84160e4c93bfcbd483e5278951717",
+                            "is_default": false,
+                            "source": "n82baa417b9637fca111113c73bbd8d6",
+                            "target": "nf58f7ea7f9738c7bad0e9066d6aaf8f"
+                        },
+                        "l56dcb06af5a3a73b69ff7d16ea7415d": {
+                            "id": "l56dcb06af5a3a73b69ff7d16ea7415d",
+                            "is_default": false,
+                            "source": "n85cd6961e06328f8fe16e281f73d391",
+                            "target": "na49fcf9d3d33dfb849738363273aaf7"
+                        },
+                        "lee02e41ff7d3fa1925b124c4df7eb0f": {
+                            "id": "lee02e41ff7d3fa1925b124c4df7eb0f",
+                            "is_default": false,
+                            "source": "n85cd6961e06328f8fe16e281f73d391",
+                            "target": "n82baa417b9637fca111113c73bbd8d6"
+                        }
+                    },
+                    "gateways": {
+                        "n85cd6961e06328f8fe16e281f73d391": {
+                            "conditions": {
+                                "l56dcb06af5a3a73b69ff7d16ea7415d": {
+                                    "evaluate": "${_loop} == ${len(time_list.split(\",\"))}",
+                                    "name": "循环结束",
+                                    "tag": "branch_node6a7188644302395222cd8b94b701_node09dc5c1a5c9ca6dc5ef8bdfff9a7"
+                                },
+                                "lee02e41ff7d3fa1925b124c4df7eb0f": {
+                                    "evaluate": "${_loop} < ${len(time_list.split(\",\"))}",
+                                    "name": "循环未结束",
+                                    "tag": "branch_node6a7188644302395222cd8b94b701_node413dba1a74e3045da403e3be9cd5"
+                                }
+                            },
+                            "id": "n85cd6961e06328f8fe16e281f73d391",
+                            "incoming": [
+                                "l333a546cea639ad970171b05c646adc"
+                            ],
+                            "labels": [],
+                            "name": "",
+                            "outgoing": [
+                                "l56dcb06af5a3a73b69ff7d16ea7415d",
+                                "lee02e41ff7d3fa1925b124c4df7eb0f"
+                            ],
+                            "type": "ExclusiveGateway"
+                        }
+                    },
+                    "line": [
+                        {
+                            "id": "l333a546cea639ad970171b05c646adc",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "nf58f7ea7f9738c7bad0e9066d6aaf8f"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n85cd6961e06328f8fe16e281f73d391"
+                            }
+                        },
+                        {
+                            "id": "l56dcb06af5a3a73b69ff7d16ea7415d",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n85cd6961e06328f8fe16e281f73d391"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "na49fcf9d3d33dfb849738363273aaf7"
+                            }
+                        },
+                        {
+                            "id": "l3a84160e4c93bfcbd483e5278951717",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n82baa417b9637fca111113c73bbd8d6"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "nf58f7ea7f9738c7bad0e9066d6aaf8f"
+                            }
+                        },
+                        {
+                            "id": "l1d2950511353bb68fa6d1f28769e72b",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n1ed815305e835f9b097617afaa27a49"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n82baa417b9637fca111113c73bbd8d6"
+                            }
+                        },
+                        {
+                            "id": "lee02e41ff7d3fa1925b124c4df7eb0f",
+                            "source": {
+                                "arrow": "Bottom",
+                                "id": "n85cd6961e06328f8fe16e281f73d391"
+                            },
+                            "target": {
+                                "arrow": "Bottom",
+                                "id": "n82baa417b9637fca111113c73bbd8d6"
+                            }
+                        }
+                    ],
+                    "location": [
+                        {
+                            "id": "n1ed815305e835f9b097617afaa27a49",
+                            "type": "startpoint",
+                            "x": 20,
+                            "y": 155
+                        },
+                        {
+                            "group": "蓝鲸服务(BK)",
+                            "icon": "",
+                            "id": "n82baa417b9637fca111113c73bbd8d6",
+                            "name": "循环前置节点",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 105,
+                            "y": 150
+                        },
+                        {
+                            "group": "蓝鲸服务(BK)",
+                            "icon": "",
+                            "id": "nf58f7ea7f9738c7bad0e9066d6aaf8f",
+                            "name": "定时",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 305,
+                            "y": 150
+                        },
+                        {
+                            "id": "n85cd6961e06328f8fe16e281f73d391",
+                            "name": "",
+                            "type": "branchgateway",
+                            "x": 498,
+                            "y": 160
+                        },
+                        {
+                            "id": "na49fcf9d3d33dfb849738363273aaf7",
+                            "type": "endpoint",
+                            "x": 702,
+                            "y": 155
+                        }
+                    ],
+                    "outputs": [],
+                    "start_event": {
+                        "id": "n1ed815305e835f9b097617afaa27a49",
+                        "incoming": "",
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "l1d2950511353bb68fa6d1f28769e72b",
+                        "type": "EmptyStartEvent"
+                    }
+                }
+            },
+            "bf19682c3af235cf99956857e70be84e": {
+                "create_time": "2021-06-03 05:37:03 UTC",
+                "creator": "admin",
+                "description": "",
+                "edit_time": "2021-06-03 05:37:03 UTC",
+                "editor": "waylonshi",
+                "is_deleted": false,
+                "name": "yaml导出样例子流程",
+                "template_id": "bf19682c3af235cf99956857e70be84e",
+                "tree": {
+                    "activities": {
+                        "n0843c82737d300796a4085926bf830e": {
+                            "component": {
+                                "code": "pause_node",
+                                "data": {
+                                    "description": {
+                                        "hook": false,
+                                        "value": ""
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "n0843c82737d300796a4085926bf830e",
+                            "incoming": [
+                                "l44c78b20b833a498d54c03dd1ca6239"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "暂停",
+                            "optional": true,
+                            "outgoing": "l6ffea0222ad3acdb28f72bf264c7e00",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        },
+                        "n50b402b290e3dc59ed78162b82c4548": {
+                            "component": {
+                                "code": "pause_node",
+                                "data": {
+                                    "description": {
+                                        "hook": false,
+                                        "value": ""
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "n50b402b290e3dc59ed78162b82c4548",
+                            "incoming": [
+                                "laf4e4becd413d42b7f467756a491c62"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "暂停",
+                            "optional": true,
+                            "outgoing": "l3ac778c8f02337eb700f8ccb4b62fff",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        },
+                        "n85b38c0ea2b37c0a39c254873dcd1b6": {
+                            "component": {
+                                "code": "pause_node",
+                                "data": {
+                                    "description": {
+                                        "hook": true,
+                                        "value": "${description}"
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "n85b38c0ea2b37c0a39c254873dcd1b6",
+                            "incoming": [
+                                "le1c7018a7093bb98ca7d41bec5d6cee"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "暂停",
+                            "optional": true,
+                            "outgoing": "l734bc6c1a723eeaac6d3b8fc8198b77",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        },
+                        "neffe5b75f1b372dbd32f75a2ca46687": {
+                            "component": {
+                                "code": "sleep_timer",
+                                "data": {
+                                    "bk_timing": {
+                                        "hook": false,
+                                        "value": "${test}"
+                                    },
+                                    "force_check": {
+                                        "hook": false,
+                                        "value": true
+                                    }
+                                },
+                                "version": "legacy"
+                            },
+                            "error_ignorable": false,
+                            "id": "neffe5b75f1b372dbd32f75a2ca46687",
+                            "incoming": [
+                                "l256e4592f603ec2997a924eb457d779"
+                            ],
+                            "labels": [],
+                            "loop": null,
+                            "name": "定时",
+                            "optional": true,
+                            "outgoing": "led9521c472b32e28729384e6a6cf924",
+                            "retryable": true,
+                            "skippable": true,
+                            "stage_name": "",
+                            "type": "ServiceActivity"
+                        }
+                    },
+                    "constants": {
+                        "${_result}": {
+                            "custom_type": "",
+                            "desc": "",
+                            "index": 0,
+                            "key": "${_result}",
+                            "name": "执行结果",
+                            "show_type": "hide",
+                            "source_info": {
+                                "neffe5b75f1b372dbd32f75a2ca46687": [
+                                    "_result"
+                                ]
+                            },
+                            "source_tag": "",
+                            "source_type": "component_outputs",
+                            "validation": "",
+                            "value": "",
+                            "version": "legacy"
+                        },
+                        "${description}": {
+                            "custom_type": "",
+                            "desc": "",
+                            "form_schema": {
+                                "attrs": {
+                                    "hookable": true,
+                                    "name": "描述",
+                                    "placeholder": "描述"
+                                },
+                                "type": "textarea"
+                            },
+                            "index": 2,
+                            "key": "${description}",
+                            "name": "描述",
+                            "show_type": "show",
+                            "source_info": {
+                                "n85b38c0ea2b37c0a39c254873dcd1b6": [
+                                    "description"
+                                ]
+                            },
+                            "source_tag": "pause_node.description",
+                            "source_type": "component_inputs",
+                            "validation": "",
+                            "value": "",
+                            "version": "legacy"
+                        },
+                        "${test}": {
+                            "custom_type": "input",
+                            "desc": "",
+                            "form_schema": {
+                                "attrs": {
+                                    "hookable": true,
+                                    "name": "输入框",
+                                    "validation": []
+                                },
+                                "type": "input"
+                            },
+                            "index": 1,
+                            "key": "${test}",
+                            "name": "test",
+                            "show_type": "show",
+                            "source_info": {},
+                            "source_tag": "input.input",
+                            "source_type": "custom",
+                            "validation": "^.+$",
+                            "value": "3",
+                            "version": "legacy"
+                        }
+                    },
+                    "end_event": {
+                        "id": "n078e7dfb536391a95c80719941fac78",
+                        "incoming": [
+                            "l7c4d6377815396685e60e28c9d91aae"
+                        ],
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "",
+                        "type": "EmptyEndEvent"
+                    },
+                    "flows": {
+                        "l256e4592f603ec2997a924eb457d779": {
+                            "id": "l256e4592f603ec2997a924eb457d779",
+                            "is_default": false,
+                            "source": "naf193e217b73986adc1f179c04229d8",
+                            "target": "neffe5b75f1b372dbd32f75a2ca46687"
+                        },
+                        "l3ac778c8f02337eb700f8ccb4b62fff": {
+                            "id": "l3ac778c8f02337eb700f8ccb4b62fff",
+                            "is_default": false,
+                            "source": "n50b402b290e3dc59ed78162b82c4548",
+                            "target": "n2ee8ca684b03eb38dc6b88e0b39ba73"
+                        },
+                        "l44c78b20b833a498d54c03dd1ca6239": {
+                            "id": "l44c78b20b833a498d54c03dd1ca6239",
+                            "is_default": false,
+                            "source": "nc358de3ea123636bf701c3eebb82126",
+                            "target": "n0843c82737d300796a4085926bf830e"
+                        },
+                        "l49241ba16463a5496f3d8eefde11772": {
+                            "id": "l49241ba16463a5496f3d8eefde11772",
+                            "is_default": false,
+                            "source": "nc2e2a6088f93d92a0a4ec63feb35784",
+                            "target": "naf193e217b73986adc1f179c04229d8"
+                        },
+                        "l6ffea0222ad3acdb28f72bf264c7e00": {
+                            "id": "l6ffea0222ad3acdb28f72bf264c7e00",
+                            "is_default": false,
+                            "source": "n0843c82737d300796a4085926bf830e",
+                            "target": "n2ee8ca684b03eb38dc6b88e0b39ba73"
+                        },
+                        "l734bc6c1a723eeaac6d3b8fc8198b77": {
+                            "id": "l734bc6c1a723eeaac6d3b8fc8198b77",
+                            "is_default": false,
+                            "source": "n85b38c0ea2b37c0a39c254873dcd1b6",
+                            "target": "nc358de3ea123636bf701c3eebb82126"
+                        },
+                        "l7c4d6377815396685e60e28c9d91aae": {
+                            "id": "l7c4d6377815396685e60e28c9d91aae",
+                            "is_default": false,
+                            "source": "n2ee8ca684b03eb38dc6b88e0b39ba73",
+                            "target": "n078e7dfb536391a95c80719941fac78"
+                        },
+                        "laf4e4becd413d42b7f467756a491c62": {
+                            "id": "laf4e4becd413d42b7f467756a491c62",
+                            "is_default": false,
+                            "source": "nc358de3ea123636bf701c3eebb82126",
+                            "target": "n50b402b290e3dc59ed78162b82c4548"
+                        },
+                        "le1c7018a7093bb98ca7d41bec5d6cee": {
+                            "id": "le1c7018a7093bb98ca7d41bec5d6cee",
+                            "is_default": false,
+                            "source": "naf193e217b73986adc1f179c04229d8",
+                            "target": "n85b38c0ea2b37c0a39c254873dcd1b6"
+                        },
+                        "led9521c472b32e28729384e6a6cf924": {
+                            "id": "led9521c472b32e28729384e6a6cf924",
+                            "is_default": false,
+                            "source": "neffe5b75f1b372dbd32f75a2ca46687",
+                            "target": "nc358de3ea123636bf701c3eebb82126"
+                        }
+                    },
+                    "gateways": {
+                        "n2ee8ca684b03eb38dc6b88e0b39ba73": {
+                            "id": "n2ee8ca684b03eb38dc6b88e0b39ba73",
+                            "incoming": [
+                                "l6ffea0222ad3acdb28f72bf264c7e00",
+                                "l3ac778c8f02337eb700f8ccb4b62fff"
+                            ],
+                            "labels": [],
+                            "name": "",
+                            "outgoing": "l7c4d6377815396685e60e28c9d91aae",
+                            "type": "ConvergeGateway"
+                        },
+                        "naf193e217b73986adc1f179c04229d8": {
+                            "conditions": {
+                                "l256e4592f603ec2997a924eb457d779": {
+                                    "evaluate": "1 == 0",
+                                    "name": "1 ==0",
+                                    "tag": "branch_node75bc11775af8a4f2be247de0ff3c_node9dde628217616f03b42c03208534"
+                                },
+                                "le1c7018a7093bb98ca7d41bec5d6cee": {
+                                    "evaluate": "1 == 1",
+                                    "name": "1 ==1",
+                                    "tag": "branch_node75bc11775af8a4f2be247de0ff3c_nodeba82d33aa992f5687b2e259d1b61"
+                                }
+                            },
+                            "id": "naf193e217b73986adc1f179c04229d8",
+                            "incoming": [
+                                "l49241ba16463a5496f3d8eefde11772"
+                            ],
+                            "labels": [],
+                            "name": "",
+                            "outgoing": [
+                                "l256e4592f603ec2997a924eb457d779",
+                                "le1c7018a7093bb98ca7d41bec5d6cee"
+                            ],
+                            "type": "ExclusiveGateway"
+                        },
+                        "nc358de3ea123636bf701c3eebb82126": {
+                            "converge_gateway_id": "n2ee8ca684b03eb38dc6b88e0b39ba73",
+                            "id": "nc358de3ea123636bf701c3eebb82126",
+                            "incoming": [
+                                "l734bc6c1a723eeaac6d3b8fc8198b77",
+                                "led9521c472b32e28729384e6a6cf924"
+                            ],
+                            "labels": [],
+                            "name": "",
+                            "outgoing": [
+                                "laf4e4becd413d42b7f467756a491c62",
+                                "l44c78b20b833a498d54c03dd1ca6239"
+                            ],
+                            "type": "ParallelGateway"
+                        }
+                    },
+                    "line": [
+                        {
+                            "id": "l49241ba16463a5496f3d8eefde11772",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "nc2e2a6088f93d92a0a4ec63feb35784"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "naf193e217b73986adc1f179c04229d8"
+                            }
+                        },
+                        {
+                            "id": "l256e4592f603ec2997a924eb457d779",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "naf193e217b73986adc1f179c04229d8"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "neffe5b75f1b372dbd32f75a2ca46687"
+                            }
+                        },
+                        {
+                            "id": "le1c7018a7093bb98ca7d41bec5d6cee",
+                            "source": {
+                                "arrow": "Bottom",
+                                "id": "naf193e217b73986adc1f179c04229d8"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n85b38c0ea2b37c0a39c254873dcd1b6"
+                            }
+                        },
+                        {
+                            "id": "l734bc6c1a723eeaac6d3b8fc8198b77",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n85b38c0ea2b37c0a39c254873dcd1b6"
+                            },
+                            "target": {
+                                "arrow": "Bottom",
+                                "id": "nc358de3ea123636bf701c3eebb82126"
+                            }
+                        },
+                        {
+                            "id": "laf4e4becd413d42b7f467756a491c62",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "nc358de3ea123636bf701c3eebb82126"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n50b402b290e3dc59ed78162b82c4548"
+                            }
+                        },
+                        {
+                            "id": "l44c78b20b833a498d54c03dd1ca6239",
+                            "source": {
+                                "arrow": "Bottom",
+                                "id": "nc358de3ea123636bf701c3eebb82126"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n0843c82737d300796a4085926bf830e"
+                            }
+                        },
+                        {
+                            "id": "l6ffea0222ad3acdb28f72bf264c7e00",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n0843c82737d300796a4085926bf830e"
+                            },
+                            "target": {
+                                "arrow": "Bottom",
+                                "id": "n2ee8ca684b03eb38dc6b88e0b39ba73"
+                            }
+                        },
+                        {
+                            "id": "l3ac778c8f02337eb700f8ccb4b62fff",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n50b402b290e3dc59ed78162b82c4548"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n2ee8ca684b03eb38dc6b88e0b39ba73"
+                            }
+                        },
+                        {
+                            "id": "l7c4d6377815396685e60e28c9d91aae",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "n2ee8ca684b03eb38dc6b88e0b39ba73"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "n078e7dfb536391a95c80719941fac78"
+                            }
+                        },
+                        {
+                            "id": "led9521c472b32e28729384e6a6cf924",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "neffe5b75f1b372dbd32f75a2ca46687"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "nc358de3ea123636bf701c3eebb82126"
+                            }
+                        }
+                    ],
+                    "location": [
+                        {
+                            "id": "nc2e2a6088f93d92a0a4ec63feb35784",
+                            "type": "startpoint",
+                            "x": 20,
+                            "y": 155
+                        },
+                        {
+                            "id": "naf193e217b73986adc1f179c04229d8",
+                            "name": "",
+                            "type": "branchgateway",
+                            "x": 108,
+                            "y": 160
+                        },
+                        {
+                            "id": "neffe5b75f1b372dbd32f75a2ca46687",
+                            "name": "定时",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 312,
+                            "y": 150
+                        },
+                        {
+                            "group": "蓝鲸服务(BK)",
+                            "icon": "",
+                            "id": "n85b38c0ea2b37c0a39c254873dcd1b6",
+                            "name": "暂停",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 312,
+                            "y": 258
+                        },
+                        {
+                            "id": "nc358de3ea123636bf701c3eebb82126",
+                            "name": "",
+                            "type": "parallelgateway",
+                            "x": 507,
+                            "y": 160
+                        },
+                        {
+                            "id": "n50b402b290e3dc59ed78162b82c4548",
+                            "name": "暂停",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 580,
+                            "y": 150
+                        },
+                        {
+                            "id": "n0843c82737d300796a4085926bf830e",
+                            "name": "暂停",
+                            "stage_name": "",
+                            "type": "tasknode",
+                            "x": 580,
+                            "y": 260
+                        },
+                        {
+                            "id": "n2ee8ca684b03eb38dc6b88e0b39ba73",
+                            "name": "",
+                            "type": "convergegateway",
+                            "x": 770,
+                            "y": 160
+                        },
+                        {
+                            "id": "n078e7dfb536391a95c80719941fac78",
+                            "type": "endpoint",
+                            "x": 838,
+                            "y": 155
+                        }
+                    ],
+                    "outputs": [
+                        "${_result}",
+                        "${test}"
+                    ],
+                    "start_event": {
+                        "id": "nc2e2a6088f93d92a0a4ec63feb35784",
+                        "incoming": "",
+                        "labels": [],
+                        "name": "",
+                        "outgoing": "l49241ba16463a5496f3d8eefde11772",
+                        "type": "EmptyStartEvent"
+                    }
+                }
+            }
+        }
+    },
+    "template": {
+        "7": {
+            "category": "OpsTools",
+            "default_flow_type": "common",
+            "executor_proxy": "",
+            "id": 7,
+            "is_deleted": false,
+            "notify_receivers": "{\"receiver_group\":[],\"more_receiver\":\"\"}",
+            "notify_type": "[]",
+            "pipeline_template_id": "5d3262b73df63f84b595b4ab90ab9c6e",
+            "pipeline_template_str_id": "5d3262b73df63f84b595b4ab90ab9c6e",
+            "project_id": 1,
+            "time_out": 20
+        },
+        "8": {
+            "category": "OpsTools",
+            "default_flow_type": "common",
+            "executor_proxy": "",
+            "id": 8,
+            "is_deleted": false,
+            "notify_receivers": "{\"receiver_group\":[],\"more_receiver\":\"\"}",
+            "notify_type": "[]",
+            "pipeline_template_id": "bf19682c3af235cf99956857e70be84e",
+            "pipeline_template_str_id": "bf19682c3af235cf99956857e70be84e",
+            "project_id": 1,
+            "time_out": 20
+        },
+        "9": {
+            "category": "OpsTools",
+            "default_flow_type": "common",
+            "executor_proxy": "",
+            "id": 9,
+            "is_deleted": false,
+            "notify_receivers": "{\"receiver_group\":[],\"more_receiver\":\"\"}",
+            "notify_type": "[]",
+            "pipeline_template_id": "5ad26a77856c360585209702f5d3e614",
+            "pipeline_template_str_id": "5ad26a77856c360585209702f5d3e614",
+            "project_id": 1,
+            "time_out": 20
+        }
+    },
+    "template_source": "project"
+}

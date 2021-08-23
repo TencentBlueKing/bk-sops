@@ -39,7 +39,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
-from gcloud.core.models import Project, EngineConfig
+from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.utils.dates import timestamp_to_datetime, format_datetime
@@ -52,6 +52,7 @@ from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
 from gcloud.shortcuts.cmdb import get_business_group_members
+from gcloud.project_constants.domains.context import get_project_constants_context
 
 logger = logging.getLogger("root")
 
@@ -928,6 +929,10 @@ class TaskFlowInstance(models.Model):
         return tree
 
     @property
+    def is_expired(self):
+        return self.pipeline_instance.is_expired
+
+    @property
     def name(self):
         return self.pipeline_instance.name
 
@@ -993,7 +998,10 @@ class TaskFlowInstance(models.Model):
             return False
 
         dispatcher = TaskCommandDispatcher(
-            engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
+            engine_ver=self.engine_ver,
+            taskflow_id=self.id,
+            pipeline_instance=self.pipeline_instance,
+            project_id=self.project_id,
         )
         task_result = dispatcher.get_task_status()
         if not task_result["result"]:
@@ -1141,6 +1149,7 @@ class TaskFlowInstance(models.Model):
             engine_ver=self.engine_ver,
             taskflow_id=self.id,
             pipeline_instance=self.pipeline_instance,
+            project_id=self.project_id,
             queue=self._get_task_celery_queue(self.engine_ver),
         )
 
@@ -1184,7 +1193,10 @@ class TaskFlowInstance(models.Model):
 
     def set_task_context(self, constants):
         dispatcher = TaskCommandDispatcher(
-            engine_ver=self.engine_ver, taskflow_id=self.id, pipeline_instance=self.pipeline_instance
+            engine_ver=self.engine_ver,
+            taskflow_id=self.id,
+            pipeline_instance=self.pipeline_instance,
+            project_id=self.project_id,
         )
         return dispatcher.set_task_context(
             task_is_started=self.pipeline_instance.is_started,
@@ -1280,11 +1292,21 @@ class TaskFlowInstance(models.Model):
         receivers = [self.executor]
 
         if self.project.from_cmdb:
-            group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            cc_group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
+            receivers.extend(cc_group_members)
 
-            receivers.extend(group_members)
+        members = list(
+            StaffGroupSet.objects.filter(
+                project_id=self.project.id,
+                is_deleted=False,
+                id__in=[group for group in receiver_group if isinstance(group, int)],
+            ).values_list("members", flat=True)
+        )
+        if members:
+            members = ",".join(members).split(",")
+            receivers.extend(members)
 
-        return receivers
+        return list(set(receivers))
 
     def get_notify_type(self):
         return json.loads(self.template.notify_type)
@@ -1301,7 +1323,15 @@ def get_instance_context(pipeline_instance, data_type, username=""):
         return TaskContext(taskflow, username).__dict__
     # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
     else:
-        return TaskContext(taskflow, username).context()
+        context = TaskContext(taskflow, username).context()
+        # 注入业务级别变量
+        context.update(
+            {
+                key: {"type": "plain", "is_param": True, "value": value}
+                for key, value in get_project_constants_context(taskflow.project_id).items()
+            }
+        )
+        return context
 
 
 def preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id):

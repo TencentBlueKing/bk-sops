@@ -86,7 +86,10 @@ class GetNodeDataV1TestCase(TestCase):
             pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
         )
         dispatcher._format_outputs.assert_called_once_with(
-            outputs=pre_render_outputs, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs=pre_render_outputs,
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,
@@ -128,7 +131,7 @@ class GetNodeDataV1TestCase(TestCase):
         dispatcher._get_node_info.assert_not_called()
         dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
-            outputs=outputs, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs=outputs, component_code=component_code, pipeline_instance=pipeline_instance, subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,
@@ -172,7 +175,7 @@ class GetNodeDataV1TestCase(TestCase):
         dispatcher._get_node_info.assert_not_called()
         dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
-            outputs=outputs, component_code=component_code, pipeline_instance=pipeline_instance
+            outputs=outputs, component_code=component_code, pipeline_instance=pipeline_instance, subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,
@@ -213,7 +216,10 @@ class GetNodeDataV1TestCase(TestCase):
         dispatcher._get_node_info.assert_not_called()
         dispatcher._prerender_node_data.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
-            outputs={"outputs": "outputs"}, component_code=component_code, pipeline_instance=pipeline_instance,
+            outputs={"outputs": "outputs"},
+            component_code=component_code,
+            pipeline_instance=pipeline_instance,
+            subprocess_stack=["1"],
         )
         self.assertEqual(
             node_data,

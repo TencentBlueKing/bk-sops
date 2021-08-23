@@ -25,13 +25,13 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_format_prop_data,
-    get_module_set_id
+    get_module_set_id,
 )
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
@@ -40,90 +40,94 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class CCUpdateModuleService(Service):
-
     def inputs_format(self):
-        return [self.InputItem(name=_('业务 ID'),
-                               key='biz_cc_id',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_('模块'),
-                               key='cc_module_select',
-                               type='array',
-                               schema=ArrayItemSchema(description=_('模块 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_('模块 ID')))),
-                self.InputItem(name=_('模块属性'),
-                               key='cc_module_property',
-                               type='string',
-                               schema=StringItemSchema(description=_('需要修改的模块属性'))),
-                self.InputItem(name=_('属性值'),
-                               key='cc_module_prop_value',
-                               type='string',
-                               schema=StringItemSchema(description=_('模块属性更新后的值')))]
+        return [
+            self.InputItem(
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="string",
+                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("模块"),
+                key="cc_module_select",
+                type="array",
+                schema=ArrayItemSchema(description=_("模块 ID 列表"), item_schema=IntItemSchema(description=_("模块 ID"))),
+            ),
+            self.InputItem(
+                name=_("模块属性"),
+                key="cc_module_property",
+                type="string",
+                schema=StringItemSchema(description=_("需要修改的模块属性")),
+            ),
+            self.InputItem(
+                name=_("属性值"),
+                key="cc_module_prop_value",
+                type="string",
+                schema=StringItemSchema(description=_("模块属性更新后的值")),
+            ),
+        ]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
-        executor = parent_data.get_one_of_inputs('executor')
+        executor = parent_data.get_one_of_inputs("executor")
 
         client = get_client_by_user(executor)
-        if parent_data.get_one_of_inputs('language'):
-            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
-            translation.activate(parent_data.get_one_of_inputs('language'))
+        if parent_data.get_one_of_inputs("language"):
+            setattr(client, "language", parent_data.get_one_of_inputs("language"))
+            translation.activate(parent_data.get_one_of_inputs("language"))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
-        kwargs = {
-            "bk_biz_id": biz_cc_id,
-            "bk_supplier_account": supplier_account
-        }
+        kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
         tree_data = client.cc.search_biz_inst_topo(kwargs)
-        if not tree_data['result']:
-            message = cc_handle_api_error('cc.search_biz_inst_topo', kwargs, tree_data)
+        if not tree_data["result"]:
+            message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, tree_data)
             self.logger.error(message)
-            data.set_outputs('ex_data', message)
+            data.set_outputs("ex_data", message)
             return False
 
-        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_module_select'))
-        cc_module_property = data.get_one_of_inputs('cc_module_property')
+        module_list = data.get_one_of_inputs("cc_module_select")
+        # 过滤掉set的情况
+        module_list = list(filter(lambda x: x.startswith("module"), module_list))
+        cc_module_select = cc_format_tree_mode_id(module_list)
+        cc_module_property = data.get_one_of_inputs("cc_module_property")
         if cc_module_property == "bk_module_type":
-            bk_module_type = cc_format_prop_data(executor,
-                                                 'module',
-                                                 'bk_module_type',
-                                                 parent_data.get_one_of_inputs('language'),
-                                                 supplier_account)
-            if not bk_module_type['result']:
-                data.set_outputs('ex_data', bk_module_type['message'])
+            bk_module_type = cc_format_prop_data(
+                executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"), supplier_account
+            )
+            if not bk_module_type["result"]:
+                data.set_outputs("ex_data", bk_module_type["message"])
                 return False
 
-            cc_module_prop_value = bk_module_type['data'].get(data.get_one_of_inputs('cc_module_prop_value'))
+            cc_module_prop_value = bk_module_type["data"].get(data.get_one_of_inputs("cc_module_prop_value"))
             if not cc_module_prop_value:
-                data.set_outputs('ex_data', _("模块类型校验失败，请重试并填写正确的模块类型"))
+                data.set_outputs("ex_data", _("模块类型校验失败，请重试并填写正确的模块类型"))
                 return False
         else:
-            cc_module_prop_value = data.get_one_of_inputs('cc_module_prop_value')
+            cc_module_prop_value = data.get_one_of_inputs("cc_module_prop_value")
 
         for module_id in cc_module_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
                 "bk_supplier_account": supplier_account,
-                "bk_set_id": get_module_set_id(tree_data['data'], module_id),
+                "bk_set_id": get_module_set_id(tree_data["data"], module_id),
                 "bk_module_id": module_id,
-                "data": {
-                    cc_module_property: cc_module_prop_value
-                }
+                "data": {cc_module_property: cc_module_prop_value},
             }
             cc_result = client.cc.update_module(cc_kwargs)
-            if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_module', cc_kwargs, cc_result)
+            if not cc_result["result"]:
+                message = cc_handle_api_error("cc.update_module", cc_kwargs, cc_result)
                 self.logger.error(message)
-                data.set_outputs('ex_data', message)
+                data.set_outputs("ex_data", message)
                 return False
         return True
 
 
 class CCUpdateModuleComponent(Component):
     name = _("更新模块属性")
-    code = 'cc_update_module'
+    code = "cc_update_module"
     bound_service = CCUpdateModuleService
-    form = '%scomponents/atoms/cc/cc_update_module.js' % settings.STATIC_URL
+    form = "%scomponents/atoms/cc/cc_update_module.js" % settings.STATIC_URL

@@ -12,14 +12,13 @@
 <template>
     <bk-dialog
         width="850"
-        :ext-cls="'common-dialog'"
+        ext-cls="common-dialog export-tpl-dialog"
         :title="$t('导出流程')"
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
         :auto-close="false"
-        @confirm="onConfirm"
-        @cancel="onCancel">
+        @cancel="closeDialog">
         <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1, zIndex: 100 }">
             <div class="template-wrapper">
                 <div class="search-wrapper">
@@ -28,12 +27,12 @@
                             v-model="filterCondition.classifyId"
                             class="bk-select-inline"
                             :clearable="false"
-                            :disabled="exportPending"
+                            :disabled="tplLoading"
                             @change="onSelectClassify">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
-                                :id="item.value"
+                                :id="item.id"
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
@@ -49,7 +48,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1, zIndex: 100 }">
+                <div class="template-list" v-bkloading="{ isLoading: tplLoading, opacity: 1, zIndex: 100 }">
                     <ul class="grouped-list">
                         <template v-for="group in templateInPanel">
                             <li
@@ -93,9 +92,24 @@
                     </base-card>
                 </ul>
             </div>
-            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ $t('全选') }}</bk-checkbox>
-            <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{$t('请选择流程模版')}}</span>
+        </div>
+        <div class="footer-wrap" slot="footer">
+            <bk-checkbox
+                class="template-checkbox"
+                :value="isTplInPanelAllSelected"
+                @change="onSelectAllClick">
+                {{ $t('全选') }}
+            </bk-checkbox>
+            <div class="operate-area">
+                <span class="export-tips">{{ exportTips }}</span>
+                <bk-button
+                    theme="primary"
+                    :disabled="selectedTemplates.length === 0"
+                    :loading="exportPending"
+                    @click="onConfirm">
+                    {{ $t('导出为') }}{{ type === 'dat' ? 'DAT' : 'YAML' }}
+                </bk-button>
+                <bk-button @click="closeDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-dialog>
@@ -103,10 +117,11 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapState, mapActions } from 'vuex'
+    import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import BaseCard from '@/components/common/base/BaseCard.vue'
+    import { TASK_CATEGORIES } from '@/constants/index.js'
     export default {
         name: 'ExportTemplateDialog',
         components: {
@@ -117,80 +132,66 @@
         props: {
             isExportDialogShow: Boolean,
             businessInfoLoading: Boolean,
-            projectInfoLoading: Boolean,
             common: String,
-            pending: Boolean,
-            project_id: [Number, String]
+            project_id: [Number, String],
+            selected: Array,
+            type: String
         },
         data () {
             return {
+                tplLoading: false,
                 exportPending: false,
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
+                list: [],
                 templateList: [],
                 templateInPanel: [],
                 searchList: [],
                 selectedTemplates: [],
-                selectError: false,
-                templateEmpty: false,
                 selectedTaskCategory: '',
                 category: '',
                 filterCondition: {
                     classifyId: 'all',
                     keywords: ''
                 },
-                dialogFooterData: [
-                    {
-                        type: 'primary',
-                        loading: false,
-                        btnText: i18n.t('确认'),
-                        click: 'onConfirm'
-                    }, {
-                        btnText: i18n.t('取消'),
-                        click: 'onCancel'
-                    }
-                ]
+                taskCategories: []
             }
         },
         computed: {
-            ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo
-            }),
-            taskCategories () {
-                const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
-                list.unshift({ value: 'all', name: i18n.t('全部分类') })
-                return list
+            exportTips () {
+                return this.type === 'dat' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
             },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
             }
         },
         watch: {
-            pending () {
-                this.dialogFooterData[0].loading = this.pending
+            isExportDialogShow (val) {
+                if (val) {
+                    if (this.selected && this.selected.length > 0) {
+                        this.selectedTemplates = this.selected.slice(0)
+                    }
+                }
             }
         },
         created () {
-            this.getData()
+            // 设置分类列表
+            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
+            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
+
+            this.getTemplateData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            // 设置分类列表
+            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
+            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
         },
         methods: {
             ...mapActions('templateList/', [
-                'loadTemplateList'
+                'loadTemplateList',
+                'templateExport'
             ]),
-            ...mapActions([
-                'getCategorys'
-            ]),
-            async getData () {
-                if (this.projectBaseInfo.task_categories && this.projectBaseInfo.task_categories.length === 0) {
-                    await this.getCategorys()
-                    this.getTemplateData()
-                } else {
-                    this.getTemplateData()
-                }
-            },
             async getTemplateData () {
-                this.exportPending = true
+                this.tplLoading = true
                 this.isCheckedDisabled = true
                 try {
                     const data = {}
@@ -200,13 +201,13 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    const list = respData.objects
-                    this.templateList = this.getGroupedList(list)
+                    this.list = respData.objects
+                    this.templateList = this.getGroupedList(this.list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.exportPending = false
+                    this.tplLoading = false
                     this.isCheckedDisabled = false
                 }
             },
@@ -214,10 +215,10 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategories.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.id)
                     atomGrouped.push({
                         name: item.name,
-                        value: item.value,
+                        value: item.id,
                         children: []
                     })
                 })
@@ -282,7 +283,6 @@
             },
             onSelectTemplate (template) {
                 if (this.hasPermission(this.reqPerm, template.auth_actions)) {
-                    this.selectError = false
                     const tplIndex = this.getTplIndexInSelected(template)
                     if (tplIndex > -1) {
                         this.selectedTemplates.splice(tplIndex, 1)
@@ -343,24 +343,23 @@
                 })
                 this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
             },
-            onConfirm () {
-                const idList = []
-                if (this.selectedTemplates.length === 0) {
-                    this.selectError = true
-                    return false
-                } else {
-                    this.selectedTemplates.forEach(item => {
-                        idList.push(item.id)
-                    })
-                    this.$emit('onExportConfirm', idList)
-                    this.resetData()
+            async onConfirm () {
+                const list = this.selectedTemplates.map(item => item.id)
+                try {
+                    this.exportPending = true
+                    const resp = await this.templateExport({ list, type: this.type, common: this.common })
+                    if (resp.result) {
+                        this.closeDialog()
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.exportPending = false
                 }
             },
-            onCancel () {
-                this.templateEmpty = false
-                this.selectError = false
+            closeDialog () {
                 this.resetData()
-                this.$emit('onExportCancel')
+                this.$emit('update:isExportDialogShow', false)
             },
             resetData () {
                 this.selectedTemplates = []
@@ -465,20 +464,33 @@
             margin: 0 0 10px 14px;
         }
     }
-    .template-checkbox {
-        position: absolute;
-        left: 20px;
-        bottom: -38px;
-    }
-    .task-footer {
-        position: absolute;
-        right: 290px;
-        bottom: -40px;
-        .error-info {
-            margin-right: 20px;
+    // .template-checkbox {
+    //     position: absolute;
+    //     left: 20px;
+    //     bottom: -38px;
+    // }
+    // .task-footer {
+    //     position: absolute;
+    //     right: 290px;
+    //     bottom: -40px;
+    //     .error-info {
+    //         margin-right: 20px;
+    //         font-size: 12px;
+    //         color: #ea3636;
+    //     }
+    // }
+}
+</style>
+<style lang="scss">
+    .export-tpl-dialog {
+        .footer-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .export-tips {
             font-size: 12px;
-            color: #ea3636;
+            color: #63656e;
         }
     }
-}
 </style>
