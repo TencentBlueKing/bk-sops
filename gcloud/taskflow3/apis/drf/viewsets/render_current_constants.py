@@ -20,7 +20,6 @@ from iam import Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
 
-from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
@@ -54,10 +53,7 @@ class RenderCurrentConstantsView(APIView):
     permission_classes = [permissions.IsAuthenticated, RenderCurrentConstantsPermission]
 
     @swagger_auto_schema(
-        method="GET",
-        operation_summary="获取某个任务所有全局变量当前渲染后的值",
-        auto_schema=AnnotationAutoSchema,
-        responses={200: RenderCurrentConstantsViewResponse},
+        method="GET", operation_summary="获取某个任务所有全局变量当前渲染后的值", responses={200: RenderCurrentConstantsViewResponse},
     )
     @action(methods=["GET"], detail=True)
     def get(self, request, task_id, format=None):
