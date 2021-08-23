@@ -34,6 +34,7 @@ def task_home(request, app_id, project_id):
         "app_id": app_id,
         "template_id": app_maker.task_template.pk,
     }
+    user_enter.send(username=request.user.username, sender=request.user.username)
     return render(request, "core/base_vue.html", ctx)
 
 
