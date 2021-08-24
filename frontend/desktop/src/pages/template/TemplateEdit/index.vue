@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100 }">
-        <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading , zIndex: 100 }">
+        <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -65,7 +65,8 @@
                     @onLocationMoveDone="onLocationMoveDone"
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
-                    @onShowNodeConfig="onShowNodeConfig">
+                    @onShowNodeConfig="onShowNodeConfig"
+                    @getAtomList="getAtomList">
                 </TemplateCanvas>
             </template>
             <TaskSelectNode
@@ -264,7 +265,8 @@
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateDataChanged: false,
                 isShowConditionEdit: false,
-                isNodeConfigPanelShow: false,
+                isNodeConfigPanelShow: false, // 右侧模板是否展开
+                isSelectorPanelShow: false, // 右侧子流程模板是否展开
                 isFromTplListRoute: false, // 是否由模板列表页跳转进入
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
@@ -272,11 +274,12 @@
                 allowLeave: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
+                isGetAtomList: false,
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
-                },
+                }, // 左侧边栏菜单数据
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -310,6 +313,13 @@
                     ]
                 },
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                totalPage: 0,
+                currentPage: 0,
+                limit: 25,
+                offset: 0,
+                pollingTimer: null,
+                isPageOver: false,
+                isThrottled: false, // 滚动节流 是否进入cd
                 envVariableData: {}
             }
         },
@@ -386,6 +396,13 @@
                     tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
+            }
+        },
+        watch: {
+            isNodeConfigPanelShow (val) {
+                if (!val) {
+                    this.atomTypeList.subflow.length = 0
+                }
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -483,10 +500,13 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
+            getAtomList  (val) {
+                this.isGetAtomList = val
+            },
             /**
              * 加载标准插件列表
              */
-            async getSingleAtomList () {
+            async getSingleAtomList (val) {
                 this.singleAtomListLoading = true
                 try {
                     const params = {}
@@ -530,30 +550,11 @@
                 try {
                     const resp = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(resp.data)
-                    this.getSubflowList()
+                    // this.getSubflowList()
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.projectInfoLoading = false
-                }
-            },
-            /**
-             * 加载子流程列表
-             */
-            async getSubflowList () {
-                this.subflowListLoading = true
-                try {
-                    const data = {
-                        project_id: this.project_id,
-                        common: this.common,
-                        templateId: this.template_id
-                    }
-                    const resp = await this.loadSubflowList(data)
-                    this.handleSubflowList(resp)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.subflowListLoading = false
                 }
             },
             /**
@@ -838,20 +839,6 @@
                 this.atomTypeList.tasknode = grouped
             },
             /**
-             * 子流程列表
-             */
-            handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.atomTypeList.subflow = list
-            },
             /**
              * 打开节点配置面板
              * @param {String} id 节点uuid
