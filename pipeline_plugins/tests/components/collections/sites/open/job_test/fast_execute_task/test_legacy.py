@@ -228,6 +228,7 @@ BASE_INPUTS = {
     "job_account": "root",
     "job_script_list_public": "",
     "job_script_list_general": "",
+    "task_name": "",
 }
 
 # manual inputs
