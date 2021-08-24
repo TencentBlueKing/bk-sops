@@ -28,13 +28,13 @@
  * cornerRadius 连线分段点的弧度，默认为 0
  */
 export const endpointOptions = {
-    endpoint: 'Dot',
+    endpoint: 'Rectangle',
     connector: ['Flowchart', { stub: [20, 20], alwaysRespectStub: true, gap: 0, cornerRadius: 10 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
-    paintStyle: { fill: 'transparent', radius: 6 },
-    hoverPaintStyle: { fill: '#3a84ff' },
+    paintStyle: { fill: 'transparent', width: 32, height: 32 },
+    hoverPaintStyle: { fill: 'transparent', width: 32, height: 32 },
     cssClass: 'template-canvas-endpoint',
     hoverClass: 'template-canvas-endpoint-hover',
     isSource: true, // 端点是否可以作为拖动源
@@ -46,7 +46,7 @@ export const endpointOptions = {
  * 节点配置项
  */
 export const nodeOptions = {
-    grid: [5, 5]
+    grid: [10, 10]
 }
 
 /**

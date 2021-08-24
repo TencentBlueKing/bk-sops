@@ -18,7 +18,7 @@ from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 
 
 class OperateRecordSetSerializer(serializers.Serializer):
-    project_id = serializers.IntegerField(validators=[ProjectExistValidator()])
+    project_id = serializers.IntegerField(required=False, validators=[ProjectExistValidator()])
     instance_id = serializers.IntegerField()
     operator = serializers.CharField(required=False)
     operate_type = serializers.CharField(required=False)

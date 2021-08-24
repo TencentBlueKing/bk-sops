@@ -272,3 +272,35 @@ class UnfoldSubprocessTestCase(TestCase):
                 "constants": {"${parent_param1}": "${another_constants}"},
             },
         )
+
+    @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
+    def test_always_use_latest(self):
+        layer_1_t1_tree = {
+            "activities": {},
+            "constants": {"${param}": {"value": ""}, "${c1}": {"value": "constant_value"}},
+        }
+
+        # prepare pipeline data
+        pipeline_data = {
+            "activities": {
+                "subproc_1": {
+                    "type": "SubProcess",
+                    "template_id": "layer_1_t1",
+                    "version": "v1",
+                    "always_use_latest": True,
+                    "constants": {"${param}": {"value": "${parent_param}"}},
+                }
+            },
+            "constants": {"${parent_param}": "${another_constants}"},
+        }
+
+        # prepare template model mock
+        template_model = MagicMock()
+        get_return = MagicMock()
+        get_return.get_pipeline_tree_by_version = MagicMock(return_value=layer_1_t1_tree)
+        template_model.objects.get = MagicMock(return_value=get_return)
+
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_data, template_model)
+
+        template_model.objects.get.assert_called_once_with(pipeline_template__template_id="layer_1_t1")
+        get_return.get_pipeline_tree_by_version.assert_called_once_with(None)

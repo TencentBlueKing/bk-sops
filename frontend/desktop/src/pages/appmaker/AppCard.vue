@@ -181,6 +181,10 @@
                 e.preventDefault()
                 e.clipboardData.setData('text/html', this.copyText)
                 e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
             },
             onCardDelete () {
                 if (!this.hasPermission(['mini_app_delete'], this.appData.auth_actions)) {

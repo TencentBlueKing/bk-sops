@@ -12,10 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 from . import env
+from .managers.bk_repo import BKRepoManager
 from .managers.nfs import HostNFSManager
 from .managers.upload_module import UploadModuleManager
 from .bartenders.nfs import HostNFSBartender
 from .bartenders.upload_module import UploadModuleBartender
+from .bartenders.bk_repo import BKRepoBartender
 
 
 class ManagerFactory(object):
@@ -44,6 +46,27 @@ class ManagerFactory(object):
     def _create_upload_module_manager(cls):
         return UploadModuleManager()
 
+    @classmethod
+    def _create_bk_repo_manager(cls):
+        username = env.BKREPO_USERNAME
+        password = env.BKREPO_PASSWORD
+        project_id = env.BKREPO_PROJECT
+        bucket = env.BKREPO_BUCKET
+        endpoint_url = env.BKREPO_ENDPOINT_URL
+
+        if any(v is None for v in [username, password, project_id, bucket, endpoint_url]):
+            raise EnvironmentError(
+                "bk_repo manager should be provided with username, password, project_id, bucket and endpoint_url"
+            )
+        return BKRepoManager(
+            username=username,
+            password=password,
+            project_id=project_id,
+            bucket=bucket,
+            endpoint_url=endpoint_url,
+            file_overwrite=True,
+        )
+
 
 class BartenderFactory(object):
     @classmethod
@@ -61,3 +84,7 @@ class BartenderFactory(object):
     @classmethod
     def _create_upload_module_bartender(cls, manager):
         return UploadModuleBartender(manager)
+
+    @classmethod
+    def _create_bk_repo_bartender(cls, manager):
+        return BKRepoBartender(manager)

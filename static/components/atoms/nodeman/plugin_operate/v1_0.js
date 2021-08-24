@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
- (function () {
+(function () {
     $.atoms.nodeman_plugin_operate = [
         {
             tag_code: "biz_cc_id",
@@ -305,6 +305,7 @@
                                 source: "nodeman_plugin_type",
                                 type: "change",
                                 action: function (value) {
+                                    this.value = "";
                                     this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_list/' + value + '/';
                                     this.remoteMethod();
                                 }
@@ -320,6 +321,7 @@
                             remote: true,
                             items: [],
                             remote_url: "",
+                            value: "",
                             remote_data_init: function (resp) {
                                 if (resp.result === false) {
                                     show_msg(resp.message, "error");
@@ -349,11 +351,20 @@
                                 source: "nodeman_plugin",
                                 type: "change",
                                 action: function (value) {
+                                    this.value = ""
                                     let os = this.get_parent().get_parent().get_child("nodeman_host_os_type").value
                                     this.remote_url = $.context.get('site_url') + 'pipeline/nodeman_get_plugin_version/' + value + '/' + os + '/';
                                     this.remoteMethod()
                                 }
                             },
+                            {
+                                source: "nodeman_plugin_type",
+                                type: "change",
+                                action: function (value) {
+                                    this.items = []
+                                    this.value = ""
+                                }
+                            }
                         ]
                     },
 

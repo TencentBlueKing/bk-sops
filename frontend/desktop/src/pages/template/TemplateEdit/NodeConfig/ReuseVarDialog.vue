@@ -171,7 +171,7 @@
                         if (result) {
                             const { name, key } = this.formData
                             const checkKeyResult = await this.checkKey({ key })
-                            if (!checkKeyResult.data) {
+                            if (!checkKeyResult.result) {
                                 this.$bkMessage({
                                     message: i18n.t('变量KEY为特殊标志符变量，请修改'),
                                     theme: 'warning'

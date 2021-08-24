@@ -36,7 +36,7 @@
                                     v-cursor
                                     class="text-permission-disable"
                                     :title="props.row.name"
-                                    @click="onTaskPermissonCheck(props.row)">
+                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
                                     {{props.row.name}}
                                 </a>
                                 <router-link
@@ -77,11 +77,31 @@
                                 </div>
                             </template>
                         </bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="100">
+                            <template slot-scope="props">
+                                <a
+                                    v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
+                                    :class="['task-operation-btn', {
+                                        'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
+                                    }]"
+                                    href="javascript:void(0);"
+                                    @click="onCloneTaskClick(props.row, $event)">
+                                    {{ $t('克隆') }}
+                                </a>
+                            </template>
+                        </bk-table-column>
                         <div class="empty-data" slot="empty"><NoData /></div>
                     </bk-table>
                 </div>
             </div>
         </skeleton>
+        <TaskCloneDialog
+            :is-task-clone-dialog-show="isTaskCloneDialogShow"
+            :task-name="theCloneTaskName"
+            :pending="pending.clone"
+            @confirm="onCloneConfirm"
+            @cancel="onCloneCancel">
+        </TaskCloneDialog>
     </div>
 </template>
 <script>
@@ -90,6 +110,7 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import TaskCloneDialog from '@/pages/task/TaskList/TaskCloneDialog.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
@@ -146,6 +167,7 @@
         components: {
             Skeleton,
             AdvanceSearchForm,
+            TaskCloneDialog,
             NoData
         },
         mixins: [permission, task],
@@ -183,11 +205,15 @@
                 theDeleteTemplateId: undefined,
                 pending: {
                     delete: false,
-                    authority: false
+                    authority: false,
+                    clone: false
                 },
                 appmakerList: [],
                 executeStatus: [], // 任务执行状态
                 taskCategory: [],
+                isTaskCloneDialogShow: false,
+                theCloneTaskId: undefined,
+                theCloneTaskName: '',
                 pagination: {
                     current: Number(page),
                     count: 0,
@@ -223,7 +249,8 @@
         },
         methods: {
             ...mapActions('taskList/', [
-                'loadTaskList'
+                'loadTaskList',
+                'cloneTask'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus'
@@ -313,7 +340,7 @@
                 this.updateUrl()
                 this.getAppmakerList()
             },
-            onTaskPermissonCheck (task) {
+            onTaskPermissonCheck (required, task) {
                 const resourceData = {
                     task: [{
                         id: task.id,
@@ -324,7 +351,7 @@
                         name: task.project.name
                     }]
                 }
-                this.applyForPermission(['task_view'], task.auth_actions, resourceData)
+                this.applyForPermission(required, [...task.auth_actions, ...this.$store.state.project.authActions], resourceData)
             },
             onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
@@ -358,7 +385,38 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'appmakerTaskHome', params: { project_id: this.project_id }, query })
+                this.$router.replace({ name: 'appmakerTaskHome', params: { project_id: this.project_id }, query })
+            },
+            onCloneTaskClick (task) {
+                if (!this.hasPermission(['task_clone'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_clone'], task)
+                    return
+                }
+                this.isTaskCloneDialogShow = true
+                this.theCloneTaskId = task.id
+                this.theCloneTaskName = task.name
+            },
+            async onCloneConfirm (name) {
+                if (this.pending.clone) return
+                this.pending.clone = true
+                const config = {
+                    name,
+                    task_id: this.theCloneTaskId
+                }
+                try {
+                    const data = await this.cloneTask(config)
+                    this.$router.push({
+                        name: 'appmakerTaskExecute',
+                        params: { app_id: this.app_id, project_id: this.project_id },
+                        query: { instance_id: data.data.new_instance_id, template_id: this.$route.query.template_id }
+                    })
+                } catch (e) {
+                    console.log(e)
+                }
+            },
+            onCloneCancel () {
+                this.isTaskCloneDialogShow = false
+                this.theCloneTaskName = ''
             }
         }
     }
@@ -392,6 +450,14 @@
     }
     .ui-task-status {
         @include ui-task-status;
+    }
+    .task-operation-btn {
+        color: #3a84ff;
+        font-size: 12px;
+        &.disabled {
+            color: #cccccc;
+            cursor: not-allowed;
+        }
     }
 }
 .success {

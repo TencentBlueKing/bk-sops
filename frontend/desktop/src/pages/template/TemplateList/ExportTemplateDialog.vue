@@ -175,7 +175,11 @@
             }
         },
         created () {
-            this.getData()
+            // 设置分类列表
+            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
+            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
+
+            this.getTemplateData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             // 设置分类列表
             this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
@@ -186,17 +190,6 @@
                 'loadTemplateList',
                 'templateExport'
             ]),
-            ...mapActions([
-                'getCategorys'
-            ]),
-            async getData () {
-                if (this.taskCategories.length === 0) {
-                    await this.getCategorys()
-                    this.getTemplateData()
-                } else {
-                    this.getTemplateData()
-                }
-            },
             async getTemplateData () {
                 this.tplLoading = true
                 this.isCheckedDisabled = true
@@ -222,10 +215,10 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategories.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.id)
                     atomGrouped.push({
                         name: item.name,
-                        value: item.value,
+                        value: item.id,
                         children: []
                     })
                 })
