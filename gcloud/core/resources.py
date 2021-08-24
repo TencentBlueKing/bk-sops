@@ -196,7 +196,7 @@ class ComponentModelResource(GCloudModelResource):
             exclude_component_codes = ProjectBasedComponent.objects.get_components_of_other_projects(project_id)
         else:
             exclude_component_codes = ProjectBasedComponent.objects.get_components()
-        query_set = ~Q(code__in=exclude_component_codes + ["remote_plugin"])
+        query_set = ~Q(code__in=exclude_component_codes)
         orm_filters.update({"custom_query_set": query_set})
         return orm_filters
 
@@ -219,6 +219,9 @@ class ComponentModelResource(GCloudModelResource):
         altered_objects = []
 
         for bundle in data["objects"]:
+            # 远程插件不显示在列表中
+            if bundle.data["code"] == "remote_plugin":
+                continue
             try:
                 component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
             except ComponentNotExistException:
