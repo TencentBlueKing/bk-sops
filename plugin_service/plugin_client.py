@@ -71,17 +71,8 @@ class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
         self.plugin_code = plugin_code
         if not plugin_host:
-            result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
-
-            if result.get("result") is False:
-                raise PluginServiceNetworkError(
-                    f"Plugin Service {self.plugin_code} network error: {result.get('message')}"
-                )
-
-            info = result["deployed_statuses"][env.APIGW_ENVIRONMENT]
-            if not info["deployed"]:
-                raise PluginServiceNotDeploy(f"Plugin Service {self.plugin_code} does not deployed.")
-            self.plugin_host = os.path.join(info["url"], "bk_plugin/")
+            result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
+            self.plugin_host = os.path.join(result["data"]["url"], "bk_plugin/")
 
     @staticmethod
     @json_response_decoder
@@ -155,8 +146,25 @@ class PluginServiceApiClient:
                 "creator": plugin["creator"],
             }
             for plugin in result["results"]
-            if plugin["deploy_status"]
         ]
         count = len(plugins)
 
         return {"result": True, "message": None, "data": {"count": count, "plugins": plugins}}
+
+    @staticmethod
+    def get_plugin_app_detail(plugin_code):
+        result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
+
+        if result.get("result") is False:
+            raise PluginServiceNetworkError(f"Plugin Service {plugin_code} network error: {result.get('message')}")
+
+        info = result["deployed_statuses"][env.APIGW_ENVIRONMENT]
+        if not info["deployed"]:
+            raise PluginServiceNotDeploy(f"Plugin Service {plugin_code} does not deployed.")
+        plugin = result["plugin"]
+
+        return {
+            "result": True,
+            "message": None,
+            "data": {"url": info["url"], "name": plugin["name"], "code": plugin["code"], "updated": plugin["updated"]},
+        }
