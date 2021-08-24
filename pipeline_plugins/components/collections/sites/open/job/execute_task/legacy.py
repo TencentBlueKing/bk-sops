@@ -17,14 +17,7 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    IntItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-    BooleanItemSchema,
-)
-from pipeline_plugins.components.collections.sites.open.job import JobService
+from .execute_task_base import JobExecuteTaskServiceBase
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
@@ -42,64 +35,14 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobExecuteTaskService(JobService):
+class JobExecuteTaskService(JobExecuteTaskServiceBase):
     need_get_sops_var = True
 
     def inputs_format(self):
-        return [
-            self.InputItem(
-                name=_("业务 ID"),
-                key="biz_cc_id",
-                type="string",
-                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
-            ),
-            self.InputItem(
-                name=_("作业模板 ID"),
-                key="job_task_id",
-                type="string",
-                schema=StringItemSchema(description=_("需要执行的 JOB 作业模板 ID")),
-            ),
-            self.InputItem(
-                name=_("全局变量"),
-                key="job_global_var",
-                type="array",
-                schema=ArrayItemSchema(
-                    description=_("作业模板执行所需的全局变量列表"),
-                    item_schema=ObjectItemSchema(
-                        description=_("全局变量"),
-                        property_schemas={
-                            "category": IntItemSchema(description=_("变量类型，云参(1) 上下文参数(2) IP(3)")),
-                            "name": StringItemSchema(description=_("变量名")),
-                            "value": StringItemSchema(description=_("变量值")),
-                        },
-                    ),
-                ),
-            ),
-            self.InputItem(
-                name=_("IP 存在性校验"),
-                key="ip_is_exist",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
-            ),
-        ]
+        return super(JobExecuteTaskService, self).inputs_format()
 
     def outputs_format(self):
-        return super(JobExecuteTaskService, self).outputs_format() + [
-            self.OutputItem(
-                name=_("JOB全局变量"),
-                key="log_outputs",
-                type="object",
-                schema=ObjectItemSchema(
-                    description=_(
-                        "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
-                    ),
-                    property_schemas={
-                        "name": StringItemSchema(description=_("全局变量名称")),
-                        "value": StringItemSchema(description=_("全局变量值")),
-                    },
-                ),
-            ),
-        ]
+        return super(JobExecuteTaskService, self).outputs_format()
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
