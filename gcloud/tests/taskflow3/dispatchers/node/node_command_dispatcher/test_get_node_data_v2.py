@@ -71,7 +71,8 @@ class GetNodeDataV2TestCase(TestCase):
         subprocess_stack = ["1"]
         loop = 1
         pipeline_instance = MagicMock()
-        kwargs = {"pipeline_instance": pipeline_instance}
+        project_id = 1
+        kwargs = {"pipeline_instance": pipeline_instance, "project_id": project_id}
 
         runtime = "runtime"
         runtime_init = MagicMock(return_value=runtime)
@@ -81,6 +82,8 @@ class GetNodeDataV2TestCase(TestCase):
         get_children_states_return.result = True
         get_children_states_return.data = None
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
+        system_obj_value = "system_obj"
+        system_obj = MagicMock(return_value=system_obj_value)
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
@@ -96,13 +99,14 @@ class GetNodeDataV2TestCase(TestCase):
         with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME, runtime_init):
             with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_API, bamboo_api):
                 with patch(TASKFLOW_DISPATCHERS_NODE_GET_PIPELINE_CONTEXT, get_pipeline_context):
-                    node_data = dispatcher.get_node_data_v2(
-                        username=username,
-                        component_code=component_code,
-                        subprocess_stack=subprocess_stack,
-                        loop=loop,
-                        **kwargs
-                    )
+                    with patch(TASKFLOW_DISPATCHERS_NODE_SYSTEM_OBJ, system_obj):
+                        node_data = dispatcher.get_node_data_v2(
+                            username=username,
+                            component_code=component_code,
+                            subprocess_stack=subprocess_stack,
+                            loop=loop,
+                            **kwargs
+                        )
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.preview_node_inputs.assert_called_once_with(
@@ -111,7 +115,7 @@ class GetNodeDataV2TestCase(TestCase):
             node_id=dispatcher.node_id,
             subprocess_stack=subprocess_stack,
             root_pipeline_data={},
-            current_constants={},
+            current_constants={"${_system}": system_obj_value},
         )
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack

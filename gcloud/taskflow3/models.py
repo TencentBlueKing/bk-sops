@@ -1070,6 +1070,7 @@ class TaskFlowInstance(models.Model):
             loop=loop,
             pipeline_instance=self.pipeline_instance,
             subprocess_stack=subprocess_stack or [],
+            project_id=self.project.id,
         )
 
     def get_node_detail(

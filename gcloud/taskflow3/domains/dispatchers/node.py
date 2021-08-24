@@ -36,7 +36,6 @@ from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
-from ...models import TaskFlowInstance
 
 logger = logging.getLogger("root")
 
@@ -444,17 +443,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     pipeline_instance, obj_type="instance", data_type="data", username=username
                 )
                 system_obj = SystemObject(root_pipeline_data)
-                try:
-                    taskflow = TaskFlowInstance.objects.get(pipeline_instance=pipeline_instance)
-                except TaskFlowInstance.DoesNotExist:
-                    message = (
-                        f"[get_node_data_v2]TaskFlowInstance does not exist: "
-                        f"pipeline_template.id={pipeline_instance.pk}"
-                    )
-                    logger.error(message)
-                    return {"result": False, "data": None, "message": message, "code": err_code.UNKNOWN_ERROR.code}
                 root_pipeline_context = {"${_system}": system_obj}
-                root_pipeline_context.update(get_project_constants_context(taskflow.project_id))
+                root_pipeline_context.update(get_project_constants_context(kwargs["project_id"]))
 
                 formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
                 preview_result = bamboo_engine_api.preview_node_inputs(
