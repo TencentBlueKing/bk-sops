@@ -16,6 +16,8 @@ from typing import Optional, List
 
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
+from engine_pickle_obj.context import SystemObject
+from gcloud.project_constants.domains.context import get_project_constants_context
 from pipeline.engine import states as pipeline_states
 from pipeline.engine import api as pipeline_api
 from pipeline.service import task_service
@@ -34,6 +36,7 @@ from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
+from ...models import TaskFlowInstance
 
 logger = logging.getLogger("root")
 
@@ -191,7 +194,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
@@ -293,7 +296,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         node_started = True
         inputs = {}
@@ -361,7 +364,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         runtime = BambooDjangoRuntime()
         result = bamboo_engine_api.get_children_states(runtime=runtime, node_id=self.node_id)
@@ -440,9 +443,19 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 root_pipeline_data = get_pipeline_context(
                     pipeline_instance, obj_type="instance", data_type="data", username=username
                 )
-                root_pipeline_context = get_pipeline_context(
-                    pipeline_instance, obj_type="instance", data_type="context", username=username
-                )
+                system_obj = SystemObject(root_pipeline_data)
+                try:
+                    taskflow = TaskFlowInstance.objects.get(pipeline_instance=pipeline_instance)
+                except TaskFlowInstance.DoesNotExist:
+                    message = (
+                        f"[get_node_data_v2]TaskFlowInstance does not exist: "
+                        f"pipeline_template.id={pipeline_instance.pk}"
+                    )
+                    logger.error(message)
+                    return {"result": False, "data": None, "message": message, "code": err_code.UNKNOWN_ERROR.code}
+                root_pipeline_context = {"${_system}": system_obj}
+                root_pipeline_context.update(get_project_constants_context(taskflow.project_id))
+
                 formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
                 preview_result = bamboo_engine_api.preview_node_inputs(
                     runtime=runtime,
@@ -499,7 +512,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
@@ -538,7 +551,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         act_start = True
         detail = {}
@@ -587,7 +600,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         runtime = BambooDjangoRuntime()
         result = bamboo_engine_api.get_children_states(runtime=runtime, node_id=self.node_id)
