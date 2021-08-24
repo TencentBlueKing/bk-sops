@@ -63,6 +63,11 @@
                     @click.stop="onSaveClick(true)">
                     {{createTaskBtnText}}
                 </bk-button>
+                <bk-button
+                    :class="['task-btn']"
+                    @click.stop="onDownloadCanvas">
+                    {{$t('导出为图片')}}
+                </bk-button>
             </div>
             <div class="button-area edit-scheme" v-if="schemeInfo">
                 <bk-button theme="primary" @click="onSaveEditSchemeClick">{{ '保存' }}</bk-button>
@@ -244,6 +249,9 @@
                     }
                 }
                 this.$emit('onOpenExecuteScheme', false)
+            },
+            onDownloadCanvas () {
+                this.$emit('onDownloadCanvas')
             },
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
@@ -501,7 +509,7 @@
         }
         .common-icon-edit {
             margin-left: 10px;
-            font-size: 12px;
+            font-size: 16px;
             color: #979ba5;
             cursor: pointer;
             &:hover {
@@ -550,7 +558,7 @@
             }
         }
         .task-btn {
-            margin-left: 5px;
+            margin-left: 10px;
         }
     }
 </style>
