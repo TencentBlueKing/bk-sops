@@ -1,5 +1,9 @@
 # Release
 
+## 3.6.4208
+
+- improvement:
+  - api 队列进程并发数调整
 ## 3.6.4207
 
 - improvement:
