@@ -68,12 +68,17 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.cc_get_ips_info_by_str"
+# 因为v1.0版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_user"
 )
-GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_node_callback_url"
-GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0.get_job_instance_url"
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
+GET_NODE_CALLBACK_URL = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_node_callback_url"
+)
+GET_JOB_INSTANCE_URL = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_job_instance_url"
+)
 
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
@@ -506,9 +511,11 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             {"category": 1, "name": "key_1", "value": "value_1"},
             {"category": 1, "name": "key_2", "value": "value_2"},
             {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
+            {"category": 3, "name": "key_3", "value": "0:4.4.4.4,0:3.3.3.3"},
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
+        "biz_across": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -563,6 +570,13 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {
                                 "name": "key_3",
                                 "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                            },
+                            {
+                                "name": "key_3",
+                                "ip_list": [
+                                    {"ip": "4.4.4.4", "bk_cloud_id": "0"},
+                                    {"ip": "3.3.3.3", "bk_cloud_id": "0"},
+                                ],
                             },
                         ],
                         "bk_callback_url": "url_token",
@@ -689,7 +703,9 @@ INVALID_IP_CASE = ComponentTestCase(
         "biz_cc_id": 1,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"}
+    ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
@@ -716,7 +732,9 @@ IP_IS_EXIST_CASE = ComponentTestCase(
         "ip_is_exist": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 2.2.2.2 是否合法"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 2.2.2.2"}
+    ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
