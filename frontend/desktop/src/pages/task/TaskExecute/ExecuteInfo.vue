@@ -613,7 +613,8 @@
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadPluginServiceDetail',
-                'loadPluginServiceLog'
+                'loadPluginServiceLog',
+                'loadPluginServiceAppDetail'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeDetail',
@@ -698,7 +699,10 @@
                     
                     this.executeInfo.plugin_version = version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
-                    if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                    if (this.isThirdPartyNode) {
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.executeInfo.plugin_name = resp.data.name
+                    } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }

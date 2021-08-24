@@ -735,8 +735,10 @@
                 this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''
-                const atom = this.atomList.find(item => item.code === code)
-                desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                if (!this.isThirdParty) {
+                    const atom = this.atomList.find(item => item.code === code)
+                    desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                }
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')
