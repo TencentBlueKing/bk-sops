@@ -37,7 +37,7 @@
                 <ip-search-input
                     :class="['ip-search-wrap', { 'static-ip-unfold': isUnfold }]"
                     :editable="editable"
-                    @focus="onSrarucIpClike"
+                    @focus="onStaticIpFocus"
                     @search="onStaticIpSearch">
                 </ip-search-input>
                 <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ i18n.return }}</span>
@@ -308,7 +308,7 @@
             onDropdownHide () {
                 this.isDropdownShow = false
             },
-            onSrarucIpClike () {
+            onStaticIpFocus () {
                 this.isUnfold = this.allowUnfoldInput
             },
             onStaticIpSearch (keyword) {
