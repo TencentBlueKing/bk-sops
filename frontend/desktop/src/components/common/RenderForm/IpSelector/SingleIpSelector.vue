@@ -126,11 +126,8 @@
     display: inline-block;
     font-size: 14px;
     height: 42px;
-    min-width: 95px;
+    min-width: 120px;
     cursor: pointer;
-    &:nth-child(2) {
-        width: 110px;
-    }
     .radio-box {
         display: flex;
     }
