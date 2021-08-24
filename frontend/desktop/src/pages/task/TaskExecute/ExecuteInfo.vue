@@ -19,10 +19,8 @@
             @onSelectNode="onSelectNode">
         </NodeTree>
         <div
-            :class="['execute-info', {
-                'loading': loading,
-                'admin-view': adminView
-            }]"
+            v-if="location"
+            :class="['execute-info', { 'loading': loading, 'admin-view': adminView }]"
             v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <div class="excute-time" v-if="!adminView && isReadyStatus">
                 <span>{{$t('第')}}</span>
@@ -74,7 +72,7 @@
                     </table>
                     <NoData v-else></NoData>
                 </section>
-                <section class="info-section" v-if="executeInfo.id">
+                <section class="info-section" v-if="executeInfo.id && location.type !== 'subflow'">
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
@@ -102,7 +100,7 @@
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                     </div>
                 </section>
-                <section class="info-section" v-if="nodeDetailConfig.component_code">
+                <section class="info-section" v-if="['tasknode', 'subflow'].includes(location.type)">
                     <div class="common-section-title output-parameter">
                         <div class="output-title">{{ $t('输出参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -162,7 +160,7 @@
                         <NoData v-else></NoData>
                     </div>
                 </section>
-                <section class="info-section" v-if="historyInfo && historyInfo.length">
+                <section class="info-section" v-if="location.type !== 'subflow' && historyInfo && historyInfo.length">
                     <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
                     <bk-table
                         class="retry-table"
@@ -241,7 +239,7 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED' && location.type === 'tasknode'">
+            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED'">
                 <bk-button
                     theme="primary"
                     v-if="isShowRetryBtn"
@@ -686,10 +684,10 @@
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
                     // 获取执行失败节点是否允许跳过，重试状态
-                    if (this.location.type === 'tasknode' && this.executeInfo.state === 'FAILED') {
+                    if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                        this.isShowSkipBtn = activity.skippable
-                        this.isShowRetryBtn = activity.retryable
+                        this.isShowSkipBtn = ['tasknode', 'subflow'].includes(this.location.type) && activity.skippable
+                        this.isShowRetryBtn = this.location.type === 'tasknode' && activity.retryable
                     }
                 } catch (e) {
                     console.log(e)
@@ -700,9 +698,9 @@
             async getTaskNodeDetail () {
                 try {
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
-                    let getData = this.getNodeActDetail
+                    let res
 
-                    // 分支网关请求参数不传 component_code
+                    // 非任务节点请求参数不传 component_code
                     if (!this.nodeDetailConfig.component_code) {
                         delete query.component_code
                     }
@@ -710,9 +708,10 @@
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
-                        getData = this.taskflowNodeDetail
+                        res = await this.taskflowNodeDetail(query)
+                    } else {
+                        res = await this.getNodeActDetail(query)
                     }
-                    const res = await getData(query)
                     if (res.result) {
                         return res.data
                     }
