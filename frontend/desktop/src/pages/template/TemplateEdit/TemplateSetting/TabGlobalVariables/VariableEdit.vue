@@ -348,7 +348,8 @@
                 'checkKey'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
                 'addVariable',
@@ -397,7 +398,7 @@
              * 加载表单标准插件配置文件
              */
             async getAtomConfig () {
-                const { source_tag, custom_type, version = 'legacy' } = this.theEditingData
+                const { source_tag, custom_type, version = 'legacy', plugin_code } = this.theEditingData
                 const tagStr = this.metaTag ? this.metaTag : source_tag
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
@@ -419,6 +420,19 @@
                 }
 
                 try {
+                    // 第三方插件变量
+                    if (plugin_code) {
+                        const resp = await this.loadPluginServiceDetail({ plugin_code, plugin_version: version })
+                        if (!resp.result) return
+                        // 输入参数
+                        $.atoms[plugin_code] = {}
+                        const renderFrom = resp.data.forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                        const config = $.atoms[plugin_code]
+                        this.renderConfig = config
+                        return
+                    }
                     await this.loadAtomConfig({
                         classify,
                         name: this.atomType,

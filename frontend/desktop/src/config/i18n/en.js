@@ -14,6 +14,7 @@ const en = {
     '标准节点': 'Standard node',
     '搜索插件': 'Search plugin',
     '内置插件': 'Built-in plugin',
+    '插件code': 'Plugin code',
     '第三方插件': 'Third-party plugin',
     '第三方插件节点': 'Third-party plugin node',
     '第三方节点日志': 'Third-party node log',
