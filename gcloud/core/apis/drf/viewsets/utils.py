@@ -10,13 +10,17 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from iam import Subject, Action
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from gcloud import err_code
+from gcloud.iam_auth import IAMMeta, get_iam_client
+
+iam = get_iam_client()
 
 
 class ApiMixin(GenericViewSet):
@@ -35,3 +39,12 @@ class ApiMixin(GenericViewSet):
                 response.data = {"result": True, "data": response.data, "code": err_code.SUCCESS.code, "message": ""}
 
         return super(ApiMixin, self).finalize_response(request, response, *args, **kwargs)
+
+    def iam_auth_check(self, request, action, resources):
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(action),
+            resources=resources,
+        )
