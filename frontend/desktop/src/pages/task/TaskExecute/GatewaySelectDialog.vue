@@ -25,7 +25,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="selectedBranch"
-                        :key="isRenderKey"
+                        :key="isRandomKey"
                         :multiple="isCondParallelGw"
                         :display-tag="isCondParallelGw"
                         :clearable="false">
@@ -52,12 +52,12 @@
         data () {
             return {
                 selectedBranch: null,
-                isRenderKey: null
+                isRandomKey: null
             }
         },
         watch: {
             gatewayBranches (val) {
-                this.isRenderKey = new Date().getTime()
+                this.isRandomKey = new Date().getTime()
                 if (this.isCondParallelGw) {
                     this.selectedBranch = val.length ? [val[0].id] : []
                 } else {
@@ -68,8 +68,11 @@
         methods: {
             onConfirm () {
                 const selected = this.gatewayBranches.filter(item => {
+                    if (this.isCondParallelGw) {
+                        return this.selectedBranch.includes(item.id)
+                    }
                     return item.id === this.selectedBranch
-                })[0]
+                })
                 this.$emit('onConfirm', selected)
             },
             onCancel () {
