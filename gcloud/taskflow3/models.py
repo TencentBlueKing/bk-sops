@@ -1309,7 +1309,8 @@ class TaskFlowInstance(models.Model):
         return list(set(receivers))
 
     def get_notify_type(self):
-        return json.loads(self.template.notify_type)
+        notify_type = json.loads(self.template.notify_type)
+        return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
 
 def get_instance_context(pipeline_instance, data_type, username=""):

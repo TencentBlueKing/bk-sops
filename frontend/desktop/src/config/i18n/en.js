@@ -1160,6 +1160,8 @@ const en = {
     '默认任务': 'Default Task',
     '职能化任务': 'Functional Task',
     '默认全部': 'all',
+    '任务状态': 'Task Status',
+    '成功': 'Success',
     '导出为': 'Export',
     '文件': 'File',
     'YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息': 'Exported YAML file can be edited，When it is imported, the template nodes will lose the location information',
