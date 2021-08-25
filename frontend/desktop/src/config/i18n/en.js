@@ -28,6 +28,7 @@ const en = {
     '请先保存方案再执行其他操作': 'Please save the plan before performing other operations',
     '新增': 'Add',
     '预览节点': 'Preview node',
+    '导出为图片': 'Export as picture',
     '请选择节点的插件类型': 'Please select the plug-in type of the node',
     '请选择节点的子流程': 'Please select the sub-process of the node',
     '保存已修改的信息吗？': 'Save the modified information?',
