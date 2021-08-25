@@ -34,7 +34,7 @@ class JobExecuteTaskComponent(Component):
     name = _("执行作业")
     code = "job_execute_task"
     bound_service = JobExecuteTaskService
-    form = "%scomponents/atoms/job/job_execute_task.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/job/job_execute_task/v1_0.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
-    desc = _("跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息")
-    version = "legacy"
+    version = "1.0"
+    desc = "在接收到用户编辑的全局变量后，v1.0版本会先去除首尾的全部双引号，然后在首尾各加上一个双引号，将得到的字符串作为调用API时的参数。"
