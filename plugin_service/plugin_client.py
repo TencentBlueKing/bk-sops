@@ -87,7 +87,7 @@ class PluginServiceApiClient:
         params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
         if not plugin_code:
             # list接口相关参数
-            params.update({"limit": limit, "offset": offset})
+            params.update({"limit": limit, "offset": offset, "has_deployed": True})
             if search_term:
                 params.update({"search_term": search_term})
         return requests.get(url, params=params)
