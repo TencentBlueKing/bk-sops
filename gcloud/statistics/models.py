@@ -17,12 +17,11 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.constants import TASK_CATEGORY, TASK_CREATE_METHOD
 
 
-class ComponentInTemplate(models.Model):
+class TemplateNodeTemplate(models.Model):
     component_code = models.CharField(_("组件编码"), max_length=255)
-    template_id = models.CharField(_("模板ID"), max_length=32)
-    template_name = models.CharField(_("模版名"), max_length=128, default="default_template")
+    template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
+    task_template_id = models.CharField(_("Task模板ID"), max_length=32)
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id")
-    project_name = models.CharField(_("项目名"), max_length=192)
     category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
     node_id = models.CharField(_("节点ID"), max_length=32)
     is_sub = models.BooleanField(_("是否子流程引用"), default=False)
@@ -39,10 +38,10 @@ class ComponentInTemplate(models.Model):
         return "{}_{}".format(self.component_code, self.template_id)
 
 
-class ComponentExecuteData(models.Model):
+class TaskflowExecutedNodeStatistics(models.Model):
     component_code = models.CharField(_("组件编码"), max_length=255, db_index=True)
-    instance_id = models.CharField(_("实例ID"), max_length=32, db_index=True)
-    instance_name = models.CharField(_("实例名"), max_length=128, default="default_instance")
+    instance_id = models.CharField(_("Pipeline实例ID"), max_length=32, db_index=True)
+    task_instance_id = models.CharField(_("Task实例ID"), max_length=32, db_index=True)
     node_id = models.CharField(_("节点ID"), max_length=32)
     is_sub = models.BooleanField(_("是否子流程引用"), default=False)
     subprocess_stack = models.TextField(_("子流程堆栈"), default="[]", help_text=_("JSON 格式的列表"))
@@ -53,10 +52,9 @@ class ComponentExecuteData(models.Model):
     is_skip = models.BooleanField(_("是否跳过"), default=False)
     is_retry = models.BooleanField(_("是否重试记录"), default=False)
     version = models.CharField(_("插件版本"), max_length=255, default="legacy")
-    template_id = models.CharField(_("模板ID"), max_length=32)
-    template_name = models.CharField(_("模版名"), max_length=128, default="default_template")
+    template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
+    task_template_id = models.CharField(_("Task模板ID"), max_length=32)
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id")
-    project_name = models.CharField(_("项目名"), max_length=192)
     instance_create_time = models.DateTimeField(_("实例创建时间"), auto_now_add=True, db_index=True)
     instance_start_time = models.DateTimeField(_("实例启动时间"), null=True, blank=True)
     instance_finish_time = models.DateTimeField(_("实例结束时间"), null=True, blank=True)
@@ -70,17 +68,18 @@ class ComponentExecuteData(models.Model):
         return "{}_{}".format(self.component_code, self.instance_id)
 
 
-class TemplateInPipeline(models.Model):
-    template_id = models.CharField(_("模板ID"), max_length=255, db_index=True)
-    template_name = models.CharField(_("模版名"), max_length=128, default="default_template")
+class TemplateInStatistics(models.Model):
+    template_id = models.CharField(_("Pipeline模板ID"), max_length=255, db_index=True)
+    task_template_id = models.CharField(_("Task模板ID"), max_length=255, db_index=True)
     atom_total = models.IntegerField(_("标准插件总数"))
     subprocess_total = models.IntegerField(_("子流程总数"))
     gateways_total = models.IntegerField(_("网关总数"))
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id")
-    project_name = models.CharField(_("项目名"), max_length=192)
     category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
     template_creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
     template_create_time = models.DateTimeField(_("最近编辑时间"), auto_now_add=True, null=True)
+    output_count = models.IntegerField(_("输出变量数"), default=-1)
+    input_count = models.IntegerField(_("输入变量数"), default=-1)
 
     class Meta:
         verbose_name = _("Pipeline模板引用数据")
@@ -90,17 +89,16 @@ class TemplateInPipeline(models.Model):
         return "{}_{}_{}_{}".format(self.template_id, self.atom_total, self.subprocess_total, self.gateways_total)
 
 
-class InstanceInPipeline(models.Model):
-    instance_id = models.CharField(_("实例ID"), max_length=255, db_index=True)
-    instance_name = models.CharField(_("实例名"), max_length=128, default="default_instance")
+class TaskflowStatistics(models.Model):
+    instance_id = models.CharField(_("Pipeline实例ID"), max_length=255, db_index=True)
+    task_instance_id = models.CharField(_("Task实例ID"), max_length=255, db_index=True)
     atom_total = models.IntegerField(_("标准插件总数"))
     subprocess_total = models.IntegerField(_("子流程总数"))
     gateways_total = models.IntegerField(_("网关总数"))
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id")
-    project_name = models.CharField(_("项目名"), max_length=192)
     category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
-    template_id = models.CharField(_("模板ID"), max_length=255, db_index=True)
-    template_name = models.CharField(_("模版名"), max_length=128, default="default_template")
+    template_id = models.CharField(_("Pipeline模板ID"), max_length=255, db_index=True)
+    task_template_id = models.CharField(_("Task模板ID"), max_length=255, db_index=True)
     creator = models.CharField(_("创建者"), max_length=32, blank=True)
     create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
     start_time = models.DateTimeField(_("启动时间"), null=True, blank=True)
