@@ -420,7 +420,10 @@
                 this.pluginLoading = true
                 try {
                     // 获取输入输出参数
-                    await this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
+                    this.inputs = await this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
+                    if (!this.isThirdParty) {
+                        this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -434,6 +437,11 @@
             async getAtomConfig (plugin, version, classify, name) {
                 const project_id = this.common ? undefined : this.project_id
                 try {
+                    // 先取标准节点缓存的数据
+                    const pluginGroup = this.pluginConfigs[plugin]
+                    if (pluginGroup && pluginGroup[version]) {
+                        return pluginGroup[version]
+                    }
                     // 第三方插件
                     if (this.isThirdParty) {
                         const resp = await this.loadPluginServiceDetail({ plugin_code: plugin, plugin_version: version })
@@ -462,16 +470,9 @@
                         eval(renderFrom)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
-                        this.outputs = this.atomGroup.list.find(item => item.version === version).output
                     }
                     const config = $.atoms[plugin]
-                    // 先取标准节点缓存的数据
-                    const pluginGroup = this.pluginConfigs[plugin]
-                    if (!this.isThirdParty && pluginGroup && pluginGroup[version]) {
-                        this.inputs = pluginGroup[version]
-                    } else {
-                        this.inputs = config || []
-                    }
+                    return config
                 } catch (e) {
                     console.log(e)
                 }

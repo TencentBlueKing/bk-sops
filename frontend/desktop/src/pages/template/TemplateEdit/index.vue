@@ -351,15 +351,22 @@
                     lines: this.lines,
                     locations: this.locations.map(location => {
                         let icon, group, code
-                        const atom = this.atomList.find(item => {
-                            if (location.type === 'tasknode') {
-                                return this.activities[location.id].component.code === item.code
+                        if (location.type === 'tasknode') {
+                            const nodeConfig = this.activities[location.id]
+                            if (nodeConfig && nodeConfig.component.code === 'remote_plugin') {
+                                icon = location.group_icon
+                                group = location.group_name
+                                code = nodeConfig.name
+                            } else {
+                                const atom = this.atomList.find(item => {
+                                    return nodeConfig && nodeConfig.component.code === item.code
+                                })
+                                if (atom) {
+                                    icon = atom.group_icon
+                                    group = atom.group_name
+                                    code = atom.code
+                                }
                             }
-                        })
-                        if (atom) {
-                            icon = atom.group_icon
-                            group = atom.group_name
-                            code = atom.code
                         }
                         const data = { ...location, mode: 'edit', icon, group, code }
                         if (
@@ -1023,7 +1030,12 @@
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
-                    const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    let atom = true
+                    if (nodeConfig.component.code === 'remote_plugin') {
+                        atom = true
+                    } else {
+                        atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    }
                     if (!atom) {
                         this.$bkMessage({
                             message: '该节点配置的插件不存在，请检查流程数据',
@@ -1115,7 +1127,7 @@
              * @param {String} changeType 变更类型,添加、删除、编辑
              * @param {Object} location 节点 location 字段
              */
-            onLocationChange (changeType, location) {
+            async onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
@@ -1123,11 +1135,18 @@
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
                             if (location.type === 'tasknode') {
-                                const atoms = this.atomList.find(item => item.code === location.atomId).list
-                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
-                                const lastVersionAtom = atoms[atoms.length - 1]
-                                const version = lastVersionAtom.version
-                                location.version = version
+                                if (location.atomId === 'remote_plugin') {
+                                    const resp = await this.loadPluginServiceMeta({ plugin_code: location.name })
+                                    if (!resp.result) return
+                                    const versionList = resp.data.versions
+                                    location.version = versionList[versionList.length - 1]
+                                } else {
+                                    const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                    // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                    const lastVersionAtom = atoms[atoms.length - 1]
+                                    const version = lastVersionAtom.version
+                                    location.version = version
+                                }
                                 this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
