@@ -27,19 +27,7 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobExecuteTaskService(JobExecuteTaskServiceBase):
-    need_get_sops_var = True
-
-    def inputs_format(self):
-        return super(JobExecuteTaskService, self).inputs_format()
-
-    def outputs_format(self):
-        return super(JobExecuteTaskService, self).outputs_format()
-
-    def execute(self, data, parent_data):
-        return super(JobExecuteTaskService, self).execute(data, parent_data)
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobExecuteTaskService, self).schedule(data, parent_data, callback_data)
+    pass
 
 
 class JobExecuteTaskComponent(Component):

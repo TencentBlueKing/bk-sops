@@ -188,6 +188,3 @@ class JobExecuteTaskServiceBase(JobService):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobExecuteTaskServiceBase, self).schedule(data, parent_data, callback_data)
