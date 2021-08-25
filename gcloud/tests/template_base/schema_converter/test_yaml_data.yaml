@@ -1,0 +1,56 @@
+schema_version: v1
+meta:
+  name: 循环样例
+  id: template1
+spec:
+  nodes:
+  - id: t1_node1
+    type: EmptyStartEvent
+    next:
+    - t1_node2
+  - id: t1_node2
+    type: ServiceActivity
+    name: 循环前置节点
+    component:
+      code: sleep_timer
+      data:
+        bk_timing:
+          value: '1'
+        force_check:
+          value: true
+      version: legacy
+    output:
+      _loop:
+        name: 循环次数
+        key: ${_loop}
+        hide: true
+  - id: t1_node3
+    type: ServiceActivity
+    name: 定时
+    component:
+      code: sleep_timer
+      data:
+        bk_timing:
+          value: ${time_list.split(",")[_loop-1]}
+        force_check:
+          value: true
+      version: legacy
+  - id: t1_node4
+    type: ExclusiveGateway
+    conditions:
+      t1_node2:
+        evaluate: ${_loop} < ${len(time_list.split(","))}
+        name: 循环未结束
+      t1_node5:
+        evaluate: ${_loop} == ${len(time_list.split(","))}
+        name: 循环结束
+    next:
+    - t1_node2
+    - t1_node5
+  - id: t1_node5
+    type: EmptyEndEvent
+  constants:
+    ${time_list}:
+      name: time_list
+      value: 1,2,3,4
+      type: textarea

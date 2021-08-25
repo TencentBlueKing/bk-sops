@@ -260,3 +260,21 @@
 .bk-notify-content-text {
     @include scrollbar;
 }
+
+// 流程模板跨页全选和本页全选下拉框样式
+.tippy-popper.select-all-tpl-popover {
+    .tippy-tooltip {
+        padding: 6px 0;
+    }
+    .mode-item {
+        padding: 0 12px;
+        line-height: 28px;
+        font-size: 12px;
+        color: #333333;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            background: #f4f6fa;
+        }
+    }
+}

@@ -26,11 +26,12 @@ import env
 from gcloud.core.models import ProjectConfig
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
+
+from gcloud.taskflow3.apis.tastypie.resources import ProjectBasedTaskFlowIAMAuthorization
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
-from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
 from gcloud.constants import PROJECT, COMMON
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -106,7 +107,7 @@ class PeriodicTaskResource(GCloudModelResource):
             "task": ALL_WITH_RELATIONS,
         }
         # iam config
-        authorization = CustomCreateCompleteListIAMAuthorization(
+        authorization = ProjectBasedTaskFlowIAMAuthorization(
             iam=iam,
             helper=PeriodicTaskIAMAuthorizationHelper(
                 system=IAMMeta.SYSTEM_ID,

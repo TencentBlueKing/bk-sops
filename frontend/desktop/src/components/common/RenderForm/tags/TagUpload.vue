@@ -21,6 +21,7 @@
                 :headers="headers"
                 :data="data_params"
                 :disabled="!editable || disabled"
+                :http-request="handleHttpRequest.bind(this)"
                 :on-success="handleSuccess.bind(this)"
                 :on-remove="handleRemove.bind(this)"
                 :on-error="handleError.bind(this)"
@@ -114,6 +115,10 @@
             type: Function,
             default: null
         },
+        httpRequest: {
+            type: Function,
+            default: null
+        },
         beforeUpload: {
             type: Function,
             default: null
@@ -180,6 +185,11 @@
                     this.submit()
                 } else {
                     this.$refs.upload.submit()
+                }
+            },
+            handleHttpRequest (options) {
+                if (typeof this.httpRequest === 'function') {
+                    return this.httpRequest(options)
                 }
             },
             handleBeforeUpload (file, fileList) {

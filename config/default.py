@@ -67,6 +67,7 @@ INSTALLED_APPS += (
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
     "gcloud.iam_auth",
+    "gcloud.project_constants",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
@@ -446,7 +447,7 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
-from gcloud.taskflow3.queues import PrepareAndStartTaskQueueResolver  # noqa
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"

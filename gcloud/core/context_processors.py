@@ -47,6 +47,7 @@ def mysetting(request):
     # 嵌入CICD，隐藏头部
     language = request.COOKIES.get("blueking_language", "zh-cn")
     run_ver_key = "BKAPP_RUN_VER_NAME" if language == "zh-cn" else "BKAPP_RUN_VER_NAME_{}".format(language.upper())
+    file_manager_type = "BKAPP_FILE_MANAGER_TYPE"
     hide_header = int(request.GET.get("hide_header", "0") == "1")
     is_superuser = int(request.user.is_superuser)
     is_functor = int(is_user_functor(request))
@@ -101,6 +102,7 @@ def mysetting(request):
         "BK_STATIC_URL": frontend_entry_url,
         "BK_DOC_URL": settings.BK_DOC_URL,
         "FEEDBACK_URL": settings.FEEDBACK_URL,
+        "FILE_MANAGER_TYPE": EnvironmentVariables.objects.get_var(file_manager_type, env.BKAPP_FILE_MANAGER_TYPE),
     }
 
     # custom context config

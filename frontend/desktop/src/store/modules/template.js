@@ -178,7 +178,7 @@ const template = {
             receiver_group: [],
             more_receiver: ''
         },
-        notify_type: [],
+        notify_type: { success: [], fail: [] },
         time_out: '',
         category: '',
         description: '',
@@ -188,7 +188,7 @@ const template = {
             details: [],
             subproc_has_update: false
         },
-        systemConstants: [],
+        internalVariable: [],
         default_flow_type: 'common'
     },
     mutations: {
@@ -295,7 +295,7 @@ const template = {
             state.name = name
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
-            state.notify_type = notify_type ? JSON.parse(notify_type) : []
+            state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [] } : notify_type
             state.description = description
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels || []
@@ -328,7 +328,7 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = 'Default'
-            state.notify_type = []
+            state.notify_type = { success: [], fail: [] }
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
@@ -352,7 +352,7 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = 'Default'
-            state.notify_type = []
+            state.notify_type = { success: [], fail: [] }
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
@@ -794,7 +794,7 @@ const template = {
         },
         // 设置内置变量
         setInternalVariable (state, payload) {
-            state.systemConstants = payload
+            state.internalVariable = payload
         }
     },
     actions: {
@@ -856,11 +856,9 @@ const template = {
                     reject(info)
                 })
             }
-
             const { name } = state
             const pipelineTree = JSON.stringify(fullCanvasData)
             const notifyReceivers = JSON.stringify(notify_receivers)
-            const notifyType = JSON.stringify(notify_type)
             const timeout = time_out
             const headers = {}
             const project = SITE_URL + 'api/v3/project/' + projectId + '/'
@@ -885,9 +883,9 @@ const template = {
                 executor_proxy,
                 template_labels,
                 default_flow_type,
+                notify_type,
                 pipeline_tree: pipelineTree,
-                notify_receivers: notifyReceivers,
-                notify_type: notifyType
+                notify_receivers: notifyReceivers
             }, {
                 headers
             }).then(response => response.data)

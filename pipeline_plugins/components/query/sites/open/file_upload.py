@@ -30,6 +30,23 @@ logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
+def _check_and_get_file_manager():
+    file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
+    if not file_manager_type:
+        return False, _("File Manager 未配置，请联系管理员进行配置")
+
+    try:
+        file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
+    except Exception as e:
+        logger.error(
+            "[FILE_UPLOAD]can not get file manager for type: {}\n err: {}".format(
+                file_manager_type, traceback.format_exc()
+            )
+        )
+        return False, str(e)
+    return True, file_manager
+
+
 @login_exempt
 @csrf_exempt
 def file_upload(request):
@@ -46,23 +63,13 @@ def file_upload(request):
         response.status_code = 400
         return response
 
-    file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
-    if not file_manager_type:
-        return JsonResponse({"result": False, "message": _("File Manager 未配置，请联系管理员进行配置")})
-
-    try:
-        file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
-    except Exception as e:
-        logger.error(
-            "[FILE_UPLOAD]can not get file manager for type: {}\n err: {}".format(
-                file_manager_type, traceback.format_exc()
-            )
-        )
-        return JsonResponse({"result": False, "message": str(e)})
-
+    ok, data = _check_and_get_file_manager()
+    if not ok:
+        return JsonResponse({"result": False, "message": data})
+    file_manager = data
     logger.info("[FILE_UPLOAD]file_upload POST: {}".format(request.POST))
 
-    bartender = BartenderFactory.get_bartender(manager_type=file_manager_type, manager=file_manager)
+    bartender = BartenderFactory.get_bartender(manager_type=file_manager.type, manager=file_manager)
 
     return bartender.process_request(request)
 
@@ -74,7 +81,23 @@ def apply_upload_ticket(request):
     return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
+def get_repo_temporary_upload_url(request):
+    bk_biz_id = request.GET.get("bk_biz_id")
+    name = request.GET.get("name")
+    shims = request.GET.get("shims", "frontend_upload")
+
+    if not str(bk_biz_id) or not str(name):
+        return JsonResponse({"result": False, "message": "bk_biz_id and name should be both provided"})
+
+    ok, data = _check_and_get_file_manager()
+    if not ok:
+        return JsonResponse({"result": False, "message": data})
+    file_manager = data
+    return JsonResponse(file_manager.generate_temporary_url(bk_biz_id=bk_biz_id, name=name, shims=shims))
+
+
 file_upload_urlpatterns = [
     url(r"^file_upload/$", file_upload),
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
+    url(r"^get_repo_temporary_upload_url/$", get_repo_temporary_upload_url),
 ]
