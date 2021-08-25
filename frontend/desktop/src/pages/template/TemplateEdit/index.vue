@@ -458,7 +458,6 @@
                 'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
-                'loadCommonTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
                 'loadInternalVariable'
