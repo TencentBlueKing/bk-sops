@@ -25,6 +25,9 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="selectedBranch"
+                        :key="isRenderKey"
+                        :multiple="isCondParallelGw"
+                        :display-tag="isCondParallelGw"
                         :clearable="false">
                         <bk-option
                             v-for="item in gatewayBranches"
@@ -43,16 +46,23 @@
         name: 'GatewaySelectDialog',
         props: [
             'isGatewaySelectDialogShow',
+            'isCondParallelGw',
             'gatewayBranches'
         ],
         data () {
             return {
-                selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
+                selectedBranch: null,
+                isRenderKey: null
             }
         },
         watch: {
             gatewayBranches (val) {
-                this.selectedBranch = val.length ? val[0].id : ''
+                this.isRenderKey = new Date().getTime()
+                if (this.isCondParallelGw) {
+                    this.selectedBranch = val.length ? [val[0].id] : []
+                } else {
+                    this.selectedBranch = val.length ? val[0].id : ''
+                }
             }
         },
         methods: {

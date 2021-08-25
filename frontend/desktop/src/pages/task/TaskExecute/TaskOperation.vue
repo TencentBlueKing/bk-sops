@@ -112,6 +112,7 @@
         </bk-sideslider>
         <gatewaySelectDialog
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
+            :is-cond-parallel-gw="isCondParallelGw"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
@@ -296,6 +297,7 @@
                 nodeDetailConfig: {},
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
+                isCondParallelGw: false,
                 gatewayBranches: [],
                 canvasMountedQueues: [], // canvas pending queues
                 pending: {
@@ -887,6 +889,7 @@
                         name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate
                     })
                 }
+                this.isCondParallelGw = nodeGateway.type === 'ConditionalParallelGateway'
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
             },
