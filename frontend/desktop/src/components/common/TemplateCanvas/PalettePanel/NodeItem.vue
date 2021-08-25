@@ -19,7 +19,10 @@
         :data-type="type">
         <div v-if="node.plugin_type" class="plugin-item">
             <img class="plugin-logo" :src="node.logo_url" alt="">
-            <p class="plugin-title" v-bk-overflow-tips>{{ node.nodeName }}</p>
+            <div>
+                <p class="plugin-title" v-bk-overflow-tips>{{ node.nodeName }}</p>
+                <p class="plugin-code">{{ node.name }}</p>
+            </div>
         </div>
         <div v-else class="name-wrapper">{{node.name}}</div>
     </div>
@@ -61,12 +64,14 @@
         .plugin-title {
             font-size: 14px;
             font-weight: 700;
-            color: #63656e;
             line-height: 19px;
             margin-bottom: 4px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+        }
+        .plugin-code {
+            font-size: 12px;
         }
         &:hover {
             background: hsl(218, 100%, 94%);

@@ -97,7 +97,8 @@
         },
         methods: {
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -130,13 +131,19 @@
 
                 for (const variable of variableArray) {
                     const { key } = variable
+                    const { plugin_code } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
+                    let atomConfig
                     if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
-                        await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
+                        if (plugin_code) {
+                            atomConfig = await this.getThirdPartyAtomConfig(plugin_code, version)
+                        } else {
+                            await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
+                            atomConfig = this.atomFormConfig[atom][version]
+                        }
                     }
-                    const atomConfig = this.atomFormConfig[atom][version]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                     if (currentFormConfig) {
@@ -181,6 +188,21 @@
                     this.$emit('onChangeConfigLoading', false)
                 })
             },
+            async getThirdPartyAtomConfig (code, version) {
+                try {
+                    const resp = await this.loadPluginServiceDetail({ plugin_code: code, plugin_version: version })
+                    if (!resp.result) return
+                    // 输入参数
+                    $.atoms[code] = {}
+                    const renderFrom = resp.data.forms.renderform
+                    /* eslint-disable-next-line */
+                    eval(renderFrom)
+                    const atomConfig = $.atoms[code]
+                    return atomConfig
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
             validate () {
                 return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
@@ -203,13 +225,19 @@
                     const variable = variables[key]
                     if (variable.show_type === 'hide') {
                         if (variable.is_meta) {
+                            const { plugin_code } = variable
                             const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                             // custom_type 可以判断是手动新建节点还是组件勾选
                             const version = variable.version || 'legacy'
+                            let atomConfig
                             if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
-                                await this.loadAtomConfig({ name, atom, classify, version })
+                                if (plugin_code) {
+                                    atomConfig = await this.getThirdPartyAtomConfig(plugin_code, version)
+                                } else {
+                                    await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
+                                    atomConfig = this.atomFormConfig[atom][version]
+                                }
                             }
-                            const atomConfig = this.atomFormConfig[atom][version]
                             let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                             variable.meta = tools.deepClone(variable) // JSON.stringify 循环引用的问题，需要深拷贝一下

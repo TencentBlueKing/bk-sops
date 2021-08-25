@@ -157,6 +157,7 @@
                                                 :value="inputsParamValue"
                                                 :is-subflow="isSubflow"
                                                 :constants="localConstants"
+                                                :third-party-code="isThirdParty ? basicInfo.nodeName : ''"
                                                 @hookChange="onHookChange"
                                                 @update="updateInputsValue">
                                             </input-params>
@@ -175,6 +176,7 @@
                                                 :params="outputs"
                                                 :version="basicInfo.version"
                                                 :node-id="nodeId"
+                                                :is-third-party="isThirdParty"
                                                 @hookChange="onHookChange">
                                             </output-params>
                                             <no-data v-else></no-data>
@@ -418,7 +420,10 @@
                 this.pluginLoading = true
                 try {
                     // 获取输入输出参数
-                    this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
+                    this.inputs = await this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
+                    if (!this.isThirdParty) {
+                        this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -431,11 +436,12 @@
              */
             async getAtomConfig (plugin, version, classify, name) {
                 const project_id = this.common ? undefined : this.project_id
-                const pluginGroup = this.pluginConfigs[plugin]
-                if (pluginGroup && pluginGroup[version]) {
-                    return pluginGroup[version]
-                }
                 try {
+                    // 先取标准节点缓存的数据
+                    const pluginGroup = this.pluginConfigs[plugin]
+                    if (pluginGroup && pluginGroup[version]) {
+                        return pluginGroup[version]
+                    }
                     // 第三方插件
                     if (this.isThirdParty) {
                         const resp = await this.loadPluginServiceDetail({ plugin_code: plugin, plugin_version: version })
@@ -458,15 +464,15 @@
                         }
                         this.outputs = [...storeOutputs, ...outputs]
                         // 输入参数
+                        $.atoms[plugin] = {}
                         const renderFrom = resp.data.forms.renderform
                         /* eslint-disable-next-line */
                         eval(renderFrom)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
-                        this.outputs = this.atomGroup.list.find(item => item.version === version).output
                     }
                     const config = $.atoms[plugin]
-                    this.inputs = config || []
+                    return config
                 } catch (e) {
                     console.log(e)
                 }
@@ -730,8 +736,10 @@
                 this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''
-                const atom = this.atomList.find(item => item.code === code)
-                desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                if (!this.isThirdParty) {
+                    const atom = this.atomList.find(item => item.code === code)
+                    desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                }
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')

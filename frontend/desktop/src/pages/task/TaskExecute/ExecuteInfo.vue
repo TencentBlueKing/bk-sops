@@ -156,11 +156,11 @@
                     </IpLogContent>
                 </section>
                 <section class="info-section log-info">
+                    <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
                     <!-- 内置插件/第三方插件tab -->
-                    <bk-tab :active.sync="curPluginTab" type="unborder-card">
-                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('标准节点') }"></bk-tab-panel>
+                    <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
+                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
                         <bk-tab-panel
-                            v-if="isThirdPartyNode"
                             v-bind="{ name: 'third_praty_plugin', label: $t('第三方节点日志') }">
                         </bk-tab-panel>
                     </bk-tab>
@@ -613,7 +613,8 @@
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadPluginServiceDetail',
-                'loadPluginServiceLog'
+                'loadPluginServiceLog',
+                'loadPluginServiceAppDetail'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeDetail',
@@ -624,6 +625,7 @@
                 try {
                     this.isShowInputOrigin = false
                     this.isShowOutputOrigin = false
+                    this.curPluginTab = 'build_in_plugin'
                     const respData = await this.getTaskNodeDetail()
                     if (!respData) {
                         this.isReadyStatus = false
@@ -684,7 +686,7 @@
                             })
                         } else {
                             // 普通插件展示 preset 为 true 的输出参数
-                            this.outputsInfo = outputs.filter(output => output.preset)
+                            this.outputsInfo = this.isThirdPartyNode ? outputs : outputs.filter(output => output.preset)
                         }
                         this.outputsInfo.forEach(out => {
                             this.$set(this.outputRenderData, out.key, out.value)
@@ -697,7 +699,10 @@
                     
                     this.executeInfo.plugin_version = version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
-                    if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                    if (this.isThirdPartyNode) {
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.executeInfo.plugin_name = resp.data.name
+                    } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }
@@ -718,8 +723,9 @@
                         this.isShowRetryBtn = activity.retryable
                     }
                     // 获取第三方插件节点日志
-                    if (this.isThirdPartyNode) {
-                        this.handleTabChange()
+                    const traceId = outputs.length && outputs[0].value
+                    if (this.isThirdPartyNode && traceId) {
+                        this.handleTabChange(traceId)
                     }
                 } catch (e) {
                     console.log(e)
@@ -814,17 +820,8 @@
                     }
                 }
             },
-            async handleTabChange () {
+            async handleTabChange (traceId) {
                 try {
-                    const { outputs } = this.executeInfo
-                    const traceId = outputs[0].value
-                    if (!traceId) {
-                        this.$bkMessage({
-                            message: '任务还没有在对应插件服务执行，无法获取traceid',
-                            theme: 'error'
-                        })
-                        return
-                    }
                     const resp = await this.loadPluginServiceLog({
                         plugin_code: this.thirdPartyNodeCode,
                         trace_id: traceId
@@ -944,19 +941,17 @@
 </script>
 <style lang="scss">
     .log-info {
-        position: relative;
-        .bk-tab-section {
-            padding: 5px;
+        .common-section-title {
+            margin-bottom: 10px;
         }
-        &::before {
-            content: '';
-            display: inline-block;
-            position: absolute;
-            top: 12px;
-            left: 0;
-            width: 2px;
-            height: 20px;
-            background: #a3c5fd;
+        .bk-tab-header {
+            top: -10px;
+        }
+        .bk-tab-section {
+            padding: 0px;
+        }
+        .no-data-wrapper {
+            margin-top: 50px;
         }
     }
 </style>

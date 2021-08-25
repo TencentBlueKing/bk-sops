@@ -174,7 +174,10 @@
                     :key="index"
                     @click="onThirdPratyClick(plugin)">
                     <img class="plugin-logo" :src="plugin.logo_url" alt="">
-                    <p class="plugin-title">{{ plugin.name }}</p>
+                    <div>
+                        <p class="plugin-title">{{ plugin.name }}</p>
+                        <p class="plugin-code">{{ plugin.code }}</p>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -653,6 +656,7 @@
         align-items: center;
         cursor: pointer;
         padding: 0 59px 0 38px;
+        color: #63656e;
         .plugin-logo {
             width: 48px;
             height: 48px;
@@ -662,8 +666,10 @@
         .plugin-title {
             font-size: 14px;
             font-weight: 700;
-            color: #63656e;
             margin-bottom: 4px;
+        }
+        .plugin-code {
+            font-size: 12px;
         }
         &.is-actived, &:hover {
             background: hsl(218, 100%, 94%);

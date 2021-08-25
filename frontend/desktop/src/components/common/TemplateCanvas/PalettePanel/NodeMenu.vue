@@ -369,10 +369,10 @@
             },
             setSearchInputShow (isTab) {
                 this.selectedGroup = this.activeNodeListType === 'subflow' ? [] : ''
-                this.searchStr = ''
                 const isThirdParty = this.curPluginTab === 'third_praty_plugin'
                 this.isSearch = isTab ? isThirdParty : true
-                if (isThirdParty) {
+                if (!isThirdParty && this.searchStr) {
+                    this.searchStr = ''
                     this.$emit('updatePluginList', undefined, 'search')
                 }
             },
@@ -541,8 +541,7 @@
         .search-btn {
             margin-left: 11px;
             .common-icon-search {
-                top: 0;
-                left: 0;
+                position: static;
             }
         }
         .select-btn {
