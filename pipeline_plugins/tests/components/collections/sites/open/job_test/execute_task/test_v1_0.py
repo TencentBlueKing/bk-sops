@@ -25,7 +25,7 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.job import JobExecuteTaskComponent
+from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0 import JobExecuteTaskComponent
 from pipeline_plugins.components.collections.sites.open.job import base
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
@@ -68,7 +68,7 @@ class MockClient(object):
 
 
 # mock path
-# 因为legacy版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
+# 因为v1.0版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_user"
 )
@@ -214,7 +214,7 @@ GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
 
 # test cases
 EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
-    name="execute_job call failed case",
+    name="v1.0 execute_job call failed case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -285,7 +285,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
 )
 
 INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
-    name="invalid callback case",
+    name="v1.0 invalid callback case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -354,7 +354,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
 )
 
 JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
-    name="job execute not success case",
+    name="v1.0 job execute not success case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -427,7 +427,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
 )
 
 GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
-    name="get global var fail case",
+    name="v1.0 get global var fail case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -505,7 +505,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
 )
 
 EXECUTE_SUCCESS_CASE = ComponentTestCase(
-    name="execute success case",
+    name="v1.0 execute success case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -603,7 +603,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
 )
 
 GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
-    name="get var failed but execute result must be success",
+    name="v1.0 get var failed but execute result must be success",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -692,7 +692,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
 )
 
 INVALID_IP_CASE = ComponentTestCase(
-    name="invalid ip case",
+    name="v1.0 invalid ip case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
@@ -720,7 +720,7 @@ INVALID_IP_CASE = ComponentTestCase(
 )
 
 IP_IS_EXIST_CASE = ComponentTestCase(
-    name="ip is exist case",
+    name="v1.0 ip is exist case",
     inputs={
         "job_global_var": [
             {"category": 1, "name": "key_1", "value": "value_1"},
