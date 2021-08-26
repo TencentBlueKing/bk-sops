@@ -697,7 +697,7 @@
                         }
                     }
                     
-                    this.executeInfo.plugin_version = version
+                    this.executeInfo.plugin_version = this.isThirdPartyNode ? inputs.plugin_version : version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (this.isThirdPartyNode) {
                         const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })

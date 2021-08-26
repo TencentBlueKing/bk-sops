@@ -259,7 +259,8 @@
         },
         methods: {
             ...mapActions('atomForm/', [
-                'loadPluginServiceMeta'
+                'loadPluginServiceMeta',
+                'loadPluginServiceAppDetail'
             ]),
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
@@ -397,13 +398,14 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
+                    const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
                         name: code,
-                        code: 'remote_plugin',
+                        code: appDeatil.data.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
