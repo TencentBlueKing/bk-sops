@@ -28,7 +28,8 @@ class TemplateNodeTemplate(models.Model):
     subprocess_stack = models.TextField(_("子流程堆栈"), default="[]", help_text=_("JSON 格式的列表"))
     version = models.CharField(_("插件版本"), max_length=255, default="legacy")
     template_creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
-    template_create_time = models.DateTimeField(_("最近编辑时间"), auto_now_add=True, null=True)
+    template_create_time = models.DateTimeField(_("模版创建时间"), auto_now_add=True, null=True)
+    template_edit_time = models.DateTimeField(_("模板最近编辑时间"), auto_now_add=True, null=True)
 
     class Meta:
         verbose_name = _("Pipeline标准插件被引用数据")
@@ -55,9 +56,9 @@ class TaskflowExecutedNodeStatistics(models.Model):
     template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
     task_template_id = models.CharField(_("Task模板ID"), max_length=32)
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id")
-    instance_create_time = models.DateTimeField(_("实例创建时间"), auto_now_add=True, db_index=True)
-    instance_start_time = models.DateTimeField(_("实例启动时间"), null=True, blank=True)
-    instance_finish_time = models.DateTimeField(_("实例结束时间"), null=True, blank=True)
+    instance_create_time = models.DateTimeField(_("Pipeline实例创建时间"), auto_now_add=True, db_index=True)
+    instance_start_time = models.DateTimeField(_("Pipeline实例启动时间"), null=True, blank=True)
+    instance_finish_time = models.DateTimeField(_("Pipeline实例结束时间"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Pipeline标准插件执行数据")
@@ -77,7 +78,8 @@ class TemplateInStatistics(models.Model):
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id")
     category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
     template_creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
-    template_create_time = models.DateTimeField(_("最近编辑时间"), auto_now_add=True, null=True)
+    template_create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, null=True)
+    template_edit_time = models.DateTimeField(_("最近编辑时间"), auto_now_add=True, null=True)
     output_count = models.IntegerField(_("输出变量数"), default=-1)
     input_count = models.IntegerField(_("输入变量数"), default=-1)
 
