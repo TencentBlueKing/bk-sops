@@ -404,9 +404,9 @@
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
             },
-            // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
+            // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return !['function', 'audit'].includes(this.routerType) && this.view_mode !== 'appmaker'
+                return this.routerType !== 'audit' && this.view_mode !== 'appmaker'
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
