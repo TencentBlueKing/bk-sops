@@ -32,6 +32,7 @@
                 <bk-table
                     v-if="templateList.length"
                     :data="templateList"
+                    :row-class-name="handlerRowClassName"
                     @select-all="onSelectAllTemplate">
                     <bk-table-column :resizable="false" width="50" :render-header="renderHeaderCheckbox">
                         <template slot-scope="props">
@@ -99,7 +100,6 @@
                 exportPending: false,
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
-                list: [],
                 templateList: [],
                 keywords: '',
                 tableScroller: null,
@@ -108,7 +108,7 @@
                 isThrottled: false,
                 isPageOver: false,
                 pageSize: 15,
-                currentPage: 0,
+                currentPage: 1,
                 totalPage: null
             }
         },
@@ -202,9 +202,11 @@
                 this.tplLoading = !this.isLoading
                 this.isCheckedDisabled = true
                 try {
+                    const offset = (this.currentPage - 1) * this.pageSize
                     const data = {
                         limit: this.pageSize,
-                        offset: this.currentPage
+                        offset,
+                        pipeline_template__name__icontains: this.keywords || undefined
                     }
                     if (this.common) {
                         data.common = 1
@@ -212,7 +214,7 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    this.totalPage = Math.floor(respData.meta.total_count / this.pageSize)
+                    this.totalPage = Math.ceil(respData.meta.total_count / this.pageSize)
                     this.isPageOver = this.currentPage === this.totalPage
 
                     const templateList = respData.objects.map(item => {
@@ -221,10 +223,8 @@
                         return item
                     })
                     if (isMore) {
-                        this.list.push(...templateList)
                         this.templateList.push(...templateList)
                     } else {
-                        this.list = templateList
                         this.templateList = templateList
                     }
                 } catch (e) {
@@ -244,10 +244,8 @@
             },
             // 搜索
             searchInputhandler () {
-                const searchList = this.list
-                this.templateList = toolsUtils.deepClone(searchList).filter(group => {
-                    return group.name.includes(this.keywords)
-                })
+                this.currentPage = 1
+                this.getTemplateData()
             },
             // 勾选模板
             onSelectTemplate (row) {
@@ -277,6 +275,10 @@
                     }
                     this.applyForPermission(this.reqPerm, row.auth_actions, permissionData)
                 }
+            },
+            // 设置表格行
+            handlerRowClassName ({ row }) {
+                return row.isChecked ? 'select-row' : ''
             },
             // 当前页全选
             onSelectAllTemplate () {
@@ -309,7 +311,12 @@
                 }, [])
                 try {
                     this.exportPending = true
-                    const resp = await this.templateExport({ list, type: this.type, common: this.common })
+                    const resp = await this.templateExport({
+                        list,
+                        type: this.type,
+                        common: this.common,
+                        across_page_all_selected: this.isTplInPanelAllSelected || undefined
+                    })
                     if (resp.result) {
                         this.closeDialog()
                     }
@@ -372,6 +379,9 @@
                 }
             }
         }
+    }
+    /deep/.select-row {
+        background: #e1ecff;
     }
     .is-loading {
         height: 42px;

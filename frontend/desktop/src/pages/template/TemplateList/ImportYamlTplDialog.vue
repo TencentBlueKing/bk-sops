@@ -24,7 +24,7 @@
                         {{ file.name }}
                         {{ checkResult ? $t('文件合法性检查通过。') : $t('文件不合法，请') }}
                         <template v-if="!checkResult">
-                            <a class="upload-tpl-btn" href="#checkMsgTitle">{{ $t('查看合法检查结果') }}</a>
+                            <a class="view-result-btn" href="#checkMsgTitle">{{ $t('查看合法检查结果') }}</a>
                             {{ $t('或') }}
                         </template>
                         <label
@@ -44,6 +44,7 @@
                 <div class="table-title">
                     <span>{{ $t('文件解析流程') + $t('（') }}{{ ('file' in importData.error) ? 0 : importData.yaml_docs.length }}{{ $t('）') }}</span>
                     <bk-pagination
+                        v-if="pagination.count > 5"
                         small
                         :current="pagination.current"
                         :count="pagination.count"
@@ -305,9 +306,10 @@
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
     .import-dialog-content {
-        padding: 0 27px 0 25px;
-        height: 100%;
-        overflow: auto;
+        padding-left: 24px;
+        height: 365px;
+        overflow-y: auto;
+        @include scrollbar;
     }
     .upload-file-area {
         width: 530px;
@@ -318,16 +320,15 @@
     }
     .import-check-wrapper {
         height: 100%;
-        overflow-y: auto;
-        @include scrollbar;
+        margin-right: 25px;
     }
     .bk-button-text {
         font-size: 12px;
     }
-    .upload-tpl-btn {
+    .view-result-btn, .upload-tpl-btn {
         color: #3a84ff;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
     }
     .table-title {
         display: flex;
@@ -354,26 +355,24 @@
     .import-yaml-dialog {
         .bk-dialog-content {
             height: 480px;
-            display: flex;
-            flex-direction: column;
             .bk-dialog-tool {
                 min-height: 0;
             }
             .bk-dialog-header {
                 margin-top: 0;
-                flex-shrink: 0;
+                padding-left: 24px;
                 border-bottom: none;
-            }
-            .bk-dialog-body {
-                flex: 1;
             }
         }
         .footer-wrap {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            .is-hide {
-                transform: scale(0);
+            .upload-tpl-btn {
+                font-size: 14px;
+                &.is-hide {
+                    transform: scale(0);
+                }
             }
         }
     }
