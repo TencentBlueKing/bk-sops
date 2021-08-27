@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 import logging
+import os
 import traceback
 from copy import deepcopy
 
@@ -34,6 +35,7 @@ class HttpRequestService(Service):
 
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
+    DEFAULT_HTTP_TIME_OUT = os.getenv("DEFAULT_HTTP_TIME_OUT", 60)
 
     def inputs_format(self):
         return [
@@ -110,7 +112,7 @@ class HttpRequestService(Service):
         url = data.inputs.bk_http_request_url.strip()
         body = data.inputs.bk_http_request_body
         request_header = data.inputs.bk_http_request_header
-        timeout = min(abs(int(data.inputs.bk_http_timeout)), 30) or 30
+        timeout = min(abs(int(data.inputs.bk_http_timeout)), self.DEFAULT_HTTP_TIME_OUT) or self.DEFAULT_HTTP_TIME_OUT
         success_exp = data.inputs.bk_http_success_exp.strip()
         other = {"headers": {}, "timeout": timeout}
 
