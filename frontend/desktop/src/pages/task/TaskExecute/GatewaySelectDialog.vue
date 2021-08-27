@@ -19,13 +19,12 @@
         :value="isGatewaySelectDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="dialog-content">
+        <div class="dialog-content" v-if="isGatewaySelectDialogShow">
             <div class="common-form-item">
                 <label>{{ $t('可选执行分支') }}</label>
                 <div class="common-form-content">
                     <bk-select
                         v-model="selectedBranch"
-                        :key="isRandomKey"
                         :multiple="isCondParallelGw"
                         :display-tag="isCondParallelGw"
                         :clearable="false">
@@ -51,13 +50,11 @@
         ],
         data () {
             return {
-                selectedBranch: null,
-                isRandomKey: null
+                selectedBranch: null
             }
         },
         watch: {
             gatewayBranches (val) {
-                this.isRandomKey = new Date().getTime()
                 if (this.isCondParallelGw) {
                     this.selectedBranch = val.length ? [val[0].id] : []
                 } else {
@@ -86,6 +83,9 @@
         padding: 30px 40px;
         .common-form-item > label {
             font-weight: normal;
+        }
+        /deep/.bk-select .bk-select-tag-container {
+            padding-top: 0 !important;
         }
     }
 </style>
