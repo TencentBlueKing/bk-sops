@@ -295,7 +295,7 @@ const template = {
             state.name = name
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
-            state.notify_type = notify_type ? JSON.parse(notify_type) : []
+            state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [] } : notify_type
             state.description = description
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels || []
