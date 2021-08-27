@@ -384,6 +384,14 @@ const task = {
             return axios.post(`taskflow/api/nodes/action/skip_exg/${project_id}/`, data).then(response => response.data)
         },
         /**
+         * 跳过条件并行网关节点
+         * @param {Object} data 节点配置数据
+         */
+        skipCondParallelGateWay ({ commit }, data) {
+            const { project_id } = store.state.project
+            return axios.post(`taskflow/api/nodes/action/skip_cpg/${project_id}/`, data).then(response => response.data)
+        },
+        /**
          * 暂停节点继续
          * @param {Object} data 节点配置数据
          */
