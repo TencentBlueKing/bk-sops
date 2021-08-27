@@ -246,6 +246,8 @@ def nodes_action(request, action, project_id):
         "data": data.get("data", {}),
         "inputs": data.get("inputs", {}),
         "flow_id": data.get("flow_id", ""),
+        "flow_ids": data.get("flow_ids", []),
+        "converge_gateway_id": data.get("converge_gateway_id", ""),
     }
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.nodes_action(action, node_id, username, **kwargs)
