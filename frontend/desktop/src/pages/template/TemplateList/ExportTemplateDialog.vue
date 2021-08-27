@@ -102,6 +102,7 @@
                 isCheckedDisabled: false,
                 templateList: [],
                 keywords: '',
+                isHasSelected: 0,
                 tableScroller: null,
                 isLoading: false,
                 pollingTimer: null,
@@ -109,7 +110,8 @@
                 isPageOver: false,
                 pageSize: 15,
                 currentPage: 1,
-                totalPage: null
+                totalPage: null,
+                totalCount: 0
             }
         },
         computed: {
@@ -118,25 +120,19 @@
             },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
-            },
-            isHasSelected () {
-                const selected = this.templateList.reduce((acc, cur) => {
-                    if (cur.isChecked) {
-                        acc.push(cur.id)
-                    }
-                    return acc
-                }, [])
-                return selected && selected.length
             }
         },
         watch: {
             isExportDialogShow (val) {
                 if (val) {
-                    if (this.selected && this.selected.length > 0) {
-                        const idList = this.selected.map(item => item.id)
+                    const selected = this.selected
+                    if (selected && selected.length > 0) {
+                        const idList = selected.map(item => item.id)
                         this.templateList.forEach(template => {
                             this.$set(template, 'isChecked', idList.includes(template.id))
                         })
+                        this.isHasSelected = selected.length
+                        this.isTplInPanelAllSelected = selected.length === this.totalCount
                     }
                     if (!this.tableScroller) {
                         this.tableScroller = this.$el.querySelector('.export-tpl-dialog .bk-table-body-wrapper')
@@ -214,11 +210,13 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
+                    this.totalCount = respData.meta.total_count
                     this.totalPage = Math.ceil(respData.meta.total_count / this.pageSize)
                     this.isPageOver = this.currentPage === this.totalPage
 
+                    const idList = this.selected.map(item => item.id) || []
                     const templateList = respData.objects.map(item => {
-                        const isChecked = this.isTplInPanelAllSelected ? true : this.selected.includes(item.id)
+                        const isChecked = this.isTplInPanelAllSelected ? true : idList.includes(item.id)
                         this.$set(item, 'isChecked', isChecked)
                         return item
                     })
@@ -242,6 +240,16 @@
                 }
                 return this.templateList.every(template => template.isChecked)
             },
+            // 判断模板列表是否勾选
+            getTplIsSelected () {
+                const selected = this.templateList.reduce((acc, cur) => {
+                    if (cur.isChecked) {
+                        acc.push(cur.id)
+                    }
+                    return acc
+                }, [])
+                return selected && selected.length
+            },
             // 搜索
             searchInputhandler () {
                 this.currentPage = 1
@@ -252,6 +260,11 @@
                 if (this.hasPermission(this.reqPerm, row.auth_actions)) {
                     row.isChecked = !row.isChecked
                     this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                    if (this.selected.length === this.totalCount) {
+                        this.isHasSelected = row.isChecked ? this.isHasSelected + 1 : this.isHasSelected - 1
+                    } else {
+                        this.isHasSelected = this.getTplIsSelected()
+                    }
                 } else {
                     let permissionData
                     if (this.common) {
@@ -286,6 +299,7 @@
                 this.templateList.forEach(item => {
                     item.isChecked = !isAllSelected
                 })
+                this.isHasSelected = this.getTplIsSelected()
                 this.isTplInPanelAllSelected = !isAllSelected && this.isPageOver
             },
             // 跨页全选
@@ -300,6 +314,7 @@
                     }
                 })
                 this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
+                this.isHasSelected = this.isTplInPanelAllSelected ? this.totalCount : 0
             },
             // 确定导出
             async onConfirm () {
@@ -315,7 +330,7 @@
                         list,
                         type: this.type,
                         common: this.common,
-                        across_page_all_selected: this.isTplInPanelAllSelected || undefined
+                        isFull: this.isTplInPanelAllSelected || undefined
                     })
                     if (resp.result) {
                         this.closeDialog()
