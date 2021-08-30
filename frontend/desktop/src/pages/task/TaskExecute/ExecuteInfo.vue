@@ -160,7 +160,7 @@
                         <NoData v-else></NoData>
                     </div>
                 </section>
-                <section class="info-section" v-if="location.type !== 'subflow' && historyInfo && historyInfo.length">
+                <section class="info-section" v-if="historyInfo && historyInfo.length">
                     <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
                     <bk-table
                         class="retry-table"
@@ -235,6 +235,7 @@
                     {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
+                    v-if="location.type !== 'subflow'"
                     @click="mandatoryFailure">
                     {{ $t('强制失败') }}
                 </bk-button>
