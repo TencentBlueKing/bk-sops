@@ -687,7 +687,11 @@
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
+<<<<<<< HEAD
                         this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.location.type === 'subflow'
+=======
+                        this.isShowRetryBtn = ['tasknode', 'subflow'].includes(this.location.type) && (activity.retryable || activity.can_retry)
+>>>>>>> upstream/bigsur_feature_retry_subprocess
                     }
                 } catch (e) {
                     console.log(e)
