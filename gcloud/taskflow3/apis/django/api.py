@@ -184,7 +184,9 @@ def detail(request, project_id):
     subprocess_stack = json.loads(request.query_params.get("subprocess_stack", "[]"))
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop, include_data)
+    ctx = task.get_node_detail(
+        node_id, request.user.username, component_code, subprocess_stack, loop, include_data, project_id=project_id
+    )
 
     return JsonResponse(ctx)
 
