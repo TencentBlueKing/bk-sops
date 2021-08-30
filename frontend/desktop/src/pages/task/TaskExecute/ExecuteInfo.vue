@@ -235,6 +235,7 @@
                     {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
+                    v-if="location.type !== 'subflow'"
                     @click="mandatoryFailure">
                     {{ $t('强制失败') }}
                 </bk-button>
