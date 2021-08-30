@@ -239,7 +239,7 @@
                     {{ $t('强制失败') }}
                 </bk-button>
             </div>
-            <div class="action-wrapper" v-if="executeInfo.state === 'FAILED'">
+            <div class="action-wrapper" v-if="isShowRetryBtn || isShowSkipBtn">
                 <bk-button
                     theme="primary"
                     v-if="isShowRetryBtn"
@@ -686,8 +686,8 @@
                     // 获取执行失败节点是否允许跳过，重试状态
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                        this.isShowSkipBtn = ['tasknode', 'subflow'].includes(this.location.type) && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' && activity.retryable
+                        this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
+                        this.isShowRetryBtn = ['tasknode', 'subflow'].includes(this.location.type) && activity.retryable
                     }
                 } catch (e) {
                     console.log(e)
