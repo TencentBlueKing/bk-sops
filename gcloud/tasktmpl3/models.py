@@ -21,7 +21,7 @@ from django.db.models import Count
 from pipeline.parser.utils import replace_all_id
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.periodic_task.models import PeriodicTask
-from pipeline.models import PipelineInstance, TemplateRelationship
+from pipeline.models import PipelineInstance, TemplateRelationship, PipelineTemplate
 
 from gcloud import err_code
 from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
@@ -76,14 +76,14 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
     def group_by_atom_cite(self, tasktmpl, *args):
         # 查询不同原子引用的个数
         components = ComponentModel.objects.filter(status=True).values("code", "version", "name")
-        total = components.count
+        total = components.count()
         groups = []
-        task_template_id_list = tasktmpl.values("id")
+        task_template_id_list = tasktmpl.values_list("id", flat=True)
         # 查询出符合条件的不同原子引用
         template_node_template_data = (
             TemplateNodeTemplate.objects.filter(template_id__in=task_template_id_list)
             .values("component_code", "version")
-            .aggregate(value=Count("id"))
+            .annotate(value=Count("id"))
         )
 
         for comp in components:
@@ -112,11 +112,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         if component_code:
             template_node_template_data = TemplateNodeTemplate.objects.filter(
                 component_code=component_code, version=version
-            ).values_list("template_id")
+            )
         else:
-            template_node_template_data = TemplateNodeTemplate.objects.all().values_list("template_id")
+            template_node_template_data = TemplateNodeTemplate.objects.all()
         total = template_node_template_data.count()
-        order_by = filters.get("order_by", "-template_id")
+        order_by = filters.get("order_by", "-templateId")
         if order_by == "-templateId":
             template_node_template_data = template_node_template_data.order_by("-template_id")
         if order_by == "templateId":
@@ -133,7 +133,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         project_id_list = template_node_template_data.values_list("project_id", flat=True)
         template_id_list = template_node_template_data.values_list("template_id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-        template_dict = dict(self.filter(id__in=template_id_list).values_list("id", "name"))
+        template_dict = dict(PipelineTemplate.objects.filter(id__in=template_id_list).values_list("id", "name"))
         # 循环聚合信息
         for data in atom_template_data:
             groups.append(
@@ -141,7 +141,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "templateId": data["template_id"],
                     "projectId": data["project_id"],
                     "projectName": project_dict.get(data["project_id"], ""),
-                    "templateName": template_dict.get(data["template_id"], ""),
+                    "templateName": template_dict.get(int(data["template_id"]), ""),
                     "category": category_dict[data["category"]],  # 需要将code转为名称
                     "createTime": format_datetime(data["template_create_time"]),
                     "creator": data["template_creator"],
@@ -180,7 +180,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "templateId": data["template_id"],
                     "projectId": data["project_id"],
                     "projectName": project_dict.get(data["project_id"], ""),
-                    "templateName": tempalte_dict.get(data["template_id"], ""),
+                    "templateName": tempalte_dict.get(int(data["template_id"]), ""),
                     "category": category_dict[data["category"]],
                     "editTime": format_datetime(data["template_edit_time"]),
                     "editor": data["template_creator"],
@@ -193,11 +193,9 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         total = tasktmpl.count()
         groups = []
 
-        template_id_list = set(tasktmpl.values_list("pipeline_template__template_id", flat=True))
-        template_in_statistics_data = TemplateInStatistics.filter(template_id__in=template_id_list)
-        template_id_map = {
-            template["template_id"]: template["task_template_id"] for template in template_in_statistics_data
-        }
+        template_id_list = list(tasktmpl.values_list("id", flat=True))
+        template_in_statistics_data = TemplateInStatistics.objects.filter(task_template_id__in=template_id_list)
+        template_id_map = {template.template_id: template.task_template_id for template in template_in_statistics_data}
         # 计算relationshipTotal, instanceTotal, periodicTotal
         # 查询所有的流程引用，并统计引用数量
         relationship_list = (
@@ -206,7 +204,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             .annotate(relationship_total=Count("descendant_template_id"))
         )
         # 查询所有的任务，并统计每个template创建了多少个任务
-        taskflow_list = (
+        taskflow_list = list(
             PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys()))
             .values("template_id")
             .annotate(instance_total=Count("template_id"))
@@ -224,7 +222,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
         taskflow_dict = {}
         for taskflow in taskflow_list:
-            taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
+            taskflow_dict[template_id_map[str(taskflow["template_id"])]] = taskflow["instance_total"]
 
         periodic_dict = {}
         for periodic_task in periodic_list:
@@ -233,14 +231,15 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         project_id_list = list(template_in_statistics_data.values_list("project_id", flat=True))
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
         # 查询所有template_name
-        template_dict = dict(tasktmpl.values("id", "name"))
+        template_id_list = list(template_in_statistics_data.values_list("template_id", flat=True))
+        template_dict = dict(PipelineTemplate.objects.filter(id__in=template_id_list).values_list("id", "name"))
         for data in template_in_statistics_data:
             groups.append(
                 {
                     "templateId": data.template_id,
                     "projectId": data.project_id,
                     "projectName": project_dict.get(data.project_id, ""),
-                    "templateName": template_dict.get(data.template_id, ""),
+                    "templateName": template_dict.get(int(data.template_id), ""),
                     "category": data.category,
                     "createTime": data.template_create_time,
                     "creator": data.template_creator,
@@ -258,9 +257,9 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         if order_by.startswith("-"):
             # 需要去除负号
             order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: -group.get(order_by))
+            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         else:
-            groups = sorted(groups, key=lambda group: group.get(order_by))
+            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=True)
         return total, groups[(page - 1) * limit : page * limit]
 
     def general_group_by(self, prefix_filters, group_by):

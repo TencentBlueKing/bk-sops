@@ -19,7 +19,7 @@ from django.db.models.aggregates import Avg
 
 import ujson as json
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
@@ -209,14 +209,14 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
     def group_by_atom_execute_times(self, taskflow, *args):
         # 查询各标准插件被执行次数
         components = ComponentModel.objects.all().values("code", "version", "name")
-        total = components.count
+        total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values("id")
+        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的不同流程引用
         template_node_template_data = (
             TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
             .values("component_code", "version")
-            .aggregate(value=Count("id"))
+            .annotate(value=Count("id"))
         )
 
         for comp in components:
@@ -235,7 +235,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
     def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件失败次数
         components = ComponentModel.objects.filter(status=False).values("code", "version", "name")
-        total = components.count
+        total = components.count()
         groups = []
         taskflow_id_list = taskflow.values("id")
         # 查询出符合条件的执行过的不同流程引用
@@ -260,15 +260,15 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
         # 查询各插件平均执行耗时
-        components = ComponentModel.objects.filter(status=False).values("code", "version", "name")
-        total = components.count
+        components = ComponentModel.objects.filter().values("code", "version", "name")
+        total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values("id")
+        taskflow_id_list = taskflow.values_list("id")
         # 查询出符合条件的执行过的插件的平均执行耗时
         template_node_template_data = (
             TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
             .values("component_code", "version")
-            .aggregate(value=Avg("elapsed_time"))
+            .annotate(value=Avg("elapsed_time"))
         )
 
         for comp in components:
@@ -286,15 +286,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各插件执行失败率
-        components = ComponentModel.objects.filter(status=False).values("code", "version", "name")
-        total = components.count
+        components = ComponentModel.objects.filter().values("code", "version", "name")
+        total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values("id")
+        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的插件的执行失败率,计算结果保留两位小数
+        status_false_filter = Q()
+        status_false_filter.children.append(("status", False))
         template_node_template_data = (
             TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
             .values("component_code", "version")
-            .aggregate(value=round(Count(status=False) / Count("*"), 2))
+            .annotate(value=Count("id", fliter=status_false_filter) / Count("id"))
         )
 
         for comp in components:
@@ -373,7 +375,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         :type limit: [type]
         """
 
-        task_instance_id_list = taskflow.values("id", flat=True)
+        task_instance_id_list = taskflow.values_list("id", flat=True)
         taskflow_statistics_data = (
             TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
             .values("category")
@@ -488,7 +490,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             .annotate(value=Count("project_id"))
         )
         # 获取project_name
-        project_id_list = taskflow_statistics_data.values("id", flat=True)
+        project_id_list = taskflow_statistics_data.values_list("id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
 
         total = 1
