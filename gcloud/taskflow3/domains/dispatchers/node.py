@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 from typing import Optional, List
 
+from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from engine_pickle_obj.context import SystemObject
@@ -22,9 +23,9 @@ from pipeline.engine import states as pipeline_states
 from pipeline.engine import api as pipeline_api
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
+from pipeline.engine import models as pipeline_engine_models
 from pipeline.parser.context import get_pipeline_context
 from pipeline.eri.runtime import BambooDjangoRuntime
-from pipeline.eri.models import ExecutionData
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import exceptions as pipeline_exceptions
@@ -51,6 +52,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "pause_subproc",
         "resume_subproc",
         "forced_fail",
+        "retry_subprocess",
     }
 
     def __init__(self, engine_ver: int, node_id: str):
@@ -307,8 +309,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         else:
             # 最新 loop 执行记录，直接通过接口获取
             if loop is None or int(loop) >= detail["loop"]:
-                inputs = pipeline_api.get_inputs(self.node_id)
-                outputs = pipeline_api.get_outputs(self.node_id)
+                try:
+                    inputs = pipeline_api.get_inputs(self.node_id)
+                except pipeline_engine_models.Data.DoesNotExist:
+                    logger.exception("shield DoesNotExist in pipeline engine layer")
+                    inputs = {}
+
+                try:
+                    outputs = pipeline_api.get_outputs(self.node_id)
+                except pipeline_engine_models.Data.DoesNotExist:
+                    logger.exception("shield DoesNotExist in pipeline engine layer")
+                    outputs = {}
             # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
             else:
                 his_data = pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
@@ -390,7 +401,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     logger.exception("bamboo_engine_api.get_execution_data fail")
 
                     # 对上层屏蔽执行数据不存在的场景
-                    if isinstance(result.exc, ExecutionData.DoesNotExist):
+                    if isinstance(result.exc, bamboo_exceptions.NotFoundError):
                         return {
                             "result": True,
                             "data": {"inputs": {}, "outputs": [], "ex_data": ""},
