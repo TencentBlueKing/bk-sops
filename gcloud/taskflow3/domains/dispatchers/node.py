@@ -145,6 +145,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
         )
 
+    def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
+        return {
+            "result": False,
+            "message": "v1 engine do not support subprocess retry",
+            "code": err_code.INVALID_OPERATION.code,
+        }
+
+    @ensure_return_is_dict
+    def retry_subprocess_v2(self, operator: str, **kwargs) -> dict:
+        return bamboo_engine_api.retry_subprocess(runtime=BambooDjangoRuntime(), node_id=self.node_id)
+
     def get_node_log(self, history_id: int) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
