@@ -11,26 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
-
-
-class AnalysisStatisticsConfig(AppConfig):
-    name = "gcloud.analysis_statistics"
-    verbose_name = "GcloudAnalysisStatistics"
-
-    def ready(self):
-        from gcloud.analysis_statistics.signals.handlers import (  # noqa
-            task_flow_post_handler,
-            task_template_post_handler,
-        )
-
-
-class AnalysisStatisticsMigrateBeatConfig(AppConfig):
-    name = "gcloud.analysis_statistics.data_migrate"
-    verbose_name = "DataMigrateAnalysisStatistics"
-
-    def ready(self):
-        from gcloud.analysis_statistics.signals.handlers import (  # noqa
-            task_flow_post_handler,
-            task_template_post_handler,
-        )
+default_app_config = "gcloud.analysis_statistics.apps.AnalysisStatisticsMigrateBeatConfig"
