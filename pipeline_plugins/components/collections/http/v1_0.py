@@ -35,7 +35,7 @@ class HttpRequestService(Service):
 
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
-    DEFAULT_HTTP_TIME_OUT = os.getenv("DEFAULT_HTTP_TIME_OUT", 60)
+    BKAPP_HTTP_REQ_PLUGIN_TIMEOUT = os.getenv("BKAPP_HTTP_REQ_PLUGIN_TIMEOUT", 60)
 
     def inputs_format(self):
         return [
@@ -112,7 +112,10 @@ class HttpRequestService(Service):
         url = data.inputs.bk_http_request_url.strip()
         body = data.inputs.bk_http_request_body
         request_header = data.inputs.bk_http_request_header
-        timeout = min(abs(int(data.inputs.bk_http_timeout)), self.DEFAULT_HTTP_TIME_OUT) or self.DEFAULT_HTTP_TIME_OUT
+        timeout = (
+            min(abs(int(data.inputs.bk_http_timeout)), self.BKAPP_HTTP_REQ_PLUGIN_TIMEOUT)
+            or self.BKAPP_HTTP_REQ_PLUGIN_TIMEOUT
+        )
         success_exp = data.inputs.bk_http_success_exp.strip()
         other = {"headers": {}, "timeout": timeout}
 

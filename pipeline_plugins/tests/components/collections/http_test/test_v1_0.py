@@ -47,7 +47,7 @@ class HttpComponentTest(TestCase, ComponentTestMixin):
 
 HTTP_REQUEST = "pipeline_plugins.components.collections.http.v1_0.request"
 HTTP_BOOLRULE = "pipeline_plugins.components.collections.http.v1_0.BoolRule"
-DEFAULT_HTTP_TIME_OUT = os.getenv("DEFAULT_HTTP_TIME_OUT", 60)
+BKAPP_HTTP_REQ_PLUGIN_TIMEOUT = os.getenv("BKAPP_HTTP_REQ_PLUGIN_TIMEOUT", 60)
 
 # ------------------------------------------------
 
@@ -73,7 +73,7 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=DEFAULT_HTTP_TIME_OUT,
+                    timeout=BKAPP_HTTP_REQ_PLUGIN_TIMEOUT,
                     headers={"Content-type": "application/json"},
                 )
             ],
@@ -112,7 +112,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=DEFAULT_HTTP_TIME_OUT,
+                    timeout=BKAPP_HTTP_REQ_PLUGIN_TIMEOUT,
                     headers={"Content-type": "application/json"},
                 )
             ],
@@ -156,7 +156,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=DEFAULT_HTTP_TIME_OUT,
+                    timeout=BKAPP_HTTP_REQ_PLUGIN_TIMEOUT,
                     headers={"Content-type": "application/json"},
                 )
             ],
@@ -345,7 +345,9 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
     schedule_call_assertion=[
         CallAssertion(
             func=HTTP_REQUEST,
-            calls=[Call(method="GET", url="url_token", verify=False, timeout=DEFAULT_HTTP_TIME_OUT, headers={})],
+            calls=[
+                Call(method="GET", url="url_token", verify=False, timeout=BKAPP_HTTP_REQ_PLUGIN_TIMEOUT, headers={})
+            ],
         ),
         CallAssertion(func=HTTP_CALL_EXP_FAIL_BOOLRULE.test, calls=[Call(context={"resp": "json_token4"})]),
     ],
@@ -393,7 +395,7 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=DEFAULT_HTTP_TIME_OUT,
+                    timeout=BKAPP_HTTP_REQ_PLUGIN_TIMEOUT,
                     headers={"Content-type": "application/json"},
                 )
             ],
