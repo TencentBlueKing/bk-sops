@@ -82,8 +82,7 @@ class GetNodeDataV2TestCase(TestCase):
         get_children_states_return.result = True
         get_children_states_return.data = None
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
-        system_obj_value = "system_obj"
-        system_obj = MagicMock(return_value=system_obj_value)
+        system_obj = MagicMock(return_value="system_obj")
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
         dispatcher._get_node_info = MagicMock(return_value={"type": "ServiceActivity"})
@@ -115,7 +114,7 @@ class GetNodeDataV2TestCase(TestCase):
             node_id=dispatcher.node_id,
             subprocess_stack=subprocess_stack,
             root_pipeline_data={},
-            current_constants={"${_system}": system_obj_value},
+            current_constants={"${_system}": {"type": "plain", "value": "system_obj"}},
         )
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
