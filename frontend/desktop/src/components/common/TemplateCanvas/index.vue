@@ -607,25 +607,81 @@
                     })
                 }
             },
-            onConnectionClick (connection, e) {
+            onConnectionClick (conn, e) {
                 if (e.target.tagName !== 'path') {
                     return
                 }
-                const lineInCanvasData = this.canvasData.lines.find(item => {
-                    return item.source.id === connection.sourceId && item.target.id === connection.targetId
-                })
-                const lineId = lineInCanvasData.id
-                const deleteOverlay = connection.getOverlay(`delete_icon_${lineId}`)
-                if (!deleteOverlay) {
-                    this.$refs.jsFlow.addLineOverlay(connection, {
+                const [sEdp, tEdp] = conn.endpoints
+                const { sourceId, targetId } = conn
+                this.replaceEndpoint(sEdp, sourceId, true)
+                this.replaceEndpoint(tEdp, targetId, true)
+                setTimeout(() => {
+                    const lineInCanvasData = this.canvasData.lines.find(item => {
+                        return item.source.id === sourceId && item.target.id === targetId
+                    })
+                    const lineId = lineInCanvasData.id
+                    const connections = this.$refs.jsFlow.instance.getConnections({ source: sourceId, targetId: targetId })
+                    this.$refs.jsFlow.addLineOverlay(connections[0], {
                         type: 'Label',
                         name: '<i class="common-icon-bkflow-delete"></i>',
                         location: -45,
                         cls: 'delete-line-icon',
                         id: `delete_icon_${lineId}`
                     })
-                    this.activeCon = connection
+                    this.activeCon = tools.deepClone(connections[0])
+                }, 0)
+            },
+            replaceEndpoint (oEdp, nodeId, draggable = false) {
+                const oldConnections = tools.deepClone(oEdp.connections)
+                const anchor = oEdp.anchor.type
+                const conditions = []
+                oldConnections.forEach(conn => {
+                    const { sourceId, targetId } = conn
+                    const line = this.canvasData.lines.find(item => {
+                        return item.source.id === sourceId && item.target.id === targetId
+                    })
+                    const node = this.$store.state.template.gateways[sourceId]
+                    if (node && node.conditions && node.conditions[line.id]) {
+                        conditions.push({
+                            source: sourceId,
+                            target: targetId,
+                            data: Object.assign({}, node.conditions[line.id])
+                        })
+                    }
+                })
+                const endpointOptions = Object.assign({
+                    anchor: anchor,
+                    uuid: anchor + nodeId
+                }, this.endpointOptions)
+                this.$refs.jsFlow.instance.deleteEndpoint(oEdp)
+                if (draggable) {
+                    delete endpointOptions.isSource
                 }
+                const edp = this.$refs.jsFlow.instance.addEndpoint(nodeId, endpointOptions)
+                if (edp && edp.endpoint.canvas) {
+                    edp.endpoint.canvas.dataset.pos = anchor
+                }
+                setTimeout(() => {
+                    oldConnections.forEach(conn => {
+                        const { sourceId, targetId, endpoints } = conn
+                        const line = this.canvasData.lines.find(item => item.source.id === sourceId && item.target.id === targetId)
+                        if (line) {
+                            return
+                        }
+
+                        const lineCondition = conditions.find(item => item.source === sourceId && item.target === targetId)
+                        const condition = lineCondition ? lineCondition.data : undefined
+                        const source = {
+                            id: sourceId,
+                            arrow: endpoints[0].anchor.type
+                        }
+                        const target = {
+                            id: targetId,
+                            arrow: endpoints[1].anchor.type
+                        }
+                        this.createLine(source, target, condition)
+                    })
+                }, 0)
             },
             // 拖拽到端点上连接
             onBeforeDrop (line) {
@@ -634,26 +690,41 @@
                     return false
                 }
 
+                const [sourceEndpoint, targetEndpoint] = connection.endpoints
+                const sourceType = sourceEndpoint.anchor.type || dropEndpoint.anchor.type
+                const targetType = targetEndpoint.anchor.type || dropEndpoint.anchor.type
+
                 const data = {
                     source: {
                         id: sourceId,
-                        arrow: connection.endpoints[0].anchor.type
+                        arrow: sourceType
                     },
                     target: {
                         id: targetId,
-                        arrow: dropEndpoint.anchor.type
+                        arrow: targetType
                     }
                 }
-                const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
-                if (validateMessage.result) {
-                    this.$emit('onLineChange', 'add', data)
-                    this.$emit('templateDataChanged')
-                    return true
-                } else {
-                    this.$bkMessage({
-                        message: validateMessage.message,
-                        theme: 'warning'
+                if (this.activeCon) {
+                    const sEdp = tools.deepClone(this.activeCon.endpoints[0])
+                    const tEdp = tools.deepClone(this.activeCon.endpoints[1])
+                    this.replaceEndpoint(sEdp, this.activeCon.sourceId)
+                    this.replaceEndpoint(tEdp, this.activeCon.targetId)
+                    this.$nextTick(() => {
+                        this.activeCon = null
+                        this.createLine(data.source, data.target)
                     })
+                } else {
+                    const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
+                    if (validateMessage.result) {
+                        this.$emit('onLineChange', 'add', data)
+                        this.$emit('templateDataChanged')
+                        return true
+                    } else {
+                        this.$bkMessage({
+                            message: validateMessage.message,
+                            theme: 'warning'
+                        })
+                    }
                 }
             },
             onConnection (line) {
@@ -951,12 +1022,8 @@
                 if (source.id === target.id) {
                     return false
                 }
-                
-                const line = {
-                    source,
-                    target,
-                    condition
-                }
+
+                const line = { source, target, condition }
                 const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', line)
@@ -1119,7 +1186,11 @@
                     })
                     if (lineInCanvasData) {
                         const lineId = lineInCanvasData.id
+                        const sEdp = tools.deepClone(this.activeCon.endpoints[0])
+                        const tEdp = tools.deepClone(this.activeCon.endpoints[1])
                         this.activeCon.removeOverlay(`delete_icon_${lineId}`)
+                        this.replaceEndpoint(sEdp, this.activeCon.sourceId)
+                        this.replaceEndpoint(tEdp, this.activeCon.targetId)
                         this.activeCon = null
                     }
                 }
@@ -1464,7 +1535,7 @@
             user-select: none;
         }
         .jtk-endpoint {
-            z-index: 3;
+            z-index: 4;
             cursor: pointer;
             &.template-canvas-endpoint:not(.jtk-dragging) {
                 &:after {
@@ -1525,10 +1596,13 @@
         }
         .jtk-connector {
             z-index: 2;
+            &.jtk-hover {
+                z-index: 3;
+            }
         }
         .jtk-overlay {
             cursor: pointer;
-            z-index: 2;
+            z-index: 3;
             &.delete-line-circle-icon {
                 display: none;
             }
