@@ -15,6 +15,6 @@ from .base import UploadRequestBartender
 from .utils import common_process_request
 
 
-class HostNFSBartender(UploadRequestBartender):
+class BKRepoBartender(UploadRequestBartender):
     def process_request(self, request):
         return common_process_request(request, self.manager)
