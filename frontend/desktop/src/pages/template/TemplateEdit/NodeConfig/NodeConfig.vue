@@ -189,7 +189,7 @@
                             </div>
                             <div class="btn-footer">
                                 <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                                <bk-button theme="default" @click="onClosePanel">{{ $t('取消') }}</bk-button>
+                                <bk-button theme="default" @click="onClosePanel(false)">{{ $t('取消') }}</bk-button>
                             </div>
                         </template>
                     </div>
@@ -208,7 +208,7 @@
                 <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="onClosePanel">{{ $t('不保存') }}</bk-button>
+                    <bk-button theme="default" @click="onClosePanel(false)">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
         </bk-dialog>
@@ -399,11 +399,11 @@
             ]),
             async getSubflowList () {
                 this.subAtomListLoading = true
+                const { params } = this.$route
                 try {
                     const data = {
-                        project_id: this.project_id,
+                        project__id: params.project_id,
                         common: this.common,
-                        templateId: this.template_id,
                         limit: this.limit,
                         offset: this.currentPage * this.limit
                     }
@@ -419,9 +419,10 @@
             handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                const { params, query } = this.$route
                 data.objects.forEach(item => {
                     // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
+                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
                         item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
                         list.push(item)
                     }
