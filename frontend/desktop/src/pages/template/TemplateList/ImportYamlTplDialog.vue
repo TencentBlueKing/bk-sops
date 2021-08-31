@@ -282,7 +282,9 @@
                 this.importData = null
                 this.checkResult = false
                 this.overriders = {}
-                this.$refs.tplFile.value = null
+                if (this.$refs.tplFile) {
+                    this.$refs.tplFile.value = null
+                }
                 this.pagination = {
                     current: 1,
                     count: 0

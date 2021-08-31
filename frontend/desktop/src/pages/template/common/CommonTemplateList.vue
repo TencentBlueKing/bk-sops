@@ -438,8 +438,6 @@
         computed: {
             ...mapState({
                 'site_url': state => state.site_url,
-                'templateList': state => state.templateList.templateListData,
-                'commonTemplateData': state => state.templateList.commonTemplateData,
                 'v1_import_flag': state => state.v1_import_flag,
                 'permissionMeta': state => state.permissionMeta
             }),
@@ -1108,6 +1106,8 @@ a {
     }
 }
 .selected-tpl-num {
+    display: flex;
+    align-items: center;
     margin-left: 10px;
     font-size: 12px;
     line-height: 1;

@@ -14,6 +14,7 @@
         <div v-if="formMode">
             <el-upload
                 ref="upload"
+                v-bind="customProps"
                 :action="url"
                 :multiple="multiple"
                 :limit="limit"
@@ -21,7 +22,6 @@
                 :headers="headers"
                 :data="data_params"
                 :disabled="!editable || disabled"
-                :http-request="handleHttpRequest.bind(this)"
                 :on-success="handleSuccess.bind(this)"
                 :on-remove="handleRemove.bind(this)"
                 :on-error="handleError.bind(this)"
@@ -166,6 +166,10 @@
             },
             uploadText () {
                 return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
+            },
+            // 兼容插件需要自定义上传函数的场景
+            customProps () {
+                return this.httpRequest ? { httpRequest: this.handleHttpRequest.bind(this) } : {}
             }
         },
         watch: {
