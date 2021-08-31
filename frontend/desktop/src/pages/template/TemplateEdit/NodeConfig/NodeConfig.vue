@@ -189,7 +189,7 @@
                             </div>
                             <div class="btn-footer">
                                 <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                                <bk-button theme="default" @click="onClosePanel">{{ $t('取消') }}</bk-button>
+                                <bk-button theme="default" @click="onClosePanel()">{{ $t('取消') }}</bk-button>
                             </div>
                         </template>
                     </div>
@@ -208,7 +208,7 @@
                 <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="onClosePanel">{{ $t('不保存') }}</bk-button>
+                    <bk-button theme="default" @click="onClosePanel()">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
         </bk-dialog>

@@ -22,7 +22,11 @@
                 {{ variableData.key }}
                 <i
                     class="common-icon-double-paper-2 copy-icon"
-                    v-bk-tooltips.bottom="$t('复制')"
+                    v-bk-tooltips.bottom="{
+                        content: $t('复制'),
+                        placement: 'bottom',
+                        boundary: 'window'
+                    }"
                     @click.stop="onCopyKey(variableData.key)">
                 </i>
             </span>
@@ -33,7 +37,8 @@
                         class="common-icon-show-left"
                         v-bk-tooltips="{
                             content: $t('输入'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                     <i
@@ -41,7 +46,8 @@
                         class="common-icon-hide-right color-org"
                         v-bk-tooltips="{
                             content: $t('输出'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                     <i
@@ -49,7 +55,8 @@
                         class="common-icon-eye-show"
                         v-bk-tooltips="{
                             content: $t('显示'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                     <i
@@ -57,7 +64,8 @@
                         class="common-icon-eye-hide color-org"
                         v-bk-tooltips="{
                             content: $t('隐藏'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                 </span>
