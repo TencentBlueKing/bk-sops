@@ -1168,6 +1168,8 @@
     }
 }
 .selected-tpl-num {
+    display: flex;
+    align-items: center;
     margin-left: 10px;
     font-size: 12px;
     line-height: 1;
