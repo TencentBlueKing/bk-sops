@@ -184,8 +184,9 @@
             async getSubflowList () {
                 this.listLoading = true
                 try {
+                    const { params } = this.$route
                     const data = {
-                        template_id: this.template_id,
+                        project__id: params.project_id,
                         limit: this.limit,
                         offset: this.currentPage * this.limit
                     }
@@ -215,9 +216,10 @@
             handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                const { params, query } = this.$route
                 data.objects.forEach(item => {
                     // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
+                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
                         item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
                         list.push(item)
                     }
