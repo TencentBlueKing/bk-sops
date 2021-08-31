@@ -45,7 +45,7 @@
                     :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
                     @updateNodeMenuState="updateNodeMenuState"
                     @getAtomList="getAtomList">
                 </palette-panel>
