@@ -55,7 +55,6 @@ django-timezone-field==4.0
 importlib-metadata==3.7.3
 
 # blueapps
-bkstorages==0.1.2 # not-open
 whitenoise==3.3.0 # not-open
 raven==6.1.0 # not-open
 ddtrace==0.15.0 # not-open
