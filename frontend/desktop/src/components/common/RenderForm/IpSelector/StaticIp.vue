@@ -27,7 +27,7 @@
                             v-for="operation in operations"
                             :key="operation.type"
                             class="operation-btn"
-                            @click="onOperationClick(operation.type)">
+                            @click="onOperationClick(operation)">
                             {{operation.name}}
                         </div>
                     </div>
@@ -149,6 +149,7 @@
         copyAgentIp: gettext('复制Agent异常IP'),
         clearIp: gettext('清空IP'),
         clearFailedAgentIp: gettext('清空Agent异常IP'),
+        success: gettext('成功'),
         selectAdd: gettext('选择添加'),
         manualAdd: gettext('手动添加'),
         batchOperations: gettext('批量操作'),
@@ -327,8 +328,13 @@
                     this.isSearchMode = false
                 }
             },
-            onOperationClick (type) {
+            onOperationClick (operation) {
+                const { type, name } = operation
                 this[type] && this[type]()
+                this.$bkMessage({
+                    message: name + this.i18n.success,
+                    theme: 'success'
+                })
             },
             onRemoveIpClick (id) {
                 if (!this.editable) {
