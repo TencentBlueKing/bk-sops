@@ -178,6 +178,7 @@
                         offset: 0,
                         pipeline_instance__is_started: true,
                         creator_or_executor: this.username,
+                        user_type: 'user',
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
                     const res = await this.loadTaskList(data)
@@ -191,9 +192,10 @@
                             m.create_method = item.name
                         }
                     })
-                    this.isTableLoading = false
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.isTableLoading = false
                 }
             },
             async getCreateMethods () {
