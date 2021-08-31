@@ -422,7 +422,7 @@
                 const { params, query } = this.$route
                 data.objects.forEach(item => {
                     // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (params.type === 'clone' || item.id !== Number(query.templateId)) {
+                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
                         item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
                         list.push(item)
                     }
