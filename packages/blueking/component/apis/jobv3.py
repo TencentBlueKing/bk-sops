@@ -164,3 +164,15 @@ class CollectionsJOBV3(object):
             path="/api/c/compapi{bk_api_ver}/job/update_cron_status/",
             description="更新定时作业状态，如启动或暂停",
         )
+        self.create_credential = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/jobv3/create_credential/",
+            description="新建凭证",
+        )
+        self.create_file_source = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/jobv3/create_file_source/",
+            description="新建文件源",
+        )

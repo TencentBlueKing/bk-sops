@@ -16,6 +16,8 @@ from typing import Optional, List
 
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
+from engine_pickle_obj.context import SystemObject
+from gcloud.project_constants.domains.context import get_project_constants_context
 from pipeline.engine import states as pipeline_states
 from pipeline.engine import api as pipeline_api
 from pipeline.service import task_service
@@ -31,6 +33,7 @@ from gcloud import err_code
 from gcloud.utils.handlers import handle_plain_log
 from gcloud.taskflow3.utils import format_pipeline_status
 from pipeline_web.parser import WebPipelineAdapter
+from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
@@ -190,7 +193,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
@@ -292,7 +295,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         node_started = True
         inputs = {}
@@ -360,7 +363,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         runtime = BambooDjangoRuntime()
         result = bamboo_engine_api.get_children_states(runtime=runtime, node_id=self.node_id)
@@ -435,11 +438,34 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
-            # TODO 待 bamboo-engine 提供预览功能后进行替换
-            success, err, inputs, outputs = self._prerender_node_data(
-                pipeline_instance=pipeline_instance, subprocess_stack=subprocess_stack, username=username
-            )
-            if not success:
+            try:
+                root_pipeline_data = get_pipeline_context(
+                    pipeline_instance, obj_type="instance", data_type="data", username=username
+                )
+                system_obj = SystemObject(root_pipeline_data)
+                root_pipeline_context = {"${_system}": system_obj}
+                root_pipeline_context.update(get_project_constants_context(kwargs["project_id"]))
+
+                formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
+                preview_result = bamboo_engine_api.preview_node_inputs(
+                    runtime=runtime,
+                    pipeline=formatted_pipeline,
+                    node_id=self.node_id,
+                    subprocess_stack=subprocess_stack,
+                    root_pipeline_data=root_pipeline_data,
+                    current_constants=root_pipeline_context,
+                )
+
+                if not preview_result.result:
+                    return {
+                        "result": False,
+                        "data": {},
+                        "message": preview_result.message,
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
+                inputs = preview_result.data
+
+            except Exception as err:
                 return {
                     "result": False,
                     "data": {},
@@ -476,7 +502,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
@@ -515,7 +541,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         act_start = True
         detail = {}
@@ -564,7 +590,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         subprocess_stack: List[str],
         component_code: Optional[str] = None,
         loop: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> dict:
         runtime = BambooDjangoRuntime()
         result = bamboo_engine_api.get_children_states(runtime=runtime, node_id=self.node_id)

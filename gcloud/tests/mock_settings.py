@@ -53,6 +53,12 @@ TASKFLOW_DISPATCHERS_NODE_PIPELINE_API = "gcloud.taskflow3.domains.dispatchers.n
 TASKFLOW_DISPATCHERS_NODE_BAMBOO_API = "gcloud.taskflow3.domains.dispatchers.node.bamboo_engine_api"
 TASKFLOW_DISPATCHERS_NODE_BAMBOO_RUNTIME = "gcloud.taskflow3.domains.dispatchers.node.BambooDjangoRuntime"
 TASKFLOW_DISPATCHERS_NODE_FORMAT_PIPELINE_STATUS = "gcloud.taskflow3.domains.dispatchers.node.format_pipeline_status"
+TASKFLOW_DISPATCHERS_NODE_GET_PIPELINE_CONTEXT = "gcloud.taskflow3.domains.dispatchers.node.get_pipeline_context"
+TASKFLOW_DISPATCHERS_NODE_SYSTEM_OBJ = "gcloud.taskflow3.domains.dispatchers.node.SystemObject"
+
+TASKFLOW_DISPATCHERS_TASK_PIPELINE_MODEL = "gcloud.taskflow3.domains.dispatchers.task.PipelineModel"
+TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME = "gcloud.taskflow3.domains.dispatchers.task.BambooDjangoRuntime"
+TASKFLOW_DISPATCHERS_TASK_CONTEXT = "gcloud.taskflow3.domains.dispatchers.task.Context"
 
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"

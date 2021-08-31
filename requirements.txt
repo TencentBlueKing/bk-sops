@@ -35,6 +35,7 @@ typing-extensions==3.7.4.3
 django-prometheus==2.1.0
 six==1.15.0
 pyyaml==5.4.1
+bkstorages==1.0.1
 
 # version log
 mistune==0.8.4
