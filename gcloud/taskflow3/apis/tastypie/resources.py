@@ -25,6 +25,7 @@ from iam import Subject, Action, Request
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
+from gcloud.core.api_adapter import user_role
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -53,6 +54,11 @@ iam = get_iam_client()
 
 class ProjectBasedTaskFlowIAMAuthorization(CustomCreateCompleteListIAMAuthorization):
     def read_list(self, object_list, bundle):
+        # 对于"我的动态"和"审计页面"请求进行特殊处理，不需要提供project_id，直接进行用户校验
+        user_type = bundle.request.GET.get("user_type")
+        if user_type:
+            func = getattr(self, f"query_{user_type}_list", None)
+            return object_list if func and func(bundle) else []
         project_id = bundle.request.GET.get("project__id")
         allow_or_raise_immediate_response(
             iam=iam,
@@ -62,6 +68,16 @@ class ProjectBasedTaskFlowIAMAuthorization(CustomCreateCompleteListIAMAuthorizat
             resources=res_factory.resources_for_project(project_id),
         )
         return object_list
+
+    @staticmethod
+    def query_user_list(bundle):
+        user_in_query = bundle.request.GET.get("creator_or_executor")
+        return user_in_query == bundle.request.user.username
+
+    @staticmethod
+    def query_auditor_list(bundle):
+        user = bundle.request.user.username
+        return user_role.is_user_role(user, IAMMeta.AUDIT_VIEW_ACTION)
 
 
 class PipelineInstanceResource(GCloudModelResource):
