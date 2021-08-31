@@ -19,6 +19,7 @@
             v-model="inputValue"
             @change="onManualInputChange">
         </bk-input>
+        <span v-show="dataError" class="common-error-tip error-info">{{ $t('必填项') }}</span>
     </div>
 </template>
 
@@ -40,6 +41,7 @@
                 selectorId: '',
                 inputValue: '',
                 selectTypeTitle: '',
+                dataError: false,
                 typeDes: ''
             }
         },
@@ -80,6 +82,15 @@
                     value: this.inputValue
                 }
                 this.$emit('change', parmas)
+            },
+            validate () {
+                if (this.manualInput.value) {
+                    this.dataError = false
+                    return true
+                } else {
+                    this.dataError = true
+                    return false
+                }
             }
         }
     }
