@@ -59,7 +59,8 @@
             isSubflow: Boolean,
             subflowForms: Object, // 子流程模板输入参数变量配置
             nodeId: String,
-            constants: Object
+            constants: Object,
+            thirdPartyCode: String
         },
         data () {
             return {
@@ -197,7 +198,8 @@
                     key: variableKey,
                     source_info: { [this.nodeId]: [this.hookingVarForm] },
                     value: tools.deepClone(this.formData[this.hookingVarForm]),
-                    form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme)
+                    form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme),
+                    plugin_code: this.thirdPartyCode || ''
                 }
                 if (this.isSubflow) {
                     const constant = this.subflowForms[this.hookingVarForm]
@@ -238,7 +240,8 @@
                     validation: '',
                     index: len,
                     version: 'legacy',
-                    form_schema: {}
+                    form_schema: {},
+                    plugin_code: ''
                 }
                 const variable = Object.assign({}, defaultOpts, config)
                 this.formData[this.hookingVarForm] = variable.key

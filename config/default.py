@@ -96,6 +96,7 @@ INSTALLED_APPS += (
     "iam.contrib.iam_migration",
     "bksops_iam_migrations",
     "drf_yasg",
+    "plugin_service",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动

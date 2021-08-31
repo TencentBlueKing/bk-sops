@@ -262,7 +262,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
