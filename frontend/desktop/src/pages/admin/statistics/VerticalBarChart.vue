@@ -14,7 +14,7 @@
         <h3 class="chart-title">{{title}}</h3>
         <bk-form class="select-wrapper" form-type="inline">
             <bk-form-item
-                v-for="selector in selectorList"
+                v-for="selector in selectorList.slice(0, -1)"
                 :key="selector.id">
                 <bk-select
                     class="statistics-select"
@@ -33,6 +33,18 @@
                     </bk-option>
                 </bk-select>
             </bk-form-item>
+            <bk-form-item>
+                <div class="bk-button-group">
+                    <bk-button
+                        v-for="option in timeOptions"
+                        :key="option.id"
+                        :class="{ 'is-selected': option.id === time }"
+                        size="small"
+                        @click="time = option.id">
+                        {{ option.name }}
+                    </bk-button>
+                </div>
+            </bk-form-item>
         </bk-form>
         <div class="chart-wrapper" ref="chartWrap" v-bkloading="{ isLoading: dataLoading, opacity: 1, zIndex: 100 }">
             <canvas v-if="dataList.length > 0" class="bar-chart-canvas" style="height: 100%;"></canvas>
@@ -41,6 +53,7 @@
     </div>
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import BKChart from '@blueking/bkcharts'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -73,6 +86,17 @@
         },
         data () {
             return {
+                time: 'day',
+                timeOptions: [
+                    {
+                        id: 'day',
+                        name: i18n.tc('天', 0)
+                    },
+                    {
+                        id: 'month',
+                        name: i18n.t('月')
+                    }
+                ],
                 chartInstance: null
             }
         },
@@ -107,7 +131,27 @@
                         datasets: [{
                             data: y,
                             backgroundColor: '#3a84ff',
-                            maxBarThickness: 24
+                            maxBarThickness: 24,
+                            clip: '',
+                            label: 'Rainfall1'
+                        }, {
+                            data: [10, 20, 30, 40, 50, 55, 33, 22, 11, 66, 55, 33, 66, 77, 22, 44, 22, 66, 32, 52],
+                            backgroundColor: '#ff9c4a',
+                            maxBarThickness: 24,
+                            clip: '',
+                            label: 'Rainfall11'
+                        }, {
+                            data: [55, 33, 66, 77, 22, 44, 22, 66, 32, 52, 12, 32, 12, 44, 25, 26, 14, 17, 35, 19],
+                            backgroundColor: '#f8d30f',
+                            maxBarThickness: 24,
+                            clip: '',
+                            label: 'Rainfall111'
+                        }, {
+                            data: [12, 32, 12, 44, 25, 26, 14, 17, 35, 19, 10, 20, 30, 40, 50, 55, 33, 22, 11, 66],
+                            backgroundColor: '#3bce95',
+                            maxBarThickness: 24,
+                            clip: '',
+                            label: 'Rainfall1111'
                         }]
                     },
                     options: {
@@ -118,22 +162,97 @@
                             },
                             crosshair: {
                                 enabled: true
+                            },
+                            tooltip: {
+                                // Disable the on-canvas tooltip
+                                enabled: false,
+                                custom: function (context) {
+                                    // Tooltip Element
+                                    let tooltipEl = document.getElementById('chartjs-tooltip')
+
+                                    // Create element on first render
+                                    if (!tooltipEl) {
+                                        tooltipEl = document.createElement('div')
+                                        tooltipEl.id = 'chartjs-tooltip'
+                                        document.body.appendChild(tooltipEl)
+                                    }
+
+                                    // Hide if no tooltip
+                                    const tooltipModel = context.tooltip
+                                    if (tooltipModel.opacity === 0) {
+                                        tooltipEl.style.opacity = 0
+                                        return
+                                    }
+
+                                    // Set caret Position
+                                    tooltipEl.classList.remove('above', 'below', 'no-transform')
+                                    if (tooltipModel.yAlign) {
+                                        tooltipEl.classList.add(tooltipModel.yAlign)
+                                    } else {
+                                        tooltipEl.classList.add('no-transform')
+                                    }
+
+                                    function getBody (bodyItem) {
+                                        return bodyItem.lines
+                                    }
+
+                                    // 求百分率
+                                    function getPercentage (num, total) {
+                                        return (Math.round(num / total * 10000) / 100.00 + '%')
+                                    }
+
+                                    // Set Text
+                                    if (tooltipModel.body) {
+                                        const titleLines = tooltipModel.title || []
+                                        const bodyLines = tooltipModel.body.map(getBody)
+
+                                        let innerHtml = '<p class="tip-title">'
+
+                                        titleLines.forEach(function (title) {
+                                            innerHtml += title
+                                        })
+                                        innerHtml += '</p>'
+
+                                        bodyLines.forEach(function (body, i) {
+                                            const colors = tooltipModel.labelColors[i]
+                                            let style = 'background:' + colors.backgroundColor
+                                            style += '; border-color:' + colors.borderColor
+                                            const taskName = body[0].split(': ') || []
+                                            const taskNum = taskName[1] || body[0]
+                                            innerHtml += '<div class="content-item">'
+                                                + '<span class="color-block" style="' + style + '"></span>'
+                                                + `<span class="task-name">${taskName[0]}</span>`
+                                                + `<span class="task-num">${taskNum}</span>`
+                                                + `<span class="percentage">(${getPercentage(taskNum, 100)})</span>`
+                                                + '</div>'
+                                        })
+
+                                        tooltipEl.innerHTML = innerHtml
+                                    }
+
+                                    const position = context.chart.canvas.getBoundingClientRect()
+                                    console.log(context, '33333333333')
+
+                                    // position
+                                    tooltipEl.style.left = position.left + tooltipModel.x + 'px'
+                                    tooltipEl.style.top = position.top + tooltipModel.y + 'px'
+                                    tooltipEl.style.opacity = 1
+                                }
                             }
                         },
                         scales: {
                             x: {
+                                stacked: true,
                                 gridLines: {
                                     display: false
                                 }
                             },
                             y: {
+                                stacked: true,
                                 gridLines: {
                                     borderDash: [5, 3]
                                 }
                             }
-                        },
-                        interaction: {
-                            mode: 'nearest'
                         }
                     }
                 })
@@ -174,6 +293,53 @@
         }
         .no-data-wrapper {
             padding-top: 130px;
+        }
+        .bk-button-group {
+            transform: translateY(-2px);
+            .bk-button {
+                min-width: 54px;
+            }
+        }
+        
+    }
+</style>
+<style lang="scss">
+    #chartjs-tooltip {
+        position: absolute;
+        padding: 6px 12px;
+        background: rgba(0, 0, 0, 0.8);
+        border: none;
+        border-radius: 6px;
+        pointer-events: none;
+        font-size: 12px;
+        color: #fff;
+        .tip-title {
+            font: bold 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .content-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+            font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            .color-block {
+                height: 10px;
+                width: 10px;
+                margin-right: 4px;
+                border-width: 2px;
+            }
+            .task-name {
+                min-width: 80px;
+            }
+            .task-num {
+                min-width: 25px;
+                text-align: right;
+            }
+            .percentage {
+                color: #979ba5;
+                margin-left: 5px;
+            }
         }
     }
 </style>

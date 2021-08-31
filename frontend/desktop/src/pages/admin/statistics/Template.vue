@@ -136,6 +136,18 @@
             width: 120
         },
         {
+            label: i18n.t('输入变量'),
+            prop: 'input',
+            sortable: true,
+            width: 100
+        },
+        {
+            label: i18n.t('输出变量'),
+            prop: 'output',
+            sortable: true,
+            width: 100
+        },
+        {
             label: i18n.t('插件数'),
             prop: 'atomTotal',
             sortable: true,
