@@ -152,7 +152,7 @@ class CCGetIPsInfoByStrTestCase(TestCase):
             ],
         )
         self.assertEqual(result["ip_count"], 2)
-        self.assertEqual(result["invalid_ip"], ["2.2.2.2", "4.4.4.4"])
+        self.assertEqual(set(result["invalid_ip"]), {"2.2.2.2", "4.4.4.4"})
 
     def test_set_module_format(self):
         ip_str = "set_1|module_1|1.1.1.1,set_2|module_2|2.2.2.2\nset_3|module_3|3.3.3.3,set_3|module_3|4.4.4.4"
@@ -361,4 +361,4 @@ class CCGetIPsInfoByStrTestCase(TestCase):
             ],
         )
         self.assertEqual(result["ip_count"], 2)
-        self.assertEqual(result["invalid_ip"], ["2.2.2.2", "4.4.4.4"])
+        self.assertEqual(set(result["invalid_ip"]), {"2.2.2.2", "4.4.4.4"})
