@@ -572,6 +572,9 @@ const template = {
                         deletedLine = Object.assign({}, flow)
                     }
                 })
+                if (!deletedLine) {
+                    return
+                }
                 const sourceNode = state.flows[deletedLine.id].source
                 const targetNode = state.flows[deletedLine.id].target
 
