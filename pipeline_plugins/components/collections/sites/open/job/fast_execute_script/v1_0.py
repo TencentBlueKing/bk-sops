@@ -182,8 +182,9 @@ class JobFastExecuteScriptService(JobService):
             "account": data.get_one_of_inputs("job_account"),
             "ip_list": ip_list,
             "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
-            "task_name": custom_task_name,
         }
+        if custom_task_name.strip():
+            job_kwargs.update({"task_name": custom_task_name})
 
         script_param = str(data.get_one_of_inputs("job_script_param"))
 
