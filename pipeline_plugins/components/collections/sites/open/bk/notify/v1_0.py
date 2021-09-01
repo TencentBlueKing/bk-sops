@@ -18,7 +18,7 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
@@ -70,8 +70,8 @@ class NotifyService(Service):
                            schema=StringItemSchema(description=_("通知的内容"))),
             self.InputItem(name=_("通知执行人"),
                            key="notify",
-                           type="string",
-                           schema=StringItemSchema(description=_("通知执行人名字")))]
+                           type="boolean",
+                           schema=BooleanItemSchema(description=_("通知执行人名字")))]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -103,7 +103,8 @@ class NotifyService(Service):
         if not result["result"]:
             data.set_outputs("ex_data", result["message"])
             return False
-        if notify == "notify_is_true":
+
+        if notify:
             base_kwargs = {
                 "receiver__username": "{},{}".format(result["data"], executor),
                 "title": title,

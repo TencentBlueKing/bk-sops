@@ -157,8 +157,8 @@
             attrs: {
                 name: gettext("通知执行人"),
                 items: [
-                    {value: "notify_is_true", name: gettext("是")},
-                    {value: "notify_is_false", name: gettext("否")},
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
                 ],
                 default: "notify_is_false",
                 hookable: true,
