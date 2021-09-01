@@ -20,7 +20,13 @@
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
-        <div class="list-wrapper">
+        <!-- 内置插件/第三方插件tab -->
+        <bk-tab v-if="!isSubflow" :active.sync="curPluginTab" type="unborder-card">
+            <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
+            <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
+        </bk-tab>
+        <!-- 内置插件 -->
+        <div class="list-wrapper" v-show="curPluginTab === 'build_in_plugin'">
             <template v-if="!isSubflow">
                 <template v-if="listInPanel.length > 0">
                     <div class="group-area">
@@ -159,6 +165,22 @@
                 </div>
             </div>
         </div>
+        <!-- 第三方插件 -->
+        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
+            <ul>
+                <li
+                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.nodeName }]"
+                    v-for="(plugin, index) in atomTypeList.pluginList"
+                    :key="index"
+                    @click="onThirdPratyClick(plugin)">
+                    <img class="plugin-logo" :src="plugin.logo_url" alt="">
+                    <div>
+                        <p class="plugin-title">{{ plugin.name }}</p>
+                        <p class="plugin-code">{{ plugin.code }}</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -186,7 +208,9 @@
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
+            const curPluginTab = this.basicInfo.plugin === 'remote_plugin' ? 'third_praty_plugin' : 'build_in_plugin'
             return {
+                curPluginTab,
                 listData,
                 listInPanel: listData,
                 searchData: [],
@@ -196,7 +220,8 @@
                 searchResult: [],
                 isLabelSelectorOpen: false,
                 activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
-                searchLoading: false
+                searchLoading: false,
+                scrollDom: null
             }
         },
         computed: {
@@ -225,7 +250,22 @@
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
+        mounted () {
+            this.scrollDom = document.querySelector('.third-praty-list')
+            if (this.scrollDom) {
+                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+            }
+        },
+        beforeDestroy () {
+            if (this.scrollDom) {
+                this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
+            }
+        },
         methods: {
+            ...mapActions('atomForm/', [
+                'loadPluginServiceMeta',
+                'loadPluginServiceAppDetail'
+            ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
             ]),
@@ -295,7 +335,7 @@
                         this.listData.forEach(group => {
                             const { group_icon, group_name, type } = group
                             const list = []
-    
+
                             if (reg.test(group_name)) { // 分组名称匹配
                                 const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
                                 result.push({
@@ -386,6 +426,33 @@
                     this.onApplyPermission(tpl)
                 }
             },
+            // 选中第三方插件
+            async onThirdPratyClick (plugin) {
+                try {
+                    const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
+                    const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
+                    const { code, versions, description } = resp.data
+                    const versionList = versions.map(version => {
+                        return { version }
+                    })
+                    const group = {
+                        name: code,
+                        code: appDeatil.data.name,
+                        list: versionList,
+                        desc: description,
+                        id: 'remote_plugin'
+                    }
+                    this.$emit('select', group, true)
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            handlePluginScroll () {
+                const el = this.scrollDom
+                if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                    this.$emit('updatePluginList', undefined, 'scroll')
+                }
+            },
             /**
              * 插件/子流程选中状态
              */
@@ -437,7 +504,7 @@
     width: 300px;
 }
 .list-wrapper {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 102px);
 }
 .group-area {
     float: left;
@@ -557,7 +624,7 @@
         }
     }
     .tpl-list {
-        max-height: calc(100vh - 160px);
+        max-height: calc(100vh - 204px);
         overflow: auto;
         @include scrollbar;
     }
@@ -615,6 +682,36 @@
             }
         }
     }
+}
+.third-praty-list {
+    height: calc(100vh - 102px);
+    overflow: auto;
+    @include scrollbar;
+    .plugin-item {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 59px 0 38px;
+        color: #63656e;
+        .plugin-logo {
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .plugin-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plugin-code {
+            font-size: 12px;
+        }
+        &.is-actived, &:hover {
+            background: hsl(218, 100%, 94%);
+        }
+    }
     .tpl-loading {
         height: 40px;
         bottom: 0;
@@ -656,6 +753,14 @@
                 text-overflow: ellipsis;
                 cursor: pointer;
             }
+        }
+    }
+    .selector-panel .bk-tab{
+        .bk-tab-header {
+            padding-left: 17px;
+        }
+        .bk-tab-section {
+            display: none;
         }
     }
 </style>

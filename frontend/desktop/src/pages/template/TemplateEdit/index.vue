@@ -60,6 +60,8 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -100,6 +102,8 @@
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
                     :subflow-list-loading="subflowListLoading"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -281,8 +285,10 @@
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
-                    subflow: []
-                }, // 左侧边栏菜单数据
+                    subflow: [],
+                    pluginList: []
+                },
+                thirdPartyList: {},
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -316,6 +322,12 @@
                     ]
                 },
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                pagination: {
+                    limit: 100,
+                    offset: 0,
+                    isLoading: false,
+                    totalPage: null
+                },
                 totalPage: 0,
                 currentPage: 0,
                 limit: 25,
@@ -357,15 +369,22 @@
                     lines: this.lines,
                     locations: this.locations.map(location => {
                         let icon, group, code
-                        const atom = this.atomList.find(item => {
-                            if (location.type === 'tasknode') {
-                                return this.activities[location.id].component.code === item.code
+                        if (location.type === 'tasknode') {
+                            const nodeConfig = this.activities[location.id]
+                            if (nodeConfig && nodeConfig.component.code === 'remote_plugin') {
+                                icon = location.group_icon
+                                group = location.group_name
+                                code = nodeConfig.name
+                            } else {
+                                const atom = this.atomList.find(item => {
+                                    return nodeConfig && nodeConfig.component.code === item.code
+                                })
+                                if (atom) {
+                                    icon = atom.group_icon
+                                    group = atom.group_name
+                                    code = atom.code
+                                }
                             }
-                        })
-                        if (atom) {
-                            icon = atom.group_icon
-                            group = atom.group_name
-                            code = atom.code
                         }
                         const data = { ...location, mode: 'edit', icon, group, code }
                         if (
@@ -466,7 +485,9 @@
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceList',
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
@@ -516,6 +537,14 @@
                         params.project_id = this.project_id
                     }
                     const data = await this.loadSingleAtomList(params)
+
+                    const { limit, offset } = this.pagination
+                    const resp = await this.loadPluginServiceList({
+                        search_term: '',
+                        limit,
+                        offset
+                    })
+                    // 内置插件
                     const atomList = []
                     data.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
@@ -538,6 +567,9 @@
                     this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
+                    // 第三方插件
+                    this.pagination.totalPage = Math.ceil(resp.data.count / this.pagination.limit)
+                    this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -557,6 +589,25 @@
                     console.log(e)
                 } finally {
                     this.projectInfoLoading = false
+                }
+            },
+            /**
+             * 加载子流程列表
+             */
+            async getSubflowList () {
+                this.subflowListLoading = true
+                try {
+                    const data = {
+                        project_id: this.project_id,
+                        common: this.common,
+                        templateId: this.template_id
+                    }
+                    const resp = await this.loadSubflowList(data)
+                    this.handleSubflowList(resp)
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.subflowListLoading = false
                 }
             },
             /**
@@ -600,7 +651,10 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
+                    const config = this.atomConfig[code] && this.atomConfig[code][version]
+                    if (config) {
+                        this.addSingleAtomActivities(location, config)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -1017,11 +1071,14 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
-                    const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    let atom = true
+                    if (nodeConfig.component.code !== 'remote_plugin') {
+                        atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    }
                     if (!atom) {
                         this.$bkMessage({
                             message: '该节点配置的插件不存在，请检查流程数据',
@@ -1032,6 +1089,24 @@
                 }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
+                    // 设置第三发插件缓存
+                    const nodeConfig = this.$store.state.template.activities[id]
+                    if (nodeConfig.component
+                        && nodeConfig.component.code === 'remote_plugin'
+                        && !this.thirdPartyList[id]) {
+                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.name })
+                        const { code, versions, description } = resp.data
+                        const versionList = versions.map(version => {
+                            return { version }
+                        })
+                        const group = {
+                            nodeName: code,
+                            list: versionList,
+                            version: nodeConfig.component.version,
+                            desc: description
+                        }
+                        this.thirdPartyList[id] = group
+                    }
                     this.showConfigPanel(id)
                 }
             },
@@ -1095,7 +1170,7 @@
              * @param {String} changeType 变更类型,添加、删除、编辑
              * @param {Object} location 节点 location 字段
              */
-            onLocationChange (changeType, location) {
+            async onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
@@ -1103,11 +1178,18 @@
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
                             if (location.type === 'tasknode') {
-                                const atoms = this.atomList.find(item => item.code === location.atomId).list
-                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
-                                const lastVersionAtom = atoms[atoms.length - 1]
-                                const version = lastVersionAtom.version
-                                location.version = version
+                                if (location.atomId === 'remote_plugin') {
+                                    const resp = await this.loadPluginServiceMeta({ plugin_code: location.name })
+                                    if (!resp.result) return
+                                    const versionList = resp.data.versions
+                                    location.version = versionList[versionList.length - 1]
+                                } else {
+                                    const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                    // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                    const lastVersionAtom = atoms[atoms.length - 1]
+                                    const version = lastVersionAtom.version
+                                    location.version = version
+                                }
                                 this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
@@ -1379,6 +1461,31 @@
             hideGuideTips () {
                 if (this.nodeGuide) {
                     this.nodeGuide.instance.hide()
+                }
+            },
+            async updatePluginList (val = undefined, type) {
+                try {
+                    if (type === 'scroll') {
+                        const { limit, offset, totalPage, isLoading } = this.pagination
+                        if (offset !== totalPage && !isLoading) {
+                            this.pagination.isLoading = true
+                            this.pagination.offset++
+                            const params = { search_term: val, limit: limit, offset }
+                            const resp = await this.loadPluginServiceList(params)
+                            const { count, plugins } = resp.data
+                            this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
+                            this.atomTypeList.pluginList.push(...plugins)
+                            this.pagination.isLoading = false
+                        }
+                    } else {
+                        const { limit, offset } = this.pagination
+                        const params = { search_term: val, limit: limit, offset }
+                        const resp = await this.loadPluginServiceList(params)
+                        this.atomTypeList.pluginList = resp.data.plugins
+                    }
+                } catch (error) {
+                    this.pagination.isLoading = false
+                    console.warn(error)
                 }
             },
             canvasMounted () {

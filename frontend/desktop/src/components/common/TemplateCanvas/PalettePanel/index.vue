@@ -63,9 +63,12 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
-            :loading="activeNodeListType === 'subflow' && listLoading"
+            :loading="activeNodeListType === 'subflow' && subflowListLoading"
             :nodes="nodes"
             :common="common"
+            :plugin-list="atomTypeList.pluginList"
+            :plugin-loading="pluginLoading"
+            @updatePluginList="updatePluginList"
             @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
         </node-menu>
@@ -85,6 +88,10 @@
         mixins: [permission],
         props: {
             templateLabels: Array,
+            subflowListLoading: {
+                type: Boolean,
+                default: true
+            },
             atomTypeList: {
                 type: Object,
                 default () {
@@ -101,6 +108,10 @@
             },
             common: {
                 type: [String, Number],
+                default: false
+            },
+            pluginLoading: {
+                type: Boolean,
                 default: false
             }
         },
@@ -224,6 +235,9 @@
             onOpenNodeMenu () {
                 this.showNodeMenu = true
                 this.activeNodeListType = this.nodeMouse.type
+            },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
             },
             onCloseNodeMenu () {
                 this.showNodeMenu = false
