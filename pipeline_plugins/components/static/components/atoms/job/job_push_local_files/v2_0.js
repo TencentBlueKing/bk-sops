@@ -153,8 +153,6 @@
 
                                     //reset info tag
                                     local_files_obj._set_value([])
-                                    job_target_path_obj._set_value("")
-
                                 }
                             },
                         ]
