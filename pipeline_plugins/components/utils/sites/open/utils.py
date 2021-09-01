@@ -122,12 +122,11 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
             plat_ip.append(match.group())
 
         for ip_info in ip_list:
-            valid_hosts = list(
-                filter(
-                    lambda x: x and f'{ip_info["host"].get("bk_cloud_id", -1)}:{x}' in plat_ip,
-                    ip_info["host"].get("bk_host_innerip", "").split(","),
-                )
-            )
+            valid_hosts = [
+                x
+                for x in ip_info["host"].get("bk_host_innerip", "").split(",")
+                if x and f'{ip_info["host"].get("bk_cloud_id", -1)}:{x}' in plat_ip
+            ]
             if valid_hosts:
                 ip_result.append(
                     {
@@ -147,7 +146,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         proccessed = set()
         for ip_info in ip_list:
-            valid_hosts = list(filter(lambda x: x and x in ip, ip_info["host"].get("bk_host_innerip", "").split(",")))
+            valid_hosts = [x for x in ip_info["host"].get("bk_host_innerip", "").split(",") if x and x in ip]
             if valid_hosts and ip_info["host"]["bk_host_id"] not in proccessed:
                 ip_result.append(
                     {
