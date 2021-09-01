@@ -15,7 +15,7 @@
                 <span> {{$t('执行方案')}}</span>
                 <div>
                     <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" @click="isEditSchemeShow = true">导入临时方案</bk-button>
+                    <bk-button size="small" @click="onImportTemporaryPlan">导入临时方案</bk-button>
                 </div>
             </div>
             <div class="scheme-header">
