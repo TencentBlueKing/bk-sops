@@ -43,7 +43,7 @@
                 </bk-button>
             </el-upload>
         </div>
-        <bk-alert ref="diffAlert" type="warning" style="margin-bottom: 10px;" :show-icon="false">
+        <bk-alert v-if="hasDiff" ref="diffAlert" type="warning" style="margin-bottom: 10px;" :show-icon="false">
             <div class="diff-alert" slot="title">
                 <span>{{ $t('变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？') }}</span>
                 <bk-link theme="primary" @click="updateDiffData">{{ $t('确认') }}</bk-link>
