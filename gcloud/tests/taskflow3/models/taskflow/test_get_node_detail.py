@@ -38,7 +38,7 @@ class GetNodeDetailTestCase(TestCase):
         dispatcher.get_node_data = MagicMock(return_value=get_node_data_return)
 
         with patch(TASKFLOW_MODEL_NODE_CMD_DISPATCHER, MagicMock(return_value=dispatcher)):
-            detail = taskflow.get_node_detail(node_id="node_id", username="username")
+            detail = taskflow.get_node_detail(node_id="node_id", username="username", project_id="project_id")
 
         self.assertEqual(detail, get_node_data_return)
 
@@ -53,7 +53,7 @@ class GetNodeDetailTestCase(TestCase):
         dispatcher.get_node_detail = MagicMock(return_value=get_node_detail_return)
 
         with patch(TASKFLOW_MODEL_NODE_CMD_DISPATCHER, MagicMock(return_value=dispatcher)):
-            detail = taskflow.get_node_detail(node_id="node_id", username="username")
+            detail = taskflow.get_node_detail(node_id="node_id", username="username", project_id="project_id")
 
         self.assertEqual(detail, get_node_detail_return)
 
@@ -122,6 +122,7 @@ class GetNodeDetailTestCase(TestCase):
                 subprocess_stack=subprocess_stack,
                 loop=loop,
                 include_data=include_data,
+                project_id="project_id",
             )
 
         dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id)
@@ -131,6 +132,7 @@ class GetNodeDetailTestCase(TestCase):
             subprocess_stack=subprocess_stack,
             pipeline_instance=taskflow.pipeline_instance,
             loop=loop,
+            project_id="project_id",
         )
         dispatcher.get_node_detail.assert_called_once_with(
             username=username,

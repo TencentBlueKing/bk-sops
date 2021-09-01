@@ -443,8 +443,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     pipeline_instance, obj_type="instance", data_type="data", username=username
                 )
                 system_obj = SystemObject(root_pipeline_data)
-                root_pipeline_context = {"${_system}": system_obj}
-                root_pipeline_context.update(get_project_constants_context(kwargs["project_id"]))
+                root_pipeline_context = {"${_system}": {"type": "plain", "value": system_obj}}
+                root_pipeline_context.update(
+                    {
+                        key: {"type": "plain", "value": value}
+                        for key, value in get_project_constants_context(kwargs["project_id"]).items()
+                    }
+                )
 
                 formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
                 preview_result = bamboo_engine_api.preview_node_inputs(
