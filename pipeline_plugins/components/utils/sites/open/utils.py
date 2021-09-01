@@ -77,7 +77,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
     )
     ip_result = []
 
-    # 如果是格式2 集群名称|模块名称|IP
+    # 如果是格式2 集群名称|模块名称|IP，暂时不支持这种格式bk_host_innerip有多个值的情况
     if set_module_ip_reg.match(ip_str):
         set_module_ip_list = []
         for match in set_module_ip_reg.finditer(ip_str):
@@ -122,13 +122,15 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
             plat_ip.append(match.group())
 
         for ip_info in ip_list:
-            if (
-                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
-                in plat_ip
-            ):
+            valid_hosts = [
+                x
+                for x in ip_info["host"].get("bk_host_innerip", "").split(",")
+                if x and f'{ip_info["host"].get("bk_cloud_id", -1)}:{x}' in plat_ip
+            ]
+            if valid_hosts:
                 ip_result.append(
                     {
-                        "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
+                        "InnerIP": valid_hosts[0],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                         "HostID": ip_info["host"]["bk_host_id"],
                         "Source": ip_info["host"].get("bk_cloud_id", -1),
                         "Sets": ip_info["set"],
@@ -144,10 +146,11 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         proccessed = set()
         for ip_info in ip_list:
-            if ip_info["host"].get("bk_host_innerip", "") in ip and ip_info["host"]["bk_host_id"] not in proccessed:
+            valid_hosts = [x for x in ip_info["host"].get("bk_host_innerip", "").split(",") if x and x in ip]
+            if valid_hosts and ip_info["host"]["bk_host_id"] not in proccessed:
                 ip_result.append(
                     {
-                        "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
+                        "InnerIP": valid_hosts[0],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                         "HostID": ip_info["host"]["bk_host_id"],
                         "Source": ip_info["host"].get("bk_cloud_id", -1),
                         "Sets": ip_info["set"],
