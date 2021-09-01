@@ -104,18 +104,11 @@ class NotifyService(Service):
             data.set_outputs("ex_data", result["message"])
             return False
 
-        if notify:
-            base_kwargs = {
-                "receiver__username": "{},{}".format(result["data"], executor),
-                "title": title,
-                "content": content,
-            }
-        else:
-            base_kwargs = {
-                "receiver__username": result["data"],
-                "title": title,
-                "content": content,
-            }
+        base_kwargs = {
+            "receiver__username": f'{result["data"]},{executor}'.strip(",") if notify else result["data"],
+            "title": title,
+            "content": content,
+        }
 
         error_flag = False
         error = ""
