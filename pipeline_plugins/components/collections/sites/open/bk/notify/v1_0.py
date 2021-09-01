@@ -67,7 +67,11 @@ class NotifyService(Service):
             self.InputItem(name=_("通知内容"),
                            key="bk_notify_content",
                            type="string",
-                           schema=StringItemSchema(description=_("通知的内容")))]
+                           schema=StringItemSchema(description=_("通知的内容"))),
+            self.InputItem(name=_("通知执行人"),
+                           key="notify",
+                           type="string",
+                           schema=StringItemSchema(description=_("通知执行人名字")))]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -84,6 +88,7 @@ class NotifyService(Service):
         receiver_info = data.get_one_of_inputs("bk_receiver_info")
         receiver_groups = receiver_info.get("bk_receiver_group")
         more_receiver = receiver_info.get("bk_more_receiver")
+        notify = data.get_one_of_inputs("notify")
 
         # 转换为cc3.0字段
         receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
@@ -98,12 +103,19 @@ class NotifyService(Service):
         if not result["result"]:
             data.set_outputs("ex_data", result["message"])
             return False
+        if notify == "notify_is_true":
+            base_kwargs = {
+                "receiver__username": "{},{}".format(result["data"], executor),
+                "title": title,
+                "content": content,
+            }
+        else:
+            base_kwargs = {
+                "receiver__username": result["data"],
+                "title": title,
+                "content": content,
+            }
 
-        base_kwargs = {
-            "receiver__username": result["data"],
-            "title": title,
-            "content": content,
-        }
         error_flag = False
         error = ""
         for msg_type in notify_type:
