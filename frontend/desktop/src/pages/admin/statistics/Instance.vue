@@ -23,6 +23,7 @@
                 :title="$t('分项目统计')"
                 :selector-list="categorySelector"
                 :data-list="projectData"
+                :is-instance="true"
                 :data-loading="projectDataLoading"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
@@ -427,6 +428,8 @@
                 } else if (selector === 'category') {
                     this.timeDataCategory = val
                 } else {
+                    const selectTime = this.timeSelectorList.slice(-1)[0]
+                    selectTime.selected = val
                     this.timeDataType = val
                 }
                 this.getTimeData()

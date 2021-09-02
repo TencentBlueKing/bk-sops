@@ -57,18 +57,16 @@
                         <span class="data-label" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
                         <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
                             <div class="block" :style="getBlockStyle(item.value)">
-                                <template v-if="title === $t('分项目统计')">
-                                    <bk-popover placement="top">
-                                        <span
-                                            v-for="val in [8 , 17, 5]"
-                                            :key="val"
-                                            :style="{ display: 'inline-block', width: `${ val / item.value * 100 + '%'}`, height: '100%', background: val === 8 ? '#ff9c4a' : val === 17 ? '#3bce95' : '#f5cf0b' }">
-                                        </span>
-                                        <div slot="content">
-                                            <div>今天天天气不错</div>
-                                        </div>
-                                    </bk-popover>
-                                </template>
+                                <bk-popover v-if="isInstance" placement="top">
+                                    <span
+                                        v-for="val in [8 , 17, 5]"
+                                        :key="val"
+                                        :style="{ display: 'inline-block', width: `${ val / item.value * 100 + '%'}`, height: '100%', background: val === 8 ? '#ff9c4a' : val === 17 ? '#3bce95' : '#f5cf0b' }">
+                                    </span>
+                                    <div slot="content">
+                                        <div>今天天天气不错</div>
+                                    </div>
+                                </bk-popover>
                                 <span class="num">{{ item.value }}</span>
                             </div>
                         </div>
@@ -152,6 +150,10 @@
             labelWidth: {
                 type: Number,
                 default: 150
+            },
+            isInstance: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
