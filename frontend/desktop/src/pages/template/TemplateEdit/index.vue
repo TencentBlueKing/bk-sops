@@ -323,7 +323,8 @@
                 pollingTimer: null,
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
-                envVariableData: {}
+                envVariableData: {},
+                validateFailNodeList: [] // 节点校验失败列表
             }
         },
         computed: {
@@ -367,7 +368,9 @@
                             group = atom.group_name
                             code = atom.code
                         }
-                        const data = { ...location, mode: 'edit', icon, group, code }
+                        const status = this.validateFailNodeList.includes(location.id) ? 'FAILED' : ''
+
+                        const data = { ...location, mode: 'edit', icon, group, code, status }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
@@ -1140,6 +1143,19 @@
              */
             onLineChange (changeType, line) {
                 this.setLine({ type: changeType, line })
+                // 对校验失败节点进行处理
+                if (changeType === 'add' && this.validateFailNodeList.length) {
+                    const idList = [line.target.id, line.source.id]
+                    const nodeList = this.validateFailNodeList.filter(val => idList.includes(val))
+                    if (!nodeList || !nodeList.length) return
+                    nodeList.forEach(node => {
+                        const curNodeInfo = this.activities[node]
+                        if (curNodeInfo.incoming.length && curNodeInfo.outgoing) {
+                            const index = this.validateFailNodeList.findIndex(val => val === node)
+                            this.validateFailNodeList.splice(index, 1)
+                        }
+                    })
+                }
             },
             /**
              * 节点位置移动
@@ -1255,6 +1271,14 @@
                 // 校验节点数目
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
+                    // 获取检验不合格节点
+                    const validateFailNodeList = []
+                    Object.values(this.activities).forEach(node => {
+                        if (!node.incoming.length || !node.outgoing) {
+                            validateFailNodeList.push(node.id)
+                        }
+                    })
+                    this.validateFailNodeList = validateFailNodeList
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
