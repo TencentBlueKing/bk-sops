@@ -160,13 +160,8 @@
                     {value: true, name: gettext("是")},
                     {value: false, name: gettext("否")},
                 ],
-                default: "notify_is_false",
+                default: false,
                 hookable: true,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                    ]
             }
             },
         {
