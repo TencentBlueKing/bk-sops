@@ -1120,6 +1120,13 @@
                             }
                             return
                         }
+                        // 删除节点时，清除对应的校验失败节点
+                        if (changeType === 'delete' && this.validateFailNodeList.length) {
+                            const index = this.validateFailNodeList.findIndex(val => val === location.id)
+                            if (index > -1) {
+                                this.validateFailNodeList.splice(index, 1)
+                            }
+                        }
                         this.setActivities({ type: changeType, location })
                         break
                     case 'branchgateway':
