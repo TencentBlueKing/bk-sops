@@ -162,11 +162,6 @@
                 ],
                 default: "false",
                 hookable: true,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                    ]
             }
             },
         {
