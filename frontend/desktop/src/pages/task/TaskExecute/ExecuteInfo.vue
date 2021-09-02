@@ -571,6 +571,14 @@
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
                     this.theExecuteTime = undefined
+                    this.executeInfo = {}
+                    this.inputsInfo = {}
+                    this.outputsInfo = []
+                    this.logInfo = ''
+                    this.historyInfo = []
+                    this.historyLog = {}
+                    this.historyLogLoading = {}
+                    this.failInfo = ''
                     this.loadNodeInfo()
                 }
             }
