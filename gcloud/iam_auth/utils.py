@@ -107,4 +107,4 @@ def iam_resource_auth_or_raise(username, action, resource_id=None, get_resource_
         resources = getattr(res_factory, get_resource_func)(resource_id)
     request = Request(IAMMeta.SYSTEM_ID, subject, action, resources or [], {})
     if not iam.is_allowed(request):
-        raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
+        raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources or [])
