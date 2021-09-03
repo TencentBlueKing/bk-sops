@@ -324,7 +324,7 @@
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
                 envVariableData: {},
-                validateFailNodeList: [] // 节点校验失败列表
+                validateConnectFailList: [] // 节点校验失败列表
             }
         },
         computed: {
@@ -368,7 +368,7 @@
                             group = atom.group_name
                             code = atom.code
                         }
-                        const status = this.validateFailNodeList.includes(location.id) ? 'FAILED' : ''
+                        const status = this.validateConnectFailList.includes(location.id) ? 'FAILED' : ''
 
                         const data = { ...location, mode: 'edit', icon, group, code, status }
                         if (
@@ -1120,13 +1120,6 @@
                             }
                             return
                         }
-                        // 删除节点时，清除对应的校验失败节点
-                        if (changeType === 'delete' && this.validateFailNodeList.length) {
-                            const index = this.validateFailNodeList.findIndex(val => val === location.id)
-                            if (index > -1) {
-                                this.validateFailNodeList.splice(index, 1)
-                            }
-                        }
                         this.setActivities({ type: changeType, location })
                         break
                     case 'branchgateway':
@@ -1142,6 +1135,13 @@
                         this.setEndpoint({ type: changeType, location })
                         break
                 }
+                // 删除节点时，清除对应的校验失败节点
+                if (changeType === 'delete' && this.validateConnectFailList.length) {
+                    const index = this.validateConnectFailList.findIndex(val => val === location.id)
+                    if (index > -1) {
+                        this.validateConnectFailList.splice(index, 1)
+                    }
+                }
             },
             /**
              * 连线变更(新增、删除)
@@ -1151,15 +1151,16 @@
             onLineChange (changeType, line) {
                 this.setLine({ type: changeType, line })
                 // 对校验失败节点进行处理
-                if (changeType === 'add' && this.validateFailNodeList.length) {
+                if (changeType === 'add' && this.validateConnectFailList.length) {
                     const idList = [line.target.id, line.source.id]
-                    const nodeList = this.validateFailNodeList.filter(val => idList.includes(val))
+                    const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
                     if (!nodeList || !nodeList.length) return
                     nodeList.forEach(node => {
-                        const curNodeInfo = this.activities[node]
-                        if (curNodeInfo.incoming.length && curNodeInfo.outgoing) {
-                            const index = this.validateFailNodeList.findIndex(val => val === node)
-                            this.validateFailNodeList.splice(index, 1)
+                        const nodeInfo = this.activities[node] || this.gateways[node]
+                        const outgoing = Array.isArray(nodeInfo.outgoing) ? nodeInfo.outgoing.length : nodeInfo.outgoing
+                        if (nodeInfo.incoming.length && outgoing) {
+                            const index = this.validateConnectFailList.findIndex(val => val === node)
+                            this.validateConnectFailList.splice(index, 1)
                         }
                     })
                 }
@@ -1279,13 +1280,15 @@
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     // 获取检验不合格节点
-                    const validateFailNodeList = []
-                    Object.values(this.activities).forEach(node => {
-                        if (!node.incoming.length || !node.outgoing) {
-                            validateFailNodeList.push(node.id)
+                    const validateConnectFailList = []
+                    const nodeObject = Object.assign({}, this.activities, this.gateways)
+                    Object.values(nodeObject).forEach(node => {
+                        const outgoing = Array.isArray(node.outgoing) ? node.outgoing.length : node.outgoing
+                        if (!node.incoming.length || !outgoing) {
+                            validateConnectFailList.push(node.id)
                         }
                     })
-                    this.validateFailNodeList = validateFailNodeList
+                    this.validateConnectFailList = validateConnectFailList
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
