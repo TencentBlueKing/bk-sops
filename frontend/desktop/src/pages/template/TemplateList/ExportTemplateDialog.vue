@@ -330,7 +330,7 @@
                         list,
                         type: this.type,
                         common: this.common,
-                        isFull: this.isTplInPanelAllSelected || undefined
+                        is_full: this.isTplInPanelAllSelected
                     })
                     if (resp.result) {
                         this.closeDialog()
@@ -352,6 +352,7 @@
                     template.isChecked = false
                 })
                 this.keywords = ''
+                this.isHasSelected = false
                 this.isTplInPanelAllSelected = false
             }
         }
