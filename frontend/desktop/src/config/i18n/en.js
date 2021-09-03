@@ -580,6 +580,7 @@ const en = {
     '提单时间': 'Date submitted',
     '提单人': 'Creator',
     '请输入提单人': 'Please enter the creator',
+    '请输入认领人': 'Please enter the claimant',
     '未认领': 'Submitted',
     '已认领': 'Claimed',
     '认领时间': 'Claim ime',

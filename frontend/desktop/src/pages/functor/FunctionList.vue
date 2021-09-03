@@ -264,6 +264,13 @@
             value: ''
         },
         {
+            type: 'input',
+            key: 'claimant',
+            label: i18n.t('认领人'),
+            placeholder: i18n.t('请输入认领人'),
+            value: ''
+        },
+        {
             type: 'select',
             label: i18n.t('状态'),
             key: 'statusSync',
@@ -452,12 +459,13 @@
             async loadFunctionTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, creator, statusSync, taskName } = this.requestData
+                    const { selectedProject, executeTime, creator, statusSync, taskName, claimant } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: taskName || undefined,
                         creator: creator || undefined,
+                        claimant: claimant || undefined,
                         task__project__id: selectedProject || undefined,
                         status: statusSync || undefined
                     }
