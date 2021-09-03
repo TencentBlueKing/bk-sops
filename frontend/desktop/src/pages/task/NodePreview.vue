@@ -11,7 +11,7 @@
 */
 <template>
     <div class="node-preview-wrapper">
-        <div class="operation-header clearfix">
+        <div v-if="previewBread.length > 1" class="operation-header clearfix">
             <div class="bread-crumbs-wrapper">
                 <div
                     :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <div class="preview-canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1, zIndex: 100 }">
+        <div :class="['preview-canvas-wrapper', { 'has-bread-crumbs': previewBread.length > 1 }]" v-bkloading="{ isLoading: previewDataLoading, opacity: 1, zIndex: 100 }">
             <TemplateCanvas
                 v-if="!previewDataLoading"
                 ref="TemplateCanvas"
@@ -107,9 +107,12 @@
     height: 100%;
 }
 .preview-canvas-wrapper {
-    height: calc(100% - 50px);
+    height: 100%;
     overflow: hidden;
     z-index: 1;
+    &.has-bread-crumbs {
+        height: calc(100% - 50px);
+    }
     /deep/ .jsflow .tool-panel-wrap {
         left: 40px;
     }

@@ -117,7 +117,7 @@
                 }
             },
             judgeDataEqual () {
-                if (!this.paramsCanBeModify) {
+                if (!this.paramsCanBeModify || !this.$refs.TaskParamEdit) {
                     return true
                 }
                 return this.$refs.TaskParamEdit.judgeDataEqual()

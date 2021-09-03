@@ -90,4 +90,11 @@ class YamlTemplateExportValidator(RequestValidator):
             return False, "template_type can not be empty"
         if data["template_type"] == "project" and not data.get("project_id"):
             return False, "project_id can not be empty when template_type=project"
+
+
+class TemplateParentsValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        if not request.GET.get("template_id"):
+            return False, "template_id can not be empty"
+
         return True, ""

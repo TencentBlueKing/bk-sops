@@ -22,4 +22,5 @@ urlpatterns = [
     url(r"^api/export/$", api.export_templates),
     url(r"^api/import/$", api.import_templates),
     url(r"^api/import_check/$", api.check_before_import),
+    url(r"^api/parents/$", api.parents),
 ]

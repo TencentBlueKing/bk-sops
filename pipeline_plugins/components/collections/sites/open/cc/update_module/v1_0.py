@@ -26,7 +26,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_format_prop_data,
     get_module_set_id,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -108,7 +108,10 @@ class CCUpdateModuleService(Service):
             return False
 
         if cc_module_select_method == SelectMethod.TOPO.value:
-            cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_module_select_topo"))
+            module_list = data.get_one_of_inputs("cc_module_select_topo")
+            # 过滤掉set的情况
+            module_list = list(filter(lambda x: x.startswith("module"), module_list))
+            cc_module_select = cc_format_tree_mode_id(module_list)
         elif cc_module_select_method == SelectMethod.TEXT.value:
             cc_module_select_text = data.get_one_of_inputs("cc_module_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
@@ -163,6 +166,7 @@ class CCUpdateModuleComponent(Component):
     name = _("更新模块属性")
     code = "cc_update_module"
     bound_service = CCUpdateModuleService
-    form = '{static_url}components/atoms/cc/update_module/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                           ver=VERSION.replace('.', '_'))
+    form = "{static_url}components/atoms/cc/update_module/{ver}.js".format(
+        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
+    )
     version = VERSION

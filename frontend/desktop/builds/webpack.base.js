@@ -108,7 +108,6 @@ module.exports = {
         }),
         new MonacoWebpackPlugin({
             output: path.posix.join('js/'),
-            publicPath: '../',
             languages: ['javascript', 'typescript', 'json', 'python', 'shell']
         })
     ],

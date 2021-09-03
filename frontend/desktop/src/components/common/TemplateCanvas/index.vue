@@ -13,7 +13,7 @@
     <div
         id="canvasContainer"
         class="canvas-container">
-        <js-flow
+        <bk-flow
             ref="jsFlow"
             selector="entry-item"
             :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }]"
@@ -23,9 +23,11 @@
             :editable="editable"
             :endpoint-options="endpointOptions"
             :connector-options="connectorOptions"
+            :node-options="nodeOptions"
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onConnectionDragStop="onConnectionDragStop"
+            @onConnectionClick="onConnectionClick"
             @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
@@ -44,7 +46,8 @@
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
                     :subflow-list-loading="subAtomListLoading"
-                    @updateNodeMenuState="updateNodeMenuState">
+                    @updateNodeMenuState="updateNodeMenuState"
+                    @getAtomList="getAtomList">
                 </palette-panel>
             </template>
             <template v-slot:toolPanel>
@@ -53,8 +56,10 @@
                     :is-show-select-all-tool="isShowSelectAllTool"
                     :is-select-all-tool-disabled="isSelectAllToolDisabled"
                     :is-all-selected="isAllSelected"
-                    :show-small-map="showSmallMap "
+                    :show-small-map="showSmallMap"
                     :editable="editable"
+                    :zoom-ratio="zoomRatio"
+                    :is-show-hot-key="isShowHotKey"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
@@ -89,10 +94,11 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @addNodesToDragSelection="addNodeToSelectedList"
-                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
+                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
+                    @getAtomList="getAtomList">
                 </node-template>
             </template>
-        </js-flow>
+        </bk-flow>
         <help-info
             :editable="editable"
             :is-show-hot-key="isShowHotKey"
@@ -117,7 +123,7 @@
     // import domtoimage from 'dom-to-image'
     import domtoimage from '@/utils/domToImage.js'
     // import htmltoimage from 'html-to-image'
-    import JsFlow from '@/assets/js/jsflow.esm.js'
+    import BkFlow from '@/assets/js/flow.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
     import PalettePanel from './PalettePanel/index.vue'
@@ -125,13 +131,13 @@
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
-    import { endpointOptions, connectorOptions } from './options.js'
+    import { endpointOptions, connectorOptions, nodeOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
     export default {
         name: 'TemplateCanvas',
         components: {
-            JsFlow,
+            BkFlow,
             NodeTemplate,
             PalettePanel,
             ToolPanel,
@@ -180,7 +186,7 @@
                 type: [String, Number],
                 default: ''
             },
-            subAtomListLoading: {
+            subflowListLoading: {
                 type: Boolean,
                 default: true
             },
@@ -238,6 +244,7 @@
                 isCanCreateline: false,
                 selectedNodes: [],
                 copyNodes: [],
+                activeCon: null,
                 selectionOriginPos: {
                     x: 0,
                     y: 0
@@ -258,7 +265,9 @@
                 },
                 endpointOptions: combinedEndpointOptions,
                 flowData,
-                connectorOptions
+                connectorOptions,
+                nodeOptions,
+                zoomRatio: 100
             }
         },
         watch: {
@@ -277,6 +286,7 @@
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
             document.body.addEventListener('click', this.handleShortcutPanelHide, false)
+            document.body.addEventListener('mousedown', this.handleDeleteLineIconHide, false)
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
@@ -290,6 +300,7 @@
             document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
+            document.body.removeEventListener('mousedown', this.handleDeleteLineIconHide, false)
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             if (canvasPaintArea) {
@@ -300,6 +311,9 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            getAtomList (val) {
+                this.$emit('getAtomList', val)
+            },
             handlerWindowResize () {
                 this.windowWidth = document.documentElement.offsetWidth - 60
                 this.windowHeight = document.documentElement.offsetHeight - 60 - 50
@@ -329,6 +343,7 @@
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
                 this.showSmallMap = false
             },
             onZoomOut (pos) {
@@ -339,10 +354,12 @@
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
                 this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
@@ -601,6 +618,26 @@
                     })
                 }
             },
+            onConnectionClick (connection, e) {
+                if (e.target.tagName !== 'path') {
+                    return
+                }
+                const lineInCanvasData = this.canvasData.lines.find(item => {
+                    return item.source.id === connection.sourceId && item.target.id === connection.targetId
+                })
+                const lineId = lineInCanvasData.id
+                const deleteOverlay = connection.getOverlay(`delete_icon_${lineId}`)
+                if (!deleteOverlay) {
+                    this.$refs.jsFlow.addLineOverlay(connection, {
+                        type: 'Label',
+                        name: '<i class="common-icon-bkflow-delete"></i>',
+                        location: -45,
+                        cls: 'delete-line-icon',
+                        id: `delete_icon_${lineId}`
+                    })
+                    this.activeCon = connection
+                }
+            },
             // 拖拽到端点上连接
             onBeforeDrop (line) {
                 const { sourceId, targetId, connection, dropEndpoint } = line
@@ -632,9 +669,9 @@
             },
             onConnection (line) {
                 this.$nextTick(() => {
-                    const lineInCanvasData = this.canvasData.lines.filter(item => {
+                    const lineInCanvasData = this.canvasData.lines.find(item => {
                         return item.source.id === line.sourceId && item.target.id === line.targetId
-                    })[0]
+                    })
                     const lineId = lineInCanvasData.id
                     // 调整连线配置
                     if (lineInCanvasData.hasOwnProperty('midpoint')) {
@@ -656,6 +693,7 @@
                         type: 'Label',
                         name: '<i class="common-icon-dark-circle-close"></i>',
                         location: 0.5,
+                        cls: 'delete-line-circle-icon',
                         id: `close_${lineId}`
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
@@ -712,7 +750,7 @@
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
                 const TypeMap = [
-                    { type: 'close', rule: /^(close_)(\w*)/ },
+                    { type: 'close', rule: /^(close|delete_icon)_(\w*)/ },
                     { type: 'branchCondition', rule: /^(condition)(\w*)/ }
                 ]
                 let lineId = ''
@@ -726,6 +764,7 @@
                 if (lineId && result.type === 'close') {
                     const line = this.canvasData.lines.find(item => item.id === lineId)
                     this.$refs.jsFlow.removeConnector(line)
+                    this.activeCon = null
                 }
                 if (lineId && result.type === 'branchCondition') {
                     this.branchConditionEditHandler(e, overlay.id)
@@ -746,6 +785,7 @@
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
                     this.clearReferenceLine()
                 }
+                this.handleDeleteLineIconHide()
             },
             // 节点拖动回调
             onNodeMoving (node) {
@@ -756,6 +796,7 @@
                 if (node.id !== this.idOfNodeShortcutPanel) {
                     this.handleShortcutPanelHide()
                 }
+                this.handleDeleteLineIconHide()
             },
             // 初始化生成参考线
             createReferenceLine () {
@@ -810,26 +851,27 @@
                 this.referenceLine = {}
             },
             // 锚点点击回调
-            onEndpointClick (endpoint, event) {
+            onEndpointClick (edp, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { pageX, pageY } = event
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                const bX = pageX - offsetX
-                const bY = pageY - offsetY
-                const type = endpoint.anchor.type
+                const { left, top, width, height } = edp.canvas.getBoundingClientRect()
+                const type = edp.anchor.type
+                const bX = left + width / 2 - offsetX
+                const bY = top + height / 2 - offsetY
                 // 第二次点击
-                if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
+                if (this.referenceLine.id && edp.elementId !== this.referenceLine.id) {
                     this.createLine(
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
-                        { id: endpoint.elementId, arrow: type }
+                        { id: edp.elementId, arrow: type }
                     )
                     this.clearReferenceLine()
                     return false
                 }
                 this.createReferenceLine()
-                this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
+                this.handleDeleteLineIconHide()
+                this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
                 document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 鼠标移动更新参考线
@@ -987,10 +1029,12 @@
                 if (type !== 'endpoint') {
                     this.showShortcutPane(id)
                 }
+                this.handleDeleteLineIconHide()
             },
             onNodeDblclick (id) {
                 this.onShowNodeConfig(id)
                 this.handleShortcutPanelHide()
+                this.handleDeleteLineIconHide()
             },
             // 显示快捷节点面板
             showShortcutPane (id) {
@@ -1008,6 +1052,18 @@
                 this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
                 this.idOfNodeShortcutPanel = ''
+            },
+            handleDeleteLineIconHide (e) {
+                if (this.activeCon && (e && !dom.parentClsContains('delete-line-icon', e.target))) {
+                    const lineInCanvasData = this.canvasData.lines.find(item => {
+                        return item.source.id === this.activeCon.sourceId && item.target.id === this.activeCon.targetId
+                    })
+                    if (lineInCanvasData) {
+                        const lineId = lineInCanvasData.id
+                        this.activeCon.removeOverlay(`delete_icon_${lineId}`)
+                        this.activeCon = null
+                    }
+                }
             },
             // 切换节点层级状态
             toggleNodeLevel (id, isActived) {
@@ -1339,20 +1395,20 @@
         .tool-panel-wrap {
             top: 20px;
             left: 80px;
-            padding: 5px 0 7px 0;
-            background: #c4c6cc;
-            border-radius: 18px;
-            opacity: 0.8;
             z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
+            background: #ffffff;
+            opacity: 1;
+            padding: 0;
+            border-radius: 2px;
+            box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
             z-index: 3;
-            cursor: pointer;
         }
         .jsflow-node {
-            z-index: 3;
+            z-index: 4;
             &.adding-node {
                 z-index: 6;
             }
@@ -1372,9 +1428,18 @@
         }
         .jtk-overlay {
             cursor: pointer;
-            z-index: 2;
-            &:not(.branch-condition) {
+            z-index: 3;
+            &.delete-line-circle-icon {
                 display: none;
+            }
+            &.delete-line-icon {
+                margin-left: 10px;
+                margin-top: -14px;
+                color: #52699d;
+                font-size: 14px;
+                line-height: 1;
+                background: #e1e4e8;
+                z-index: 10;
             }
             .common-icon-dark-circle-close{
                 font-size: 16px;
@@ -1408,6 +1473,49 @@
             .jtk-overlay.jtk-hover {
                 display: inline-block;
             }
+            .jtk-endpoint {
+                cursor: pointer;
+                &.template-canvas-endpoint:not(.jtk-dragging) {
+                    &:after {
+                        display: none;
+                        position: absolute;
+                        content: '';
+                        height: 32px;
+                        width: 32px;
+                        background: url('~@/assets/images/endpoint.png') center/32px no-repeat;
+                        border-radius: 50%;
+                        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
+                    }
+                    &:hover:after {
+                        background: url('~@/assets/images/endpoint-hover.png') center/32px no-repeat;
+                    }
+                    &:hover,
+                    &.jtk-endpoint-highlight {
+                        &:after {
+                            display: block;
+                        }
+                        &[data-pos="Top"]:after {
+                            bottom: 22px;
+                            left: 0px;
+                            transform: rotate(-90deg);
+                        }
+                        &[data-pos="Bottom"]:after {
+                            top: 22px;
+                            left: 0;
+                            transform: rotate(90deg);
+                        }
+                        &[data-pos="Left"]:after {
+                            top: 0;
+                            right: 22px;
+                            transform: rotate(-180deg);
+                        }
+                        &[data-pos="Right"]:after {
+                            top: 0;
+                            left: 22px;
+                        }
+                    }
+                }
+            }
         }
         &:not(.editable) {
             .jtk-endpoint circle{
@@ -1428,8 +1536,13 @@
                 }
             }
         }
-        .jsflow-node.actived {
-            z-index: 4;
+        .jsflow-node.actived,
+        .jsflow-node.jtk-drag {
+            z-index: 5;
+        }
+        .reference-line-vertical,
+        .reference-line-horizontal {
+            z-index: 6;
         }
     }
     .drag-reference-line {

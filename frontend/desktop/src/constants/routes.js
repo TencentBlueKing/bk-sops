@@ -17,24 +17,18 @@ const COMMON_ROUTE_LIST = [
             url: '/template/home/'
         },
         {
-            id: 'task',
-            name: i18n.t('任务'),
-            icon: 'icon-calendar-shape',
-            subRoutes: ['taskCreate', 'taskExecute'],
-            children: [
-                {
-                    id: 'taskList',
-                    name: i18n.t('任务记录'),
-                    hasProjectId: true,
-                    url: '/taskflow/home/list/'
-                },
-                {
-                    id: 'periodicTemplate',
-                    name: i18n.t('周期任务'),
-                    hasProjectId: true,
-                    url: '/taskflow/home/periodic/'
-                }
-            ]
+            id: 'taskList',
+            name: i18n.t('任务记录'),
+            icon: 'common-icon-task-record',
+            hasProjectId: true,
+            url: '/taskflow/home/list/'
+        },
+        {
+            id: 'periodicTemplate',
+            name: i18n.t('周期任务'),
+            icon: 'common-icon-cycle-task',
+            hasProjectId: true,
+            url: '/taskflow/home/periodic/'
         },
         {
             id: 'appMakerList',

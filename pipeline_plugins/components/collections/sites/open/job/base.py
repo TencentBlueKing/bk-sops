@@ -262,7 +262,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result
+                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -271,7 +271,7 @@ class JobService(Service):
 
                 global_var_list = global_var_result["data"].get("job_instance_var_values", [])
                 if global_var_list:
-                    for global_var in global_var_list[-1]["step_instance_var_values"]:
+                    for global_var in global_var_list[-1]["step_instance_var_values"] or []:
                         if global_var["category"] != JOB_VAR_TYPE_IP:
                             data.set_outputs(global_var["name"], global_var["value"])
 

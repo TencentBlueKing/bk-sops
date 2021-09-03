@@ -18,6 +18,7 @@ from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
 from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
+from bamboo_engine.config import Settings as BambooSettings
 import env
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
@@ -162,7 +163,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.41"
+STATIC_VERSION = "3.6.50"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -357,6 +358,13 @@ PIPELINE_DATA_CANDIDATE_BACKEND = env.BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
+EXPIRED_TASK_CLEAN = env.EXPIRED_TASK_CLEAN
+EXPIRED_TASK_CLEAN_NUM_LIMIT = env.EXPIRED_TASK_CLEAN_NUM_LIMIT
+TASK_EXPIRED_MONTH = env.TASK_EXPIRED_MONTH
+
+BAMBOO_PERIODIC_TASK_ROOT_PIPELINE_CONTEXT_PROVIER = "gcloud.taskflow3.context.root_pipeline_context_provider"
+BAMBOO_PERIODIC_TASK_SUBPROCESS_CONTEXT_PROVIER = "gcloud.taskflow3.context.subprocess_context_provider"
+
 # pipeline mako render settings
 MAKO_SANDBOX_SHIELD_WORDS = [
     "ascii",
@@ -420,6 +428,9 @@ if env.SOPS_MAKO_IMPORT_MODULES:
             raise ImportError(err)
         MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
+BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = MAKO_SANDBOX_IMPORT_MODULES
+BambooSettings.MAKO_SANDBOX_SHIELD_WORDS = MAKO_SANDBOX_SHIELD_WORDS
+
 ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
@@ -447,6 +458,7 @@ CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).qu
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
+BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
 SYSTEM_USE_API_ACCOUNT = "admin"
 
@@ -484,12 +496,11 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 # SaaS统一日志配置
 def logging_addition_settings(logging_dict, environment="prod"):
-    logging_dict["loggers"]["iam"] = {
-        "handlers": ["component"],
-        "level": "INFO" if environment == "prod" else "DEBUG",
-        "propagate": True,
-    }
 
+    # formatters
+    logging_dict["formatters"]["light"] = {"format": "%(message)s"}
+
+    # handlers
     logging_dict["handlers"]["pipeline_engine_context"] = {
         "class": "pipeline.log.handlers.EngineContextLogHandler",
         "formatter": "light",
@@ -500,14 +511,6 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "formatter": "light",
     }
 
-    logging_dict["loggers"]["component"] = {
-        "handlers": ["component", "pipeline_engine_context", "bamboo_engine_context"],
-        "level": "DEBUG",
-        "propagate": True,
-    }
-
-    logging_dict["formatters"]["light"] = {"format": "%(message)s"}
-
     logging_dict["handlers"]["engine"] = {
         "class": "pipeline.log.handlers.EngineLogHandler",
         "formatter": "light",
@@ -516,6 +519,25 @@ def logging_addition_settings(logging_dict, environment="prod"):
     logging_dict["handlers"]["pipeline_eri"] = {
         "class": "pipeline.eri.log.ERINodeLogHandler",
         "formatter": "light",
+    }
+
+    # loggers
+    logging_dict["loggers"]["iam"] = {
+        "handlers": ["component"],
+        "level": "INFO" if environment == "prod" else "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["loggers"]["component"] = {
+        "handlers": ["component", "pipeline_engine_context", "bamboo_engine_context"],
+        "level": "DEBUG",
+        "propagate": True,
+    }
+
+    logging_dict["loggers"]["root"] = {
+        "handlers": ["root", "pipeline_engine_context", "bamboo_engine_context"],
+        "level": "INFO",
+        "propagate": True,
     }
 
     logging_dict["loggers"]["pipeline.logging"] = {

@@ -87,9 +87,6 @@ def get_pre_render_mako_keys(constants):
         if "pre_render_mako" in info:
             if info["pre_render_mako"]:
                 pre_render_inputs_keys.add(key)
-        else:
-            if info["show_type"] != "show":
-                pre_render_inputs_keys.add(key)
 
     return pre_render_inputs_keys
 

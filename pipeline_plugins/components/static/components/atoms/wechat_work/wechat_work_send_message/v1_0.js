@@ -2,7 +2,7 @@ $.atoms.wechat_work_send_message = [
     {
         "type": "textarea",
         "attrs": {
-            "name": "会话ID",
+            "name": gettext("会话ID"),
             "hookable": true,
             "validation": [
                 {
@@ -34,7 +34,7 @@ $.atoms.wechat_work_send_message = [
     {
         "type": "textarea",
         "attrs": {
-            "name": "消息内容",
+            "name": gettext("消息内容"),
             "hookable": true,
             "validation": [
                 {
@@ -47,9 +47,9 @@ $.atoms.wechat_work_send_message = [
     {
         "type": "input",
         "attrs": {
-            "name": "提醒人",
+            "name": gettext("提醒人"),
             "hookable": true,
-            "placeholder": "提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人"
+            "placeholder": gettext("提醒群指定成员(@某个成员)，多个成员用 `,` 分隔，@all表示提醒所有人")
         },
         "events": [],
         "methods": {},
