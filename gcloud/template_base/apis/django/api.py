@@ -17,10 +17,12 @@ import ujson as json
 import hashlib
 import base64
 import traceback
+from functools import wraps
 
 import yaml
 from django.db.models import Model
 from django.http import JsonResponse, HttpResponse
+from django.utils.decorators import available_attrs
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -109,6 +111,25 @@ def base_check_before_import(request: Request, template_model_cls: object, impor
     check_info = template_model_cls.objects.import_operation_check(r["data"]["template_data"], *import_args)
 
     return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
+
+
+def is_full_param_process(template_model_cls: object, project_related: bool):
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def wrapped_view(request, *args, **kwargs):
+            if request.data["is_full"]:
+                template_filters = {"is_deleted": False}
+                if project_related:
+                    template_filters["project_id"] = kwargs["project_id"]
+
+                request.data["template_id_list"] = list(
+                    template_model_cls.objects.filter(**template_filters).values_list("id", flat=True)
+                )
+            return view_func(request, *args, **kwargs)
+
+        return wrapped_view
+
+    return decorator
 
 
 def base_export_templates(request: Request, template_model_cls: object, file_prefix: str, export_args: list):
