@@ -458,7 +458,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     node_id=self.node_id,
                     subprocess_stack=subprocess_stack,
                     root_pipeline_data=root_pipeline_data,
-                    current_constants=root_pipeline_context,
+                    parent_params=root_pipeline_context,
                 )
 
                 if not preview_result.result:
