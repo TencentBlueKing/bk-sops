@@ -98,7 +98,7 @@ def create_and_start_task(request, template_id, project_id):
         params.setdefault("constants", {})
         params.setdefault("exclude_task_nodes_id", [])
         jsonschema.validate(params, APIGW_CREATE_AND_START_TASK_PARAMS)
-    except jsonschema.ValueError as e:
+    except jsonschema.ValidationError as e:
         logger.warning("[API] create_and_start_task raise params error: %s" % e)
         message = "task parmas is invalid: %s" % e
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
