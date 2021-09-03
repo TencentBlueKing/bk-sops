@@ -74,7 +74,7 @@ class CreateAndStartTaskAPITest(APITest):
                     ),
                     content_type="application/json",
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
-                    HTTP_BK_USERNAME=TEST_USERNAME,
+                    # HTTP_BK_USERNAME=TEST_USERNAME,
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
@@ -118,7 +118,7 @@ class CreateAndStartTaskAPITest(APITest):
             data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
             content_type="application/json",
             HTTP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME,
+            # HTTP_BK_USERNAME=TEST_USERNAME,
         )
 
         data = json.loads(response.content)
@@ -146,7 +146,7 @@ class CreateAndStartTaskAPITest(APITest):
             data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
             content_type="application/json",
             HTPP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME,
+            # HTTP_BK_USERNAME=TEST_USERNAME,
         )
 
         data = json.loads(response.content)
@@ -174,7 +174,7 @@ class CreateAndStartTaskAPITest(APITest):
             data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
             content_type="application/json",
             HTTP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME,
+            # HTTP_BK_USERNAME=TEST_USERNAME,
         )
         data = json.loads(response.content)
 
