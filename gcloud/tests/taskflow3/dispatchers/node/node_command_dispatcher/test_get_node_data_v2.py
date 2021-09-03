@@ -114,7 +114,7 @@ class GetNodeDataV2TestCase(TestCase):
             node_id=dispatcher.node_id,
             subprocess_stack=subprocess_stack,
             root_pipeline_data={},
-            current_constants={"${_system}": {"type": "plain", "value": "system_obj"}},
+            parent_params={"${_system}": {"type": "plain", "value": "system_obj"}},
         )
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
