@@ -92,14 +92,12 @@
                 const hooked = {}
                 const keys = Object.keys(this.constants)
                 this.scheme.forEach(form => {
-                    // 已勾选到全局变量中
+                    // 已勾选到全局变量中, 判断source_info是否包含该节点的对应表单tag_code
                     const isHooked = keys.some(item => {
                         const varItem = this.constants[item]
-                        if (varItem.source_type === 'component_inputs') {
-                            const sourceInfo = varItem.source_info[this.nodeId]
-                            if (sourceInfo && sourceInfo.includes(form.tag_code)) {
-                                return true
-                            }
+                        const sourceInfo = varItem.source_info[this.nodeId]
+                        if (sourceInfo && sourceInfo.includes(form.tag_code)) {
+                            return true
                         }
                     })
                     hooked[form.tag_code] = isHooked

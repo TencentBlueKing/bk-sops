@@ -309,6 +309,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
+            except pipeline_exceptions.InvalidOperationException as e:
+                logger.error(f"node relationship does not exist: {e}")
+                task_status = self.CREATED_STATUS
             except Exception:
                 logger.exception("task.get_status fail")
                 return {

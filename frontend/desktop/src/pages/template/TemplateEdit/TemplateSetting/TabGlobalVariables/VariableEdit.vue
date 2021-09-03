@@ -615,9 +615,13 @@
                 if (!this.variableData.key) {
                     this.isSaveConfirmDialogShow = true
                 } else {
-                    const tagCode = this.renderConfig[0].tag_code
-                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
+                    const editingVariable = tools.deepClone(this.theEditingData)
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        editingVariable.value = this.renderData[tagCode]
+                    }
+
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
                     } else {
@@ -634,13 +638,26 @@
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
                     const variable = this.theEditingData
-                    const tagCode = this.renderConfig[0].tag_code
+                    variable.name = variable.name.trim()
 
+                    // 变量预渲染
+                    if (variable.pre_render_mako) {
+                        variable.pre_render_mako = Boolean(variable.pre_render_mako)
+                    }
+                    // 变量key值格式统一
+                    if (!/^\$\{\w+\}$/.test(variable.key)) {
+                        variable.key = '${' + variable.key + '}'
+                    }
                     // renderform表单校验
-                    // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
-                    if (this.$refs.renderForm) {
-                        if (this.theEditingData.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
-                            formValid = this.$refs.renderForm.validate()
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        variable.value = this.renderData[tagCode]
+    
+                        // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
+                        if (this.$refs.renderForm) {
+                            if (variable.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
+                                formValid = this.$refs.renderForm.validate()
+                            }
                         }
                     }
 
@@ -657,16 +674,6 @@
                         return
                     }
 
-                    if (this.theEditingData.pre_render_mako) {
-                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
-                    }
-                    // 变量key值格式统一
-                    if (!/^\$\{\w+\}$/.test(variable.key)) {
-                        variable.key = '${' + variable.key + '}'
-                    }
-
-                    this.theEditingData.value = this.renderData[tagCode]
-                    this.theEditingData.name = this.theEditingData.name.trim()
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
                             variable.version = 'legacy'
