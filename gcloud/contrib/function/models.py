@@ -38,7 +38,7 @@ class FunctionTask(models.Model):
     )
     creator = models.CharField(_("提单人"), max_length=32)
     create_time = models.DateTimeField(_("提单时间"), auto_now_add=True)
-    claimant = models.CharField(_("认领人"), max_length=32, blank=True)
+    claimant = models.CharField(_("认领人"), max_length=32, blank=True, db_index=True)
     claim_time = models.DateTimeField(_("认领时间"), blank=True, null=True)
     rejecter = models.CharField(_("驳回人"), max_length=32, blank=True)
     reject_time = models.DateTimeField(_("驳回时间"), blank=True, null=True)
