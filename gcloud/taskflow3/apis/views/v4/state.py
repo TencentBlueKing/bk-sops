@@ -28,7 +28,7 @@ logger = logging.getLogger("root")
 
 @require_GET
 @request_validate(StatusValidator)
-def state(request, project_id):
+def root_state(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
 
@@ -36,6 +36,8 @@ def state(request, project_id):
         try:
             task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
             task_state = task.get_state()
+            if "children" in task_state:
+                task_state.pop("children")
             ctx = {"result": True, "data": task_state, "message": "", "code": err_code.SUCCESS.code}
             return JsonResponse(ctx)
         except exceptions.InvalidOperationException:
@@ -50,6 +52,8 @@ def state(request, project_id):
     try:
         task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
         task_state = TaskFlowInstance.get_state_tree_from_pipeline_status(task_status)
+        if "children" in task_state:
+            task_state.pop("children")
         ctx = {"result": True, "data": task_state, "message": "", "code": err_code.SUCCESS.code}
     # subprocess pipeline has not executed
     except exceptions.InvalidOperationException:
