@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions
-from iam import Subject
+from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
 
@@ -36,7 +36,7 @@ class RenderCurrentConstantsPermission(permissions.BasePermission):
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
-            action=IAMMeta.PROJECT_VIEW_ACTION,
+            action=Action(IAMMeta.TASK_VIEW_ACTION),
             resources=task_resources,
         )
 
