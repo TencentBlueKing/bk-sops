@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.54
+
+- minor:
+  - bamboo-pipeline 升级至 3.6.2
+
 ## 3.6.53
 
 - bugfix
