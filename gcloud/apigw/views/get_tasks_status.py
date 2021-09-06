@@ -56,7 +56,7 @@ def get_tasks_status(request, project_id):
 
     data = []
     for task in tasks:
-        status = task.get_status()
+        status = task.get_verbose_state_tree()
 
         if not include_children_status:
             status.pop("children")

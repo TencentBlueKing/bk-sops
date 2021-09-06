@@ -35,7 +35,7 @@ def root_state(request, project_id):
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
-            task_state = task.get_state()
+            task_state = task.get_state_tree()
             if "children" in task_state:
                 task_state.pop("children")
             ctx = {"result": True, "data": task_state, "message": "", "code": err_code.SUCCESS.code}

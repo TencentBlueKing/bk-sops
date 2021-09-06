@@ -683,13 +683,13 @@ class TaskFlowInstance(models.Model):
             child_status.append(child_tree["state"])
         TaskFlowInstance._sync_blocked_status_tree_state_from_child_status(status_tree, child_status)
 
-    def get_state(self):
+    def get_state_tree(self):
         if not self.pipeline_instance.is_started:
             return {"state": "CREATED"}
         status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
         return TaskFlowInstance.get_state_tree_from_pipeline_status(status_tree)
 
-    def get_status(self):
+    def get_verbose_state_tree(self):
         if not self.pipeline_instance.is_started:
             return {
                 "start_time": None,

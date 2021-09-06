@@ -94,7 +94,7 @@ def status(request, project_id):
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
-            task_status = task.get_status()
+            task_status = task.get_verbose_state_tree()
             ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
             return JsonResponse(ctx)
         except exceptions.InvalidOperationException:

@@ -40,7 +40,7 @@ class GetTasksStatusAPITest(APITest):
     )
     def test_get_tasks_status__success_with_children_status(self):
         task = MockTaskFlowInstance(get_status_return={"children": "children"})
-        status = copy.deepcopy(task.get_status())
+        status = copy.deepcopy(task.get_verbose_state_tree())
 
         with patch(TASKFLOW_OBJECTS_FILTER, MagicMock(return_value=[task])):
             response = self.client.post(
@@ -81,7 +81,7 @@ class GetTasksStatusAPITest(APITest):
     )
     def test_get_tasks_status__success_without_children_status(self):
         task = MockTaskFlowInstance(get_status_return={"children": "children"})
-        status = copy.deepcopy(task.get_status())
+        status = copy.deepcopy(task.get_verbose_state_tree())
         status.pop("children")
 
         with patch(TASKFLOW_OBJECTS_FILTER, MagicMock(return_value=[task])):
