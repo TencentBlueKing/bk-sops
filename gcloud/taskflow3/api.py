@@ -65,6 +65,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     TaskModifyInputsInterceptor,
     TaskFuncClaimInterceptor,
     GetNodeLogInterceptor,
+    StatusViewInterceptor,
 )
 
 logger = logging.getLogger("root")
@@ -85,6 +86,7 @@ def context(request):
 
 @require_GET
 @request_validate(StatusValidator)
+@iam_intercept(StatusViewInterceptor())
 def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
