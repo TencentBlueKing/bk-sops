@@ -65,6 +65,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     TaskModifyInputsInterceptor,
     TaskFuncClaimInterceptor,
     GetNodeLogInterceptor,
+    StatusViewInterceptor,
 )
 
 logger = logging.getLogger("root")
@@ -85,6 +86,7 @@ def context(request):
 
 @require_GET
 @request_validate(StatusValidator)
+@iam_intercept(StatusViewInterceptor())
 def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
@@ -92,7 +94,7 @@ def status(request, project_id):
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
-            task_status = task.get_status()
+            task_status = task.get_verbose_state_tree()
             ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
             return JsonResponse(ctx)
         except exceptions.InvalidOperationException:

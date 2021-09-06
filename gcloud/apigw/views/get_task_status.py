@@ -43,7 +43,7 @@ def get_task_status(request, task_id, project_id):
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
-            task_status = task.get_status()
+            task_status = task.get_verbose_state_tree()
         except Exception as e:
             message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
             logger.exception(message)

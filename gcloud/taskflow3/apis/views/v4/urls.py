@@ -14,5 +14,9 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 
 from .node_action import node_action
+from .state import root_state
 
-v4_urlpatterns = [url(r"^node_action/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/$", node_action)]
+v4_urlpatterns = [
+    url(r"^node_action/(?P<project_id>\d+)/(?P<task_id>\d+)/(?P<node_id>\w+)/$", node_action),
+    url(r"^root_state/(?P<project_id>\d+)/$", root_state),
+]
