@@ -10,9 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from iam import Subject, Action
-
-from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
+from gcloud.iam_auth.utils import check_project_or_admin_view_action_for_user
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
@@ -25,7 +23,7 @@ from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import MiniAppResourceHelper
 from gcloud.iam_auth.authorization_helpers import MiniAppIAMAuthorizationHelper
 
@@ -35,13 +33,7 @@ iam = get_iam_client()
 class OnlyDeleteCompleteListIAMAuthorization(IAMAuthorization, IAMReadDetailAuthorizationMixin):
     def read_list(self, object_list, bundle):
         project_id = bundle.request.GET.get("project__id")
-        allow_or_raise_immediate_response(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", bundle.request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        check_project_or_admin_view_action_for_user(project_id, bundle.request.user.username)
 
         return object_list
 
