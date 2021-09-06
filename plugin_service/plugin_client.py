@@ -19,7 +19,7 @@ import requests
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
-from .exceptions import PluginServiceNotDeploy, PluginServiceNetworkError
+from .exceptions import PluginServiceNotDeploy, PluginServiceNetworkError, PluginServiceNotUse
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -69,6 +69,8 @@ def json_response_decoder(func):
 
 class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
+        if not env.USE_PLUGIN_SERVICE:
+            raise PluginServiceNotUse("插件服务未启用，请联系管理员进行配置")
         self.plugin_code = plugin_code
         if not plugin_host:
             result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
@@ -132,6 +134,9 @@ class PluginServiceApiClient:
 
     @staticmethod
     def get_plugin_list(search_term=None, limit=100, offset=0):
+        # 如果不启动插件服务，直接返回空列表
+        if not env.USE_PLUGIN_SERVICE:
+            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
         result = PluginServiceApiClient.get_paas_plugin_info(
             search_term=search_term, environment="prod", limit=limit, offset=offset
         )
@@ -153,6 +158,10 @@ class PluginServiceApiClient:
 
     @staticmethod
     def get_plugin_app_detail(plugin_code):
+        # 如果不启动插件服务，则不支持请求插件服务详情
+        if not env.USE_PLUGIN_SERVICE:
+            return {"result": False, "message": "插件服务未启用，请联系管理员进行配置", "data": None}
+
         result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
 
         if result.get("result") is False:
