@@ -58,11 +58,16 @@ class RenderCurrentConstantsView(APIView):
     @action(methods=["GET"], detail=True)
     def get(self, request, task_id, format=None):
         # fetch require task data
-        task = TaskFlowInstance.objects.filter(id=task_id).only("id", "engine_ver", "pipeline_instance")[0]
+        task = TaskFlowInstance.objects.filter(id=task_id).only("id", "engine_ver", "pipeline_instance", "project_id")[
+            0
+        ]
 
         # dispatch get constants command
         resp_data = TaskCommandDispatcher(
-            engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+            engine_ver=task.engine_ver,
+            taskflow_id=task.id,
+            pipeline_instance=task.pipeline_instance,
+            project_id=task.project_id,
         ).render_current_constants()
 
         return Response(resp_data)
