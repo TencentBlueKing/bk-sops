@@ -635,6 +635,38 @@ class TaskFlowInstance(models.Model):
         return False
 
     @staticmethod
+    def _sync_blocked_status_tree_state_from_child_status(status_tree, child_status):
+        """
+        @summary: 当父流程状态为BLOCKED时，根据子流程状态来同步父流程状态
+        @return:
+        """
+        if status_tree["state"] == states.BLOCKED:
+            if states.RUNNING in child_status:
+                status_tree["state"] = states.RUNNING
+            elif states.FAILED in child_status:
+                status_tree["state"] = states.FAILED
+            elif states.SUSPENDED in child_status or STATE_NODE_SUSPENDED in child_status:
+                status_tree["state"] = STATE_NODE_SUSPENDED
+            # 子流程 BLOCKED 状态表示子节点失败
+            elif not child_status:
+                status_tree["state"] = states.FAILED
+
+    @staticmethod
+    def get_state_tree_from_pipeline_status(status_tree):
+        """
+        @summary: 通过 pipeline api 获取的任务状态提取节点状态信息
+        @return:
+        """
+        state_tree = {"children": {}, "state": status_tree["state"]}
+        status_tree.setdefault("children", {})
+        child_status = []
+        for child_id, child_tree in list(status_tree["children"].items()):
+            state_tree["children"][child_id] = TaskFlowInstance.get_state_tree_from_pipeline_status(child_tree)
+            child_status.append(child_tree["state"])
+        TaskFlowInstance._sync_blocked_status_tree_state_from_child_status(state_tree, child_status)
+        return state_tree
+
+    @staticmethod
     def format_pipeline_status(status_tree):
         """
         @summary: 转换通过 pipeline api 获取的任务状态格式
@@ -649,17 +681,13 @@ class TaskFlowInstance(models.Model):
         for identifier_code, child_tree in list(status_tree["children"].items()):
             TaskFlowInstance.format_pipeline_status(child_tree)
             child_status.append(child_tree["state"])
+        TaskFlowInstance._sync_blocked_status_tree_state_from_child_status(status_tree, child_status)
 
-        if status_tree["state"] == states.BLOCKED:
-            if states.RUNNING in child_status:
-                status_tree["state"] = states.RUNNING
-            elif states.FAILED in child_status:
-                status_tree["state"] = states.FAILED
-            elif states.SUSPENDED in child_status or STATE_NODE_SUSPENDED in child_status:
-                status_tree["state"] = STATE_NODE_SUSPENDED
-            # 子流程 BLOCKED 状态表示子节点失败
-            elif not child_status:
-                status_tree["state"] = states.FAILED
+    def get_state(self):
+        if not self.pipeline_instance.is_started:
+            return {"state": "CREATED"}
+        status_tree = pipeline_api.get_status_tree(self.pipeline_instance.instance_id, max_depth=99)
+        return TaskFlowInstance.get_state_tree_from_pipeline_status(status_tree)
 
     def get_status(self):
         if not self.pipeline_instance.is_started:
