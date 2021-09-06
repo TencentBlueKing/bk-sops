@@ -306,9 +306,6 @@
             ...mapActions('auditTask/', [
                 'loadAuditTaskList'
             ]),
-            ...mapActions('task/', [
-                'getInstanceStatus'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),

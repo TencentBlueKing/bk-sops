@@ -318,7 +318,7 @@
         },
         methods: {
             ...mapActions('task/', [
-                'getInstanceStatus',
+                'getTaskStatus',
                 'loadCreateMethod'
             ]),
             ...mapActions('admin/', [
@@ -416,7 +416,7 @@
                     project_id: task.project.id
                 }
                 try {
-                    const detailInfo = await this.getInstanceStatus(data)
+                    const detailInfo = await this.getTaskStatus(data)
                     if (detailInfo.result) {
                         const state = detailInfo.data.state
                         const status = {}
