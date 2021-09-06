@@ -47,6 +47,7 @@
                         <bk-radio-group v-model="item.radio" @change="renderRule">
                             <bk-radio :value="0">{{ autoWay.loop.name }}</bk-radio>
                             <bk-radio :value="1">{{ autoWay.appoint.name }}</bk-radio>
+                            <span class="group-reset-btn" @click.stop="onResetGroupValue(item)">{{ $t('清空') }}</span>
                         </bk-radio-group>
                         <!-- 循环生成 -->
                         <div v-if="item.radio === 0" class="loop-select-bd">
@@ -452,6 +453,19 @@
                     })
                     this.renderRule()
                 })
+            },
+            /**
+             * 重置特定选中时间维度的值
+             */
+            onResetGroupValue (group) {
+                if (group.radio === 0) {
+                    this.$set(group.loop, 'inter', 1)
+                } else {
+                    group.checkboxList.forEach(item => {
+                        this.$set(item, 'checked', false)
+                    })
+                }
+                this.renderRule()
             }
         }
     }
@@ -516,6 +530,14 @@ $bgBlue: #3a84ff;
     margin-top: 20px;
     margin-right: 22px;
     min-width: 40px;
+}
+.group-reset-btn {
+    position: absolute;
+    right: 0;
+    top: 4px;
+    font-size: 12px;
+    color: #3a84ff;
+    cursor: pointer;
 }
 .rule-tips {
     position: absolute;
