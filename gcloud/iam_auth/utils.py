@@ -12,12 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 from iam import Request, MultiActionRequest, Subject, Action
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 
 from gcloud.core.models import Project
 
 from . import res_factory
 from .conf import IAMMeta
 from .shortcuts import get_iam_client
+
+iam = get_iam_client()
 
 
 def get_user_projects(username):
@@ -73,3 +76,11 @@ def get_resources_allowed_actions_for_user(username, system_id, actions, resourc
 
     iam = get_iam_client()
     return iam.batch_resource_multi_actions_allowed(request, resources_list)
+
+
+def check_project_or_admin_view_action_for_user(project_id, username):
+    action = Action(IAMMeta.PROJECT_VIEW_ACTION) if project_id else Action(IAMMeta.ADMIN_VIEW_ACTION)
+    resources = res_factory.resources_for_project(project_id) if project_id else []
+    allow_or_raise_immediate_response(
+        iam=iam, system=IAMMeta.SYSTEM_ID, subject=Subject("user", username), action=action, resources=resources,
+    )
