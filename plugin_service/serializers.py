@@ -40,6 +40,7 @@ class PluginAppDetailResponseSerializer(serializers.Serializer):
     code = serializers.CharField(help_text="插件服务应用Code")
     name = serializers.CharField(help_text="插件服务应用名称")
     updated = serializers.TimeField(help_text="插件服务应用更新时间")
+    url = serializers.CharField(help_text="插件服务应用地址")
 
 
 class PluginListSerializer(serializers.Serializer):
