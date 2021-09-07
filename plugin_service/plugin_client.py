@@ -25,7 +25,7 @@ logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
 
 def data_parser(func):
-    """用于解析标准格式接口返回数据"""
+    """用于解析插件服务应用标准格式接口返回数据"""
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -67,32 +67,27 @@ def json_response_decoder(func):
     return wrapper
 
 
+def check_use_plugin_service(func):
+    """检查是否启用插件服务"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if not env.USE_PLUGIN_SERVICE:
+            return {"result": False, "message": "插件服务未启用，请联系管理员进行配置", "data": None}
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
         if not env.USE_PLUGIN_SERVICE:
             raise PluginServiceNotUse("插件服务未启用，请联系管理员进行配置")
         self.plugin_code = plugin_code
         if not plugin_host:
+            # 如果请求报错，会抛出PluginServiceException类型异常，需要调用放进行捕获处理
             result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
             self.plugin_host = os.path.join(result["data"]["url"], "bk_plugin/")
-
-    @staticmethod
-    @json_response_decoder
-    def get_paas_plugin_info(plugin_code=None, environment=None, limit=100, offset=0, search_term=None):
-        """可支持请求获取插件服务列表或插件详情"""
-        url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
-            environment or env.APIGW_ENVIRONMENT,
-            "system/bk_plugins",
-            plugin_code if plugin_code else "",
-        )
-        params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
-        if not plugin_code:
-            # list接口相关参数
-            params.update({"limit": limit, "offset": offset, "has_deployed": True})
-            if search_term:
-                params.update({"search_term": search_term})
-        return requests.get(url, params=params)
 
     @data_parser
     @json_response_decoder
@@ -112,11 +107,6 @@ class PluginServiceApiClient:
         return requests.post(url, data=json.dumps(data), headers=headers)
 
     @json_response_decoder
-    def get_logs(self, trace_id):
-        url = os.path.join(self.plugin_host, "logs", trace_id)
-        return requests.get(url)
-
-    @json_response_decoder
     def get_meta(self):
         url = os.path.join(self.plugin_host, "meta")
         return requests.get(url)
@@ -131,6 +121,14 @@ class PluginServiceApiClient:
     def get_schedule(self, trace_id):
         url = os.path.join(self.plugin_host, "schedule", trace_id)
         return requests.get(url)
+
+    @staticmethod
+    @check_use_plugin_service
+    def get_plugin_logs(plugin_code, trace_id, scroll_id=None):
+        result = PluginServiceApiClient.get_paas_logs(plugin_code, trace_id, scroll_id, environment="prod")
+        if result.get("result") is False:
+            return result
+        return {"result": True, "message": None, "data": result}
 
     @staticmethod
     def get_plugin_list(search_term=None, limit=100, offset=0):
@@ -157,11 +155,8 @@ class PluginServiceApiClient:
         return {"result": True, "message": None, "data": {"count": count, "plugins": plugins}}
 
     @staticmethod
+    @check_use_plugin_service
     def get_plugin_app_detail(plugin_code):
-        # 如果不启动插件服务，则不支持请求插件服务详情
-        if not env.USE_PLUGIN_SERVICE:
-            return {"result": False, "message": "插件服务未启用，请联系管理员进行配置", "data": None}
-
         result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
 
         if result.get("result") is False:
@@ -177,3 +172,37 @@ class PluginServiceApiClient:
             "message": None,
             "data": {"url": info["url"], "name": plugin["name"], "code": plugin["code"], "updated": plugin["updated"]},
         }
+
+    @staticmethod
+    @json_response_decoder
+    def get_paas_plugin_info(plugin_code=None, environment=None, limit=100, offset=0, search_term=None):
+        """可支持通过PaaS平台请求获取插件服务列表或插件详情"""
+        url = os.path.join(
+            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
+            environment or env.APIGW_ENVIRONMENT,
+            "system/bk_plugins",
+            plugin_code if plugin_code else "",
+        )
+        params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
+        if not plugin_code:
+            # list接口相关参数
+            params.update({"limit": limit, "offset": offset, "has_deployed": True})
+            if search_term:
+                params.update({"search_term": search_term})
+        return requests.get(url, params=params)
+
+    @staticmethod
+    @json_response_decoder
+    def get_paas_logs(plugin_code, trace_id, scroll_id=None, environment=None):
+        """通过PaaS平台查询插件服务日志"""
+        url = os.path.join(
+            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
+            environment or env.APIGW_ENVIRONMENT,
+            "system/bk_plugins",
+            plugin_code,
+            "logs",
+        )
+        params = {"private_token": env.PAASV3_APIGW_API_TOKEN, "trace_id": trace_id}
+        if scroll_id:
+            params.update({"scroll_id": scroll_id})
+        return requests.get(url, params=params)
