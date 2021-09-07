@@ -80,6 +80,4 @@ def get_logs(request: Request):
 def get_plugin_app_detail(request: Request):
     """获取插件服务App详情"""
     result = PluginServiceApiClient.get_plugin_app_detail(request.query_params.get("plugin_code"))
-    if result["result"] and "url" in result["data"]:
-        result["data"].pop("url")
     return JsonResponse(result)
