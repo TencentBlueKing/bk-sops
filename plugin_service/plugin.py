@@ -45,8 +45,10 @@ class RemotePluginService(Service):
         plugin_version = data.get_one_of_inputs("plugin_version")
 
         plugin_client = PluginServiceApiClient(plugin_code)
-
-        ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": parent_data.inputs})
+        plugin_context = dict(
+            [(key, value) for key, value in parent_data.inputs.items() if key.startswith(plugin_code)]
+        )
+        ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
 
         if not ok:
             message = (
