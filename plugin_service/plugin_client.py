@@ -72,7 +72,7 @@ def check_use_plugin_service(func):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if not env.USE_PLUGIN_SERVICE:
+        if not env.USE_PLUGIN_SERVICE == "1":
             return {"result": False, "message": "插件服务未启用，请联系管理员进行配置", "data": None}
         return func(*args, **kwargs)
 
@@ -81,7 +81,7 @@ def check_use_plugin_service(func):
 
 class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
-        if not env.USE_PLUGIN_SERVICE:
+        if not env.USE_PLUGIN_SERVICE == "1":
             raise PluginServiceNotUse("插件服务未启用，请联系管理员进行配置")
         self.plugin_code = plugin_code
         if not plugin_host:
@@ -133,7 +133,7 @@ class PluginServiceApiClient:
     @staticmethod
     def get_plugin_list(search_term=None, limit=100, offset=0):
         # 如果不启动插件服务，直接返回空列表
-        if not env.USE_PLUGIN_SERVICE:
+        if not env.USE_PLUGIN_SERVICE == "1":
             return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
         result = PluginServiceApiClient.get_paas_plugin_info(
             search_term=search_term, environment="prod", limit=limit, offset=offset
