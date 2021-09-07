@@ -226,9 +226,6 @@
             ...mapActions('taskList/', [
                 'loadTaskList'
             ]),
-            ...mapActions('task/', [
-                'getInstanceStatus'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
