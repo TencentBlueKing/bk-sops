@@ -1,5 +1,10 @@
 # Release
 
+## 3.6.4209
+
+- improvement
+  - 添加state接口，用于查询任务状态
+
 ## 3.6.4208
 
 - improvement:
