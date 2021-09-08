@@ -65,11 +65,19 @@ def get_meta(request: Request):
 
 @swagger_auto_schema(method="GET", query_serializer=LogQuerySerializer, responses={200: LogResponseSerializer})
 @api_view(["GET"])
-@inject_plugin_client
 def get_logs(request: Request):
     """ 获取插件服务执行日志 """
     trace_id = request.query_params.get("trace_id")
-    result = request.plugin_client.get_logs(trace_id)
+    scroll_id = request.query_params.get("scroll_id")
+    plugin_code = request.query_params.get("plugin_code")
+    result = PluginServiceApiClient.get_plugin_logs(plugin_code, trace_id, scroll_id)
+    if result["result"]:
+        logs = [
+            f'[{log["ts"]}]{log["detail"]["json.levelname"]}-{log["detail"]["json.funcName"]}: '
+            f'{log["detail"]["json.message"]}'
+            for log in result["data"]["logs"]
+        ]
+        result["data"]["logs"] = "\n".join(logs)
     return JsonResponse(result)
 
 
@@ -80,6 +88,4 @@ def get_logs(request: Request):
 def get_plugin_app_detail(request: Request):
     """获取插件服务App详情"""
     result = PluginServiceApiClient.get_plugin_app_detail(request.query_params.get("plugin_code"))
-    if result["result"] and "url" in result["data"]:
-        result["data"].pop("url")
     return JsonResponse(result)

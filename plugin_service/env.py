@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import os
 from django.conf import settings
 
-
+USE_PLUGIN_SERVICE = os.getenv("BKAPP_USE_PLUGIN_SERVICE", False)
 PLUGIN_SERVICE_APIGW_APP_CODE = os.getenv("BKAPP_PLUGIN_SERVICE_APIGW_APP_CODE", settings.APP_CODE)
 PLUGIN_SERVICE_APIGW_APP_SECRET = os.getenv("BKAPP_PLUGIN_SERVICE_APIGW_APP_SECRET", settings.APP_TOKEN)
 APIGW_ENVIRONMENT = os.getenv("BKAPP_APIGW_ENVIRONMENT", settings.ENVIRONMENT)
