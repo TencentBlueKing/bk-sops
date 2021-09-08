@@ -1,9 +1,9 @@
 spec_version: 2
-app_version: "2.0"
+app_version: "3.6.46"
 app:
     region: default
-    bk_app_code: bk_sops_test
-    bk_app_name: 标准运维测试
+    bk_app_code: bk_sops
+    bk_app_name: 标准运维
     market:
         category: 运维工具
         introduction: 标准运维是通过一套成熟稳定的任务调度引擎，把在多系统间的工作整合到一个流程，助力运维实现跨系统调度自动化的SaaS应用。
@@ -17,14 +17,18 @@ modules:
         is_default: True
         language: Python
         source_dir: ./src
-        services:               
+        services:
             - name: mysql
+              spec: reusable
             - name: rabbitmq
+              spec: reusable
             - name: redis
               spec: reusable
+            - name: bkrepo
+              spec: reusable
         processes:
-            web: 
-                command: gunicorn wsgi -w 8 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=200 --log-level debug --timeout 120
+            web:
+                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=200 --log-level debug --timeout 120
                 plan: 4C2G5R
                 replicas: 5
             beat:
@@ -35,7 +39,13 @@ modules:
                 command: python manage.py celery worker -Q default -n default@%h -c 6 -l info --maxtasksperchild=50
                 plan: 4C2G5R
                 replicas: 5
-    callback-server:
+        svc_discovery:
+            bk_saas:
+                - 'bk-iam'
+                - 'bk-user'
+                - 'bk-itsm'
+                -
+    callback:
         is_default: False
         language: Python
         source_dir: ./src
@@ -46,12 +56,14 @@ modules:
               shared_from: default
             - name: redis
               shared_from: default
+            - name: bkrepo
+              shared_from: default
         processes:
-            web: 
+            web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
                 plan: 4C5G5R
                 replicas: 5
-    pipeline-worker:
+    pipeline:
         is_default: False
         language: Python
         source_dir: ./src
@@ -61,6 +73,8 @@ modules:
             - name: rabbitmq
               shared_from: default
             - name: redis
+              shared_from: default
+            - name: bkrepo
               shared_from: default
         processes:
             api-er-e:
@@ -83,7 +97,7 @@ modules:
                 command: celery worker -A blueapps.core.celery -P gevent -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
                 plan: 4C1G5R
                 replicas: 2
-            cworker: 
+            cworker:
                 command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority -n common_worker@%h -c 6 -l info --maxtasksperchild=50
                 plan: 4C1G5R
                 replicas: 3
@@ -127,7 +141,7 @@ modules:
                 command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$PORT --queue-list $CELERY_EXPORTER_QUEUE
                 plan: 4C2G5R
                 replicas: 1
-    api-server:
+    api:
         is_default: False
         language: Python
         source_dir: ./src
@@ -137,6 +151,8 @@ modules:
             - name: rabbitmq
               shared_from: default
             - name: redis
+              shared_from: default
+            - name: bkrepo
               shared_from: default
         processes:
             web: 
