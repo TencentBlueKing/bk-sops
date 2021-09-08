@@ -119,7 +119,14 @@
                 placeholder: gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
                 hookable: true,
                 empty_text: gettext("请添加目标IP信息"),
-                                table_buttons: [
+                table_buttons: [
+                    {
+                        type: "add_row",
+                        text: gettext("添加"),
+                        callback: function () {
+                            this.add_row()
+                        }
+                    },
                     {
                         type: "export",
                         text: gettext("导出"),

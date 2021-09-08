@@ -32,6 +32,13 @@
                 editable: true,
                 table_buttons: [
                     {
+                        type: "add_row",
+                        text: gettext("添加"),
+                        callback: function(){
+                            this.add_row()
+                        }
+                    },
+                    {
                         type: "export",
                         text: gettext("导出"),
                         callback: function () {
@@ -135,6 +142,13 @@
             attrs: {
                 name: gettext("分发配置"),
                 table_buttons: [
+                    {
+                        type: "add_row",
+                        text: gettext("添加"),
+                        callback: function(){
+                            this.add_row()
+                        }
+                    },
                     {
                         type: "export",
                         text: gettext("导出"),
