@@ -288,7 +288,7 @@ const task = {
          */
         getRenderCurConstants ({ commit }, data) {
             const { task_id } = data
-            return axios.get(`taskflow/api/render_current_constants/${task_id}`).then(response => response.data)
+            return axios.get(`taskflow/api/render_current_constants/${task_id}/`).then(response => response.data)
         },
         /**
          * 获取模版操作记录
