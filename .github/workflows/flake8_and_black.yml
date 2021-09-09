@@ -5,9 +5,9 @@ name: Flake8 and Black
 
 on:
   push:
-    branches: [ V3.6.X** ]
+    branches: [ V3.6.X**, release* ]
   pull_request:
-    branches: [ V3.6.X** ]
+    branches: [ V3.6.X**, release* ]
 
 jobs:
   build:
