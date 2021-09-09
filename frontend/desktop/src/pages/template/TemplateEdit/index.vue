@@ -512,7 +512,6 @@
 
                     const { limit, offset } = this.pagination
                     const resp = await this.loadPluginServiceList({
-                        search_term: '',
                         limit,
                         offset
                     })
