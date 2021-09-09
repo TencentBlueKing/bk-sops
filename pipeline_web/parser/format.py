@@ -53,15 +53,15 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                 if info["show_type"] == "show":
                     # lazy 变量
                     var_cls = library.VariableLibrary.get_var_class(info["custom_type"])
-                    if (
-                        var_cls.type == "meta"
-                        and hasattr(var_cls, "process_meta_avalue")
-                        and callable(var_cls.process_meta_avalue)
-                    ):
-                        value = var_cls.process_meta_avalue(info["meta"], info["value"])
-                    else:
-                        value = info["value"]
                     if var_cls and issubclass(var_cls, var.LazyVariable):
+                        if (
+                            var_cls.type == "meta"
+                            and hasattr(var_cls, "process_meta_avalue")
+                            and callable(var_cls.process_meta_avalue)
+                        ):
+                            value = var_cls.process_meta_avalue(info["meta"], info["value"])
+                        else:
+                            value = info["value"]
                         parent_params[key] = {
                             "type": "lazy",
                             "source_tag": info["source_tag"],
@@ -70,7 +70,7 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                         }
                     else:
 
-                        parent_params[key] = {"type": "splice", "value": value}
+                        parent_params[key] = {"type": "splice", "value": info["value"]}
             act["params"] = parent_params
             act["pipeline"] = format_web_data_to_pipeline(act["pipeline"], is_subprocess=True)
         else:
