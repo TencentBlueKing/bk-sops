@@ -558,6 +558,12 @@ def logging_addition_settings(logging_dict, environment="prod"):
         "propagate": True,
     }
 
+    logging_dict["loggers"]["bk-monitor-report"] = {
+        "handlers": ["root"],
+        "level": "INFO",
+        "propagate": True,
+    }
+
     # 日志中添加trace_id
     logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
     for _, logging_handler in logging_dict["handlers"].items():
