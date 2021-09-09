@@ -18,7 +18,9 @@ class PluginCodeQuerySerializer(serializers.Serializer):
 
 
 class LogQuerySerializer(PluginCodeQuerySerializer):
+    plugin_code = serializers.CharField(help_text="插件服务编码")
     trace_id = serializers.CharField(help_text="Trace ID")
+    scroll_id = serializers.CharField(help_text="翻页标识字段", required=False)
 
 
 class PluginVersionQuerySerializer(PluginCodeQuerySerializer):
@@ -40,6 +42,7 @@ class PluginAppDetailResponseSerializer(serializers.Serializer):
     code = serializers.CharField(help_text="插件服务应用Code")
     name = serializers.CharField(help_text="插件服务应用名称")
     updated = serializers.TimeField(help_text="插件服务应用更新时间")
+    url = serializers.CharField(help_text="插件服务应用地址")
 
 
 class PluginListSerializer(serializers.Serializer):
@@ -59,7 +62,9 @@ class PluginListQuerySerializer(serializers.Serializer):
 
 class LogResponseSerializer(StandardResponseSerializer):
     class LogSerializer(serializers.Serializer):
-        log = serializers.CharField(help_text="日志内容")
+        scroll_id = serializers.CharField(help_text="翻页标识字段，获取下一页时传入该值")
+        total = serializers.IntegerField(help_text="日志总数")
+        logs = serializers.CharField(help_text="日志内容字符串")
 
     data = LogSerializer(help_text="日志内容")
 

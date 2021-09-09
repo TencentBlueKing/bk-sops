@@ -16,6 +16,10 @@ class PluginServiceException(Exception):
     pass
 
 
+class PluginServiceNotUse(PluginServiceException):
+    pass
+
+
 class PluginServiceNotDeploy(PluginServiceException):
     pass
 
