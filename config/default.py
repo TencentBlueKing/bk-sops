@@ -562,9 +562,14 @@ def logging_addition_settings(logging_dict, environment="prod"):
     logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
     for _, logging_handler in logging_dict["handlers"].items():
         logging_handler.update({"filters": ["trace_id_inject_filter"]})
+    format_keywords = ["format", "fmt"]
     for formatter_name, logging_formatter in logging_dict["formatters"].items():
         if formatter_name != "simple":
-            logging_formatter.update({"format": logging_formatter["format"].strip() + " [trace_id]: %(trace_id)s\n"})
+            for keyword in format_keywords:
+                if keyword in logging_formatter:
+                    logging_formatter.update(
+                        {keyword: logging_formatter[keyword].strip() + " [trace_id]: %(trace_id)s\n"}
+                    )
 
 
 def monitor_report_config():
