@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import sys
 import importlib
 
 from django.utils.translation import ugettext_lazy as _
@@ -484,8 +485,6 @@ AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
 
 CELERY_SEND_EVENTS = True
-CELERY_SEND_TASK_SENT_EVENT = True
-CELERY_TRACK_STARTED = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
 
 # 自定义插件和变量Exception类型
@@ -571,3 +570,57 @@ def logging_addition_settings(logging_dict, environment="prod"):
                     logging_formatter.update(
                         {keyword: logging_formatter[keyword].strip() + " [trace_id]: %(trace_id)s\n"}
                     )
+
+
+def monitor_report_config():
+    boot_cmd = " ".join(sys.argv)
+    if "celery worker" in boot_cmd:
+        try:
+            q_conf_index = sys.argv.index("-Q")
+        except ValueError as e:
+            sys.stdout.write(
+                "[!]can't found -Q option in command: %s, skip celery monitor report config: %s\n" % (boot_cmd, e)
+            )
+            return
+
+        try:
+            queues = sys.argv[q_conf_index + 1]
+        except IndexError as e:
+            sys.stdout.write(
+                "[!]can't found -Q value in command: %s, skip celery monitor report config: %s\n" % (boot_cmd, e)
+            )
+            return
+
+        if not ("er_execute" in queues or "er_schedule" in queues):
+            sys.stdout.write("[!]can't found er queue in command: %s, skip celery monitor report config\n" % boot_cmd)
+            return
+
+        from bk_monitor_report import MonitorReporter  # noqa
+        from bk_monitor_report.contrib.celery import MonitorReportStep  # noqa
+        from blueapps.core.celery import celery_app  # noqa
+
+        reporter = MonitorReporter(
+            data_id=env.BK_MONITOR_REPORT_DATA_ID,  # 监控 Data ID
+            access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
+            target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
+            url=env.BK_MONITOR_REPORT_URL,  # 上报地址
+        )
+        MonitorReportStep.setup_reporter(reporter)
+        celery_app.steps["worker"].add(MonitorReportStep)
+
+    elif "gunicorn wsgi" in boot_cmd:
+        reporter = MonitorReporter(
+            data_id=env.BK_MONITOR_REPORT_DATA_ID,  # 监控 Data ID
+            access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
+            target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
+            url=env.BK_MONITOR_REPORT_URL,  # 上报地址
+        )
+        reporter.start()
+
+    else:
+        sys.stdout.write("[!]unknown boot cmd: %s, skip monitor report config\n" % boot_cmd)
+
+
+# 自定义上报监控配置
+if env.BK_MONITOR_REPORT_ENABLE:
+    monitor_report_config()
