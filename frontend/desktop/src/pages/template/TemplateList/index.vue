@@ -53,8 +53,22 @@
                             <ul class="batch-operation-list" slot="dropdown-content">
                                 <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
                                 <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
-                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchCollect">{{ $t('收藏') }}</li>
-                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchDelete">{{ $t('删除') }}</li>
+                                <li
+                                    v-bk-tooltips="{
+                                        content: $t('已选流程模板没有查看权限，请取消选择或申请权限'),
+                                        disabled: !selectedTpls.length || hasBatchViewAuth }"
+                                    :class="{ 'disabled': !hasBatchViewAuth }"
+                                    @click="onBatchCollect">
+                                    {{ $t('收藏') }}
+                                </li>
+                                <li
+                                    v-bk-tooltips="{
+                                        content: $t('已选流程模板没有编辑权限，请取消选择或申请权限'),
+                                        disabled: !selectedTpls.length || hasBatchEditAuth }"
+                                    :class="{ 'disabled': !hasBatchEditAuth }"
+                                    @click="onBatchDelete">
+                                    {{ $t('删除') }}
+                                </li>
                             </ul>
                         </bk-dropdown-menu>
                         <div v-if="selectedTpls.length > 0" class="selected-tpl-num">
@@ -494,6 +508,20 @@
             }),
             crtPageSelectedAll () {
                 return this.templateList.length > 0 && this.templateList.every(item => this.selectedTpls.find(tpl => tpl.id === item.id))
+            },
+            hasBatchViewAuth () {
+                let result = false
+                if (this.selectedTpls.length) {
+                    result = this.selectedTpls.every(template => this.hasPermission(['flow_view'], template.auth_actions))
+                }
+                return result
+            },
+            hasBatchEditAuth () {
+                let result = false
+                if (this.selectedTpls.length) {
+                    result = this.selectedTpls.every(template => this.hasPermission(['flow_delete'], template.auth_actions))
+                }
+                return result
             }
         },
         watch: {
@@ -781,12 +809,12 @@
                 if (val) {
                     this.selectedTpls.push(tpl)
                 } else {
-                    const index = this.selectedTpls.findIndex(item => item === tpl.id)
+                    const index = this.selectedTpls.findIndex(item => item.id === tpl.id)
                     this.selectedTpls.splice(index, 1)
                 }
             },
             async onBatchCollect () {
-                if (this.selectedTpls.length === 0) {
+                if (this.selectedTpls.length === 0 || !this.hasBatchViewAuth) {
                     return
                 }
                 this.batchCollectPending = true
@@ -818,7 +846,7 @@
                 }
             },
             onBatchDelete () {
-                if (this.selectedTpls.length === 0 || this.batchDeletePending) {
+                if (this.selectedTpls.length === 0 || this.batchDeletePending || !this.hasBatchEditAuth) {
                     return
                 }
                 this.$bkInfo({

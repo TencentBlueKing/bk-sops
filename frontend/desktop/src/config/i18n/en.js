@@ -1,4 +1,6 @@
 const en = {
+    '已选流程模板没有查看权限，请取消选择或申请权限': 'Selected process template no view permission, please deselect or apply for permission',
+    '已选流程模板没有编辑权限，请取消选择或申请权限': 'Selected process template no edit permission, please deselect or apply for permission',
     '请输入IP，多个以逗号或者换行符隔开，在cmdb上唯一': 'Please enter IP, multiple separated by comma or newline, unique on cmdb',
     '请输入业务拓扑（形如：业务A>集群B>模块C），多个逗号或换行符隔开，在cmdb上唯一': 'Please enter the business topology (form: business A>cluster B>module C), separated by multiple commas or newlines, unique on cmdb',
     '请输入动态分组名称，多个以逗号或换行符隔开，在cmdb上唯一': 'Please enter the dynamic group name, separated by commas or newlines, unique on cmdb',
