@@ -4,6 +4,7 @@
         <bk-select
             v-model="selectorId"
             :clearable="false"
+            :disabled="!editable"
             @change="onManualInputChange">
             <bk-option v-for="selector in selectorTabs.slice(0, -1)"
                 :key="selector.id"
@@ -15,7 +16,7 @@
         <bk-input
             :placeholder="typeDes"
             :type="'textarea'"
-            :disabled="!selectorId"
+            :disabled="!editable"
             v-model="inputValue"
             @change="onManualInputChange">
         </bk-input>
@@ -34,6 +35,10 @@
             manualInput: {
                 type: Object,
                 default: () => {}
+            },
+            editable: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
