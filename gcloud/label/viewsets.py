@@ -44,6 +44,19 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
 
+    def create(self, request, *args, **kwargs):
+        project_id = request.data.get("project_id")
+        if not project_id:
+            raise ValidationException("project_id should be provided.")
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        return super(LabelViewSet, self).create(request, *args, **kwargs)
+
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")
         if not project_id:
