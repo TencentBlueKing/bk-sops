@@ -628,7 +628,7 @@
                 }
             },
             onConnectionClick (connection, e) {
-                if (e.target.tagName !== 'path') {
+                if (!this.editable && e.target.tagName !== 'path') {
                     return
                 }
                 const lineInCanvasData = this.canvasData.lines.find(item => {
