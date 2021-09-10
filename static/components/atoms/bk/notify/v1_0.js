@@ -97,7 +97,7 @@
                         tag_code: "bk_receiver_group",
                         type: "checkbox",
                         attrs: {
-                            name: gettext("通知分组"),
+                            name: gettext("固定分组"),
                             items: [
                                 {name: gettext("运维人员"), value: "Maintainers"},
                                 {name: gettext("产品人员"), value: "ProductPm"},
@@ -121,6 +121,23 @@
                         }
                     },
                     {
+                        tag_code: "bk_staff_group",
+                        type: "select",
+                        attrs: {
+                            name: gettext("项目人员分组"),
+                            placeholder: gettext("请选择项目人员分组"),
+                            multiple: true,
+                            remote: true,
+                            remote_url: function () {
+                                return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/get_staff_groups/' + $.context.getProjectId() + '/'
+                            },
+                            remote_data_init: function (resp) {
+                                return resp.data
+                            },
+                            disabled: $.context.canSelectBiz(),
+                        }
+                    },
+                    {
                         tag_code: "bk_more_receiver",
                         type: "input",
                         attrs: {
@@ -137,10 +154,11 @@
                                         if (
                                             parent_data.hasOwnProperty('bk_receiver_group') &&
                                             !(parent_data.bk_receiver_group.length > 0) &&
-                                            !value
+                                            !value && parent_data.hasOwnProperty('bk_staff_group') &&
+                                            !(parent_data.bk_staff_group.length > 0)
                                         ) {
                                             result.result = false;
-                                            result.error_message = gettext("通知分组与附加人员不可同时为空");
+                                            result.error_message = gettext("固定分组、项目人员分组和附加人员不可同时为空");
                                         }
                                         return result;
                                     }
