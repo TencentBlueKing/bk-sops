@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.6.46"
+app_version: "3.6.4601"
 app:
     region: default
     bk_app_code: bk_sops
@@ -26,9 +26,19 @@ modules:
               spec: reusable
             - name: bkrepo
               spec: reusable
+        env_variables:
+            - key: PIP_VERSION
+              value: 20.2.3
+              description: PIP版本
+            - key: BKAPP_FILE_MANAGER_TYPE
+              value: bk_repo
+              description: 文件管理类型
+            - key: BKAPP_JOB_FILE_BIZ_ID
+              value: 9991001
+              description: JOB平台统一全业务ID
         processes:
             web:
-                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=200 --log-level debug --timeout 120
+                command: gunicorn wsgi -w 8 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=200 --log-level debug --timeout 120
                 plan: 4C2G5R
                 replicas: 5
             beat:
@@ -41,10 +51,9 @@ modules:
                 replicas: 5
         svc_discovery:
             bk_saas:
-                - 'bk-iam'
-                - 'bk-user'
-                - 'bk-itsm'
-                -
+                - 'bk_iam'
+                - 'bk_user_management'
+                - 'bk_nodeman'
     callback:
         is_default: False
         language: Python
@@ -58,11 +67,26 @@ modules:
               shared_from: default
             - name: bkrepo
               shared_from: default
+        env_variables:
+            - key: PIP_VERSION
+              value: 20.2.3
+              description: PIP版本
+            - key: BKAPP_FILE_MANAGER_TYPE
+              value: bk_repo
+              description: 文件管理类型
+            - key: BKAPP_JOB_FILE_BIZ_ID
+              value: 9991001
+              description: JOB平台统一全业务ID
         processes:
             web:
-                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
+                command: gunicorn wsgi -w 7 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
                 plan: 4C5G5R
                 replicas: 5
+        svc_discovery:
+            bk_saas:
+                - 'bk_iam'
+                - 'bk_user_management'
+                - 'bk_nodeman'
     pipeline:
         is_default: False
         language: Python
@@ -76,6 +100,22 @@ modules:
               shared_from: default
             - name: bkrepo
               shared_from: default
+        env_variables:
+            - key: PIP_VERSION
+              value: 20.2.3
+              description: PIP版本
+            - key: BKAPP_FILE_MANAGER_TYPE
+              value: bk_repo
+              description: 文件管理类型
+            - key: BKAPP_JOB_FILE_BIZ_ID
+              value: 9991001
+              description: JOB平台统一全业务ID
+            - key: DEFAULT_MAX_TASKS_IN_MEMORY
+              value: 100000
+              description: celery exporter 存储任务最大值
+            - key: CELERY_EXPORTER_QUEUE
+              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api
+              description: celery exporter 队列
         processes:
             api-er-e:
                 command: celery worker -A blueapps.core.celery -P gevent -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
@@ -141,6 +181,11 @@ modules:
                 command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$PORT --queue-list $CELERY_EXPORTER_QUEUE
                 plan: 4C2G5R
                 replicas: 1
+        svc_discovery:
+            bk_saas:
+                - 'bk_iam'
+                - 'bk_user_management'
+                - 'bk_nodeman'
     api:
         is_default: False
         language: Python
@@ -154,8 +199,23 @@ modules:
               shared_from: default
             - name: bkrepo
               shared_from: default
+        env_variables:
+            - key: PIP_VERSION
+              value: 20.2.3
+              description: PIP版本
+            - key: BKAPP_FILE_MANAGER_TYPE
+              value: bk_repo
+              description: 文件管理类型
+            - key: BKAPP_JOB_FILE_BIZ_ID
+              value: 9991001
+              description: JOB平台统一全业务ID
         processes:
             web: 
-                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
+                command: gunicorn wsgi -w 8 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
                 plan: 4C2G5R
                 replicas: 5
+        svc_discovery:
+            bk_saas:
+                - 'bk_iam'
+                - 'bk_user_management'
+                - 'bk_nodeman'
