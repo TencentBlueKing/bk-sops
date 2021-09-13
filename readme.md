@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_zh.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.7.1-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.7.2-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -18,7 +18,7 @@
 标准运维后台使用 Python 作为开发语言，使用 Django 开发框架；前端使用 Vue 开发页面，使用 jQuery 开发标准插件，通过配置式的开发模式，
 不断降低用户开发标准插件前端表单的难度。
 
-流程引擎 SDK 看这里：[bamboo-engine](https://github.com/Tencent/bk-sops/tree/sdk/sdk/bamboo-engine)
+> 底层流程引擎 SDK：[bamboo-engine](https://github.com/TencentBlueKing/bamboo-engine)
 
 ## Overview
 - [架构设计](docs/overview/architecture.md)

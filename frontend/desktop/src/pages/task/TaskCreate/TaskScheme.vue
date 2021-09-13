@@ -177,14 +177,7 @@
              * 导入临时方案
             */
             onImportTemporaryPlan () {
-                let hasCreatePermission = true
-                if (!this.haveCreateSchemeTpl) {
-                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
-                }
-                if (hasCreatePermission) {
-                    this.$emit('onImportTemporaryPlan')
-                }
+                this.$emit('onImportTemporaryPlan')
             },
             /**
              * 创建任务方案弹窗
