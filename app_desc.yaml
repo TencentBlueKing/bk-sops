@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.6.4601"
+app_version: "3.6.4603"
 app:
     region: default
     bk_app_code: bk_sops
@@ -51,9 +51,11 @@ modules:
                 replicas: 5
         svc_discovery:
             bk_saas:
-                - 'bk_iam'
-                - 'bk_user_management'
-                - 'bk_nodeman'
+                - bk_app_code: "bk_iam"
+                - bk_app_code: "bk_user_management"
+                - bk_app_code: "bk_nodeman"
+                - bk_app_code: "bk_sops"
+                  module_name: "callback"
     callback:
         is_default: False
         language: Python
@@ -84,9 +86,9 @@ modules:
                 replicas: 5
         svc_discovery:
             bk_saas:
-                - 'bk_iam'
-                - 'bk_user_management'
-                - 'bk_nodeman'
+                - bk_app_code: "bk_iam"
+                - bk_app_code: "bk_user_management"
+                - bk_app_code: "bk_nodeman"
     pipeline:
         is_default: False
         language: Python
@@ -183,9 +185,9 @@ modules:
                 replicas: 1
         svc_discovery:
             bk_saas:
-                - 'bk_iam'
-                - 'bk_user_management'
-                - 'bk_nodeman'
+              - bk_app_code: "bk_iam"
+              - bk_app_code: "bk_user_management"
+              - bk_app_code: "bk_nodeman"
     api:
         is_default: False
         language: Python
@@ -216,6 +218,6 @@ modules:
                 replicas: 5
         svc_discovery:
             bk_saas:
-                - 'bk_iam'
-                - 'bk_user_management'
-                - 'bk_nodeman'
+              - bk_app_code: "bk_iam"
+              - bk_app_code: "bk_user_management"
+              - bk_app_code: "bk_nodeman"
