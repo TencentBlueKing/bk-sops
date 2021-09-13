@@ -1,5 +1,5 @@
 <template>
-    <div class="global-variable">
+    <div class="global-variable" v-bkloading="{ isLoading: isLoading }">
         <ul>
             <li
                 class="variable-item"
@@ -16,13 +16,11 @@
     import { mapActions } from 'vuex'
     export default {
         props: {
-            taskId: {
-                type: String,
-                default: ''
-            }
+            taskId: [String, Number]
         },
         data () {
             return {
+                isLoading: false,
                 globalVariablesList: []
             }
         },
@@ -36,10 +34,13 @@
             // 获取所有全局变量当前渲染的值
             async getGlobalVariablesList () {
                 try {
-                    const resp = await this.getRenderCurConstants({ task_id: this.taskId })
+                    this.isLoading = true
+                    const resp = await this.getRenderCurConstants({ task_id: Number(this.taskId) })
                     this.globalVariablesList = resp.data
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isLoading = false
                 }
             }
         }
