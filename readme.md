@@ -18,7 +18,7 @@
 标准运维后台使用 Python 作为开发语言，使用 Django 开发框架；前端使用 Vue 开发页面，使用 jQuery 开发标准插件，通过配置式的开发模式，
 不断降低用户开发标准插件前端表单的难度。
 
-流程引擎 SDK 看这里：[bamboo-engine](https://github.com/Tencent/bk-sops/tree/sdk/sdk/bamboo-engine)
+> 底层流程引擎 SDK：[bamboo-engine](https://github.com/TencentBlueKing/bamboo-engine)
 
 ## Overview
 - [架构设计](docs/overview/architecture.md)
