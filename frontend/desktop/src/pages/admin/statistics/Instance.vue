@@ -25,6 +25,8 @@
                 :data-list="projectData"
                 :is-instance="true"
                 :data-loading="projectDataLoading"
+                :biz-useage-data="bizUseageData"
+                :color-block-list="colorBlockList"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -91,7 +93,10 @@
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
-                            :sortable="item.sortable">
+                            :sortable="item.sortable"
+                            :filters="item.filter ? colorBlockList : null"
+                            :filter-method="creatMethodFilter"
+                            :filter-multiple="true">
                             <template slot-scope="props">
                                 <a
                                     v-if="item.prop === 'instanceName'"
@@ -117,6 +122,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
+    import { COLOR_BLOCK_LIST } from '@/constants/index.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import VerticalBarChart from './VerticalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -164,6 +170,12 @@
             label: i18n.t('任务名称'),
             prop: 'instanceName',
             minWidth: 200
+        },
+        {
+            label: i18n.t('任务类型'),
+            prop: 'creatMethod',
+            minWidth: 120,
+            filter: true
         },
         {
             label: i18n.t('项目'),
@@ -280,6 +292,8 @@
                 instanceSort: '',
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
+                colorBlockList: COLOR_BLOCK_LIST,
+                bizUseageData: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -312,13 +326,15 @@
         },
         methods: {
             ...mapActions('admin', [
-                'queryInstanceData'
+                'queryInstanceData',
+                'queryBizUseageData'
             ]),
             getData () {
                 this.getCategoryData()
                 this.getProjectData()
                 this.getTimeData()
                 this.getTableData()
+                this.getBizUseageData()
             },
             async loadAnalysisData (query, type = '') {
                 try {
@@ -414,6 +430,13 @@
                     this.instanceDataLoading = false
                 }
             },
+            async getBizUseageData () {
+                try {
+                    this.bizUseageData = await this.queryBizUseageData({ query: 'task' })
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
             categoryFilterChange (val) {
                 this.categoryDataProject = val
                 this.getCategoryData()
@@ -448,6 +471,10 @@
                 }
                 this.getTableData()
             },
+            creatMethodFilter (value, row, column) {
+                const property = column.property
+                return row[property] === value
+            },
             handlePageChange (val) {
                 this.pagination.current = val
                 this.getTableData()
@@ -467,5 +494,65 @@
 <style lang="scss" scoped>
     .vertical-bar-chart-area {
         margin-top: 20px;
+    }
+</style>
+<style lang="scss">
+    .task-method {
+        .project-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .color-block {
+            margin-top: 1.5px;
+        }
+    }
+    #chartjs-tooltip {
+        position: absolute;
+        padding: 6px 12px;
+        background: rgba(0, 0, 0, 0.8);
+        border: none;
+        border-radius: 6px;
+        pointer-events: none;
+        font-size: 12px;
+        color: #fff;
+        .tip-title {
+            font: bold 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+    }
+    .task-method-item {
+        display: flex;
+        align-items: flex-start;
+        position: relative;
+        margin-bottom: 3px;
+        font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+        .color-block {
+            height: 10px;
+            width: 10px;
+            margin-right: 4px;
+            border-width: 2px;
+        }
+        .task-name {
+            flex: 1;
+            min-width: 80px;
+            max-width: 120px;
+            word-break: break-all;
+            margin-top: -1.5px;
+        }
+        .hide-task-name {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+        .task-num {
+            min-width: 25px;
+            text-align: right;
+        }
+        .percentage {
+            color: #979ba5;
+            margin-left: 5px;
+            min-width: 31px;
+        }
     }
 </style>

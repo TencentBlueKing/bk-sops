@@ -57,14 +57,22 @@
                         <span class="data-label" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
                         <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
                             <div class="block" :style="getBlockStyle(item.value)">
-                                <bk-popover v-if="isInstance" placement="top">
+                                <bk-popover ext-cls="task-method" v-if="isInstance" placement="top">
                                     <span
                                         v-for="val in [8 , 17, 5]"
                                         :key="val"
                                         :style="{ display: 'inline-block', width: `${ val / item.value * 100 + '%'}`, height: '100%', background: val === 8 ? '#ff9c4a' : val === 17 ? '#3bce95' : '#f5cf0b' }">
                                     </span>
                                     <div slot="content">
-                                        <div>今天天天气不错</div>
+                                        <p class="project-name">{{ item.name }}</p>
+                                        <ul class="">
+                                            <li class="task-method-item">
+                                                <span class="color-block" :style="{ background: `${colorList[item.code]}` }"></span>
+                                                <span class="task-name">手动任务</span>
+                                                <span class="task-num">121</span>
+                                                <span class="percentage">(12.1%)</span>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </bk-popover>
                                 <span class="num">{{ item.value }}</span>
@@ -77,9 +85,9 @@
         </div>
         <div v-if="title === $t('分项目统计')" class="project-statistics">
             <span>{{ $t('总项目') }}</span>
-            <span class="num">{{ totalNumber }}</span>
+            <span class="num">{{ bizUseageData.total || 0 }}</span>
             <span>{{ $t('正在使用项目') }}</span>
-            <span class="num">{{ 187 }}</span>
+            <span class="num">{{ bizUseageData.count || 0 }}</span>
         </div>
         <div class="view-all-btn" v-if="!dataLoading && sortedData.length > 7" @click="onViewAllClick">{{ $t('查看全部') }}</div>
         <bk-dialog
@@ -93,7 +101,7 @@
                     v-for="(item, index) in sortedData"
                     class="data-item"
                     :key="index">
-                    <span class="data-label" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
+                    <span class="tip-title" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
                     <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
                         <div class="block" :style="getBlockStyle(item.value)">
                             <span class="num">{{ item.value }}</span>
@@ -147,6 +155,18 @@
                     return []
                 }
             },
+            colorBlockList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            bizUseageData: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
             labelWidth: {
                 type: Number,
                 default: 150
@@ -157,8 +177,13 @@
             }
         },
         data () {
+            const colorList = {}
+            this.colorBlockList.forEach(item => {
+                colorList[item.code] = item.color
+            })
             return {
                 sortList: SORT_LIST,
+                colorList,
                 selectedSortType: 'descending',
                 selectedValue: '',
                 isDialogShow: false

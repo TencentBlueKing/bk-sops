@@ -24,6 +24,7 @@
                 :selector-list="categorySelector"
                 :data-list="projectData"
                 :data-loading="projectDataLoading"
+                :biz-useage-data="bizUseageData"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -137,13 +138,13 @@
         },
         {
             label: i18n.t('输入变量'),
-            prop: 'input',
+            prop: 'inputCount',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('输出变量'),
-            prop: 'output',
+            prop: 'outputCount',
             sortable: true,
             width: 100
         },
@@ -235,6 +236,7 @@
                 tplSort: '',
                 tplDataLoading: true,
                 tableColumn: TABLE_COLUMN,
+                bizUseageData: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -265,12 +267,14 @@
         },
         methods: {
             ...mapActions('admin', [
-                'queryTemplateData'
+                'queryTemplateData',
+                'queryBizUseageData'
             ]),
             getData () {
                 this.getCategoryData()
                 this.getProjectData()
                 this.getTplData()
+                this.getBizUseageData()
             },
             async loadAnalysisData (query, type = '') {
                 try {
@@ -344,6 +348,13 @@
                     console.log(e)
                 } finally {
                     this.tplDataLoading = false
+                }
+            },
+            async getBizUseageData () {
+                try {
+                    this.bizUseageData = await this.queryBizUseageData({ query: 'template' })
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             categoryFilterChange (val) {

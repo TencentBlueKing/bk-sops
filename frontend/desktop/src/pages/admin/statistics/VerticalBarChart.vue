@@ -203,7 +203,7 @@
                                         })
                                         const hideDomMaxWdith = Math.max(...hideDomWdithList)
                                         // 获取自定义内容的宽度
-                                        const contentDom = tooltipEl.querySelector('.content-item')
+                                        const contentDom = tooltipEl.querySelector('.task-method-item')
                                         const { width: contentWidth } = contentDom && contentDom.getBoundingClientRect()
                                         const median = Math.ceil(x.length / 2) // x轴坐标中间值
                                         const index = x.findIndex(item => item === xSubscript) // 当前x轴坐标
@@ -231,7 +231,7 @@
                                             style += '; border-color:' + colors.borderColor
                                             const taskName = body[0].split(': ') || []
                                             const taskNum = taskName[1] || body[0]
-                                            innerHtml += '<div class="content-item">'
+                                            innerHtml += '<div class="task-method-item">'
                                                 + '<span class="color-block" style="' + style + '"></span>'
                                                 + `<span class="task-name">${taskName[0]}</span>`
                                                 + `<span class="hide-task-name">${body[0]}</span>`
@@ -312,56 +312,5 @@
             }
         }
         
-    }
-</style>
-<style lang="scss">
-    #chartjs-tooltip {
-        position: absolute;
-        padding: 6px 12px;
-        background: rgba(0, 0, 0, 0.8);
-        border: none;
-        border-radius: 6px;
-        pointer-events: none;
-        font-size: 12px;
-        color: #fff;
-        .tip-title {
-            font: bold 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        .content-item {
-            display: flex;
-            align-items: flex-start;
-            position: relative;
-            margin-bottom: 3px;
-            font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
-            .color-block {
-                height: 10px;
-                width: 10px;
-                margin-right: 4px;
-                border-width: 2px;
-            }
-            .task-name {
-                flex: 1;
-                min-width: 80px;
-                max-width: 120px;
-                word-break: break-all;
-                margin-top: -1.5px;
-            }
-            .hide-task-name {
-                position: absolute;
-                left: -9999px;
-                top: -9999px;
-            }
-            .task-num {
-                min-width: 25px;
-                text-align: right;
-            }
-            .percentage {
-                color: #979ba5;
-                margin-left: 5px;
-                min-width: 31px;
-            }
-        }
     }
 </style>
