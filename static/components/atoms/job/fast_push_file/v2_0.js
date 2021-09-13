@@ -74,6 +74,7 @@
                         attrs: {
                             name: gettext("IP"),
                             placeholder: gettext("跨业务用【云区域ID:IP】"),
+                            width: '170px',
                             editable: true,
                             validation: [
                                 {
