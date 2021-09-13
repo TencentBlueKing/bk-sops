@@ -15,6 +15,7 @@ import re
 import logging
 import datetime
 
+
 from gcloud.constants import AE
 from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -97,6 +98,5 @@ def dispatch(group_by, filters=None, page=None, limit=None):
             return False, message
     else:
         total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, filters, page, limit)
-
     data = {"total": total, "groups": groups}
     return True, data

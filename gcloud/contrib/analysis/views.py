@@ -13,19 +13,27 @@ specific language governing permissions and limitations under the License.
 
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.http import require_POST, require_GET
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view
 
 from gcloud.contrib.analysis.decorators import standardize_params
-
+from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.constants import AE
 from gcloud.constants import TASK_CATEGORY
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
-
+from gcloud.core.models import Project
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
+from gcloud.err_code import REQUEST_PARAM_INVALID
 
 
-@require_GET
+@swagger_auto_schema(
+    methods=["get"],
+    auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
 def get_task_category(request):
     """
     @summary 获取所有模板分类列表
@@ -38,6 +46,11 @@ def get_task_category(request):
     return JsonResponse({"result": True, "data": groups})
 
 
+@swagger_auto_schema(
+    methods=["get"],
+    auto_schema=AnnotationAutoSchema,
+)
+@api_view(["GET"])
 @iam_intercept(StatisticsViewInpterceptor())
 def analysis_home(request):
     """
@@ -49,7 +62,32 @@ def analysis_home(request):
     return render(request, "core/base_vue.html", context)
 
 
-@require_POST
+@api_view(["GET"])
+def get_biz_useage(request, query):
+    """
+    @summary 获取正在使用业务数量、总业务数量
+    :param request:
+    :param query:模板/任务
+    :return:
+    """
+    total = Project.objects.all().count()
+    if query == "template":
+        count = TaskTemplate.objects.values("project__id").distinct().count()
+    elif query == "task":
+        count = TaskFlowInstance.objects.values("project").distinct().count()
+    else:
+        return JsonResponse(
+            {"result": False, "code": REQUEST_PARAM_INVALID.code, "message": REQUEST_PARAM_INVALID.description}
+        )
+    data = {"total": total, "count": count}
+    return JsonResponse({"result": True, "data": data})
+
+
+@swagger_auto_schema(
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @iam_intercept(StatisticsViewInpterceptor())
 @standardize_params
 def query_instance_by_group(*args):
@@ -61,7 +99,11 @@ def query_instance_by_group(*args):
     return success, content
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @iam_intercept(StatisticsViewInpterceptor())
 @standardize_params
 def query_template_by_group(*args):
@@ -73,7 +115,11 @@ def query_template_by_group(*args):
     return success, content
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @iam_intercept(StatisticsViewInpterceptor())
 @standardize_params
 def query_atom_by_group(*args):
@@ -89,7 +135,11 @@ def query_atom_by_group(*args):
     return success, content
 
 
-@require_POST
+@swagger_auto_schema(
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
+)
+@api_view(["POST"])
 @iam_intercept(StatisticsViewInpterceptor())
 @standardize_params
 def query_appmaker_by_group(*args):

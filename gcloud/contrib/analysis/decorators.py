@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import functools
 
 from django.http import JsonResponse
-import ujson as json
 
 from gcloud.utils.strings import check_and_rename_params
 
@@ -22,7 +21,7 @@ from gcloud.utils.strings import check_and_rename_params
 def standardize_params(func):
     @functools.wraps(func)
     def wrapper(request):
-        params = json.loads(request.body)
+        params = request.data
         conditions = params.get("conditions", {})
         page_index = int(params.get("pageIndex", 1))
         limit = int(params.get("limit", 10))

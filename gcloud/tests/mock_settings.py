@@ -126,3 +126,5 @@ TASK_OPERATION_TIMES_CONFIG_GET = "gcloud.taskflow3.models.TaskOperationTimesCon
 
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
+
+TASKFLOW_STATISTICS_UPDATE_OR_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.update_or_create"

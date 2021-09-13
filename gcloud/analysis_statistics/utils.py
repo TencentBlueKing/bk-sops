@@ -11,18 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
-from gcloud.contrib.analysis import views
+from pipeline.core.constants import PE
 
-urlpatterns = [
-    url(r"^query_instance_by_group/$", views.query_instance_by_group),
-    url(r"^query_template_by_group/$", views.query_template_by_group),
-    url(r"^query_atom_by_group/$", views.query_atom_by_group),
-    url(r"^query_appmaker_by_group/$", views.query_appmaker_by_group),
-    url(r"^template/$", views.analysis_home),
-    url(r"^instance/$", views.analysis_home),
-    url(r"^appmaker/$", views.analysis_home),
-    url(r"^atom/$", views.analysis_home),
-    url(r"^get_task_category/$", views.get_task_category),
-    url(r"^get_biz_useage/(?P<query>\w+)/$", views.get_biz_useage),
-]
+
+def count_pipeline_tree_nodes(pipeline_tree):
+    gateways_total = len(pipeline_tree["gateways"])
+    activities = pipeline_tree["activities"]
+    atom_total = len([act for act in activities.values() if act["type"] == PE.ServiceActivity])
+    subprocess_total = len([act for act in activities.values() if act["type"] == PE.SubProcess])
+    return atom_total, subprocess_total, gateways_total
