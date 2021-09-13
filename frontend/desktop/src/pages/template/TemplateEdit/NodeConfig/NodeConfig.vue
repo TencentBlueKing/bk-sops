@@ -274,6 +274,7 @@
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 isChange: false, // 输入、输出参数勾选状态是否有变化
+                nodeHost: '', // 插件host
                 isThirdParty // 是否为第三方插件
             }
         },
@@ -371,6 +372,7 @@
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadSubflowConfig',
+                'loadPluginServiceAppDetail',
                 'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
@@ -444,6 +446,13 @@
                     }
                     // 第三方插件
                     if (this.isThirdParty) {
+                        const hostList = $.context.bk_plugin_api_host
+                        if (!this.nodeHost && !hostList[plugin]) {
+                            const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin })
+                            const { url } = appDeatil.data
+                            this.nodeHost = Array.isArray(url) ? window.location.href : url
+                        }
+                        hostList[plugin] = this.nodeHost
                         const resp = await this.loadPluginServiceDetail({ plugin_code: plugin, plugin_version: version })
                         if (!resp.result) return
                         // 获取第三方插件公共输出参数
@@ -732,7 +741,7 @@
              * - 校验基础信息
              */
             async pluginChange (atomGroup) {
-                const { code, group_name, name, list } = atomGroup
+                const { code, group_name, name, list, url } = atomGroup
                 this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取不同版本的描述
                 let desc = atomGroup.desc || ''
@@ -744,6 +753,8 @@
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')
                 }
+                // 设置节点host
+                this.nodeHost = this.isThirdParty ? url : ''
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,

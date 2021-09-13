@@ -400,12 +400,14 @@
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
                     const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
+                    const { name, url } = appDeatil.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
                         name: code,
-                        code: appDeatil.data.name,
+                        code: name,
+                        url,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'

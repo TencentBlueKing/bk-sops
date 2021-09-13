@@ -166,7 +166,7 @@
                     </bk-tab>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor
-                            v-if="logInfo"
+                            v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
                             :class="{ 'third-praty-editor': curPluginTab === 'third_praty_plugin' }"
                             :key="curPluginTab"
                             :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
@@ -687,6 +687,18 @@
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code
 
+                    // 获取第三方插件插件host
+                    let appDetail = null
+                    const hostList = $.context.bk_plugin_api_host
+                    const code = this.thirdPartyNodeCode
+                    if (this.isThirdPartyNode && !hostList[code]) {
+                        appDetail = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                        const { url } = appDetail.data
+                        // 设置renderform的host
+                        const host = Array.isArray(url) ? window.location.href : url
+                        hostList[code] = host
+                    }
+
                     // 添加插件输出表单所需上下文
                     $.context.input_form.inputs = inputs
                     $.context.output_form.outputs = outputs
@@ -746,8 +758,7 @@
                     this.executeInfo.plugin_version = this.isThirdPartyNode ? inputs.plugin_version : version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (this.isThirdPartyNode) {
-                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
-                        this.executeInfo.plugin_name = resp.data.name
+                        this.executeInfo.plugin_name = appDetail.data.name
                     } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
