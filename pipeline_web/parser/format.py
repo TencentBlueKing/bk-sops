@@ -69,7 +69,6 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                             "value": value,
                         }
                     else:
-
                         parent_params[key] = {"type": "splice", "value": info["value"]}
             act["params"] = parent_params
             act["pipeline"] = format_web_data_to_pipeline(act["pipeline"], is_subprocess=True)
