@@ -90,7 +90,6 @@
                         attrs: {
                             name: gettext("文件路径"),
                             placeholder: gettext("多个用换行分隔"),
-                            width: '150px',
                             editable: true,
                             validation: [
                                 {
@@ -104,7 +103,6 @@
                         type: "input",
                         attrs: {
                             name: gettext("执行账户"),
-                            width: '80px',
                             editable: true,
                             validation: [
                                 {
