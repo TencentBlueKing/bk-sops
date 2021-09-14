@@ -63,7 +63,7 @@
                         </bk-select>
                         <div class="phase-tag" v-if="varPhase">{{ varPhase }}</div>
                     </div>
-                    <div class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</div>
+                    <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
                 </div>
                 <!-- 验证规则 -->
                 <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
@@ -315,14 +315,6 @@
             }
         },
         created () {
-            /**
-             * 设置模板预渲染默认值（兼容以前存在的模板）
-             * 预渲染功能发布后新建变量时，预渲染默认为false
-             * 发布前用户不主动去修改变量，则不需要做处理
-             */
-            if (!this.variableData.key) {
-                this.theEditingData.pre_render_mako = false
-            }
             this.extendFormValidate()
         },
         async mounted () {
@@ -627,10 +619,15 @@
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
+                    const variable = this.theEditingData
+                    const tagCode = this.renderConfig[0].tag_code
 
                     // renderform表单校验
+                    // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
                     if (this.$refs.renderForm) {
-                        formValid = this.$refs.renderForm.validate()
+                        if (this.theEditingData.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
+                            formValid = this.$refs.renderForm.validate()
+                        }
                     }
 
                     if (!result || !formValid) {
@@ -638,7 +635,6 @@
                     }
 
                     const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
-
                     if (!checkKeyResult.result) {
                         this.$bkMessage({
                             message: i18n.t('变量KEY为特殊标志符变量，请修改'),
@@ -650,7 +646,7 @@
                     if (this.theEditingData.pre_render_mako) {
                         this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
                     }
-                    const variable = this.theEditingData
+
                     if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
                         const tagCode = this.renderConfig[0].tag_code
                         let varValue = {}
@@ -670,6 +666,7 @@
                         this.theEditingData.value = varValue[tagCode]
                     }
 
+                    this.theEditingData.value = this.renderData[tagCode]
                     this.theEditingData.name = this.theEditingData.name.trim()
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
@@ -784,9 +781,12 @@
             background: #b8b8b8;
         }
         .variable-type-desc {
-            margin-left: 80px;
+            margin: 0 0 0 80px;
             font-size: 12px;
             color: #666;
+            word-break: break-all;
+            white-space: pre-wrap;
+            font-family: 'Microsoft YaHei','PingFang SC','Hiragino Sans GB','SimSun','sans-serif';
         }
     }
     .btn-wrap {

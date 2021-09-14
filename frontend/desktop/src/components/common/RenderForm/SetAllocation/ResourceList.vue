@@ -43,8 +43,18 @@
                 </bk-button>
             </el-upload>
         </div>
+        <bk-alert ref="diffAlert" type="warning" style="margin-bottom: 10px;" :show-icon="false">
+            <div class="diff-alert" slot="title">
+                <span>{{ $t('变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？') }}</span>
+                <bk-link theme="primary" @click="updateDiffData">{{ $t('确认') }}</bk-link>
+            </div>
+        </bk-alert>
         <div class="data-table">
-            <bk-table v-if="!colsLoading" :data="tableData">
+            <bk-table
+                v-if="!loading"
+                :data="dataList"
+                :pagination="pagination"
+                @page-change="handlePageChange">
                 <bk-table-column
                     v-for="(item, colIndex) in cols"
                     :key="item.config.tag_code"
@@ -57,14 +67,14 @@
                     <template slot-scope="props">
                         <template v-if="item.config.tag_code !== 'tb_btns'">
                             <render-form
-                                :ref="`row_${props.$index}_${item.config.tag_code}`"
+                                :ref="`row_${(pagination.current - 1) * pagination.limit + props.$index}_${item.config.tag_code}`"
                                 :scheme="[item.config]"
-                                :form-option="getCellOption(props.$index)"
+                                :form-option="getCellOption((pagination.current - 1) * pagination.limit + props.$index)"
                                 v-model="props.row[item.config.tag_code]">
                             </render-form>
                         </template>
                         <template v-else>
-                            <template v-if="editRow !== props.$index">
+                            <template v-if="editRow !== (pagination.current - 1) * pagination.limit + props.$index">
                                 <bk-button :text="true" :disabled="!editable" @click="rowEditClick(props)">{{ i18n.edit }}</bk-button>
                                 <bk-button :text="true" :disabled="!editable" @click="rowDelClick(props)">{{ i18n.delete }}</bk-button>
                             </template>
@@ -99,7 +109,8 @@
             NoData
         },
         props: {
-            colsLoading: Boolean,
+            loading: Boolean,
+            hasDiff: Boolean,
             editable: {
                 type: Boolean,
                 default: true
@@ -135,6 +146,12 @@
                 },
                 editRow: '',
                 tableData: tools.deepClone(this.value),
+                pagination: {
+                    current: 1,
+                    count: this.value.length,
+                    limit: 10,
+                    'show-limit': false
+                },
                 i18n: {
                     resourceFilter: gettext('资源筛选'),
                     export: gettext('导出'),
@@ -146,10 +163,18 @@
                 }
             }
         },
+        computed: {
+            dataList () {
+                const { current, limit } = this.pagination
+                const start = (current - 1) * limit
+                return this.tableData.slice(start, start + limit)
+            }
+        },
         watch: {
             value: {
                 handler (val) {
                     this.tableData = tools.deepClone(val)
+                    this.pagination.count = val.length
                 }
             },
             deep: true
@@ -196,6 +221,7 @@
                 this.readFileData(file).then(data => {
                     if (data && data.length > 0) {
                         this.$emit('importData', data[0].sheet)
+                        this.pagination.current = 1
                     }
                 })
             },
@@ -220,6 +246,10 @@
                     reader.readAsBinaryString(file.raw)
                 })
             },
+            updateDiffData () {
+                this.$refs.diffAlert.handleClose()
+                this.$emit('handleDiff')
+            },
             // 单元格内的renderform表单属性配置
             getCellOption (index) {
                 const options = Object.assign({}, this.cellOption)
@@ -234,7 +264,8 @@
                 let valid = true
                 refs.forEach(item => {
                     if (this.$refs[item].length > 0) {
-                        const result = this.$refs[item][1].validate() // bk-table 里的body会有两份内容
+                        const col = this.$refs[item][1] || this.$refs[item][0]
+                        const result = col.validate() // bk-table 里的body会有两份内容
                         if (!result) {
                             valid = false
                         }
@@ -245,15 +276,23 @@
                 return valid
             },
             rowEditClick (data) {
-                this.editRow = data.$index
+                this.editRow = (this.pagination.current - 1) * this.pagination.limit + data.$index
             },
             rowDelClick (row) {
+                const index = (this.pagination.current - 1) * this.pagination.limit + row.$index
+                if (this.dataList.length === 1 && this.pagination.current > 1) {
+                    this.pagination.current -= 1
+                }
                 this.editRow = ''
-                this.tableData.splice(row.$index, 1)
+                this.tableData.splice(index, 1)
                 this.$emit('update', tools.deepClone(this.tableData))
             },
             rowSaveClick (data) {
-                const valid = this.validateRow(`row_${data.$index}`)
+                let index = data.index
+                if ('$index' in data) {
+                    index = (this.pagination.current - 1) * this.pagination.limit + data.$index
+                }
+                const valid = this.validateRow(`row_${index}`)
                 if (valid) {
                     this.editRow = ''
                     this.$emit('update', tools.deepClone(this.tableData))
@@ -263,10 +302,13 @@
                 this.editRow = ''
                 this.tableData = tools.deepClone(this.value)
             },
+            handlePageChange (val) {
+                this.pagination.current = val
+            },
             validate () {
                 // 当前正在编辑行时，自动触发保存
                 if (typeof this.editRow === 'number') {
-                    this.rowSaveClick({ '$index': this.editRow })
+                    this.rowSaveClick({ 'index': this.editRow })
                 }
                 return this.validateRow(`row_`)
             }
@@ -281,6 +323,14 @@
         }
         /deep/ .upload-btn {
             display: inline-block;
+            font-size: 12px;
+        }
+    }
+    .diff-alert {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /deep/ .bk-link-text {
             font-size: 12px;
         }
     }

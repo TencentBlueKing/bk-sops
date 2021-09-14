@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import datetime
 import hashlib
 import copy
-from functools import cmp_to_key
+import logging
 
 import ujson as json
 from django.db.models import Q
@@ -24,6 +24,7 @@ from pipeline.parser.utils import replace_all_id
 from pipeline.models import PipelineTemplate, Snapshot, TemplateScheme
 from pipeline.exceptions import SubprocessExpiredError
 
+from gcloud.utils.algorithms import topology_sort
 from pipeline_web.constants import PWE
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
@@ -33,6 +34,8 @@ from pipeline_web.drawing_new.drawing import draw_pipeline
 from gcloud.template_base.utils import replace_template_id
 
 WEB_TREE_FIELDS = {"location", "line"}
+
+logger = logging.getLogger("root")
 
 
 class PipelineTemplateWebWrapper(object):
@@ -96,9 +99,15 @@ class PipelineTemplateWebWrapper(object):
 
             for act_id, act in list(activities.items()):
                 if act[PWE.type] == PWE.SubProcess:
+                    always_use_latest = act.get("always_use_latest", False)
+                    if always_use_latest:
+                        version = None
+                    else:
+                        version = act.get("version")
+
                     subproc_data = template_model.objects.get(
                         pipeline_template__template_id=act["template_id"]
-                    ).get_pipeline_tree_by_version(act.get("version"))
+                    ).get_pipeline_tree_by_version(version)
 
                     if "constants" in pipeline_data:
                         subproc_inputs = act.pop("constants")
@@ -236,17 +245,7 @@ class PipelineTemplateWebWrapper(object):
             for r in referencers:
                 forward_refs.setdefault(id_maps.get(r, r), []).append(id_maps.get(be_referenced, be_referenced))
 
-        referenced_weight = {}
-        for referencer, be_referenced in list(forward_refs.items()):
-            referenced_weight.setdefault(referencer, 0)
-            # 引用者权重 -1
-            referenced_weight[referencer] -= 1
-            for ref in be_referenced:
-                referenced_weight.setdefault(ref, 0)
-                # 被引用者权重 +1
-                referenced_weight[ref] += 1
-
-        return [i[0] for i in sorted(list(referenced_weight.items()), key=cmp_to_key(lambda x, y: y[1] - x[1]))]
+        return topology_sort(forward_refs)
 
     @classmethod
     def _update_or_create_version(cls, template, order):
@@ -362,12 +361,26 @@ class PipelineTemplateWebWrapper(object):
                 # import template scheme
                 schemes = []
                 for scheme_data in template_dict.get("schemes", []):
+                    scheme_node_data = scheme_data["data"]
+                    try:
+                        new_scheme_node_ids = []
+                        scheme_node_ids = json.loads(scheme_data["data"])
+                        for node_id in scheme_node_ids:
+                            new_scheme_node_ids.append(
+                                template_node_id_old_to_new[pipeline_template.template_id]["activities"].get(
+                                    node_id, node_id
+                                )
+                            )
+                        scheme_node_data = json.dumps(new_scheme_node_ids)
+                    except Exception:
+                        logger.exception("scheme node id replace error for template(%s)" % pipeline_template.name)
+
                     schemes.append(
                         TemplateScheme(
                             template_id=pipeline_template.id,
                             unique_id=uniqid(),
                             name=scheme_data["name"],
-                            data=scheme_data["data"],
+                            data=scheme_node_data,
                         )
                     )
 

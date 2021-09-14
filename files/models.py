@@ -16,6 +16,8 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
+from files import env
+
 
 class UploadTicketManager(models.Manager):
     def apply(self, applicant, apply_from=""):
@@ -54,3 +56,62 @@ class UploadModuleFileTag(models.Model):
     source_ip = models.CharField("file locate ip", max_length=128)
     file_name = models.TextField("file name")
     file_path = models.TextField("file locate path")
+
+
+class BKJobFileCredentialManager(models.Manager):
+    def register_credential(self, bk_biz_id, esb_client):
+        job_kwargs = {
+            "bk_biz_id": bk_biz_id,
+            "name": env.JOB_CREDENTIAL_NAME,
+            "type": "USERNAME_PASSWORD",
+            "credential_username": env.BKREPO_USERNAME,
+            "credential_password": env.BKREPO_PASSWORD,
+        }
+        result = esb_client.jobv3.create_credential(job_kwargs)
+        if not result["result"]:
+            return {"result": False, "data": None, "message": result["message"]}
+        credential_id = result["data"]["id"]
+        self.update_or_create(bk_biz_id=bk_biz_id, defaults={"credential_id": credential_id})
+        return {"result": True, "data": credential_id, "message": None}
+
+    def get_or_create_credential(self, bk_biz_id, esb_client):
+        qs = self.filter(bk_biz_id=bk_biz_id)
+        if qs.exists():
+            return {"result": True, "data": qs.first().credential_id, "message": None}
+        return self.register_credential(bk_biz_id, esb_client)
+
+
+class BKJobFileCredential(models.Model):
+    bk_biz_id = models.IntegerField("CC business id", primary_key=True)
+    credential_id = models.CharField("JOB credential id", max_length=128)
+    objects = BKJobFileCredentialManager()
+
+
+class BKJobFileSourceManager(models.Manager):
+    def register_file_source(self, bk_biz_id, credential_id, esb_client):
+        job_kwargs = {
+            "bk_biz_id": bk_biz_id,
+            "code": env.JOB_FILE_SOURCE_CODE,
+            "alias": env.JOB_FILE_SOURCE_ALIAS,
+            "type": "BLUEKING_ARTIFACTORY",
+            "access_params": {"base_url": env.BKREPO_ENDPOINT_URL},
+            "credential_id": credential_id,
+        }
+        result = esb_client.jobv3.create_file_source(job_kwargs)
+        if not result["result"]:
+            return {"result": False, "data": None, "message": result["message"]}
+        file_source_id = result["data"]["id"]
+        self.update_or_create(bk_biz_id=bk_biz_id, defaults={"file_source_id": file_source_id})
+        return {"result": True, "data": file_source_id, "message": None}
+
+    def get_or_create_file_source(self, bk_biz_id, credential_id, esb_client):
+        qs = self.filter(bk_biz_id=bk_biz_id)
+        if qs.exists():
+            return {"result": True, "data": qs.first().file_source_id, "message": None}
+        return self.register_file_source(bk_biz_id, credential_id, esb_client)
+
+
+class BKJobFileSource(models.Model):
+    bk_biz_id = models.IntegerField("CC business id", primary_key=True)
+    file_source_id = models.IntegerField("JOB file source id")
+    objects = BKJobFileSourceManager()

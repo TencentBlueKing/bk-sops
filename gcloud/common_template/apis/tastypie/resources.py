@@ -111,12 +111,20 @@ class CommonTemplateResource(GCloudModelResource):
             user_model.objects.get(username=user.username).tasktemplate_set.all().values_list("id", flat=True)
         )
         for bundle in data["objects"]:
-            if bundle.obj.id in collected_templates:
-                bundle.data["is_add"] = 1
-            else:
-                bundle.data["is_add"] = 0
-
+            bundle.data["is_add"] = 1 if bundle.obj.id in collected_templates else 0
+            notify_type = json.loads(bundle.data["notify_type"])
+            bundle.data["notify_type"] = (
+                notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+            )
         return data
+
+    def alter_detail_data_to_serialize(self, request, data):
+        bundle = super(CommonTemplateResource, self).alter_detail_data_to_serialize(request, data)
+        notify_type = json.loads(bundle.data["notify_type"])
+        bundle.data["notify_type"] = (
+            notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+        )
+        return bundle
 
     @record_operation(RecordType.common_template.name, OperateType.create.name, OperateSource.common.name)
     def obj_create(self, bundle, **kwargs):
@@ -126,6 +134,11 @@ class CommonTemplateResource(GCloudModelResource):
             creator = bundle.request.user.username
             pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
             description = bundle.data.pop("description", "")
+            notify_type = bundle.data.get("notify_type") or {"success": [], "fail": []}
+            if isinstance(notify_type, str):
+                loaded_notify_type = json.loads(notify_type)
+                notify_type = {"success": loaded_notify_type, "fail": loaded_notify_type}
+            bundle.data["notify_type"] = json.dumps(notify_type)
         except (KeyError, ValueError) as e:
             raise BadRequest(str(e))
 
@@ -154,6 +167,11 @@ class CommonTemplateResource(GCloudModelResource):
             editor = bundle.request.user.username
             pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
             description = bundle.data.pop("description")
+            notify_type = bundle.data.get("notify_type") or {"success": [], "fail": []}
+            if isinstance(notify_type, str):
+                loaded_notify_type = json.loads(notify_type)
+                notify_type = {"success": loaded_notify_type, "fail": loaded_notify_type}
+            bundle.data["notify_type"] = json.dumps(notify_type)
         except (KeyError, ValueError) as e:
             raise BadRequest(str(e))
 

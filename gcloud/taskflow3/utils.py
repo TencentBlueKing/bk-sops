@@ -42,6 +42,9 @@ def format_pipeline_status(status_tree):
     """
     _format_status_time(status_tree)
     child_status = set()
+    # engine v1 v2 响应保持一致
+    if ("error_ignorable" in status_tree) and ("error_ignored" not in status_tree):
+        status_tree["error_ignored"] = status_tree["error_ignorable"]
 
     for identifier_code, child_tree in list(status_tree["children"].items()):
         format_pipeline_status(child_tree)

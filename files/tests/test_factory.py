@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from bkstorages.backends.bkrepo import BKRepoStorage
 from mock import patch
 from django.test import TestCase
 
@@ -44,3 +44,19 @@ class ManagerFactoryTestCase(TestCase):
         manager = ManagerFactory.get_manager("host_nfs")
         self.assertEqual(manager.location, "BKAPP_NFS_CONTAINER_ROOT")
         self.assertEqual(manager.server_location, "BKAPP_NFS_HOST_ROOT")
+
+    def test_get_bk_repo_manager__config_err(self):
+        for lack_var in [
+            "BKREPO_USERNAME",
+            "BKREPO_PASSWORD",
+            "BKREPO_PROJECT",
+            "BKREPO_BUCKET",
+            "BKREPO_ENDPOINT_URL",
+        ]:
+            with patch("files.factory.env", EnvPatcher(lack_var)):
+                self.assertRaises(EnvironmentError, ManagerFactory.get_manager, "bk_repo")
+
+    @patch("files.factory.env", EnvPatcher(None))
+    def test_get_bk_repo_manager(self):
+        manager = ManagerFactory.get_manager("bk_repo")
+        self.assertEqual(isinstance(manager.storage, BKRepoStorage), True)

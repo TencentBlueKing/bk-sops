@@ -237,42 +237,56 @@
             id: 'id',
             label: i18n.t('ID'),
             width: 100
-        }, {
+        },
+        {
             id: 'name',
             label: i18n.t('任务名称'),
             disabled: true,
             min_width: 240
-        }, {
+        },
+        {
             id: 'start_time',
             label: i18n.t('执行开始'),
             width: 200
-        }, {
+        },
+        {
             id: 'finish_time',
             label: i18n.t('执行结束'),
             width: 200
-        }, {
+        },
+        {
             id: 'create_time',
             label: i18n.t('创建时间'),
             width: 200
-        }, {
+        },
+        {
             id: 'category_name',
             label: i18n.t('任务类型'),
             width: 100
-        }, {
+        },
+        {
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 120
-        }, {
+        },
+        {
             id: 'executor_name',
             label: i18n.t('执行人'),
             width: 120
-        }, {
+        },
+        {
             id: 'create_method',
             label: i18n.t('创建方式'),
             width: 100
-        }, {
+        },
+        {
             id: 'task_status',
             label: i18n.t('状态'),
+            width: 120
+        },
+        {
+            id: 'engine_ver',
+            label: i18n.t('引擎版本'),
             width: 120
         }
     ]
@@ -493,8 +507,11 @@
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
-                    selectedFields = fieldList
-                    this.setting.size = size
+                    this.setting.size = size || 'small'
+                    selectedFields = fieldList || this.defaultSelected
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('TaskList')
+                    }
                 } else {
                     selectedFields = this.defaultSelected
                 }
@@ -662,7 +679,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.push({ name: 'taskList', params: { project_id: this.project_id }, query })
+                this.$router.replace({ name: 'taskList', params: { project_id: this.project_id }, query })
             },
             async getCreateMethod () {
                 try {

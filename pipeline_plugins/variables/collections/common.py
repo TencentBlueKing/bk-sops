@@ -111,26 +111,33 @@ class TextValueSelect(LazyVariable):
     schema = StringItemSchema(description=_("文本值下拉框变量"))
     desc = """
         单选模式下 ${KEY["value"]} 输出选中的 value，
-        ${KEY["text"]} 输出选中的 text\n
+        ${KEY["text"]} 输出选中的 text。
         多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
-        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串
+        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串。
+        对于未选择的 text 和 value，通过 ${KEY["text_not_selected"]} 和 ${KEY["value_not_selected"]} 输出对应拼接字符串。
+        注意：请确保不同选项的value值不相同。
         """
 
     def get_value(self):
-        text_value = json.loads(self.value)
-        # multiple
-        if len(text_value) > 1:
-            text_string = ",".join([option["text"] for option in text_value])
-            value_string = ",".join([option["value"] for option in text_value])
-            return {"text": text_string, "value": value_string}
-        # single
-        else:
-            return text_value[0]
+        meta_values = json.loads(self.value["meta_data"])
+        info_values = (
+            [self.value["info_value"]] if isinstance(self.value["info_value"], str) else self.value["info_value"]
+        )
+        text_values = [meta["text"] for meta in meta_values if meta["value"] in info_values]
+        text_not_selected_values = [meta["text"] for meta in meta_values if meta["value"] not in info_values]
+        info_not_selected_values = [meta["value"] for meta in meta_values if meta["value"] not in info_values]
+
+        return {
+            "value": ",".join(info_values),
+            "text": ",".join(text_values),
+            "text_not_selected": ",".join(text_not_selected_values),
+            "value_not_selected": ",".join(info_not_selected_values),
+        }
 
     @classmethod
     def process_meta_avalue(self, meta_data, info_value):
-        value = meta_data["value"]["items_text"]
-        return value
+        meta_value = meta_data["value"]["items_text"]
+        return {"meta_data": meta_value, "info_value": info_value}
 
 
 class FormatSupportCurrentTime(LazyVariable):
