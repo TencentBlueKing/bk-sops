@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading, zIndex: 100 }">
-        <div v-if="!templateDataLoading && !singleAtomListLoading" class="pipeline-canvas-wrapper">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading , zIndex: 100 }">
+        <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
                 :name="name"
@@ -60,6 +60,8 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -68,7 +70,8 @@
                     @onLocationMoveDone="onLocationMoveDone"
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
-                    @onShowNodeConfig="onShowNodeConfig">
+                    @onShowNodeConfig="onShowNodeConfig"
+                    @getAtomList="getAtomList">
                 </TemplateCanvas>
             </template>
             <TaskSelectNode
@@ -90,14 +93,17 @@
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
-                    :is-show.sync="isNodeConfigPanelShow"
+                    :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :template-labels="templateLabels"
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
+                    :back-to-variable-panel="backToVariablePanel"
                     :subflow-list-loading="subflowListLoading"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -105,10 +111,12 @@
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
-                    :is-show.sync="isShowConditionEdit"
+                    :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
+                    :back-to-variable-panel="backToVariablePanel"
                     @onBeforeClose="onBeforeClose"
-                    @updataCanvasCondition="updataCanvasCondition">
+                    @updataCanvasCondition="updataCanvasCondition"
+                    @close="onCloseConfigPanel">
                 </condition-edit>
                 <template-setting
                     :project-info-loading="projectInfoLoading"
@@ -264,7 +272,8 @@
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateDataChanged: false,
                 isShowConditionEdit: false,
-                isNodeConfigPanelShow: false,
+                isNodeConfigPanelShow: false, // 右侧模板是否展开
+                isSelectorPanelShow: false, // 右侧子流程模板是否展开
                 isFromTplListRoute: false, // 是否由模板列表页跳转进入
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
@@ -272,11 +281,14 @@
                 allowLeave: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
+                isGetAtomList: false,
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
-                    subflow: []
+                    subflow: [],
+                    pluginList: []
                 },
+                thirdPartyList: {},
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -287,6 +299,7 @@
                 multipleTabDialogShow: false,
                 tplEditingTabCount: 0, // 正在编辑的模板在同一浏览器打开的数目
                 isBatchUpdateDialogShow: false,
+                backToVariablePanel: false,
                 nodeGuideConfig: {
                     el: '',
                     width: 150,
@@ -308,7 +321,21 @@
                         }
                     ]
                 },
-                typeOfNodeNameEmpty: '' // 新建流程未选择插件的节点类型
+                typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                pagination: {
+                    limit: 100,
+                    offset: 0,
+                    isLoading: false,
+                    totalPage: null
+                },
+                totalPage: 0,
+                currentPage: 0,
+                limit: 25,
+                offset: 0,
+                pollingTimer: null,
+                isPageOver: false,
+                isThrottled: false, // 滚动节流 是否进入cd
+                envVariableData: {}
             }
         },
         computed: {
@@ -342,15 +369,22 @@
                     lines: this.lines,
                     locations: this.locations.map(location => {
                         let icon, group, code
-                        const atom = this.atomList.find(item => {
-                            if (location.type === 'tasknode') {
-                                return this.activities[location.id].component.code === item.code
+                        if (location.type === 'tasknode') {
+                            const nodeConfig = this.activities[location.id]
+                            if (nodeConfig && nodeConfig.component.code === 'remote_plugin') {
+                                icon = location.group_icon
+                                group = location.group_name
+                                code = nodeConfig.name
+                            } else {
+                                const atom = this.atomList.find(item => {
+                                    return nodeConfig && nodeConfig.component.code === item.code
+                                })
+                                if (atom) {
+                                    icon = atom.group_icon
+                                    group = atom.group_name
+                                    code = atom.code
+                                }
                             }
-                        })
-                        if (atom) {
-                            icon = atom.group_icon
-                            group = atom.group_name
-                            code = atom.code
                         }
                         const data = { ...location, mode: 'edit', icon, group, code }
                         if (
@@ -384,6 +418,13 @@
                     tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
+            }
+        },
+        watch: {
+            isNodeConfigPanelShow (val) {
+                if (!val) {
+                    this.atomTypeList.subflow.length = 0
+                }
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -436,7 +477,6 @@
                 'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
-                'loadCommonTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
                 'loadInternalVariable'
@@ -445,10 +485,13 @@
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceList',
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -480,10 +523,13 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
+            getAtomList  (val) {
+                this.isGetAtomList = val
+            },
             /**
              * 加载标准插件列表
              */
-            async getSingleAtomList () {
+            async getSingleAtomList (val) {
                 this.singleAtomListLoading = true
                 try {
                     const params = {}
@@ -491,6 +537,14 @@
                         params.project_id = this.project_id
                     }
                     const data = await this.loadSingleAtomList(params)
+
+                    const { limit, offset } = this.pagination
+                    const resp = await this.loadPluginServiceList({
+                        search_term: '',
+                        limit,
+                        offset
+                    })
+                    // 内置插件
                     const atomList = []
                     data.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
@@ -513,6 +567,9 @@
                     this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
+                    // 第三方插件
+                    this.pagination.totalPage = Math.ceil(resp.data.count / this.pagination.limit)
+                    this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -527,7 +584,7 @@
                 try {
                     const resp = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(resp.data)
-                    this.getSubflowList()
+                    // this.getSubflowList()
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -594,7 +651,10 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
+                    const config = this.atomConfig[code] && this.atomConfig[code][version]
+                    if (config) {
+                        this.addSingleAtomActivities(location, config)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -643,7 +703,34 @@
                 try {
                     this.systemVarsLoading = true
                     const result = await this.loadInternalVariable()
-                    this.setInternalVariable(result.data)
+                    const variableIndex = Object.keys(result.data).map(index => {
+                        return result.data[index].index
+                    })
+                    let variableminIndex = Math.min(...variableIndex)
+                    let internalVariable = { ...result.data }
+                    if (!this.common) {
+                        const resp = await this.loadEnvVariableList({ project_id: this.$route.params.project_id })
+                        Object.keys(resp.data).forEach(item => {
+                            const { name, value, desc } = resp.data[item]
+                            const projectVar = {
+                                key: '${_env_' + resp.data[item].key + '}',
+                                name,
+                                value,
+                                desc,
+                                index: --variableminIndex,
+                                custom_type: 'input',
+                                form_schema: {},
+                                show_type: 'hide',
+                                validation: '^.+$',
+                                source_info: {},
+                                source_type: 'project',
+                                source_tag: 'input.input'
+                            }
+                            this.envVariableData['${_env_' + resp.data[item].key + '}'] = projectVar
+                        })
+                        internalVariable = Object.assign(this.envVariableData, result.data)
+                    }
+                    this.setInternalVariable(internalVariable)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -724,7 +811,7 @@
                         }
                         tplTabCount.setTab(tabQuerydata, 'add')
                     }
-                    
+
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     }
@@ -808,20 +895,6 @@
                 this.atomTypeList.tasknode = grouped
             },
             /**
-             * 子流程列表
-             */
-            handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.atomTypeList.subflow = list
-            },
             /**
              * 打开节点配置面板
              * @param {String} id 节点uuid
@@ -833,9 +906,13 @@
             /**
              * 关闭节点配置面板
              */
-            closeConfigPanel () {
+            closeConfigPanel (openVariablePanel) {
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
+                this.backToVariablePanel = false
+                if (openVariablePanel) {
+                    this.onChangeSettingPanel('globalVariableTab')
+                }
             },
             /**
              * 设置流程模板为修改状态
@@ -994,11 +1071,14 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
-                    const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    let atom = true
+                    if (nodeConfig.component.code !== 'remote_plugin') {
+                        atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    }
                     if (!atom) {
                         this.$bkMessage({
                             message: '该节点配置的插件不存在，请检查流程数据',
@@ -1009,6 +1089,24 @@
                 }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
+                    // 设置第三发插件缓存
+                    const nodeConfig = this.$store.state.template.activities[id]
+                    if (nodeConfig.component
+                        && nodeConfig.component.code === 'remote_plugin'
+                        && !this.thirdPartyList[id]) {
+                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.name })
+                        const { code, versions, description } = resp.data
+                        const versionList = versions.map(version => {
+                            return { version }
+                        })
+                        const group = {
+                            nodeName: code,
+                            list: versionList,
+                            version: nodeConfig.component.version,
+                            desc: description
+                        }
+                        this.thirdPartyList[id] = group
+                    }
                     this.showConfigPanel(id)
                 }
             },
@@ -1072,7 +1170,7 @@
              * @param {String} changeType 变更类型,添加、删除、编辑
              * @param {Object} location 节点 location 字段
              */
-            onLocationChange (changeType, location) {
+            async onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
@@ -1080,11 +1178,18 @@
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
                             if (location.type === 'tasknode') {
-                                const atoms = this.atomList.find(item => item.code === location.atomId).list
-                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
-                                const lastVersionAtom = atoms[atoms.length - 1]
-                                const version = lastVersionAtom.version
-                                location.version = version
+                                if (location.atomId === 'remote_plugin') {
+                                    const resp = await this.loadPluginServiceMeta({ plugin_code: location.name })
+                                    if (!resp.result) return
+                                    const versionList = resp.data.versions
+                                    location.version = versionList[versionList.length - 1]
+                                } else {
+                                    const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                    // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                    const lastVersionAtom = atoms[atoms.length - 1]
+                                    const version = lastVersionAtom.version
+                                    location.version = version
+                                }
                                 this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
@@ -1325,6 +1430,13 @@
                 this.isShowDialog = false
                 this.isShowConditionEdit = false
             },
+            onCloseConfigPanel (openVariablePanel) {
+                this.isShowConditionEdit = false
+                this.backToVariablePanel = false
+                if (openVariablePanel) {
+                    this.onChangeSettingPanel('globalVariableTab')
+                }
+            },
             // 更新分支数据
             updataCanvasCondition (data) {
                 // 更新 cavans 页面数据
@@ -1351,6 +1463,31 @@
                     this.nodeGuide.instance.hide()
                 }
             },
+            async updatePluginList (val = undefined, type) {
+                try {
+                    if (type === 'scroll') {
+                        const { limit, offset, totalPage, isLoading } = this.pagination
+                        if (offset !== totalPage && !isLoading) {
+                            this.pagination.isLoading = true
+                            this.pagination.offset++
+                            const params = { search_term: val, limit: limit, offset }
+                            const resp = await this.loadPluginServiceList(params)
+                            const { count, plugins } = resp.data
+                            this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
+                            this.atomTypeList.pluginList.push(...plugins)
+                            this.pagination.isLoading = false
+                        }
+                    } else {
+                        const { limit, offset } = this.pagination
+                        const params = { search_term: val, limit: limit, offset }
+                        const resp = await this.loadPluginServiceList(params)
+                        this.atomTypeList.pluginList = resp.data.plugins
+                    }
+                } catch (error) {
+                    this.pagination.isLoading = false
+                    console.warn(error)
+                }
+            },
             canvasMounted () {
                 this.handlerGuideTips()
             },
@@ -1362,6 +1499,7 @@
             // 全局变量引用详情点击回调
             onCitedNodeClick (data) {
                 const { group, id } = data
+                this.backToVariablePanel = true
                 if (group === 'activities') {
                     this.activeSettingTab = ''
                     this.showConfigPanel(id)
@@ -1641,5 +1779,5 @@
             }
         }
     }
-    
+
 </style>

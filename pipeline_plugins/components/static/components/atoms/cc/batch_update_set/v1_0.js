@@ -77,7 +77,7 @@
                             "tag_code": "bk_new_set_name",
                             "type": "input",
                             "attrs": {
-                                "name": "新的Set名称",
+                                "name": gettext("新的Set名称"),
                                 "editable": true
                             }
                         }
@@ -87,7 +87,7 @@
                             "tag_code": "bk_set_name",
                             "type": "input",
                             "attrs": {
-                                "name": "目前Set名称",
+                                "name": gettext("目前Set名称"),
                                 "editable": true
                             }
                         }

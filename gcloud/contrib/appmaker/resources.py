@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from gcloud.iam_auth.utils import check_project_or_admin_view_action_for_user
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
@@ -32,6 +32,9 @@ iam = get_iam_client()
 
 class OnlyDeleteCompleteListIAMAuthorization(IAMAuthorization, IAMReadDetailAuthorizationMixin):
     def read_list(self, object_list, bundle):
+        project_id = bundle.request.GET.get("project__id")
+        check_project_or_admin_view_action_for_user(project_id, bundle.request.user.username)
+
         return object_list
 
     def create_detail(self, object_list, bundle):

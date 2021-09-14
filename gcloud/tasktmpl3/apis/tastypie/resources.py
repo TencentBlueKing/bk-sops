@@ -21,6 +21,7 @@ from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 
+from gcloud.iam_auth.utils import check_project_or_admin_view_action_for_user
 from gcloud.label.models import TemplateLabelRelation, Label
 from pipeline.models import TemplateScheme
 
@@ -44,6 +45,13 @@ from gcloud.contrib.operate_record.constants import RecordType, OperateType, Ope
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
+
+
+class ProjectBasedTaskTemplateIAMAuthorization(CompleteListIAMAuthorization):
+    def read_list(self, object_list, bundle):
+        project_id = bundle.request.GET.get("project__id")
+        check_project_or_admin_view_action_for_user(project_id, bundle.request.user.username)
+        return object_list
 
 
 class TaskTemplateResource(GCloudModelResource):
@@ -80,7 +88,7 @@ class TaskTemplateResource(GCloudModelResource):
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
         # iam config
-        authorization = CompleteListIAMAuthorization(
+        authorization = ProjectBasedTaskTemplateIAMAuthorization(
             iam=iam,
             helper=FlowIAMAuthorizationHelper(
                 system=IAMMeta.SYSTEM_ID,
@@ -116,12 +124,12 @@ class TaskTemplateResource(GCloudModelResource):
         template_ids = [bundle.obj.id for bundle in data["objects"]]
         templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
         for bundle in data["objects"]:
-            if bundle.obj.id in collected_templates:
-                bundle.data["is_add"] = 1
-            else:
-                bundle.data["is_add"] = 0
+            bundle.data["is_add"] = 1 if bundle.obj.id in collected_templates else 0
             bundle.data["template_labels"] = templates_labels.get(bundle.obj.id, [])
-
+            notify_type = json.loads(bundle.data["notify_type"])
+            bundle.data["notify_type"] = (
+                notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+            )
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
@@ -129,6 +137,10 @@ class TaskTemplateResource(GCloudModelResource):
         template_id = bundle.obj.id
         labels = TemplateLabelRelation.objects.fetch_templates_labels([template_id]).get(template_id, [])
         bundle.data["template_labels"] = [label["label_id"] for label in labels]
+        notify_type = json.loads(bundle.data["notify_type"])
+        bundle.data["notify_type"] = (
+            notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+        )
         return bundle
 
     @record_operation(RecordType.template.name, OperateType.create.name, OperateSource.project.name)
@@ -139,6 +151,11 @@ class TaskTemplateResource(GCloudModelResource):
             creator = bundle.request.user.username
             pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
             description = bundle.data.pop("description", "")
+            notify_type = bundle.data.get("notify_type") or {"success": [], "fail": []}
+            if isinstance(notify_type, str):
+                loaded_notify_type = json.loads(notify_type)
+                notify_type = {"success": loaded_notify_type, "fail": loaded_notify_type}
+            bundle.data["notify_type"] = json.dumps(notify_type)
         except (KeyError, ValueError) as e:
             raise BadRequest(str(e))
 
@@ -168,6 +185,11 @@ class TaskTemplateResource(GCloudModelResource):
             editor = bundle.request.user.username
             pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
             description = bundle.data.pop("description")
+            notify_type = bundle.data.get("notify_type") or {"success": [], "fail": []}
+            if isinstance(notify_type, str):
+                loaded_notify_type = json.loads(notify_type)
+                notify_type = {"success": loaded_notify_type, "fail": loaded_notify_type}
+            bundle.data["notify_type"] = json.dumps(notify_type)
         except (KeyError, ValueError) as e:
             raise BadRequest(str(e))
 

@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -43,6 +43,19 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
+
+    def create(self, request, *args, **kwargs):
+        project_id = request.data.get("project_id")
+        if not project_id:
+            raise ValidationException("project_id should be provided.")
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        return super(LabelViewSet, self).create(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")

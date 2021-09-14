@@ -11,10 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.urls import path
 from django.conf.urls import url, include
 
-from gcloud.taskflow3 import api
-from gcloud.taskflow3.apis.views.v4.urls import v4_urlpatterns
+from gcloud.taskflow3.apis.django import api
+from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
+from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCurrentConstantsView
+
 
 urlpatterns = [
     url(r"^api/context/$", api.context),
@@ -34,4 +37,5 @@ urlpatterns = [
     url(r"^api/get_task_create_method/$", api.get_task_create_method),
     url(r"^api/nodes/callback/(?P<token>.+)/$", api.node_callback),
     url(r"^api/v4/", include(v4_urlpatterns)),
+    path(r"api/render_current_constants/<int:task_id>/", RenderCurrentConstantsView.as_view()),
 ]

@@ -24,6 +24,7 @@
                 :static-ips="ip"
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
+                :manual-input="manual_input"
                 @change="updateValue">
             </multiple-ip-selector>
             <single-ip-selector
@@ -39,6 +40,7 @@
                 :static-ips="ip"
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
+                :manual-input="manual_input"
                 @change="updateValue">
             </single-ip-selector>
         </div>
@@ -67,6 +69,7 @@
 </template>
 <script>
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import tools from '@/utils/tools.js'
     import SingleIpSelector from './SingleIpSelector.vue'
     import MultipleIpSelector from './MultipleIpSelector.vue'
     import SelectCondition from './SelectCondition.vue'
@@ -76,6 +79,7 @@
         staticIp: gettext('静态 IP'),
         dynamicIp: gettext('动态 IP'),
         dynamicGroup: gettext('动态分组'),
+        manualInput: gettext('手动输入'),
         filterTitle: gettext('筛选条件和排除条件'),
         showCloudArea: gettext('变量值是否带云区域：')
     }
@@ -108,6 +112,7 @@
                         ip: [],
                         topo: [],
                         group: [],
+                        manual_input: {},
                         filters: [],
                         excludes: [],
                         with_cloud_id: false,
@@ -133,6 +138,11 @@
                             type: 'dynamicGroup',
                             id: 'group',
                             name: i18n.dynamicGroup
+                        },
+                        {
+                            type: 'manualInput',
+                            id: 'manual',
+                            name: i18n.manualInput
                         }
                     ]
                 }
@@ -179,13 +189,14 @@
             }
         },
         data () {
-            const { selectors, ip, topo, group, filters, excludes, with_cloud_id, separator } = this.value
+            const { selectors, ip, topo, group, filters, excludes, with_cloud_id, separator, manual_input } = this.value
             const conditions = this.getConditions(filters, excludes)
             return {
                 selectors: selectors.slice(0),
                 ip: ip.slice(0),
                 topo: topo.slice(0),
                 group: (group || []).slice(0), // 后增加字段，兼容旧数据
+                manual_input: manual_input ? tools.deepClone(manual_input) : {},
                 with_cloud_id,
                 conditions,
                 separator,
@@ -206,11 +217,12 @@
         watch: {
             value: {
                 handler (val) {
-                    const { selectors, ip, topo, group, filters, excludes } = this.value
+                    const { selectors, ip, topo, group, filters, excludes, manual_input } = this.value
                     this.selectors = selectors.slice(0)
                     this.ip = ip.slice(0)
                     this.topo = topo.slice(0)
                     this.group = (group || []).slice(0)
+                    this.manual_input = manual_input ? tools.deepClone(manual_input) : {}
                     this.filters = filters.slice(0)
                     this.excludes = excludes.slice(0)
                     this.conditions = this.getConditions(filters, excludes)

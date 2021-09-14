@@ -17,7 +17,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from iam.contrib.tastypie.authorization import ReadOnlyCompleteListIAMAuthorization
 
 from gcloud.commons.tastypie import GCloudModelResource
-from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import FunctionTaskResourceHelper

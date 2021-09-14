@@ -21,8 +21,8 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.tasks import prepare_and_start_task
-from gcloud.taskflow3.queues import PrepareAndStartTaskQueueResolver
+from gcloud.taskflow3.celery.tasks import prepare_and_start_task
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.utils.throttle import check_task_operation_throttle

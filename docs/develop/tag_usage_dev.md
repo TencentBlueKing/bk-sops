@@ -352,6 +352,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **属性**
 
+  - `raw`：是否保留文本的换行符、空格，默认为 `false`
   - `value`：文本的值
 
 **方法**
@@ -437,8 +438,9 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `value`：上传的文件
 
 **方法**
-  - `onSubmit`：手动上传按钮点击时间回调，默认开始执行上传，若配置项传入 `submit` 属性，则执行该方法
-  - `beforeUpload`: 上传之前钩子函数，若返回 false 或者返回 Promise 且被 reject，则取消上传，参数 file
+  - `onSubmit`: 手动上传按钮点击时间回调，默认开始执行上传，若配置项传入 `submit` 属性，则执行该方法
+  - `httpRequest`: 自定义上传函数，会覆盖默认的上传行为，若需要调用成功、失败回调函数，则需要返回 Promise
+  - `beforeUpload`: 上传之前钩子函数，如果需要钩子函数里需要调用异步请求，且依赖请求数据，则需要返回 Promise，若返回 false 或者返回 Promise 且被 reject，则取消上传，参数 file
   - `beforeRemove`: 删除文件之前的钩子函数，若返回 false 或者返回 Promise 且被 reject，则取消删除，参数 file， fileList
   - `onSuccess`: 文件上传成功时的钩子函数，参数 file， fileList
   - `onRemove`: 文件列表移除文件时的钩子函数，参数 file， fileList

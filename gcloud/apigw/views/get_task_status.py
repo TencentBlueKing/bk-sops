@@ -20,7 +20,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.dispatchers import TaskCommandDispatcher
+from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
@@ -65,7 +65,10 @@ def get_task_status(request, task_id, project_id):
         }
 
     dispatcher = TaskCommandDispatcher(
-        engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+        engine_ver=task.engine_ver,
+        taskflow_id=task.id,
+        pipeline_instance=task.pipeline_instance,
+        project_id=project.id,
     )
     result = dispatcher.get_task_status(subprocess_id=subprocess_id, with_ex_data=with_ex_data)
     if not result["result"]:
