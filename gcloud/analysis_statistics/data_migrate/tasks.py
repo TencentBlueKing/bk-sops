@@ -15,6 +15,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.db.models import Q
+from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from celery.task import periodic_task
 
@@ -56,42 +57,34 @@ def migrate_template(start, end):
     condition.children.append(("id__lt", end))
     template_in_pipeline_records = TemplateInPipeline.objects.filter(condition)
 
-    # 构造新的数据对象
-    template_id_list = template_in_pipeline_records.values_list("template_id", flat=True)
-    pipeline_template_list = [
-        PipelineTemplate.objects.filter(template_id=template_id).first() for template_id in template_id_list
-    ]
-    task_template_list = [
-        TaskTemplate.objects.filter(pipeline_template=pipeline_template).first()
-        for pipeline_template in pipeline_template_list
-    ]
+    # 构造数据源字典
+    data_source_list = []
+    for template_in_pipeline_inst in template_in_pipeline_records:
+        try:
+            template_id = template_in_pipeline_inst.template_id
+            pipeline_template = PipelineTemplate.objects.get(template_id=template_id)
+            task_template = TaskTemplate.objects.get(pipeline_template__id=pipeline_template.id)
+            data_source_list.append(
+                {
+                    "template_in_pipeline_inst":template_in_pipeline_inst,
+                    "pipeline_template":pipeline_template,
+                    "task_template":task_template
+                }
+            )
+        except ObjectDoesNotExist:
+            continue
 
-    template_in_statistics_instance = []
-    for pipeline_template in pipeline_template_list:
-        try:
-            template_in_pipeline = template_in_pipeline_records.get(template_id=pipeline_template.template_id)
-        except ObjectDoesNotExist:
-            logger.error(
-                "TemplateInPipeline表中没有template_id={template_id}的数据项".format(template_id=pipeline_template.template_id)
-            )
-            continue
-        try:
-            task_template = task_template_list.get(pipeline_template=pipeline_template)
-        except ObjectDoesNotExist:
-            logger.error(
-                "TaskTemplate表中没有pipeline_template={pipeline_template}的数据项".format(
-                    pipeline_template=pipeline_template.id
-                )
-            )
-            continue
-        project = task_template.project
+    for data_source_item in data_source_list:
+        pipeline_template = data_source_item["pipeline_template"]
+        template_in_pipeline_inst = data_source_item["template_in_pipeline_inst"]
+        task_template = data_source_item["task_template"]
         kwargs = {
             "template_id": pipeline_template.id,
             "task_template_id": task_template.id,
-            "atom_total": template_in_pipeline.atom_total,
-            "subprocess_total": template_in_pipeline.subprocess_total,
-            "gateways_total": template_in_pipeline.gateways_total,
-            "project_id": project.id,
+            "atom_total": template_in_pipeline_inst.atom_total,
+            "subprocess_total": template_in_pipeline_inst.subprocess_total,
+            "gateways_total": template_in_pipeline_inst.gateways_total,
+            "project_id": task_template.project.id,
             "category": task_template.category,
             "template_creator": pipeline_template.creator,
             "template_create_time": pipeline_template.create_time,
@@ -108,15 +101,13 @@ def migrate_template(start, end):
                 input_count += 1
         kwargs["input_count"] = input_count
         kwargs["output_count"] = output_count
-
-        template_in_statistics_instance.append(TemplateInStatistics(**kwargs))
-    try:
-        TemplateInStatistics.objects.bulk_create(template_in_statistics_instance)
-        return True
-    except Exception:
-        logger.error("migrate TemplateInPipeline fail, from {start} to {end}".format(start=start, end=end))
-        return False
-
+        try:
+            with transaction.atomic():
+                templatestatistics = TemplateInStatistics.objects.create(**kwargs)
+                templatestatistics.save()
+        except:
+            logger.warning("TemplateInStatistics插入失败，自动回滚")
+    return True
 
 def migrate_component(start, end):
     """
@@ -131,46 +122,49 @@ def migrate_component(start, end):
     condition.children.append(("id__gte", start))
     condition.children.append(("id__lt", end))
     component_in_template_records = ComponentInTemplate.objects.filter(condition)
-    template_id_list = component_in_template_records.values_list("template_id", flat=True)
-    pipeline_template_list = PipelineTemplate.objects.filter(template_id__in=template_id_list)
-
-    component_in_template_instance = []
-    for pipeline_template in pipeline_template_list:
+    # 构建数据源
+    data_source_list = []
+    for component_in_template_inst in component_in_template_records:
         try:
-            # 根据pipeline_template查询到task_template
-            task_template = TaskTemplate.objects.get(pipeline_template=pipeline_template)
-            component_in_template_datas = component_in_template_records.filter(
-                template_id=pipeline_template.template_id
-            ).values("component_code", "template_id", "node_id", "is_sub", "subprocess_stack", "version")
+            template_id = component_in_template_inst.template_id
+            pipeline_template = PipelineTemplate.objects.get(template_id=template_id)
+            task_template = TaskTemplate.objects.get(pipeline_template__id=pipeline_template.id)
+            data_source_list.append(
+                {
+                    "pipeline_template": pipeline_template,
+                    "task_template":task_template,
+                    "component_in_template_inst":component_in_template_inst
+                }
+            )
         except ObjectDoesNotExist:
             continue
-        components = [
-            TemplateNodeTemplate(
-                component_code=component["component_code"],
-                template_id=pipeline_template.id,
-                task_template_id=task_template.id,
-                project_id=task_template.project.id,
-                category=task_template.category,
-                node_id=component["node_id"],
-                is_sub=component["is_sub"],
-                subprocess_stack=component["subprocess_stack"],
-                version=component["version"],
-                template_creator=pipeline_template.creator,
-                template_create_time=pipeline_template.create_time,
-                template_edit_time=pipeline_template.edit_time,
-            )
-            for component in component_in_template_datas
-        ]
-
-        component_in_template_instance.extend(components)
-
-    try:
-        TemplateNodeTemplate.objects.bulk_create(component_in_template_instance)
-        return True
-    except Exception:
-        logger.error("migrate TemplateNodeTemplate fail, from {start} to {end}".format(start=start, end=end))
-        return False
-
+    
+    # 迁移
+    for data_source_item in data_source_list:
+        component = data_source_item["component_in_template_inst"]
+        pipeline_template = data_source_item["pipeline_template"]
+        task_template = data_source_item["task_template"]
+        kwargs = dict(
+            component_code=component.component_code,
+            template_id=pipeline_template.id,
+            task_template_id=task_template.id,
+            project_id=task_template.project.id,
+            category=task_template.category,
+            node_id=component.node_id,
+            is_sub=component.is_sub,
+            subprocess_stack=component.subprocess_stack,
+            version=component.version,
+            template_creator=pipeline_template.creator,
+            template_create_time=pipeline_template.create_time,
+            template_edit_time=pipeline_template.edit_time,
+        )
+        try:
+            with transaction.atomic():
+                templatenodetemplate = TemplateNodeTemplate.objects.create(**kwargs)
+                templatenodetemplate.save()
+        except:
+            logger.warning("TemplateNodeTemplate插入失败，自动回滚")
+    return True
 
 def migrate_instance(start, end):
     """
@@ -185,44 +179,57 @@ def migrate_instance(start, end):
     condition.children.append(("id__gte", start))
     condition.children.append(("id__lt", end))
     instance_in_pipeline_records = InstanceInPipeline.objects.filter(condition)
-    instance_id_list = instance_in_pipeline_records.values_list("instance_id", flat=True)
-    instance_list = PipelineInstance.objects.filter(instance_id__in=instance_id_list)
 
-    taskflow_statistics_instance = []
-    for instance in instance_list:
+    # 构建数据源字典
+    data_source_list = []
+    for instance_in_pipeline in instance_in_pipeline_records:
         try:
-            taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=instance)
+            instance_id = instance_in_pipeline.instance_id
+            pipeline_instance = PipelineInstance.objects.get(instance_id=instance_id)
+            taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance__id=pipeline_instance.id)
             pipeline_template = taskflow_instance.pipeline_instance.template
             task_template = TaskTemplate.objects.get(pipeline_template=pipeline_template)
-        except ObjectDoesNotExist:
-            continue
-        taskflow_statistics_data = [
-            TaskflowStatistics(
-                instance_id=instance.id,
-                task_instance_id=taskflow_instance.id,
-                atom_total=instance_in_pipeline.atom_total,
-                subprocess_total=instance_in_pipeline.subprocess_total,
-                gateways_total=instance_in_pipeline.gateways_total,
-                project_id=taskflow_instance.project.id,
-                category=task_template.category,
-                template_id=pipeline_template.id,
-                creator=instance.creator,
-                create_time=instance.create_time,
-                start_time=instance.start_time,
-                finish_time=instance.finish_time,
-                elapsed_time=calculate_elapsed_time(instance.start_time, instance.finish_time),
-                create_method=taskflow_instance.create_method,
+            data_source_list.append(
+                {
+                    "pipeline_instance": pipeline_instance,
+                    "taskflow_instance": taskflow_instance,
+                    "pipeline_template": pipeline_template,
+                    "task_template": task_template,
+                    "instance_in_pipeline": instance_in_pipeline
+                }
             )
-            for instance_in_pipeline in instance_in_pipeline_records
-        ]
-        taskflow_statistics_instance.extend(taskflow_statistics_data)
-    try:
-        TaskflowStatistics.objects.bulk_create(taskflow_statistics_instance)
-        return True
-    except Exception:
-        logger.error("migrate TaskflowStatistics fail, from {start} to {end}".format(start=start, end=end))
-        return False
-
+        except:
+            continue
+    # 构建目标数据对象
+    for data_source_item in data_source_list:
+        instance = data_source_item["pipeline_instance"]
+        taskflow_instance = data_source_item["taskflow_instance"]
+        task_template = data_source_item["task_template"]
+        instance_in_pipeline = data_source_item["instance_in_pipeline"]
+        pipeline_template = data_source_item["pipeline_template"]
+        kwargs = dict(
+            instance_id=instance.id,
+            task_instance_id=taskflow_instance.id,
+            atom_total=instance_in_pipeline.atom_total,
+            subprocess_total=instance_in_pipeline.subprocess_total,
+            gateways_total=instance_in_pipeline.gateways_total,
+            project_id=taskflow_instance.project.id,
+            category=task_template.category,
+            template_id=pipeline_template.id,
+            creator=instance.creator,
+            create_time=instance.create_time,
+            start_time=instance.start_time,
+            finish_time=instance.finish_time,
+            elapsed_time=calculate_elapsed_time(instance.start_time, instance.finish_time),
+            create_method=taskflow_instance.create_method,
+        )
+        try:
+            with transaction.atomic():
+                taslflowstatistics = TaskflowStatistics.objects.create(**kwargs)
+                taslflowstatistics.save()
+        except:
+            logger.warning("TaskflowStatistics插入失败，自动回滚")
+    return True
 
 def migrate_componentExecuteData(start, end):
     """
@@ -246,39 +253,39 @@ def migrate_componentExecuteData(start, end):
             task_template = TaskTemplate.objects.get(pipeline_template=pipeline_template)
         except ObjectDoesNotExist:
             continue
-        component_list = [
-            TaskflowExecutedNodeStatistics(
-                component_code=component.component_code,
-                instance_id=component.instance_id,
-                node_id=component.node_id,
-                is_sub=component.is_sub,
-                subprocess_stack=component.subprocess_stack,
-                started_time=component.started_time,
-                archived_time=component.archived_time,
-                elapsed_time=component.elapsed_time,
-                status=component.status,
-                is_skip=component.is_skip,
-                is_retry=component.is_retry,
-                version=component.version,
-                template_id=pipeline_template.id,
-                task_template_id=task_template.id,
-                project_id=taskflow_instance.project.id,
-                instance_create_time=pipeline_instance.create_time,
-                instance_start_time=pipeline_instance.start_time,
-                instance_finish_time=pipeline_instance.finish_time,
-            )
-        ]
-        component_instance.extend(component_list)
-    try:
-        TaskflowExecutedNodeStatistics.objects.bulk_create(component_instance)
-        return True
-    except Exception:
-        logger.error("migrate TaskflowExecutedNodeStatistics fail, from {start} to {end}".format(start=start, end=end))
-        return False
-
+        kwargs = dict(
+            component_code=component.component_code,
+            instance_id=pipeline_instance.id,
+            task_instance_id = taskflow_instance.id,
+            node_id=component.node_id,
+            is_sub=component.is_sub,
+            subprocess_stack=component.subprocess_stack,
+            started_time=component.started_time,
+            archived_time=component.archived_time,
+            elapsed_time=component.elapsed_time,
+            status=component.status,
+            is_skip=component.is_skip,
+            is_retry=component.is_retry,
+            version=component.version,
+            template_id=pipeline_template.id,
+            task_template_id=task_template.id,
+            project_id=taskflow_instance.project.id,
+            instance_create_time=pipeline_instance.create_time,
+            instance_start_time=pipeline_instance.start_time,
+            instance_finish_time=pipeline_instance.finish_time,
+        )
+        try:
+            with transaction.atomic():
+                taskflowexcutednodestatistics = TaskflowExecutedNodeStatistics.objects.create(**kwargs)
+                taskflowexcutednodestatistics.save()
+        except:
+            logger.warning("TaskflowExecutedNodeStatistics插入失败，自动回滚")
+        
+    return True
 
 @periodic_task(run_every=TzAwareCrontab(minute="*/2"))
 def migrate_schedule():
+    logger.info("\n**********\nstart the statistics migrate schedule ·········\n**********")
     # 获取迁移上下文
     migrate_log, created = MigrateLog.objects.get_or_create(
         id=1,
@@ -289,9 +296,14 @@ def migrate_schedule():
             "componenetExecuteData_count": ComponentExecuteData.objects.count(),
         },
     )
+    if created:
+        logger.info("start the statistics migrate ··········")
+    else:
+        logger.info("continue the statistics migrate ·········")
 
     # 判断是否允许迁移
     if not migrate_log.migrate_switch:
+        logger.info("\n**********\nthe migrate_switch is closed\n**********")
         return
     # 打印开始迁移日志
 
