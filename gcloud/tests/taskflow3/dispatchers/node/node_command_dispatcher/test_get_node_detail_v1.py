@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from gcloud import err_code
-from gcloud.taskflow3.dispatchers.node import NodeCommandDispatcher
+from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 
 from pipeline.engine import states as pipeline_states
 from pipeline.engine import exceptions as pipeline_exceptions

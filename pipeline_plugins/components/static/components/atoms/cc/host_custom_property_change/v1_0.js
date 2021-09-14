@@ -6,7 +6,7 @@
             attrs: {
                 name: "IP",
                 hookable: true,
-                placeholder: "输入IP, 多个用英文逗号 `,` 或换行分隔",
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 validation: [
                     {
                         type: "required"
@@ -18,9 +18,9 @@
             tag_code: "cc_custom_property",
             type: "select",
             attrs: {
-                name: "自定义属性",
+                name: gettext("自定义属性"),
                 hookable: true,
-                placeholder: "请选择主机自定义属性",
+                placeholder: gettext("请选择主机自定义属性"),
                 remote_url: $.context.get('site_url') + 'pipeline/cc_search_object_attribute/host/' + $.context.getBkBizId() + '/',
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -40,7 +40,7 @@
             type: "datatable",
             attrs: {
                 pagination: true,
-                name: "规则定义(主机属性)",
+                name: gettext("规则定义(主机属性)"),
                 add_btn: true,
                 empty_text: gettext("没有数据"),
                 columns: [
@@ -49,16 +49,16 @@
                         type: "select",
                         attrs: {
                             name: gettext("字段组件"),
-                            placeholder: "请选择字段组件",
+                            placeholder: gettext("请选择字段组件"),
                             validation: [
                                 {
                                     type: "required"
                                 }
                             ],
                             items: [
-                                {text: "主机属性", value: "1"},
-                                {text: "set属性", value: "2"},
-                                {text: "模块属性", value: "3"},
+                                {text: gettext("主机属性"), value: "1"},
+                                {text: gettext("set属性"), value: "2"},
+                                {text: gettext("模块属性"), value: "3"},
                             ]
                         }
                     },
@@ -66,7 +66,7 @@
                         tag_code: "field_content",
                         type: "select",
                         attrs: {
-                            placeholder: "请选择具体内容",
+                            placeholder: gettext("请选择具体内容"),
                             remote_url: '',
                             remote_data_init: function (resp) {
                                 if (resp.result === false) {
@@ -114,7 +114,7 @@
                         tag_code: "field_order",
                         type: "int",
                         attrs: {
-                            placeholder: "请填写大于等于1的整数",
+                            placeholder: gettext("请填写大于等于1的整数"),
                             editable: true,
                             default: 1,
                             validation: [
@@ -144,7 +144,7 @@
             type: "datatable",
             attrs: {
                 pagination: true,
-                name: "规则定义(自定义属性)",
+                name: gettext("规则定义(自定义属性)"),
                 add_btn: true,
                 empty_text: gettext("没有数据"),
                 columns: [
@@ -160,9 +160,9 @@
                                 }
                             ],
                             items: [
-                                {text: "ip(.需替换成)", value: "4"},
-                                {text: "自增变量", value: "5"},
-                                {text: "自定义字符(串)", value: "6"},
+                                {text: gettext("ip(.需替换成)"), value: "4"},
+                                {text: gettext("自增变量"), value: "5"},
+                                {text: gettext("自定义字符(串)"), value: "6"},
                             ]
                         },
                     },
@@ -170,7 +170,7 @@
                         tag_code: "field_content",
                         type: "input",
                         attrs: {
-                            placeholder: "请填写具体内容",
+                            placeholder: gettext("请填写具体内容"),
                             editable: true,
                             validation: [
                                 {
@@ -184,7 +184,7 @@
                         tag_code: "field_order",
                         type: "int",
                         attrs: {
-                            placeholder: "请填写大于等于1的整数",
+                            placeholder: gettext("请填写大于等于1的整数"),
                             editable: true,
                             default: 1,
                             validation: [

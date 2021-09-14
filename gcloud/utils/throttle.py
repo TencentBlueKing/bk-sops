@@ -11,13 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import time
-from threading import Lock
+import logging
 
 from django.conf import settings
 
 from gcloud.taskflow3.models import TaskOperationTimesConfig
+from gcloud.utils.redis_lock import redis_lock
 
-task_operation_throttle_lock = Lock()
+logger = logging.getLogger("root")
 
 
 def get_redis_with_default(redis_instance, key, default_value):
@@ -43,22 +44,22 @@ def check_task_operation_throttle(project_id, operation):
     token_num_key = "{}_token_num_{}_{}".format(cache_prefix, project_id, operation)
     last_time_key = "{}_last_time_{}_{}".format(cache_prefix, project_id, operation)
 
-    task_operation_throttle_lock.acquire()
-    try:
-        token_num = float(get_redis_with_default(settings.redis_inst, token_num_key, allowed_times))
+    redis_instance = settings.redis_inst
+    with redis_lock(redis_instance, "{}_{}".format(project_id, operation)) as (acquired_result, err):
+        if not acquired_result:
+            logger.error(err)
+            return False
+        token_num = float(get_redis_with_default(redis_instance, token_num_key, allowed_times))
         now = time.time()
-        last_time = float(get_redis_with_default(settings.redis_inst, last_time_key, now))
-        settings.redis_inst.set(last_time_key, now)
+        last_time = float(get_redis_with_default(redis_instance, last_time_key, now))
+        redis_instance.set(last_time_key, now)
 
         token_gen_rate = allowed_times / scope_seconds
         token_num = token_num + (now - last_time) * token_gen_rate
-
         if token_num < 1:
-            settings.redis_inst.set(token_num_key, token_num)
+            redis_instance.set(token_num_key, token_num)
             return False
 
         token_num = allowed_times if token_num - 1 > allowed_times else token_num - 1
-        settings.redis_inst.set(token_num_key, token_num)
+        redis_instance.set(token_num_key, token_num)
         return True
-    finally:
-        task_operation_throttle_lock.release()

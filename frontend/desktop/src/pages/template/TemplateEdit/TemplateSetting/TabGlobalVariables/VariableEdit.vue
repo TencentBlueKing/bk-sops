@@ -11,7 +11,7 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isSystemVar">
+                            :readonly="isSystemVar || isProjectVar">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -24,14 +24,14 @@
                             name="variableKey"
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
-                            :readonly="isSystemVar"
+                            :readonly="isSystemVar || isProjectVar"
                             :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </div>
                 <!-- 类型 -->
-                <div class="form-item variable-type clearfix" v-if="!isSystemVar">
+                <div class="form-item variable-type clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <!-- 显示/隐藏 -->
-                <div class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label>{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 <!-- 模板预渲染 -->
-                <div class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -121,12 +121,12 @@
                             type="textarea"
                             v-model="theEditingData.desc"
                             :placeholder="isSystemVar ? ' ' : $t('请输入')"
-                            :readonly="isSystemVar">
+                            :readonly="isSystemVar || isProjectVar">
                         </bk-input>
                     </div>
                 </div>
             </section>
-            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-section">
+            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar && !isProjectVar" class="form-section">
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
                 <!-- 默认值 -->
                 <div class="form-item value-form clearfix">
@@ -144,7 +144,7 @@
             </section>
         </div>
         <div class="btn-wrap">
-            <template v-if="!isSystemVar">
+            <template v-if="!isSystemVar && !isProjectVar">
                 <bk-button theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('保存') }}</bk-button>
                 <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
             </template>
@@ -235,6 +235,7 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants,
+                'internalVariable': state => state.template.internalVariable,
                 'outputs': state => state.template.outputs
             }),
             ...mapState('project', {
@@ -243,6 +244,10 @@
             // 是否为系统内置变量
             isSystemVar () {
                 return this.variableData.source_type === 'system'
+            },
+            // 是否为项目变量
+            isProjectVar () {
+                return this.variableData.source_type === 'project'
             },
             /**
              * 变量配置项code
@@ -348,7 +353,8 @@
                 'checkKey'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
                 'addVariable',
@@ -397,7 +403,7 @@
              * 加载表单标准插件配置文件
              */
             async getAtomConfig () {
-                const { source_tag, custom_type, version = 'legacy' } = this.theEditingData
+                const { source_tag, custom_type, version = 'legacy', plugin_code } = this.theEditingData
                 const tagStr = this.metaTag ? this.metaTag : source_tag
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
@@ -419,6 +425,19 @@
                 }
 
                 try {
+                    // 第三方插件变量
+                    if (plugin_code) {
+                        const resp = await this.loadPluginServiceDetail({ plugin_code, plugin_version: version })
+                        if (!resp.result) return
+                        // 输入参数
+                        $.atoms[plugin_code] = {}
+                        const renderFrom = resp.data.forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                        const config = $.atoms[plugin_code]
+                        this.renderConfig = config
+                        return
+                    }
                     await this.loadAtomConfig({
                         classify,
                         name: this.atomType,
@@ -469,7 +488,7 @@
                     if (this.variableData.key === value) {
                         return true
                     }
-                    if (value in this.constants) {
+                    if (value in this.constants || value in this.internalVariable) {
                         return false
                     }
                     return true

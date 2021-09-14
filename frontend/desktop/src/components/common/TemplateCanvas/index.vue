@@ -46,7 +46,10 @@
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
                     :subflow-list-loading="subflowListLoading"
-                    @updateNodeMenuState="updateNodeMenuState">
+                    :plugin-loading="pluginLoading"
+                    @updatePluginList="updatePluginList"
+                    @updateNodeMenuState="updateNodeMenuState"
+                    @getAtomList="getAtomList">
                 </palette-panel>
             </template>
             <template v-slot:toolPanel>
@@ -93,7 +96,8 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @addNodesToDragSelection="addNodeToSelectedList"
-                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
+                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
+                    @getAtomList="getAtomList">
                 </node-template>
             </template>
         </bk-flow>
@@ -204,6 +208,10 @@
             isCanvasImg: {
                 type: Boolean,
                 default: false
+            },
+            pluginLoading: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -309,6 +317,9 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            getAtomList (val) {
+                this.$emit('getAtomList', val)
+            },
             handlerWindowResize () {
                 this.windowWidth = document.documentElement.offsetWidth - 60
                 this.windowHeight = document.documentElement.offsetHeight - 60 - 50
@@ -500,6 +511,9 @@
                 this.$emit('onToggleAllNode', val)
                 this.showSmallMap = false
             },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
+            },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
                 this.$emit('update:nodeMemuOpen', val)
@@ -614,7 +628,7 @@
                 }
             },
             onConnectionClick (connection, e) {
-                if (e.target.tagName !== 'path') {
+                if (!this.editable || e.target.tagName !== 'path') {
                     return
                 }
                 const lineInCanvasData = this.canvasData.lines.find(item => {
@@ -680,7 +694,7 @@
                                 midpoint: lineInCanvasData.midpoint
                             }
                         ]
-                        
+
                         this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                     // 增加连线删除 icon
@@ -888,7 +902,7 @@
                 if (source.id === target.id) {
                     return false
                 }
-                
+
                 const line = {
                     source,
                     target

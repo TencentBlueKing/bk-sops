@@ -68,6 +68,7 @@ INSTALLED_APPS += (
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
     "gcloud.iam_auth",
+    "gcloud.project_constants",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
@@ -96,6 +97,7 @@ INSTALLED_APPS += (
     "iam.contrib.iam_migration",
     "bksops_iam_migrations",
     "drf_yasg",
+    "plugin_service",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -163,7 +165,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.6.56"
+STATIC_VERSION = "3.7.4"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -447,7 +449,7 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
-from gcloud.taskflow3.queues import PrepareAndStartTaskQueueResolver  # noqa
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"

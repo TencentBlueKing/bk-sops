@@ -58,6 +58,7 @@
             </div> -->
         </div>
         <node-menu
+            ref="node_menu"
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
@@ -65,6 +66,9 @@
             :loading="activeNodeListType === 'subflow' && subflowListLoading"
             :nodes="nodes"
             :common="common"
+            :plugin-list="atomTypeList.pluginList"
+            :plugin-loading="pluginLoading"
+            @updatePluginList="updatePluginList"
             @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
         </node-menu>
@@ -74,12 +78,14 @@
     import i18n from '@/config/i18n/index.js'
     import NodeMenu from './NodeMenu.vue'
     import Guide from '@/utils/guide.js'
-    import { mapState } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
+    import permission from '@/mixins/permission.js'
     export default {
         name: 'PalattePanel',
         components: {
             NodeMenu
         },
+        mixins: [permission],
         props: {
             templateLabels: Array,
             subflowListLoading: {
@@ -103,6 +109,10 @@
             common: {
                 type: [String, Number],
                 default: false
+            },
+            pluginLoading: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -119,7 +129,13 @@
                 moveFlag: {
                     x: 0,
                     y: 0
-                }
+                },
+                listLoading: true, // 列表加载loading
+                currentPage: 0,
+                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 200) / 40) + 5,
+                pollingTimer: null,
+                isPageOver: false,
+                isThrottled: false // 滚动节流 是否进入cd
             }
         },
         computed: {
@@ -143,6 +159,18 @@
         watch: {
             showNodeMenu (val) {
                 this.$emit('updateNodeMenuState', val)
+            },
+            activeNodeListType (val) {
+                if (val === 'subflow') {
+                    this.getSubflowList()
+                    this.$nextTick(() => {
+                        this.listNode = document.querySelector('.node-list-wrap')
+                        this.listNode.addEventListener('scroll', this.handleTableScroll)
+                    })
+                } else {
+                    this.currentPage = 0
+                    this.atomTypeList.subflow.length = 0
+                }
             }
         },
         mounted () {
@@ -150,6 +178,54 @@
             this.renderGuide()
         },
         methods: {
+            ...mapActions('templateList', [
+                'loadTemplateList'
+            ]),
+            async getSubflowList () {
+                this.listLoading = true
+                try {
+                    const { params } = this.$route
+                    const data = {
+                        project__id: params.project_id,
+                        limit: this.limit,
+                        offset: this.currentPage * this.limit
+                    }
+                    const resp = await this.loadTemplateList(data)
+                    this.handleSubflowList(resp)
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.listLoading = false
+                }
+            },
+            handleTableScroll () {
+                if (!this.isPageOver && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.listNode
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            this.isPageOver = this.currentPage === this.totalPage
+                            clearTimeout(this.pollingTimer)
+                            this.getSubflowList()
+                        }
+                    }, 500)
+                }
+            },
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                const { params, query } = this.$route
+                data.objects.forEach(item => {
+                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
+                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
+                    }
+                })
+                this.atomTypeList.subflow.push(...list)
+            },
             onMouseDown (e) {
                 this.moveFlag = {
                     x: e.pageX,
@@ -159,6 +235,9 @@
             onOpenNodeMenu () {
                 this.showNodeMenu = true
                 this.activeNodeListType = this.nodeMouse.type
+            },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
             },
             onCloseNodeMenu () {
                 this.showNodeMenu = false
