@@ -290,6 +290,7 @@
                 pollingTimer: null,
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
+                subflowListDom: null,
                 subAtomListLoading: false, // 子流程列表loading
                 isThirdParty // 是否为第三方插件
             }
@@ -332,6 +333,23 @@
                 if (!val) {
                     this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
                 }
+            },
+            isSelectorPanelShow: {
+                handler (val) {
+                    if (val && this.isSubflow && !this.subflowListDom) {
+                        this.$nextTick(() => {
+                            const subflowListDom = document.querySelector('.tpl-list')
+                            subflowListDom && subflowListDom.addEventListener('scroll', this.handleTableScroll)
+                            this.subflowListDom = subflowListDom
+                        })
+                    }
+                },
+                immediate: true
+            }
+        },
+        beforeDestroy () {
+            if (this.subflowListDom) {
+                this.subflowListDom.removeEventListener('scroll', this.handleTableScroll)
             }
         },
         created () {
@@ -384,12 +402,6 @@
         },
         mounted () {
             this.initData()
-            if (this.isSelectorPanelShow) {
-                this.$nextTick(function () {
-                    this.subflowListDom = document.querySelector('.tpl-list')
-                    this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
-                })
-            }
         },
         methods: {
             ...mapActions('atomForm/', [
