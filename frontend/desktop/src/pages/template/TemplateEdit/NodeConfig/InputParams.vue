@@ -93,6 +93,7 @@
                 const keys = Object.keys(this.constants)
                 this.scheme.forEach(form => {
                     // 已勾选到全局变量中, 判断勾选的输入参数生成的变量及自定义全局变量source_info是否包含该节点对应表单tag_code
+                    // 可能存在表单勾选时已存在相同key的变量，选择复用自定义变量
                     const isHooked = keys.some(item => {
                         const varItem = this.constants[item]
                         if (['component_inputs', 'custom'].varItem.source_type) {
@@ -143,7 +144,7 @@
                     const sourceTag = constant.source_tag
                     if (sourceTag) { // 判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
                         const tagCode = sourceTag.split('.')[1]
-                        if (tagCode === formCode) {
+                        if (tagCode === formCode && constant.source_type !== 'component_outputs') { // 输入参数和输出参数不复用
                             reuseList.push({
                                 name: `${constant.name}(${constant.key})`,
                                 id: constant.key
