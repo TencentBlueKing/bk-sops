@@ -14,8 +14,19 @@
             <div class="scheme-title">
                 <span> {{$t('执行方案')}}</span>
                 <div>
-                    <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" @click="onImportTemporaryPlan">导入临时方案</bk-button>
+                    <bk-button
+                        size="small"
+                        theme="primary"
+                        data-test-id="creatTask-form-togglePreview"
+                        @click="onChangePreviewNode">
+                        {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
+                    </bk-button>
+                    <bk-button
+                        size="small"
+                        data-test-id="creatTask-form-importTemporaryPlan"
+                        @click="onImportTemporaryPlan">
+                        {{ $t('导入临时方案') }}
+                    </bk-button>
                 </div>
             </div>
             <div class="scheme-header">
@@ -27,6 +38,7 @@
                         name="schemaName"
                         class="bk-input-inline"
                         :clearable="true"
+                        data-test-id="creatTask-form-creatScheme"
                         @blur="handlerBlur"
                         @keyup.enter.native="onAddScheme"
                         :placeholder="$t('方案名称')">
@@ -41,7 +53,7 @@
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div class="scheme-content">
+            <div class="scheme-content" data-test-id="creatTask-form-schemeList">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"

@@ -66,10 +66,11 @@
             <bk-button
                 theme="primary"
                 class="next-button"
+                data-test-id="creatTask-form-nextStep"
                 @click="onGotoParamFill">
                 {{ $t('下一步') }}
             </bk-button>
-            <bk-button v-if="isSchemeShow" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
+            <bk-button v-if="isSchemeShow" data-test-id="creatTask-form-exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
         <bk-sideslider
             :is-show="isEditSchemeShow"

@@ -17,6 +17,7 @@
             right-icon="bk-icon icon-search"
             :placeholder="$t('请输入名称')"
             :clearable="true"
+            data-test-id="templateEdit-form-searchPlugin"
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
@@ -36,6 +37,7 @@
                             }]"
                             v-for="group in listInPanel"
                             :key="group.type"
+                            :data-test-id="`templateEdit-list-${group.sort_key_group_en}`"
                             @click="onSelectGroup(group.type)">
                             <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
                             <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
@@ -50,6 +52,7 @@
                                 :class="['list-item', { active: getSelectedStatus(item) }]"
                                 :key="index"
                                 :title="item.name"
+                                :data-test-id="`templateEdit-list-${item.code.replace(/_(\w)/g, (strMatch, p1) => p1.toUpperCase())}`"
                                 @click="$emit('select', item)">
                                 <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
                                 <span class="node-name" v-else>{{ item.name }}</span>
