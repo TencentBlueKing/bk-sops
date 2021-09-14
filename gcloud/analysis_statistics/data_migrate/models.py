@@ -12,13 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
+from django.conf import settings
 
 # 单次迁移量
-MIGRATE_NUM = 500
+MIGRATE_NUM = settings.STATISTICS_PER_MIGRATE_NUM
 
 
 class MigrateLog(models.Model):
     
+    desc = models.CharField(max_length=128,default="migrate_switch=1是启动迁移，0为停止迁移；migrate_num_once控制单次迁移量，默认为环境变量STATISTICS_PER_MIGRATE_NUM的值。")
     migrate_switch = models.BooleanField(verbose_name="迁移任务开关,默认为打开状态", default=True)
     migrate_num_once = models.IntegerField(verbose_name="单次数据迁移量,默认为{num}".format(num=MIGRATE_NUM), default=MIGRATE_NUM)
 

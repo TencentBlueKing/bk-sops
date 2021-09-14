@@ -272,7 +272,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
 
         taskflow_dict = {}
         for taskflow in taskflow_list:
-            taskflow_dict[template_id_map[str(taskflow["template_id"])]] = taskflow["instance_total"]
+            taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
 
         periodic_dict = {}
         for periodic_task in periodic_list:

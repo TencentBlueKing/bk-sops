@@ -142,3 +142,6 @@ try:
         JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
 except Exception:
     JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
+
+# 运营数据迁移默认单次迁移量
+STATISTICS_PER_MIGRATE_NUM = os.getenv("STATISTICS_PER_MIGRATE_NUM", 500)
