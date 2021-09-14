@@ -391,3 +391,21 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     task_status["ex_data"][node_id] = data_result.data.get("ex_data")
 
         return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
+
+    @classmethod
+    def get_task_status_tree(self, subprocess_id: Optional[int]) -> dict:
+        try:
+            status_tree = pipeline_api.get_status_tree(subprocess_id, 99)
+        except pipeline_exceptions.InvalidOperationException:
+            status_tree_result = bamboo_engine_api.get_pipeline_states(
+                runtime=BambooDjangoRuntime(), root_id=subprocess_id, flat_children=False
+            )
+            if not status_tree_result.result:
+                logger.error(
+                    "pipeline_archive_statistics_task bamboo_engine_api.get_pipeline_states fail: {}".format(
+                        status_tree_result.result.exc_trace
+                    )
+                )
+                return
+            status_tree = status_tree_result.data[subprocess_id]
+        return status_tree

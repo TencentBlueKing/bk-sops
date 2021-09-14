@@ -14,10 +14,14 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 
 # 单次迁移量
-MIGRATE_NUM = 1000
+MIGRATE_NUM = 500
 
 
 class MigrateLog(models.Model):
+    
+    migrate_switch = models.BooleanField(verbose_name="迁移任务开关,默认为打开状态", default=True)
+    migrate_num_once = models.IntegerField(verbose_name="单次数据迁移量,默认为{num}".format(num=MIGRATE_NUM), default=MIGRATE_NUM)
+
     templateInPipeline_start = models.IntegerField(verbose_name="template迁移起点", default=1)
     componentInTemplate_start = models.IntegerField(verbose_name="componet迁移起点", default=1)
     instanceInPipeline_start = models.IntegerField(verbose_name="instance迁移起点", default=1)

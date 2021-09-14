@@ -31,30 +31,33 @@ logger = logging.getLogger("root")
 
 
 @receiver(post_save, sender=TaskFlowInstance)
-def task_flow_post_handler(sender, instance, created, **kwargs):
+def task_flow_post_save_handler(sender, instance, created, **kwargs):
     """
     @summary:TemplateNodeTemplate和TemplateInStatistics的更新
     """
     try:
-        taskflowinstance_post_save_statistics_task.delay(taskflow_instance=instance)
+        task_instance_id = instance.id
+        taskflowinstance_post_save_statistics_task.delay(task_instance_id, created)
     except Exception:
         logger.error(
-            ("task_flow_post_handler[instance_id]={instance_id} send message error").format(instance_id=instance.id)
+            ("task_flow_post_save_handler[instance_id]={instance_id} send message error").format(
+                instance_id=instance.id
+            )
         )
 
 
 @receiver(post_save, sender=TaskTemplate)
-def task_template_post_handler(sender, instance, created, **kwargs):
+def task_template_post_save_handler(sender, instance, created, **kwargs):
     """
     @summary:TaskflowStatistics的更新
     """
-    template = instance
+    template_id = instance.id
     try:
-        tasktemplate_post_save_statistics_task.delay(template=template)
+        tasktemplate_post_save_statistics_task.delay(template_id)
     except Exception:
         logger.error(
-            ("task_template_post_handler[template_id]={task_template_id} send message error").format(
-                task_template_id=template.id
+            ("task_template_post_save_handler[template_id]={task_template_id} send message error").format(
+                task_template_id=template_id
             )
         )
 
@@ -64,14 +67,12 @@ def pipeline_instance_finish_handler(sender, instance_id, **kwargs):
     """
     @summary:TaskflowExecutedNodeStatistics执行状态更新为已完成
     """
-    instance = PipelineInstance.objects.get(instance_id=instance_id)
-    taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=instance)
     try:
-        pipeline_archive_statistics_task.delay(instance=instance, taskflow_instance=taskflow_instance)
+        pipeline_archive_statistics_task.delay(instance_id=instance_id)
     except Exception:
         logger.error(
             ("pipeline_instance_finish_handler[instance_id]={instance_id} send message error").format(
-                instance_id=instance.id
+                instance_id=instance_id
             )
         )
 
@@ -81,13 +82,11 @@ def pipeline_instance_revoke_handler(sender, instance_id, **kwargs):
     """
     @summary:TaskflowExecutedNodeStatistics执行状态更新为已撤销
     """
-    instance = PipelineInstance.objects.get(instance_id=instance_id)
-    taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=instance)
     try:
-        pipeline_archive_statistics_task.delay(instance=instance, taskflow_instance=taskflow_instance)
+        pipeline_archive_statistics_task.delay(instance_id=instance_id)
     except Exception:
         logger.error(
-            ("pipeline_instance_finish_handler[instance_id]={instance_id} send message error").format(
-                instance_id=instance.id
+            ("pipeline_instance_revoke_handler[instance_id]={instance_id} send message error").format(
+                instance_id=instance_id
             )
         )

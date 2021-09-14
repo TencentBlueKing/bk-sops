@@ -11,15 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
-
-
-class AnalysisStatisticsConfig(AppConfig):
-    name = "gcloud.analysis_statistics"
-    verbose_name = "GcloudAnalysisStatistics"
-
-    def ready(self):
-        from gcloud.analysis_statistics.signals.handlers import (  # noqa
-            task_flow_post_handler,
-            task_template_post_handler,
-        )
+TASKFLOWINSTANCE_POST_SAVE_STATISTICS_TASK = (
+    "gcloud.analysis_statistics.tasks.taskflowinstance_post_save_statistics_task.delay"
+)
+TASKTEMPLATE_POST_SAVE_STATISTICS_TASK = "gcloud.analysis_statistics.tasks.tasktemplate_post_save_statistics_task.delay"
+PIPELINE_ARCHIVE_STATISTICS_TASK = "gcloud.analysis_statistics.tasks.pipeline_archive_statistics_task.delay"

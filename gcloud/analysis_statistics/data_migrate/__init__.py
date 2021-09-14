@@ -11,4 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = "gcloud.analysis_statistics.apps.AnalysisStatisticsMigrateBeatConfig"
+default_app_config = "gcloud.analysis_statistics.data_migrate.apps.AnalysisStatisticsMigrateBeatConfig"

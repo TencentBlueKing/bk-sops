@@ -20,8 +20,8 @@ from .models import TaskflowExecutedNodeStatistics, TemplateNodeTemplate, Taskfl
 class TemplateNodeTemplateAdmin(admin.ModelAdmin):
     list_display = ("id", "component_code", "template_id", "node_id", "is_sub", "version")
     search_fields = (
-        "template_id",
-        "node_id",
+        "template_id__exact",
+        "node_id__exact",
     )
     list_filter = ("component_code", "is_sub")
 
@@ -43,8 +43,8 @@ class TaskflowExecutedNodeAdmin(admin.ModelAdmin):
         "version",
     )
     search_fields = (
-        "instance_id",
-        "node_id",
+        "instance_id__exact",
+        "node_id__exact",
     )
     list_filter = (
         "component_code",
@@ -58,7 +58,7 @@ class TaskflowExecutedNodeAdmin(admin.ModelAdmin):
 class TemplateInStatisticsAdmin(admin.ModelAdmin):
     list_display = ("template_id", "atom_total", "subprocess_total", "gateways_total")
 
-    search_fields = ("template_id",)
+    search_fields = ("template_id__exact",)
     list_filter = ("template_id", "atom_total", "subprocess_total", "gateways_total")
 
 
@@ -66,5 +66,5 @@ class TemplateInStatisticsAdmin(admin.ModelAdmin):
 class TaskflowStatisticsAdmin(admin.ModelAdmin):
     list_display = ("instance_id", "atom_total", "subprocess_total", "gateways_total")
 
-    search_fields = ("instance_id",)
+    search_fields = ("instance_id__exact",)
     list_filter = ("instance_id", "atom_total", "subprocess_total", "gateways_total")

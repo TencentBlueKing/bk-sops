@@ -364,7 +364,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
     def group_by_category(self, taskflow, filters, page, limit):
         """
         根据分类对任务进行聚合
-
         :param taskflow: 上层传入的初始筛选 queryset，此处不使用
         :type taskflow: [type]
         :param filters: 过滤参数
@@ -406,7 +405,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
         # 获取排序字段和排序方法
         order_by_field = self.GB_INSTANCE_NODE_ORDER_PARAMS.get(
-            filters.get("order_by", "-instanceId"), self.GB_INSTANCE_NODE_ORDER_PARAMS["-instanceId"]
+            filters.get("order_by", "instanceId"), self.GB_INSTANCE_NODE_ORDER_PARAMS["instanceId"]
         )
 
         # 查询出有序的taskflow统计数据
@@ -429,6 +428,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             "atom_total",
             "subprocess_total",
             "gateways_total",
+            "create_method",
         ).order_by(order_by_field)[(page - 1) * limit : page * limit]
 
         total = taskflow_statistics_data.count()
@@ -445,6 +445,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "atomTotal": data["atom_total"],
                 "subprocessTotal": data["subprocess_total"],
                 "gatewaysTotal": data["gateways_total"],
+                "createMethod": data["create_method"],
             }
             for data in data_list
         ]
@@ -452,42 +453,38 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_instance_time(self, taskflow, filters, page, limit):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
-        default_group = self.GB_INSTANCE_TIME_GROUP_PARAMS["day"]
+        task_instance_id_list = taskflow.values_list("id", flat=True)
         group_type = filters.get("type", "day")
-
-        statement = 'SELECT COUNT(*), {group_param}\
-        FROM `taskflow3_taskflowinstance` T  INNER JOIN (\
-            SELECT `id`, `create_time`\
-            FROM `pipeline_pipelineinstance`\
-            WHERE `create_time` >= "{create_time}" AND `create_time` < "{finish_time}"\
-        ) P ON (`T`.`pipeline_instance_id` = `P`.`id`){where}\
-        GROUP BY {group_param};'.format(
-            create_time=filters["create_time_datetime"],
-            finish_time=filters["finish_time_datetime"],
-            where=self._assemble_where_statement(filters),
-            group_param=self.GB_INSTANCE_TIME_GROUP_PARAMS.get(group_type, default_group),
+        select = {"time": connection.ops.date_trunc_sql(group_type, "create_time")}
+        results = (
+            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
+            .extra(select=select)
+            .values("time")
+            .annotate(value=Count("id"))
         )
-
-        result = []
-        with connection.cursor() as cursor:
-            cursor.execute(statement)
-
-            if group_type == "day":
-                result = [{"time": row[1], "value": row[0]} for row in cursor.fetchall()]
-            elif group_type == "month":
-                result = [{"time": "%s-%s" % (row[1], row[2]), "value": row[0]} for row in cursor.fetchall()]
-
-        total = sum([i["value"] for i in result])
-
-        return total, result
+        total = sum([result["value"] for result in results])
+        if group_type == "day":
+            groups = [
+                {
+                    "time": "{:0}-{:1}-{:2}".format(result["time"].year, result["time"].month, result["time"].day),
+                    "value": result["value"],
+                }
+                for result in results
+            ]
+        else:
+            groups = [
+                {"time": "{:0}-{:1}".format(result["time"].year, result["time"].month), "value": result["value"]}
+                for result in results
+            ]
+        return total, groups
 
     def group_by_project_id(self, taskflow, filters, page, limit):
         # 查询不同业务对应的流程数
         taskflow_id_list = taskflow.values_list("id", flat=True)
         taskflow_statistics_data = (
             TaskflowStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
-            .values("project_id")
-            .annotate(value=Count("project_id"))
+            .values("project_id", "create_method")
+            .annotate(value=Count("id"))
         )
         # 获取project_name
         project_id_list = taskflow_statistics_data.values_list("id", flat=True)
@@ -495,8 +492,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
         total = 1
         groups = [
-            {"code": data["project_id"], "name": project_dict.get(data["project_id"], ""), "value": data["value"]}
-            for data in taskflow_statistics_data
+            {
+                "code": project_id,
+                "name": project_dict.get(project_id, ""),
+                "value": sum([data["value"] for data in taskflow_statistics_data if data["project_id"] == project_id]),
+                "createMethod": [
+                    {"name": data["create_method"], "value": data["value"]}
+                    for data in taskflow_statistics_data
+                    if data["project_id"] == project_id
+                ],
+            }
+            for project_id in project_dict.keys()
         ]
 
         return total, groups

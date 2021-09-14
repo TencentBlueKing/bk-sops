@@ -35,7 +35,56 @@ from gcloud.analysis_statistics.models import TemplateInStatistics, TemplateNode
 logger = logging.getLogger("root")
 
 
-class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
+class TaskTemplateManagerMixin(ClassificationCountMixin):
+    GB_TEMPLATE_NODE_ORDER_PARAMS = {
+        "templateId": "templateId",
+        "projectId": "projectId",
+        "projectName": "projectName",
+        "templateName": "templateName",
+        "category": "category",
+        "createTime": "createTime",
+        "editTime": "editTime",
+        "creator": "creator",
+        "atomToal": "atomTotal",
+        "subprocessTotal": "subprocessTotal",
+        "gatewaysTotal": "gatewaysTotal",
+        "relationshipTotal": "relationshipTotal",
+        "instanceTotal": "instanceTotal",
+        "periodicTotal": "periodicTotal",
+        "outputCount": "outputCount",
+        "inputCount": "inputCount",
+        "-templateId": "-templateId",
+        "-projectId": "-projectId",
+        "-projectName": "-projectName",
+        "-templateName": "-templateName",
+        "-category": "-category",
+        "-createTime": "-createTime",
+        "-editTime": "-editTime",
+        "-creator": "-creator",
+        "-atomToal": "-atomTotal",
+        "-subprocessTotal": "-subprocessTotal",
+        "-gatewaysTotal": "-gatewaysTotal",
+        "-relationshipTotal": "-relationshipTotal",
+        "-instanceTotal": "-instanceTotal",
+        "-periodicTotal": "-periodicTotal",
+        "-outputCount": "-outputCount",
+        "-inputCount": "-inputCount",
+    }
+    GB_ATOM_TEMPLATE_ORDER_PARAMS = {
+        "templateId": "template_id",
+        "projectId": "project_id",
+        "category": "category",
+        "templateCreateTime": "template_create_time",
+        "templateCreator": "template_creator",
+        "-templateId": "-template_id",
+        "-projectId": "-project_id",
+        "-category": "-category",
+        "-templateCreateTime": "-template_create_time",
+        "-templateCreator": "-template_creator",
+    }
+
+
+class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
     def group_by_state(self, tasktmpl, *args):
         # 按流程模板执行状态查询流程个数
         total = tasktmpl.count()
@@ -116,7 +165,8 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         else:
             template_node_template_data = TemplateNodeTemplate.objects.all()
         total = template_node_template_data.count()
-        order_by = filters.get("order_by", "-templateId")
+        # order_by字段错误的情况默认使用-templateId排序
+        order_by = self.GB_ATOM_TEMPLATE_ORDER_PARAMS.get(filters.get("order_by", "-templateId"), "-template_id")
         if order_by == "-templateId":
             template_node_template_data = template_node_template_data.order_by("-template_id")
         if order_by == "templateId":
@@ -242,6 +292,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "templateName": template_dict.get(int(data.template_id), ""),
                     "category": data.category,
                     "createTime": data.template_create_time,
+                    "editTime": data.template_edit_time,
                     "creator": data.template_creator,
                     "atomToal": data.atom_total,
                     "subprocessTotal": data.subprocess_total,
@@ -253,13 +304,14 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "inputCount": data.input_count,
                 }
             )
-        order_by = filters.get("order_by", "-templateId")
+        # order_by字段错误的情况默认使用-templateId排序
+        order_by = self.GB_TEMPLATE_NODE_ORDER_PARAMS.get(filters.get("order_by", "-templateId"), "-templateId")
         if order_by.startswith("-"):
             # 需要去除负号
             order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
-        else:
             groups = sorted(groups, key=lambda group: group.get(order_by), reverse=True)
+        else:
+            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups[(page - 1) * limit : page * limit]
 
     def general_group_by(self, prefix_filters, group_by):

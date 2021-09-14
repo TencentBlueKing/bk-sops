@@ -11,15 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
+from django.test import TestCase
+
+from pipeline.models import PipelineInstance
 
 
-class AnalysisStatisticsConfig(AppConfig):
-    name = "gcloud.analysis_statistics"
-    verbose_name = "GcloudAnalysisStatistics"
+from gcloud.tests.mock import patch, MagicMock
+from gcloud.tests.analysis_statistics.mock_settings import PIPELINE_ARCHIVE_STATISTICS_TASK
 
-    def ready(self):
-        from gcloud.analysis_statistics.signals.handlers import (  # noqa
-            task_flow_post_handler,
-            task_template_post_handler,
-        )
+
+class TestPipelineInstanceRevokeHandler(TestCase):
+    def test_pipeline_instance_revoke_handler(self):
+        with patch(PIPELINE_ARCHIVE_STATISTICS_TASK, MagicMock()) as mocked_handler:
+            self.pipeline_instance = PipelineInstance.objects.create(instance_id="instance_id", executor="executor")
+            PipelineInstance.objects.set_revoked(self.pipeline_instance.instance_id)
+            self.assertEqual(mocked_handler.call_count, 1)

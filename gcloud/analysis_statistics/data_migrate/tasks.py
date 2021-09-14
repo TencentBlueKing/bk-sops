@@ -38,7 +38,6 @@ from gcloud.analysis_statistics.models import (
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.analysis_statistics.data_migrate.models import MigrateLog
-from gcloud.analysis_statistics.data_migrate.models import MIGRATE_NUM
 
 logger = logging.getLogger("celery")
 
@@ -52,24 +51,40 @@ def migrate_template(start, end):
     """
 
     # 查询出所有目标记录
-    filter = Q()
-    filter.children.append(("id__gte", start))
-    filter.children.append(("id__lt", end))
-    template_in_pipeline_records = TemplateInPipeline.objects.filter(filter)
+    condition = Q()
+    condition.children.append(("id__gte", start))
+    condition.children.append(("id__lt", end))
+    template_in_pipeline_records = TemplateInPipeline.objects.filter(condition)
 
     # 构造新的数据对象
     template_id_list = template_in_pipeline_records.values_list("template_id", flat=True)
-    pipeline_template_list = PipelineTemplate.objects.filter(template_id__in=template_id_list)
-    task_template_list = TaskTemplate.objects.filter(pipeline_template__in=pipeline_template_list)
+    pipeline_template_list = [
+        PipelineTemplate.objects.filter(template_id=template_id).first() for template_id in template_id_list
+    ]
+    task_template_list = [
+        TaskTemplate.objects.filter(pipeline_template=pipeline_template).first()
+        for pipeline_template in pipeline_template_list
+    ]
 
     template_in_statistics_instance = []
     for pipeline_template in pipeline_template_list:
         try:
             template_in_pipeline = template_in_pipeline_records.get(template_id=pipeline_template.template_id)
-            task_template = task_template_list.get(pipeline_template=pipeline_template)
-            project = task_template.project
         except ObjectDoesNotExist:
+            logger.error(
+                "TemplateInPipeline表中没有template_id={template_id}的数据项".format(template_id=pipeline_template.template_id)
+            )
             continue
+        try:
+            task_template = task_template_list.get(pipeline_template=pipeline_template)
+        except ObjectDoesNotExist:
+            logger.error(
+                "TaskTemplate表中没有pipeline_template={pipeline_template}的数据项".format(
+                    pipeline_template=pipeline_template.id
+                )
+            )
+            continue
+        project = task_template.project
         kwargs = {
             "template_id": pipeline_template.id,
             "task_template_id": task_template.id,
@@ -112,10 +127,10 @@ def migrate_component(start, end):
     """
 
     # 查询出所有目标记录
-    filter = Q()
-    filter.children.append(("id__gte", start))
-    filter.children.append(("id__lt", end))
-    component_in_template_records = ComponentInTemplate.objects.filter(filter)
+    condition = Q()
+    condition.children.append(("id__gte", start))
+    condition.children.append(("id__lt", end))
+    component_in_template_records = ComponentInTemplate.objects.filter(condition)
     template_id_list = component_in_template_records.values_list("template_id", flat=True)
     pipeline_template_list = PipelineTemplate.objects.filter(template_id__in=template_id_list)
 
@@ -166,10 +181,10 @@ def migrate_instance(start, end):
     """
 
     # 查询出所有目标记录
-    filter = Q()
-    filter.children.append(("id__gte", start))
-    filter.children.append(("id__lt", end))
-    instance_in_pipeline_records = InstanceInPipeline.objects.filter(filter)
+    condition = Q()
+    condition.children.append(("id__gte", start))
+    condition.children.append(("id__lt", end))
+    instance_in_pipeline_records = InstanceInPipeline.objects.filter(condition)
     instance_id_list = instance_in_pipeline_records.values_list("instance_id", flat=True)
     instance_list = PipelineInstance.objects.filter(instance_id__in=instance_id_list)
 
@@ -218,10 +233,10 @@ def migrate_componentExecuteData(start, end):
     """
 
     # 查询出所有目标记录
-    filter = Q()
-    filter.children.append(("id__gte", start))
-    filter.children.append(("id__lt", end))
-    component_execute_data_records = ComponentExecuteData.objects.filter(filter)
+    condition = Q()
+    condition.children.append(("id__gte", start))
+    condition.children.append(("id__lt", end))
+    component_execute_data_records = ComponentExecuteData.objects.filter(condition)
     component_instance = []
     for component in component_execute_data_records:
         try:
@@ -264,62 +279,88 @@ def migrate_componentExecuteData(start, end):
 
 @periodic_task(run_every=TzAwareCrontab(minute="*/2"))
 def migrate_schedule():
-    logger.info("start migrate process·····")
     # 获取迁移上下文
-    try:
-        migrate_log = MigrateLog.objects.get(id=1)
-    except ObjectDoesNotExist:
-        # 初始化MigrateLog
-        templateInPipeline_count = TemplateInPipeline.objects.count()
-        componentInTemplate_count = ComponentInTemplate.objects.count()
-        instanceInPipeline_count = InstanceInPipeline.objects.count()
-        componenetExecuteData_count = ComponentExecuteData.objects.count()
-        migrate_log = MigrateLog.objects.create(
-            templateInPipeline_count=templateInPipeline_count,
-            componentInTemplate_count=componentInTemplate_count,
-            instanceInPipeline_count=instanceInPipeline_count,
-            componenetExecuteData_count=componenetExecuteData_count,
+    migrate_log, created = MigrateLog.objects.get_or_create(
+        id=1,
+        defaults={
+            "templateInPipeline_count": TemplateInPipeline.objects.count(),
+            "componentInTemplate_count": ComponentInTemplate.objects.count(),
+            "instanceInPipeline_count": InstanceInPipeline.objects.count(),
+            "componenetExecuteData_count": ComponentExecuteData.objects.count(),
+        },
+    )
+
+    # 判断是否允许迁移
+    if not migrate_log.migrate_switch:
+        return
+    # 打印开始迁移日志
+
+    logger.info(
+        """migrate process have started.\n
+        table\t templateInPipeline\t ComponentInTemplate\t InstanceInPipeline\t ComponentExecuteData\t
+        migrated\t {:0}\t {:1}\t {:2}\t {:3}
+        """.format(
+            migrate_log.templateInPipeline_migrated,
+            migrate_log.componentInTemplate_migrated,
+            migrate_log.instanceInPipeline_migrated,
+            migrate_log.componenetExecuteData_migrated,
         )
-        migrate_log.save()
+    )
 
     # TemplateInPipeline迁移并更新上下文
     if not migrate_log.templateInPipeline_finished:
         if migrate_template(migrate_log.templateInPipeline_start, migrate_log.templateInPipeline_end):
             migrate_log.templateInPipeline_start = migrate_log.templateInPipeline_end
-            migrate_log.templateInPipeline_end += MIGRATE_NUM
+            migrate_log.templateInPipeline_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.templateInPipeline_start > migrate_log.templateInPipeline_count:
                 migrate_log.templateInPipeline_finished = True
+                migrate_log.save()
 
     # ComponentInTemplate迁移并更新上下文
     if not migrate_log.componentInTemplate_finished:
         if migrate_component(migrate_log.componentInTemplate_start, migrate_log.componentInTemplate_end):
             migrate_log.componentInTemplate_start = migrate_log.componentInTemplate_end
-            migrate_log.componentInTemplate_end += MIGRATE_NUM
+            migrate_log.componentInTemplate_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.componentInTemplate_start > migrate_log.componentInTemplate_count:
                 migrate_log.componentInTemplate_finished = True
+                migrate_log.save()
 
     # InstanceInPipeline迁移并更新上下文
     if not migrate_log.instanceInPipeline_finished:
         if migrate_instance(migrate_log.instanceInPipeline_start, migrate_log.instanceInPipeline_end):
             migrate_log.instanceInPipeline_start = migrate_log.instanceInPipeline_end
-            migrate_log.instanceInPipeline_end += MIGRATE_NUM
+            migrate_log.instanceInPipeline_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.instanceInPipeline_start > migrate_log.instanceInPipeline_count:
                 migrate_log.instanceInPipeline_finished = True
+                migrate_log.save()
 
     # ComponentExecuteData迁移并更新上下文
     if not migrate_log.componenetExecuteData_finished:
         if migrate_componentExecuteData(migrate_log.componentExecuteData_start, migrate_log.componenetExecuteData_end):
             migrate_log.componentExecuteData_start = migrate_log.componenetExecuteData_end
-            migrate_log.componenetExecuteData_end += MIGRATE_NUM
+            migrate_log.componenetExecuteData_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.componentExecuteData_start > migrate_log.componenetExecuteData_count:
                 migrate_log.componenetExecuteData_finished = True
+                migrate_log.save()
+
+    # 如果所有表都迁移完成就关掉迁移任务
+    finished = True
+    finished = finished and migrate_log.templateInPipeline_finished
+    finished = finished and migrate_log.componentInTemplate_finished
+    finished = finished and migrate_log.instanceInPipeline_finished
+    finished = finished and migrate_log.componenetExecuteData_finished
+    if finished:
+        migrate_log.migrate_switch = False
+        migrate_log.save()
+        logger.info("migrate process has finished ! ")
+        return
 
     logger.info("waiting next migrate process·····")

@@ -11,15 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
+from django.test import TestCase
+
+from gcloud.tests.mock import *  # noqa
+from gcloud.tests.mock_settings import *  # noqa
+from gcloud.tests.analysis_statistics.mock_settings import *  # noqa
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
-class AnalysisStatisticsConfig(AppConfig):
-    name = "gcloud.analysis_statistics"
-    verbose_name = "GcloudAnalysisStatistics"
-
-    def ready(self):
-        from gcloud.analysis_statistics.signals.handlers import (  # noqa
-            task_flow_post_handler,
-            task_template_post_handler,
-        )
+class TestTaskTemplatePostSaveHandler(TestCase):
+    def test_task_call_success(self):
+        with patch(TASKTEMPLATE_POST_SAVE_STATISTICS_TASK, MagicMock()) as mocked_handler:
+            self.tasktemplate = TaskTemplate.objects.create(
+                default_flow_type="default_flow_type", executor_proxy="executor_proxy"
+            )
+            self.assertEqual(mocked_handler.call_count, 1)

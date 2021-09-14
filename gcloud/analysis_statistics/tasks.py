@@ -24,9 +24,10 @@ from pipeline.contrib.statistics.utils import count_pipeline_tree_nodes
 from pipeline.core.constants import PE
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
-from pipeline.engine.exceptions import InvalidOperationException
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
+from pipeline.models import PipelineInstance
+
 
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.analysis_statistics.models import (
@@ -35,6 +36,9 @@ from gcloud.analysis_statistics.models import (
     TemplateInStatistics,
     TaskflowExecutedNodeStatistics,
 )
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
+
 
 logger = logging.getLogger("celery")
 
@@ -44,13 +48,12 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
     @summary 递归流程树，获取所有执行结束的插件TaskflowExecutedNodeStatistics对象列表（成功/失败）
     @param activities: 当前流程树的任务节点信息
     @param status_tree: 当前流程树的任务节点状态
-    @param template: Pipeline模板
     @param task_instance: 根流程实例TaskFlowInstance
     @param stack: 子流程堆栈
     @param engine_ver: 流程引擎版本
     """
     instance = task_instance.pipeline_instance
-    task_instance_id = task_instance.instance_id
+    task_instance_id = task_instance.id
     task_template = TaskTemplate.objects.get(pipeline_template=instance.template)
     if stack is None:
         stack = []
@@ -127,46 +130,50 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
 
 
 @task
-def taskflowinstance_post_save_statistics_task(taskflow_instance):
+def taskflowinstance_post_save_statistics_task(task_instance_id, created):
     try:
+        taskflow_instance = TaskFlowInstance.objects.get(id=task_instance_id)
         # pipeline数据
         pipeline_instance = taskflow_instance.pipeline_instance
         # template数据
         task_template = TaskTemplate.objects.get(id=taskflow_instance.template_id)
         # 统计流程标准插件个数，子流程个数，网关个数
-        atom_total, subprocess_total, gateways_total = count_pipeline_tree_nodes(pipeline_instance.execution_data)
-        TaskflowStatistics.objects.update_or_create(
-            task_instance_id=taskflow_instance.id,
-            defaults={
-                "instance_id": pipeline_instance.id,
-                "atom_total": atom_total,
-                "subprocess_total": subprocess_total,
-                "gateways_total": gateways_total,
-                "project_id": taskflow_instance.project.id,
-                "category": task_template.category,
-                "template_id": task_template.pipeline_template.id,
-                "task_template_id": task_template.id,
-                "creator": pipeline_instance.creator,
-                "create_time": pipeline_instance.create_time,
-                "start_time": pipeline_instance.start_time,
-                "finish_time": pipeline_instance.finish_time,
-                "elapsed_time": calculate_elapsed_time(pipeline_instance.start_time, pipeline_instance.finish_time),
-                "create_method": taskflow_instance.create_method,
-            },
-        )
+        kwargs = {
+            "instance_id": pipeline_instance.id,
+            "project_id": taskflow_instance.project.id,
+            "category": task_template.category,
+            "template_id": task_template.pipeline_template.id,
+            "task_template_id": task_template.id,
+            "creator": pipeline_instance.creator,
+            "create_time": pipeline_instance.create_time,
+            "start_time": pipeline_instance.start_time,
+            "finish_time": pipeline_instance.finish_time,
+            "elapsed_time": calculate_elapsed_time(pipeline_instance.start_time, pipeline_instance.finish_time),
+            "create_method": taskflow_instance.create_method,
+        }
+        if created:
+            kwargs["atom_total"], kwargs["subprocess_total"], kwargs["gateways_total"] = count_pipeline_tree_nodes(
+                pipeline_instance.execution_data
+            )
+
+        TaskflowStatistics.objects.update_or_create(task_instance_id=taskflow_instance.id, defaults=kwargs)
     except Exception as e:
         logger.error(
             (
                 "task_flow_post_handler save TaskflowStatistics[instance_id={instance_id}] " "raise error: {error}"
-            ).format(instance_id=taskflow_instance.id, error=e)
+            ).format(instance_id=task_instance_id, error=e)
         )
 
 
 @task
-def tasktemplate_post_save_statistics_task(template):
+def tasktemplate_post_save_statistics_task(template_id):
+    template = TaskTemplate.objects.get(id=template_id)
     task_template_id = template.id
     # 删除原有数据
-    TemplateNodeTemplate.objects.filter(task_template_id=task_template_id).delete()
+    try:
+        TemplateNodeTemplate.objects.filter(task_template_id=task_template_id).delete()
+    except Exception:
+        logger.error("保存运营数据template={template}时发生未知错误,".format(template=template_id))
     data = template.pipeline_template.data
     component_list = []
     # 任务节点引用标准插件统计（包含间接通过子流程引用）
@@ -243,28 +250,15 @@ def tasktemplate_post_save_statistics_task(template):
 
 
 @task
-def pipeline_archive_statistics_task(instance, taskflow_instance):
+def pipeline_archive_statistics_task(instance_id):
+    instance = PipelineInstance.objects.get(instance_id=instance_id)
+    taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=instance)
     engine_ver = 1
     instance_id = instance.instance_id
-    # 获取任务实例执行树,get_status_tree深度设为99,如果以后有大于99的请更改为新的深度以适应变化
-    try:
-        status_tree = pipeline_api.get_status_tree(instance_id, 99)
-    except InvalidOperationException:
-        engine_ver = 2
-        status_tree_result = bamboo_engine_api.get_pipeline_states(
-            runtime=BambooDjangoRuntime(), root_id=instance_id, flat_children=False
-        )
-        if not status_tree_result.result:
-            logger.error(
-                "pipeline_archive_statistics_task bamboo_engine_api.get_pipeline_states fail: {}".format(
-                    status_tree_result.result.exc_trace
-                )
-            )
-            return
-        status_tree = status_tree_result.data[instance_id]
-
+    # 获取任务实例执行树
+    status_tree = TaskCommandDispatcher.get_task_status_tree(instance_id)
     # 删除原有标准插件执行数据
-    TaskflowExecutedNodeStatistics.objects.filter(instance_id=instance_id).delete()
+    TaskflowExecutedNodeStatistics.objects.filter(instance_id=instance.id).delete()
     data = instance.execution_data
     try:
         component_list = recursive_collect_components_execution(

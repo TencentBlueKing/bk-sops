@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
-
+from rest_framework.decorators import api_view
 
 from gcloud.contrib.analysis.decorators import standardize_params
 from gcloud.constants import AE
@@ -51,9 +51,9 @@ def get_biz_useage(request, query):
     """
     total = Project.objects.all().count()
     if query == "template":
-        count = TaskTemplate.objects.values("project").distinct().count()
+        count = TaskTemplate.objects.values("project__id").distinct().count()
     elif query == "task":
-        count = TaskFlowInstance.objects.values("project").distinct().count()
+        count = TaskFlowInstance.objects.values("project__id").distinct().count()
     else:
         return JsonResponse(
             {"result": False, "code": REQUEST_PARAM_INVALID.code, "message": REQUEST_PARAM_INVALID.description}
