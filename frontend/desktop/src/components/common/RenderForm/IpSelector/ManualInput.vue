@@ -4,6 +4,7 @@
         <bk-select
             v-model="selectorId"
             :clearable="false"
+            :disabled="!editable"
             @change="onManualInputChange">
             <bk-option v-for="selector in selectorTabs.slice(0, -1)"
                 :key="selector.id"
@@ -15,7 +16,7 @@
         <bk-input
             :placeholder="typeDes"
             :type="'textarea'"
-            :disabled="!selectorId"
+            :disabled="!editable"
             v-model="inputValue"
             @change="onManualInputChange">
         </bk-input>
@@ -34,12 +35,25 @@
             manualInput: {
                 type: Object,
                 default: () => {}
+            },
+            editable: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
+            const keys = Object.keys(this.manualInput)
+            let selectorId, inputValue
+            if (keys.length) {
+                selectorId = this.manualInput.type
+                inputValue = this.manualInput.value
+            } else {
+                selectorId = this.selectorTabs[0].id
+                inputValue = ''
+            }
             return {
-                selectorId: '',
-                inputValue: '',
+                selectorId,
+                inputValue,
                 selectTypeTitle: '',
                 dataError: false,
                 typeDes: ''
@@ -64,15 +78,6 @@
                         break
                 }
                 this.typeDes = desc
-            }
-        },
-        mounted () {
-            const keys = Object.keys(this.manualInput)
-            if (keys.length) {
-                this.selectorId = this.manualInput.type
-                this.inputValue = this.manualInput.value
-            } else {
-                this.selectorId = this.selectorTabs[0].id
             }
         },
         methods: {

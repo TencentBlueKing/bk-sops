@@ -15,7 +15,7 @@ from django.test import TestCase
 
 from gcloud import err_code
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
-from pipeline.eri.models import ExecutionData
+from bamboo_engine.exceptions import NotFoundError
 
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -260,7 +260,7 @@ class GetNodeDataV2TestCase(TestCase):
         get_children_states_return.data = {"loop": 1}
         get_execution_data_return = MagicMock()
         get_execution_data_return.result = False
-        get_execution_data_return.exc = ExecutionData.DoesNotExist()
+        get_execution_data_return.exc = NotFoundError()
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
         bamboo_api.get_execution_data = MagicMock(return_value=get_execution_data_return)
         bamboo_api.preview_node_inputs = MagicMock(return_value={})
