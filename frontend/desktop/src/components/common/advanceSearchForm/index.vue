@@ -58,6 +58,7 @@
                         v-for="item in searchForm"
                         :key="item.key"
                         :property="item.key"
+                        :data-test-id="`advanceSearch-from-${item.key.replace(/_(\w)/g, (strMatch, p1) => p1.toUpperCase())}}`"
                         :label="item.label">
                         <template v-if="item.type === 'select'">
                             <bk-select
@@ -108,8 +109,8 @@
                         <i v-if="item.tips" class="common-icon-info form-tips" v-bk-tooltips="item.tips"></i>
                     </bk-form-item>
                     <bk-form-item class="query-button">
-                        <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
-                        <bk-button class="query-cancel" @click.prevent="onResetForm">{{$t('清空')}}</bk-button>
+                        <bk-button class="query-primary" data-test-id="advanceSearch-from-searchBtn" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
+                        <bk-button class="query-cancel" data-test-id="advanceSearch-from-clearBtn" @click.prevent="onResetForm">{{$t('清空')}}</bk-button>
                     </bk-form-item>
                 </bk-form>
             </div>

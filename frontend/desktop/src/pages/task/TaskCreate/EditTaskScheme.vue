@@ -13,12 +13,30 @@
             </div>
             <div class="scheme-active-wrapper">
                 <div>
-                    <bk-button :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button
+                        :disabled="isCommonProcess"
+                        icon="plus-line"
+                        data-test-id="templateEdit-form-addScheme"
+                        @click="onCreateScheme">
+                        {{ $t('新增') }}
+                    </bk-button>
+                    <bk-button
+                        :disabled="isCommonProcess"
+                        data-test-id="templateEdit-form-importTemporaryPlan"
+                        @click="onImportTemporaryPlan">
+                        {{ $t('导入临时方案') }}
+                    </bk-button>
                 </div>
-                <bk-button @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit-form-previewNode"
+                    @click="onChangePreviewNode">
+                    {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
+                </bk-button>
             </div>
-            <section :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess }]" v-bkloading="{ isLoading: isSchemeLoading }">
+            <section
+                data-test-id="templateEdit-form-schemeList"
+                :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess }]"
+                v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemaList.length && !nameEditing }]">
                     <bk-checkbox
                         :value="isAllChecked"
@@ -92,8 +110,14 @@
                 </bk-exception>
             </section>
             <section class="scheme-footer">
-                <bk-button theme="primary" :loading="executeSchemeSaving" @click="onSaveExecuteSchemeClick">{{ $t('保存') }}</bk-button>
-                <bk-button @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    :loading="executeSchemeSaving"
+                    data-test-id="templateEdit-form-saveScheme"
+                    @click="onSaveExecuteSchemeClick">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button data-test-id="templateEdit-form-returnBtn" @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
             </section>
         </div>
     </div>

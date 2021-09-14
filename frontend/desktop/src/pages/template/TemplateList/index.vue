@@ -32,6 +32,7 @@
                             :class="['create-template-btn', {
                                 'btn-permission-disable': !hasPermission(['flow_create'], authActions)
                             }]"
+                            data-test-id="process-form-creatProcess"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
@@ -41,8 +42,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="import-option-list" slot="dropdown-content">
-                                <li @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
-                                <li @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="process-list-importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="process-list-importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-dropdown-menu style="margin-left: 14px;">
@@ -51,10 +52,10 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="batch-operation-list" slot="dropdown-content">
-                                <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
-                                <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
-                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchCollect">{{ $t('收藏') }}</li>
-                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchDelete">{{ $t('删除') }}</li>
+                                <li data-test-id="process-list-exportDatFile" @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
+                                <li data-test-id="process-list-exportYamlFile" @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
+                                <li data-test-id="process-list-collectProcess" :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchCollect">{{ $t('收藏') }}</li>
+                                <li data-test-id="process-list-deleteProcess" :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchDelete">{{ $t('删除') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <div v-if="selectedTpls.length > 0" class="selected-tpl-num">
@@ -63,7 +64,7 @@
                         </div>
                     </template>
                 </advance-search-form>
-                <div class="template-table-content">
+                <div class="template-table-content" data-test-id="process-table-processList">
                     <bk-table
                         class="template-table"
                         :data="templateList"
