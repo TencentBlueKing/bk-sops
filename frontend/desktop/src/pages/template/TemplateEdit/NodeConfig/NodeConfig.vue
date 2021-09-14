@@ -332,6 +332,20 @@
                 if (!val) {
                     this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
                 }
+            },
+            isSelectorPanelShow: {
+                handler (val) {
+                    if (val && this.isSubflow) {
+                        this.$nextTick(() => {
+                            const subflowListDom = document.querySelector('.tpl-list')
+                            subflowListDom && subflowListDom.addEventListener('scroll', this.handleTableScroll)
+                            this.subflowListDom = subflowListDom
+                        })
+                    } else {
+                        this.subflowListDom = null
+                    }
+                },
+                immediate: true
             }
         },
         created () {
@@ -384,12 +398,6 @@
         },
         mounted () {
             this.initData()
-            if (this.isSelectorPanelShow) {
-                this.$nextTick(function () {
-                    this.subflowListDom = document.querySelector('.tpl-list')
-                    this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
-                })
-            }
         },
         methods: {
             ...mapActions('atomForm/', [
