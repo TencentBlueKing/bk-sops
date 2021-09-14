@@ -1,5 +1,10 @@
 # Release
 
+## 3.7.4
+
+- bugfix
+  - 非编辑态点击连线时不展示删除icon
+
 ## 3.7.3
 
 - bugfix
