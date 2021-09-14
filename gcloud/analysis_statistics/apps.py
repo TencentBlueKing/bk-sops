@@ -17,3 +17,11 @@ from django.apps import AppConfig
 class AnalysisStatisticsConfig(AppConfig):
     name = "gcloud.analysis_statistics"
     verbose_name = "GcloudAnalysisStatistics"
+
+    def ready(self):
+        from gcloud.analysis_statistics.signals.handlers import (  # noqa
+            task_flow_post_save_handler,
+            task_template_post_save_handler,
+            pipeline_instance_finish_handler,
+            pipeline_instance_revoke_handler,
+        )
