@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="my-dynamic">
+    <div class="my-dynamic" data-test-id="home-table-myDynamic">
         <h3 class="panel-title">
             <span class="panel-name">{{ $t('我的动态') }}</span>
             <div class="create-method">

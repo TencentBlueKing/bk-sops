@@ -10,10 +10,10 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
+    <div class="my-collection" data-test-id="home-form-myCollection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">
             {{ $t('我的收藏') }}
-            <span class="add-btn" @click="onAddCollection">{{ $t('添加') }}</span>
+            <span class="add-btn" data-test-id="home-form-addCollect" @click="onAddCollection">{{ $t('添加') }}</span>
         </h3>
         <div
             v-for="(grounp, index) in collectionGrounpList"
