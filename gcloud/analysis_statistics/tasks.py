@@ -28,7 +28,6 @@ from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.models import PipelineInstance
 
-
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.analysis_statistics.models import (
     TaskflowStatistics,
