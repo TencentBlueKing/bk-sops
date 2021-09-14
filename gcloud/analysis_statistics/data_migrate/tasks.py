@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -66,9 +67,9 @@ def migrate_template(start, end):
             task_template = TaskTemplate.objects.get(pipeline_template__id=pipeline_template.id)
             data_source_list.append(
                 {
-                    "template_in_pipeline_inst":template_in_pipeline_inst,
-                    "pipeline_template":pipeline_template,
-                    "task_template":task_template
+                    "template_in_pipeline_inst": template_in_pipeline_inst,
+                    "pipeline_template": pipeline_template,
+                    "task_template": task_template,
                 }
             )
         except ObjectDoesNotExist:
@@ -105,9 +106,10 @@ def migrate_template(start, end):
             with transaction.atomic():
                 templatestatistics = TemplateInStatistics.objects.create(**kwargs)
                 templatestatistics.save()
-        except:
+        except Exception:
             logger.warning("TemplateInStatistics插入失败，自动回滚")
     return True
+
 
 def migrate_component(start, end):
     """
@@ -132,13 +134,13 @@ def migrate_component(start, end):
             data_source_list.append(
                 {
                     "pipeline_template": pipeline_template,
-                    "task_template":task_template,
-                    "component_in_template_inst":component_in_template_inst
+                    "task_template": task_template,
+                    "component_in_template_inst": component_in_template_inst,
                 }
             )
         except ObjectDoesNotExist:
             continue
-    
+
     # 迁移
     for data_source_item in data_source_list:
         component = data_source_item["component_in_template_inst"]
@@ -162,9 +164,10 @@ def migrate_component(start, end):
             with transaction.atomic():
                 templatenodetemplate = TemplateNodeTemplate.objects.create(**kwargs)
                 templatenodetemplate.save()
-        except:
+        except Exception:
             logger.warning("TemplateNodeTemplate插入失败，自动回滚")
     return True
+
 
 def migrate_instance(start, end):
     """
@@ -195,10 +198,10 @@ def migrate_instance(start, end):
                     "taskflow_instance": taskflow_instance,
                     "pipeline_template": pipeline_template,
                     "task_template": task_template,
-                    "instance_in_pipeline": instance_in_pipeline
+                    "instance_in_pipeline": instance_in_pipeline,
                 }
             )
-        except:
+        except Exception:
             continue
     # 构建目标数据对象
     for data_source_item in data_source_list:
@@ -227,9 +230,10 @@ def migrate_instance(start, end):
             with transaction.atomic():
                 taslflowstatistics = TaskflowStatistics.objects.create(**kwargs)
                 taslflowstatistics.save()
-        except:
+        except Exception:
             logger.warning("TaskflowStatistics插入失败，自动回滚")
     return True
+
 
 def migrate_componentExecuteData(start, end):
     """
@@ -244,7 +248,6 @@ def migrate_componentExecuteData(start, end):
     condition.children.append(("id__gte", start))
     condition.children.append(("id__lt", end))
     component_execute_data_records = ComponentExecuteData.objects.filter(condition)
-    component_instance = []
     for component in component_execute_data_records:
         try:
             pipeline_instance = PipelineInstance.objects.get(instance_id=component.instance_id)
@@ -256,7 +259,7 @@ def migrate_componentExecuteData(start, end):
         kwargs = dict(
             component_code=component.component_code,
             instance_id=pipeline_instance.id,
-            task_instance_id = taskflow_instance.id,
+            task_instance_id=taskflow_instance.id,
             node_id=component.node_id,
             is_sub=component.is_sub,
             subprocess_stack=component.subprocess_stack,
@@ -278,10 +281,11 @@ def migrate_componentExecuteData(start, end):
             with transaction.atomic():
                 taskflowexcutednodestatistics = TaskflowExecutedNodeStatistics.objects.create(**kwargs)
                 taskflowexcutednodestatistics.save()
-        except:
+        except Exception:
             logger.warning("TaskflowExecutedNodeStatistics插入失败，自动回滚")
-        
+
     return True
+
 
 @periodic_task(run_every=TzAwareCrontab(minute="*/2"))
 def migrate_schedule():
