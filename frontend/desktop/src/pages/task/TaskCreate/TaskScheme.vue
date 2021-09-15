@@ -38,7 +38,6 @@
                         name="schemaName"
                         class="bk-input-inline"
                         :clearable="true"
-                        data-test-id="creatTask-form-creatScheme"
                         @blur="handlerBlur"
                         @keyup.enter.native="onAddScheme"
                         :placeholder="$t('方案名称')">
@@ -48,6 +47,7 @@
                 <div
                     v-else
                     class="add-plan"
+                    data-test-id="creatTask-form-creatScheme"
                     @click="onCreateScheme">
                     <span class="common-icon-add"></span>
                     {{ $t('新增方案') }}

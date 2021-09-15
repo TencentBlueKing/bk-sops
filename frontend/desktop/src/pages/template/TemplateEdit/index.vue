@@ -134,6 +134,7 @@
                 v-model="isBatchUpdateDialogShow"
                 :close-icon="false"
                 :fullscreen="true"
+                data-test-id="templateEdit-from-batchUpdateDialog"
                 :show-footer="false">
                 <batch-update-dialog
                     v-if="isBatchUpdateDialogShow"
@@ -151,6 +152,7 @@
                 :header-position="'left'"
                 :title="$t('离开页面')"
                 :value="isLeaveDialogShow"
+                data-test-id="templateEdit-from-leaveDialog"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
                 <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
@@ -162,6 +164,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="multipleTabDialogShow"
+                data-test-id="templateEdit-from-commonDialog"
                 @cancel="multipleTabDialogShow = false">
                 <div class="multiple-tab-dialog-content">
                     <h3>{{ $t('确定保存修改的内容？') }}</h3>
@@ -178,6 +181,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isExectueSchemeDialog"
+                data-test-id="templateEdit-from-tempEditDialog"
                 @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
@@ -194,6 +198,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isShowDialog"
+                data-test-id="templateEdit-from-conditeEditDialog"
                 @cancel="isShowDialog = false">
                 <div class="condition-edit-confirm-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
