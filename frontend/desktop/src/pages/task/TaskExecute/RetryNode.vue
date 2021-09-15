@@ -22,8 +22,20 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
-            <bk-button theme="primary" class="confirm-btn" :loading="retrying" @click="onRetryTask">{{ $t('确定') }}</bk-button>
-            <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            <bk-button
+                theme="primary"
+                class="confirm-btn"
+                :loading="retrying"
+                data-test-id="taskExcute-form-configRetryBtn"
+                @click="onRetryTask">
+                {{ $t('确定') }}
+            </bk-button>
+            <bk-button
+                theme="default"
+                data-test-id="taskExcute-form-cancelBtn"
+                @click="onCancelRetry">
+                {{ $t('取消') }}
+            </bk-button>
         </div>
     </div>
 </template>

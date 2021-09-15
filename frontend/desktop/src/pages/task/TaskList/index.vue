@@ -24,12 +24,13 @@
                         <bk-button
                             theme="primary"
                             style="min-width: 120px;"
+                            data-test-id="taskList-form-creatTask"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
-                <div class="task-table-content">
+                <div class="task-table-content" data-test-id="taskList-table-taskList">
                     <bk-table
                         :data="taskList"
                         :pagination="pagination"

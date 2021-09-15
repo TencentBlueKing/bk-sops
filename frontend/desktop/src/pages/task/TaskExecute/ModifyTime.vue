@@ -22,8 +22,20 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" class="confirm-btn" :loading="modifyTimeLoading" @click="onModifyTime">{{ $t('确定') }}</bk-button>
-            <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            <bk-button
+                theme="primary"
+                class="confirm-btn"
+                :loading="modifyTimeLoading"
+                data-test-id="taskExcute-form-saveModifyTimeBtn"
+                @click="onModifyTime">
+                {{ $t('确定') }}
+            </bk-button>
+            <bk-button
+                theme="default"
+                data-test-id="taskExcute-form-cancelBtn"
+                @click="onCancelRetry">
+                {{ $t('取消') }}
+            </bk-button>
         </div>
     </div>
 </template>
