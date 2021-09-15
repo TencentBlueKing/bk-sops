@@ -167,42 +167,21 @@ class PluginServiceApiClient:
             raise PluginServiceNotDeploy(f"Plugin Service {plugin_code} does not deployed.")
         plugin = result["plugin"]
 
+        default_host = ""
+        hosts = []
+        DEFAULT_HOST_TYPE = 2
+        for address in info["addresses"]:
+            if address["type"] == DEFAULT_HOST_TYPE:
+                default_host = address["address"]
+            hosts.append(address["address"])
         return {
             "result": True,
             "message": None,
-            "data": {"url": info["url"], "name": plugin["name"], "code": plugin["code"], "updated": plugin["updated"]},
+            "data": {
+                "url": default_host,
+                "urls": hosts,
+                "name": plugin["name"],
+                "code": plugin["code"],
+                "updated": plugin["updated"],
+            },
         }
-
-    @staticmethod
-    @json_response_decoder
-    def get_paas_plugin_info(plugin_code=None, environment=None, limit=100, offset=0, search_term=None):
-        """可支持通过PaaS平台请求获取插件服务列表或插件详情"""
-        url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
-            environment or env.APIGW_ENVIRONMENT,
-            "system/bk_plugins",
-            plugin_code if plugin_code else "",
-        )
-        params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
-        if not plugin_code:
-            # list接口相关参数
-            params.update({"limit": limit, "offset": offset, "has_deployed": True})
-            if search_term:
-                params.update({"search_term": search_term})
-        return requests.get(url, params=params)
-
-    @staticmethod
-    @json_response_decoder
-    def get_paas_logs(plugin_code, trace_id, scroll_id=None, environment=None):
-        """通过PaaS平台查询插件服务日志"""
-        url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
-            environment or env.APIGW_ENVIRONMENT,
-            "system/bk_plugins",
-            plugin_code,
-            "logs",
-        )
-        params = {"private_token": env.PAASV3_APIGW_API_TOKEN, "trace_id": trace_id}
-        if scroll_id:
-            params.update({"scroll_id": scroll_id})
-        return requests.get(url, params=params)

@@ -22,7 +22,7 @@ from plugin_service.plugin_client import PluginServiceApiClient
 def inject_plugin_client(func):
     @functools.wraps(func)
     def wrapper(request: Request):
-        plugin_code = request.query_params.get("plugin_code")
+        plugin_code = request.validated_data.get("plugin_code")
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
@@ -31,3 +31,18 @@ def inject_plugin_client(func):
         return func(request)
 
     return wrapper
+
+
+def validate_params(serializer_cls):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(request: Request):
+            data = request.query_params if request.method == "GET" else request.data
+            serializer = serializer_cls(data=data)
+            serializer.is_valid(raise_exception=True)
+            setattr(request, "validated_data", serializer.validated_data)
+            return func(request)
+
+        return wrapper
+
+    return decorator
