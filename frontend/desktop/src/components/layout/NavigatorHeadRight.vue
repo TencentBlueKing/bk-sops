@@ -20,7 +20,7 @@
         <div id="more-operation-html">
             <div class="operate-item" data-test-id="navHeader-list-productDoc" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
             <div class="operate-item" data-test-id="navHeader-list-versionLog" @click="onOpenVersion">{{ $t('版本日志') }}</div>
-            <div class="operate-item" data-test-id="navHeader-list-Feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
+            <div class="operate-item" data-test-id="navHeader-list-feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
         <!-- 用户icon -->
         <div class="user-avatar">{{ username }}</div>
