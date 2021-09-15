@@ -130,6 +130,7 @@
             :title="$t('跳过节点')"
             :loading="pending.skip"
             :value="isSkipDialogShow"
+            data-test-id="taskExcute-dialog-skipNodeDialog"
             @confirm="nodeTaskSkip(skipNodeId)"
             @cancel="onSkipCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
@@ -143,6 +144,7 @@
             :title="$t('强制失败')"
             :loading="pending.forceFail"
             :value="isForceFailDialogShow"
+            data-test-id="taskExcute-dialog-forceFailDialog"
             @confirm="nodeForceFail(forceFailId)"
             @cancel="onForceFailCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
@@ -156,6 +158,7 @@
             :title="$t('继续执行')"
             :loading="pending.parseNodeResume"
             :value="isNodeResumeDialogShow"
+            data-test-id="taskExcute-dialog-resumeDialog"
             @confirm="nodeResume(nodeResumeId)"
             @cancel="onTaskNodeResumeCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
@@ -173,6 +176,7 @@
             :mask-close="false"
             :show-footer="false"
             :value="isShowDialog"
+            data-test-id="taskExcute-dialog-confirmSaveDialog"
             @cancel="isShowDialog = false">
             <div class="task-operation-confirm-dialog-content">
                 <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>

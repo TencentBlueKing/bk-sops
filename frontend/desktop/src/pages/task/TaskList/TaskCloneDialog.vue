@@ -18,6 +18,7 @@
         :header-position="'left'"
         :title="$t('任务克隆')"
         :value="isTaskCloneDialogShow"
+        data-test-id="taskList-from-taskCloneDialog"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1, zIndex: 100 }">
