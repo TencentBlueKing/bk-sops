@@ -30,61 +30,13 @@ from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
-from gcloud.analysis_statistics.models import TemplateInStatistics, TemplateNodeTemplate
+from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics
+from gcloud.utils.statistics import format_component_name
 
 logger = logging.getLogger("root")
 
 
-class TaskTemplateManagerMixin(ClassificationCountMixin):
-    GB_TEMPLATE_NODE_ORDER_PARAMS = {
-        "templateId": "templateId",
-        "projectId": "projectId",
-        "projectName": "projectName",
-        "templateName": "templateName",
-        "category": "category",
-        "createTime": "createTime",
-        "editTime": "editTime",
-        "creator": "creator",
-        "atomToal": "atomTotal",
-        "subprocessTotal": "subprocessTotal",
-        "gatewaysTotal": "gatewaysTotal",
-        "relationshipTotal": "relationshipTotal",
-        "instanceTotal": "instanceTotal",
-        "periodicTotal": "periodicTotal",
-        "outputCount": "outputCount",
-        "inputCount": "inputCount",
-        "-templateId": "-templateId",
-        "-projectId": "-projectId",
-        "-projectName": "-projectName",
-        "-templateName": "-templateName",
-        "-category": "-category",
-        "-createTime": "-createTime",
-        "-editTime": "-editTime",
-        "-creator": "-creator",
-        "-atomToal": "-atomTotal",
-        "-subprocessTotal": "-subprocessTotal",
-        "-gatewaysTotal": "-gatewaysTotal",
-        "-relationshipTotal": "-relationshipTotal",
-        "-instanceTotal": "-instanceTotal",
-        "-periodicTotal": "-periodicTotal",
-        "-outputCount": "-outputCount",
-        "-inputCount": "-inputCount",
-    }
-    GB_ATOM_TEMPLATE_ORDER_PARAMS = {
-        "templateId": "template_id",
-        "projectId": "project_id",
-        "category": "category",
-        "templateCreateTime": "template_create_time",
-        "templateCreator": "template_creator",
-        "-templateId": "-template_id",
-        "-projectId": "-project_id",
-        "-category": "-category",
-        "-templateCreateTime": "-template_create_time",
-        "-templateCreator": "-template_creator",
-    }
-
-
-class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
+class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
     def group_by_state(self, tasktmpl, *args):
         # 按流程模板执行状态查询流程个数
         total = tasktmpl.count()
@@ -130,22 +82,12 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         task_template_id_list = tasktmpl.values_list("id", flat=True)
         # 查询出符合条件的不同原子引用
         template_node_template_data = (
-            TemplateNodeTemplate.objects.filter(template_id__in=task_template_id_list)
+            TemplateNodeStatistics.objects.filter(template_id__in=task_template_id_list)
             .values("component_code", "version")
             .annotate(value=Count("id"))
         )
 
-        for comp in components:
-            version = comp["version"]
-            # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            value = 0
-            for oth_com_tmp in template_node_template_data:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value = oth_com_tmp["value"]
-            groups.append({"code": code, "name": name, "value": value})
+        groups = format_component_name(components, template_node_template_data)
         return total, groups
 
     def group_by_atom_template(self, tasktmpl, filters, page, limit):
@@ -159,18 +101,12 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         version = filters.get("version")
         # 获取到组件code对应的template_id_list
         if component_code:
-            template_node_template_data = TemplateNodeTemplate.objects.filter(
+            template_node_template_data = TemplateNodeStatistics.objects.filter(
                 component_code=component_code, version=version
             )
         else:
-            template_node_template_data = TemplateNodeTemplate.objects.all()
+            template_node_template_data = TemplateNodeStatistics.objects.all()
         total = template_node_template_data.count()
-        # order_by字段错误的情况默认使用-templateId排序
-        order_by = self.GB_ATOM_TEMPLATE_ORDER_PARAMS.get(filters.get("order_by", "-templateId"), "-template_id")
-        if order_by == "-templateId":
-            template_node_template_data = template_node_template_data.order_by("-template_id")
-        if order_by == "templateId":
-            template_node_template_data = template_node_template_data.order_by("template_id")
         atom_template_data = template_node_template_data.values(
             "template_id",
             "project_id",
@@ -188,15 +124,23 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         for data in atom_template_data:
             groups.append(
                 {
-                    "templateId": data["template_id"],
-                    "projectId": data["project_id"],
-                    "projectName": project_dict.get(data["project_id"], ""),
-                    "templateName": template_dict.get(int(data["template_id"]), ""),
+                    "template_id": data["template_id"],
+                    "project_id": data["project_id"],
+                    "project_name": project_dict.get(data["project_id"], ""),
+                    "template_name": template_dict.get(int(data["template_id"]), ""),
                     "category": category_dict[data["category"]],  # 需要将code转为名称
-                    "createTime": format_datetime(data["template_create_time"]),
+                    "create_time": format_datetime(data["template_create_time"]),
                     "creator": data["template_creator"],
                 }
             )
+        # order_by字段错误的情况默认使用-template_d排序
+        order_by = filters.get("order_by", "-template_id")
+        if order_by.startswith("-"):
+            # 需要去除负号
+            order_by = order_by[1:]
+            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=True)
+        else:
+            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups
 
     def group_by_atom_execute(self, tasktmpl, filters, page, limit):
@@ -208,7 +152,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         # 获取标准插件code
         component_code = filters.get("component_code")
         # 获取到组件code对应的template_node_template
-        template_node_template_list = TemplateNodeTemplate.objects.filter(component_code=component_code)
+        template_node_template_list = TemplateNodeStatistics.objects.filter(component_code=component_code)
         total = template_node_template_list.count()
         atom_template_data = template_node_template_list.values(
             "template_id",
@@ -221,18 +165,18 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         project_id_list = template_node_template_list.values_list("project_id", flat=True)
         template_id_list = template_node_template_list.values_list("template_id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-        tempalte_dict = dict(self.filter(id__in=template_id_list).values_list("id", "name"))
+        tempalte_dict = dict(self.filter(id__in=template_id_list).values_list("id", "pipeline_template__name"))
         groups = []
         # 循环聚合信息
         for data in atom_template_data:
             groups.append(
                 {
-                    "templateId": data["template_id"],
-                    "projectId": data["project_id"],
-                    "projectName": project_dict.get(data["project_id"], ""),
-                    "templateName": tempalte_dict.get(int(data["template_id"]), ""),
+                    "template_id": data["template_id"],
+                    "project_id": data["project_id"],
+                    "project_name": project_dict.get(data["project_id"], ""),
+                    "template_name": tempalte_dict.get(int(data["template_id"]), ""),
                     "category": category_dict[data["category"]],
-                    "editTime": format_datetime(data["template_edit_time"]),
+                    "edit_time": format_datetime(data["template_edit_time"]),
                     "editor": data["template_creator"],
                 }
             )
@@ -244,7 +188,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         groups = []
 
         template_id_list = list(tasktmpl.values_list("id", flat=True))
-        template_in_statistics_data = TemplateInStatistics.objects.filter(task_template_id__in=template_id_list)
+        template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=template_id_list)
         template_id_map = {template.template_id: template.task_template_id for template in template_in_statistics_data}
         # 计算relationshipTotal, instanceTotal, periodicTotal
         # 查询所有的流程引用，并统计引用数量
@@ -286,26 +230,26 @@ class TaskTemplateManager(BaseTemplateManager, TaskTemplateManagerMixin):
         for data in template_in_statistics_data:
             groups.append(
                 {
-                    "templateId": data.template_id,
-                    "projectId": data.project_id,
-                    "projectName": project_dict.get(data.project_id, ""),
-                    "templateName": template_dict.get(int(data.template_id), ""),
+                    "template_id": data.template_id,
+                    "project_id": data.project_id,
+                    "project_name": project_dict.get(data.project_id, ""),
+                    "template_name": template_dict.get(int(data.template_id), ""),
                     "category": data.category,
-                    "createTime": data.template_create_time,
-                    "editTime": data.template_edit_time,
+                    "create_time": data.template_create_time,
+                    "edit_time": data.template_edit_time,
                     "creator": data.template_creator,
-                    "atomToal": data.atom_total,
-                    "subprocessTotal": data.subprocess_total,
-                    "gatewaysTotal": data.gateways_total,
-                    "relationshipTotal": relationship_dict.get(data.template_id, 0),
-                    "instanceTotal": taskflow_dict.get(data.template_id, 0),
-                    "periodicTotal": periodic_dict.get(data.template_id, 0),
-                    "outputCount": data.output_count,
-                    "inputCount": data.input_count,
+                    "atom_toal": data.atom_total,
+                    "subprocess_total": data.subprocess_total,
+                    "gateways_total": data.gateways_total,
+                    "relationship_total": relationship_dict.get(data.template_id, 0),
+                    "instance_total": taskflow_dict.get(data.template_id, 0),
+                    "periodic_total": periodic_dict.get(data.template_id, 0),
+                    "output_count": data.output_count,
+                    "input_count": data.input_count,
                 }
             )
         # order_by字段错误的情况默认使用-templateId排序
-        order_by = self.GB_TEMPLATE_NODE_ORDER_PARAMS.get(filters.get("order_by", "-templateId"), "-templateId")
+        order_by = filters.get("order_by", "-template_id")
         if order_by.startswith("-"):
             # 需要去除负号
             order_by = order_by[1:]

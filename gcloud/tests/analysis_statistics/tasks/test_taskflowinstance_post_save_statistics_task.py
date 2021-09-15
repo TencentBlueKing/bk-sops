@@ -13,16 +13,20 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.models import PipelineInstance
+from gcloud.tests.mock import *  # noqa
+from gcloud.tests.mock_settings import *  # noqa
+from gcloud.analysis_statistics.tasks import taskflowinstance_post_save_statistics_task
 
-from gcloud.tests.mock import mock, patch, MagicMock
-from gcloud.tests.analysis_statistics.mock_settings import PIPELINE_ARCHIVE_STATISTICS_TASK
+mock.mock._magics.add("__round__")
+
+TEST_TASK_INSTANCE_ID = 1
 
 
-class TestPipelineInstanceFinishHandler(TestCase):
-    def test_pipeline_instance_finish_handler(self):
-        with patch(PIPELINE_ARCHIVE_STATISTICS_TASK, MagicMock()) as mocked_handler:
-            self.pipeline_instance = PipelineInstance.objects.create(instance_id="instance_id", executor="executor")
-            PipelineInstance.objects.set_finished(self.pipeline_instance.instance_id)
-            self.assertEqual(mocked_handler.call_count, 1)
-            self.assertEqual(mocked_handler.call_args, mock.call(instance_id=self.pipeline_instance.instance_id))
+class TestTaskflowinstancePostSaveStatistics(TestCase):
+    @mock.patch(TASKINSTANCE_GET, MagicMock(return_value=MockTaskFlowInstance()))
+    @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
+    @mock.patch(CALCULATE_ELAPSED_TIME, MagicMock(return_value=1))
+    @mock.patch(TASKFLOW_STATISTICS_UPDATE_OR_CREATE, MagicMock(return_value=MockQuerySet()))
+    def test_task_success_case(self):
+        result = taskflowinstance_post_save_statistics_task(TEST_TASK_INSTANCE_ID, True)
+        self.assertTrue(result)

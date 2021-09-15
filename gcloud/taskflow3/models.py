@@ -53,6 +53,7 @@ from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher, NodeComm
 from gcloud.shortcuts.cmdb import get_business_group_members
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
+from gcloud.utils.statistics import format_component_name
 
 logger = logging.getLogger("root")
 
@@ -64,21 +65,6 @@ MANUAL_INTERVENTION_COMP_CODES = frozenset(["pause_node"])
 
 
 class TaskFlowStatisticsMixin(ClassificationCountMixin):
-
-    GB_INSTANCE_NODE_ORDER_PARAMS = {
-        "-instanceId": "-instance_id",
-        "-atomTotal": "-atom_total",
-        "-subprocessTotal": "-subprocess_total",
-        "-gatewaysTotal": "-gateways_total",
-        "-elapsedTime": "-elapsed_time",
-        "instanceId": "instance_id",
-        "atomTotal": "atom_total",
-        "subprocessTotal": "subprocess_total",
-        "gatewaysTotal": "gateways_total",
-        "elapsedTime": "elapsed_time",
-    }
-
-    GB_INSTANCE_TIME_GROUP_PARAMS = {"day": "DATE(create_time)", "month": "YEAR(create_time), MONTH(create_time)"}
 
     TASK_CATEGORY_DICT = dict(TASK_CATEGORY)
 
@@ -142,7 +128,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         category_dict = dict(TASK_CATEGORY)
 
         taskflow_values = taskflow.values("create_info")
-        order_by = filters.get("order_by", "-templateId")
+        order_by = filters.get("order_by", "-template_id")
         project_id = filters.get("project_id", "")
         category = filters.get("category", "")
         started_time = timestamp_to_datetime(filters["create_time"])
@@ -185,17 +171,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             appmaker_id = data.get("id")
             groups.append(
                 {
-                    "templateId": code,
-                    "createTime": format_datetime(data.get("create_time")),
-                    "editTime": format_datetime(data.get("edit_time")),
+                    "template_id": code,
+                    "create_time": format_datetime(data.get("create_time")),
+                    "edit_time": format_datetime(data.get("edit_time")),
                     "creator": data.get("creator"),
-                    "templateName": data.get("name"),
-                    "projectId": data.get("project_id"),
-                    "projectName": data.get("project__name"),
+                    "template_name": data.get("name"),
+                    "project_id": data.get("project_id"),
+                    "project_name": data.get("project__name"),
                     "category": category_dict[data.get("task_template__category")],
                     # 需要将 code 转为字符型
-                    "instanceTotal": total_dict.get(str(appmaker_id), 0),
-                    "appmakerId": data.get("id"),
+                    "instance_total": total_dict.get(str(appmaker_id), 0),
+                    "appmaker_id": data.get("id"),
                 }
             )
         if order_by.startswith("-"):
@@ -219,17 +205,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             .annotate(value=Count("id"))
         )
 
-        for comp in components:
-            version = comp["version"]
-            # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            value = 0
-            for oth_com_tmp in template_node_template_data:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value = oth_com_tmp["value"]
-            groups.append({"code": code, "name": name, "value": value})
+        groups = format_component_name(components, template_node_template_data)
         return total, groups
 
     def group_by_atom_execute_fail_times(self, taskflow, *args):
@@ -237,25 +213,15 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         components = ComponentModel.objects.filter(status=False).values("code", "version", "name")
         total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values("id")
+        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的不同流程引用
         template_node_template_data = (
             TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
             .values("component_code", "version")
-            .aggregate(value=Count("id"))
+            .annotate(value=Count("id"))
         )
 
-        for comp in components:
-            version = comp["version"]
-            # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            value = 0
-            for oth_com_tmp in template_node_template_data:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value = oth_com_tmp["value"]
-            groups.append({"code": code, "name": name, "value": value})
+        groups = format_component_name(components, template_node_template_data)
         return total, groups
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
@@ -271,17 +237,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             .annotate(value=Avg("elapsed_time"))
         )
 
-        for comp in components:
-            version = comp["version"]
-            # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            value = 0
-            for oth_com_tmp in template_node_template_data:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value = oth_com_tmp["value"]
-            groups.append({"code": code, "name": name, "value": value})
+        groups = format_component_name(components, template_node_template_data)
         return total, groups
 
     def group_by_atom_fail_percent(self, taskflow, *args):
@@ -299,17 +255,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             .annotate(value=Count("id", fliter=status_false_filter) / Count("id"))
         )
 
-        for comp in components:
-            version = comp["version"]
-            # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            value = 0
-            for oth_com_tmp in template_node_template_data:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value = oth_com_tmp["value"]
-            groups.append({"code": code, "name": name, "value": value})
+        groups = format_component_name(components, template_node_template_data)
         return total, groups
 
     def group_by_atom_instance(self, taskflow, filters, page, limit):
@@ -331,10 +277,10 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
         # 获得总数
         total = taskflow_list.count()
-        order_by = filters.get("order_by", "-templateId")
-        if order_by == "-instanceId":
+        order_by = filters.get("order_by", "-instance_id")
+        if order_by == "-instance_id":
             taskflow_list = taskflow_list.order_by("-id")
-        elif order_by == "instanceId":
+        elif order_by == "instance_id":
             taskflow_list = taskflow_list.order_by("id")
         taskflow_list = taskflow_list.values(
             "id",
@@ -350,12 +296,12 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         for data in taskflow_list:
             groups.append(
                 {
-                    "instanceId": data.get("id"),
-                    "projectId": data.get("project_id"),
-                    "projectName": data.get("project__name"),
-                    "instanceName": data.get("pipeline_instance__name"),
+                    "instance_id": data.get("id"),
+                    "project_id": data.get("project_id"),
+                    "project_name": data.get("project__name"),
+                    "instance_name": data.get("pipeline_instance__name"),
                     "category": self.TASK_CATEGORY_DICT[data.get("category")],  # 需要将code转为名称
-                    "createTime": format_datetime(data.get("pipeline_instance__create_time")),
+                    "create_time": format_datetime(data.get("pipeline_instance__create_time")),
                     "creator": data.get("pipeline_instance__creator"),
                 }
             )
@@ -404,9 +350,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         """
 
         # 获取排序字段和排序方法
-        order_by_field = self.GB_INSTANCE_NODE_ORDER_PARAMS.get(
-            filters.get("order_by", "instanceId"), self.GB_INSTANCE_NODE_ORDER_PARAMS["instanceId"]
-        )
+        order_by_field = filters.get("order_by", "instance_id")
 
         # 查询出有序的taskflow统计数据
         task_instance_id_list = taskflow.values_list("id", flat=True)
@@ -434,18 +378,18 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         total = taskflow_statistics_data.count()
         groups = [
             {
-                "instanceId": data["instance_id"],
-                "instanceName": instance_dict.get(data["instance_id"], data["instance_id"]),
-                "projectId": data["project_id"],
-                "projectName": project_dict.get(data["project_id"], data["project_id"]),
+                "instance_id": data["instance_id"],
+                "instance_name": instance_dict.get(data["instance_id"], data["instance_id"]),
+                "project_id": data["project_id"],
+                "project_name": project_dict.get(data["project_id"], data["project_id"]),
                 "category": self.TASK_CATEGORY_DICT.get(data["category"], data["category"]),
-                "createTime": data["create_time"],
+                "create_time": data["create_time"],
                 "creator": data["creator"],
-                "elapsedTime": data["elapsed_time"],
-                "atomTotal": data["atom_total"],
-                "subprocessTotal": data["subprocess_total"],
-                "gatewaysTotal": data["gateways_total"],
-                "createMethod": data["create_method"],
+                "elapsed_time": data["elapsed_time"],
+                "atom_total": data["atom_total"],
+                "subprocess_total": data["subprocess_total"],
+                "gateways_total": data["gateways_total"],
+                "create_method": data["create_method"],
             }
             for data in data_list
         ]
@@ -459,23 +403,30 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         results = (
             TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
             .extra(select=select)
-            .values("time")
+            .values("time", "create_method")
             .annotate(value=Count("id"))
         )
         total = sum([result["value"] for result in results])
-        if group_type == "day":
-            groups = [
-                {
-                    "time": "{:0}-{:1}-{:2}".format(result["time"].year, result["time"].month, result["time"].day),
-                    "value": result["value"],
-                }
-                for result in results
-            ]
-        else:
-            groups = [
-                {"time": "{:0}-{:1}".format(result["time"].year, result["time"].month), "value": result["value"]}
-                for result in results
-            ]
+
+        def format_groups(type):
+            time_dict = {}
+            for result in results:
+                if type == "day":
+                    str_time = "{:0}-{:1}-{:2}".format(result["time"].year, result["time"].month, result["time"].day)
+                else:
+                    str_time = "{:0}-{:1}".format(result["time"].year, result["time"].month)
+                if result["time"] not in time_dict.keys():
+                    time_dict[str_time] = {
+                        "time": str_time,
+                        "value": result["value"],
+                        "create_method": [{"name": result["create_method"], "value": result["value"]}],
+                    }
+                else:
+                    time_dict[str_time]["value"] += result["value"]
+                    time_dict["create_method"].append({"name": result["create_method"], "value": result["value"]})
+            return list(time_dict.values())
+
+        groups = format_groups(group_type)
         return total, groups
 
     def group_by_project_id(self, taskflow, filters, page, limit):
@@ -496,7 +447,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "code": project_id,
                 "name": project_dict.get(project_id, ""),
                 "value": sum([data["value"] for data in taskflow_statistics_data if data["project_id"] == project_id]),
-                "createMethod": [
+                "create_method": [
                     {"name": data["create_method"], "value": data["value"]}
                     for data in taskflow_statistics_data
                     if data["project_id"] == project_id

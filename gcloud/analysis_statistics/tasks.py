@@ -17,6 +17,7 @@ import ujson as json
 from copy import deepcopy
 
 from celery import task
+from datetime import datetime
 from bamboo_engine import api as bamboo_engine_api
 
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
@@ -31,8 +32,8 @@ from pipeline.models import PipelineInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.analysis_statistics.models import (
     TaskflowStatistics,
-    TemplateNodeTemplate,
-    TemplateInStatistics,
+    TemplateNodeStatistics,
+    TemplateStatistics,
     TaskflowExecutedNodeStatistics,
 )
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -40,6 +41,12 @@ from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
 
 
 logger = logging.getLogger("celery")
+
+
+def format_date_time(time_str, time_format="%Y-%m-%d %H:%M:%S"):
+    format_time_str = time_str.split("+")[0].strip()
+    date_time = datetime.strptime(format_time_str, time_format)
+    return date_time.replace(tzinfo=None)
 
 
 def recursive_collect_components_execution(activities, status_tree, task_instance, stack=None, engine_ver=1):
@@ -74,10 +81,13 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                         "is_sub": is_sub,
                         "node_id": act_id,
                         "subprocess_stack": json.dumps(stack),
-                        "started_time": exec_act["started_time"],
-                        "archived_time": exec_act["archived_time"],
+                        "started_time": format_date_time(exec_act["start_time"]),
+                        "archived_time": format_date_time(exec_act["finish_time"]),
                         "elapsed_time": exec_act.get(
-                            "elapsed_time", calculate_elapsed_time(exec_act["started_time"], exec_act["archived_time"])
+                            "elapsed_time",
+                            calculate_elapsed_time(
+                                format_date_time(exec_act["start_time"]), format_date_time(exec_act["finish_time"])
+                            ),
                         ),
                         "is_skip": exec_act["skip"],
                         "is_retry": False,
@@ -156,12 +166,14 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
             )
 
         TaskflowStatistics.objects.update_or_create(task_instance_id=taskflow_instance.id, defaults=kwargs)
+        return True
     except Exception as e:
         logger.error(
             (
                 "task_flow_post_handler save TaskflowStatistics[instance_id={instance_id}] " "raise error: {error}"
             ).format(instance_id=task_instance_id, error=e)
         )
+        return False
 
 
 @task
@@ -170,16 +182,17 @@ def tasktemplate_post_save_statistics_task(template_id):
     task_template_id = template.id
     # 删除原有数据
     try:
-        TemplateNodeTemplate.objects.filter(task_template_id=task_template_id).delete()
+        TemplateNodeStatistics.objects.filter(task_template_id=task_template_id).delete()
     except Exception:
-        logger.error("保存运营数据template={template}时发生未知错误,".format(template=template_id))
+        logger.exception("保存运营数据template={template}时发生未知错误,".format(template=template_id))
+        return False
     data = template.pipeline_template.data
     component_list = []
     # 任务节点引用标准插件统计（包含间接通过子流程引用）
     for act_id, act in data[PE.activities].items():
         # 标准插件节点
         if act["type"] == PE.ServiceActivity:
-            component = TemplateNodeTemplate(
+            component = TemplateNodeStatistics(
                 component_code=act["component"]["code"],
                 template_id=template.pipeline_template.id,
                 task_template_id=task_template_id,
@@ -194,7 +207,16 @@ def tasktemplate_post_save_statistics_task(template_id):
             component_list.append(component)
         # 子流程节点
         else:
-            components = TemplateNodeTemplate.objects.filter(template_id=act["template_id"]).values(
+            try:
+                template_id = act["template_id"]
+            except KeyError:
+                logger.error(
+                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败,子流程数据缺少template_id。".format(
+                        template.id
+                    )
+                )
+                return False
+            components = TemplateNodeStatistics.objects.filter(template_id=template_id).values(
                 "subprocess_stack", "component_code", "node_id", "version"
             )
             for component_sub in components:
@@ -202,7 +224,7 @@ def tasktemplate_post_save_statistics_task(template_id):
                 stack = json.loads(component_sub["subprocess_stack"])
                 # 添加节点id
                 stack.insert(0, act_id)
-                component = TemplateNodeTemplate(
+                component = TemplateNodeStatistics(
                     component_code=component_sub["component_code"],
                     template_id=template.pipeline_template.id,
                     task_template_id=task_template_id,
@@ -217,7 +239,7 @@ def tasktemplate_post_save_statistics_task(template_id):
                     template_edit_time=template.pipeline_template.edit_time,
                 )
                 component_list.append(component)
-    TemplateNodeTemplate.objects.bulk_create(component_list)
+    TemplateNodeStatistics.objects.bulk_create(component_list)
 
     # 统计流程标准插件个数，子流程个数，网关个数
     atom_total, subprocess_total, gateways_total = count_pipeline_tree_nodes(data)
@@ -229,8 +251,8 @@ def tasktemplate_post_save_statistics_task(template_id):
             output_count += 1
         else:
             input_count += 1
-    # 更新TemplateInStatistics
-    TemplateInStatistics.objects.update_or_create(
+    # 更新TemplateStatistics
+    TemplateStatistics.objects.update_or_create(
         task_template_id=task_template_id,
         defaults={
             "template_id": template.pipeline_template.id,
@@ -246,27 +268,34 @@ def tasktemplate_post_save_statistics_task(template_id):
             "input_count": input_count,
         },
     )
+    return True
 
 
 @task
 def pipeline_archive_statistics_task(instance_id):
     instance = PipelineInstance.objects.get(instance_id=instance_id)
     taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=instance)
-    engine_ver = 1
+    engine_ver = taskflow_instance.engine_ver
     instance_id = instance.instance_id
     # 获取任务实例执行树
-    status_tree = TaskCommandDispatcher.get_task_status_tree(instance_id)
+    cmd_dispatcher = TaskCommandDispatcher(engine_ver, taskflow_instance.id, instance, taskflow_instance.project.id)
+    status_tree_result = cmd_dispatcher.get_task_status()
+    if not status_tree_result["result"]:
+        logger.exception("get task_status_result fail, taskflow_instace = {id}.".format(id=taskflow_instance.id))
+        return False
     # 删除原有标准插件执行数据
     TaskflowExecutedNodeStatistics.objects.filter(instance_id=instance.id).delete()
     data = instance.execution_data
     try:
         component_list = recursive_collect_components_execution(
-            data[PE.activities], status_tree["children"], taskflow_instance, engine_ver
+            data[PE.activities], status_tree_result["data"]["children"], taskflow_instance, engine_ver
         )
         TaskflowExecutedNodeStatistics.objects.bulk_create(component_list)
     except Exception:
-        logger.error(
+        logger.exception(
             (
                 "pipeline_instance_handler save TaskflowExecuteNodeStatistics[instance_id={instance_id}] raise error"
             ).format(instance_id=instance_id)
         )
+        return False
+    return True

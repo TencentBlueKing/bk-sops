@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.constants import TASK_CATEGORY, TASK_CREATE_METHOD
 
 
-class TemplateNodeTemplate(models.Model):
+class TemplateNodeStatistics(models.Model):
     id = models.BigAutoField(_("id"), primary_key=True)
     component_code = models.CharField(_("组件编码"), max_length=255, db_index=True)
     template_id = models.BigIntegerField(_("Pipeline模板ID"), db_index=True)
@@ -71,7 +71,7 @@ class TaskflowExecutedNodeStatistics(models.Model):
         return "{}_{}".format(self.component_code, self.instance_id)
 
 
-class TemplateInStatistics(models.Model):
+class TemplateStatistics(models.Model):
     id = models.BigAutoField(_("id"), primary_key=True)
     template_id = models.BigIntegerField(_("Pipeline模板ID"), db_index=True)
     task_template_id = models.BigIntegerField(_("Task模板ID"), db_index=True)

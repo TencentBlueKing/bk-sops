@@ -495,9 +495,6 @@ PAGE_NOT_FOUND_URL_KEY = "page_not_found"
 PLUGIN_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
-# 运营数据迁移默认单次迁移量
-STATISTICS_PER_MIGRATE_NUM = env.STATISTICS_PER_MIGRATE_NUM
-
 
 # SaaS统一日志配置
 def logging_addition_settings(logging_dict, environment="prod"):

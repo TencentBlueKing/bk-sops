@@ -19,14 +19,12 @@ from typing import Optional
 from django.utils import timezone
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
-from bamboo_engine.context import Context
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline import exceptions as pipeline_exceptions
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
-from pipeline.engine.models import PipelineModel
 from pipeline_web.parser.format import format_web_data_to_pipeline
 from pipeline.exceptions import (
     ConvergeMatchError,
@@ -37,7 +35,6 @@ from pipeline.exceptions import (
 
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
-from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_status
 from gcloud.project_constants.domains.context import get_project_constants_context
 from engine_pickle_obj.context import SystemObject
@@ -168,7 +165,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             return {
                 "result": False,
@@ -178,7 +177,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -406,76 +407,3 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     task_status["ex_data"][node_id] = data_result.data.get("ex_data")
 
         return {"result": True, "data": task_status, "code": err_code.SUCCESS.code, "message": ""}
-
-    @classmethod
-    def get_task_status_tree(self, subprocess_id: Optional[int]) -> dict:
-        try:
-            status_tree = pipeline_api.get_status_tree(subprocess_id, 99)
-        except pipeline_exceptions.InvalidOperationException:
-            status_tree_result = bamboo_engine_api.get_pipeline_states(
-                runtime=BambooDjangoRuntime(), root_id=subprocess_id, flat_children=False
-            )
-            if not status_tree_result.result:
-                logger.error(
-                    "pipeline_archive_statistics_task bamboo_engine_api.get_pipeline_states fail: {}".format(
-                        status_tree_result.result.exc_trace
-                    )
-                )
-                return
-            status_tree = status_tree_result.data[subprocess_id]
-        return status_tree
-
-    def render_current_constants(self):
-        if self.engine_ver not in self.VALID_ENGINE_VER:
-            return self._unsupported_engine_ver_result()
-
-        return getattr(self, "render_current_constants_v{}".format(self.engine_ver))()
-
-    def render_current_constants_v1(self):
-        if not (
-            self.pipeline_instance.is_started
-            and not self.pipeline_instance.is_finished
-            and not self.pipeline_instance.is_revoked
-        ):
-            return {
-                "result": False,
-                "data": None,
-                "code": err_code.INVALID_OPERATION.code,
-                "message": "task is not running",
-            }
-
-        pipeline_model = PipelineModel.objects.get(id=self.pipeline_instance.instance_id)
-        context = pipeline_model.process.root_pipeline.context
-
-        data = []
-        for key, var in context.variables.items():
-            try:
-                if isinstance(var.value, TaskContext):
-                    data.append({"key": key, "value": var.value.__dict__})
-                elif hasattr(var, "get"):
-                    data.append({"key": key, "value": var.get()})
-                else:
-                    data.append({"key": key, "value": var.value})
-            except Exception:
-                logger.exception("[render_current_constants_v1] error occurred at value resolve for %s" % key)
-                data.append({"key": key, "value": "[ERROR]value resolve error"})
-
-        return {"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""}
-
-    def render_current_constants_v2(self):
-        runtime = BambooDjangoRuntime()
-        context_values = runtime.get_context(self.pipeline_instance.instance_id)
-        root_pipeline_inputs = {
-            key: di.value for key, di in runtime.get_data_inputs(self.pipeline_instance.instance_id).items()
-        }
-        context = Context(runtime, context_values, root_pipeline_inputs)
-        hydrated_context = context.hydrate()
-
-        data = []
-        for key, value in hydrated_context.items():
-            if isinstance(value, SystemObject):
-                data.append({"key": key, "value": value.__dict__})
-            else:
-                data.append({"key": key, "value": value})
-
-        return {"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""}

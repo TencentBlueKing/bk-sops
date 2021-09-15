@@ -32,8 +32,8 @@ from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
 
 from gcloud.analysis_statistics.models import (
-    TemplateInStatistics,
-    TemplateNodeTemplate,
+    TemplateStatistics,
+    TemplateNodeStatistics,
     TaskflowExecutedNodeStatistics,
     TaskflowStatistics,
 )
@@ -46,7 +46,7 @@ logger = logging.getLogger("celery")
 
 def migrate_template(start, end):
     """
-    @summary: 执行“TemplateInPipeline-->TemplateInStatistics”的迁移
+    @summary: 执行“TemplateInPipeline-->TemplateStatistics”的迁移
     param start:TemplateInPipeline表的主键
     param end:TemplateInPipeline表的主键
     return success:是否成功
@@ -103,17 +103,18 @@ def migrate_template(start, end):
         kwargs["input_count"] = input_count
         kwargs["output_count"] = output_count
         try:
+            TemplateStatistics.objects.filter(template_id=kwargs["template_id"]).delete()
             with transaction.atomic():
-                templatestatistics = TemplateInStatistics.objects.create(**kwargs)
+                templatestatistics = TemplateStatistics.objects.create(**kwargs)
                 templatestatistics.save()
         except Exception:
-            logger.warning("TemplateInStatistics插入失败，自动回滚")
+            logger.exception("[migrate_template] template_id={:0}的数据插入失败，自动回滚".format(kwargs["template_id"]))
     return True
 
 
 def migrate_component(start, end):
     """
-    @summary: 执行“ComponentInTemplate-->TemplateNodeTemplate”的迁移
+    @summary: 执行“ComponentInTemplate-->TemplateNodeStatistics”的迁移
     param start:ComponentInTemplate表的主键
     param end:ComponentInTemplate表的主键
     return success:是否成功
@@ -161,11 +162,18 @@ def migrate_component(start, end):
             template_edit_time=pipeline_template.edit_time,
         )
         try:
+            TemplateNodeStatistics.objects.filter(
+                task_template_id=kwargs["task_template_id"], node_id=kwargs["node_id"]
+            ).delete()
             with transaction.atomic():
-                templatenodetemplate = TemplateNodeTemplate.objects.create(**kwargs)
-                templatenodetemplate.save()
+                template_node_statistics = TemplateNodeStatistics.objects.create(**kwargs)
+                template_node_statistics.save()
         except Exception:
-            logger.warning("TemplateNodeTemplate插入失败，自动回滚")
+            logger.exception(
+                "[migrate_component] template_id={:0},node_id={:1}的数据插入失败，自动回滚".format(
+                    kwargs["template_id"], kwargs["node_id"]
+                )
+            )
     return True
 
 
@@ -227,11 +235,12 @@ def migrate_instance(start, end):
             create_method=taskflow_instance.create_method,
         )
         try:
+            TaskflowStatistics.objects.filter(instance_id=kwargs["instance_id"]).delete()
             with transaction.atomic():
                 taslflowstatistics = TaskflowStatistics.objects.create(**kwargs)
                 taslflowstatistics.save()
         except Exception:
-            logger.warning("TaskflowStatistics插入失败，自动回滚")
+            logger.exception("[migrate_instance] instance_id={:0}的数据插入失败，自动回滚".format(kwargs["instance_id"]))
     return True
 
 
@@ -279,104 +288,115 @@ def migrate_componentExecuteData(start, end):
         )
         try:
             with transaction.atomic():
+                TaskflowExecutedNodeStatistics.objects.filter(
+                    task_instance_id=kwargs["task_instance_id"], node_id=kwargs["node_id"]
+                ).delete()
                 taskflowexcutednodestatistics = TaskflowExecutedNodeStatistics.objects.create(**kwargs)
                 taskflowexcutednodestatistics.save()
         except Exception:
-            logger.warning("TaskflowExecutedNodeStatistics插入失败，自动回滚")
+            logger.exception(
+                "[migrate_componentExecuteData] instance_id={:0},node_id={:1}的数据插入失败，自动回滚".format(
+                    kwargs["instance_id"], kwargs["node_id"]
+                )
+            )
 
     return True
 
 
 @periodic_task(run_every=TzAwareCrontab(minute="*/2"))
 def migrate_schedule():
-    logger.info("\n**********\nstart the statistics migrate schedule ·········\n**********")
+    logger.info("[migrate_schedule] start the statistics migrate schedule ·········")
     # 获取迁移上下文
     migrate_log, created = MigrateLog.objects.get_or_create(
         id=1,
         defaults={
-            "templateInPipeline_count": TemplateInPipeline.objects.count(),
-            "componentInTemplate_count": ComponentInTemplate.objects.count(),
-            "instanceInPipeline_count": InstanceInPipeline.objects.count(),
-            "componenetExecuteData_count": ComponentExecuteData.objects.count(),
+            "template_in_pipeline_count": TemplateInPipeline.objects.count(),
+            "component_in_template_count": ComponentInTemplate.objects.count(),
+            "instance_in_pipeline_count": InstanceInPipeline.objects.count(),
+            "component_execute_data_count": ComponentExecuteData.objects.count(),
         },
     )
     if created:
-        logger.info("start the statistics migrate ··········")
+        logger.info("[migrate_schedule] start the statistics migrate ··········")
     else:
-        logger.info("continue the statistics migrate ·········")
+        logger.info("[migrate_schedule] continue the statistics migrate ·········")
 
     # 判断是否允许迁移
     if not migrate_log.migrate_switch:
-        logger.info("\n**********\nthe migrate_switch is closed\n**********")
+        logger.info("[migrate_schedule] the migrate_switch is closed!")
         return
     # 打印开始迁移日志
 
+    logger.info("[migrate_schedule] migrate process have started.")
     logger.info(
-        """migrate process have started.\n
-        table\t templateInPipeline\t ComponentInTemplate\t InstanceInPipeline\t ComponentExecuteData\t
-        migrated\t {:0}\t {:1}\t {:2}\t {:3}
+        """
+        [migrate_schedule] migrated templateInPipeline({:0}) ComponentInTemplate({:1})
+        InstanceInPipeline({:2}) ComponentExecuteData({:3})
         """.format(
-            migrate_log.templateInPipeline_migrated,
-            migrate_log.componentInTemplate_migrated,
-            migrate_log.instanceInPipeline_migrated,
-            migrate_log.componenetExecuteData_migrated,
+            migrate_log.template_in_pipeline_migrated,
+            migrate_log.component_in_template_migrated,
+            migrate_log.instance_in_pipeline_migrated,
+            migrate_log.component_execute_data_migrated,
         )
     )
 
     # TemplateInPipeline迁移并更新上下文
-    if not migrate_log.templateInPipeline_finished:
-        if migrate_template(migrate_log.templateInPipeline_start, migrate_log.templateInPipeline_end):
-            migrate_log.templateInPipeline_start = migrate_log.templateInPipeline_end
-            migrate_log.templateInPipeline_end += migrate_log.migrate_num_once
+    if not migrate_log.template_in_pipeline_finished:
+        if migrate_template(migrate_log.template_in_pipeline_start, migrate_log.template_in_pipeline_end):
+            migrate_log.template_in_pipeline_start = migrate_log.template_in_pipeline_end
+            migrate_log.template_in_pipeline_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
-            if migrate_log.templateInPipeline_start > migrate_log.templateInPipeline_count:
-                migrate_log.templateInPipeline_finished = True
+            if migrate_log.template_in_pipeline_start > migrate_log.template_in_pipeline_count:
+                migrate_log.template_in_pipeline_finished = True
                 migrate_log.save()
 
     # ComponentInTemplate迁移并更新上下文
-    if not migrate_log.componentInTemplate_finished:
-        if migrate_component(migrate_log.componentInTemplate_start, migrate_log.componentInTemplate_end):
-            migrate_log.componentInTemplate_start = migrate_log.componentInTemplate_end
-            migrate_log.componentInTemplate_end += migrate_log.migrate_num_once
+    if not migrate_log.component_in_template_finished:
+        if migrate_component(migrate_log.component_in_template_start, migrate_log.component_in_template_end):
+            migrate_log.component_in_template_start = migrate_log.component_in_template_end
+            migrate_log.component_in_template_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
-            if migrate_log.componentInTemplate_start > migrate_log.componentInTemplate_count:
-                migrate_log.componentInTemplate_finished = True
+            if migrate_log.component_in_template_start > migrate_log.component_in_template_count:
+                migrate_log.component_in_template_finished = True
                 migrate_log.save()
 
     # InstanceInPipeline迁移并更新上下文
-    if not migrate_log.instanceInPipeline_finished:
-        if migrate_instance(migrate_log.instanceInPipeline_start, migrate_log.instanceInPipeline_end):
-            migrate_log.instanceInPipeline_start = migrate_log.instanceInPipeline_end
-            migrate_log.instanceInPipeline_end += migrate_log.migrate_num_once
+    if not migrate_log.instance_in_pipeline_finished:
+        if migrate_instance(migrate_log.instance_in_pipeline_start, migrate_log.instance_in_pipeline_end):
+            migrate_log.instance_in_pipeline_start = migrate_log.instance_in_pipeline_end
+            migrate_log.instance_in_pipeline_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
-            if migrate_log.instanceInPipeline_start > migrate_log.instanceInPipeline_count:
-                migrate_log.instanceInPipeline_finished = True
+            if migrate_log.instance_in_pipeline_start > migrate_log.instance_in_pipeline_count:
+                migrate_log.instance_in_pipeline_finished = True
                 migrate_log.save()
 
     # ComponentExecuteData迁移并更新上下文
-    if not migrate_log.componenetExecuteData_finished:
-        if migrate_componentExecuteData(migrate_log.componentExecuteData_start, migrate_log.componenetExecuteData_end):
-            migrate_log.componentExecuteData_start = migrate_log.componenetExecuteData_end
-            migrate_log.componenetExecuteData_end += migrate_log.migrate_num_once
+    if not migrate_log.component_execute_data_finished:
+        if migrate_componentExecuteData(
+            migrate_log.component_execute_data_start, migrate_log.component_execute_data_end
+        ):
+            migrate_log.component_execute_data_start = migrate_log.component_execute_data_end
+            migrate_log.component_execute_data_end += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
-            if migrate_log.componentExecuteData_start > migrate_log.componenetExecuteData_count:
-                migrate_log.componenetExecuteData_finished = True
+            if migrate_log.component_execute_data_start > migrate_log.component_execute_data_count:
+                migrate_log.component_execute_data_finished = True
                 migrate_log.save()
 
     # 如果所有表都迁移完成就关掉迁移任务
-    finished = True
-    finished = finished and migrate_log.templateInPipeline_finished
-    finished = finished and migrate_log.componentInTemplate_finished
-    finished = finished and migrate_log.instanceInPipeline_finished
-    finished = finished and migrate_log.componenetExecuteData_finished
+    finished = all(
+        migrate_log.template_in_pipeline_finished,
+        migrate_log.component_in_template_finished,
+        migrate_log.instance_in_pipeline_finished,
+        migrate_log.component_execute_data_finished,
+    )
     if finished:
         migrate_log.migrate_switch = False
         migrate_log.save()
-        logger.info("migrate process has finished ! ")
+        logger.info("[migrate_schedule] migrate process has finished ! ")
         return
 
-    logger.info("waiting next migrate process·····")
+    logger.info("[migrate_schedule] waiting next migrate process·····")

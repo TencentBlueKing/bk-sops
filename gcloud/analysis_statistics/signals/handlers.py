@@ -33,7 +33,7 @@ logger = logging.getLogger("root")
 @receiver(post_save, sender=TaskFlowInstance)
 def task_flow_post_save_handler(sender, instance, created, **kwargs):
     """
-    @summary:TemplateNodeTemplate和TemplateInStatistics的更新
+    @summary:TemplateNodeStatistics和TemplateStatistics的更新
     """
     try:
         task_instance_id = instance.id

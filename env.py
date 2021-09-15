@@ -151,8 +151,6 @@ try:
 except Exception:
     JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
 
-# 运营数据迁移默认单次迁移量
-STATISTICS_PER_MIGRATE_NUM = os.getenv("STATISTICS_PER_MIGRATE_NUM", 500)
 
 # celery broker 连接池数量配置
 CELERY_BROKER_POOL_LIMIT = int(os.getenv("BKAPP_CELERY_BROKER_POOL_LIMIT", 10))
