@@ -105,8 +105,8 @@ def migrate_template(start, end):
         try:
             TemplateStatistics.objects.filter(template_id=kwargs["template_id"]).delete()
             with transaction.atomic():
-                templatestatistics = TemplateStatistics.objects.create(**kwargs)
-                templatestatistics.save()
+                template_statistics = TemplateStatistics.objects.create(**kwargs)
+                template_statistics.save()
         except Exception:
             logger.exception("[migrate_template] template_id={:0}的数据插入失败，自动回滚".format(kwargs["template_id"]))
     return True

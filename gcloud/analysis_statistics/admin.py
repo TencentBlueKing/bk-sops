@@ -13,11 +13,16 @@ specific language governing permissions and limitations under the License.
 
 from django.contrib import admin
 
-from .models import TaskflowExecutedNodeStatistics, TemplateNodeTemplate, TaskflowStatistics, TemplateInStatistics
+from gcloud.analysis_statistics.models import (
+    TaskflowExecutedNodeStatistics,
+    TemplateNodeStatistics,
+    TaskflowStatistics,
+    TemplateStatistics,
+)
 
 
-@admin.register(TemplateNodeTemplate)
-class TemplateNodeTemplateAdmin(admin.ModelAdmin):
+@admin.register(TemplateNodeStatistics)
+class TemplateNodeStatisticsAdmin(admin.ModelAdmin):
     list_display = ("id", "component_code", "template_id", "node_id", "is_sub", "version")
     search_fields = (
         "template_id__exact",
@@ -54,8 +59,8 @@ class TaskflowExecutedNodeAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(TemplateInStatistics)
-class TemplateInStatisticsAdmin(admin.ModelAdmin):
+@admin.register(TemplateStatistics)
+class TemplateStatisticsAdmin(admin.ModelAdmin):
     list_display = ("template_id", "atom_total", "subprocess_total", "gateways_total")
 
     search_fields = ("template_id__exact",)

@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
-from rest_framework.decorators import api_view
 
 from gcloud.contrib.analysis.decorators import standardize_params
 from gcloud.constants import AE
