@@ -167,10 +167,23 @@ class PluginServiceApiClient:
             raise PluginServiceNotDeploy(f"Plugin Service {plugin_code} does not deployed.")
         plugin = result["plugin"]
 
+        default_host = ""
+        hosts = []
+        DEFAULT_HOST_TYPE = 2
+        for address in info["addresses"]:
+            if address["type"] == DEFAULT_HOST_TYPE:
+                default_host = address["address"]
+            hosts.append(address["address"])
         return {
             "result": True,
             "message": None,
-            "data": {"url": info["url"], "name": plugin["name"], "code": plugin["code"], "updated": plugin["updated"]},
+            "data": {
+                "url": default_host,
+                "urls": hosts,
+                "name": plugin["name"],
+                "code": plugin["code"],
+                "updated": plugin["updated"],
+            },
         }
 
     @staticmethod

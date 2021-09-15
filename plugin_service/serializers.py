@@ -23,8 +23,9 @@ class LogQuerySerializer(PluginCodeQuerySerializer):
     scroll_id = serializers.CharField(help_text="翻页标识字段", required=False)
 
 
-class PluginVersionQuerySerializer(PluginCodeQuerySerializer):
+class PluginDetailQuerySerializer(PluginCodeQuerySerializer):
     plugin_version = serializers.CharField(help_text="插件服务版本")
+    with_app_detail = serializers.BooleanField(help_text="是否返回插件APP信息", required=False, default=False)
 
 
 class StandardResponseSerializer(serializers.Serializer):
@@ -42,7 +43,8 @@ class PluginAppDetailResponseSerializer(serializers.Serializer):
     code = serializers.CharField(help_text="插件服务应用Code")
     name = serializers.CharField(help_text="插件服务应用名称")
     updated = serializers.TimeField(help_text="插件服务应用更新时间")
-    url = serializers.CharField(help_text="插件服务应用地址")
+    url = serializers.CharField(help_text="插件服务默认地址")
+    urls = serializers.ListField(help_text="插件服务支持请求地址列表")
 
 
 class PluginListSerializer(serializers.Serializer):
@@ -112,5 +114,6 @@ class DetailResponseSerializer(StandardResponseSerializer):
         context_inputs = ContextInputsFieldsSerializer(help_text="上下文输入模型")
         outputs = OutputsFieldsSerializer(help_text="输出模型")
         forms = DetailFormsSerializer(help_text="表单数据")
+        app = PluginAppDetailResponseSerializer(help_text="插件服务APP相关详情信息", required=False)
 
     data = DetailDataSerializer(help_text="插件详情数据")
