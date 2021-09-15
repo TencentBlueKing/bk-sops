@@ -21,7 +21,7 @@
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>
-                <div class="audit-table-content">
+                <div class="audit-table-content" data-test-id="aduit-table-auditList">
                     <bk-table
                         :data="auditList"
                         :pagination="pagination"
