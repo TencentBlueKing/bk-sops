@@ -20,6 +20,7 @@ DEV_LOG_TITLE = {"feature", "improvement", "bugfix"}
 
 def check_dev_log(dir_path):
     absolute_dir_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), dir_path)
+    assert os.path.isdir(absolute_dir_path), f"检查版本日志文件夹出错：文件夹{absolute_dir_path}不存在"
     for yaml_file in os.listdir(absolute_dir_path):
         with open(os.path.join(absolute_dir_path, yaml_file)) as data:
             dev_log = yaml.load(data, yaml.FullLoader)
