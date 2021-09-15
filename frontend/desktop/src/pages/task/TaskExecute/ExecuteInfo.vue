@@ -687,18 +687,6 @@
                     const version = this.nodeDetailConfig.version
                     const componentCode = this.nodeDetailConfig.component_code
 
-                    // 获取第三方插件插件host
-                    let appDetail = null
-                    const hostList = $.context.bk_plugin_api_host
-                    const code = this.thirdPartyNodeCode
-                    if (this.isThirdPartyNode && !hostList[code]) {
-                        appDetail = await this.loadPluginServiceAppDetail({ plugin_code: code })
-                        const { url } = appDetail.data
-                        // 设置renderform的host
-                        const host = Array.isArray(url) ? window.location.href : url
-                        hostList[code] = host
-                    }
-
                     // 添加插件输出表单所需上下文
                     $.context.input_form.inputs = inputs
                     $.context.output_form.outputs = outputs
@@ -758,7 +746,8 @@
                     this.executeInfo.plugin_version = this.isThirdPartyNode ? inputs.plugin_version : version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (this.isThirdPartyNode) {
-                        this.executeInfo.plugin_name = appDetail.data.name
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.executeInfo.plugin_name = resp.data.name
                     } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
@@ -840,12 +829,13 @@
                         if (this.isThirdPartyNode) {
                             const resp = await this.loadPluginServiceDetail({
                                 plugin_code: this.thirdPartyNodeCode,
-                                plugin_version: pluginVersion
+                                plugin_version: pluginVersion,
+                                with_app_detail: true
                             })
                             if (!resp.result) return
+                            const { app, outputs: respsOutputs, forms } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                            const respsOutputs = resp.data.outputs
                             const outputs = []
                             for (const [key, val] of Object.entries(respsOutputs.properties)) {
                                 outputs.push({
@@ -856,8 +846,11 @@
                                 })
                             }
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
+                            // 设置host
+                            const { host } = window.location
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = app.urls.find(item => item.includes(host))
                             // 输入参数
-                            const renderFrom = resp.data.forms.renderform
+                            const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
                             eval(renderFrom)
                             const config = $.atoms[this.thirdPartyNodeCode]

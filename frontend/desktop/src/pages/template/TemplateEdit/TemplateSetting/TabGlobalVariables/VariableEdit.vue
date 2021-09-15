@@ -422,11 +422,19 @@
                 try {
                     // 第三方插件变量
                     if (plugin_code) {
-                        const resp = await this.loadPluginServiceDetail({ plugin_code, plugin_version: version })
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
                         if (!resp.result) return
+                        const { app, forms } = resp.data
+                        // 设置host
+                        const { host } = window.location
+                        $.context.bk_plugin_api_host[plugin_code] = app.urls.find(item => item.includes(host))
                         // 输入参数
                         $.atoms[plugin_code] = {}
-                        const renderFrom = resp.data.forms.renderform
+                        const renderFrom = forms.renderform
                         /* eslint-disable-next-line */
                         eval(renderFrom)
                         const config = $.atoms[plugin_code]
