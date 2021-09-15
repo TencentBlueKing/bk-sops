@@ -89,7 +89,7 @@ class MockTaskFlowInstance(object):
     def __init__(self, **kwargs):
         self.id = kwargs.get("id", "id")
         self.task_action = MagicMock(return_value=kwargs.get("task_action_return", None))
-        self.get_verbose_state_tree = MagicMock(
+        self.get_status = MagicMock(
             **{"return_value": kwargs.get("get_status_return"), "side_effect": kwargs.get("get_status_raise")}
         )
         self.format_pipeline_status = MagicMock(
