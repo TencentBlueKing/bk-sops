@@ -37,7 +37,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="project-table-content">
+                <div class="project-table-content" data-test-id="project-table-projectList">
                     <bk-table
                         class="project-table"
                         :data="projectList"
@@ -101,6 +101,7 @@
             :header-position="'left'"
             :title="projectDialogTitle"
             :value="isProjectDialogShow"
+            data-test-id="project-table-projectDialog"
             @confirm="onProjectConfirm"
             @cancel="onEditProjectCancel">
             <div class="dialog-content">

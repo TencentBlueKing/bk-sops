@@ -16,7 +16,10 @@
             <span>{{ $t('项目配置') }}</span>
         </page-header>
         <div class="mandate-page-content">
-            <section class="project-info" v-bkloading="{ isLoading: projectLoading, opacity: 1, zIndex: 100 }">
+            <section
+                class="project-info"
+                data-test-id="projectConfig-form-projectInfo"
+                v-bkloading="{ isLoading: projectLoading, opacity: 1, zIndex: 100 }">
                 <template v-if="project.name">
                     <div class="icon">{{ project.name[0] }}</div>
                 </template>
@@ -53,10 +56,15 @@
                     </div>
                 </div>
             </section>
-            <section class="mandate-section">
+            <section class="mandate-section" data-test-id="projectConfig-form-executeAgent">
                 <div class="title">
                     {{ $t('执行代理人设置') }}
-                    <bk-button theme="primary" @click="onEditAgent">{{ $t('编辑') }}</bk-button>
+                    <bk-button
+                        theme="primary"
+                        data-test-id="projectConfig-form-editExecuteAgent"
+                        @click="onEditAgent">
+                        {{ $t('编辑') }}
+                    </bk-button>
                 </div>
                 <bk-form class="agent-form" v-bkloading="{ isLoading: agentLoading, opacity: 1, zIndex: 100 }">
                     <bk-form-item :label="$t('执行代理人')">
@@ -169,6 +177,7 @@
             :title="$t('执行代理人设置')"
             :loading="pending.agent"
             :value="isAgentDialogShow"
+            data-test-id="projectConfig-form-executeAgentDialog"
             @confirm="updateAgentData"
             @cancel="isAgentDialogShow = false">
             <bk-form class="agent-dialog" :model="editingAgent">
