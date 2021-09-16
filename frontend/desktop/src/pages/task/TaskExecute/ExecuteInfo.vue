@@ -166,7 +166,8 @@
                     </bk-tab>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor
-                            v-if="logInfo"
+                            v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
+                            :class="{ 'third-praty-editor': curPluginTab === 'third_praty_plugin' }"
                             :key="curPluginTab"
                             :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
                         </full-code-editor>
@@ -517,7 +518,10 @@
                 theExecuteTime: undefined,
                 isReadyStatus: true,
                 isShowSkipBtn: false,
-                isShowRetryBtn: false
+                isShowRetryBtn: false,
+                scrollId: '',
+                observer: null,
+                editScrollDom: null
             }
         },
         computed: {
@@ -598,10 +602,51 @@
                     this.theExecuteTime = undefined
                     this.loadNodeInfo()
                 }
+            },
+            curPluginTab (val) {
+                if (val === 'third_praty_plugin' && !this.editScrollDom) {
+                    // 第三方日志滚动加载
+                    this.$nextTick(() => {
+                        // 滚动dom
+                        const editScrollDom = document.querySelector('.third-praty-editor .code-editor .vertical .slider')
+                        if (!editScrollDom) return
+                        // 编辑器dom
+                        const editDom = document.querySelector('.third-praty-editor .monaco-editor')
+                        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+                        const { outputs } = this.executeInfo
+                        const traceId = outputs.length && outputs[0].value
+                        // 监听滚动dom
+                        this.observer = new MutationObserver(mutation => {
+                            const { height } = editScrollDom.getBoundingClientRect()
+                            const { height: editHeight } = editDom && editDom.getBoundingClientRect()
+                            const top = editScrollDom.offsetTop
+                            const offsetBottom = editHeight > 300 ? 180 : 80
+                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && this.scrollId) {
+                                this.handleTabChange(traceId)
+                            }
+                        })
+                        this.observer.observe(editScrollDom, {
+                            childList: true,
+                            attributes: true,
+                            characterData: true,
+                            subtree: true
+                        })
+                        this.editScrollDom = editScrollDom
+                    })
+                } else {
+                    this.editScrollDom = null
+                }
             }
         },
         mounted () {
             this.loadNodeInfo()
+        },
+        beforeDestroy () {
+            if (this.observer) {
+                this.observer.disconnect()
+                this.observer.takeRecords()
+                this.observer = null
+            }
         },
         methods: {
             ...mapActions('task/', [
@@ -626,6 +671,7 @@
                     this.isShowInputOrigin = false
                     this.isShowOutputOrigin = false
                     this.curPluginTab = 'build_in_plugin'
+                    this.scrollId = ''
                     const respData = await this.getTaskNodeDetail()
                     if (!respData) {
                         this.isReadyStatus = false
@@ -648,7 +694,7 @@
 
                     // 任务节点需要加载标准插件
                     if (componentCode) {
-                        await this.getNodeConfig(componentCode, version)
+                        await this.getNodeConfig(componentCode, version, inputs.plugin_version)
                     }
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -768,7 +814,7 @@
                     this.isLogLoading = false
                 }
             },
-            async getNodeConfig (type, version) {
+            async getNodeConfig (type, version, pluginVersion) {
                 if (
                     atomFilter.isConfigExists(type, version, this.atomFormConfig)
                     && atomFilter.isConfigExists(type, version, this.atomOutputConfig)
@@ -783,12 +829,13 @@
                         if (this.isThirdPartyNode) {
                             const resp = await this.loadPluginServiceDetail({
                                 plugin_code: this.thirdPartyNodeCode,
-                                plugin_version: version
+                                plugin_version: pluginVersion,
+                                with_app_detail: true
                             })
                             if (!resp.result) return
+                            const { app, outputs: respsOutputs, forms } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                            const respsOutputs = resp.data.outputs
                             const outputs = []
                             for (const [key, val] of Object.entries(respsOutputs.properties)) {
                                 outputs.push({
@@ -799,8 +846,11 @@
                                 })
                             }
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
+                            // 设置host
+                            const { host } = window.location
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = app.urls.find(item => item.includes(host))
                             // 输入参数
-                            const renderFrom = resp.data.forms.renderform
+                            const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
                             eval(renderFrom)
                             const config = $.atoms[this.thirdPartyNodeCode]
@@ -822,14 +872,24 @@
             },
             async handleTabChange (traceId) {
                 try {
+                    this.isLogLoading = true
                     const resp = await this.loadPluginServiceLog({
                         plugin_code: this.thirdPartyNodeCode,
-                        trace_id: traceId
+                        trace_id: traceId,
+                        scroll_id: this.scrollId || undefined
                     })
-                    if (!resp.result) return
-                    this.executeInfo.thirdPartyNodeLog = resp.data.log
+                    if (!resp.result) {
+                        this.scrollId = ''
+                        return
+                    }
+                    const { logs, scroll_id } = resp.data
+                    const thirdPartyLogs = this.executeInfo.thirdPartyNodeLog || ''
+                    this.executeInfo.thirdPartyNodeLog = thirdPartyLogs + logs
+                    this.scrollId = logs && scroll_id ? scroll_id : ''
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getHistoryLog (id) {
