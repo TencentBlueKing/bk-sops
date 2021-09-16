@@ -166,7 +166,7 @@
                     </bk-tab>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor
-                            v-if="logInfo"
+                            v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
                             :class="{ 'third-praty-editor': curPluginTab === 'third_praty_plugin' }"
                             :key="curPluginTab"
                             :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
@@ -829,12 +829,13 @@
                         if (this.isThirdPartyNode) {
                             const resp = await this.loadPluginServiceDetail({
                                 plugin_code: this.thirdPartyNodeCode,
-                                plugin_version: pluginVersion
+                                plugin_version: pluginVersion,
+                                with_app_detail: true
                             })
                             if (!resp.result) return
+                            const { app, outputs: respsOutputs, forms } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                            const respsOutputs = resp.data.outputs
                             const outputs = []
                             for (const [key, val] of Object.entries(respsOutputs.properties)) {
                                 outputs.push({
@@ -845,8 +846,11 @@
                                 })
                             }
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
+                            // 设置host
+                            const { host } = window.location
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = app.urls.find(item => item.includes(host))
                             // 输入参数
-                            const renderFrom = resp.data.forms.renderform
+                            const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
                             eval(renderFrom)
                             const config = $.atoms[this.thirdPartyNodeCode]

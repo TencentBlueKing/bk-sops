@@ -444,15 +444,20 @@
                     }
                     // 第三方插件
                     if (this.isThirdParty) {
-                        const resp = await this.loadPluginServiceDetail({ plugin_code: plugin, plugin_version: version })
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code: plugin,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
                         if (!resp.result) return
+                        // 获取参数
+                        const { app, outputs: respsOutputs, forms } = resp.data
                         // 获取第三方插件公共输出参数
                         if (!this.pluginOutput['remote_plugin']) {
                             await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
                         }
                         // 输出参数
                         const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                        const respsOutputs = resp.data.outputs
                         const outputs = []
                         for (const [key, val] of Object.entries(respsOutputs.properties)) {
                             outputs.push({
@@ -463,9 +468,12 @@
                             })
                         }
                         this.outputs = [...storeOutputs, ...outputs]
+                        // 获取host
+                        const { host } = window.location
+                        $.context.bk_plugin_api_host[plugin] = app.urls.find(item => item.includes(host))
                         // 输入参数
                         $.atoms[plugin] = {}
-                        const renderFrom = resp.data.forms.renderform
+                        const renderFrom = forms.renderform
                         /* eslint-disable-next-line */
                         eval(renderFrom)
                     } else {
