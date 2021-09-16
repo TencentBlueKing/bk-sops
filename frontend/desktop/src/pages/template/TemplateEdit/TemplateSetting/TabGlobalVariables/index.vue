@@ -64,14 +64,14 @@
                     <bk-button
                         theme="primary"
                         class="add-variable-btn"
-                        data-test-id="templateEdit-form-creatVariable"
+                        data-test-id="templateEdit_form_creatVariable"
                         @click="onAddVariable">
                         {{ $t('新建') }}
                     </bk-button>
                     <bk-button
                         v-if="!common" theme="default"
                         class="manager-project-variable-btn"
-                        data-test-id="templateEdit-form-managerVariable"
+                        data-test-id="templateEdit_form_managerVariable"
                         @click="onManagerProjectVariable">
                         {{ $t('管理项目变量') }}
                     </bk-button>
@@ -79,7 +79,7 @@
                         <bk-checkbox :value="isHideSystemVar" @change="onToggleSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
                 </div>
-                <div class="global-variable-content" data-test-id="templateEdit-table-variableList">
+                <div class="global-variable-content" data-test-id="templateEdit_table_variableList">
                     <div class="variable-header clearfix">
                         <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>

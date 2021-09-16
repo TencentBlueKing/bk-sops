@@ -391,20 +391,24 @@
                 {
                     type: 'dat',
                     content: noViewAuthTip,
-                    value: i18n.t('导出为') + 'DAT'
+                    value: i18n.t('导出为') + 'DAT',
+                    customAttr: 'exportDatFile'
                 }, {
                     type: 'yaml',
                     content: noViewAuthTip,
-                    value: i18n.t('导出为') + 'YAML'
+                    value: i18n.t('导出为') + 'YAML',
+                    customAttr: 'exportYamlFile'
                 }, {
                     type: 'collect',
                     content: noViewAuthTip,
-                    value: i18n.t('收藏')
+                    value: i18n.t('收藏'),
+                    customAttr: 'collectProcess'
                 }, {
                     type: 'delete',
                     content: noEditAuthTip,
                     value: i18n.t('删除'),
-                    isOther: true
+                    isOther: true,
+                    customAttr: 'deleteProcess'
                 }
             ]
             return {

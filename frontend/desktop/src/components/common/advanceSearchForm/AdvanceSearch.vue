@@ -27,7 +27,7 @@
             :clearable="true"
             :placeholder="inputPlaceholader"
             :right-icon="'bk-icon icon-search'"
-            data-test-id="advanceSearch-form-searchInput"
+            data-test-id="advanceSearch_form_searchInput"
             @change="onInput">
         </bk-input>
     </div>
