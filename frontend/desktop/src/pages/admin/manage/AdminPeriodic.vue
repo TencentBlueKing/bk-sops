@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="admin-periodic" data-test-id="adminMessage-from-periodicTask">
+    <div class="admin-periodic" data-test-id="adminMessage_from_periodicTask">
         <periodic-list :admin="true"></periodic-list>
     </div>
 </template>

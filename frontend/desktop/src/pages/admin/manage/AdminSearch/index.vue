@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="admin-search" data-test-id="adminMessage-from-search">
+    <div class="admin-search" data-test-id="adminMessage_from_search">
         <div v-if="!showResultComp" class="search-wrapper">
             <p class="tips">{{ $t('输入项目名、模板ID或任务ID进行搜索') }}</p>
             <bk-input

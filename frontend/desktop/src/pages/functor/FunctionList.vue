@@ -24,7 +24,7 @@
                         <bk-button
                             theme="primary"
                             style="min-width: 120px;"
-                            data-test-id="function-form-creatTaskBtn"
+                            data-test-id="function_form_creatTaskBtn"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -35,7 +35,7 @@
                         </span>
                     </template>
                 </advance-search-form>
-                <div class="functor-table-content" data-test-id="function-table-functionTaskList">
+                <div class="functor-table-content" data-test-id="function_table_functionTaskList">
                     <bk-table
                         :data="functorList"
                         :pagination="pagination"
@@ -156,11 +156,11 @@
             :header-position="'left'"
             :title="$t('新建')"
             :value="isShowNewTaskDialog"
-            data-test-id="function-form-creatTaskDialog"
+            data-test-id="function_form_creatTaskDialog"
             @confirm="onConfirmlNewTask"
             @cancel="onCancelNewTask">
             <div class="create-task-content">
-                <div class="common-form-item" data-test-id="function-form-selectBusiness">
+                <div class="common-form-item" data-test-id="function_form_selectBusiness">
                     <label>{{$t('选择项目')}}</label>
                     <div class="common-form-content">
                         <bk-select
@@ -183,7 +183,7 @@
                         <span v-show="business.empty" class="common-error-tip error-msg">{{$t('选择项目')}}</span>
                     </div>
                 </div>
-                <div class="common-form-item" data-test-id="function-form-selectTemplate">
+                <div class="common-form-item" data-test-id="function_form_selectTemplate">
                     <label>{{$t('选择模板')}}</label>
                     <div class="common-form-content">
                         <bk-select
@@ -223,11 +223,11 @@
                     :loading="permissionLoading"
                     :class="{ 'btn-permission-disable': !hasCreateTaskPerm }"
                     v-cursor="{ active: !hasCreateTaskPerm }"
-                    data-test-id="function-form-confirmNewTaskBtn"
+                    data-test-id="function_form_confirmNewTaskBtn"
                     @click="onConfirmlNewTask">
                     {{$t('确认')}}
                 </bk-button>
-                <bk-button theme="default" data-test-id="function-form-cancelBtn" @click="onCancelNewTask">{{$t('取消')}}</bk-button>
+                <bk-button theme="default" data-test-id="function_form_cancelBtn" @click="onCancelNewTask">{{$t('取消')}}</bk-button>
             </div>
         </bk-dialog>
     </div>

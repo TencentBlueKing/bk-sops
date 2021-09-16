@@ -18,7 +18,7 @@
         :header-position="'left'"
         :title="$t('启动记录')"
         :value="show"
-        data-test-id="periodicList-from-bootRecordDialog"
+        data-test-id="periodicList_from_bootRecordDialog"
         @cancel="onCloseDialog">
         <div class="dialog-content" v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
             <bk-table :data="recordData" :max-height="350" ref="recordTable">

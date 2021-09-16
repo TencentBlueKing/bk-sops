@@ -26,13 +26,13 @@
                 theme="primary"
                 class="confirm-btn"
                 :loading="modifyTimeLoading"
-                data-test-id="taskExcute-form-saveModifyTimeBtn"
+                data-test-id="taskExcute_form_saveModifyTimeBtn"
                 @click="onModifyTime">
                 {{ $t('确定') }}
             </bk-button>
             <bk-button
                 theme="default"
-                data-test-id="taskExcute-form-cancelBtn"
+                data-test-id="taskExcute_form_cancelBtn"
                 @click="onCancelRetry">
                 {{ $t('取消') }}
             </bk-button>

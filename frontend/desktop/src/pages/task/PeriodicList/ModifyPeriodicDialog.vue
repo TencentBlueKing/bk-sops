@@ -18,7 +18,7 @@
         :header-position="'left'"
         :title="$t('修改周期任务')"
         :value="isModifyDialogShow"
-        data-test-id="periodicList-from-modifyPeriodicDialog"
+        data-test-id="periodicList_from_modifyPeriodicDialog"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
         <div v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">

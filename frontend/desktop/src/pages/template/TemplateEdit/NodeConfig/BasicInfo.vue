@@ -29,7 +29,7 @@
                 </bk-input>
                 <p v-if="formData.desc" class="plugin-info-desc" v-html="formData.desc"></p>
             </bk-form-item>
-            <bk-form-item :label="$t('插件版本')" data-test-id="templateEdit-form-pluginVersion" :required="true" property="version">
+            <bk-form-item :label="$t('插件版本')" data-test-id="templateEdit_form_pluginVersion" :required="true" property="version">
                 <bk-select
                     v-model="formData.version"
                     :clearable="false"
@@ -42,13 +42,13 @@
                     </bk-option>
                 </bk-select>
             </bk-form-item>
-            <bk-form-item :label="$t('节点名称')" data-test-id="templateEdit-form-nodeName" :required="true" property="nodeName">
+            <bk-form-item :label="$t('节点名称')" data-test-id="templateEdit_form_nodeName" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit-form-stageName" property="stageName">
+            <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit_form_stageName" property="stageName">
                 <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit-form-nodeLabel" property="label">
+            <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
                 <bk-search-select
                     primary-key="code"
                     :clearable="true"

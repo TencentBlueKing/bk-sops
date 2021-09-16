@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-tree-wrapper" data-test-id="taskExcute-tree-nodeTree">
+    <div class="node-tree-wrapper" data-test-id="taskExcute_tree_nodeTree">
         <bk-tree
             class="node-tree"
             ref="tree1"

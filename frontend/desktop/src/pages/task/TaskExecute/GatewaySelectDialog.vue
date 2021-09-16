@@ -17,7 +17,7 @@
         :ext-cls="'common-dialog'"
         :title="$t('请选择执行分支')"
         :value="isGatewaySelectDialogShow"
-        data-test-id="taskExcute-form-gatewaySelectDialog"
+        data-test-id="taskExcute_form_gatewaySelectDialog"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="dialog-content" v-if="isGatewaySelectDialogShow">

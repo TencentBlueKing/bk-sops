@@ -16,25 +16,25 @@
                     <bk-button
                         :disabled="isCommonProcess"
                         icon="plus-line"
-                        data-test-id="templateEdit-form-addScheme"
+                        data-test-id="templateEdit_form_addScheme"
                         @click="onCreateScheme">
                         {{ $t('新增') }}
                     </bk-button>
                     <bk-button
                         :disabled="isCommonProcess"
-                        data-test-id="templateEdit-form-importTemporaryPlan"
+                        data-test-id="templateEdit_form_importTemporaryPlan"
                         @click="onImportTemporaryPlan">
                         {{ $t('导入临时方案') }}
                     </bk-button>
                 </div>
                 <bk-button
-                    data-test-id="templateEdit-form-previewNode"
+                    data-test-id="templateEdit_form_previewNode"
                     @click="onChangePreviewNode">
                     {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
                 </bk-button>
             </div>
             <section
-                data-test-id="templateEdit-form-schemeList"
+                data-test-id="templateEdit_form_schemeList"
                 :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess }]"
                 v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemaList.length && !nameEditing }]">
@@ -113,11 +113,11 @@
                 <bk-button
                     theme="primary"
                     :loading="executeSchemeSaving"
-                    data-test-id="templateEdit-form-saveScheme"
+                    data-test-id="templateEdit_form_saveScheme"
                     @click="onSaveExecuteSchemeClick">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button data-test-id="templateEdit-form-returnBtn" @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
+                <bk-button data-test-id="templateEdit_form_returnBtn" @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
             </section>
         </div>
     </div>

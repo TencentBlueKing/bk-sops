@@ -23,14 +23,14 @@
                         <bk-button
                             theme="primary"
                             style="min-width: 120px;"
-                            data-test-id="appmaker-from-creatApp"
+                            data-test-id="appmaker_from_creatApp"
                             @click="onCreateApp">
                             {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
                 <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1, zIndex: 100 }">
-                    <div v-if="appList.length" class="app-list" data-test-id="appmaker-from-appList">
+                    <div v-if="appList.length" class="app-list" data-test-id="appmaker_from_appList">
                         <app-card
                             v-for="item in appList"
                             :key="item.id"
@@ -81,7 +81,7 @@
             :header-position="'left'"
             :title="$t('删除')"
             :value="isDeleteDialogShow"
-            data-test-id="appmaker-from-appDeleteDialog"
+            data-test-id="appmaker_from_appDeleteDialog"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">

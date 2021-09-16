@@ -50,7 +50,7 @@
                         { 'btn-permission-disable': !saveBtnActive }]"
                     :loading="templateSaving"
                     v-cursor="{ active: !saveBtnActive }"
-                    data-test-id="templateEdit-form-saveCanvas"
+                    data-test-id="templateEdit_form_saveCanvas"
                     @click.stop="onSaveClick(false)">
                     {{$t('保存')}}
                 </bk-button>
@@ -61,21 +61,21 @@
                     }]"
                     :loading="createTaskSaving"
                     v-cursor="{ active: !createTaskBtnActive }"
-                    data-test-id="templateEdit-form-creatTask"
+                    data-test-id="templateEdit_form_creatTask"
                     @click.stop="onSaveClick(true)">
                     {{createTaskBtnText}}
                 </bk-button>
                 <bk-button
                     :class="['task-btn']"
-                    data-test-id="templateEdit-form-exportCanvas"
+                    data-test-id="templateEdit_form_exportCanvas"
                     @click.stop="onDownloadCanvas">
                     {{$t('导出为图片')}}
                 </bk-button>
             </div>
             <div class="button-area edit-scheme" v-if="schemeInfo">
-                <bk-button theme="primary" data-test-id="templateEdit-form-saveScheme" @click="onSaveEditSchemeClick">{{ '保存' }}</bk-button>
+                <bk-button theme="primary" data-test-id="templateEdit_form_saveScheme" @click="onSaveEditSchemeClick">{{ '保存' }}</bk-button>
             </div>
-            <div class="button-area preview" data-test-id="templateEdit-form-closePreview" v-if="!isEditProcessPage && isPreviewMode">
+            <div class="button-area preview" data-test-id="templateEdit_form_closePreview" v-if="!isEditProcessPage && isPreviewMode">
                 <bk-button theme="primary" @click="onClosePreview">{{ '关闭预览' }}</bk-button>
             </div>
         </div>

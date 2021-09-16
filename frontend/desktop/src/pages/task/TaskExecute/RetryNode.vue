@@ -26,13 +26,13 @@
                 theme="primary"
                 class="confirm-btn"
                 :loading="retrying"
-                data-test-id="taskExcute-form-configRetryBtn"
+                data-test-id="taskExcute_form_configRetryBtn"
                 @click="onRetryTask">
                 {{ $t('确定') }}
             </bk-button>
             <bk-button
                 theme="default"
-                data-test-id="taskExcute-form-cancelBtn"
+                data-test-id="taskExcute_form_cancelBtn"
                 @click="onCancelRetry">
                 {{ $t('取消') }}
             </bk-button>

@@ -7,7 +7,7 @@
             theme="warning"
             :content="content">
             {{ content }}
-            <span class="view-btn" data-test-id="process-form-viewUpdateProcess" @click="onViewClick">{{$t('立即查看')}}</span>
+            <span class="view-btn" data-test-id="process_form_viewUpdateProcess" @click="onViewClick">{{$t('立即查看')}}</span>
             <template name="buttons" v-slot:buttons>
                 <bk-button
                     :text="true"

@@ -132,7 +132,7 @@
                         <template v-if="!isSubflow || !subflowListLoading">
                             <div class="config-form">
                                 <!-- 基础信息 -->
-                                <section class="config-section" data-test-id="templateEdit-form-nodeBaseInfo">
+                                <section class="config-section" data-test-id="templateEdit_form_nodeBaseInfo">
                                     <h3>{{$t('基础信息')}}</h3>
                                     <div class="basic-info-wrapper" v-bkloading="{ isLoading: isBaseInfoLoading }">
                                         <template v-if="!isBaseInfoLoading">
@@ -154,7 +154,7 @@
                                     </div>
                                 </section>
                                 <!-- 输入参数 -->
-                                <section class="config-section" data-test-id="templateEdit-form-inputParamsInfo">
+                                <section class="config-section" data-test-id="templateEdit_form_inputParamsInfo">
                                     <h3>{{$t('输入参数')}}</h3>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
@@ -178,7 +178,7 @@
                                     </div>
                                 </section>
                                 <!-- 输出参数 -->
-                                <section class="config-section" data-test-id="templateEdit-form-outputParamsInfo">
+                                <section class="config-section" data-test-id="templateEdit_form_outputParamsInfo">
                                     <h3>{{$t('输出参数')}}</h3>
                                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                         <template v-if="!outputLoading">
@@ -200,13 +200,13 @@
                                 <bk-button
                                     theme="primary"
                                     :disabled="inputLoading || (isSubflow && subflowListLoading)"
-                                    data-test-id="templateEdit-form-saveNodeConfig"
+                                    data-test-id="templateEdit_form_saveNodeConfig"
                                     @click="onSaveConfig">
                                     {{ $t('保存') }}
                                 </bk-button>
                                 <bk-button
                                     theme="default"
-                                    data-test-id="templateEdit-form-cancelNodeConfig"
+                                    data-test-id="templateEdit_form_cancelNodeConfig"
                                     @click="onClosePanel()">
                                     {{ $t('取消') }}
                                 </bk-button>

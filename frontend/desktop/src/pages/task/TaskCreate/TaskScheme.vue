@@ -17,13 +17,13 @@
                     <bk-button
                         size="small"
                         theme="primary"
-                        data-test-id="creatTask-form-togglePreview"
+                        data-test-id="creatTask_form_togglePreview"
                         @click="onChangePreviewNode">
                         {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
                     </bk-button>
                     <bk-button
                         size="small"
-                        data-test-id="creatTask-form-importTemporaryPlan"
+                        data-test-id="creatTask_form_importTemporaryPlan"
                         @click="onImportTemporaryPlan">
                         {{ $t('导入临时方案') }}
                     </bk-button>
@@ -47,13 +47,13 @@
                 <div
                     v-else
                     class="add-plan"
-                    data-test-id="creatTask-form-creatScheme"
+                    data-test-id="creatTask_form_creatScheme"
                     @click="onCreateScheme">
                     <span class="common-icon-add"></span>
                     {{ $t('新增方案') }}
                 </div>
             </div>
-            <div class="scheme-content" data-test-id="creatTask-form-schemeList">
+            <div class="scheme-content" data-test-id="creatTask_form_schemeList">
                 <ul class="schemeList">
                     <li
                         v-for="item in schemaList"

@@ -21,7 +21,7 @@
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>
-                <div class="appmaker-table-content" data-test-id="appTaskHome-table-appmakerList">
+                <div class="appmaker-table-content" data-test-id="appTaskHome_table_appmakerList">
                     <bk-table
                         :data="appmakerList"
                         :pagination="pagination"

@@ -26,7 +26,7 @@
                         :disabled="item.disabled"
                         :url="item.url"
                         :id="item.id"
-                        :data-test-id="`navigation-list-${item.id}`"
+                        :data-test-id="`navigation_list_${item.id}`"
                         @click="onHandleNavClick($event, groupIndex, routeIndex)">
                         <span>{{item.name}}</span>
                         <div slot="child">
@@ -37,7 +37,7 @@
                                 :disabled="child.disabled"
                                 :icon="child.icon"
                                 :default-active="child.active"
-                                :data-test-id="`navigation-list-${child.id}`"
+                                :data-test-id="`navigation_list_${child.id}`"
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
                                 <span>{{child.name}}</span>
                             </bk-navigation-menu-item>

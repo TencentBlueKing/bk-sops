@@ -160,11 +160,11 @@
                 v-cursor="{
                     active: selectedTplType === 'publicProcess' && !hasCommonTplCreateTaskPerm
                 }"
-                data-test-id="taskList-from-confirmCreateBtn"
+                data-test-id="taskList_from_confirmCreateBtn"
                 @click="onCreateTask">
                 {{ $t('确定') }}
             </bk-button>
-            <bk-button data-test-id="taskList-from-cancelCreateBtn" @click="onCancel">{{ $t('取消') }}</bk-button>
+            <bk-button data-test-id="taskList_from_cancelCreateBtn" @click="onCancel">{{ $t('取消') }}</bk-button>
         </div>
     </bk-dialog>
 </template>
