@@ -63,6 +63,7 @@
                         :prop="item.tag_code"
                         :label="'name' in item.attrs ? item.attrs.name : ''"
                         :width="'width' in item.attrs ? item.attrs.width : ''"
+                        :min-width="'min_width' in item.attrs ? item.attrs.min_width : ''"
                         align="center">
                         <template slot-scope="scope">
                             <component
