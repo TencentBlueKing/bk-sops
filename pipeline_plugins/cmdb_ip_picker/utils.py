@@ -159,15 +159,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
     )
 
-    logger.info(
-        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} cmdb.get_business_host_topo "
-        "return: {host_info}".format(
-            # noqa
-            bk_biz_id=bk_biz_id,
-            kwargs=kwargs,
-            host_info=host_info,
-        )
-    )
+    logger.info("[get_ip_picker_result] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
     if not host_info:
         return {

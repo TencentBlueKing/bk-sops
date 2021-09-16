@@ -190,11 +190,19 @@
             },
             async getThirdPartyAtomConfig (code, version) {
                 try {
-                    const resp = await this.loadPluginServiceDetail({ plugin_code: code, plugin_version: version })
+                    const resp = await this.loadPluginServiceDetail({
+                        plugin_code: code,
+                        plugin_version: version,
+                        with_app_detail: true
+                    })
                     if (!resp.result) return
+                    const { app, forms } = resp.data
+                    // 设置host
+                    const { host } = window.location
+                    $.context.bk_plugin_api_host[code] = app.urls.find(item => item.includes(host))
                     // 输入参数
                     $.atoms[code] = {}
-                    const renderFrom = resp.data.forms.renderform
+                    const renderFrom = forms.renderform
                     /* eslint-disable-next-line */
                     eval(renderFrom)
                     const atomConfig = $.atoms[code]

@@ -16,6 +16,7 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
 from plugin_service.conf import PLUGIN_LOGGER
+from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 
 
@@ -44,9 +45,29 @@ class RemotePluginService(Service):
         plugin_code = data.get_one_of_inputs("plugin_code")
         plugin_version = data.get_one_of_inputs("plugin_version")
 
-        plugin_client = PluginServiceApiClient(plugin_code)
+        try:
+            plugin_client = PluginServiceApiClient(plugin_code)
+        except PluginServiceException as e:
+            message = f"[remote plugin service client] error: {e}"
+            logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
 
-        ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": parent_data.inputs})
+        detail_result = plugin_client.get_detail(plugin_version)
+        if not detail_result["result"]:
+            message = f"[remote plugin service detail] error: {detail_result['message']}"
+            logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
+
+        plugin_context = dict(
+            [
+                (key, parent_data.inputs[key])
+                for key in detail_result["data"]["context_inputs"]["properties"].keys()
+                if key in parent_data.inputs
+            ]
+        )
+        ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
 
         if not ok:
             message = (
