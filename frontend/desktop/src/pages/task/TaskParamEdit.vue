@@ -136,7 +136,9 @@
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
                     let atomConfig
-                    if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
+                    if (atomFilter.isConfigExists(atom, version, this.atomFormConfig)) { // 已加载过相同类型且相同版本的插件配置项，直接取缓存
+                        atomConfig = this.atomFormConfig[atom][version]
+                    } else {
                         if (plugin_code) {
                             atomConfig = await this.getThirdPartyAtomConfig(plugin_code, version)
                         } else {
