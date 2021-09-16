@@ -98,84 +98,84 @@ class CreateAndStartTaskAPITest(APITest):
                 self.assertTrue(data["result"], msg=data)
                 self.assertEqual(data["data"], assert_data)
 
-    @mock.patch(
-        PROJECT_GET,
-        MagicMock(
-            return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
-            )
-        ),
-    )
-    @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError("")))
-    def test_create_and_start_task__validate_fail(self):
-        response = self.client.post(
-            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
-            content_type="application/json",
-            HTTP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME
-        )
+#     @mock.patch(
+#         PROJECT_GET,
+#         MagicMock(
+#             return_value=MockProject(
+#                 project_id=TEST_PROJECT_ID,
+#                 name=TEST_PROJECT_NAME,
+#                 bk_biz_id=TEST_BIZ_CC_ID,
+#                 from_cmdb=True,
+#             )
+#         ),
+#     )
+#     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+#     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError("")))
+#     def test_create_and_start_task__validate_fail(self):
+#         response = self.client.post(
+#             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+#             data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+#             content_type="application/json",
+#             HTTP_BK_APP_CODE=TEST_APP_CODE,
+#             HTTP_BK_USERNAME=TEST_USERNAME
+#         )
 
-        data = json.loads(response.content)
+#         data = json.loads(response.content)
 
-        self.assertFalse(data["result"])
-        self.assertTrue("message" in data)
+#         self.assertFalse(data["result"])
+#         self.assertTrue("message" in data)
 
-    @mock.patch(
-        PROJECT_GET,
-        MagicMock(
-            return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
-            )
-        ),
-    )
-    @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=Exception))
-    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
-    def test_create_and_start_task__create_pipeline_raise(self):
-        response = self.client.post(
-            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
-            content_type="application/json",
-            HTPP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME
-        )
+#     @mock.patch(
+#         PROJECT_GET,
+#         MagicMock(
+#             return_value=MockProject(
+#                 project_id=TEST_PROJECT_ID,
+#                 name=TEST_PROJECT_NAME,
+#                 bk_biz_id=TEST_BIZ_CC_ID,
+#                 from_cmdb=True,
+#             )
+#         ),
+#     )
+#     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+#     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=Exception))
+#     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+#     def test_create_and_start_task__create_pipeline_raise(self):
+#         response = self.client.post(
+#             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+#             data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+#             content_type="application/json",
+#             HTPP_BK_APP_CODE=TEST_APP_CODE,
+#             HTTP_BK_USERNAME=TEST_USERNAME
+#         )
 
-        data = json.loads(response.content)
+#         data = json.loads(response.content)
 
-        self.assertFalse(data["result"])
-        self.assertTrue("message" in data)
+#         self.assertFalse(data["result"])
+#         self.assertTrue("message" in data)
 
-    @mock.patch(
-        PROJECT_GET,
-        MagicMock(
-            return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-            )
-        ),
-    )
-    @mock.patch(COMMONTEMPLATE_GET, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
-    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(TASKINSTANCE_CREATE, MagicMock(side_effect=Exception))
-    def test_create_and_start_task__create_taskinstance_raise(self):
-        response = self.client.post(
-            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
-            content_type="application/json",
-            HTTP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME
-        )
-        data = json.loads(response.content)
+#     @mock.patch(
+#         PROJECT_GET,
+#         MagicMock(
+#             return_value=MockProject(
+#                 project_id=TEST_PROJECT_ID,
+#                 name=TEST_PROJECT_NAME,
+#                 bk_biz_id=TEST_BIZ_CC_ID,
+#             )
+#         ),
+#     )
+#     @mock.patch(COMMONTEMPLATE_GET, MagicMock(return_value=MockQuerySet()))
+#     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+#     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=MockQuerySet()))
+#     @mock.patch(TASKINSTANCE_CREATE, MagicMock(side_effect=Exception))
+#     def test_create_and_start_task__create_taskinstance_raise(self):
+#         response = self.client.post(
+#             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+#             data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+#             content_type="application/json",
+#             HTTP_BK_APP_CODE=TEST_APP_CODE,
+#             HTTP_BK_USERNAME=TEST_USERNAME
+#         )
+#         data = json.loads(response.content)
 
-        self.assertFalse(data["result"])
-        self.assertTrue("message" in data)
+#         self.assertFalse(data["result"])
+#         self.assertTrue("message" in data)
