@@ -1,10 +1,10 @@
 <template>
     <div class="edit-task-scheme" v-if="isSchemeShow">
-        <div class="schema-nav" @click="toggleSchemePanel">
+        <div class="scheme-nav" @click="toggleSchemePanel">
             <i class="bk-icon icon-angle-left"></i>
             {{ $t('执行方案') }}
         </div>
-        <div class="schema-list-panel" v-if="showPanel">
+        <div class="scheme-list-panel" v-if="showPanel">
             <div class="scheme-sideslider-header">
                 <p class="close-btn" @click="toggleSchemePanel">
                     <i class="bk-icon icon-angle-right"></i>
@@ -19,24 +19,24 @@
                 <bk-button @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
             <section :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess }]" v-bkloading="{ isLoading: isSchemeLoading }">
-                <p :class="['scheme-title', { 'data-empty': !schemaList.length && !nameEditing }]">
+                <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
                     <bk-checkbox
                         :value="isAllChecked"
                         :indeterminate="indeterminate"
                         v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
-                        :disabled="!schemaList.length || nameEditing"
+                        :disabled="!schemeList.length || nameEditing"
                         @change="onAllCheckChange">
                     </bk-checkbox>
                     <span class="scheme-name">{{ $t('方案名称') }}</span>
                 </p>
-                <ul class="scheme-list" v-if="schemaList.length || nameEditing">
+                <ul class="scheme-list" v-if="schemeList.length || nameEditing">
                     <!-- 创建方案 -->
-                    <li class="add-scheme" :class="{ 'vee-errors': veeErrors.has('schemaName'), 'is-mepty': !schemaList.length }" v-if="nameEditing">
+                    <li class="add-scheme" :class="{ 'vee-errors': veeErrors.has('schemeName'), 'is-mepty': !schemeList.length }" v-if="nameEditing">
                         <bk-input
                             ref="nameInput"
-                            v-model="schemaName"
-                            v-validate.persist="schemaNameRule"
-                            name="schemaName"
+                            v-model="schemeName"
+                            v-validate.persist="schemeNameRule"
+                            name="schemeName"
                             class="bk-input-inline"
                             :clearable="true"
                             :placeholder="$t('方案名称')"
@@ -54,11 +54,11 @@
                                 @click="onCancelScheme">
                             </i>
                         </p>
-                        <p class="common-error-tip error-msg">{{ veeErrors.first('schemaName') }}</p>
+                        <p class="common-error-tip error-msg">{{ veeErrors.first('schemeName') }}</p>
                     </li>
                     <!-- 方案展示列表 -->
                     <li
-                        v-for="item in schemaList"
+                        v-for="item in schemeList"
                         class="scheme-item"
                         :class="{ 'is-checked': Boolean(planDataObj[item.id]) }"
                         :key="item.id">
@@ -168,14 +168,14 @@
             return {
                 showPanel: true,
                 nameEditing: false,
-                schemaName: '',
-                schemaNameRule: {
+                schemeName: '',
+                schemeNameRule: {
                     required: true,
                     max: STRING_LENGTH.SCHEME_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
                 isSchemeLoading: true,
-                schemaList: [],
+                schemeList: [],
                 isPreview: false
             }
         },
@@ -190,11 +190,11 @@
             },
             isAllChecked () {
                 const selectPlanLength = Object.keys(this.planDataObj).length
-                return selectPlanLength && selectPlanLength === this.schemaList.length
+                return selectPlanLength && selectPlanLength === this.schemeList.length
             },
             indeterminate () {
                 const selectPlanLength = Object.keys(this.planDataObj).length
-                return Boolean(selectPlanLength) && selectPlanLength !== this.schemaList.length
+                return Boolean(selectPlanLength) && selectPlanLength !== this.schemeList.length
             }
         },
         watch: {
@@ -202,8 +202,8 @@
                 this.isPreview = val
             },
             schemeInfo (val) {
-                if (!this.schemaList.length) return
-                const scheme = this.schemaList.find(item => item.id === val.id)
+                if (!this.schemeList.length) return
+                const scheme = this.schemeList.find(item => item.id === val.id)
                 scheme.data = JSON.stringify(val.data)
             }
         },
@@ -226,12 +226,12 @@
             async loadSchemeList () {
                 try {
                     this.isSchemeLoading = true
-                    this.schemaList = await this.loadTaskScheme({
+                    this.schemeList = await this.loadTaskScheme({
                         project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    this.$emit('updateTaskSchemeList', this.schemaList)
+                    this.$emit('updateTaskSchemeList', this.schemeList)
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
@@ -300,7 +300,7 @@
              */
             onCancelScheme () {
                 this.nameEditing = false
-                this.schemaName = ''
+                this.schemeName = ''
                 this.veeErrors.clear()
             },
             /**
@@ -314,29 +314,29 @@
                     })
                     return
                 }
-                const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
-                if (isschemaNameExist) {
+                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                if (isschemeNameExist) {
                     errorHandler({ message: i18n.t('方案名称已存在') }, this)
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) {
-                        this.schemaName = ''
+                        this.schemeName = ''
                         return
                     }
-                    this.schemaName = this.schemaName.trim()
+                    this.schemeName = this.schemeName.trim()
                     const selectedNodes = this.selectedNodes.slice()
-                    this.schemaList.unshift({
+                    this.schemeList.unshift({
                         data: JSON.stringify(selectedNodes),
-                        name: this.schemaName,
+                        name: this.schemeName,
                         id: uuid()
                     })
                     this.$bkMessage({
                         message: i18n.t('新增方案成功'),
                         theme: 'success'
                     })
-                    this.$emit('updateTaskSchemeList', this.schemaList, true)
-                    this.schemaName = ''
+                    this.$emit('updateTaskSchemeList', this.schemeList, true)
+                    this.schemeName = ''
                     this.nameEditing = false
                 })
             },
@@ -365,13 +365,13 @@
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
                 if (!hasPermission) return
-                const index = this.schemaList.findIndex(item => item.id === scheme.id)
-                this.schemaList.splice(index, 1)
+                const index = this.schemeList.findIndex(item => item.id === scheme.id)
+                this.schemeList.splice(index, 1)
                 this.$bkMessage({
                     message: i18n.t('方案删除成功'),
                     theme: 'success'
                 })
-                this.$emit('updateTaskSchemeList', this.schemaList, true)
+                this.$emit('updateTaskSchemeList', this.schemeList, true)
             },
             /**
              * 校验权限，若无权限弹出权限申请弹窗
@@ -457,7 +457,7 @@
         right: 0;
         height: 100%;
     }
-    .schema-list-panel {
+    .scheme-list-panel {
         position: absolute;
         top: 0;
         right: 0;
@@ -622,7 +622,7 @@
             }
         }
     }
-    .schema-nav {
+    .scheme-nav {
         position: absolute;
         right: 0;
         top: 20px;
