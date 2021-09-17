@@ -12,6 +12,14 @@
 <template>
     <div class="statistics-template">
         <div class="bar-chart-area">
+            <percentage
+                title="BG占比"
+                canvas-id="bg-percent">
+            </percentage>
+            <percentage
+                title="部门占比"
+                canvas-id="dept-percent">
+            </percentage>
             <horizontal-bar-chart
                 :title="$t('分类统计')"
                 :selector-list="projectSelector"
@@ -107,6 +115,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
+    import Percentage from './Percentage.vue'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -189,6 +198,7 @@
     export default {
         name: 'StatisticsTemplate',
         components: {
+            Percentage,
             HorizontalBarChart,
             NoData
         },

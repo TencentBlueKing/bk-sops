@@ -239,8 +239,8 @@
         height: 360px;
         background: #ffffff;
         border: 1px solid #dcdee5;
-        border-radius: 2px;
-        box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
+        border-radius: 3px;
+        box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.15);
         overflow: hidden;
     }
     .chart-title {
