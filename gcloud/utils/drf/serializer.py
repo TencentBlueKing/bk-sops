@@ -18,7 +18,7 @@ class ReadWriteSerializerMethodField(SerializerMethodField):
     支持可读写的SerializerMethodField
     可实现Model字段和Serializer字段更加灵活地解绑
     通过实现get_xxx_field方法，实现从Model的某个字段读值映射到Serializer对应字段
-    通过实现extract_xxx_field方法，实现从Serializer字段回填值到Model对应字段
+    通过实现set_xxx_field方法，实现从Serializer字段回填值到Model对应字段
     """
 
     def __init__(self, method_name=None, write_method_name=None, **kwargs):
@@ -29,7 +29,7 @@ class ReadWriteSerializerMethodField(SerializerMethodField):
 
     def bind(self, field_name, parent):
         default_method_name = f"get_{field_name}"
-        default_write_method_name = f"extract_{field_name}"
+        default_write_method_name = f"set_{field_name}"
 
         if self.method_name is None:
             self.method_name = default_method_name

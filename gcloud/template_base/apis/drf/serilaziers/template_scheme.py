@@ -44,7 +44,7 @@ class DefaultTemplateSchemeSerializer(serializers.ModelSerializer):
             return []
         return [int(scheme_id) for scheme_id in obj.default_scheme_ids.split(",")]
 
-    def extract_scheme_ids(self, data):
+    def set_scheme_ids(self, data):
         return {"default_scheme_ids": ",".join([str(scheme_id) for scheme_id in data])}
 
     class Meta:
