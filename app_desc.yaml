@@ -54,8 +54,6 @@ modules:
                 - bk_app_code: "bk_iam"
                 - bk_app_code: "bk_user_management"
                 - bk_app_code: "bk_nodeman"
-                - bk_app_code: "bk_sops"
-                  module_name: "callback"
     callback:
         is_default: False
         language: Python
@@ -188,6 +186,8 @@ modules:
               - bk_app_code: "bk_iam"
               - bk_app_code: "bk_user_management"
               - bk_app_code: "bk_nodeman"
+              - bk_app_code: "bk_sops"
+                module_name: "callback"
     api:
         is_default: False
         language: Python
