@@ -11,7 +11,7 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isSystemVar">
+                            :readonly="isSystemVar || isProjectVar">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -24,14 +24,14 @@
                             name="variableKey"
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
-                            :readonly="isSystemVar"
+                            :readonly="isSystemVar || isProjectVar"
                             :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </div>
                 <!-- 类型 -->
-                <div class="form-item variable-type clearfix" v-if="!isSystemVar">
+                <div class="form-item variable-type clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <!-- 显示/隐藏 -->
-                <div class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label>{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 <!-- 模板预渲染 -->
-                <div class="form-item clearfix" v-if="!isSystemVar">
+                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -121,12 +121,12 @@
                             type="textarea"
                             v-model="theEditingData.desc"
                             :placeholder="isSystemVar ? ' ' : $t('请输入')"
-                            :readonly="isSystemVar">
+                            :readonly="isSystemVar || isProjectVar">
                         </bk-input>
                     </div>
                 </div>
             </section>
-            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar" class="form-section">
+            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar && !isProjectVar" class="form-section">
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
                 <!-- 默认值 -->
                 <div class="form-item value-form clearfix">
@@ -144,7 +144,7 @@
             </section>
         </div>
         <div class="btn-wrap">
-            <template v-if="!isSystemVar">
+            <template v-if="!isSystemVar && !isProjectVar">
                 <bk-button theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('保存') }}</bk-button>
                 <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
             </template>
@@ -235,6 +235,7 @@
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants,
+                'internalVariable': state => state.template.internalVariable,
                 'outputs': state => state.template.outputs
             }),
             ...mapState('project', {
@@ -243,6 +244,10 @@
             // 是否为系统内置变量
             isSystemVar () {
                 return this.variableData.source_type === 'system'
+            },
+            // 是否为项目变量
+            isProjectVar () {
+                return this.variableData.source_type === 'project'
             },
             /**
              * 变量配置项code
@@ -348,7 +353,8 @@
                 'checkKey'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
                 'addVariable',
@@ -397,7 +403,7 @@
              * 加载表单标准插件配置文件
              */
             async getAtomConfig () {
-                const { source_tag, custom_type, version = 'legacy' } = this.theEditingData
+                const { source_tag, custom_type, version = 'legacy', plugin_code } = this.theEditingData
                 const tagStr = this.metaTag ? this.metaTag : source_tag
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
@@ -419,6 +425,27 @@
                 }
 
                 try {
+                    // 第三方插件变量
+                    if (plugin_code) {
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
+                        if (!resp.result) return
+                        const { app, forms } = resp.data
+                        // 设置host
+                        const { host } = window.location
+                        $.context.bk_plugin_api_host[plugin_code] = app.urls.find(item => item.includes(host))
+                        // 输入参数
+                        $.atoms[plugin_code] = {}
+                        const renderFrom = forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                        const config = $.atoms[plugin_code]
+                        this.renderConfig = config
+                        return
+                    }
                     await this.loadAtomConfig({
                         classify,
                         name: this.atomType,
@@ -469,7 +496,7 @@
                     if (this.variableData.key === value) {
                         return true
                     }
-                    if (value in this.constants) {
+                    if (value in this.constants || value in this.internalVariable) {
                         return false
                     }
                     return true
@@ -596,9 +623,13 @@
                 if (!this.variableData.key) {
                     this.isSaveConfirmDialogShow = true
                 } else {
-                    const tagCode = this.renderConfig[0].tag_code
-                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
+                    const editingVariable = tools.deepClone(this.theEditingData)
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        editingVariable.value = this.renderData[tagCode]
+                    }
+
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
                     } else {
@@ -614,10 +645,28 @@
             onSaveVariable () {
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
+                    const variable = this.theEditingData
+                    variable.name = variable.name.trim()
 
+                    // 变量预渲染
+                    if (variable.pre_render_mako) {
+                        variable.pre_render_mako = Boolean(variable.pre_render_mako)
+                    }
+                    // 变量key值格式统一
+                    if (!/^\$\{\w+\}$/.test(variable.key)) {
+                        variable.key = '${' + variable.key + '}'
+                    }
                     // renderform表单校验
-                    if (this.$refs.renderForm) {
-                        formValid = this.$refs.renderForm.validate()
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        variable.value = this.renderData[tagCode]
+    
+                        // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
+                        if (this.$refs.renderForm) {
+                            if (variable.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
+                                formValid = this.$refs.renderForm.validate()
+                            }
+                        }
                     }
 
                     if (!result || !formValid) {
@@ -625,7 +674,6 @@
                     }
 
                     const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
-
                     if (!checkKeyResult.result) {
                         this.$bkMessage({
                             message: i18n.t('变量KEY为特殊标志符变量，请修改'),
@@ -634,30 +682,6 @@
                         return
                     }
 
-                    if (this.theEditingData.pre_render_mako) {
-                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
-                    }
-                    const variable = this.theEditingData
-                    if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
-                        const tagCode = this.renderConfig[0].tag_code
-                        let varValue = {}
-
-                        // value为空且不渲染RenderForm组件的变量取表单默认值
-                        if (this.renderData.hasOwnProperty(tagCode)) {
-                            varValue = this.renderData
-                        } else {
-                            varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
-                        }
-
-                        // 变量key值格式统一
-                        if (!/^\$\{\w+\}$/.test(variable.key)) {
-                            variable.key = '${' + variable.key + '}'
-                        }
-
-                        this.theEditingData.value = varValue[tagCode]
-                    }
-
-                    this.theEditingData.name = this.theEditingData.name.trim()
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
                             variable.version = 'legacy'

@@ -192,9 +192,7 @@
 
     @mixin circleStatusStyle ($color, $shadow) {
         background-color: $color;
-        &:hover {
-            box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
-        }
+        box-shadow: 0 0 0 5px $color;
         .circle-node-text {
             color: $whiteColor;
         }

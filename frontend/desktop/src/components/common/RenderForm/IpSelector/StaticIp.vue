@@ -13,8 +13,6 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button theme="default" size="small" :disabled="!editable" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
-                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <bk-dropdown-menu
                     trigger="click"
                     :disabled="!editable"
@@ -29,18 +27,20 @@
                             v-for="operation in operations"
                             :key="operation.type"
                             class="operation-btn"
-                            @click="onOperationClick(operation.type)">
+                            @click="onOperationClick(operation)">
                             {{operation.name}}
                         </div>
                     </div>
                 </bk-dropdown-menu>
+                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
+                <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <ip-search-input
-                    :class="['ip-search-wrap', isStaticIpClassName]"
+                    :class="['ip-search-wrap', { 'static-ip-unfold': isUnfold }]"
                     :editable="editable"
-                    @search="onStaticIpSearch"
-                    @focus="isSearchInputFocus = true"
-                    @blur="isSearchInputFocus = false">
+                    @focus="onStaticIpFocus"
+                    @search="onStaticIpSearch">
                 </ip-search-input>
+                <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ i18n.return }}</span>
             </div>
             <div class="selected-ip-table-wrap">
                 <table :class="['ip-table', { 'disabled': !editable }]">
@@ -149,6 +149,7 @@
         copyAgentIp: gettext('复制Agent异常IP'),
         clearIp: gettext('清空IP'),
         clearFailedAgentIp: gettext('清空Agent异常IP'),
+        success: gettext('成功'),
         selectAdd: gettext('选择添加'),
         manualAdd: gettext('手动添加'),
         batchOperations: gettext('批量操作'),
@@ -164,6 +165,7 @@
         normal: gettext('正常'),
         server: gettext('服务器'),
         noData: gettext('无数据'),
+        return: gettext('返回'),
         noDataCan: gettext('无数据，可'),
         notEmpty: gettext('必填项'),
         or: gettext('或者'),
@@ -220,7 +222,7 @@
                     }
                 ],
                 i18n,
-                isSearchInputFocus: null
+                isUnfold: false
             }
         },
         computed: {
@@ -229,13 +231,6 @@
             },
             isShowQuantity () {
                 return this.staticIps.length
-            },
-            isStaticIpClassName () {
-                let className = ''
-                if (this.allowUnfoldInput) {
-                    className = this.isSearchInputFocus ? 'static-ip-focus' : 'static-ip-blur'
-                }
-                return className
             }
         },
         watch: {
@@ -314,6 +309,9 @@
             onDropdownHide () {
                 this.isDropdownShow = false
             },
+            onStaticIpFocus () {
+                this.isUnfold = this.allowUnfoldInput
+            },
             onStaticIpSearch (keyword) {
                 if (keyword) {
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
@@ -330,8 +328,13 @@
                     this.isSearchMode = false
                 }
             },
-            onOperationClick (type) {
+            onOperationClick (operation) {
+                const { type, name } = operation
                 this[type] && this[type]()
+                this.$bkMessage({
+                    message: name + this.i18n.success,
+                    theme: 'success'
+                })
             },
             onRemoveIpClick (id) {
                 if (!this.editable) {
@@ -422,7 +425,7 @@
         font-size: 12px;
     }
     .bk-dropdown-menu {
-        float: right;
+        margin-left: 4px;
     }
     .trigger-btn {
         width: 162px;
@@ -441,17 +444,20 @@
 }
 .ip-search-wrap {
     position: absolute;
-    top: -56px;
+    top: 0px;
     right: 0;
     width: 32%;
+    &.static-ip-unfold {
+        left: 0;
+        width: 356px;
+    }
 }
-.static-ip-focus {
-    width: 100%;
-    transition: width .5s;
-}
-.static-ip-blur {
-    width: 32%;
-    transition: width .5s;
+.return-text {
+    position: absolute;
+    left: 368px;
+    top: 5px;
+    color: #3a84ff;
+    cursor: pointer;
 }
 .ip-table {
     width: 100%;

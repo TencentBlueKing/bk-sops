@@ -169,6 +169,9 @@
                     return BK_PLUGIN_ICON[code]
                 }
 
+                if (code === 'remote_plugin') {
+                    return 'common-icon-sys-third-party'
+                }
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(group))
                 if (systemType) {
                     return `common-icon-sys-${systemType.toLowerCase()}`

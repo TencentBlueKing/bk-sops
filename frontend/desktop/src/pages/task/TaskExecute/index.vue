@@ -57,7 +57,6 @@
         data () {
             return {
                 taskDataLoading: true,
-                taskStatusLoading: true,
                 isFunctional: this.routerType === 'function', // 是否为职能化任务
                 showParamsFill: false, // 显示参数填写页面
                 primaryTitle: '', // 浏览器tab页初始title
@@ -109,7 +108,7 @@
         // 离开任务执行页面时，还原页面的title、icon
         beforeRouteLeave (to, from, next) {
             document.title = this.primaryTitle
-            dom.setPageTabIcon(`${window.SITE_URL}/static/core/images/bk_sops.png`)
+            dom.setPageTabIcon(`${window.SITE_URL}static/core/images/bk_sops.png`)
             next()
         }
     }

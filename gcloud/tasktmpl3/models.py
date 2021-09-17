@@ -279,19 +279,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             message = "query_task_list params conditions[%s] have invalid key or value: %s" % (prefix_filters, e)
             return False, message, None, None
 
-    def create(self, **kwargs):
-        pipeline_template = self.create_pipeline_template(**kwargs)
-        task_template = self.model(
-            project=kwargs["project"],
-            category=kwargs["category"],
-            pipeline_template=pipeline_template,
-            notify_type=kwargs["notify_type"],
-            notify_receivers=kwargs["notify_receivers"],
-            time_out=kwargs["time_out"],
-        )
-        task_template.save()
-        return task_template
-
     def export_templates(self, template_id_list, project_id):
         if self.filter(id__in=template_id_list, project_id=project_id).count() != len(template_id_list):
             raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, template_id_list))

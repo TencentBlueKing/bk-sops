@@ -15,7 +15,7 @@
                 <span> {{$t('执行方案')}}</span>
                 <div>
                     <bk-button size="small" theme="primary" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
-                    <bk-button size="small" @click="isEditSchemeShow = true">导入临时方案</bk-button>
+                    <bk-button size="small" @click="onImportTemporaryPlan">导入临时方案</bk-button>
                 </div>
             </div>
             <div class="scheme-header">
@@ -177,14 +177,7 @@
              * 导入临时方案
             */
             onImportTemporaryPlan () {
-                let hasCreatePermission = true
-                if (!this.haveCreateSchemeTpl) {
-                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
-                }
-                if (hasCreatePermission) {
-                    this.$emit('onImportTemporaryPlan')
-                }
+                this.$emit('onImportTemporaryPlan')
             },
             /**
              * 创建任务方案弹窗
@@ -247,6 +240,7 @@
                             message: i18n.t('新增方案成功'),
                             theme: 'success'
                         })
+                        this.$emit('updateTaskSchemeList', this.schemaList, true)
                     } catch (e) {
                         console.log(e)
                     } finally {
@@ -271,6 +265,7 @@
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
+                    this.$emit('updateTaskSchemeList', this.schemaList, true)
                 } catch (e) {
                     console.log(e)
                 } finally {

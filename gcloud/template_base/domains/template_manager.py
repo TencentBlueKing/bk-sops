@@ -275,3 +275,33 @@ class TemplateManager:
 
         self.template_model_cls.objects.filter(id=template.id).update(is_deleted=True)
         return {"result": True, "data": template, "message": "success", "verbose_message": "success"}
+
+    def batch_delete(self, template_ids: list) -> dict:
+        """
+        批量删除 template
+
+        :param template_ids: template id列表
+        :type: list
+        :return: [description]
+        :rtype: dict
+        """
+        templates = self.template_model_cls.objects.filter(id__in=template_ids)
+        delete_list = []
+        not_delete_list = []
+        references = {}
+        for template in templates:
+            referencer = template.referencer()
+            referencer = [item for item in referencer if item["id"] not in template_ids]
+            if referencer:
+                references.setdefault(template.id, {}).setdefault("template", []).extend(referencer)
+            appmaker_referencer = template.referencer_appmaker()
+            if appmaker_referencer:
+                references.setdefault(template.id, {}).setdefault("appmaker", []).extend(appmaker_referencer)
+            append_list = not_delete_list if referencer or appmaker_referencer else delete_list
+            append_list.append(template.id)
+        self.template_model_cls.objects.filter(id__in=delete_list).update(is_deleted=True)
+        return {
+            "result": True,
+            "data": {"success": delete_list, "fail": not_delete_list, "references": references},
+            "message": "",
+        }

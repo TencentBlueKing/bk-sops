@@ -60,6 +60,13 @@
                 :dynamic-groups="dynamicGroups"
                 @change="onDynamicGroupChange">
             </dynamic-group>
+            <manual-input
+                v-show="activeSelector === 'manual'"
+                ref="manual"
+                :selector-tabs="selectorTabs"
+                :manual-input="manualInput"
+                @change="onManualInputChange">
+            </manual-input>
         </div>
     </div>
 </template>
@@ -67,13 +74,15 @@
     import StaticIp from './StaticIp.vue'
     import DynamicIp from './DynamicIp.vue'
     import DynamicGroup from './DynamicGroup.vue'
+    import ManualInput from './ManualInput'
 
     export default {
         name: 'MultipleIpSelector',
         components: {
             StaticIp,
             DynamicIp,
-            DynamicGroup
+            DynamicGroup,
+            ManualInput
         },
         props: {
             editable: Boolean,
@@ -84,7 +93,8 @@
             dynamicGroupList: Array,
             staticIps: Array,
             dynamicIps: Array,
-            dynamicGroups: Array
+            dynamicGroups: Array,
+            manualInput: Object
         },
         data () {
             return {
@@ -129,6 +139,9 @@
             },
             onDynamicGroupChange (val) {
                 this.$emit('change', 'group', val)
+            },
+            onManualInputChange (val) {
+                this.$emit('change', 'manual_input', val)
             },
             validate () {
                 let isValidate = true

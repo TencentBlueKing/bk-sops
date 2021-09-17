@@ -20,7 +20,13 @@
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
-        <div class="list-wrapper">
+        <!-- 内置插件/第三方插件tab -->
+        <bk-tab v-if="!isSubflow" :active.sync="curPluginTab" type="unborder-card">
+            <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
+            <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
+        </bk-tab>
+        <!-- 内置插件 -->
+        <div class="list-wrapper" v-show="curPluginTab === 'build_in_plugin'">
             <template v-if="!isSubflow">
                 <template v-if="listInPanel.length > 0">
                     <div class="group-area">
@@ -124,7 +130,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list">
+                    <div class="tpl-list" v-bkloading="{ isLoading: sublistLoading || searchLoading, zIndex: 10 }">
                         <template v-if="listInPanel.length > 0">
                             <div
                                 v-for="item in listInPanel"
@@ -159,6 +165,22 @@
                 </div>
             </div>
         </div>
+        <!-- 第三方插件 -->
+        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
+            <ul>
+                <li
+                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.nodeName }]"
+                    v-for="(plugin, index) in atomTypeList.pluginList"
+                    :key="index"
+                    @click="onThirdPratyClick(plugin)">
+                    <img class="plugin-logo" :src="plugin.logo_url" alt="">
+                    <div>
+                        <p class="plugin-title">{{ plugin.name }}</p>
+                        <p class="plugin-code">{{ plugin.code }}</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -168,6 +190,7 @@
     import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON, DARK_COLOR_LIST } from '@/constants/index.js'
+    import { mapActions } from 'vuex'
 
     export default {
         name: 'SelectorPanel',
@@ -176,7 +199,8 @@
         },
         mixins: [permission],
         props: {
-            templateLabels: Array,
+            sublistLoading: Boolean,
+            templateLabels: Array, // 模板标签
             atomTypeList: Object,
             isSubflow: Boolean,
             basicInfo: Object,
@@ -184,14 +208,20 @@
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
+            const curPluginTab = this.basicInfo.plugin === 'remote_plugin' ? 'third_praty_plugin' : 'build_in_plugin'
             return {
+                curPluginTab,
                 listData,
                 listInPanel: listData,
+                searchData: [],
+                isSelectLoading: false,
                 darkColorList: DARK_COLOR_LIST,
                 searchStr: '',
                 searchResult: [],
                 isLabelSelectorOpen: false,
-                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup()
+                activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
+                searchLoading: false,
+                scrollDom: null
             }
         },
         computed: {
@@ -220,7 +250,25 @@
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
+        mounted () {
+            this.scrollDom = document.querySelector('.third-praty-list')
+            if (this.scrollDom) {
+                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+            }
+        },
+        beforeDestroy () {
+            if (this.scrollDom) {
+                this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
+            }
+        },
         methods: {
+            ...mapActions('atomForm/', [
+                'loadPluginServiceMeta',
+                'loadPluginServiceAppDetail'
+            ]),
+            ...mapActions('templateList', [
+                'loadTemplateList'
+            ]),
             // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
             getDefaultActiveGroup () {
                 let activeGroup = ''
@@ -254,6 +302,7 @@
             getLabelStyle (id) {
                 if (id) {
                     const label = this.templateLabels.find(item => item.id === Number(id))
+                    if (!label) return {}
                     return {
                         background: label.color,
                         color: this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
@@ -275,7 +324,7 @@
             onClearSearch () {
                 this.searchInputhandler()
             },
-            searchInputhandler () {
+            async searchInputhandler () {
                 let result = []
                 if (!this.isSubflow) {
                     if (this.searchStr === '') {
@@ -286,7 +335,7 @@
                         this.listData.forEach(group => {
                             const { group_icon, group_name, type } = group
                             const list = []
-    
+
                             if (reg.test(group_name)) { // 分组名称匹配
                                 const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
                                 result.push({
@@ -315,30 +364,54 @@
                             this.activeGroup = result[0].type
                         }
                     }
-                } else {
-                    const reg = new RegExp(this.searchStr, 'i')
-                    this.listData.forEach(tpl => {
-                        let matchLabel = true
-                        let matchName = true
-                        const tplCopy = { ...tpl }
-
-                        if (this.activeGroup) {
-                            matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
+                } else if (this.searchStr !== '') {
+                    this.searchLoading = true
+                    try {
+                        const reg = new RegExp(this.searchStr, 'i')
+                        const data = {
+                            pipeline_template__name__icontains: this.searchStr || undefined
                         }
-                        if (this.searchStr !== '') {
-                            if (!reg.test(tpl.name)) {
-                                matchName = false
-                            } else {
-                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                        const resp = await this.loadTemplateList(data)
+                        this.handleSubflowList(resp).forEach(tpl => {
+                            let matchLabel = true
+                            let matchName = true
+                            const tplCopy = { ...tpl }
+                            if (this.activeGroup) {
+                                matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
                             }
-                        }
-
-                        if (matchLabel && matchName) {
-                            result.push(tplCopy)
-                        }
-                    })
+                            if (this.searchStr !== '') {
+                                if (!reg.test(tpl.name)) {
+                                    matchName = false
+                                } else {
+                                    tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                }
+                            }
+                            if (matchLabel && matchName) {
+                                result.push(tplCopy)
+                            }
+                        })
+                    } catch (e) {
+                        console.log(e)
+                    } finally {
+                        this.searchLoading = false
+                    }
+                } else {
+                    result = this.listData
                 }
+
                 this.listInPanel = result
+            },
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                data.objects.forEach(item => {
+                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
+                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
+                    }
+                })
+                return list
             },
             handleLabelSelectorOpen () {
                 this.isLabelSelectorOpen = true
@@ -351,6 +424,33 @@
                     this.$emit('select', tpl)
                 } else {
                     this.onApplyPermission(tpl)
+                }
+            },
+            // 选中第三方插件
+            async onThirdPratyClick (plugin) {
+                try {
+                    const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
+                    const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
+                    const { code, versions, description } = resp.data
+                    const versionList = versions.map(version => {
+                        return { version }
+                    })
+                    const group = {
+                        name: code,
+                        code: appDeatil.data.name,
+                        list: versionList,
+                        desc: description,
+                        id: 'remote_plugin'
+                    }
+                    this.$emit('select', group, true)
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            handlePluginScroll () {
+                const el = this.scrollDom
+                if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                    this.$emit('updatePluginList', undefined, 'scroll')
                 }
             },
             /**
@@ -404,7 +504,7 @@
     width: 300px;
 }
 .list-wrapper {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 102px);
 }
 .group-area {
     float: left;
@@ -467,6 +567,9 @@
 .subflow-list {
     padding: 17px 24px;
     height: 100%;
+    .pagination {
+        margin: 5px
+    }
     .list-table {
         border: 1px solid #dcdee5;
         border-radius: 3px;
@@ -521,7 +624,7 @@
         }
     }
     .tpl-list {
-        max-height: calc(100vh - 160px);
+        max-height: calc(100vh - 204px);
         overflow: auto;
         @include scrollbar;
     }
@@ -580,6 +683,44 @@
         }
     }
 }
+.third-praty-list {
+    height: calc(100vh - 102px);
+    overflow: auto;
+    @include scrollbar;
+    .plugin-item {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 59px 0 38px;
+        color: #63656e;
+        .plugin-logo {
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .plugin-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plugin-code {
+            font-size: 12px;
+        }
+        &.is-actived, &:hover {
+            background: hsl(218, 100%, 94%);
+        }
+    }
+    .tpl-loading {
+        height: 40px;
+        bottom: 0;
+        left: 0;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 10px;
+    }
+}
 </style>
 <style lang="scss">
     .tpl-label-popover {
@@ -612,6 +753,14 @@
                 text-overflow: ellipsis;
                 cursor: pointer;
             }
+        }
+    }
+    .selector-panel .bk-tab{
+        .bk-tab-header {
+            padding-left: 17px;
+        }
+        .bk-tab-section {
+            display: none;
         }
     }
 </style>

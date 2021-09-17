@@ -18,7 +18,7 @@ from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.utils import timezone
 
-from gcloud.taskflow3.constants import TEMPLATE_SOURCE
+from gcloud.constants import TEMPLATE_SOURCE
 
 
 class BusinessManager(models.Manager):
@@ -389,6 +389,7 @@ class EngineConfig(models.Model):
     ENGINE_VER_V1 = 1
     ENGINE_VER_V2 = 2
     ENGINE_VER = ((ENGINE_VER_V1, "v1"), (ENGINE_VER_V2, "v2"))
+    VALID_ENGINE_VER = {ENGINE_VER_V1, ENGINE_VER_V2}
 
     scope_id = models.IntegerField(_("范围对象ID"))
     scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPE)

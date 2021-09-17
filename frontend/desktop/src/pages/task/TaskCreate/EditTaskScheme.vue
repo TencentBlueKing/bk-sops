@@ -250,14 +250,7 @@
             onImportTemporaryPlan () {
                 // 提示用户先保存创建方案再进行其他操作
                 if (this.setRemindUserMsg()) return
-                let hasCreatePermission = true
-                if (!this.haveCreateSchemeTpl) {
-                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
-                }
-                if (hasCreatePermission) {
-                    this.$emit('onImportTemporaryPlan')
-                }
+                this.$emit('onImportTemporaryPlan')
             },
             /**
              * 执行方案全选/半选
@@ -335,7 +328,7 @@
                         message: i18n.t('新增方案成功'),
                         theme: 'success'
                     })
-                    this.$emit('updateTaskSchemeList', this.schemaList)
+                    this.$emit('updateTaskSchemeList', this.schemaList, true)
                     this.schemaName = ''
                     this.nameEditing = false
                 })
@@ -371,7 +364,7 @@
                     message: i18n.t('方案删除成功'),
                     theme: 'success'
                 })
-                this.$emit('updateTaskSchemeList', this.schemaList)
+                this.$emit('updateTaskSchemeList', this.schemaList, true)
             },
             /**
              * 校验权限，若无权限弹出权限申请弹窗

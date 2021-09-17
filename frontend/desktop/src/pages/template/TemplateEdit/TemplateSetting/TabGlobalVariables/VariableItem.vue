@@ -12,8 +12,9 @@
 <template>
     <div class="variable-item">
         <div class="variable-content" @click="onEditVariable(variableData.key, variableData.index)">
-            <i v-if="!isSystemVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
+            <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
+            <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
+            <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span :title="variableData.name" class="col-item col-name">
                 {{ variableData.name }}
             </span>
@@ -21,7 +22,11 @@
                 {{ variableData.key }}
                 <i
                     class="common-icon-double-paper-2 copy-icon"
-                    v-bk-tooltips.bottom="$t('复制')"
+                    v-bk-tooltips.bottom="{
+                        content: $t('复制'),
+                        placement: 'bottom',
+                        boundary: 'window'
+                    }"
                     @click.stop="onCopyKey(variableData.key)">
                 </i>
             </span>
@@ -32,7 +37,8 @@
                         class="common-icon-show-left"
                         v-bk-tooltips="{
                             content: $t('输入'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                     <i
@@ -40,7 +46,8 @@
                         class="common-icon-hide-right color-org"
                         v-bk-tooltips="{
                             content: $t('输出'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                     <i
@@ -48,7 +55,8 @@
                         class="common-icon-eye-show"
                         v-bk-tooltips="{
                             content: $t('显示'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                     <i
@@ -56,7 +64,8 @@
                         class="common-icon-eye-hide color-org"
                         v-bk-tooltips="{
                             content: $t('隐藏'),
-                            placements: ['bottom']
+                            placements: ['bottom'],
+                            boundary: 'window'
                         }">
                     </i>
                 </span>
@@ -84,7 +93,7 @@
             </span>
             <span class="col-item col-operation">
                 <span
-                    v-if="isSystemVar"
+                    v-if="isSystemVar || isProjectVar"
                     class="col-operation-item"
                     @click.stop="onEditVariable(variableData.key, variableData.index)">
                     {{ $t('查看') }}
@@ -152,6 +161,9 @@
             }),
             isSystemVar () {
                 return this.variableData.source_type === 'system'
+            },
+            isProjectVar () {
+                return this.variableData.source_type === 'project'
             },
             citedList () {
                 const defaultCiteData = {
@@ -415,7 +427,7 @@ $localBorderColor: #d8e2e7;
         }
     }
 }
-.common-icon-lock-disable {
+.variable-icon {
     position: absolute;
     top: 50%;
     left: 20px;

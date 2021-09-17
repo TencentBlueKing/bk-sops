@@ -43,9 +43,15 @@
                 </bk-button>
             </el-upload>
         </div>
+        <bk-alert v-if="hasDiff" ref="diffAlert" type="warning" style="margin-bottom: 10px;" :show-icon="false">
+            <div class="diff-alert" slot="title">
+                <span>{{ $t('变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？') }}</span>
+                <bk-link theme="primary" @click="updateDiffData">{{ $t('确认') }}</bk-link>
+            </div>
+        </bk-alert>
         <div class="data-table">
             <bk-table
-                v-if="!colsLoading"
+                v-if="!loading"
                 :data="dataList"
                 :pagination="pagination"
                 @page-change="handlePageChange">
@@ -103,7 +109,8 @@
             NoData
         },
         props: {
-            colsLoading: Boolean,
+            loading: Boolean,
+            hasDiff: Boolean,
             editable: {
                 type: Boolean,
                 default: true
@@ -239,6 +246,10 @@
                     reader.readAsBinaryString(file.raw)
                 })
             },
+            updateDiffData () {
+                this.$refs.diffAlert.handleClose()
+                this.$emit('handleDiff')
+            },
             // 单元格内的renderform表单属性配置
             getCellOption (index) {
                 const options = Object.assign({}, this.cellOption)
@@ -253,7 +264,8 @@
                 let valid = true
                 refs.forEach(item => {
                     if (this.$refs[item].length > 0) {
-                        const result = this.$refs[item][1].validate() // bk-table 里的body会有两份内容
+                        const col = this.$refs[item][1] || this.$refs[item][0]
+                        const result = col.validate() // bk-table 里的body会有两份内容
                         if (!result) {
                             valid = false
                         }
@@ -311,6 +323,14 @@
         }
         /deep/ .upload-btn {
             display: inline-block;
+            font-size: 12px;
+        }
+    }
+    .diff-alert {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /deep/ .bk-link-text {
             font-size: 12px;
         }
     }

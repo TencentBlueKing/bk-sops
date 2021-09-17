@@ -155,10 +155,22 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
-                <section class="info-section">
+                <section class="info-section log-info">
                     <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
+                    <!-- 内置插件/第三方插件tab -->
+                    <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
+                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
+                        <bk-tab-panel
+                            v-bind="{ name: 'third_praty_plugin', label: $t('第三方节点日志') }">
+                        </bk-tab-panel>
+                    </bk-tab>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
-                        <full-code-editor v-if="logInfo" :value="logInfo"></full-code-editor>
+                        <full-code-editor
+                            v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
+                            :class="{ 'third-praty-editor': curPluginTab === 'third_praty_plugin' }"
+                            :key="curPluginTab"
+                            :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
+                        </full-code-editor>
                         <NoData v-else></NoData>
                     </div>
                 </section>
@@ -469,6 +481,7 @@
         },
         data () {
             return {
+                curPluginTab: 'build_in_plugin',
                 isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
@@ -505,14 +518,18 @@
                 theExecuteTime: undefined,
                 isReadyStatus: true,
                 isShowSkipBtn: false,
-                isShowRetryBtn: false
+                isShowRetryBtn: false,
+                scrollId: '',
+                observer: null,
+                editScrollDom: null
             }
         },
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
                 'atomOutputConfig': state => state.atomForm.outputConfig,
-                'atomFormInfo': state => state.atomForm.form
+                'atomFormInfo': state => state.atomForm.form,
+                'pluginOutput': state => state.atomForm.output
             }),
             ...mapState('project', {
                 project_id: state => state.project_id
@@ -566,6 +583,17 @@
             },
             location () {
                 return this.pipelineData.location.find(item => item.id === this.nodeDetailConfig.node_id)
+            },
+            isThirdPartyNode () {
+                const compCode = this.nodeDetailConfig.component_code
+                return compCode && compCode === 'remote_plugin'
+            },
+            thirdPartyNodeCode () {
+                const nodeInfo = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                let codeInfo = nodeInfo.component.data
+                codeInfo = codeInfo && codeInfo.plugin_code
+                codeInfo = codeInfo.value
+                return codeInfo
             }
         },
         watch: {
@@ -574,10 +602,51 @@
                     this.theExecuteTime = undefined
                     this.loadNodeInfo()
                 }
+            },
+            curPluginTab (val) {
+                if (val === 'third_praty_plugin' && !this.editScrollDom) {
+                    // 第三方日志滚动加载
+                    this.$nextTick(() => {
+                        // 滚动dom
+                        const editScrollDom = document.querySelector('.third-praty-editor .code-editor .vertical .slider')
+                        if (!editScrollDom) return
+                        // 编辑器dom
+                        const editDom = document.querySelector('.third-praty-editor .monaco-editor')
+                        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+                        const { outputs } = this.executeInfo
+                        const traceId = outputs.length && outputs[0].value
+                        // 监听滚动dom
+                        this.observer = new MutationObserver(mutation => {
+                            const { height } = editScrollDom.getBoundingClientRect()
+                            const { height: editHeight } = editDom && editDom.getBoundingClientRect()
+                            const top = editScrollDom.offsetTop
+                            const offsetBottom = editHeight > 300 ? 180 : 80
+                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && this.scrollId) {
+                                this.handleTabChange(traceId)
+                            }
+                        })
+                        this.observer.observe(editScrollDom, {
+                            childList: true,
+                            attributes: true,
+                            characterData: true,
+                            subtree: true
+                        })
+                        this.editScrollDom = editScrollDom
+                    })
+                } else {
+                    this.editScrollDom = null
+                }
             }
         },
         mounted () {
             this.loadNodeInfo()
+        },
+        beforeDestroy () {
+            if (this.observer) {
+                this.observer.disconnect()
+                this.observer.takeRecords()
+                this.observer = null
+            }
         },
         methods: {
             ...mapActions('task/', [
@@ -587,7 +656,10 @@
                 'getNodeExecutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail',
+                'loadPluginServiceLog',
+                'loadPluginServiceAppDetail'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeDetail',
@@ -598,6 +670,8 @@
                 try {
                     this.isShowInputOrigin = false
                     this.isShowOutputOrigin = false
+                    this.curPluginTab = 'build_in_plugin'
+                    this.scrollId = ''
                     const respData = await this.getTaskNodeDetail()
                     if (!respData) {
                         this.isReadyStatus = false
@@ -620,7 +694,7 @@
 
                     // 任务节点需要加载标准插件
                     if (componentCode) {
-                        await this.getNodeConfig(componentCode, version)
+                        await this.getNodeConfig(componentCode, version, inputs.plugin_version)
                     }
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -658,7 +732,7 @@
                             })
                         } else {
                             // 普通插件展示 preset 为 true 的输出参数
-                            this.outputsInfo = outputs.filter(output => output.preset)
+                            this.outputsInfo = this.isThirdPartyNode ? outputs : outputs.filter(output => output.preset)
                         }
                         this.outputsInfo.forEach(out => {
                             this.$set(this.outputRenderData, out.key, out.value)
@@ -669,9 +743,12 @@
                         }
                     }
                     
-                    this.executeInfo.plugin_version = version
+                    this.executeInfo.plugin_version = this.isThirdPartyNode ? inputs.plugin_version : version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
-                    if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                    if (this.isThirdPartyNode) {
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.executeInfo.plugin_name = resp.data.name
+                    } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }
@@ -690,6 +767,11 @@
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = activity.skippable
                         this.isShowRetryBtn = activity.retryable
+                    }
+                    // 获取第三方插件节点日志
+                    const traceId = outputs.length && outputs[0].value
+                    if (this.isThirdPartyNode && traceId) {
+                        this.handleTabChange(traceId)
                     }
                 } catch (e) {
                     console.log(e)
@@ -732,7 +814,7 @@
                     this.isLogLoading = false
                 }
             },
-            async getNodeConfig (type, version) {
+            async getNodeConfig (type, version, pluginVersion) {
                 if (
                     atomFilter.isConfigExists(type, version, this.atomFormConfig)
                     && atomFilter.isConfigExists(type, version, this.atomOutputConfig)
@@ -743,8 +825,40 @@
                 } else {
                     try {
                         const res = await this.loadAtomConfig({ atom: type, version })
-                        this.renderConfig = this.atomFormConfig[type][version]
-                        if (res.isRenderOutputForm) {
+                        // 第三方插件节点拼接输出参数
+                        if (this.isThirdPartyNode) {
+                            const resp = await this.loadPluginServiceDetail({
+                                plugin_code: this.thirdPartyNodeCode,
+                                plugin_version: pluginVersion,
+                                with_app_detail: true
+                            })
+                            if (!resp.result) return
+                            const { app, outputs: respsOutputs, forms } = resp.data
+                            // 输出参数
+                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                            const outputs = []
+                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                outputs.push({
+                                    name: val.title,
+                                    key,
+                                    type: val.type,
+                                    schema: { description: val.description || '--' }
+                                })
+                            }
+                            this.outputRenderConfig = [...storeOutputs, ...outputs]
+                            // 设置host
+                            const { host } = window.location
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = app.urls.find(item => item.includes(host))
+                            // 输入参数
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                            const config = $.atoms[this.thirdPartyNodeCode]
+                            this.renderConfig = config || []
+                            return
+                        }
+                        this.renderConfig = this.atomFormConfig[type] && this.atomFormConfig[type][version]
+                        if (res.isRenderOutputForm && this.atomOutputConfig[type]) {
                             this.outputRenderConfig = this.atomOutputConfig[type][version]
                         }
                         this.isRenderOutputForm = res.isRenderOutputForm
@@ -754,6 +868,28 @@
                             theme: 'error'
                         })
                     }
+                }
+            },
+            async handleTabChange (traceId) {
+                try {
+                    this.isLogLoading = true
+                    const resp = await this.loadPluginServiceLog({
+                        plugin_code: this.thirdPartyNodeCode,
+                        trace_id: traceId,
+                        scroll_id: this.scrollId || undefined
+                    })
+                    if (!resp.result) {
+                        this.scrollId = ''
+                        return
+                    }
+                    const { logs, scroll_id } = resp.data
+                    const thirdPartyLogs = this.executeInfo.thirdPartyNodeLog || ''
+                    this.executeInfo.thirdPartyNodeLog = thirdPartyLogs + logs
+                    this.scrollId = logs && scroll_id ? scroll_id : ''
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.isLogLoading = false
                 }
             },
             async getHistoryLog (id) {
@@ -863,6 +999,22 @@
         }
     }
 </script>
+<style lang="scss">
+    .log-info {
+        .common-section-title {
+            margin-bottom: 10px;
+        }
+        .bk-tab-header {
+            top: -10px;
+        }
+        .bk-tab-section {
+            padding: 0px;
+        }
+        .no-data-wrapper {
+            margin-top: 50px;
+        }
+    }
+</style>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';

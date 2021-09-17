@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.taskflow3.queues import PrepareAndStartTaskQueueResolver
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
 
 
 class PrepareAndStartTaskQueueResolverTestCase(TestCase):

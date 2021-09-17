@@ -35,7 +35,7 @@ axios.interceptors.response.use(
         if (response.data.hasOwnProperty('result')) {
             if (!response.data.result) {
                 const info = Object.assign({}, response.data, { theme: 'error', lines: 2 })
-                bus.$emit('showMessage', info)
+                bus.$emit('showErrMessage', info)
             }
         }
         return response
@@ -47,7 +47,7 @@ axios.interceptors.response.use(
             return Promise.reject(error)
         }
 
-        const { response } = error
+        const response = error.response
         console.log(response)
 
         switch (response.status) {

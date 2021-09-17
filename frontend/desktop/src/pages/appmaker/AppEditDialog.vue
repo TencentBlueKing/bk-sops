@@ -195,7 +195,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
@@ -248,24 +248,11 @@
                 },
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
-                }
+                },
+                taskCategories: []
             }
         },
         computed: {
-            ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo
-            }),
-            taskCategories () {
-                if (this.projectBaseInfo.task_categories) {
-                    return this.projectBaseInfo.task_categories.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.name
-                        }
-                    })
-                }
-                return []
-            },
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -320,6 +307,7 @@
             }
         },
         created () {
+            this.taskCategories = TASK_CATEGORIES.filter(item => item.id !== 'Default')
             this.getTemplateList()
         },
         methods: {
