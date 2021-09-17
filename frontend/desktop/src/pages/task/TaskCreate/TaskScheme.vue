@@ -1,6 +1,6 @@
 <template>
     <div class="task-scheme" v-if="isSchemeShow">
-        <div class="schema-nav">
+        <div class="scheme-nav">
             <div class="scheme-combine-shape" @click="toggleSchemePanel">
                 <i class="common-icon-paper"
                     v-bk-tooltips="{
@@ -10,7 +10,7 @@
                 </i>
             </div>
         </div>
-        <div class="schema-list-panel" v-if="showPanel">
+        <div class="scheme-list-panel" v-if="showPanel">
             <div class="scheme-title">
                 <span> {{$t('执行方案')}}</span>
                 <div>
@@ -22,16 +22,16 @@
                 <div class="scheme-form" v-if="nameEditing">
                     <bk-input
                         ref="nameInput"
-                        v-model="schemaName"
-                        v-validate.persist="schemaNameRule"
-                        name="schemaName"
+                        v-model="schemeName"
+                        v-validate.persist="schemeNameRule"
+                        name="schemeName"
                         class="bk-input-inline"
                         :clearable="true"
                         @blur="handlerBlur"
                         @keyup.enter.native="onAddScheme"
                         :placeholder="$t('方案名称')">
                     </bk-input>
-                    <span v-if="veeErrors.has('schemaName')" class="common-error-tip error-msg">{{ veeErrors.first('schemaName') }}</span>
+                    <span v-if="veeErrors.has('schemeName')" class="common-error-tip error-msg">{{ veeErrors.first('schemeName') }}</span>
                 </div>
                 <div
                     v-else
@@ -44,7 +44,7 @@
             <div class="scheme-content">
                 <ul class="schemeList">
                     <li
-                        v-for="item in schemaList"
+                        v-for="item in schemeList"
                         class="scheme-item"
                         :key="item.id">
                         <bk-checkbox @change="onCheckChange($event, item)"></bk-checkbox>
@@ -63,7 +63,7 @@
     import permission from '@/mixins/permission.js'
 
     export default {
-        name: 'TaskSchema',
+        name: 'TaskScheme',
         mixins: [permission],
         props: {
             template_id: {
@@ -115,13 +115,13 @@
             return {
                 showPanel: true,
                 nameEditing: false,
-                schemaName: '',
-                schemaNameRule: {
+                schemeName: '',
+                schemeNameRule: {
                     required: true,
                     max: STRING_LENGTH.SCHEME_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                schemaList: [],
+                schemeList: [],
                 deleting: false,
                 isPreview: false
             }
@@ -157,12 +157,12 @@
             // 获取方案列表
             async loadSchemeList () {
                 try {
-                    this.schemaList = await this.loadTaskScheme({
+                    this.schemeList = await this.loadTaskScheme({
                         project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    this.$emit('updateTaskSchemeList', this.schemaList, false)
+                    this.$emit('updateTaskSchemeList', this.schemeList, false)
                 } catch (e) {
                     console.log(e)
                 }
@@ -206,19 +206,19 @@
              * 添加方案输入框失焦事件
              */
             handlerBlur () {
-                this.nameEditing = this.schemaName.trim() !== ''
+                this.nameEditing = this.schemeName.trim() !== ''
             },
             /**
              * 添加方案
              */
             onAddScheme () {
-                if (this.schemaName === '') {
+                if (this.schemeName === '') {
                     this.nameEditing = false
                     return
                 }
 
-                const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
-                if (isschemaNameExist) {
+                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                if (isschemeNameExist) {
                     this.$bkMessage({
                         message: i18n.t('方案名称已存在'),
                         theme: 'error'
@@ -227,31 +227,31 @@
                 }
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) {
-                        this.schemaName = ''
+                        this.schemeName = ''
                         this.nameEditing = false
                         return
                     }
-                    this.schemaName = this.schemaName.trim()
+                    this.schemeName = this.schemeName.trim()
                     const selectedNodes = this.selectedNodes.slice()
                     const scheme = {
                         project_id: this.project_id,
                         template_id: this.template_id,
-                        name: this.schemaName,
+                        name: this.schemeName,
                         data: JSON.stringify(selectedNodes),
                         isCommon: this.isCommonProcess
                     }
                     try {
                         const resp = await this.createTaskScheme(scheme)
-                        this.schemaList.push(resp.data)
+                        this.schemeList.push(resp.data)
                         this.$bkMessage({
                             message: i18n.t('新增方案成功'),
                             theme: 'success'
                         })
-                        this.$emit('updateTaskSchemeList', this.schemaList, true)
+                        this.$emit('updateTaskSchemeList', this.schemeList, true)
                     } catch (e) {
                         console.log(e)
                     } finally {
-                        this.schemaName = ''
+                        this.schemeName = ''
                         this.nameEditing = false
                     }
                 })
@@ -272,7 +272,7 @@
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
-                    this.$emit('updateTaskSchemeList', this.schemaList, true)
+                    this.$emit('updateTaskSchemeList', this.schemeList, true)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -327,7 +327,7 @@
         right: 0;
         height: 100%;
     }
-    .schema-list-panel {
+    .scheme-list-panel {
         position: absolute;
         top: 0;
         right: 56px;
@@ -450,7 +450,7 @@
             }
         }
     }
-    .schema-nav {
+    .scheme-nav {
         position: absolute;
         right: 0;
         float: right;
