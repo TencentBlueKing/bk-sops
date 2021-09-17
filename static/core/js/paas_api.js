@@ -11,14 +11,13 @@
 */
 var PAAS_API = {
 
-	open_other_app: function(app_code, app_url, refresh_tips){
+	open_other_app: function(app_code, app_url){
 		try{
-            Bk_api.open_other_app(app_code, app_url, refresh_tips);
+			var data = {action: 'open_other_app', app_code: app_code, app_url: app_url};
+			window.top.postMessage(JSON.stringify(data), '*');
 		}catch(err){
 			console.error(err)
-			if(err.name !== 'TypeError' && app_code === 'bk_cc'){
-				window.location.href = BK_CC_HOST;
-			}
+			window.open(app_url, '__blank');
 		}
 	},
 }

@@ -96,7 +96,7 @@
                     // 可能存在表单勾选时已存在相同key的变量，选择复用自定义变量
                     const isHooked = keys.some(item => {
                         const varItem = this.constants[item]
-                        if (['component_inputs', 'custom'].varItem.source_type) {
+                        if (['component_inputs', 'custom'].includes(varItem.source_type)) {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(form.tag_code)) {
                                 return true
