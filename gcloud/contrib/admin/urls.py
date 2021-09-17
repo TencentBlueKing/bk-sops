@@ -32,6 +32,7 @@ urlpatterns = [
     url(r"^api/", include(v3_api.urls)),
     url(r"^template/restore", views.restore_template),
     url(r"^template/refresh_template_notify_type/$", views.refresh_template_notify_type),
+    url(r"^template/make_template_notify_type_loadable/$", views.make_template_notify_type_loadable),
     url(r"^taskflow/detail", views.get_taskflow_detail),
     url(r"^taskflow/node/detail", views.get_taskflow_node_detail),
     url(r"^taskflow/node/history/log", views.get_node_history_log),
