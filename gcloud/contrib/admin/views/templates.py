@@ -134,4 +134,6 @@ def _modify_notify_type_loadable(template):
         template.notify_type = template.notify_type.replace("'", '"')
         template.save()
         return template.id
+    except Exception:
+        return f"{template.id}:{traceback.format_exc()}"
     return None
