@@ -351,3 +351,13 @@ class BaseTemplate(models.Model):
         nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
         pipeline_web_clean.to_web(nodes_attr)
         return tree
+
+
+class DefaultTemplateScheme(models.Model):
+    project_id = models.IntegerField(default=-1, help_text="项目ID，-1代表公共流程")
+    template_id = models.IntegerField(help_text="流程ID")
+    default_scheme_ids = models.TextField(help_text="默认执行方案组合ID拼接结果，用`,`分隔", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "默认执行方案"
+        unique_together = ("project_id", "template_id")

@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.response import Response
@@ -24,9 +25,22 @@ from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.apis.drf.permission import SchemeEditPermission
-from gcloud.template_base.apis.drf.serilaziers.template_scheme import TemplateSchemeSerializer, ParamsSerializer
+from gcloud.template_base.apis.drf.serilaziers.template_scheme import (
+    TemplateSchemeSerializer,
+    ParamsSerializer,
+    DefaultTemplateSchemeSerializer,
+)
+from gcloud.template_base.models import DefaultTemplateScheme
 
 logger = logging.getLogger("root")
+
+
+class DefaultTemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
+    queryset = DefaultTemplateScheme.objects.all()
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser | SchemeEditPermission]
+    serializer_class = DefaultTemplateSchemeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ("project_id", "template_id")
 
 
 class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
