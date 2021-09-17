@@ -126,7 +126,7 @@ class TaskTemplateResource(GCloudModelResource):
         for bundle in data["objects"]:
             bundle.data["is_add"] = 1 if bundle.obj.id in collected_templates else 0
             bundle.data["template_labels"] = templates_labels.get(bundle.obj.id, [])
-            notify_type = json.loads(bundle.data["notify_type"])
+            notify_type = json.loads(bundle.data["notify_type"].replace("'", '"'))
             bundle.data["notify_type"] = (
                 notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
             )
@@ -137,7 +137,7 @@ class TaskTemplateResource(GCloudModelResource):
         template_id = bundle.obj.id
         labels = TemplateLabelRelation.objects.fetch_templates_labels([template_id]).get(template_id, [])
         bundle.data["template_labels"] = [label["label_id"] for label in labels]
-        notify_type = json.loads(bundle.data["notify_type"])
+        notify_type = json.loads(bundle.data["notify_type"].replace("'", '"'))
         bundle.data["notify_type"] = (
             notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
         )

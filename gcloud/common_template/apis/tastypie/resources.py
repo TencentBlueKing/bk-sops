@@ -112,7 +112,7 @@ class CommonTemplateResource(GCloudModelResource):
         )
         for bundle in data["objects"]:
             bundle.data["is_add"] = 1 if bundle.obj.id in collected_templates else 0
-            notify_type = json.loads(bundle.data["notify_type"])
+            notify_type = json.loads(bundle.data["notify_type"].replace("'", '"'))
             bundle.data["notify_type"] = (
                 notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
             )
@@ -120,7 +120,7 @@ class CommonTemplateResource(GCloudModelResource):
 
     def alter_detail_data_to_serialize(self, request, data):
         bundle = super(CommonTemplateResource, self).alter_detail_data_to_serialize(request, data)
-        notify_type = json.loads(bundle.data["notify_type"])
+        notify_type = json.loads(bundle.data["notify_type"].replace("'", '"'))
         bundle.data["notify_type"] = (
             notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
         )
