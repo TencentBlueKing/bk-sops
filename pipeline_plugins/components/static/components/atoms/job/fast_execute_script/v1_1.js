@@ -450,6 +450,7 @@
             type: "select",
             attrs: {
                 name: gettext("JOB成功历史"),
+                allowCreate: true,
                 hookable: false,
                 remote: true,
                 remote_url: function () {
