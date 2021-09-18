@@ -31,7 +31,6 @@
                 :exclude-node="excludeNode"
                 :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
-                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -1165,7 +1164,7 @@
             onDownloadCanvas () {
                 this.$refs.templateCanvas.onDownloadCanvas()
             },
-            async onSaveExecuteSchemeClick () {
+            async onSaveExecuteSchemeClick (isDefault) {
                 try {
                     this.executeSchemeSaving = true
                     const schemes = this.taskSchemeList.map(item => {
@@ -1180,16 +1179,18 @@
                         schemes,
                         isCommon: this.common
                     })
-                    if (resp.result) {
-                        this.$bkMessage({
-                            message: i18n.t('方案保存成功'),
-                            theme: 'success'
-                        })
-                        this.isExectueSchemeDialog = false
-                        this.allowLeave = true
-                        this.isTemplateDataChanged = false
-                        this.isEditProcessPage = true
-                        this.isSchemaListChange = false
+                    if (!resp.result) return
+                    this.$bkMessage({
+                        message: i18n.t('方案保存成功'),
+                        theme: 'success'
+                    })
+                    this.isExectueSchemeDialog = false
+                    this.allowLeave = true
+                    this.isTemplateDataChanged = false
+                    this.isSchemaListChange = false
+                    this.isEditProcessPage = !isDefault
+                    if (isDefault) {
+                        this.$refs.taskSelectNode.$refs.taskScheme.loadSchemeList()
                     }
                 } catch (e) {
                     console.log(e)
@@ -1198,10 +1199,12 @@
                 }
             },
             goBackToTplEdit () {
-                if (this.isSchemaListChange) {
-                    this.isExectueSchemeDialog = true
-                } else {
+                const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
+                const isEqual = isDefaultSchemeIng ? judgeDataEqual() : !this.isSchemaListChange
+                if (isEqual) {
                     this.isEditProcessPage = true
+                } else {
+                    this.isExectueSchemeDialog = true
                 }
             },
             updateTaskSchemeList (val, isChange) {
@@ -1560,7 +1563,9 @@
                     this.isExectueSchemeDialog = false
                     this.isEditProcessPage = false
                 } else {
-                    this.onSaveExecuteSchemeClick()
+                    const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
+                    const isEqual = isDefaultSchemeIng ? !judgeDataEqual() : false
+                    this.onSaveExecuteSchemeClick(isEqual)
                 }
             },
             // 编辑执行方案弹框 取消事件

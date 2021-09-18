@@ -6,19 +6,33 @@
         </div>
         <div class="scheme-list-panel" v-if="showPanel">
             <div class="scheme-sideslider-header">
-                <p class="close-btn" @click="toggleSchemePanel">
-                    <i class="bk-icon icon-angle-right"></i>
+                <p v-if="isDefaultSchemeIng" class="default-scheme-title">
+                    <span class="back-area" @click="goBackExecuteScheme">
+                        <i class="bk-icon icon-arrows-left-line"></i>
+                        {{$t('执行方案')}}
+                    </span>
+                    <span class="interval-symbol">></span>
+                    <span>{{$t('设置默认方案')}}</span>
                 </p>
-                <p>{{$t('执行方案')}}</p>
+                <template v-else>
+                    <p>{{$t('执行方案')}}</p>
+                    <i class="bk-icon icon-close-line" @click="toggleSchemePanel"></i>
+                </template>
             </div>
-            <div class="scheme-active-wrapper">
+            <p v-if="isDefaultSchemeIng" class="default-scheme-tip">
+                {{$t('流程执行时，默认执行当前方案的组合。')}}
+            </p>
+            <div class="scheme-active-wrapper" v-else>
                 <div>
                     <bk-button :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
                     <bk-button :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
                 <bk-button @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
-            <section :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess }]" v-bkloading="{ isLoading: isSchemeLoading }">
+            <section
+                :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess, 'is-default-scheme': isDefaultSchemeIng }]"
+                v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
                     <bk-checkbox
                         :value="isAllChecked"
@@ -59,17 +73,17 @@
                     <!-- 方案展示列表 -->
                     <li
                         v-for="item in schemeList"
-                        class="scheme-item"
-                        :class="{ 'is-checked': Boolean(planDataObj[item.id]) }"
+                        :class="['scheme-item', { 'is-checked': isDefaultSchemeIng ? item.isDefault : Boolean(planDataObj[item.id]) }]"
                         :key="item.id">
                         <bk-checkbox
-                            :value="Boolean(planDataObj[item.id])"
+                            :value="isDefaultSchemeIng ? item.isDefault : Boolean(planDataObj[item.id])"
                             :disabled="nameEditing"
                             v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
                             @change="onCheckChange($event, item)">
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
-                        <p class="icon-btn-wrapper">
+                        <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
+                        <p class="icon-btn-wrapper" v-if="!isDefaultSchemeIng">
                             <i
                                 v-bk-tooltips="{ content: $t('编辑'), boundary: 'window' }"
                                 class="bk-icon icon-edit-line"
@@ -101,6 +115,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { uuid } from '@/utils/uuid.js'
+    import tools from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -149,6 +164,10 @@
                 type: Object,
                 default: () => {}
             },
+            defaultPlanDataObj: {
+                type: Object,
+                default: () => {}
+            },
             tplActions: {
                 type: Array,
                 default () {
@@ -175,7 +194,12 @@
                     regex: NAME_REG
                 },
                 isSchemeLoading: true,
+                isDefaultSchemeIng: false,
                 schemeList: [],
+                initSchemeIdList: [],
+                initDefaultIdList: [],
+                isUpdate: false,
+                defaultSchemeId: null,
                 isPreview: false
             }
         },
@@ -205,44 +229,131 @@
                 if (!this.schemeList.length) return
                 const scheme = this.schemeList.find(item => item.id === val.id)
                 scheme.data = JSON.stringify(val.data)
+            },
+            isDefaultSchemeIng (val) {
+                this.$emit('setDefaultSelected', val)
             }
         },
         created () {
-            this.loadSchemeList()
+            this.initLoad()
         },
         methods: {
             ...mapActions('task/', [
                 'loadTaskScheme',
                 'createTaskScheme',
-                'deleteTaskScheme'
+                'deleteTaskScheme',
+                'getDefaultTaskScheme',
+                'saveDefaultScheme',
+                'updateDefaultScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (e, scheme) {
                 // 提示用户先保存创建方案再进行其他操作
                 if (this.setRemindUserMsg()) return
+                if (this.isDefaultSchemeIng) {
+                    scheme.isDefault = e
+                }
                 this.$emit('selectScheme', scheme, e)
+            },
+            async initLoad () {
+                try {
+                    this.isSchemeLoading = true
+                    await this.loadSchemeList()
+                    this.loadDefaultSchemeList()
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.isSchemeLoading = false
+                }
             },
             // 获取方案列表
             async loadSchemeList () {
                 try {
-                    this.isSchemeLoading = true
                     this.schemeList = await this.loadTaskScheme({
                         project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
+                    this.initSchemeIdList = []
+                    this.schemeList.forEach(scheme => {
+                        this.$set(scheme, 'isDefault', false)
+                        this.initSchemeIdList.push(scheme.id)
+                    })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                 } catch (error) {
                     errorHandler(error, this)
-                } finally {
-                    this.isSchemeLoading = false
                 }
+            },
+            // 获取默认方案列表
+            async loadDefaultSchemeList () {
+                try {
+                    const resp = await this.getDefaultTaskScheme({
+                        project_id: this.project_id,
+                        template_id: Number(this.template_id)
+                    }) || []
+                    const defaultObj = {}
+                    if (resp.data.length) {
+                        this.isUpdate = true
+                        const { id, scheme_ids: schemeIds } = resp.data[0]
+                        this.defaultSchemeId = id
+                        if (schemeIds.length) {
+                            this.schemeList.forEach(scheme => {
+                                if (schemeIds.includes(scheme.id)) {
+                                    scheme.isDefault = true
+                                    defaultObj[scheme.id] = JSON.parse(scheme.data)
+                                }
+                            })
+                        }
+                    } else {
+                        this.isUpdate = false
+                    }
+                    this.$emit('setDefaultScheme', defaultObj)
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            /**
+             * 返回执行方案
+             */
+            goBackExecuteScheme () {
+                const isEqual = this.judgeDataEqual()
+                if (isEqual) {
+                    this.isDefaultSchemeIng = false
+                } else {
+                    this.$emit('setTaskSchemeDialog')
+                }
+            },
+            judgeDataEqual () {
+                const selectedIdList = this.schemeList.reduce((acc, cur) => {
+                    if (cur.isDefault) {
+                        acc.push(cur.id)
+                    }
+                    return acc
+                }, [])
+                return tools.isDataEqual(this.initDefaultIdList, selectedIdList)
+            },
+            /**
+             * 重置默认执行方案
+             */
+            resetDefaultScheme () {
+                this.schemeList.forEach(scheme => {
+                    const isTrue = this.initDefaultIdList.includes(scheme.id)
+                    if (scheme.isDefault && !isTrue) {
+                        this.onCheckChange(false, scheme)
+                        scheme.isDefault = isTrue
+                    }
+                })
+                this.isDefaultSchemeIng = false
             },
             /**
              * 任务方案面板是否显示
              */
             toggleSchemePanel () {
-                this.showPanel = !this.showPanel
+                if (this.isDefaultSchemeIng) {
+                    this.goBackExecuteScheme()
+                } else {
+                    this.showPanel = !this.showPanel
+                }
             },
             /**
              * 导入临时方案
@@ -257,6 +368,46 @@
                 }
                 if (hasCreatePermission) {
                     this.$emit('onImportTemporaryPlan')
+                }
+            },
+            /**
+             * 设置默认方案
+            */
+            async onSetDefaultPlan () {
+                // 提示用户先保存创建方案再进行其他操作
+                if (this.setRemindUserMsg()) return
+                try {
+                    const schemeIdList = this.schemeList.map(scheme => scheme.id)
+                    const isEqual = tools.isDataEqual(this.initSchemeIdList, schemeIdList)
+                    if (!isEqual) {
+                        this.isSchemeLoading = true
+                        await this.$emit('onSaveExecuteSchemeClick', true)
+                    }
+                    this.isDefaultSchemeIng = true
+                    this.initDefaultIdList = Object.keys(this.defaultPlanDataObj)
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.isSchemeLoading = false
+                }
+            },
+            /**
+             * 保存/更新默认方案
+            */
+            async onSaveDefaultExecuteScheme () {
+                try {
+                    const ids = Object.keys(this.defaultPlanDataObj).map(item => Number(item))
+                    const params = {
+                        project_id: this.project_id,
+                        template_id: Number(this.template_id),
+                        scheme_ids: ids,
+                        id: this.defaultSchemeId
+                    }
+                    const defaultSchemeFunc = this.isUpdate ? this.updateDefaultScheme : this.saveDefaultScheme
+                    const resp = await defaultSchemeFunc(params)
+                    return resp.result
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             /**
@@ -367,6 +518,7 @@
                 if (!hasPermission) return
                 const index = this.schemeList.findIndex(item => item.id === scheme.id)
                 this.schemeList.splice(index, 1)
+                this.onCheckChange(false, scheme)
                 this.$bkMessage({
                     message: i18n.t('方案删除成功'),
                     theme: 'success'
@@ -405,8 +557,20 @@
                 this.isPreview = !this.isPreview
                 this.$emit('togglePreviewMode', this.isPreview)
             },
-            onSaveExecuteSchemeClick () {
-                this.$emit('onSaveExecuteSchemeClick')
+            async onSaveExecuteSchemeClick () {
+                try {
+                    if (this.isDefaultSchemeIng) {
+                        const isEqual = this.judgeDataEqual()
+                        if (!isEqual) {
+                            await this.onSaveDefaultExecuteScheme()
+                            this.isDefaultSchemeIng = false
+                        }
+                    } else {
+                        this.$emit('onSaveExecuteSchemeClick')
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
             }
         }
     }
@@ -461,8 +625,9 @@
         position: absolute;
         top: 0;
         right: 0;
-        width: 486px;
+        width: 640px;
         height: 100%;
+        padding: 0 24px;
         display: flex;
         flex-direction: column;
         background: $whiteDefault;
@@ -473,40 +638,57 @@
         padding-bottom: 56px;
         .scheme-sideslider-header {
             height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             font-size: 16px;
-            p {
-                height: 100%;
-                line-height: 54px;
-                border-bottom: 1px solid #dee0e6;
-            }
-            .close-btn {
-                width: 30px;
-                float: left;
-                text-align: center;
-                font-size: 28px;
-                color: #fff;
-                margin-right: 20px;
+            color: #313238;
+            border-bottom: 1px solid #dcdee5;
+            .back-area {
                 cursor: pointer;
-                background: #3a84ff;
-                border-bottom-color: #3a84ff;
+                color: #3a84ff;
+                .icon-arrows-left-line {
+                    font-weight: 700;
+                    margin-right: 9px;
+                }
+                .interval-symbol {
+                    margin: 0 3px;
+                }
             }
+            .icon-close-line {
+                color: #63656e;
+                font-size: 14px;
+                font-weight: 600;
+                margin-right: 3px;
+                cursor: pointer;
+                &:hover {
+                    color: #3a84ff;
+                }
+            }
+        }
+        .default-scheme-tip {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #63656e;
+            line-height: 20px;
         }
         .scheme-active-wrapper {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 20px 23px 0 16px;
+            margin-top: 20px;
             .bk-button {
-                width: 80px;
-                &:nth-child(2) {
-                    width: auto;
-                    margin-left: 10px;
+                width: auto;
+                margin-left: 10px;
+                &:first-child {
+                    width: 80px;
+                    margin-left: 0;
                 }
             }
         }
         .scheme-wrapper {
             border: 1px solid #dee0e6;
-            margin: 15px 23px 15px 16px;
+            margin: 15px 0;
             max-height: calc(100% - 136px);
             .scheme-list {
                 height: calc(100% - 41px);
@@ -524,13 +706,22 @@
                 border-bottom: 1px solid #ebebeb;
             }
             .scheme-name {
-                display: inline-block;
-                width: 240px;
+                max-width: 400px;
                 margin-left: 10px;
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 color: #313238;
+            }
+            .default-label {
+                height: 22px;
+                line-height: 22px;
+                font-size: 12px;
+                padding: 0 10px;
+                border-radius: 2px;
+                margin-left: 10px;
+                color: #14a568;
+                background: #e4faf0;
             }
             .icon-btn-wrapper {
                 position: absolute;
@@ -619,6 +810,15 @@
                 height: 100%;
                 opacity: 0.3;
                 background-color: #e1e4e8;
+            }
+        }
+        .is-default-scheme {
+            margin-top: 8px;
+            .scheme-list {
+                height: 100%;
+            }
+            .scheme-title {
+                display: none;
             }
         }
     }
