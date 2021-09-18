@@ -16,7 +16,7 @@ from django.test import TestCase
 from pipeline.models import PipelineInstance
 
 
-from gcloud.tests.mock import mock, patch, MagicMock
+from gcloud.tests.mock import patch, MagicMock
 from gcloud.tests.analysis_statistics.mock_settings import PIPELINE_ARCHIVE_STATISTICS_TASK
 
 
@@ -25,5 +25,4 @@ class TestPipelineInstanceRevokeHandler(TestCase):
         with patch(PIPELINE_ARCHIVE_STATISTICS_TASK, MagicMock()) as mocked_handler:
             self.pipeline_instance = PipelineInstance.objects.create(instance_id="instance_id", executor="executor")
             PipelineInstance.objects.set_revoked(self.pipeline_instance.instance_id)
-            self.assertEqual(mocked_handler.call_count, 1)
-            self.assertEqual(mocked_handler.call_args, mock.call(instance_id=self.pipeline_instance.instance_id))
+            mocked_handler.assert_called_once_with(instance_id=self.pipeline_instance.instance_id)

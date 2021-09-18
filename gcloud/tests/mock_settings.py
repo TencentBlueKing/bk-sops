@@ -137,10 +137,33 @@ TASKFLOWEXECUTEDNODE_STATISTICS_FILTER = (
 )
 
 TEMPLATE_STATISTICS_UPDATE_OR_CREATE = "gcloud.analysis_statistics.models.TemplateStatistics.objects.update_or_create"
+TEMPLATE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateStatistics.objects.filter"
+TEMPLATE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateStatistics.objects.create"
+
+TASKFLOW_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.filter"
+TASKFLOW_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.create"
+
+TEMPLATE_NODE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.filter"
+TEMPLATE_NODE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.create"
+
+TASKFLOW_EXECUTE_NODE_STATISTICS_FILTER = (
+    "gcloud.analysis_statistics.models.TaskflowExecutedNodeStatistics.objects.filter"
+)
+TASKFLOW_EXECUTE_NODE_STATISTICS_CREATE = (
+    "gcloud.analysis_statistics.models.TaskflowExecutedNodeStatistics.objects.create"
+)
 
 CALCULATE_ELAPSED_TIME = "pipeline.engine.utils.calculate_elapsed_time"
 COUNT_PIPELINE_TREE_NODES = "pipeline.contrib.statistics.utils.count_pipeline_tree_nodes"
 
 PIPELINE_INSTANCE_GET = "pipeline.models.PipelineInstance.objects.get"
+PIPELINE_TEMPLATE_GET = "pipeline.models.PipelineTemplate.objects.get"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
+
+TEMPLATEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.TemplateInPipeline.objects.filter"
+INSTANCEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.InstanceInPipeline.objects.filter"
+COMPONENTINTEMPLATE_FILTER = "pipeline.contrib.statistics.models.ComponentInTemplate.objects.filter"
+COMPONENTEXECUTEDATA_FILTER = "pipeline.contrib.statistics.models.ComponentExecuteData.objects.filter"
+
+PIPELINE_TEMPLATE_POSTSAVE_HANDLER = "pipeline.signals.handlers.pipeline_template_pre_save_handler"

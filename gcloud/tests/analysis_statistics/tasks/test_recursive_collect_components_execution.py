@@ -18,6 +18,7 @@ from pipeline.utils.uniqid import node_uniqid
 from gcloud.tests.mock import MockTaskFlowInstance, mock, MagicMock, MockQuerySet
 from gcloud.tests.mock_settings import TASKTEMPLATE_GET
 from gcloud.analysis_statistics.tasks import recursive_collect_components_execution
+from gcloud.tasktmpl3.models import TaskTemplate
 
 TEST_STATUS_TREE = (2, 0, 0)
 TEST_PROJECT_ID = "2"  # do not change this to non number
@@ -62,4 +63,7 @@ class TestRecursiveCollectComponentsExecution(TestCase):
     def test_recursive_collect_components_execution(self):
         assert_data = []
         data = recursive_collect_components_execution(TEST_ACTIVIES, TEST_STATUS_TREE, TEST_TASK_INSTANCE)
+        TaskTemplate.objects.get.assert_called_once_with(
+            pipeline_template=TEST_TASK_INSTANCE.pipeline_instance.template
+        )
         self.assertEqual(assert_data, data)

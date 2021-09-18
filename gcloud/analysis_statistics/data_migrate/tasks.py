@@ -95,16 +95,19 @@ def migrate_template(start, end):
         input_count = 0
         output_count = 0
         data = pipeline_template.data
-        for constant in data[PE.constants].values():
-            if constant["source_type"] == "component_outputs":
-                output_count += 1
-            else:
-                input_count += 1
+        try:
+            for constant in data[PE.constants].values():
+                if constant["source_type"] == "component_outputs":
+                    output_count += 1
+                else:
+                    input_count += 1
+        except KeyError:
+            pass
         kwargs["input_count"] = input_count
         kwargs["output_count"] = output_count
         try:
-            TemplateStatistics.objects.filter(template_id=kwargs["template_id"]).delete()
             with transaction.atomic():
+                TemplateStatistics.objects.filter(template_id=kwargs["template_id"]).delete()
                 template_statistics = TemplateStatistics.objects.create(**kwargs)
                 template_statistics.save()
         except Exception:
@@ -162,10 +165,10 @@ def migrate_component(start, end):
             template_edit_time=pipeline_template.edit_time,
         )
         try:
-            TemplateNodeStatistics.objects.filter(
-                task_template_id=kwargs["task_template_id"], node_id=kwargs["node_id"]
-            ).delete()
             with transaction.atomic():
+                TemplateNodeStatistics.objects.filter(
+                    task_template_id=kwargs["task_template_id"], node_id=kwargs["node_id"]
+                ).delete()
                 template_node_statistics = TemplateNodeStatistics.objects.create(**kwargs)
                 template_node_statistics.save()
         except Exception:
@@ -235,8 +238,8 @@ def migrate_instance(start, end):
             create_method=taskflow_instance.create_method,
         )
         try:
-            TaskflowStatistics.objects.filter(instance_id=kwargs["instance_id"]).delete()
             with transaction.atomic():
+                TaskflowStatistics.objects.filter(instance_id=kwargs["instance_id"]).delete()
                 taslflowstatistics = TaskflowStatistics.objects.create(**kwargs)
                 taslflowstatistics.save()
         except Exception:
@@ -244,7 +247,7 @@ def migrate_instance(start, end):
     return True
 
 
-def migrate_componentExecuteData(start, end):
+def migrate_component_execute_data(start, end):
     """
     @summary: 执行“ComponentExecuteData-->TaskflowExecutedNodeStatistics”的迁移
     param start:ComponentExecuteData表的主键
@@ -295,7 +298,7 @@ def migrate_componentExecuteData(start, end):
                 taskflowexcutednodestatistics.save()
         except Exception:
             logger.exception(
-                "[migrate_componentExecuteData] instance_id={:0},node_id={:1}的数据插入失败，自动回滚".format(
+                "[migrate_component_execute_data] instance_id={:0},node_id={:1}的数据插入失败，自动回滚".format(
                     kwargs["instance_id"], kwargs["node_id"]
                 )
             )
@@ -375,7 +378,7 @@ def migrate_schedule():
 
     # ComponentExecuteData迁移并更新上下文
     if not migrate_log.component_execute_data_finished:
-        if migrate_componentExecuteData(
+        if migrate_component_execute_data(
             migrate_log.component_execute_data_start, migrate_log.component_execute_data_end
         ):
             migrate_log.component_execute_data_start = migrate_log.component_execute_data_end

@@ -38,5 +38,4 @@ class TestTaskFlowPostSaveHandler(TestCase):
                 current_flow="execute_task",
                 engine_ver=1,
             )
-            self.assertEqual(mocked_handler.call_count, 1)
-            self.assertEqual(mocked_handler.call_args, mock.call(self.taskflow.id, True))
+            mocked_handler.assert_called_once_with(self.taskflow.id, True)

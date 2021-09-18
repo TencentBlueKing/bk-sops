@@ -17,26 +17,26 @@ from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud.tests.test_data import TEST_STATUS_TREE, TEST_EXECUTION_DATA
 from gcloud.analysis_statistics.tasks import pipeline_archive_statistics_task
+from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
+from gcloud.taskflow3.models import TaskCommandDispatcher, TaskFlowInstance
 
 mock.mock._magics.add("__round__")
 
 TEST_TASK_INSTANCE_ID = 1
-TEST_PIPELINE_INSTANCE = MockPipelineInstance({"execution_data": TEST_EXECUTION_DATA})
+TEST_PIPELINE_INSTANCE = MockPipelineInstance(execution_data=TEST_EXECUTION_DATA)
+
+taskflow = MockTaskFlowInstance(pipeline_instance=TEST_PIPELINE_INSTANCE)
 
 
 class TestPipelineArchiveStatisticsTask(TestCase):
-    @mock.patch(PIPELINE_INSTANCE_GET, MagicMock(return_value=TEST_PIPELINE_INSTANCE))
-    @mock.patch(TASKINSTANCE_GET, MagicMock(return_value=MockTaskFlowInstance()))
-    def test_get_status_tree_fail_case(self):
-        result = pipeline_archive_statistics_task(TEST_TASK_INSTANCE_ID)
-        self.assertFalse(result)
-
-    @mock.patch(PIPELINE_INSTANCE_GET, MagicMock(return_value=TEST_PIPELINE_INSTANCE))
-    @mock.patch(TASKINSTANCE_GET, MagicMock(return_value=MockTaskFlowInstance()))
-    @mock.patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER, MagicMock(return_value=MockTaskCommandDispatcher()))
+    @mock.patch(TASKINSTANCE_GET, MagicMock(return_value=taskflow))
     @mock.patch(TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER_GET_STATUS, MagicMock(return_value=TEST_STATUS_TREE))
     @mock.patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=MockQuerySet()))
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     def test_task_success(self):
         result = pipeline_archive_statistics_task(TEST_TASK_INSTANCE_ID)
+
+        TaskFlowInstance.objects.get.assert_called_once_with(pipeline_instance__instance_id=TEST_TASK_INSTANCE_ID)
+        TaskCommandDispatcher.get_task_status.assert_called_once_with()
+        TaskflowExecutedNodeStatistics.objects.filter.assert_called_once_with(instance_id=taskflow.pipeline_instance.id)
         self.assertTrue(result)

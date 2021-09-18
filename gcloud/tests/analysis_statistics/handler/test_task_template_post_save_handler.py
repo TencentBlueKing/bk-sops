@@ -25,5 +25,4 @@ class TestTaskTemplatePostSaveHandler(TestCase):
             self.tasktemplate = TaskTemplate.objects.create(
                 default_flow_type="default_flow_type", executor_proxy="executor_proxy"
             )
-            self.assertEqual(mocked_handler.call_count, 1)
-            self.assertEqual(mocked_handler.call_args, mock.call(self.tasktemplate.id))
+            mocked_handler.assert_called_once_with(self.tasktemplate.id)

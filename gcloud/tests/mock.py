@@ -123,6 +123,7 @@ class MockTaskFlowInstance(object):
         self.template_id = kwargs.get("template_id", 1)
         self.project = kwargs.get("project", MockProject())
         self.create_method = kwargs.get("create_method", "create_method")
+        self.pipeline_instance__id = 1
 
 
 class MockPeriodicTask(object):
@@ -242,7 +243,7 @@ class MockTaskCommandDispatcher(object):
 
 
 class MockPipelineInstance(object):
-    def __init__(self, kwargs):
+    def __init__(self, **kwargs):
         self.id = kwargs.get("id", 1)
         self.instance_id = kwargs.get("instance_id", "instance_id")
         self.template = kwargs.get("template", MockPipelineTemplate())
@@ -259,3 +260,11 @@ class MockPipelineInstance(object):
         self.is_deleted = kwargs.get("is_deleted", False)
         self.is_expired = kwargs.get("is_expired", False)
         self.execution_data = kwargs.get("execution_data", "")
+
+
+class MockTemplateInPipeline(object):
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id", 1)
+        self.atom_total = kwargs.get("atom_total", 0)
+        self.subprocess_total = kwargs.get("subprocess_total", 0)
+        self.gateways_total = kwargs.get("gateways_total", 0)

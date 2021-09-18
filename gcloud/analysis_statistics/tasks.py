@@ -27,7 +27,6 @@ from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
-from pipeline.models import PipelineInstance
 
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.analysis_statistics.models import (
@@ -273,19 +272,19 @@ def tasktemplate_post_save_statistics_task(template_id):
 
 @task
 def pipeline_archive_statistics_task(instance_id):
-    instance = PipelineInstance.objects.get(instance_id=instance_id)
-    taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=instance)
+    taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance__instance_id=instance_id)
     engine_ver = taskflow_instance.engine_ver
-    instance_id = instance.instance_id
     # 获取任务实例执行树
-    cmd_dispatcher = TaskCommandDispatcher(engine_ver, taskflow_instance.id, instance, taskflow_instance.project.id)
+    cmd_dispatcher = TaskCommandDispatcher(
+        engine_ver, taskflow_instance.id, taskflow_instance.pipeline_instance, taskflow_instance.project.id
+    )
     status_tree_result = cmd_dispatcher.get_task_status()
     if not status_tree_result["result"]:
         logger.exception("get task_status_result fail, taskflow_instace = {id}.".format(id=taskflow_instance.id))
         return False
     # 删除原有标准插件执行数据
-    TaskflowExecutedNodeStatistics.objects.filter(instance_id=instance.id).delete()
-    data = instance.execution_data
+    TaskflowExecutedNodeStatistics.objects.filter(instance_id=taskflow_instance.pipeline_instance__id).delete()
+    data = taskflow_instance.pipeline_instance.execution_data
     try:
         component_list = recursive_collect_components_execution(
             data[PE.activities], status_tree_result["data"]["children"], taskflow_instance, engine_ver

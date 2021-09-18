@@ -53,7 +53,7 @@ from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher, NodeComm
 from gcloud.shortcuts.cmdb import get_business_group_members
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
-from gcloud.utils.statistics import format_component_name
+from gcloud.utils.components import format_component_name
 
 logger = logging.getLogger("root")
 

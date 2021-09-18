@@ -31,7 +31,7 @@ from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics
-from gcloud.utils.statistics import format_component_name
+from gcloud.utils.components import format_component_name
 
 logger = logging.getLogger("root")
 
