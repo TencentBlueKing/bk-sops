@@ -34,14 +34,6 @@
                 @click.stop="onNodeRemove">
             </i>
         </div>
-        <ShortcutPanel
-            :node="node"
-            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
-            :canvas-data="canvasData"
-            @onAppendNode="onAppendNode"
-            @onInsertNode="onInsertNode"
-            @onConfigBtnClick="onConfigBtnClick">
-        </ShortcutPanel>
     </div>
 </template>
 <script>
@@ -53,12 +45,8 @@
     import ParallelGateway from './ParallelGateway.vue'
     import ConditionalParallelGateway from './ConditionalParallelGateway.vue'
     import ConvergeGateway from './ConvergeGateway.vue'
-    import ShortcutPanel from './ShortcutPanel.vue'
     export default {
         name: 'NodeTemplate',
-        components: {
-            ShortcutPanel
-        },
         props: {
             node: {
                 type: Object,
@@ -70,19 +58,9 @@
                 type: Boolean,
                 default: true
             },
-            idOfNodeShortcutPanel: {
-                type: String,
-                default: ''
-            },
             hasAdminPerm: {
                 type: Boolean,
                 default: false
-            },
-            canvasData: {
-                type: Object,
-                default () {
-                    return {}
-                }
             }
         },
         data () {
@@ -162,15 +140,6 @@
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
-            },
-            onAppendNode (data) {
-                this.$emit('onAppendNode', data)
-            },
-            onConfigBtnClick (id) {
-                this.$emit('onConfigBtnClick', id)
-            },
-            onInsertNode (data) {
-                this.$emit('onInsertNode', data)
             }
         }
     }
