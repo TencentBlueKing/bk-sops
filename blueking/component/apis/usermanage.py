@@ -11,17 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-try:
-    from django.conf import settings
+from ..base import ComponentAPI
 
-    APP_CODE = settings.APP_ID
-    SECRET_KEY = settings.APP_TOKEN
-    COMPONENT_SYSTEM_HOST = settings.BK_PAAS_ESB_HOST
-    DEFAULT_BK_API_VER = getattr(settings, 'DEFAULT_BK_API_VER', 'v2')
-except Exception:
-    APP_CODE = ''
-    SECRET_KEY = ''
-    COMPONENT_SYSTEM_HOST = ''
-    DEFAULT_BK_API_VER = 'v2'
 
-CLIENT_ENABLE_SIGNATURE = False
+class CollectionsUserManage(object):
+    """Collections of SOPS APIS"""
+
+    def __init__(self, client):
+        self.client = client
+
+        self.retrieve_user = ComponentAPI(
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/",
+            description="查询用户具体详情",
+        )
+
+        self.list_users = ComponentAPI(
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/usermanage/list_users/",
+            description="获取用户列表",
+        )

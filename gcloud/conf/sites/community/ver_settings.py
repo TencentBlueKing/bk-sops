@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from packages.blueking.component.shortcuts import get_client_by_request, get_client_by_user
+from blueking.component.shortcuts import get_client_by_request, get_client_by_user
 
 RUN_VER_NAME = _("蓝鲸智云社区版")
 

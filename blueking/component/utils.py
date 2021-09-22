@@ -11,23 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from ..base import ComponentAPI
+import base64
+import hmac
+import hashlib
+
+import ujson as json
 
 
-class CollectionsUserManage(object):
-    """Collections of SOPS APIS"""
-
-    def __init__(self, client):
-        self.client = client
-
-        self.retrieve_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
-            description='查询用户具体详情'
-        )
-
-        self.list_users = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/list_users/',
-            description='获取用户列表'
-        )
+def get_signature(method, path, app_secret, params=None, data=None):
+    """generate signature
+    """
+    kwargs = {}
+    if params:
+        kwargs.update(params)
+    if data:
+        data = json.dumps(data) if isinstance(data, dict) else data
+        kwargs["data"] = data
+    kwargs = "&".join(["%s=%s" % (k, v) for k, v in sorted(list(kwargs.items()), key=lambda x: x[0])])
+    orignal = "%s%s?%s" % (method, path, kwargs)
+    signature = base64.b64encode(hmac.new(str(app_secret), orignal, hashlib.sha1).digest())
+    return signature

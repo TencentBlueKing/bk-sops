@@ -11,26 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import base64
-import hmac
-import hashlib
 
-import ujson as json
+class ComponentBaseException(Exception):
+    pass
 
 
-def get_signature(method, path, app_secret, params=None, data=None):
-    """generate signature
-    """
-    kwargs = {}
-    if params:
-        kwargs.update(params)
-    if data:
-        data = json.dumps(data) if isinstance(data, dict) else data
-        kwargs['data'] = data
-    kwargs = '&'.join([
-        '%s=%s' % (k, v)
-        for k, v in sorted(list(kwargs.items()), key=lambda x: x[0])
-    ])
-    orignal = '%s%s?%s' % (method, path, kwargs)
-    signature = base64.b64encode(hmac.new(str(app_secret), orignal, hashlib.sha1).digest())
-    return signature
+class ComponentAPIException(ComponentBaseException):
+    """Exception for Component API"""
+
+    def __init__(self, api_obj, error_message, resp=None):
+        self.api_obj = api_obj
+        self.error_message = error_message
+        self.resp = resp
+
+        if self.resp is not None:
+            error_message = "%s, resp=%s" % (error_message, self.resp.text)
+        super(ComponentAPIException, self).__init__(error_message)

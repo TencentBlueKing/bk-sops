@@ -21,19 +21,22 @@ class CollectionsEsb(object):
         self.client = client
 
         self.get_api_public_key = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/esb/get_api_public_key/',
-            description='get api public key'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/esb/get_api_public_key/",
+            description="get api public key",
         )
 
         self.get_systems = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/esb/get_systems/',
-            description='Get the list of systems accessing the ESB'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/esb/get_systems/",
+            description="Get the list of systems accessing the ESB",
         )
 
         self.get_components = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/esb/get_components/',
-            description='Get the list of components for the specified system'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/esb/get_components/",
+            description="Get the list of components for the specified system",
         )
