@@ -18,6 +18,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
+
+import env
 from gcloud import err_code
 from gcloud.core.models import EngineConfig
 from gcloud.conf import settings
@@ -33,6 +35,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.utils.throttle import check_task_operation_throttle
 from gcloud.apigw.decorators import project_inject
 from packages.bkoauth.decorators import apigw_required
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
@@ -53,6 +56,13 @@ def create_and_start_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project
     template_source = params.get("template_source", BUSINESS)
+
+    if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, "start"):
+        return {
+            "result": False,
+            "message": "project id: {} reach the limit of starting tasks".format(project.id),
+            "code": err_code.INVALID_OPERATION.code,
+        }
 
     logger.info(
         "[API] create_and_start_task, template_id: {template_id}, project_id: {project_id}, params: {params}.".format(

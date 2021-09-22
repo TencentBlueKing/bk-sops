@@ -22,6 +22,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from .utils import APITest
 
 TEST_APP_CODE = "app_code"
+TEST_USERNAME = "username"
 TEST_TEMPLATE_ID = "1"
 TEST_DATA = "data"
 TEST_TASKFLOW_ID = "2"
@@ -40,19 +41,16 @@ class CreateAndStartTaskAPITest(APITest):
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
     @mock.patch(TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
-    @mock.patch(ENGINE_CONFIG_GET_VER, MagicMock(return_value=1))
     def test_create_and_start_task__success(self):
-
         pt = MockPipelineTemplate(id=1, name="pt")
-
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt)
-
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
             name=TEST_PROJECT_NAME,
             bk_biz_id=TEST_BIZ_CC_ID,
             from_cmdb=True,
         )
+
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 assert_data = {
@@ -73,6 +71,7 @@ class CreateAndStartTaskAPITest(APITest):
                     ),
                     content_type="application/json",
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
