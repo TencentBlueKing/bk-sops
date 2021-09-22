@@ -130,10 +130,14 @@ class SDKClient(object):
             if settings.RUN_MODE != "DEVELOP":
                 if self.common_args:
                     return self.load_sdk_class("client", "ComponentClient")(
-                        app_code=settings.APP_CODE, app_secret=settings.SECRET_KEY, common_args=self.common_args,
+                        app_code=settings.APP_CODE,
+                        app_secret=settings.SECRET_KEY,
+                        common_args=self.common_args,
                     )
                 else:
-                    raise AccessForbidden("sdk can only be called through the Web request")
+                    raise AccessForbidden(
+                        "sdk can only be called through the Web request"
+                    )
             else:
                 # develop mode
                 # 根据RUN_VER获得get_component_client_common_args函数
@@ -173,7 +177,9 @@ class ComponentAPICollection(object):
 
     def __new__(cls, sdk_client, *args, **kwargs):
         if sdk_client.mod_name not in cls.mod_map:
-            cls.mod_map[sdk_client.mod_name] = super(ComponentAPICollection, cls).__new__(cls)
+            cls.mod_map[sdk_client.mod_name] = super(
+                ComponentAPICollection, cls
+            ).__new__(cls)
         return cls.mod_map[sdk_client.mod_name]
 
     def __init__(self, sdk_client):
@@ -205,13 +211,17 @@ class CustomComponentAPI(object):
             client=SDKClient(**self.collection.client.common_args),
             method=method,
             path="{api_prefix}{collection}/{action}/".format(
-                api_prefix=ESB_API_PREFIX, collection=self.collection.client.mod_name, action=self.action,
+                api_prefix=ESB_API_PREFIX,
+                collection=self.collection.client.mod_name,
+                action=self.action,
             ),
             description="custom api(%s)" % self.action,
         )
 
     def __call__(self, *args, **kwargs):
-        raise NotImplementedError("custom api `%s` must specify the request method" % self.action)
+        raise NotImplementedError(
+            "custom api `%s` must specify the request method" % self.action
+        )
 
 
 client = SDKClient()
@@ -225,7 +235,9 @@ def get_client_by_user(user_or_username):
         username = user_or_username.username
     else:
         username = user_or_username
-    get_client_by_user = import_string(".".join([ESB_SDK_NAME, "shortcuts", "get_client_by_user"]))
+    get_client_by_user = import_string(
+        ".".join([ESB_SDK_NAME, "shortcuts", "get_client_by_user"])
+    )
     return get_client_by_user(username)
 
 

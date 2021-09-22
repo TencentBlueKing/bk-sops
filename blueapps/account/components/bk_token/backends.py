@@ -68,7 +68,9 @@ class TokenBackend(ModelBackend):
 
         except IntegrityError:
             logger.exception(traceback.format_exc())
-            logger.exception(u"get_or_create UserModel fail or update_or_create UserProperty")
+            logger.exception(
+                u"get_or_create UserModel fail or update_or_create UserProperty"
+            )
             return None
         except Exception:  # pylint: disable=broad-except
             logger.exception(traceback.format_exc())
@@ -133,7 +135,8 @@ class TokenBackend(ModelBackend):
             error_msg = response.get("message", "")
             error_data = response.get("data", "")
             logger.error(
-                u"Failed to Get User Info: error=%(err)s, ret=%(ret)s" % {u"err": error_msg, u"ret": error_data}
+                u"Failed to Get User Info: error=%(err)s, ret=%(ret)s"
+                % {u"err": error_msg, u"ret": error_data}
             )
             return False, {}
 
@@ -161,5 +164,9 @@ class TokenBackend(ModelBackend):
         else:
             error_msg = response.get("message", "")
             error_data = response.get("data", "")
-            logger.error(u"Fail to verify bk_token, error={}, ret={}".format(error_msg, error_data))
+            logger.error(
+                u"Fail to verify bk_token, error={}, ret={}".format(
+                    error_msg, error_data
+                )
+            )
             return False, None

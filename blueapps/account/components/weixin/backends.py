@@ -78,7 +78,9 @@ class WeixinBackend(ModelBackend):
             if ret == 0:
                 return True, response["data"]
             else:
-                logger.error(u"通过微信授权码，获取用户信息失败，error={}，ret={}".format(response["msg"], ret))
+                logger.error(
+                    u"通过微信授权码，获取用户信息失败，error={}，ret={}".format(response["msg"], ret)
+                )
                 return False, None
         except Exception:  # pylint: disable=broad-except
             logger.exception(u"通过微信授权码，获取用户信息异常")

@@ -15,10 +15,13 @@ from django.conf import settings
 import env
 from api.client import BKComponentClient
 
-NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/nodeman")
+NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
+    settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/nodeman"
+)
 
 NODEMAN_API_ENTRY_V2 = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_INNER_HOST, "api/c/compapi/{bk_api_ver}/nodeman/api".format(bk_api_ver=settings.DEFAULT_BK_API_VER)
+    settings.BK_PAAS_ESB_HOST,
+    "api/c/compapi/{bk_api_ver}/nodeman/api".format(bk_api_ver=settings.DEFAULT_BK_API_VER),
 )
 
 
