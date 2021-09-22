@@ -1,5 +1,12 @@
 # Release
 
+## 3.7.7
+
+- bugfix
+  - 修复 create_task API 公共流程鉴权时未使用项目资源的问题
+- feature
+  - 新增 HTTP 1.0 插件超时时间提高到 60s 的功能
+
 ## 3.7.6
 
 - bugfix
