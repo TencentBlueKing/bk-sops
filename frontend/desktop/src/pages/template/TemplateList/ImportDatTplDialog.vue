@@ -16,7 +16,7 @@
         :header-position="'left'"
         :mask-close="false"
         :ext-cls="'common-dialog'"
-        :title="$t('导入流程')"
+        :title="$t('导入') + 'DAT'"
         :value="isImportDialogShow"
         @cancel="onCancel">
         <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1, zIndex: 100 }">
@@ -108,10 +108,11 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" @click="onConfirm(true)">{{exportConflict}}</bk-button>
+                <bk-button theme="primary" :disabled="pending.submit" @click="onConfirm(true)">{{exportConflict}}</bk-button>
                 <bk-button
                     theme="default"
                     @click="onConfirm(false)"
+                    :disabled="pending.submit"
                     v-cursor="{ active: common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }"
                     :class="{ 'btn-permission-disable': common ? !hasCreateCommonTplPerm : !hasPermission(['flow_create'], authActions) }">
                     {{overrideConflict}}

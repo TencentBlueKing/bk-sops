@@ -108,6 +108,7 @@
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
+                    :sublist-loading="subAtomListLoading"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
@@ -225,7 +226,7 @@
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
-
+    import permission from '@/mixins/permission.js'
     export default {
         name: 'NodeConfig',
         components: {
@@ -236,10 +237,12 @@
             VariableEdit,
             NoData
         },
+        mixins: [permission],
         props: {
             project_id: [String, Number],
             nodeId: String,
             isShow: Boolean,
+            isShowSelect: Boolean,
             atomList: Array,
             subflowList: Array,
             atomTypeList: Object,
@@ -271,7 +274,15 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                isChange: false // 输入、输出参数勾选状态是否有变化
+                isChange: false, // 输入、输出参数勾选状态是否有变化
+                totalPage: 0,
+                currentPage: 0,
+                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
+                offset: 0,
+                pollingTimer: null,
+                isPageOver: false,
+                isThrottled: false, // 滚动节流 是否进入cd
+                subAtomListLoading: false // 子流程列表loading
             }
         },
         computed: {
@@ -360,9 +371,16 @@
                 }
             })
             this.localConstants = tools.deepClone(this.constants)
+            this.getSubflowList()
         },
         mounted () {
             this.initData()
+            if (this.isSelectorPanelShow) {
+                this.$nextTick(function () {
+                    this.subflowListDom = document.querySelector('.tpl-list')
+                    this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
+                })
+            }
         },
         methods: {
             ...mapActions('atomForm/', [
@@ -376,6 +394,55 @@
                 'setConstants',
                 'setOutputs'
             ]),
+            ...mapActions('templateList', [
+                'loadTemplateList'
+            ]),
+            async getSubflowList () {
+                this.subAtomListLoading = true
+                try {
+                    const data = {
+                        project_id: this.project_id,
+                        common: this.common,
+                        templateId: this.template_id,
+                        limit: this.limit,
+                        offset: this.currentPage * this.limit
+                    }
+                    const resp = await this.loadTemplateList(data)
+                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
+                    this.handleSubflowList(resp)
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.subAtomListLoading = false
+                }
+            },
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                data.objects.forEach(item => {
+                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
+                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
+                    }
+                })
+                this.atomTypeList.subflow.push(...list)
+            },
+            handleTableScroll () {
+                if (!this.isPageOver && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.subflowListDom
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            this.isPageOver = this.currentPage === this.totalPage
+                            clearTimeout(this.pollingTimer)
+                            this.getSubflowList()
+                        }
+                    }, 500)
+                }
+            },
             // 初始化节点数据
             async initData () {
                 if (!this.basicInfo.plugin && !this.basicInfo.tpl) { // 未选择插件

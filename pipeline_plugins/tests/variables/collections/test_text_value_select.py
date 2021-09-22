@@ -21,21 +21,36 @@ class TextValueSelectTestCase(TestCase):
         self.pipeline_data = {}
         self.context = {}
 
-    def test_get_value_multiple_units(self):
-        value = r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]'
+    def test_get_value_multiple_units__all(self):
+        meta_data = r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]'
+        info_value = ["v1", "v2"]
+        data = {"meta_data": meta_data, "info_value": info_value}
         TextValueSelect_ins = TextValueSelect(
-            name=self.name, value=value, context=self.context, pipeline_data=self.pipeline_data
+            name=self.name, value=data, context=self.context, pipeline_data=self.pipeline_data
         )
-        normal_outputs = {"text": "t1,t2", "value": "v1,v2"}
+        normal_outputs = {"text": "t1,t2", "value": "v1,v2", "text_not_selected": "", "value_not_selected": ""}
+        outputs = TextValueSelect_ins.get_value()
+        self.assertEqual(outputs, normal_outputs)
+
+    def test_get_value_multiple_units__not_all(self):
+        meta_data = r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]'
+        info_value = ["v2"]
+        data = {"meta_data": meta_data, "info_value": info_value}
+        TextValueSelect_ins = TextValueSelect(
+            name=self.name, value=data, context=self.context, pipeline_data=self.pipeline_data
+        )
+        normal_outputs = {"text": "t2", "value": "v2", "text_not_selected": "t1", "value_not_selected": "v1"}
         outputs = TextValueSelect_ins.get_value()
         self.assertEqual(outputs, normal_outputs)
 
     def test_get_value_single_units(self):
-        value = r'[{"text": "t1", "value": "v1"}]'
+        meta_data = r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]'
+        info_value = "v2"
+        data = {"meta_data": meta_data, "info_value": info_value}
         TextValueSelect_ins = TextValueSelect(
-            name=self.name, value=value, context=self.context, pipeline_data=self.pipeline_data
+            name=self.name, value=data, context=self.context, pipeline_data=self.pipeline_data
         )
-        normal_outputs = {"text": "t1", "value": "v1"}
+        normal_outputs = {"text": "t2", "value": "v2", "text_not_selected": "t1", "value_not_selected": "v1"}
         outputs = TextValueSelect_ins.get_value()
         self.assertEqual(outputs, normal_outputs)
 
@@ -45,6 +60,9 @@ class TextValueSelectTestCase(TestCase):
         TextValueSelect_ins = TextValueSelect(
             name=self.name, value="", context=self.context, pipeline_data=self.pipeline_data
         )
-        normal_outputs = r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]'
+        normal_outputs = {
+            "meta_data": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
+            "info_value": "v1",
+        }
         outputs = TextValueSelect_ins.process_meta_avalue(meta_data, info_value)
         self.assertEqual(outputs, normal_outputs)

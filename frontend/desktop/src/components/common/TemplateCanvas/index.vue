@@ -45,8 +45,9 @@
                     :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
-                    :subflow-list-loading="subflowListLoading"
-                    @updateNodeMenuState="updateNodeMenuState">
+                    :subflow-list-loading="subAtomListLoading"
+                    @updateNodeMenuState="updateNodeMenuState"
+                    @getAtomList="getAtomList">
                 </palette-panel>
             </template>
             <template v-slot:toolPanel>
@@ -55,8 +56,10 @@
                     :is-show-select-all-tool="isShowSelectAllTool"
                     :is-select-all-tool-disabled="isSelectAllToolDisabled"
                     :is-all-selected="isAllSelected"
-                    :show-small-map="showSmallMap "
+                    :show-small-map="showSmallMap"
                     :editable="editable"
+                    :zoom-ratio="zoomRatio"
+                    :is-show-hot-key="isShowHotKey"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
@@ -91,7 +94,8 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @addNodesToDragSelection="addNodeToSelectedList"
-                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
+                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
+                    @getAtomList="getAtomList">
                 </node-template>
             </template>
         </bk-flow>
@@ -262,7 +266,8 @@
                 endpointOptions: combinedEndpointOptions,
                 flowData,
                 connectorOptions,
-                nodeOptions
+                nodeOptions,
+                zoomRatio: 100
             }
         },
         watch: {
@@ -306,6 +311,9 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
+            getAtomList (val) {
+                this.$emit('getAtomList', val)
+            },
             handlerWindowResize () {
                 this.windowWidth = document.documentElement.offsetWidth - 60
                 this.windowHeight = document.documentElement.offsetHeight - 60 - 50
@@ -335,6 +343,7 @@
                     this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
                 this.showSmallMap = false
             },
             onZoomOut (pos) {
@@ -345,10 +354,12 @@
                     this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
                 this.clearReferenceLine()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
                 this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+                this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
@@ -1384,13 +1395,14 @@
         .tool-panel-wrap {
             top: 20px;
             left: 80px;
-            padding: 5px 0 7px 0;
-            background: #c4c6cc;
-            border-radius: 18px;
-            opacity: 0.8;
             z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
+            background: #ffffff;
+            opacity: 1;
+            padding: 0;
+            border-radius: 2px;
+            box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
             z-index: 3;

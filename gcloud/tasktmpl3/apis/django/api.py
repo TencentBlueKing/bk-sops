@@ -52,6 +52,7 @@ from gcloud.template_base.apis.django.api import (
     base_export_templates,
     base_import_templates,
     base_template_parents,
+    is_full_param_process,
 )
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
@@ -131,6 +132,7 @@ def batch_form(request, project_id):
 )
 @api_view(["POST"])
 @request_validate(ExportTemplateApiViewValidator)
+@is_full_param_process(TaskTemplate, project_related=True)
 @iam_intercept(ExportInterceptor())
 def export_templates(request, project_id):
     """
@@ -142,7 +144,8 @@ def export_templates(request, project_id):
     {
         "template_id_list(required)": [
             "流程ID(integer)"
-        ]
+        ],
+        "is_full(required)": "是否导出全部模板，该参数优先级大于 template_id_list(bool)"
     }
 
     return: DAT 文件

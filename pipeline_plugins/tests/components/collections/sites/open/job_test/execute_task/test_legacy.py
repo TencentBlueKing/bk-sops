@@ -68,12 +68,17 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_client_by_user"
+# 因为legacy版本的JobExecuteTaskService类直接继承了JobExecuteTaskServiceBase类,所以mock路径也使用其父类的路径
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_user"
+)
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
-    "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_node_callback_url"
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_node_callback_url"
 )
-GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_job_instance_url"
+GET_JOB_INSTANCE_URL = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_job_instance_url"
+)
 
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
