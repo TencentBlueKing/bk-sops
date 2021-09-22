@@ -141,6 +141,7 @@
                     regex: NAME_REG
                 },
                 schemeList: [],
+                defaultSchemeId: null,
                 deleting: false,
                 isPreview: false
             }
@@ -169,17 +170,27 @@
             }
         },
         created () {
-            this.loadSchemeList()
+            this.initLoad()
         },
         methods: {
             ...mapActions('task/', [
                 'loadTaskScheme',
                 'createTaskScheme',
-                'deleteTaskScheme'
+                'deleteTaskScheme',
+                'getDefaultTaskScheme',
+                'updateDefaultScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (e, scheme) {
                 this.$emit('selectScheme', scheme, e)
+            },
+            async initLoad () {
+                try {
+                    await this.loadSchemeList()
+                    this.loadDefaultSchemeList()
+                } catch (error) {
+                    console.warn(error)
+                }
             },
             // 获取方案列表
             async loadSchemeList () {
@@ -189,9 +200,59 @@
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
+                    this.schemeList.forEach(scheme => {
+                        this.$set(scheme, 'isDefault', false)
+                    })
                     this.$emit('updateTaskSchemeList', this.schemeList, false)
                 } catch (e) {
                     console.log(e)
+                }
+            },
+            // 获取默认方案列表
+            async loadDefaultSchemeList () {
+                try {
+                    const resp = await this.getDefaultTaskScheme({
+                        project_id: this.project_id,
+                        template_id: Number(this.template_id)
+                    })
+                    const defaultObj = {}
+                    if (resp.data.length) {
+                        const { id, scheme_ids: schemeIds } = resp.data[0]
+                        this.defaultSchemeId = id
+                        if (schemeIds.length) {
+                            this.schemeList.forEach(scheme => {
+                                if (schemeIds.includes(scheme.id)) {
+                                    scheme.isDefault = true
+                                    defaultObj[scheme.id] = JSON.parse(scheme.data)
+                                }
+                            })
+                        }
+                    }
+                    this.$emit('setDefaultScheme', defaultObj)
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            /**
+             * 更新默认方案
+            */
+            async onSaveDefaultExecuteScheme () {
+                try {
+                    const ids = this.schemeList.reduce((acc, cur) => {
+                        if (cur.isDefault) {
+                            acc.push(cur.id)
+                        }
+                        return acc
+                    }, [])
+                    const params = {
+                        project_id: this.project_id,
+                        template_id: Number(this.template_id),
+                        scheme_ids: ids,
+                        id: this.defaultSchemeId
+                    }
+                    await this.updateDefaultScheme(params)
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             /**
@@ -304,7 +365,11 @@
                 this.deleting = true
                 try {
                     await this.deleteTaskScheme({ id: scheme.id, isCommon: this.isCommonProcess })
-                    this.loadSchemeList()
+                    if (scheme.isDefault) {
+                        await this.onSaveDefaultExecuteScheme()
+                    }
+                    const index = this.schemeList.findIndex(item => item.id === scheme.id)
+                    this.schemeList.splice(index, 1)
                     this.onCheckChange(false, scheme)
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
@@ -419,7 +484,7 @@
         }
         .add-scheme {
             position: relative;
-            padding: 5px 0 5px 16px;
+            padding: 4px 0 5px 16px;
             border-bottom: 1px solid #f0f1f5;
             .bk-input-inline {
                 width: 320px;

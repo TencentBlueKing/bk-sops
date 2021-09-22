@@ -290,7 +290,7 @@
                     const resp = await this.getDefaultTaskScheme({
                         project_id: this.project_id,
                         template_id: Number(this.template_id)
-                    }) || []
+                    })
                     const defaultObj = {}
                     if (resp.data.length) {
                         this.isUpdate = true
@@ -563,8 +563,8 @@
                         const isEqual = this.judgeDataEqual()
                         if (!isEqual) {
                             await this.onSaveDefaultExecuteScheme()
-                            this.isDefaultSchemeIng = false
                         }
+                        this.isDefaultSchemeIng = false
                     } else {
                         this.$emit('onSaveExecuteSchemeClick')
                     }
@@ -765,7 +765,7 @@
             }
             .add-scheme {
                 position: relative;
-                padding: 5px 0 5px 12px;
+                padding: 4px 0 5px 12px;
                 border-bottom: 1px solid #f0f1f5;
                 .icon-btn-wrapper {
                     opacity: 1;
