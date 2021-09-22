@@ -51,3 +51,6 @@ class MigrateLog(models.Model):
     component_in_template_count = models.IntegerField(verbose_name="component数据总量", default=0)
     instance_in_pipeline_count = models.IntegerField(verbose_name="instance数据总量", default=0)
     component_execute_data_count = models.IntegerField(verbose_name="componentExecute数据总量", default=0)
+
+    class Meta:
+        verbose_name = "统计数据-迁移控制"
