@@ -49,10 +49,26 @@ axios.interceptors.response.use(
 
         const response = error.response
         console.log(response)
+        if (response.data.message) {
+            if (checkDataType(response.data.message) === 'Object') {
+                const msg = []
+                Object.keys(response.data.message).forEach((key) => {
+                    msg.push(response.data.message[key].join(';'))
+                })
+                response.data.msg = msg.join(';')
+            } else if (checkDataType(response.data.message) === 'Array') {
+                response.data.msg = response.data.message.join(';')
+            } else {
+                response.data.msg = response.data.message
+            }
+        }
+        if (response.data.responseText) {
+            response.data.msg = response.data.responseText
+        }
 
         switch (response.status) {
             case 400:
-                const msg = response.data.error || response.data.msg.error
+                const msg = response.data.error || response.data.msg || response.data.msg.error
                 bus.$emit('showErrMessage', msg)
                 break
             case 401:
@@ -101,22 +117,6 @@ axios.interceptors.response.use(
                 code: response.status,
                 msg
             }
-        }
-        if (response.data.message) {
-            if (checkDataType(response.data.message) === 'Object') {
-                const msg = []
-                Object.keys(response.data.message).forEach((key) => {
-                    msg.push(response.data.message[key].join(';'))
-                })
-                response.data.msg = msg.join(';')
-            } else if (checkDataType(response.data.message) === 'Array') {
-                response.data.msg = response.data.message.join(';')
-            } else {
-                response.data.msg = response.data.message
-            }
-        }
-        if (response.data.responseText) {
-            response.data.msg = response.data.responseText
         }
         return Promise.reject(response)
     }
