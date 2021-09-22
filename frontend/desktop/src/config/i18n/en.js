@@ -1,4 +1,8 @@
 const en = {
+    '请输入启动时间': 'Please enter the start time',
+    '如：2019-01-30 至 2019-01-30': 'Such as: 2019-01-30 to 2019-01-30',
+    '任务计划': 'Task plan',
+    '任务实例': 'Task instance',
     '已选流程模板没有查看权限，请取消选择或申请权限': 'Selected process template no view permission, please deselect or apply for permission',
     '已选流程模板没有编辑权限，请取消选择或申请权限': 'Selected process template no edit permission, please deselect or apply for permission',
     '请输入IP，多个以逗号或者换行符隔开，在cmdb上唯一': 'Please enter IP, multiple separated by comma or newline, unique on cmdb',

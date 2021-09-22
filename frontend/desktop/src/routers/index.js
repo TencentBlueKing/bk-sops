@@ -59,6 +59,7 @@ const Functor = () => import('@/pages/functor/index.vue')
 const AuditHome = () => import('@/pages/audit/AuditList.vue')
 const Audit = () => import('@/pages/audit/index.vue')
 
+const scheduledTemplateList = () => import('@/pages/task/ScheduledList/index.vue')
 const periodicTemplateList = () => import('@/pages/task/PeriodicList/index.vue')
 
 const AtomDev = () => import('@/pages/atomdev/index.vue')
@@ -171,6 +172,16 @@ const routers = new VueRouter({
                     component: TaskManage,
                     name: 'taskHome',
                     children: [
+                        {
+                            path: 'scheduled/:project_id/',
+                            component: scheduledTemplateList,
+                            name: 'scheduledTemplate',
+                            pathToRegexpOptions: { strict: true },
+                            props: route => ({
+                                project_id: route.params.project_id
+                            }),
+                            meta: { project: true }
+                        },
                         {
                             path: 'list/:project_id/',
                             component: TaskList,

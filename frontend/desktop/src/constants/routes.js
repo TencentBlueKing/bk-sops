@@ -17,6 +17,13 @@ const COMMON_ROUTE_LIST = [
             url: '/template/home/'
         },
         {
+            id: 'scheduledTemplate',
+            name: i18n.t('计划任务'),
+            icon: 'common-icon-task-record',
+            hasProjectId: true,
+            url: '/taskflow/home/scheduled/'
+        },
+        {
             id: 'taskList',
             name: i18n.t('任务记录'),
             icon: 'common-icon-task-record',
