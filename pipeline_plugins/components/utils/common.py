@@ -24,9 +24,9 @@ from api.utils.thread import ThreadPool
 
 logger = logging.getLogger("root")
 
-ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
+ip_re = r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)"
 ip_pattern = re.compile(ip_re)
-plat_ip_reg = re.compile(r"\d+:" + ip_re)
+plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 
 
 def loose_strip(data):

@@ -43,10 +43,14 @@ def batch_request(
     get_count=lambda x: x["data"]["count"],
     limit=500,
     page_param=None,
+    is_page_merge=False
 ):
     """
     并发请求接口
-    :param page_params: 分页参数，默认使用start/limit分页，例如：{"cur_page_param":"start", "page_size_param":"limit"}
+    :param page_param: 分页参数，默认使用start/limit分页，例如：{"cur_page_param":"start", "page_size_param":"limit"}
+    :param is_page_merge: 分页参数是否合并到请求体，默认False，例如：
+        is_page_merge=True, {"x": "y", "cur_page_param":"start", "page_size_param":"limit"};
+        is_page_merge=False, {"x": "y", page: {"cur_page_param":"start", "page_size_param":"limit"}}
     :param func: 请求方法
     :param params: 请求参数
     :param get_data: 获取数据函数
@@ -68,7 +72,10 @@ def batch_request(
         page_size_param = "limit"
 
     # 请求第一次获取总数
-    result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
+    if is_page_merge:
+        result = func(**{cur_page_param: 0, page_size_param: 1}, **params)
+    else:
+        result = func(page={cur_page_param: 0, page_size_param: 1}, **params)
 
     if not result["result"]:
         message = handle_api_error("[batch_request]", func.path, params, result)
@@ -88,7 +95,10 @@ def batch_request(
     node_info = bamboo_local.get_node_info()
     node_id = pipeline_context.get_node_id()
     while start < count:
-        request_params = {"page": {page_size_param: limit, cur_page_param: start}}
+        if is_page_merge:
+            request_params = {page_size_param: limit, cur_page_param: start}
+        else:
+            request_params = {"page": {page_size_param: limit, cur_page_param: start}}
         request_params.update(params)
         kwds = {"target_func": func, "node_id": node_id, "node_info": node_info, "request_params": request_params}
         params_and_future_list.append(
