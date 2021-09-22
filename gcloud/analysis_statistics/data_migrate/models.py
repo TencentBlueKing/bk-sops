@@ -40,10 +40,10 @@ class MigrateLog(models.Model):
     instance_in_pipeline_finished = models.IntegerField(verbose_name="instance迁移状态", default=False)
     component_execute_data_finished = models.IntegerField(verbose_name="componentExecute迁移状态", default=False)
 
-    template_in_pipeline_end = models.IntegerField(verbose_name="template迁移终点")
-    component_in_template_end = models.IntegerField(verbose_name="component迁移终点")
-    instance_in_pipeline_end = models.IntegerField(verbose_name="instance迁移终点")
-    component_execute_data_end = models.IntegerField(verbose_name="componentExecute迁移终点")
+    template_in_pipeline_end = models.IntegerField(verbose_name="template迁移终点", default=DEFAULT_MIGRATE_NUM)
+    component_in_template_end = models.IntegerField(verbose_name="component迁移终点", default=DEFAULT_MIGRATE_NUM)
+    instance_in_pipeline_end = models.IntegerField(verbose_name="instance迁移终点", default=DEFAULT_MIGRATE_NUM)
+    component_execute_data_end = models.IntegerField(verbose_name="componentExecute迁移终点", default=DEFAULT_MIGRATE_NUM)
 
     template_in_pipeline_count = models.IntegerField(verbose_name="template数据总量", default=0)
     component_in_template_count = models.IntegerField(verbose_name="component数据总量", default=0)

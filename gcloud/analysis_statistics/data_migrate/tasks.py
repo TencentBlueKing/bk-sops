@@ -391,10 +391,12 @@ def migrate_schedule():
 
     # 如果所有表都迁移完成就关掉迁移任务
     finished = all(
-        migrate_log.template_in_pipeline_finished,
-        migrate_log.component_in_template_finished,
-        migrate_log.instance_in_pipeline_finished,
-        migrate_log.component_execute_data_finished,
+        (
+            migrate_log.template_in_pipeline_finished,
+            migrate_log.component_in_template_finished,
+            migrate_log.instance_in_pipeline_finished,
+            migrate_log.component_execute_data_finished,
+        )
     )
     if finished:
         migrate_log.migrate_switch = False
