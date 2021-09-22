@@ -25,10 +25,10 @@ class MigrateLog(models.Model):
     migrate_switch = models.BooleanField(verbose_name="迁移任务开关,默认为打开状态", default=True)
     migrate_num_once = models.IntegerField(verbose_name="单次数据迁移量", default=DEFAULT_MIGRATE_NUM)
 
-    template_in_pipeline_start = models.IntegerField(verbose_name="template迁移起点", default=1)
-    component_in_template_start = models.IntegerField(verbose_name="componet迁移起点", default=1)
-    instance_in_pipeline_start = models.IntegerField(verbose_name="instance迁移起点", default=1)
-    component_execute_data_start = models.IntegerField(verbose_name="componentExecute迁移起点", default=1)
+    template_in_pipeline_start = models.IntegerField(verbose_name="当前轮次template迁移起点", default=1)
+    component_in_template_start = models.IntegerField(verbose_name="当前轮次componet迁移起点", default=1)
+    instance_in_pipeline_start = models.IntegerField(verbose_name="当前轮次instance迁移起点", default=1)
+    component_execute_data_start = models.IntegerField(verbose_name="当前轮次componentExecute迁移起点", default=1)
 
     template_in_pipeline_migrated = models.IntegerField(verbose_name="template已迁移量", default=0)
     component_in_template_migrated = models.IntegerField(verbose_name="component已迁移量", default=0)
@@ -40,10 +40,12 @@ class MigrateLog(models.Model):
     instance_in_pipeline_finished = models.IntegerField(verbose_name="instance迁移状态", default=False)
     component_execute_data_finished = models.IntegerField(verbose_name="componentExecute迁移状态", default=False)
 
-    template_in_pipeline_end = models.IntegerField(verbose_name="template迁移终点", default=DEFAULT_MIGRATE_NUM)
-    component_in_template_end = models.IntegerField(verbose_name="component迁移终点", default=DEFAULT_MIGRATE_NUM)
-    instance_in_pipeline_end = models.IntegerField(verbose_name="instance迁移终点", default=DEFAULT_MIGRATE_NUM)
-    component_execute_data_end = models.IntegerField(verbose_name="componentExecute迁移终点", default=DEFAULT_MIGRATE_NUM)
+    template_in_pipeline_end = models.IntegerField(verbose_name="当前轮次template迁移终点", default=DEFAULT_MIGRATE_NUM)
+    component_in_template_end = models.IntegerField(verbose_name="当前轮次component迁移终点", default=DEFAULT_MIGRATE_NUM)
+    instance_in_pipeline_end = models.IntegerField(verbose_name="当前轮次instance迁移终点", default=DEFAULT_MIGRATE_NUM)
+    component_execute_data_end = models.IntegerField(
+        verbose_name="当前轮次componentExecute迁移终点", default=DEFAULT_MIGRATE_NUM
+    )
 
     template_in_pipeline_count = models.IntegerField(verbose_name="template数据总量", default=0)
     component_in_template_count = models.IntegerField(verbose_name="component数据总量", default=0)
