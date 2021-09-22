@@ -11,18 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
+import base64
+import hmac
+import hashlib
 
-IS_OPEN_V3 = os.getenv("BKPAAS_MAJOR_VERSION", False)
+import ujson as json
 
-if int(IS_OPEN_V3) == 3:
-    from env_v3 import *  # noqa
-else:
-    from env_v2 import *  # noqa
 
-# 蓝鲸监控自定义上报配置
-BK_MONITOR_REPORT_ENABLE = int(os.getenv("MONITOR_REPORT_ENABLE", 0)) == 1
-BK_MONITOR_REPORT_URL = os.getenv("MONITOR_REPORT_URL")
-BK_MONITOR_REPORT_DATA_ID = int(os.getenv("MONITOR_REPORT_DATA_ID", -1))
-BK_MONITOR_REPORT_ACCESS_TOKEN = os.getenv("MONITOR_REPORT_ACCESS_TOKEN")
-BK_MONITOR_REPORT_TARGET = os.getenv("MONITOR_REPORT_TARGET")
+def get_signature(method, path, app_secret, params=None, data=None):
+    """generate signature
+    """
+    kwargs = {}
+    if params:
+        kwargs.update(params)
+    if data:
+        data = json.dumps(data) if isinstance(data, dict) else data
+        kwargs["data"] = data
+    kwargs = "&".join(["%s=%s" % (k, v) for k, v in sorted(list(kwargs.items()), key=lambda x: x[0])])
+    orignal = "%s%s?%s" % (method, path, kwargs)
+    signature = base64.b64encode(hmac.new(str(app_secret), orignal, hashlib.sha1).digest())
+    return signature

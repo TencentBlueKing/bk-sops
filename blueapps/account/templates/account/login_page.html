@@ -1,3 +1,4 @@
+<!--deprecated-->
 <!DOCTYPE html>
 {% load i18n %}
 <html>
@@ -35,10 +36,10 @@
             
             function login(){
                 // 仅触发弹框
-                $.get(refer_url, {}, function(){}, 'json');
+                $.get(refer_url, {"from_login_page": true}, function(){}, 'json');
 
                 window.close_login_dialog_after = function () {
-                    window.location.href = refer_url;
+                    window.location.href = refer_url + window.location.hash;
                 }
             }
         </script>

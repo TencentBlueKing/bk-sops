@@ -71,8 +71,14 @@ DATABASES = {"default": get_default_database_config_dict(locals())}
 # Cache
 
 CACHES = {
-    "db": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache",},
-    "login_db": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "account_cache",},
+    "db": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    },
+    "login_db": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "account_cache",
+    },
     "dummy": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
     "locmem": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
 }
@@ -111,7 +117,9 @@ TEMPLATES = [
                 "blueapps.template.context_processors.blue_settings",
             ],
             # mako templates cache, None means not using cache
-            "module_directory": os.path.join(os.path.dirname(BASE_DIR), "templates_module", APP_CODE),
+            "module_directory": os.path.join(
+                os.path.dirname(BASE_DIR), "templates_module", APP_CODE
+            ),
         },
     },
 ]

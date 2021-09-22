@@ -11,26 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import base64
-import hmac
-import hashlib
+try:
+    from django.conf import settings
 
-import ujson as json
+    APP_CODE = settings.APP_ID
+    SECRET_KEY = settings.APP_TOKEN
+    COMPONENT_SYSTEM_HOST = settings.BK_PAAS_ESB_HOST
+    DEFAULT_BK_API_VER = getattr(settings, "DEFAULT_BK_API_VER", "v2")
+except Exception:
+    APP_CODE = ""
+    SECRET_KEY = ""
+    COMPONENT_SYSTEM_HOST = ""
+    DEFAULT_BK_API_VER = "v2"
 
-
-def get_signature(method, path, app_secret, params=None, data=None):
-    """generate signature
-    """
-    kwargs = {}
-    if params:
-        kwargs.update(params)
-    if data:
-        data = json.dumps(data) if isinstance(data, dict) else data
-        kwargs['data'] = data
-    kwargs = '&'.join([
-        '%s=%s' % (k, v)
-        for k, v in sorted(list(kwargs.items()), key=lambda x: x[0])
-    ])
-    orignal = '%s%s?%s' % (method, path, kwargs)
-    signature = base64.b64encode(hmac.new(str(app_secret), orignal, hashlib.sha1).digest())
-    return signature
+CLIENT_ENABLE_SIGNATURE = False

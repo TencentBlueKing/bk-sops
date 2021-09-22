@@ -11,19 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.core.management.base import BaseCommand
+from django.core.cache import caches
 
-class ComponentBaseException(Exception):
-    pass
+
+from blueapps.account.conf import APIGW_CACHE_KEY
+
+cache = caches["login_db"]
 
 
-class ComponentAPIException(ComponentBaseException):
-    """Exception for Component API"""
+class Command(BaseCommand):
 
-    def __init__(self, api_obj, error_message, resp=None):
-        self.api_obj = api_obj
-        self.error_message = error_message
-        self.resp = resp
-
-        if self.resp is not None:
-            error_message = '%s, resp=%s' % (error_message, self.resp.text)
-        super(ComponentAPIException, self).__init__(error_message)
+    def handle(self, **options):
+        cache.delete(APIGW_CACHE_KEY)
+        print("[APIGW] clean public key cache SUCCESS!")

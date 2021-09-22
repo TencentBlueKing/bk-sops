@@ -48,7 +48,11 @@ def get_user_info(request):
     return JsonResponse(
         {
             "code": 0,
-            "data": {"id": request.user.id, "username": request.user.username, "timestamp": time.time(),},
+            "data": {
+                "id": request.user.id,
+                "username": request.user.username,
+                "timestamp": time.time(),
+            },
             "message": "ok",
         }
     )

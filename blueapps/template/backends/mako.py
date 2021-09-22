@@ -44,7 +44,10 @@ class MakoTemplates(BaseEngine):
         options.setdefault("encoding_errors", "replace")
         options.setdefault("collection_size", 500)
         options.setdefault(
-            "default_filters", settings.MAKO_DEFAULT_FILTERS if hasattr(settings, "MAKO_DEFAULT_FILTERS") else [],
+            "default_filters",
+            settings.MAKO_DEFAULT_FILTERS
+            if hasattr(settings, "MAKO_DEFAULT_FILTERS")
+            else [],
         )
 
         # Use context processors like Django
@@ -68,7 +71,10 @@ class MakoTemplates(BaseEngine):
 
     def get_template(self, template_name):
         try:
-            return Template(self.lookup.get_template(template_name), self.template_context_processors,)
+            return Template(
+                self.lookup.get_template(template_name),
+                self.template_context_processors,
+            )
         except mako_exceptions.TemplateLookupException as err:
             raise TemplateDoesNotExist(err.args)
         except mako_exceptions.CompileException as err:

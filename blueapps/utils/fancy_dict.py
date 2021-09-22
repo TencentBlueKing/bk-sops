@@ -11,18 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
 
-IS_OPEN_V3 = os.getenv("BKPAAS_MAJOR_VERSION", False)
+class FancyDict(dict):
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError as k:
+            raise AttributeError(k)
 
-if int(IS_OPEN_V3) == 3:
-    from env_v3 import *  # noqa
-else:
-    from env_v2 import *  # noqa
+    def __setattr__(self, key, value):
+        self[key] = value
 
-# 蓝鲸监控自定义上报配置
-BK_MONITOR_REPORT_ENABLE = int(os.getenv("MONITOR_REPORT_ENABLE", 0)) == 1
-BK_MONITOR_REPORT_URL = os.getenv("MONITOR_REPORT_URL")
-BK_MONITOR_REPORT_DATA_ID = int(os.getenv("MONITOR_REPORT_DATA_ID", -1))
-BK_MONITOR_REPORT_ACCESS_TOKEN = os.getenv("MONITOR_REPORT_ACCESS_TOKEN")
-BK_MONITOR_REPORT_TARGET = os.getenv("MONITOR_REPORT_TARGET")
+    def __delattr__(self, key):
+        try:
+            del self[key]
+        except KeyError as k:
+            raise AttributeError(k)

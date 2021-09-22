@@ -9,6 +9,13 @@ http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
+
+
+BK JWT - settings option
+1. settings.APIGW_ENABLED: if enabled, it will automatically get the apigw public key
+2. settings.APIGW_PUBLIC_KEY: If you get the apigw public key manually
+3. settings.APIGW_API_ACCOUNT: The account used to call the apigw API
+4. settings.APIGW_JWT_KEY: Apigw uses this key to pass jwt encrypted content
 """
 
 import logging
@@ -18,12 +25,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.account import get_user_model
-
-BKOAUTH_JWT_CLIENT_EXISTS = True
-try:
-    from bkoauth.jwt_client import JWTClient
-except ImportError:
-    BKOAUTH_JWT_CLIENT_EXISTS = False
+from blueapps.utils.jwt_client import JWTClient
 
 logger = logging.getLogger("component")  # pylint: disable=invalid-name
 
@@ -45,9 +47,10 @@ class BkJwtBackend(ModelBackend):
         user_info = verify_data["data"]["user"]
         user_model = get_user_model()
         try:
-            user, _ = user_model.objects.get_or_create(username=user_info["bk_username"])
-            user.nickname = user_info["bk_username"]
-            user.save()
+            user, _ = user_model.objects.get_or_create(
+                defaults={"nickname": user_info["bk_username"]},
+                username=user_info["bk_username"],
+            )
         except Exception as err:  # pylint: disable=broad-except
             logger.exception(u"自动创建 & 更新 User Model 失败: %s" % err)
             return None
@@ -81,10 +84,6 @@ class BkJwtBackend(ModelBackend):
             }
         """
         ret = {"result": False, "message": "", "data": {}}
-        # 兼容bkoauth未支持jwt协议情况
-        if not BKOAUTH_JWT_CLIENT_EXISTS:
-            ret["message"] = _(u"bkoauth暂不支持JWT协议")
-            return ret
 
         jwt = JWTClient(request)
         if not jwt.is_valid:
@@ -112,8 +111,12 @@ class BkJwtBackend(ModelBackend):
         if not user.get("bk_username"):
             user["bk_username"] = user["username"]
 
-        if not app["bk_app_code"] or not user["bk_username"]:
-            ret["message"] = _(u"用户或来源为空")
+        if not app["bk_app_code"]:
+            ret["message"] = _(u"无法获取bk_app_code")
+            return ret
+
+        if not user["bk_username"]:
+            ret["message"] = _(u"无法获取用户信息")
             return ret
 
         ret["result"] = True
