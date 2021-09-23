@@ -17,11 +17,11 @@ const COMMON_ROUTE_LIST = [
             url: '/template/home/'
         },
         {
-            id: 'scheduledTemplate',
+            id: 'clockedTemplate',
             name: i18n.t('计划任务'),
             icon: 'common-icon-task-record',
             hasProjectId: true,
-            url: '/taskflow/home/scheduled/'
+            url: '/taskflow/home/clocked/'
         },
         {
             id: 'taskList',

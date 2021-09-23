@@ -152,7 +152,7 @@
                     id: 'peropdic',
                     text: i18n.t('周期执行')
                 }, {
-                    id: 'scheduled',
+                    id: 'clocked',
                     text: i18n.t('计划执行')
                 }
             ]
@@ -223,7 +223,7 @@
                     } else if (this.isStartNow === 'peropdic') {
                         return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
                     } else {
-                        return this.common ? ['common_flow_create_scheduled_task'] : ['flow_create_scheduled_task']
+                        return this.common ? ['common_flow_create_clocked_task'] : ['flow_create_clocked_task']
                     }
                 }
             },

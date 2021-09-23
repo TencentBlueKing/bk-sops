@@ -19,8 +19,8 @@
         :title="$t('确认删除')"
         :value="isDeleteDialogShow"
         :draggable="true"
-        @confirm="onDeleteScheduledConfrim"
-        @cancel="onDeleteScheduledCancel">
+        @confirm="onDeleteClockedConfrim"
+        @cancel="onDeleteClockedCancel">
         <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1, zIndex: 100 }">
             <div class="information-tips">{{deleteInfo}}</div>
         </div>
@@ -29,7 +29,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     export default {
-        name: 'DeleteScheduledDialog',
+        name: 'DeleteClockedDialog',
         props: ['isDeleteDialogShow', 'templateName', 'deleting'],
         computed: {
             deleteInfo () {
@@ -37,11 +37,11 @@
             }
         },
         methods: {
-            onDeleteScheduledCancel () {
-                this.$emit('onDeleteScheduledCancel')
+            onDeleteClockedCancel () {
+                this.$emit('onDeleteClockedCancel')
             },
-            onDeleteScheduledConfrim () {
-                this.$emit('onDeleteScheduledConfirm')
+            onDeleteClockedConfrim () {
+                this.$emit('onDeleteClockedConfirm')
             }
         }
     }

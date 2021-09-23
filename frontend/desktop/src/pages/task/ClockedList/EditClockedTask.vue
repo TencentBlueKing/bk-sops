@@ -1,7 +1,7 @@
 <template>
     <bk-sideslider
         :width="800"
-        ext-cls="edit-scheduled-sideslider"
+        ext-cls="edit-clocked-sideslider"
         :is-show.sync="isShowSideslider"
         :quick-close="true">
         <div slot="header">{{ title }}</div>
