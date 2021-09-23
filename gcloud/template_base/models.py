@@ -164,17 +164,27 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         # update creator when templates are created
         PipelineTemplate.objects.filter(template_id__in=new_objects_template_ids).update(creator=operator)
 
+        # update flows map
+        flows = {info['id']: info['name'] for info in check_info["new_template"]}
+
         if not override:
             self.model.objects.bulk_create(new_objects)
 
             create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
+
+            # create flows map
+            flows = {tmp.id: tmp.name for tmp in create_templates}
+
             # send_signal
             if create_templates:
                 batch_create.send(self.model, instance=create_templates, creator=operator)
 
         return {
             "result": True,
-            "data": len(template),
+            "data": {
+                "count": len(template),
+                "flows": flows
+            },
             "message": "Successfully imported %s flows" % len(template),
             "code": err_code.SUCCESS.code,
         }
