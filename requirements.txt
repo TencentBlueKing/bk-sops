@@ -38,7 +38,7 @@ bkstorages==1.0.1
 # monitor
 django-prometheus==2.1.0
 celery-prometheus-exporter==1.7.0
-bk-monitor-report==1.0.2
+bk-monitor-report==1.0.3
 
 # version log
 mistune==0.8.4
