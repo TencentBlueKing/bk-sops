@@ -76,14 +76,14 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
     def group_by_atom_cite(self, tasktmpl, *args):
         # 查询不同原子引用的个数
-        components = ComponentModel.objects.filter(status=True).values("code", "version", "name")
+        components = ComponentModel.objects.values("code", "version", "name")
         total = components.count()
         groups = []
         task_template_id_list = tasktmpl.values_list("id", flat=True)
         # 查询出符合条件的不同原子引用
         template_node_template_data = (
-            TemplateNodeStatistics.objects.filter(template_id__in=task_template_id_list)
-            .values("component_code", "version")
+            TemplateNodeStatistics.objects.values("component_code", "version")
+            .filter(task_template_id__in=task_template_id_list)
             .annotate(value=Count("id"))
         )
 
