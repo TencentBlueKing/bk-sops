@@ -1,0 +1,3 @@
+bugfix:
+  - 修复 operate_node API 不修改参数重试 engine v2 失败节点时节点数据会被清空的问题
+

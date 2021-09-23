@@ -74,7 +74,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     @ensure_return_is_dict
     def retry_v2(self, operator: str, **kwargs) -> dict:
-        return bamboo_engine_api.retry_node(runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"])
+        # 数据为空的情况传入 None, v2 engine api 不认为 {} 是空数据
+        return bamboo_engine_api.retry_node(
+            runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"] or None
+        )
 
     @ensure_return_is_dict
     def skip_v1(self, operator: str, **kwargs) -> dict:
