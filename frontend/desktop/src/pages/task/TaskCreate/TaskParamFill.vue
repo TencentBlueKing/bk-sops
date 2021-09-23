@@ -36,15 +36,22 @@
                         <div class="common-form-content">
                             <div class="bk-button-group">
                                 <bk-button
-                                    :theme="!isStartNow ? 'default' : 'primary'"
-                                    @click="onChangeStartNow(true)">
-                                    {{ $t('立即执行') }}
+                                    v-for="(item, index) in btnGroup"
+                                    :key="index"
+                                    :theme="item.id === isStartNow ? 'primary' : 'default'"
+                                    @click="onChangeStartNow(item.id)">
+                                    {{ item.text }}
                                 </bk-button>
-                                <bk-button
+                                <!-- <bk-button
                                     :theme="!isStartNow ? 'primary' : 'default'"
                                     @click="onChangeStartNow(false)">
                                     {{ $t('周期执行') }}
                                 </bk-button>
+                                <bk-button
+                                    :theme="!isStartNow ? 'primary' : 'default'"
+                                    @click="onChangeStartNow(false)">
+                                    {{ $t('计划执行') }}
+                                </bk-button> -->
                             </div>
                         </div>
                     </div>
@@ -68,7 +75,7 @@
                         </div>
                     </div>
                     <div
-                        v-if="!isStartNow"
+                        v-if="isStartNow === 'peropdic'"
                         class="common-form-item">
                         <label class="required">{{$t('周期表达式')}}</label>
                         <div class="common-form-content step-form-item-cron">
@@ -137,6 +144,18 @@
         mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
         data () {
+            const btnGroup = [
+                {
+                    id: 'now',
+                    text: i18n.t('立即执行')
+                }, {
+                    id: 'peropdic',
+                    text: i18n.t('周期执行')
+                }, {
+                    id: 'scheduled',
+                    text: i18n.t('计划执行')
+                }
+            ]
             return {
                 bkMessageInstance: null,
                 isSubmit: false,
@@ -150,7 +169,8 @@
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                isStartNow: true,
+                isStartNow: 'now',
+                btnGroup,
                 periodicCron: '*/5 * * * *',
                 periodicRule: {
                     required: true,
@@ -189,7 +209,7 @@
                 return Number(this.$route.query.common) === 1
             },
             isTaskTypeShow () {
-                return this.entrance !== 'function' && this.isStartNow
+                return this.entrance !== 'function' && this.isStartNow === 'now'
             },
             isPeriodicSelectShow () {
                 return this.entrance.indexOf('periodicTask') > -1
@@ -198,10 +218,12 @@
                 if (this.viewMode === 'appmaker') {
                     return ['mini_app_create_task']
                 } else {
-                    if (this.isStartNow) {
+                    if (this.isStartNow === 'now') {
                         return this.common ? ['common_flow_create_task'] : ['flow_create_task']
-                    } else {
+                    } else if (this.isStartNow === 'peropdic') {
                         return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
+                    } else {
+                        return this.common ? ['common_flow_create_scheduled_task'] : ['flow_create_scheduled_task']
                     }
                 }
             },
@@ -215,7 +237,7 @@
         },
         created () {
             if (this.entrance === 'periodicTask') {
-                this.isStartNow = false
+                this.isStartNow = 'peropdic'
             }
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
@@ -470,7 +492,7 @@
                         // 普通任务
                         flowType = 'common'
                     }
-                    if (this.isStartNow) {
+                    if (this.isStartNow === 'now') {
                         const data = {
                             'name': this.taskName,
                             'description': '',
@@ -522,7 +544,7 @@
                         } finally {
                             this.isSubmit = false
                         }
-                    } else {
+                    } else if (this.isStartNow === 'peropdic') {
                         // 创建周期任务
                         const cronArray = loopRule.rule.split(' ')
                         const cron = {
@@ -551,6 +573,8 @@
                         } finally {
                             this.isSubmit = false
                         }
+                    } else {
+                        console.log('111')
                     }
                 })
             },

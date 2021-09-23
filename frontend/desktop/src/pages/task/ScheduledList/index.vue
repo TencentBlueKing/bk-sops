@@ -102,6 +102,15 @@
                 </div>
             </div>
         </skeleton>
+        <TaskCreateDialog
+            :entrance="'ScheduledTask'"
+            :project_id="project_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :task-category="taskCategory"
+            dialog-title="新建计划任务"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <EditScheduled
             :is-show-sideslider="isShowSideslider"
             title="编辑计划任务"
@@ -125,6 +134,7 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import { mapActions, mapState } from 'vuex'
+    import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import EditScheduled from './EditScheduled.vue'
     import DeleteScheduledDialog from './DeleteScheduledDialog.vue'
     const SEARCH_FORM = [
@@ -175,6 +185,7 @@
         components: {
             Skeleton,
             AdvanceSearchForm,
+            TaskCreateDialog,
             EditScheduled,
             DeleteScheduledDialog
         },
@@ -478,6 +489,9 @@
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
                 },
+                isNewTaskDialogShow: false,
+                taskCategory: [],
+                businessInfoLoading: true,
                 isDeleteDialogShow: false,
                 selectedTemplateName: '',
                 deleting: false,
@@ -492,11 +506,16 @@
                 return this.hasAdminPerm && this.admin
             }
         },
-        created () {
+        async created () {
+            this.getFields()
+            this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getScheduledList()
         },
         methods: {
-            ...mapActions([]),
+            ...mapActions('template/', [
+                'loadProjectBaseInfo'
+            ]),
             // 获取计划任务列表
             getScheduledList () {},
             // 获取当前视图表格头显示字段
@@ -515,8 +534,23 @@
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
+            // 获取业务类别
+            async getBizBaseInfo () {
+                try {
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             // 创建计划任务
-            onCreateScheduledTask () {},
+            onCreateScheduledTask () {
+                this.isNewTaskDialogShow = true
+            },
+            // 取消创建
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
+            },
             // 高级搜索提交
             onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
@@ -563,11 +597,7 @@
                         query[key] = val
                     }
                 })
-                if (this.admin) {
-                    this.$router.replace({ name: 'adminPeriodic', query })
-                } else {
-                    this.$router.replace({ name: 'periodicTemplate', params: { project_id: this.project_id }, query })
-                }
+                this.$router.replace({ name: 'scheduledTemplate', params: { project_id: this.project_id }, query })
             },
             // 前往对应模板
             onTemplatePermissonCheck () {},
