@@ -112,6 +112,7 @@ def create_maker_app(
 
     data = {
         "app_code": settings.APP_CODE,
+        "app_secret": settings.SECRET_KEY,
         "parent_app_code": settings.APP_CODE,
         "app_name": app_name,
         "app_url": app_url,
@@ -158,6 +159,7 @@ def edit_maker_app(
 
     data = {
         "app_code": settings.APP_CODE,
+        "app_secret": settings.SECRET_KEY,
         "light_app_code": app_maker_code,
         "app_name": app_name,
     }
@@ -190,6 +192,7 @@ def del_maker_app(operator, app_maker_code):
 
     params = {
         "app_code": settings.APP_CODE,
+        "app_secret": settings.SECRET_KEY,
         "light_app_code": app_maker_code,
     }
 
@@ -218,6 +221,7 @@ def get_app_logo_url(app_code):
 
     params = {
         "app_code": settings.APP_CODE,
+        "app_secret": settings.SECRET_KEY,
         "light_app_code": app_code,
     }
 
