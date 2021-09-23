@@ -21,6 +21,7 @@ def format_component_name(components: list, components_list: list):
     @param: components_list: 插件数据列表
     return groups
     """
+    groups = []
     for comp in components:
         version = comp["version"]
         # 插件名国际化
@@ -28,9 +29,8 @@ def format_component_name(components: list, components_list: list):
         name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
         code = "{}-{}".format(comp["code"], comp["version"])
         value = 0
-        groups = []
         for oth_com_tmp in components_list:
             if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                value = oth_com_tmp["value"]
+                value += oth_com_tmp["value"]
         groups.append({"code": code, "name": name, "value": value})
     return groups

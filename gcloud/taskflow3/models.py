@@ -210,50 +210,42 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件失败次数
-        components = ComponentModel.objects.filter(status=False).values("code", "version", "name")
+        components = ComponentModel.objects.filter().values("code", "version", "name")
         total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的不同流程引用
-        template_node_template_data = (
-            TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
-            .values("component_code", "version")
-            .annotate(value=Count("id"))
-        )
+        template_node_template_data = TaskflowExecutedNodeStatistics.objects.values(
+            "component_code", "version"
+        ).annotate(value=Count("id", filter=Q(status=False)))
 
         groups = format_component_name(components, template_node_template_data)
         return total, groups
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
         # 查询各插件平均执行耗时
-        components = ComponentModel.objects.filter().values("code", "version", "name")
+        components = ComponentModel.objects.values("code", "version", "name")
         total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values_list("id")
+        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的插件的平均执行耗时
-        template_node_template_data = (
-            TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
-            .values("component_code", "version")
+        template_node_template_inst = (
+            TaskflowExecutedNodeStatistics.objects.values("component_code", "version")
+            .filter(task_instance_id__in=taskflow_id_list)
             .annotate(value=Avg("elapsed_time"))
         )
 
-        groups = format_component_name(components, template_node_template_data)
+        groups = format_component_name(components, template_node_template_inst)
         return total, groups
 
     def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各插件执行失败率
-        components = ComponentModel.objects.filter().values("code", "version", "name")
+        components = ComponentModel.objects.values("code", "version", "name")
         total = components.count()
         groups = []
-        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的插件的执行失败率,计算结果保留两位小数
-        status_false_filter = Q()
-        status_false_filter.children.append(("status", False))
-        template_node_template_data = (
-            TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
-            .values("component_code", "version")
-            .annotate(value=Count("id", fliter=status_false_filter) / Count("id"))
-        )
+        template_node_template_data = TaskflowExecutedNodeStatistics.objects.values(
+            "component_code", "version"
+        ).annotate(value=(Count("id", filter=Q(status=False)) / Count("id")))
 
         groups = format_component_name(components, template_node_template_data)
         return total, groups
@@ -264,17 +256,17 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获得参数中的标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
-        # 获取到组件code对应的instance_id_list
-        instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(is_sub=False)
-        # 对code进行二次查找
-        if component_code:
-            instance_id_list = instance_id_list.filter(component_code=component_code, version=version).values_list(
-                "instance_id"
-            )
-        else:
-            instance_id_list = instance_id_list.values_list("instance_id")
 
-        taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
+        if component_code:
+            instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(
+                is_sub=False, component_code=component_code, version=version
+            ).values_list("instance_id", flat=True)
+        else:
+            instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(is_sub=False).values_list(
+                "instance_id", flat=True
+            )
+
+        taskflow_list = taskflow.filter(pipeline_instance__id__in=instance_id_list)
         # 获得总数
         total = taskflow_list.count()
         order_by = filters.get("order_by", "-instance_id")
@@ -438,7 +430,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             .annotate(value=Count("id"))
         )
         # 获取project_name
-        project_id_list = taskflow_statistics_data.values_list("id", flat=True)
+        project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
 
         total = 1
