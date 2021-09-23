@@ -77,14 +77,15 @@
                 'instanceRetry'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             async loadNodeInfo () {
                 this.loading = true
                 try {
                     const version = this.nodeDetailConfig.version
                     this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+                    await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     if (this.nodeInfo.result) {
                         if (this.nodeInfo) {
                             for (const key in this.nodeInfo.data.inputs) {
@@ -104,8 +105,32 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
-                        return this.atomFormConfig[type][version]
+                        // 第三方插件节点拼接输出参数
+                        if (this.nodeDetailConfig.component_code === 'remote_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            const pluginVersion = inputs && inputs.plugin_version
+                            const pluginCode = inputs && inputs.plugin_code
+                            const resp = await this.loadPluginServiceDetail({
+                                plugin_code: pluginCode,
+                                plugin_version: pluginVersion,
+                                with_app_detail: true
+                            })
+                            if (!resp.result) return
+                            const { app, forms } = resp.data
+                            
+                            // 设置host
+                            const { host } = window.location
+                            $.context.bk_plugin_api_host[pluginCode] = app.urls.find(item => item.includes(host))
+                            // 输入参数
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                            const config = $.atoms[pluginCode]
+                            this.renderConfig = config || []
+                        } else {
+                            await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
+                            this.renderConfig = this.atomFormConfig[type][version]
+                        }
                     } catch (e) {
                         console.log(e)
                     }
