@@ -1,7 +1,12 @@
 const en = {
     '请输入启动时间': 'Please enter the start time',
+    '请选择启动时间': 'Please select the start time',
+    '启动时间不能为空': 'Start time cannot be empty',
+    '新建计划任务': 'New clocked task',
+    '编辑计划任务': 'Edit clocked tasks',
+    '计划执行': 'Plan execution',
+    '计划任务': 'Clocked task',
     '如：2019-01-30 至 2019-01-30': 'Such as: 2019-01-30 to 2019-01-30',
-    '任务计划': 'Task plan',
     '任务实例': 'Task instance',
     '计划名称': 'Plan name',
     '执行参数': 'Execution params',

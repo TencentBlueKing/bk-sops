@@ -13,17 +13,17 @@
                     :model="formData"
                     :rules="rules">
                     <bk-form-item :label="$t('计划名称')" :required="true" property="planName">
-                        <bk-input v-model="formData.plan_name" :disabled="true"></bk-input>
+                        <bk-input v-model="formData.task_name" :disabled="true"></bk-input>
                     </bk-form-item>
                     <bk-form-item :label="$t('流程模板')" :required="true" property="processTemp">
-                        <bk-select v-model="formData.process_temp" :disabled="true"></bk-select>
+                        <bk-select v-model="formData.template_name" :disabled="true"></bk-select>
                     </bk-form-item>
                     <bk-form-item :label="$t('任务实例')" :required="true" property="taskInstace">
-                        <bk-select v-model="formData.task_instance" :disabled="true"></bk-select>
+                        <bk-select v-model="formData.task_name" :disabled="true"></bk-select>
                     </bk-form-item>
                     <bk-form-item :label="$t('启动时间')" :required="true" property="startTime">
                         <bk-date-picker
-                            v-model="formData.start_time"
+                            v-model="formData.plan_start_time"
                             :placeholder="`${$t('请输入启动时间')}`"
                             :type="'datetime'">
                         </bk-date-picker>
@@ -61,16 +61,7 @@
                 type: Boolean,
                 default: false
             },
-            formData: {
-                type: Object,
-                default: () => ({
-                    plan_name: '',
-                    process_temp: '',
-                    task_instance: '',
-                    start_time: ''
-                })
-            },
-            constants: {
+            curRow: {
                 type: Object,
                 default: () => {}
             },
@@ -82,6 +73,11 @@
         data () {
             const initStartTime = this.formData.start_time
             return {
+                formData: {
+                    template_name: '',
+                    task_name: '',
+                    plan_start_time: ''
+                },
                 rules: {
                     startTime: [
                         {
@@ -100,7 +96,14 @@
                         }
                     ]
                 },
-                initStartTime: ''
+                constants: {}
+            }
+        },
+        watch: {
+            curRow (val) {
+                this.formData = val
+                const activities = JSON.parse(val.extra_info)
+                this.constants = activities.constants
             }
         },
         methods: {

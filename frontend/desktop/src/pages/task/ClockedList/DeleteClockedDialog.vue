@@ -19,7 +19,7 @@
         :title="$t('确认删除')"
         :value="isDeleteDialogShow"
         :draggable="true"
-        @confirm="onDeleteClockedConfrim"
+        @confirm="onDeleteClockedConfirm"
         @cancel="onDeleteClockedCancel">
         <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1, zIndex: 100 }">
             <div class="information-tips">{{deleteInfo}}</div>
@@ -40,7 +40,7 @@
             onDeleteClockedCancel () {
                 this.$emit('onDeleteClockedCancel')
             },
-            onDeleteClockedConfrim () {
+            onDeleteClockedConfirm () {
                 this.$emit('onDeleteClockedConfirm')
             }
         }

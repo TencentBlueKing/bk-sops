@@ -38,14 +38,16 @@
                             <template slot-scope="{ row }">
                                 <!--流程模板-->
                                 <div v-if="item.id === 'process_template'">
-                                    <!-- <a
-                                        v-if="!hasPermission(['clocked_task_view'], row.auth_actions)"
+                                    <a
+                                        v-if="!hasPermission(['clocked_template_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['clocked_task_view'], row, $event)">
+                                        :title="row.task_template_name"
+                                        @click="onClockedPermissonCheck(['clocked_template_view'], row, $event)">
                                         {{ row.task_template_name }}
-                                    </a> -->
+                                    </a>
                                     <router-link
+                                        v-else
                                         class="template-name"
                                         :title="row.task_template_name"
                                         :to="templateNameUrl(row)">
@@ -54,11 +56,28 @@
                                 </div>
                                 <!--任务实例-->
                                 <div v-else-if="item.id === 'task_instance'">
-                                    <span
-                                        class="task-instance"
-                                        @click="onClockedPermissonCheck(['clocked_task_view'], row, $event)">
-                                        {{ row[item.id] || '--' }}
-                                    </span>
+                                    <template v-if="item.task_id">
+                                        <a
+                                            v-if="!hasPermission(['clocked_task_view'], row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            :title="row.task_name"
+                                            @click="onClockedPermissonCheck(['clocked_task_view'], row, $event)">
+                                            {{ row.task_name }}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="task-name"
+                                            :title="row.task_name"
+                                            :to="{
+                                                name: 'taskExecute',
+                                                params: { project_id: row.project_id },
+                                                query: { instance_id: row.task_id }
+                                            }">
+                                            {{ row.task_name }}
+                                        </router-link>
+                                    </template>
+                                    <template v-else>{{ '--' }}</template>
                                 </div>
                                 <!-- 其他 -->
                                 <template v-else>
@@ -72,7 +91,7 @@
                                     v-cursor="{ active: !hasPermission(['clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="['clocked-bk-btn', {
-                                        'clocked-bk-disable': props.row.enabled,
+                                        'clocked-bk-disable': !props.row.task_id,
                                         'text-permission-disable': !hasPermission(['clocked_task_edit'], props.row.auth_actions)
                                     }]"
                                     @click="onEditClockedTask(props.row, $event)">
@@ -103,17 +122,18 @@
             </div>
         </skeleton>
         <TaskCreateDialog
-            :entrance="'ClockedTask'"
+            :entrance="'clockedTask'"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
             :task-category="taskCategory"
-            dialog-title="新建计划任务"
+            :dialog-title="$t('新建计划任务')"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <EditClockedTask
             :is-show-sideslider="isShowSideslider"
-            title="编辑计划任务"
+            :cur-row="curRow"
+            :title="$t('编辑计划任务')"
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
         </EditClockedTask>
@@ -160,14 +180,14 @@
             width: 80
         }, {
             id: 'task_name',
-            label: i18n.t('任务计划'),
+            label: i18n.t('计划任务'),
             min_width: 200
         }, {
             id: 'template_name',
             label: i18n.t('流程模板'),
             min_width: 200
         }, {
-            id: 'task_name1',
+            id: 'task_instance',
             label: i18n.t('任务实例'),
             width: 200
         }, {
@@ -222,7 +242,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -231,7 +250,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -240,7 +258,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -249,7 +266,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -258,7 +274,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -267,7 +282,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -276,7 +290,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -285,7 +298,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -294,7 +306,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -303,7 +314,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -312,7 +322,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -321,7 +330,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -330,7 +338,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -339,7 +346,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -348,7 +354,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -357,7 +362,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -366,7 +370,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -375,7 +378,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -384,7 +386,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -393,7 +394,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -402,7 +402,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -411,7 +410,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -420,7 +418,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -429,7 +426,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -438,7 +434,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }, {
                         task_template_name: '我是计划名称2',
@@ -447,7 +442,6 @@
                         task_name: '我是计划名称2',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划名称2',
                         template_name: '我是计划名称2'
                     }, {
                         task_template_name: '国庆加班大礼包',
@@ -456,7 +450,6 @@
                         task_name: '国庆加班大礼包',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '国庆加班大礼包',
                         template_name: '国庆加班大礼包'
                     }, {
                         task_template_name: '我是计划任务名称',
@@ -465,7 +458,6 @@
                         task_name: '我是计划任务名称',
                         creator: 'admin',
                         plan_start_time: '2021-09-22 14:40:31',
-                        task_name1: '我是计划任务名称',
                         template_name: '我是计划任务名称'
                     }
                 ],
@@ -495,6 +487,7 @@
                 isDeleteDialogShow: false,
                 selectedTemplateName: '',
                 deleting: false,
+                curRow: {},
                 isShowSideslider: false
             }
         },
@@ -582,11 +575,11 @@
             // 更新路径
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, enabled, taskName } = this.requestData
+                const { creator, startTime, taskName } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
-                    enabled,
+                    startTime,
                     page: current,
                     keyword: taskName
                 }
@@ -599,25 +592,23 @@
                 })
                 this.$router.replace({ name: 'clockedTemplate', params: { project_id: this.project_id }, query })
             },
-            // 前往对应模板
-            onTemplatePermissonCheck () {},
             // 获取前往对应模板的路径
-            templateNameUrl (template) {
-                // const { template_id: templateId, template_source: templateSource, project } = template
-                // const url = {
-                //     name: 'templatePanel',
-                //     params: { type: 'edit', project_id: project.id },
-                //     query: { template_id: templateId, common: templateSource === 'common' || undefined }
-                // }
-                return ''
+            templateNameUrl (row) {
+                const { template_id: templateId, template_source: templateSource, project_id } = row
+                const url = {
+                    name: 'templatePanel',
+                    params: { type: 'edit', project_id: project_id },
+                    query: { template_id: templateId, common: templateSource === 'common' || undefined }
+                }
+                return url
             },
             /**
              * 单个计划任务操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} clocked 模板数据对象
              */
-            onClockedPermissonCheck (required, clocked) {
-                const { id, name, task_template_name, template_id, project } = clocked
+            onClockedPermissonCheck (required, row) {
+                const { id, name, task_template_name, template_id, project } = row
                 const resourceData = {
                     clocked_task: [{ id, name }],
                     flow: [{
@@ -629,14 +620,15 @@
                         name: project.name
                     }]
                 }
-                this.applyForPermission(required, clocked.auth_actions, resourceData)
+                this.applyForPermission(required, row.auth_actions, resourceData)
             },
             // 编辑计划任务
-            onEditClockedTask (clocked) {
-                if (!this.hasPermission(['clocked_task_edit'], clocked.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_edit'], clocked)
+            onEditClockedTask (row) {
+                if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_edit'], row)
                     return
                 }
+                this.curRow = row
                 this.isShowSideslider = true
             },
             // 保存编辑计划任务
@@ -646,20 +638,18 @@
                 this.isShowSideslider = false
             },
             // 删除计划任务
-            onDeleteClockedTask (clocked) {
-                if (!this.hasPermission(['clocked_task_delete'], clocked.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_delete'], clocked)
+            onDeleteClockedTask (row) {
+                if (!this.hasPermission(['clocked_task_delete'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_delete'], row)
                     return
                 }
                 this.isDeleteDialogShow = true
-                this.selectedDeleteTaskId = clocked.id
-                this.selectedTemplateName = clocked.name
+                this.selectedDeleteTaskId = row.id
+                this.selectedTemplateName = row.name
             },
             // 同意删除计划任务
-            async onDeleteClockedTaskConfirm () {
-                if (this.deleting) {
-                    return
-                }
+            async onDeleteClockedConfirm () {
+                if (this.deleting) return
                 try {
                     this.deleting = true
                     this.$bkMessage({
@@ -683,7 +673,7 @@
                 }
             },
             // 取消删除计划任务
-            onDeleteClockedTaskCancel () {
+            onDeleteClockedCancel () {
                 this.isDeleteDialogShow = false
             }
         }
@@ -714,8 +704,8 @@
             overflow: visible;
         }
     }
-    a.template-name,
-    .task-instance,
+    .template-name,
+    .task-name
     .clocked-operation > a {
         color: $blueDefault;
         padding: 5px;

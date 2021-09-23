@@ -42,16 +42,6 @@
                                     @click="onChangeStartNow(item.id)">
                                     {{ item.text }}
                                 </bk-button>
-                                <!-- <bk-button
-                                    :theme="!isStartNow ? 'primary' : 'default'"
-                                    @click="onChangeStartNow(false)">
-                                    {{ $t('周期执行') }}
-                                </bk-button>
-                                <bk-button
-                                    :theme="!isStartNow ? 'primary' : 'default'"
-                                    @click="onChangeStartNow(false)">
-                                    {{ $t('计划执行') }}
-                                </bk-button> -->
                             </div>
                         </div>
                     </div>
@@ -75,7 +65,7 @@
                         </div>
                     </div>
                     <div
-                        v-if="isStartNow === 'peropdic'"
+                        v-if="isStartNow === 'periodic'"
                         class="common-form-item">
                         <label class="required">{{$t('周期表达式')}}</label>
                         <div class="common-form-content step-form-item-cron">
@@ -83,6 +73,25 @@
                                 ref="loopRuleSelect"
                                 :manual-input-value="periodicCron">
                             </LoopRuleSelect>
+                        </div>
+                    </div>
+                    <div
+                        v-if="isStartNow === 'clocked'"
+                        class="common-form-item">
+                        <label class="required">{{$t('启动时间')}}</label>
+                        <div class="common-form-content">
+                            <bk-date-picker
+                                ref="datePickerRef"
+                                :clearable="false"
+                                :type="'datetime'"
+                                :shortcut-close="true"
+                                :value="timeRange"
+                                :placeholder="$t('请选择启动时间')"
+                                v-validate="deatPickerRule"
+                                :options="pickerOptions"
+                                @change="onPickerChange">
+                            </bk-date-picker>
+                            <span v-if="!timeRange" class="common-error-tip error-msg">{{ $t('启动时间不能为空') }}</span>
                         </div>
                     </div>
                 </div>
@@ -149,7 +158,7 @@
                     id: 'now',
                     text: i18n.t('立即执行')
                 }, {
-                    id: 'peropdic',
+                    id: 'periodic',
                     text: i18n.t('周期执行')
                 }, {
                     id: 'clocked',
@@ -187,7 +196,16 @@
                 paramsLoading: false,
                 nextBtnDisable: false,
                 disabledButton: true,
-                tplActions: []
+                tplActions: [],
+                deatPickerRule: {
+                    required: true
+                },
+                timeRange: '',
+                pickerOptions: {
+                    disabledDate (time) {
+                        return time.getTime() <= Date.now()
+                    }
+                }
             }
         },
         computed: {
@@ -220,7 +238,7 @@
                 } else {
                     if (this.isStartNow === 'now') {
                         return this.common ? ['common_flow_create_task'] : ['flow_create_task']
-                    } else if (this.isStartNow === 'peropdic') {
+                    } else if (this.isStartNow === 'periodic') {
                         return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
                     } else {
                         return this.common ? ['common_flow_create_clocked_task'] : ['flow_create_clocked_task']
@@ -232,12 +250,14 @@
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
+                return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'clockedTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
             }
         },
         created () {
             if (this.entrance === 'periodicTask') {
-                this.isStartNow = 'peropdic'
+                this.isStartNow = 'periodic'
+            } else if (this.entrance === 'clockedTask') {
+                this.isStartNow = 'clocked'
             }
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
@@ -389,6 +409,9 @@
                 }
                 this.$router.push(url)
             },
+            onPickerChange (date) {
+                this.timeRange = date
+            },
             onCreateTask () {
                 let hasNextPermission = false
                 if (this.common) {
@@ -441,7 +464,7 @@
                     return
                 }
 
-                const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
+                const loopRule = this.isStartNow === 'periodic' ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
                 if (!loopRule.check || this.isSubmit) {
                     return false
                 }
@@ -544,7 +567,7 @@
                         } finally {
                             this.isSubmit = false
                         }
-                    } else if (this.isStartNow === 'peropdic') {
+                    } else if (this.isStartNow === 'periodic') {
                         // 创建周期任务
                         const cronArray = loopRule.rule.split(' ')
                         const cron = {
@@ -583,12 +606,13 @@
                     return
                 }
                 this.isStartNow = value
+                this.timeRange = ''
                 this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
-                if (!value) {
+                if (value === 'periodic') {
                     this.lastTaskName = this.taskName
                     this.taskName = this.templateName
                 } else {
-                    this.taskName = this.lastTaskName
+                    this.taskName = this.lastTaskName || this.taskName
                 }
             },
             paramsLoadingChange (val) {
@@ -629,6 +653,9 @@
             color: #313238;
             font-weight: normal;
         }
+        .bk-date-picker {
+            width: 500px;
+        }
     }
 }
 .param-info {
@@ -645,7 +672,7 @@
 }
 .bk-button-group {
     .bk-button {
-        width: 250px;
+        width: 167px;
         margin: 0px;
     }
     .bk-button.bk-primary {
@@ -656,7 +683,7 @@
         border-radius: 2px;
         border: 1px solid #3a84ff;
     }
-    .bk-button:last-child {
+    .bk-button:not(:first-child) {
         margin-left: -1px;
     }
 }
