@@ -78,6 +78,12 @@
                     return []
                 }
             },
+            colorBlockList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
             dataLoading: {
                 type: Boolean,
                 default: true
@@ -94,11 +100,10 @@
                     if (val.length > 0) {
                         this.$nextTick(() => {
                             const x = []
-                            const y = []
                             this.dataList.forEach(item => {
                                 x.push(item.time)
-                                y.push(item.value)
                             })
+                            const y = this.getDatasets()
                             if (this.chartInstance) {
                                 this.updateChart(x, y)
                             } else {
@@ -112,37 +117,44 @@
             }
         },
         methods: {
+            getDatasets () {
+                const createMethodList = []
+                this.dataList.forEach(item => {
+                    this.colorBlockList.forEach(val => {
+                        const isHas = item.create_method.some(method => method.name === val.value)
+                        if (!isHas) {
+                            item.create_method.push({
+                                name: val.value,
+                                value: 0
+                            })
+                        }
+                    })
+                    createMethodList.push(...item.create_method)
+                })
+                const createMethodObj = createMethodList.reduce((acc, cur) => {
+                    acc[cur.name] ? acc[cur.name].push(cur.value) : (acc[cur.name] = [cur.value])
+                    return acc
+                }, {})
+                const datasets = []
+                for (const [key, value] of Object.entries(createMethodObj)) {
+                    const colorBlock = this.colorBlockList.find(item => item.value === key)
+                    datasets.push({
+                        data: value,
+                        backgroundColor: colorBlock ? colorBlock.color : '#3a84ff',
+                        maxBarThickness: 24,
+                        clip: '',
+                        label: key
+                    })
+                }
+                return datasets
+            },
             initChart (x, y) {
                 const ctx = this.$refs.chartWrap.querySelector('.bar-chart-canvas').getContext('2d')
                 this.chartInstance = new BKChart(ctx, {
                     type: 'bar',
                     data: {
                         labels: x,
-                        datasets: [{
-                            data: y,
-                            backgroundColor: '#3a84ff',
-                            maxBarThickness: 24,
-                            clip: '',
-                            label: 'Rainfall1'
-                        }, {
-                            data: [10, 20, 30, 40, 50, 55, 33, 22, 11, 66, 55, 33, 66, 77, 22, 44, 22, 66, 32, 52],
-                            backgroundColor: '#ff9c4a',
-                            maxBarThickness: 24,
-                            clip: '',
-                            label: 'Rainfall11'
-                        }, {
-                            data: [55, 33, 66, 77, 22, 44, 22, 66, 32, 52, 12, 32, 12, 44, 25, 26, 14, 17, 35, 19],
-                            backgroundColor: '#f8d30f',
-                            maxBarThickness: 24,
-                            clip: '',
-                            label: 'Rainfall111'
-                        }, {
-                            data: [12, 32, 12, 44, 25, 26, 14, 17, 35, 19, 10, 20, 30, 40, 50, 55, 33, 22, 11, 66],
-                            backgroundColor: '#3bce95',
-                            maxBarThickness: 24,
-                            clip: '',
-                            label: 'Rainfall1111'
-                        }]
+                        datasets: y
                     },
                     options: {
                         maintainAspectRatio: false,
@@ -225,6 +237,11 @@
                                         })
                                         innerHtml += '</p>'
 
+                                        const total = bodyLines.reduce((acc, cur) => {
+                                            const textArr = cur[0].split(': ') || []
+                                            acc = Number(acc) + Number(textArr[1])
+                                            return acc
+                                        }, [])
                                         bodyLines.forEach(function (body, i) {
                                             const colors = tooltipModel.labelColors[i]
                                             let style = 'background:' + colors.backgroundColor
@@ -236,7 +253,7 @@
                                                 + `<span class="task-name">${taskName[0]}</span>`
                                                 + `<span class="hide-task-name">${body[0]}</span>`
                                                 + `<span class="task-num">${taskNum}</span>`
-                                                + `<span class="percentage">(${getPercentage(taskNum, 100)})</span>`
+                                                + `<span class="percentage">(${getPercentage(taskNum, total)})</span>`
                                                 + '</div>'
                                         })
 
@@ -269,7 +286,7 @@
                 })
             },
             updateChart (x, y) {
-                this.chartInstance.data.datasets[0].data = y
+                this.chartInstance.data.datasets = y
                 this.chartInstance.data.labels = x
                 this.chartInstance.update()
             },

@@ -36,6 +36,7 @@
                 :selector-list="timeSelectorList"
                 :data-list="timeDataList"
                 :data-loading="timeDataLoading"
+                :color-block-list="colorBlockList"
                 @onFilterClick="timeFilterChange">
             </vertical-bar-chart>
         </div>
@@ -162,24 +163,24 @@
     const TABLE_COLUMN = [
         {
             label: i18n.t('任务ID'),
-            prop: 'instanceId',
+            prop: 'instance_id',
             sortable: true,
             width: 90
         },
         {
             label: i18n.t('任务名称'),
-            prop: 'instanceName',
+            prop: 'instance_name',
             minWidth: 200
         },
         {
             label: i18n.t('任务类型'),
-            prop: 'creatMethod',
+            prop: 'create_method',
             minWidth: 120,
             filter: true
         },
         {
             label: i18n.t('项目'),
-            prop: 'projectName',
+            prop: 'project_name',
             width: 150
         },
         {
@@ -194,30 +195,30 @@
         },
         {
             label: i18n.t('创建时间'),
-            prop: 'createTime',
+            prop: 'create_time',
             width: 200
         },
         {
             label: i18n.t('插件数'),
-            prop: 'atomTotal',
+            prop: 'atom_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('子流程数'),
-            prop: 'subprocessTotal',
+            prop: 'subprocess_total',
             sortable: true,
             width: 120
         },
         {
             label: i18n.t('网关数'),
-            prop: 'gatewaysTotal',
+            prop: 'gateways_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('耗时'),
-            prop: 'elapsedTime',
+            prop: 'elapsed_time',
             sortable: true,
             width: 100
         }
@@ -432,7 +433,8 @@
             },
             async getBizUseageData () {
                 try {
-                    this.bizUseageData = await this.queryBizUseageData({ query: 'task' })
+                    const resp = await this.queryBizUseageData({ query: 'task' })
+                    this.bizUseageData = resp.data
                 } catch (error) {
                     console.warn(error)
                 }

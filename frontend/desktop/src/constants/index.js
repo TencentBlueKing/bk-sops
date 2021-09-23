@@ -140,7 +140,7 @@ const COLOR_BLOCK_LIST = [
         color: '#ff9c4a'
     },
     {
-        value: 'app_marker',
+        value: 'app_maker',
         code: 3,
         text: '轻应用',
         color: '#f8d30f'

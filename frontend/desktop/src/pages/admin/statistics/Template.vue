@@ -113,17 +113,17 @@
     const TABLE_COLUMN = [
         {
             label: i18n.t('流程ID'),
-            prop: 'templateId',
+            prop: 'template_id',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('流程名称'),
-            prop: 'templateName'
+            prop: 'template_name'
         },
         {
             label: i18n.t('项目'),
-            prop: 'projectName',
+            prop: 'project_name',
             width: 150
         },
         {
@@ -138,49 +138,49 @@
         },
         {
             label: i18n.t('输入变量'),
-            prop: 'inputCount',
+            prop: 'input_count',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('输出变量'),
-            prop: 'outputCount',
+            prop: 'output_count',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('插件数'),
-            prop: 'atomTotal',
+            prop: 'atom_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('子流程'),
-            prop: 'subprocessTotal',
+            prop: 'subprocess_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('网关数'),
-            prop: 'gatewaysTotal',
+            prop: 'gateways_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('已执行'),
-            prop: 'instanceTotal',
+            prop: 'instance_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('被引用'),
-            prop: 'relationshipTotal',
+            prop: 'relationship_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('周期任务'),
-            prop: 'periodicTotal',
+            prop: 'periodic_total',
             sortable: true,
             width: 110
         }
@@ -352,7 +352,8 @@
             },
             async getBizUseageData () {
                 try {
-                    this.bizUseageData = await this.queryBizUseageData({ query: 'template' })
+                    const resp = await this.queryBizUseageData({ query: 'template' })
+                    this.bizUseageData = resp.data
                 } catch (error) {
                     console.warn(error)
                 }
