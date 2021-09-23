@@ -212,15 +212,22 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         )
         relationship_dict = {}
         for relationship in relationship_list:
-            relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
-
+            try:
+                relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
+            except KeyError:
+                continue
         taskflow_dict = {}
         for taskflow in taskflow_list:
-            taskflow_dict[template_id_map[str(taskflow["template_id"])]] = taskflow["instance_total"]
-
+            try:
+                taskflow_dict[template_id_map[str(taskflow["template_id"])]] = taskflow["instance_total"]
+            except KeyError:
+                continue
         periodic_dict = {}
         for periodic_task in periodic_list:
-            periodic_dict[periodic_task["template__template_id"]] = periodic_task["periodic_total"]
+            try:
+                periodic_dict[periodic_task["template__template_id"]] = periodic_task["periodic_total"]
+            except KeyError:
+                continue
         # 查询所有project_name
         project_id_list = list(template_in_statistics_data.values_list("project_id", flat=True))
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
