@@ -29,8 +29,8 @@ class TemplateNodeStatistics(models.Model):
     subprocess_stack = models.TextField(_("子流程堆栈"), default="[]", help_text=_("JSON 格式的列表"))
     version = models.CharField(_("插件版本"), max_length=255, default="legacy")
     template_creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
-    template_create_time = models.DateTimeField(_("模版创建时间"), auto_now_add=True, null=True)
-    template_edit_time = models.DateTimeField(_("模板最近编辑时间"), auto_now_add=True, null=True)
+    template_create_time = models.DateTimeField(_("模版创建时间"), null=True)
+    template_edit_time = models.DateTimeField(_("模板最近编辑时间"), null=True)
 
     class Meta:
         verbose_name = _("Pipeline标准插件被引用数据")
@@ -58,7 +58,7 @@ class TaskflowExecutedNodeStatistics(models.Model):
     template_id = models.CharField(_("Pipeline模板ID"), max_length=32)
     task_template_id = models.CharField(_("Task模板ID"), max_length=32)
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id", db_index=True)
-    instance_create_time = models.DateTimeField(_("Pipeline实例创建时间"), auto_now_add=True, db_index=True)
+    instance_create_time = models.DateTimeField(_("Pipeline实例创建时间"), db_index=True)
     instance_start_time = models.DateTimeField(_("Pipeline实例启动时间"), null=True, blank=True)
     instance_finish_time = models.DateTimeField(_("Pipeline实例结束时间"), null=True, blank=True)
 
@@ -81,8 +81,8 @@ class TemplateStatistics(models.Model):
     project_id = models.IntegerField(_("项目 ID"), default=-1, help_text="模板所属project id", db_index=True)
     category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Default")
     template_creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
-    template_create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, null=True, db_index=True)
-    template_edit_time = models.DateTimeField(_("最近编辑时间"), auto_now_add=True, null=True)
+    template_create_time = models.DateTimeField(_("创建时间"), null=True, db_index=True)
+    template_edit_time = models.DateTimeField(_("最近编辑时间"), null=True)
     output_count = models.IntegerField(_("输出变量数"), default=-1)
     input_count = models.IntegerField(_("输入变量数"), default=-1)
 
@@ -106,7 +106,7 @@ class TaskflowStatistics(models.Model):
     template_id = models.CharField(_("Pipeline模板ID"), max_length=255, db_index=True)
     task_template_id = models.CharField(_("Task模板ID"), max_length=255, db_index=True)
     creator = models.CharField(_("创建者"), max_length=32, blank=True)
-    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
+    create_time = models.DateTimeField(_("创建时间"), db_index=True)
     start_time = models.DateTimeField(_("启动时间"), null=True, blank=True)
     finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
     elapsed_time = models.IntegerField(_("实例执行耗时(s)"), null=True, blank=True)
