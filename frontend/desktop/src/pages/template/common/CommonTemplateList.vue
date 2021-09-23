@@ -483,14 +483,14 @@
             hasBatchViewAuth () {
                 let result = false
                 if (this.selectedTpls.length) {
-                    result = this.selectedTpls.every(template => this.hasPermission(['flow_view'], template.auth_actions))
+                    result = this.selectedTpls.every(template => this.hasPermission(['common_flow_view'], template.auth_actions))
                 }
                 return result
             },
             hasBatchEditAuth () {
                 let result = false
                 if (this.selectedTpls.length) {
-                    result = this.selectedTpls.every(template => this.hasPermission(['flow_delete'], template.auth_actions))
+                    result = this.selectedTpls.every(template => this.hasPermission(['common_flow_delete'], template.auth_actions))
                 }
                 return result
             }
