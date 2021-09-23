@@ -283,7 +283,7 @@ def pipeline_archive_statistics_task(instance_id):
         logger.exception("get task_status_result fail, taskflow_instace = {id}.".format(id=taskflow_instance.id))
         return False
     # 删除原有标准插件执行数据
-    TaskflowExecutedNodeStatistics.objects.filter(instance_id=taskflow_instance.pipeline_instance__id).delete()
+    TaskflowExecutedNodeStatistics.objects.filter(instance_id=taskflow_instance.pipeline_instance.id).delete()
     data = taskflow_instance.pipeline_instance.execution_data
     try:
         component_list = recursive_collect_components_execution(
