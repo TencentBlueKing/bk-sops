@@ -174,3 +174,6 @@ except Exception:
 
 # celery broker 连接池数量配置
 CELERY_BROKER_POOL_LIMIT = int(os.getenv("BKAPP_CELERY_BROKER_POOL_LIMIT", 10))
+
+# APIGW 访问地址
+BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")

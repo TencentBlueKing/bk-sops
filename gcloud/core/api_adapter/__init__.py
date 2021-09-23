@@ -13,11 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import importlib
 
-from django.conf import settings
-
-app_maker = importlib.import_module("gcloud.core.api_adapter.sites.%s.app_maker" % settings.RUN_VER)
-user_role = importlib.import_module("gcloud.core.api_adapter.sites.%s.user_role" % settings.RUN_VER)
-user_info = importlib.import_module("gcloud.core.api_adapter.sites.%s.user_info" % settings.RUN_VER)
+app_maker = importlib.import_module("gcloud.core.api_adapter.app_maker")
+user_role = importlib.import_module("gcloud.core.api_adapter.user_role")
+user_info = importlib.import_module("gcloud.core.api_adapter.user_info")
 
 app_maker_funcs = ["create_maker_app", "edit_maker_app", "del_maker_app", "modify_app_logo", "get_app_logo_url"]
 for func_name in app_maker_funcs:
