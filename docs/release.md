@@ -1,5 +1,11 @@
 # Release
 
+## 3.7.9
+
+- bugfix
+  - 修复 operate_node API 不修改参数重试 engine v2 失败节点时节点数据会被清空的问题
+  - api，周期任务 celery worker pool 替换为 threads 类型
+
 ## 3.7.8
 
 - bugfix
