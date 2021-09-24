@@ -15,16 +15,127 @@ import re
 
 from django.utils.translation import ugettext_lazy as _
 
+from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils import cmdb
 from gcloud.utils.ip import format_sundry_ip
 from gcloud.utils.handlers import handle_api_error
-
 from .constants import NO_ERROR, ERROR_CODES
+from ..components.collections.sites.open.cc.base import cc_parse_path_text
+from ..components.utils.sites.open.utils import cc_get_ips_info_by_str
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 DEFAULT_BK_CLOUD_ID = "-1"
+
+
+class IPPickerDataGenerator:
+    # IP选择器根据手动输入内容生成对应所需数据，方便后面进行过滤和处理
+    def __init__(self, input_type, raw_data, request_kwargs, gen_kwargs):
+        """
+        :params input_type: 手动输入类型，值为ip(静态IP)/topo(动态IP)/group(动态分组)
+        :params raw_data: 手动输入数据字符串
+        :params request_kwargs: 包括请求接口所需要的参数信息, 如username,bk_biz_id,bk_supplier_account
+        :params gen_kwargs: 包括信息匹配筛选所需要的信息，如biz_topo_tree
+        """
+        self.input_type = input_type
+        self.raw_data = raw_data.strip()
+        self.username = request_kwargs.pop("username")
+        self.request_kwargs = request_kwargs
+        self.gen_kwargs = gen_kwargs
+
+    def generate(self):
+        func = getattr(self, f"generate_{self.input_type}_data", None)
+        if func is None:
+            return {
+                "result": False,
+                "code": ERROR_CODES.PARAMETERS_ERROR,
+                "data": [],
+                "message": "input_type should be ip, topo or group.",
+            }
+        return func()
+
+    def generate_group_data(self):
+        """根据字符串生成动态分组数据"""
+        client = get_client_by_user(self.username)
+        group_names = set(re.split("[,\n]", self.raw_data))
+        result = batch_request(client.cc.search_dynamic_group, self.request_kwargs, limit=200)
+        dynamic_groups = []
+        for dynamic_group in result:
+            if dynamic_group["bk_obj_id"] == "host" and dynamic_group["name"] in group_names:
+                dynamic_groups.append({"id": dynamic_group["id"], "name": dynamic_group["name"]})
+
+        return {"result": True, "data": dynamic_groups, "message": ""}
+
+    def generate_ip_data(self):
+        """根据字符串生成ip数据"""
+        result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
+        if result["invalid_ip"]:
+            return {"result": False, "data": [], "message": f"ips: {result['invalid_ip']} invalid."}
+        ips = [
+            {
+                "bk_host_innerip": ip["InnerIP"],
+                "bk_host_id": ip["HostID"],
+                "bk_cloud_id": ip["Source"],
+                "cloud": [{"id": str(ip["Source"])}],
+            }
+            for ip in result["ip_result"]
+        ]
+        return {"result": True, "data": ips, "message": ""}
+
+    def generate_topo_data(self):
+        """根据字符串生成topo数据"""
+        path_list = cc_parse_path_text(self.raw_data.replace(",", "\n"))
+        processed_path_list = self._remove_included_topo_path(path_list)
+        biz_topo_tree = self.gen_kwargs["biz_topo_tree"]
+        topo_info = {}
+        self._build_topo_info(biz_topo_tree, topo_info)
+        generated_topo = []
+        for path in processed_path_list:
+            cur_info = {"child": topo_info}
+            for inst_name in path:
+                cur_info = cur_info.get("child", {}).get(inst_name)
+                if cur_info is None:
+                    raise ApiRequestError(f"path: {'>'.join(path)} not found in topo_tree")
+            generated_topo.append({"bk_obj_id": cur_info["bk_obj_id"], "bk_inst_id": cur_info["bk_inst_id"]})
+        return {"result": True, "data": generated_topo, "message": ""}
+
+    @staticmethod
+    def _remove_included_topo_path(path_list):
+        """
+        去除包含关系的拓扑路径，只保持最高层级结构
+        :prams path_list: 拓扑层级列表
+        :type path_list: List[List]
+        :return 包含关系去除后的拓扑层级列表
+        :rtype List[List]
+
+        e.g.
+        1. 不存在包含关系：[[1,2,3], [4,5]] -> [[1,2,3], [4,5]]
+        2. 存在包含关系：[[1,2,3], [1,2], [4,5]] -> [[1,2], [4,5]]
+        """
+        processed_path_list = []
+        sorted_path_list = sorted(path_list, key=lambda x: len(x))
+        path_record = {}
+        for topo in sorted_path_list:
+            if any([obj in path_record.get(level, set()) for level, obj in enumerate(topo)]):
+                continue
+            path_record.setdefault(len(topo) - 1, set()).add(topo[-1])
+            processed_path_list.append(topo)
+        return processed_path_list
+
+    def _build_topo_info(self, topo_tree, topo_info):
+        # 重新提取拓扑树结构，将inst_name作为key，方便索引
+        topo_info[topo_tree["bk_inst_name"]] = {
+            "bk_inst_id": topo_tree["bk_inst_id"],
+            "bk_inst_name": topo_tree["bk_inst_name"],
+            "bk_obj_id": topo_tree["bk_obj_id"],
+        }
+        if "child" in topo_tree:
+            topo_child = {}
+            for topo_node in topo_tree["child"]:
+                self._build_topo_info(topo_node, topo_child)
+            topo_info[topo_tree["bk_inst_name"]]["child"] = topo_child
 
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
@@ -49,8 +160,12 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     )
 
     logger.info(
-        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} cmdb.get_business_host_topo return: {host_info}".format(  # noqa
-            bk_biz_id=bk_biz_id, kwargs=kwargs, host_info=host_info
+        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} cmdb.get_business_host_topo "
+        "return: {host_info}".format(
+            # noqa
+            bk_biz_id=bk_biz_id,
+            kwargs=kwargs,
+            host_info=host_info,
         )
     )
 
@@ -64,6 +179,24 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
     # IP选择器
     selector = kwargs["selectors"][0]
+
+    # 如果是手动输入，则先按照值构造对应数据后替换到kwargs中
+    if selector == "manual":
+        input_value = kwargs["manual_input"]["value"]
+        input_type = kwargs["manual_input"]["type"]
+
+        gen_kwargs = {"biz_topo_tree": biz_topo_tree}
+        request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+        gen_result = IPPickerDataGenerator(input_type, input_value, request_kwargs, gen_kwargs).generate()
+
+        if not gen_result["result"]:
+            logger.error(
+                f"[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} manual generate data error: {gen_result}"
+            )
+            raise ApiRequestError(gen_result["message"])
+        kwargs[input_type] = gen_result["data"]
+        selector = input_type
+
     if selector == "ip":
         ip_list = [
             "{cloud}:{ip}".format(cloud=get_bk_cloud_id_for_host(host, "cloud"), ip=host["bk_host_innerip"])
@@ -94,11 +227,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
                 }
             )
 
-    logger.info(
-        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} filter data collect: {data}".format(
-            bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-        )
-    )
+    logger.info("[get_ip_picker_result] filter data collect: {data}".format(data=data))
 
     # 先把不在用户选择拓扑中的主机过滤掉
     if selector == "topo":
@@ -111,11 +240,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             )
         data = user_select_topo_host.values()
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data topo filter: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data topo filter: {data}".format(data=data))
 
     # 动态分组得到的主机ip
     if selector == "group":
@@ -135,22 +260,14 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
         data = dynamic_groups_host.values()
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data from dynamic group: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data from dynamic group: {data}".format(data=data))
 
     # 筛选条件
     filters = kwargs["filters"]
     if filters:
         data = filter_hosts(filters, biz_topo_tree, data, "bk_inst_name")
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data condition filter: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data condition filter: {data}".format(data=data))
 
     # 过滤条件
     excludes = kwargs["excludes"]
@@ -161,11 +278,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         new_data = [host for host in data if host["bk_host_innerip"] not in exclude_host_ip_list]
         data = new_data
 
-        logger.info(
-            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data condition excludes: {data}".format(
-                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
-            )
-        )
+        logger.info("[get_ip_picker_result] data condition excludes: {data}".format(data=data))
 
     result = {"result": True, "code": NO_ERROR, "data": data, "message": ""}
     return result

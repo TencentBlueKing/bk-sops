@@ -46,8 +46,8 @@ def get_business_group_members(bk_biz_id, groups):
     group_members = []
     info = result["data"]["info"][0]
     for field in group_fileds:
-        members = info.get(field, "").split(",")
+        members = info.get(field, "")
         if members:
-            group_members.extend(members)
+            group_members.extend(members.split(","))
 
     return list(set(group_members))

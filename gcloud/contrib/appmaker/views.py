@@ -15,9 +15,10 @@ from django.shortcuts import render
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.decorators import check_db_object_exists
+from gcloud.core.signals import user_enter
 
 
-@check_db_object_exists('AppMaker')
+@check_db_object_exists("AppMaker")
 def task_home(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
@@ -29,14 +30,15 @@ def task_home(request, app_id, project_id):
     app_maker = AppMaker.objects.get(pk=app_id, project_id=project_id)
 
     ctx = {
-        'view_mode': 'appmaker',
-        'app_id': app_id,
-        'template_id': app_maker.task_template.pk,
+        "view_mode": "appmaker",
+        "app_id": app_id,
+        "template_id": app_maker.task_template.pk,
     }
-    return render(request, 'core/base_vue.html', ctx)
+    user_enter.send(username=request.user.username, sender=request.user.username)
+    return render(request, "core/base_vue.html", ctx)
 
 
-@check_db_object_exists('AppMaker')
+@check_db_object_exists("AppMaker")
 def newtask_selectnode(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
@@ -47,13 +49,14 @@ def newtask_selectnode(request, app_id, project_id):
     """
     context = {
         # 等于app的时候是在标准运维打开的
-        'view_mode': 'appmaker',
-        'app_id': app_id,
+        "view_mode": "appmaker",
+        "app_id": app_id,
     }
+    user_enter.send(username=request.user.username, sender=request.user.username)
     return render(request, "core/base_vue.html", context)
 
 
-@check_db_object_exists('AppMaker')
+@check_db_object_exists("AppMaker")
 def newtask_paramfill(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
@@ -64,13 +67,14 @@ def newtask_paramfill(request, app_id, project_id):
     """
     context = {
         # 等于app的时候是在标准运维打开的
-        'view_mode': 'appmaker',
-        'app_id': app_id,
+        "view_mode": "appmaker",
+        "app_id": app_id,
     }
+    user_enter.send(username=request.user.username, sender=request.user.username)
     return render(request, "core/base_vue.html", context)
 
 
-@check_db_object_exists('AppMaker')
+@check_db_object_exists("AppMaker")
 def execute(request, app_id, project_id):
     """
     @summary: 在轻应用中查看任务详情
@@ -80,7 +84,8 @@ def execute(request, app_id, project_id):
     @return:
     """
     context = {
-        'view_mode': 'appmaker',
-        'app_id': app_id,
+        "view_mode": "appmaker",
+        "app_id": app_id,
     }
+    user_enter.send(username=request.user.username, sender=request.user.username)
     return render(request, "core/base_vue.html", context)

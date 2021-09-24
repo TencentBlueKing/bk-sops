@@ -218,6 +218,10 @@ def get_biz_ip_from_frontend(
     """
     从前端表单中获取有效IP
     """
+    # ip 字符串为空时不做处理
+    if ip_str is None or not ip_str.strip():
+        return True, []
+
     # 跨业务，不校验IP归属
     if is_across:
         plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
