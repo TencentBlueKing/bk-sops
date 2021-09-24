@@ -1,5 +1,10 @@
 # Release
 
+## 3.7.11
+
+- feature
+  - bamboo-pipeline bump to 3.7.3
+
 ## 3.7.10
 
 - bugfix
