@@ -143,7 +143,7 @@
                         backgroundColor: colorBlock ? colorBlock.color : '#3a84ff',
                         maxBarThickness: 24,
                         clip: '',
-                        label: key
+                        label: colorBlock.text
                     })
                 }
                 return datasets
@@ -200,7 +200,7 @@
 
                                     // 求百分率
                                     function getPercentage (num, total) {
-                                        return (Math.round(num / total * 10000) / 100.00 + '%')
+                                        return (Math.round(Number(num) / total * 10000) / 100.00 + '%')
                                     }
 
                                     // 计算left, top
@@ -239,22 +239,25 @@
 
                                         const total = bodyLines.reduce((acc, cur) => {
                                             const textArr = cur[0].split(': ') || []
-                                            acc = Number(acc) + Number(textArr[1])
+                                            const num = textArr[1].replace(/,/g, '')
+                                            acc = Number(acc) + Number(num)
                                             return acc
                                         }, [])
                                         bodyLines.forEach(function (body, i) {
                                             const colors = tooltipModel.labelColors[i]
                                             let style = 'background:' + colors.backgroundColor
                                             style += '; border-color:' + colors.borderColor
-                                            const taskName = body[0].split(': ') || []
-                                            const taskNum = taskName[1] || body[0]
-                                            innerHtml += '<div class="task-method-item">'
-                                                + '<span class="color-block" style="' + style + '"></span>'
-                                                + `<span class="task-name">${taskName[0]}</span>`
-                                                + `<span class="hide-task-name">${body[0]}</span>`
-                                                + `<span class="task-num">${taskNum}</span>`
-                                                + `<span class="percentage">(${getPercentage(taskNum, total)})</span>`
-                                                + '</div>'
+                                            const textArr = body[0].split(': ') || []
+                                            const taskNum = textArr[1].replace(/,/g, '')
+                                            if (taskNum !== '0') {
+                                                innerHtml += '<div class="task-method-item">'
+                                                    + '<span class="color-block" style="' + style + '"></span>'
+                                                    + `<span class="task-name">${textArr[0]}</span>`
+                                                    + `<span class="hide-task-name">${body[0]}</span>`
+                                                    + `<span class="task-num">${taskNum}</span>`
+                                                    + `<span class="percentage">(${getPercentage(taskNum, total)})</span>`
+                                                    + '</div>'
+                                            }
                                         })
 
                                         tooltipEl.innerHTML = innerHtml

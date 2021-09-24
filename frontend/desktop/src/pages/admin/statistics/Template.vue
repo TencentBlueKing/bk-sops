@@ -150,7 +150,7 @@
         },
         {
             label: i18n.t('插件数'),
-            prop: 'atom_total',
+            prop: 'atom_toal',
             sortable: true,
             width: 100
         },

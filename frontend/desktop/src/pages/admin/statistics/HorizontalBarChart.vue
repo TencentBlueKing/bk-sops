@@ -59,18 +59,21 @@
                             <div class="block" :style="getBlockStyle(item.value)">
                                 <bk-popover ext-cls="task-method" v-if="isInstance" placement="top">
                                     <span
-                                        v-for="val in [8 , 17, 5]"
-                                        :key="val"
-                                        :style="{ display: 'inline-block', width: `${ val / item.value * 100 + '%'}`, height: '100%', background: val === 8 ? '#ff9c4a' : val === 17 ? '#3bce95' : '#f5cf0b' }">
+                                        v-for="val in item.create_method"
+                                        :key="val.name"
+                                        :style="{ display: 'inline-block', width: getPercentage(val.value, item.value), height: '100%', background: creatMethods[val.name].color }">
                                     </span>
                                     <div slot="content">
                                         <p class="project-name">{{ item.name }}</p>
                                         <ul class="">
-                                            <li class="task-method-item">
-                                                <span class="color-block" :style="{ background: `${colorList[item.code]}` }"></span>
-                                                <span class="task-name">手动任务</span>
-                                                <span class="task-num">121</span>
-                                                <span class="percentage">(12.1%)</span>
+                                            <li
+                                                class="task-method-item"
+                                                v-for="val in item.create_method"
+                                                :key="val.name">
+                                                <span class="color-block" :style="{ background: creatMethods[val.name].color }"></span>
+                                                <span class="task-name">{{ creatMethods[val.name].text }}</span>
+                                                <span class="task-num">{{ val.value }}</span>
+                                                <span class="percentage">{{ getPercentage(val.value, item.value) }}</span>
                                             </li>
                                         </ul>
                                     </div>
@@ -83,7 +86,7 @@
                 <no-data v-else></no-data>
             </div>
         </div>
-        <div v-if="title === $t('分项目统计')" class="project-statistics">
+        <div v-if="bizUseageData.total" class="project-statistics">
             <span>{{ $t('总项目') }}</span>
             <span class="num">{{ bizUseageData.total || 0 }}</span>
             <span>{{ $t('正在使用项目') }}</span>
@@ -161,6 +164,12 @@
                     return []
                 }
             },
+            creatMethods: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
             bizUseageData: {
                 type: Object,
                 default () {
@@ -177,13 +186,8 @@
             }
         },
         data () {
-            const colorList = {}
-            this.colorBlockList.forEach(item => {
-                colorList[item.code] = item.color
-            })
             return {
                 sortList: SORT_LIST,
-                colorList,
                 selectedSortType: 'descending',
                 selectedValue: '',
                 isDialogShow: false
@@ -215,6 +219,9 @@
                     width: val / this.totalNumber * 100 + '%',
                     'min-width': '2px'
                 }
+            },
+            getPercentage (num, total) {
+                return (Math.round(num / total * 10000) / 100.00 + '%')
             },
             onOptionClick (selector, id) {
                 this.$emit('onFilterClick', id, selector)
@@ -296,6 +303,9 @@
         border-top: 1px dashed #dcdee5;
         &:last-child {
             border-bottom: 1px dashed #dcdee5;
+        }
+        &:hover {
+            background: #f5f7fa;
         }
     }
     .data-label {

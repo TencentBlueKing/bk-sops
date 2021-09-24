@@ -27,6 +27,7 @@
                 :data-loading="projectDataLoading"
                 :biz-useage-data="bizUseageData"
                 :color-block-list="colorBlockList"
+                :creat-methods="creatMethods"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -252,6 +253,11 @@
             }
         },
         data () {
+            const creatMethods = COLOR_BLOCK_LIST.reduce((acc, cur) => {
+                const { value, color, text } = cur
+                acc[value] = { color, text }
+                return acc
+            }, {})
             return {
                 categoryData: [],
                 categoryDataProject: '',
@@ -294,6 +300,7 @@
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 colorBlockList: COLOR_BLOCK_LIST,
+                creatMethods,
                 bizUseageData: {},
                 pagination: {
                     current: 1,
@@ -504,9 +511,6 @@
             font-size: 14px;
             margin-bottom: 5px;
         }
-        .color-block {
-            margin-top: 1.5px;
-        }
     }
     #chartjs-tooltip {
         position: absolute;
@@ -525,7 +529,7 @@
     }
     .task-method-item {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         position: relative;
         margin-bottom: 3px;
         font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -540,7 +544,6 @@
             min-width: 80px;
             max-width: 120px;
             word-break: break-all;
-            margin-top: -1.5px;
         }
         .hide-task-name {
             position: absolute;
