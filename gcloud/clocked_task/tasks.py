@@ -20,23 +20,17 @@ from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project, EngineConfig
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
-from pipeline.engine.models import FunctionSwitch
 
 logger = logging.getLogger("celery")
 
 
 @task
-def clocked_task_start(*args, **kwargs):
-    clocked_task_id = kwargs["clocked_task_id"]
+def clocked_task_start(clocked_task_id, *args, **kwargs):
     try:
         clocked_task = ClockedTask.objects.get(id=clocked_task_id)
     except ClockedTask.DoesNotExist:
         # task has been deleted
         logger.warning(f"[clocked_task_start] clocked task {clocked_task_id} not found, may be deleted.")
-        return
-
-    if FunctionSwitch.objects.is_frozen():
-        logger.warning(f"[clocked_task_start] clocked task {clocked_task_id} start failed due to engine frozen.")
         return
 
     task_params = json.loads(clocked_task.task_params)
@@ -74,8 +68,7 @@ def clocked_task_start(*args, **kwargs):
                     template_source=clocked_task.template_source,
                 ),
             )
-            clocked_task.task_id = taskflow_instance.id
-            clocked_task.save()
+            ClockedTask.objects.filter(id=clocked_task_id).update(task_id=taskflow_instance.id)
         taskflow_instance.task_action("start", clocked_task.creator)
-    except Exception as e:
-        logger.error(f"[clocked_task_start] task create error: {e}")
+    except Exception:
+        logger.exception("[clocked_task_start] task create error")

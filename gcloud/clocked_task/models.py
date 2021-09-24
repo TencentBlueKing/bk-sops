@@ -60,14 +60,14 @@ class ClockedTaskManager(models.Manager):
 
 class ClockedTask(models.Model):
     project_id = models.IntegerField(help_text="计划任务所属项目 ID")
-    task_id = models.IntegerField(help_text="任务 ID", null=True)
+    task_id = models.IntegerField(help_text="taskflow 任务 ID", null=True)
     task_name = models.CharField(help_text="任务名称", max_length=128)
     template_id = models.IntegerField(help_text="任务模版 ID")
     template_name = models.CharField(help_text="流程名称", max_length=128)
     template_source = models.CharField(help_text="流程模板来源", max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
     clocked_task_id = models.IntegerField(help_text="计划任务 Celery任务 ID", null=True)
     creator = models.CharField(help_text="计划任务创建人", max_length=32)
-    plan_start_time = models.DateTimeField(help_text="计划任务启动时间")
+    plan_start_time = models.DateTimeField(help_text="计划任务启动时间", db_index=True)
     task_params = models.TextField(help_text="任务创建相关数据", null=True)
 
     objects = ClockedTaskManager()

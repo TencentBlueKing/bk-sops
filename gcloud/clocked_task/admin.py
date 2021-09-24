@@ -18,4 +18,14 @@ from gcloud.clocked_task.models import ClockedTask
 
 @admin.register(ClockedTask)
 class ClockedTaskAdmin(admin.ModelAdmin):
-    list_display = ["task_id", "task_name", "project_id", "plan_start_time", "task_params", "template_name"]
+    list_display = [
+        "task_id",
+        "task_name",
+        "project_id",
+        "plan_start_time",
+        "task_params",
+        "template_id",
+        "template_name",
+        "clocked_task_id",
+    ]
+    search_field = ["task_name", "template_name", "task_id", "template_id"]
