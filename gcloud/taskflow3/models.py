@@ -15,7 +15,6 @@ import logging
 import datetime
 import traceback
 from copy import deepcopy
-from django.db.models.aggregates import Avg
 
 import ujson as json
 from django.db import connection
@@ -228,26 +227,57 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         groups = []
         taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的插件的平均执行耗时
-        template_node_template_inst = (
-            TaskflowExecutedNodeStatistics.objects.values("component_code", "version")
-            .filter(task_instance_id__in=taskflow_id_list)
-            .annotate(value=Avg("elapsed_time"))
-        )
+        template_node_template_inst = TaskflowExecutedNodeStatistics.objects.values(
+            "component_code", "version", "elapsed_time"
+        ).filter(task_instance_id__in=taskflow_id_list)
 
-        groups = format_component_name(components, template_node_template_inst)
+        groups = []
+        for comp in components:
+            version = comp["version"]
+            # 插件名国际化
+            name = comp["name"].split("-")
+            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            code = "{}-{}".format(comp["code"], comp["version"])
+            value = 0
+            count = 0
+            # 计算平均耗时
+            for oth_com_tmp in template_node_template_inst:
+                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
+                    value += oth_com_tmp["elapsed_time"]
+                    count += 1
+            if count != 0:
+                value = round(value / count, 2)
+            groups.append({"code": code, "name": name, "value": value})
         return total, groups
 
     def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各插件执行失败率
         components = ComponentModel.objects.values("code", "version", "name")
         total = components.count()
-        groups = []
+        taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的插件的执行失败率,计算结果保留两位小数
         template_node_template_data = TaskflowExecutedNodeStatistics.objects.values(
-            "component_code", "version"
-        ).annotate(value=(Count("id", filter=Q(status=False)) / Count("id")))
-
-        groups = format_component_name(components, template_node_template_data)
+            "component_code", "version", "status"
+        ).filter(task_instance_id__in=taskflow_id_list)
+        groups = []
+        for comp in components:
+            version = comp["version"]
+            # 插件名国际化
+            name = comp["name"].split("-")
+            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            code = "{}-{}".format(comp["code"], comp["version"])
+            fail_count = 0
+            sum = 0
+            value = 0
+            # 计算失败率
+            for oth_com_tmp in template_node_template_data:
+                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
+                    sum += 1
+                    if not oth_com_tmp["status"]:
+                        fail_count += 1
+            if sum != 0:
+                value = round(fail_count / sum, 2)
+            groups.append({"code": code, "name": name, "value": value})
         return total, groups
 
     def group_by_atom_instance(self, taskflow, filters, page, limit):
