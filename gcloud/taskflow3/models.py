@@ -445,7 +445,9 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                     }
                 else:
                     time_dict[str_time]["value"] += result["value"]
-                    time_dict[str_time]["create_method"].append({"name": result["create_method"], "value": result["value"]})
+                    time_dict[str_time]["create_method"].append(
+                        {"name": result["create_method"], "value": result["value"]}
+                    )
             return list(time_dict.values())
 
         groups = format_groups(group_type)
