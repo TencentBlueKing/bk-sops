@@ -276,7 +276,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                     if not oth_com_tmp["status"]:
                         fail_count += 1
             if sum != 0:
-                value = round(fail_count / sum, 2)
+                value = round(fail_count * 100 / sum, 2)
             groups.append({"code": code, "name": name, "value": value})
         return total, groups
 
