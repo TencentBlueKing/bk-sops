@@ -127,11 +127,12 @@ const templateList = {
          * @param {String} data 模板列表数组字符串
          */
         templateExport ({ commit }, data) {
-            const { common, list, type } = data
+            const { common, list, type, is_full } = data
             const { project_id } = store.state.project
             let url = ''
             const params = {
-                template_id_list: list
+                template_id_list: list,
+                is_full
             }
             if (type === 'dat') {
                 url = common ? 'common_template/api/export/' : `/template/api/export/${project_id}/`
