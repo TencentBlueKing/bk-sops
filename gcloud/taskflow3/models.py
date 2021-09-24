@@ -437,7 +437,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                     str_time = "{:0}-{:1}-{:2}".format(result["time"].year, result["time"].month, result["time"].day)
                 else:
                     str_time = "{:0}-{:1}".format(result["time"].year, result["time"].month)
-                if result["time"] not in time_dict.keys():
+                if str_time not in time_dict.keys():
                     time_dict[str_time] = {
                         "time": str_time,
                         "value": result["value"],
