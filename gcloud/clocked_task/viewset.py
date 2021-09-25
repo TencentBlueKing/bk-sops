@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud.clocked_task.models import ClockedTask
@@ -30,6 +31,7 @@ class ClockedTaskViewSet(ApiMixin, viewsets.ModelViewSet):
         "plan_start_time": ["gte", "lte"],
         "task_name": ["exact", "icontains", "contains"],
     }
+    pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
