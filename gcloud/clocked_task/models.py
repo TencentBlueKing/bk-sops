@@ -81,6 +81,8 @@ class ClockedTask(models.Model):
         new_clocked, _ = DjangoCeleryBeatClockedSchedule.objects.get_or_create(clocked_time=new_plan_start_time)
         clocked_task.clocked = new_clocked
         clocked_task.save()
+        self.plan_start_time = new_plan_start_time
+        self.save(update_fields=["plan_start_time"])
 
     def delete(self):
         DjangoCeleryBeatPeriodicTask.objects.get(id=self.clocked_task_id).delete()

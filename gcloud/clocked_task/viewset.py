@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud.clocked_task.models import ClockedTask
@@ -25,12 +26,18 @@ class ClockedTaskViewSet(ApiMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ClockedTaskSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ("creator", "plan_start_time", "task_name")
+    filterset_fields = {
+        "creator": ["exact"],
+        "plan_start_time": ["gte", "lte"],
+        "task_name": ["exact", "icontains", "contains"],
+    }
+    pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        validated_data["creator"] = request.user.username
         task = ClockedTask.objects.create_task(**validated_data)
         response_serializer = self.serializer_class(instance=task)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
