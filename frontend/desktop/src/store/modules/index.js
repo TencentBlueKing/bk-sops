@@ -20,6 +20,7 @@ import project from './project'
 import functionTask from './function.js'
 import auditTask from './audit.js'
 import periodic from './periodic.js'
+import clocked from './clocked.js'
 import manage from './manage.js'
 import admin from './admin.js'
 
@@ -34,6 +35,7 @@ const modules = {
     functionTask,
     auditTask,
     periodic,
+    clocked,
     manage,
     project,
     admin

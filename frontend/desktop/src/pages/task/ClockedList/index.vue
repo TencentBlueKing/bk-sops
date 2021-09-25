@@ -37,36 +37,34 @@
                             :min-width="item.min_width">
                             <template slot-scope="{ row }">
                                 <!--流程模板-->
-                                <div v-if="item.id === 'process_template'">
-                                    <a
+                                <div v-if="item.id === 'template_name'">
+                                    <!-- <a
                                         v-if="!hasPermission(['clocked_template_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        :title="row.task_template_name"
+                                        :title="row.template_name"
                                         @click="onClockedPermissonCheck(['clocked_template_view'], row, $event)">
-                                        {{ row.task_template_name }}
-                                    </a>
+                                        {{ row.template_name }}
+                                    </a> -->
                                     <router-link
-                                        v-else
                                         class="template-name"
-                                        :title="row.task_template_name"
+                                        :title="row.template_name"
                                         :to="templateNameUrl(row)">
-                                        {{ row.task_template_name }}
+                                        {{ row.template_name }}
                                     </router-link>
                                 </div>
                                 <!--任务实例-->
                                 <div v-else-if="item.id === 'task_instance'">
-                                    <template v-if="item.task_id">
-                                        <a
+                                    <template v-if="row.task_id">
+                                        <!-- <a
                                             v-if="!hasPermission(['clocked_task_view'], row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
                                             :title="row.task_name"
                                             @click="onClockedPermissonCheck(['clocked_task_view'], row, $event)">
                                             {{ row.task_name }}
-                                        </a>
+                                        </a> -->
                                         <router-link
-                                            v-else
                                             class="task-name"
                                             :title="row.task_name"
                                             :to="{
@@ -88,21 +86,19 @@
                         <bk-table-column :label="$t('操作')" width="240">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="['clocked-bk-btn', {
-                                        'clocked-bk-disable': !props.row.task_id,
-                                        'text-permission-disable': !hasPermission(['clocked_task_edit'], props.row.auth_actions)
+                                        'clocked-bk-disable': props.row.task_id
                                     }]"
+                                    v-bk-tooltips.top="{
+                                        content: $t('已执行的计划任务无法编辑'),
+                                        disabled: !props.row.task_id
+                                    }"
                                     @click="onEditClockedTask(props.row, $event)">
                                     {{ $t('编辑') }}
                                 </a>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
-                                    :class="{
-                                        'text-permission-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
-                                    }"
                                     @click="onDeleteClockedTask(props.row, $event)">
                                     {{ $t('删除') }}
                                 </a>
@@ -154,6 +150,8 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import { mapActions, mapState } from 'vuex'
+    import moment from 'moment-timezone'
+    import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import EditClockedTask from './EditClockedTask.vue'
     import DeleteClockedDialog from './DeleteClockedDialog.vue'
@@ -167,10 +165,10 @@
         },
         {
             type: 'dateRange',
-            key: 'startTime',
+            key: 'executeTime',
             label: i18n.t('启动时间'),
             placeholder: i18n.t('如：2019-01-30 至 2019-01-30'),
-            value: ''
+            value: ['', '']
         }
     ]
     const TABLE_FIELDS = [
@@ -189,7 +187,7 @@
         }, {
             id: 'task_instance',
             label: i18n.t('任务实例'),
-            width: 200
+            min_width: 200
         }, {
             id: 'plan_start_time',
             label: i18n.t('启动时间'),
@@ -205,6 +203,7 @@
         components: {
             Skeleton,
             AdvanceSearchForm,
+            NoData,
             TaskCreateDialog,
             EditClockedTask,
             DeleteClockedDialog
@@ -220,7 +219,7 @@
             }
         },
         data () {
-            const { page = 1, limit = 15, creator = '', startTime = '', keyword = '' } = this.$route.query
+            const { page = 1, limit = 15, creator = '', executeTime = '', keyword = '' } = this.$route.query
             const searchForm = SEARCH_FORM.map(item => {
                 if (this.$route.query[item.key]) {
                     if (Array.isArray(item.value)) {
@@ -233,245 +232,19 @@
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
             return {
-                firstLoading: false,
-                clockedList: [
-                    {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 57,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }, {
-                        task_template_name: '我是计划名称2',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划名称2',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划名称2'
-                    }, {
-                        task_template_name: '国庆加班大礼包',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '国庆加班大礼包',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '国庆加班大礼包'
-                    }, {
-                        task_template_name: '我是计划任务名称',
-                        auth_actions: [],
-                        id: 1,
-                        task_name: '我是计划任务名称',
-                        creator: 'admin',
-                        plan_start_time: '2021-09-22 14:40:31',
-                        template_name: '我是计划任务名称'
-                    }
-                ],
+                firstLoading: true,
+                clockedList: [],
                 listLoading: false,
                 isSearchFormOpen,
                 searchForm,
                 requestData: {
                     creator,
-                    startTime,
+                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
                     taskName: keyword
                 },
                 pagination: {
                     current: Number(page),
-                    count: 100,
+                    count: 0,
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
@@ -485,6 +258,7 @@
                 taskCategory: [],
                 businessInfoLoading: true,
                 isDeleteDialogShow: false,
+                selectedDeleteTaskId: 0,
                 selectedTemplateName: '',
                 deleting: false,
                 curRow: {},
@@ -495,6 +269,9 @@
             ...mapState({
                 hasAdminPerm: state => state.hasAdminPerm
             }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            }),
             adminView () {
                 return this.hasAdminPerm && this.admin
             }
@@ -504,13 +281,41 @@
             this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getClockedTaskList()
+            this.firstLoading = false
         },
         methods: {
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
+            ...mapActions('clocked/', [
+                'loadClockedList',
+                'deleteClocked',
+                'getClockedDetail'
+            ]),
             // 获取计划任务列表
-            getClockedTaskList () {},
+            async getClockedTaskList () {
+                try {
+                    this.listLoading = true
+                    const { creator, executeTime, taskName } = this.requestData
+                    const params = {
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
+                        creator: creator || undefined,
+                        task_name__contains: taskName || undefined
+                    }
+                    if (executeTime[0] && executeTime[1]) {
+                        params['plan_start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    const resp = await this.loadClockedList(params)
+                    this.pagination.count = resp.data.count
+                    this.clockedList = resp.data.results
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.listLoading = false
+                }
+            },
             // 获取当前视图表格头显示字段
             getFields () {
                 const settingFields = localStorage.getItem('ClockededList')
@@ -544,10 +349,18 @@
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
             },
+            searchInputhandler (data) {
+                this.requestData.taskName = data
+                this.pagination.current = 1
+                this.updateUrl()
+                this.getClockedTaskList()
+            },
             // 高级搜索提交
             onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
+                this.updateUrl()
+                this.getClockedTaskList()
             },
             // 页数改变
             onPageChange (page) {
@@ -575,11 +388,11 @@
             // 更新路径
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, startTime, taskName } = this.requestData
+                const { creator, executeTime, taskName } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
-                    startTime,
+                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
                     page: current,
                     keyword: taskName
                 }
@@ -594,11 +407,11 @@
             },
             // 获取前往对应模板的路径
             templateNameUrl (row) {
-                const { template_id: templateId, template_source: templateSource, project_id } = row
+                const { template_id, project_id } = row
                 const url = {
                     name: 'templatePanel',
-                    params: { type: 'edit', project_id: project_id },
-                    query: { template_id: templateId, common: templateSource === 'common' || undefined }
+                    params: { type: 'edit', project_id },
+                    query: { template_id, common: undefined }
                 }
                 return url
             },
@@ -623,47 +436,61 @@
                 this.applyForPermission(required, row.auth_actions, resourceData)
             },
             // 编辑计划任务
-            onEditClockedTask (row) {
-                if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_edit'], row)
+            async onEditClockedTask (row) {
+                if (row.task_id) return
+                // 检查计划任务是否已执行
+                const resp = await this.getClockedDetail(row)
+                if (resp.data.task_id) {
+                    this.$bkMessage({
+                        'message': i18n.t('该计划任务已执行，请重新创建'),
+                        'theme': 'success'
+                    })
+                    const index = this.clockedList.findIndex(item => item.id === row.id)
+                    this.splice(index, 1, resp.data)
                     return
                 }
+                // if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
+                //     this.onClockedPermissonCheck(['clocked_task_edit'], row)
+                //     return
+                // }
                 this.curRow = row
                 this.isShowSideslider = true
             },
             // 保存编辑计划任务
-            onSaveConfig () {},
+            onSaveConfig () {
+                this.getClockedTaskList()
+                this.onCloseConfig()
+            },
             // 取消编辑计划任务
             onCloseConfig () {
                 this.isShowSideslider = false
+                this.curRow = {}
             },
             // 删除计划任务
             onDeleteClockedTask (row) {
-                if (!this.hasPermission(['clocked_task_delete'], row.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_delete'], row)
-                    return
-                }
+                // if (!this.hasPermission(['clocked_task_delete'], row.auth_actions)) {
+                //     this.onClockedPermissonCheck(['clocked_task_delete'], row)
+                //     return
+                // }
                 this.isDeleteDialogShow = true
                 this.selectedDeleteTaskId = row.id
-                this.selectedTemplateName = row.name
+                this.selectedTemplateName = row.template_name
             },
             // 同意删除计划任务
             async onDeleteClockedConfirm () {
                 if (this.deleting) return
                 try {
                     this.deleting = true
+                    await this.deleteClocked({ id: this.selectedDeleteTaskId })
                     this.$bkMessage({
                         'message': i18n.t('删除计划任务成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
-                    if (
-                        this.pagination.current > 1
-                        && this.totalPage === this.pagination.current
-                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
-                    ) {
+                    if (this.pagination.current > 1 && this.clockedList.length === 1) {
                         this.pagination.current -= 1
+                        this.updateUrl()
                     }
                     this.getClockedTaskList()
                 } catch (e) {
@@ -705,12 +532,12 @@
         }
     }
     .template-name,
-    .task-name
+    .task-name,
     .clocked-operation > a {
         color: $blueDefault;
         padding: 5px;
         cursor: pointer;
-        &.template-bk-disable {
+        &.clocked-bk-disable {
             color:#cccccc;
             cursor: not-allowed;
         }

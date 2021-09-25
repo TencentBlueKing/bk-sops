@@ -245,10 +245,8 @@
             action () {
                 if (this.entrance === 'taskflow') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_task'] : ['common_flow_create_task']
-                } else if (this.entrance === 'periodicTask') {
-                    return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
                 } else {
-                    return this.selectedTplType === 'businessProcess' ? ['flow_create_clocked_task'] : ['common_flow_create_clocked_task']
+                    return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
                 }
             }
         },

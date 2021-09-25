@@ -84,14 +84,16 @@
                                 ref="datePickerRef"
                                 :clearable="false"
                                 :type="'datetime'"
-                                :shortcut-close="true"
                                 :value="timeRange"
                                 :placeholder="$t('请选择启动时间')"
                                 v-validate="deatPickerRule"
                                 :options="pickerOptions"
+                                @open-change="onPickerOpenChange"
                                 @change="onPickerChange">
                             </bk-date-picker>
-                            <span v-if="!timeRange" class="common-error-tip error-msg">{{ $t('启动时间不能为空') }}</span>
+                            <span v-if="isDateError" class="common-error-tip error-msg">
+                                {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -201,9 +203,10 @@
                     required: true
                 },
                 timeRange: '',
+                isDateError: false,
                 pickerOptions: {
-                    disabledDate (time) {
-                        return time.getTime() <= Date.now()
+                    disabledDate (date) {
+                        return date.getTime() + 86400000 < Date.now()
                     }
                 }
             }
@@ -238,10 +241,8 @@
                 } else {
                     if (this.isStartNow === 'now') {
                         return this.common ? ['common_flow_create_task'] : ['flow_create_task']
-                    } else if (this.isStartNow === 'periodic') {
-                        return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
                     } else {
-                        return this.common ? ['common_flow_create_clocked_task'] : ['flow_create_clocked_task']
+                        return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
                     }
                 }
             },
@@ -281,6 +282,9 @@
             ]),
             ...mapActions('periodic/', [
                 'createPeriodic'
+            ]),
+            ...mapActions('clocked/', [
+                'createClocked'
             ]),
             ...mapMutations('template/', [
                 'setTemplateData'
@@ -411,6 +415,16 @@
             },
             onPickerChange (date) {
                 this.timeRange = date
+                if (this.isDateError) {
+                    const timeRange = new Date(date).getTime() || 0
+                    this.isDateError = timeRange <= new Date().getTime()
+                }
+            },
+            onPickerOpenChange (state) {
+                if (!state) {
+                    const timeRange = new Date(this.timeRange).getTime() || 0
+                    this.isDateError = timeRange <= new Date().getTime()
+                }
             },
             onCreateTask () {
                 let hasNextPermission = false
@@ -467,6 +481,11 @@
                 const loopRule = this.isStartNow === 'periodic' ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
                 if (!loopRule.check || this.isSubmit) {
                     return false
+                }
+                if (this.isStartNow === 'clocked') {
+                    const timeRange = new Date(this.timeRange).getTime() || 0
+                    this.isDateError = timeRange <= new Date().getTime()
+                    if (this.isDateError) return
                 }
                 // 页面中是否有 TaskParamEdit 组件
                 const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
@@ -597,7 +616,34 @@
                             this.isSubmit = false
                         }
                     } else {
-                        console.log('111')
+                        const testParams = {
+                            constants: {},
+                            exclude_task_nodes_id: this.excludeNode
+                        }
+                        for (const [key, val] of Object.entries(pipelineData.constants)) {
+                            testParams.constants[key] = val.value
+                        }
+                        const data = {
+                            task_parameters: testParams,
+                            project_id: this.project_id,
+                            task_name: this.taskName,
+                            template_id: this.template_id,
+                            template_name: this.templateName,
+                            template_source: 'project',
+                            plan_start_time: this.timeRange
+                        }
+                        try {
+                            await this.createClocked(data)
+                            this.$bkMessage({
+                                'message': i18n.t('创建计划任务成功'),
+                                'theme': 'success'
+                            })
+                            this.$router.push({ name: 'clockedTemplate', params: { project_id: this.project_id } })
+                        } catch (e) {
+                            console.log(e)
+                        } finally {
+                            this.isSubmit = false
+                        }
                     }
                 })
             },
