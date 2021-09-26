@@ -57,6 +57,14 @@ class ClockedTaskManager(models.Manager):
             task.save()
         return task
 
+    def fetch_values(self, clocked_task_id, *values):
+        qs = self.filter(id=clocked_task_id).values(*values)
+
+        if not qs:
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
+
+        return qs.first()
+
 
 class ClockedTask(models.Model):
     project_id = models.IntegerField(help_text="计划任务所属项目 ID")

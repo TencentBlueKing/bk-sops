@@ -1,0 +1,153 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "clocked_task",
+                "name": "计划任务",
+                "name_en": "clocked task",
+                "description": "",
+                "description_en": "",
+                "parents": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/resource/api/v1/"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "clocked_task",
+                "name": "计划任务",
+                "name_en": "clocked task",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "clocked_task"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_create_clocked_task",
+                "name": "流程新建计划任务",
+                "name_en": "Flow Create Clocked Task",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "flow"
+                            }
+                        ]
+                    }
+                ],
+                "related_actions": [
+                    "project_view",
+                    "flow_view"
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "clocked_task_view",
+                "name": "计划任务查看",
+                "name_en": "Clocked Task View",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "clocked_task",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "clocked_task"
+                            }
+                        ]
+                    }
+                ],
+                "related_actions": [
+                    "project_view"
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "clocked_task_edit",
+                "name": "计划任务编辑",
+                "name_en": "Clocked Task Edit",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "clocked_task",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "clocked_task"
+                            }
+                        ]
+                    }
+                ],
+                "related_actions": [
+                    "project_view",
+                    "clocked_task_view"
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "clocked_task_delete",
+                "name": "计划任务删除",
+                "name_en": "clocked Task Delete",
+                "description": "",
+                "description_en": "",
+                "type": "delete",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "clocked_task",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "clocked_task"
+                            }
+                        ]
+                    }
+                ],
+                "related_actions": [
+                    "project_view"
+                ],
+                "version": 1
+            }
+        }
+    ]
+}

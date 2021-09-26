@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from iam import Resource
 
+from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project
 from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -161,6 +162,40 @@ def resources_for_periodic_task_obj(task_obj):
                 "iam_resource_owner": task_obj.creator,
                 "_bk_iam_path_": "/project,{}/".format(task_obj.project_id),
                 "name": task_obj.name,
+            },
+        )
+    ]
+
+
+# clocked_task
+
+
+def resources_for_clocked_task(clocked_task_id):
+    task_info = ClockedTask.objects.fetch_values(clocked_task_id, "creator", "task_name", "project_id")
+    return [
+        Resource(
+            IAMMeta.SYSTEM_ID,
+            IAMMeta.CLOCKED_TASK_RESOURCE,
+            str(clocked_task_id),
+            {
+                "iam_resource_owner": task_info["creator"],
+                "_bk_iam_path_": "/project,{}/".format(task_info["project_id"]),
+                "name": task_info["task_name"],
+            },
+        )
+    ]
+
+
+def resources_for_clocked_task_obj(task_obj):
+    return [
+        Resource(
+            IAMMeta.SYSTEM_ID,
+            IAMMeta.CLOCKED_TASK_RESOURCE,
+            str(task_obj.id),
+            {
+                "iam_resource_owner": task_obj.creator,
+                "_bk_iam_path_": "/project,{}/".format(task_obj.project_id),
+                "name": task_obj.task_name,
             },
         )
     ]
