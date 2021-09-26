@@ -161,10 +161,10 @@
                     text: i18n.t('立即执行')
                 }, {
                     id: 'periodic',
-                    text: i18n.t('周期执行')
+                    text: i18n.t('周期任务')
                 }, {
                     id: 'clocked',
-                    text: i18n.t('计划执行')
+                    text: i18n.t('计划任务')
                 }
             ]
             return {

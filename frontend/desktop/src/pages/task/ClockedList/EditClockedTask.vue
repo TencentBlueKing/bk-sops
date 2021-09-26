@@ -27,7 +27,7 @@
                         <bk-form-item :label="$t('启动时间')" :required="true" property="startTime">
                             <bk-date-picker
                                 v-model="formData.plan_start_time"
-                                :placeholder="`${$t('请输入启动时间')}`"
+                                :placeholder="`${$t('请选择启动时间')}`"
                                 :options="pickerOptions"
                                 :clearable="false"
                                 :type="'datetime'">
@@ -110,7 +110,7 @@
                     startTime: [
                         {
                             required: true,
-                            message: this.$t('请输入启动时间'),
+                            message: this.$t('请选择启动时间'),
                             trigger: 'blur'
                         },
                         {

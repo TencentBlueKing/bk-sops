@@ -174,7 +174,7 @@
             type: 'dateRange',
             key: 'executeTime',
             label: i18n.t('启动时间'),
-            placeholder: i18n.t('如：2019-01-30 至 2019-01-30'),
+            placeholder: i18n.t('如：2019-01-30 至 2019-02-30'),
             value: ['', '']
         }
     ]
