@@ -18,33 +18,34 @@ iam = get_iam_client()
 
 
 class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
+    actions = {
+        "list": IAMMeta.PROJECT_VIEW_ACTION,
+        "create": IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
+        "update": IAMMeta.CLOCKED_TASK_EDIT_ACTION,
+        "partial_update": IAMMeta.CLOCKED_TASK_EDIT_ACTION,
+        "retrieve": IAMMeta.CLOCKED_TASK_VIEW_ACTION,
+        "destroy": IAMMeta.CLOCKED_TASK_DELETE_ACTION,
+    }
+
     def has_permission(self, request, view):
         if view.action == "list":
             if "project_id" not in request.query_params:
                 return False
             self.iam_auth_check(
                 request,
-                action=IAMMeta.PROJECT_VIEW_ACTION,
+                action=self.actions[view.action],
                 resources=res_factory.resources_for_project(request.query_params["project_id"]),
             )
         elif view.action == "create":
             template_id = request.data.get("template_id")
             self.iam_auth_check(
-                request,
-                action=IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
-                resources=res_factory.resources_for_flow(template_id),
+                request, action=self.actions[view.action], resources=res_factory.resources_for_flow(template_id),
             )
         return True
 
     def has_object_permission(self, request, view, obj):
-        actions = {
-            "update": IAMMeta.CLOCKED_TASK_EDIT_ACTION,
-            "partial_update": IAMMeta.CLOCKED_TASK_EDIT_ACTION,
-            "retrieve": IAMMeta.CLOCKED_TASK_VIEW_ACTION,
-            "destroy": IAMMeta.CLOCKED_TASK_DELETE_ACTION,
-        }
-        if view.action in actions:
+        if view.action in self.actions:
             self.iam_auth_check(
-                request, action=actions[view.action], resources=res_factory.resources_for_clocked_task_obj(obj)
+                request, action=self.actions[view.action], resources=res_factory.resources_for_clocked_task_obj(obj)
             )
         return True
