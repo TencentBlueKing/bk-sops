@@ -173,16 +173,6 @@ const routers = new VueRouter({
                     name: 'taskHome',
                     children: [
                         {
-                            path: 'clocked/:project_id/',
-                            component: clockedTemplateList,
-                            name: 'clockedTemplate',
-                            pathToRegexpOptions: { strict: true },
-                            props: route => ({
-                                project_id: route.params.project_id
-                            }),
-                            meta: { project: true }
-                        },
-                        {
                             path: 'list/:project_id/',
                             component: TaskList,
                             name: 'taskList',
@@ -197,6 +187,16 @@ const routers = new VueRouter({
                             pathToRegexpOptions: { strict: true },
                             component: periodicTemplateList,
                             name: 'periodicTemplate',
+                            props: route => ({
+                                project_id: route.params.project_id
+                            }),
+                            meta: { project: true }
+                        },
+                        {
+                            path: 'clocked/:project_id/',
+                            component: clockedTemplateList,
+                            name: 'clockedTemplate',
+                            pathToRegexpOptions: { strict: true },
                             props: route => ({
                                 project_id: route.params.project_id
                             }),
