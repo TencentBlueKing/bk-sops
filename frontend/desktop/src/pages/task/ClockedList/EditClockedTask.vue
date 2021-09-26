@@ -174,9 +174,9 @@
             },
             onSaveConfig () {
                 try {
-                    this.saveLoading = true
                     this.$refs.basicConfigForm.validate().then(async (result) => {
                         if (!result) return
+                        this.saveLoading = true
                         const { id, plan_start_time: time, task_parameters: taskParams } = this.formData
                         const taskParamEdit = this.$refs.TaskParamEdit
                         const params = {

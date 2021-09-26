@@ -489,7 +489,7 @@
                 }
                 this.isDeleteDialogShow = true
                 this.selectedDeleteTaskId = row.id
-                this.selectedTemplateName = row.template_name
+                this.selectedTemplateName = row.task_name
             },
             // 同意删除计划任务
             async onDeleteClockedConfirm () {
