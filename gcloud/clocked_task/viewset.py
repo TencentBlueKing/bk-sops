@@ -52,17 +52,19 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
         deserialized_instances = serializer.data
         auth_actions = self.iam_get_instances_auth_actions(request, list(queryset))
         if auth_actions:
             for deserialized_instance in deserialized_instances:
                 deserialized_instance["auth_actions"] = auth_actions[deserialized_instance["id"]]
-        return Response(deserialized_instances)
+
+        return (
+            self.get_paginated_response(deserialized_instances)
+            if page is not None
+            else Response(deserialized_instances)
+        )
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
