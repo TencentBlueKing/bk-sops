@@ -11,8 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .app_maker import migrate_app_maker  # noqa
-from .resource_config import register_resource_config  # noqa
-from .staff_group import migrate_staff_group  # noqa
-from .template_category import migrate_template_category  # noqa
-from .fix_task_engine_ver import fix_engine_version_zero_task  # noqa
+from django.views.decorators.http import require_GET
+from django.http.response import JsonResponse
+
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor
+
+
+@require_GET
+@iam_intercept(AdminEditViewInterceptor())
+def fix_engine_version_zero_task(request):
+    rows = TaskFlowInstance.objects.filter(engine_ver=0).update(engine_ver=1)
+    return JsonResponse({"result": True, "message": "fix {} tasks".format(rows)})
