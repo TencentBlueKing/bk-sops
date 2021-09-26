@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from copy import deepcopy
 from typing import Optional, List
 
 from bamboo_engine import exceptions as bamboo_exceptions
@@ -398,7 +399,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         if state:
             # 获取最新的执行数据
-            if loop is None or int(loop) >= state["loop"]:
+            if loop is None or int(loop) >= state[self.node_id]["loop"]:
                 result = bamboo_engine_api.get_execution_data(runtime=runtime, node_id=self.node_id)
                 if not result.result:
                     logger.exception("bamboo_engine_api.get_execution_data fail")
@@ -538,7 +539,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     def _assemble_histroy_detail(self, detail: dict, histories: list):
         # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
-        current_loop = histories[-1]
+        # deepcopy 是为了不在 format_pipeline_status 中修改原数据
+        current_loop = deepcopy(histories[-1])
         current_loop["state"] = bamboo_engine_states.FINISHED
         format_pipeline_status(current_loop)
         detail.update(
