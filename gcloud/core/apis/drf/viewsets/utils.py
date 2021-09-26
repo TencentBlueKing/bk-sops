@@ -79,7 +79,7 @@ class IAMMixin:
 
         resource_actions_allowed = helper.iam.batch_resource_multi_actions_allowed(request, resources_list)
         iam_logger.debug(
-            "tastypie alter_list_data_to_serialize batch_resource_multi_actions_allowed request({}) result: {}".format(
+            "[drf iam_get_instances_auth_actions] batch_resource_multi_actions_allowed request({}) result: {}".format(
                 request.to_dict(), resource_actions_allowed
             )
         )
@@ -113,7 +113,7 @@ class IAMMixin:
 
         actions_allowed = helper.iam.resource_multi_actions_allowed(request)
         iam_logger.debug(
-            "tastypie alter_detail_data_to_serialize resource_multi_actions_allowed request({}) result: {}".format(
+            "[drf iam_get_instance_auth_actions] resource_multi_actions_allowed request({}) result: {}".format(
                 request.to_dict(), actions_allowed
             )
         )
