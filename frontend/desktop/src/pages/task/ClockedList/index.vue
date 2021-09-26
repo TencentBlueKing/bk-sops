@@ -38,15 +38,16 @@
                             <template slot-scope="{ row }">
                                 <!--流程模板-->
                                 <div v-if="item.id === 'template_name'">
-                                    <!-- <a
-                                        v-if="!hasPermission(['clocked_template_view'], row.auth_actions)"
+                                    <a
+                                        v-if="!hasPermission(['clocked_task_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
                                         :title="row.template_name"
-                                        @click="onClockedPermissonCheck(['clocked_template_view'], row, $event)">
+                                        @click="onClockedPermissonCheck(['clocked_task_view'], row, $event)">
                                         {{ row.template_name }}
-                                    </a> -->
+                                    </a>
                                     <router-link
+                                        v-else
                                         class="template-name"
                                         :title="row.template_name"
                                         :to="templateNameUrl(row)">
@@ -56,15 +57,16 @@
                                 <!--任务实例-->
                                 <div v-else-if="item.id === 'task_instance'">
                                     <template v-if="row.task_id">
-                                        <!-- <a
+                                        <a
                                             v-if="!hasPermission(['clocked_task_view'], row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
                                             :title="row.task_name"
                                             @click="onClockedPermissonCheck(['clocked_task_view'], row, $event)">
                                             {{ row.task_name }}
-                                        </a> -->
+                                        </a>
                                         <router-link
+                                            v-else
                                             class="task-name"
                                             :title="row.task_name"
                                             :to="{
@@ -86,19 +88,24 @@
                         <bk-table-column :label="$t('操作')" width="240">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
+                                    v-cursor="{ active: !hasPermission(['clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
-                                    :class="['clocked-bk-btn', {
-                                        'clocked-bk-disable': props.row.task_id
-                                    }]"
+                                    :class="{
+                                        'clocked-bk-disable': !hasPermission(['clocked_task_edit'], props.row.auth_actions) || props.row.task_id
+                                    }"
                                     v-bk-tooltips.top="{
                                         content: $t('已执行的计划任务无法编辑'),
-                                        disabled: !props.row.task_id
+                                        disabled: hasPermission(['clocked_task_edit'], props.row.auth_actions) ? !props.row.task_id : true
                                     }"
                                     @click="onEditClockedTask(props.row, $event)">
                                     {{ $t('编辑') }}
                                 </a>
                                 <a
+                                    v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
+                                    :class="{
+                                        'clocked-bk-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
+                                    }"
                                     @click="onDeleteClockedTask(props.row, $event)">
                                     {{ $t('删除') }}
                                 </a>
@@ -287,6 +294,9 @@
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
+            ...mapActions('project', [
+                'loadProjectDetail'
+            ]),
             ...mapActions('clocked/', [
                 'loadClockedList',
                 'deleteClocked',
@@ -302,6 +312,9 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         creator: creator || undefined,
                         task_name__contains: taskName || undefined
+                    }
+                    if (!this.admin) {
+                        params.project_id = this.project_id
                     }
                     if (executeTime[0] && executeTime[1]) {
                         params['plan_start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
@@ -420,39 +433,41 @@
              * @params {Array} required 需要的权限
              * @params {Object} clocked 模板数据对象
              */
-            onClockedPermissonCheck (required, row) {
-                const { id, name, task_template_name, template_id, project } = row
+            async onClockedPermissonCheck (required, row) {
+                const { id, task_name, template_name, template_id, project_id } = row
+                const projectDetail = await this.loadProjectDetail(project_id)
                 const resourceData = {
-                    clocked_task: [{ id, name }],
+                    clocked_task: [{ id, name: task_name }],
                     flow: [{
                         id: template_id,
-                        name: task_template_name
+                        name: template_name
                     }],
                     project: [{
-                        id: project.id,
-                        name: project.name
+                        id: project_id,
+                        name: projectDetail.name
                     }]
                 }
                 this.applyForPermission(required, row.auth_actions, resourceData)
             },
             // 编辑计划任务
             async onEditClockedTask (row) {
+                // 权限校验
+                if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_edit'], row)
+                    return
+                }
                 if (row.task_id) return
                 // 检查计划任务是否已执行
                 const resp = await this.getClockedDetail(row)
                 if (resp.data.task_id) {
                     this.$bkMessage({
                         'message': i18n.t('该计划任务已执行，请重新创建'),
-                        'theme': 'success'
+                        'theme': 'warning '
                     })
                     const index = this.clockedList.findIndex(item => item.id === row.id)
-                    this.splice(index, 1, resp.data)
+                    this.clockedList.splice(index, 1, resp.data)
                     return
                 }
-                // if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
-                //     this.onClockedPermissonCheck(['clocked_task_edit'], row)
-                //     return
-                // }
                 this.curRow = row
                 this.isShowSideslider = true
             },
@@ -468,10 +483,10 @@
             },
             // 删除计划任务
             onDeleteClockedTask (row) {
-                // if (!this.hasPermission(['clocked_task_delete'], row.auth_actions)) {
-                //     this.onClockedPermissonCheck(['clocked_task_delete'], row)
-                //     return
-                // }
+                if (!this.hasPermission(['clocked_task_delete'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_delete'], row)
+                    return
+                }
                 this.isDeleteDialogShow = true
                 this.selectedDeleteTaskId = row.id
                 this.selectedTemplateName = row.template_name

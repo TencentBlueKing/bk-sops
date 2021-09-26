@@ -241,8 +241,10 @@
                 } else {
                     if (this.isStartNow === 'now') {
                         return this.common ? ['common_flow_create_task'] : ['flow_create_task']
-                    } else {
+                    } else if (this.isStartNow === 'periodic') {
                         return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
+                    } else {
+                        return ['flow_create_clocked_task']
                     }
                 }
             },
