@@ -11,18 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
+from gcloud.iam_auth import res_factory
+from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+
+from iam.contrib.tastypie.resource import IAMResourceHelper
 
 
-class IamAuthConfig(AppConfig):
-    name = "gcloud.iam_auth"
+class ClockedTaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    """
+    基于DRF的helper，直接会用obj作为入参
+    """
 
-    def ready(self):
-        from gcloud.iam_auth.resource_creator_action import (  # noqa
-            common_flow,
-            flow,
-            mini_app,
-            periodic_task,
-            clocked_task,
-        )
-        from gcloud.iam_auth.signals.handlers import user_enter_handler  # noqa
+    def get_resources(self, obj):
+
+        return res_factory.resources_for_clocked_task_obj(obj)
+
+    def get_resources_id(self, obj):
+        return obj.id

@@ -17,21 +17,61 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud.clocked_task.models import ClockedTask
+from gcloud.clocked_task.permissions import ClockedTaskPermissions
 from gcloud.clocked_task.serializer import ClockedTaskSerializer
-from gcloud.core.apis.drf.viewsets import ApiMixin
+from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
+from gcloud.iam_auth import get_iam_client, IAMMeta
+from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
+
+iam = get_iam_client()
 
 
-class ClockedTaskViewSet(ApiMixin, viewsets.ModelViewSet):
+class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
     queryset = ClockedTask.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, ClockedTaskPermissions]
     serializer_class = ClockedTaskSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         "creator": ["exact"],
         "plan_start_time": ["gte", "lte"],
         "task_name": ["exact", "icontains", "contains"],
+        "project_id": ["exact"],
     }
     pagination_class = LimitOffsetPagination
+    iam_resource_helper = ClockedTaskResourceHelper(
+        iam=iam,
+        system=IAMMeta.SYSTEM_ID,
+        actions=[
+            IAMMeta.CLOCKED_TASK_VIEW_ACTION,
+            IAMMeta.CLOCKED_TASK_EDIT_ACTION,
+            IAMMeta.CLOCKED_TASK_DELETE_ACTION,
+        ],
+    )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        deserialized_instances = serializer.data
+        auth_actions = self.iam_get_instances_auth_actions(request, list(queryset))
+        if auth_actions:
+            for deserialized_instance in deserialized_instances:
+                deserialized_instance["auth_actions"] = auth_actions[deserialized_instance["id"]]
+        return Response(deserialized_instances)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        deserialized_instance = serializer.data
+        auth_actions = self.iam_get_instance_auth_actions(request, instance)
+        if auth_actions:
+            deserialized_instance["auth_actions"] = auth_actions
+        return Response(deserialized_instance)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
