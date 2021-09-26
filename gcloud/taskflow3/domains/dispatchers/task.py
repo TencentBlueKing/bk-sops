@@ -65,6 +65,12 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         "revoke",
     }
 
+    OPERATION_TYPE_COMMANDS = {
+        "pause",
+        "resume",
+        "revoke",
+    }
+
     def __init__(
         self, engine_ver: int, taskflow_id: int, pipeline_instance: PipelineInstance, project_id: int, queue: str = ""
     ):
@@ -80,6 +86,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if command not in self.TASK_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
+
+        if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
+            return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
         return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
