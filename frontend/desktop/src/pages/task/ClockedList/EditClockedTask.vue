@@ -12,7 +12,7 @@
                     <p class="title">{{$t('基础信息')}}</p>
                     <bk-form
                         :label-width="90"
-                        ref="validateForm"
+                        ref="basicConfigForm"
                         :model="formData"
                         :rules="rules">
                         <bk-form-item :label="$t('计划名称')" :required="true" property="planName">
@@ -89,7 +89,7 @@
             },
             curRow: {
                 type: Object,
-                default: () => {}
+                default: () => ({})
             }
         },
         data () {
@@ -172,10 +172,10 @@
                     this.isLoading = false
                 }
             },
-            async onSaveConfig () {
+            onSaveConfig () {
                 try {
                     this.saveLoading = true
-                    await this.$refs.validateForm.validate().then(async (result) => {
+                    this.$refs.basicConfigForm.validate().then(async (result) => {
                         if (!result) return
                         const { id, plan_start_time: time, task_parameters: taskParams } = this.formData
                         const taskParamEdit = this.$refs.TaskParamEdit
@@ -193,13 +193,13 @@
                             'theme': 'success'
                         })
                         this.isShowDialog = false
+                        this.saveLoading = false
                         this.constants = {}
                         this.$emit('onSaveConfig')
                     })
                 } catch (error) {
-                    console.warn(error)
-                } finally {
                     this.saveLoading = false
+                    console.warn(error)
                 }
             },
             onCloseConfig () {
