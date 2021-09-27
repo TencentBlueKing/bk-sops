@@ -69,6 +69,7 @@ PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = "gcloud.periodictask.models.P
 PERIODIC_TASK_HISTORY_CREATE = "gcloud.periodictask.models.PeriodicTaskHistory.objects.create"
 
 APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE = "gcloud.apigw.views.create_task.jsonschema.validate"
+APIGW_CREATE_ADN_STATRT_TASK_JSON_SCHEMA_VALIDATE = "gcloud.apigw.views.create_and_start_task.jsonschema.validate"
 APIGW_CREATE_TASK_NODE_NAME_HANDLE = "gcloud.apigw.views.create_task.standardize_pipeline_node_name"
 APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE = "gcloud.apigw.views.create_task.validate_web_pipeline_tree"
 APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE = "gcloud.apigw.views.create_periodic_task.jsonschema.validate"
@@ -94,6 +95,7 @@ APIGW_DECORATOR_GET_USER_MODEL = "gcloud.apigw.decorators.get_user_model"
 APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
 APIGW_START_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.start_task.TaskFlowInstance"
 APIGW_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.start_task.prepare_and_start_task"
+APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.create_and_start_task.prepare_and_start_task"
 
 MAIN_PACKAGE_SOURCE_GET = "gcloud.external_plugins.models.main_source.MainPackageSource.objects.get"
 
@@ -160,6 +162,9 @@ PIPELINE_INSTANCE_GET = "pipeline.models.PipelineInstance.objects.get"
 PIPELINE_TEMPLATE_GET = "pipeline.models.PipelineTemplate.objects.get"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
+TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
+TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
+
 
 TEMPLATEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.TemplateInPipeline.objects.filter"
 INSTANCEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.InstanceInPipeline.objects.filter"
