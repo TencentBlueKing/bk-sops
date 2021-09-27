@@ -64,6 +64,8 @@ class CreateAndStartTaskAPITest(APITest):
                     "task_url": TEST_TASKFLOW_URL,
                     "pipeline_tree": TEST_TASKFLOW_PIPELINE_TREE,
                 }
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID)
+                print(path)
                 response = self.client.post(
                     path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                     data=json.dumps(
