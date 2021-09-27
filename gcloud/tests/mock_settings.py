@@ -94,6 +94,7 @@ APIGW_DECORATOR_GET_USER_MODEL = "gcloud.apigw.decorators.get_user_model"
 APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
 APIGW_START_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.start_task.TaskFlowInstance"
 APIGW_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.start_task.prepare_and_start_task"
+APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.create_and_start_task.prepare_and_start_task"
 
 MAIN_PACKAGE_SOURCE_GET = "gcloud.external_plugins.models.main_source.MainPackageSource.objects.get"
 

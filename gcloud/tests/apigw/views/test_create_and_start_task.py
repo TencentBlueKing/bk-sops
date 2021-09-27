@@ -32,6 +32,7 @@ TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
 TEST_PIPELINE_TREE = {"constants": {"key1": {"value": ""}}}
+TEST_PRE_PARE_AND_START_TASK = MagicMock()
 
 
 class CreateAndStartTaskAPITest(APITest):
@@ -53,48 +54,49 @@ class CreateAndStartTaskAPITest(APITest):
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
-                assert_data = {
-                    "task_id": TEST_TASKFLOW_ID,
-                    "task_url": TEST_TASKFLOW_URL,
-                    "pipeline_tree": TEST_TASKFLOW_PIPELINE_TREE,
-                }
-                response = self.client.post(
-                    path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-                    data=json.dumps(
-                        {
-                            "name": "name",
-                            "constants": {},
-                            "template_source": "common",
-                            "flow_type": "common",
-                            "exclude_task_nodes_id": "exclude_task_nodes_id",
-                        }
-                    ),
-                    content_type="application/json",
-                    HTTP_BK_APP_CODE=TEST_APP_CODE,
-                    HTTP_BK_USERNAME=TEST_USERNAME,
-                )
+                with mock.patch(APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK, TEST_PRE_PARE_AND_START_TASK):
+                    assert_data = {
+                        "task_id": TEST_TASKFLOW_ID,
+                        "task_url": TEST_TASKFLOW_URL,
+                        "pipeline_tree": TEST_TASKFLOW_PIPELINE_TREE,
+                    }
+                    response = self.client.post(
+                        path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                        data=json.dumps(
+                            {
+                                "name": "name",
+                                "constants": {},
+                                "template_source": "common",
+                                "flow_type": "common",
+                                "exclude_task_nodes_id": "exclude_task_nodes_id",
+                            }
+                        ),
+                        content_type="application/json",
+                        HTTP_BK_APP_CODE=TEST_APP_CODE,
+                        HTTP_BK_USERNAME=TEST_USERNAME,
+                    )
 
-                TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id"
-                )
+                    TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
+                        tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id"
+                    )
 
-                TaskFlowInstance.objects.create.assert_called_once_with(
-                    project=proj,
-                    category=tmpl.category,
-                    pipeline_instance=TEST_DATA,
-                    template_id=TEST_TEMPLATE_ID,
-                    template_source="common",
-                    create_method="api",
-                    flow_type="common",
-                    create_info=TEST_APP_CODE,
-                    current_flow="execute_task",
-                    engine_ver=1,
-                )
+                    TaskFlowInstance.objects.create.assert_called_once_with(
+                        project=proj,
+                        category=tmpl.category,
+                        pipeline_instance=TEST_DATA,
+                        template_id=TEST_TEMPLATE_ID,
+                        template_source="common",
+                        create_method="api",
+                        flow_type="common",
+                        create_info=TEST_APP_CODE,
+                        current_flow="execute_task",
+                        engine_ver=1,
+                    )
 
-                data = json.loads(response.content)
+                    data = json.loads(response.content)
 
-                self.assertTrue(data["result"], msg=data)
-                self.assertEqual(data["data"], assert_data)
+                    self.assertTrue(data["result"], msg=data)
+                    self.assertEqual(data["data"], assert_data)
 
     @mock.patch(
         PROJECT_GET,
