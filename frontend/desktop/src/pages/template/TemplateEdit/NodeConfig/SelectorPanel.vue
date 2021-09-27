@@ -169,7 +169,7 @@
         <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
             <ul>
                 <li
-                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.nodeName }]"
+                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
                     :key="index"
                     @click="onThirdPratyClick(plugin)">
@@ -430,14 +430,14 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
-                    const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
+                    const appDetail = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
-                        name: code,
-                        code: appDeatil.data.name,
+                        code,
+                        name: appDetail.data.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
