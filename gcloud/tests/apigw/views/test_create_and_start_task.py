@@ -134,7 +134,7 @@ class CreateAndStartTaskAPITest(APITest):
         ),
     )
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=Exception))
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=Exception()))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_and_start_task__create_pipeline_raise(self):
         response = self.client.post(
@@ -162,7 +162,7 @@ class CreateAndStartTaskAPITest(APITest):
     @mock.patch(COMMONTEMPLATE_GET, MagicMock(return_value=MockQuerySet()))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(TASKINSTANCE_CREATE, MagicMock(side_effect=Exception))
+    @mock.patch(TASKINSTANCE_CREATE, MagicMock(side_effect=Exception()))
     def test_create_and_start_task__create_taskinstance_raise(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
