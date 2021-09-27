@@ -128,10 +128,12 @@ def create_and_start_task(request, template_id, project_id):
         "description": params.get("description", ""),
     }
     try:
+        print("v9")
         data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
             tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"]
         )
     except Exception as e:
+        print("v10")
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
     # 创建task
@@ -150,18 +152,21 @@ def create_and_start_task(request, template_id, project_id):
                 project_id=project.id, template_id=template_id, template_source=template_source
             ),
         )
+        print("v11")
     except Exception as e:
+        print("v12")
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
     # 开始执行task
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2
     ).resolve_task_queue_and_routing_key()
-
+    print("v13")
     prepare_and_start_task.apply_async(
         kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username),
         queue=queue,
         routing_key=routing_key,
     )
+    print("v14")
 
     return {
         "result": True,
