@@ -53,11 +53,13 @@ from gcloud.contrib.operate_record.constants import RecordType, OperateType, Ope
 @iam_intercept(CreateTaskInterceptor())
 @record_operation(RecordType.task.name, OperateType.create.name, OperateSource.api.name)
 def create_and_start_task(request, template_id, project_id):
+    print("v1")
     params = json.loads(request.body)
     project = request.project
     template_source = params.get("template_source", BUSINESS)
 
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, "start"):
+        print("v2")
         return {
             "result": False,
             "message": "project id: {} reach the limit of starting tasks".format(project.id),
@@ -72,6 +74,7 @@ def create_and_start_task(request, template_id, project_id):
 
     # 根据template_id获取template
     if template_source == BUSINESS:
+        print("v3")
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
                 id=template_id, project_id=project.id, is_deleted=False
@@ -85,6 +88,7 @@ def create_and_start_task(request, template_id, project_id):
             }
             return result
     else:
+        print("v4")
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
@@ -96,18 +100,22 @@ def create_and_start_task(request, template_id, project_id):
             return result
 
     # 检查app_code是否存在
+    print("v5")
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = "app_code cannot be empty, make sure api gateway has sent correct params"
         return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     # 请求参数校验
+    print("v6")
     try:
         params.setdefault("flow_type", COMMON)
         params.setdefault("template_source", BUSINESS)
         params.setdefault("constants", {})
         params.setdefault("exclude_task_nodes_id", [])
+        print("v7")
         jsonschema.validate(params, APIGW_CREATE_AND_START_TASK_PARAMS)
+        print("v8")
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_and_start_task raise params error: %s" % e)
         message = "task parmas is invalid: %s" % e
