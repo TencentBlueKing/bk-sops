@@ -1099,10 +1099,13 @@
                         const versionList = versions.map(version => {
                             return { version }
                         })
+                        const { data } = nodeConfig.component
+                        let version = data && data.plugin_version
+                        version = version && version.value
                         const group = {
                             nodeName: code,
                             list: versionList,
-                            version: nodeConfig.component.version,
+                            version,
                             desc: description
                         }
                         this.thirdPartyList[id] = group
