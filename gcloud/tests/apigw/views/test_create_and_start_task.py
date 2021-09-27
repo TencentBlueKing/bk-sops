@@ -76,8 +76,7 @@ class CreateAndStartTaskAPITest(APITest):
                         }
                     ),
                     content_type="application/json",
-                    HTTP_BK_APP_CODE=TEST_APP_CODE,
-                    HTTP_BK_USERNAME=TEST_USERNAME,
+                    HTTP_BK_APP_CODE=TEST_APP_CODE
                 )
                 print(7)
 
